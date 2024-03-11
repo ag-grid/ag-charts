@@ -1,3 +1,4 @@
+import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
@@ -53,7 +54,7 @@ export interface ModuleContextWithParent<P> extends ModuleContext {
 export interface AxisContext {
     axisId: string;
     continuous: boolean;
-    direction: 'x' | 'y';
+    direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
     keys(): string[];
     scaleBandwidth(): number;

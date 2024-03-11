@@ -119,16 +119,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected override resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
-        if (this.getBarDirection() === ChartAxisDirection.X) {
-            if (direction === ChartAxisDirection.X) {
-                return ChartAxisDirection.Y;
-            }
-            return ChartAxisDirection.X;
-        }
-        return direction;
-    }
-
     override async processData(dataController: _ModuleSupport.DataController) {
         if (!this.properties.isValid()) {
             return;
