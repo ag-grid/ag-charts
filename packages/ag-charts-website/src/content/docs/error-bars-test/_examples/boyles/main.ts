@@ -1,10 +1,10 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getArgon, getHelium, getOxygen } from './data';
 
 type Datum = ReturnType<typeof getArgon>[number];
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Volume-Pressure Relationship with Confidence Intervals',
