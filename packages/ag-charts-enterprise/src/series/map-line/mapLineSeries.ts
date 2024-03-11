@@ -1,11 +1,19 @@
-import { AgMapLineSeriesStyle, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import {
+    AgMapLineSeriesFormatterParams,
+    AgMapLineSeriesStyle,
+    _ModuleSupport,
+    _Scale,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
-const { createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
+const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
+const { ColorScale } = _Scale;
 const { Group, Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
@@ -38,6 +46,8 @@ export class MapLineSeries
     override get hasData() {
         return super.hasData && this.topology != null;
     }
+
+    private readonly colorScale = new ColorScale();
 
     private backgroundNode = this.contentGroup.appendChild(new GeoGeometry());
 
@@ -120,8 +130,8 @@ export class MapLineSeries
             return;
         }
 
-        const { data, topology } = this;
-        const { topologyIdKey, idKey, labelKey } = this.properties;
+        const { data, topology, colorScale } = this;
+        const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
         topology?.features.forEach((feature) => {
@@ -138,6 +148,7 @@ export class MapLineSeries
                     processor: () => (datum) => featureById.get(datum),
                 }),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
+                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 
@@ -158,9 +169,34 @@ export class MapLineSeries
 
         this.topologyBounds = bbox;
 
+        if (colorRange != null && this.isColorScaleValid()) {
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+            colorScale.domain = processedData.domain.values[colorKeyIdx];
+            colorScale.range = colorRange;
+            colorScale.update();
+        }
+
         if (topology == null) {
             Logger.warnOnce(`no topology was provided for [MapSeries]; nothing will be rendered.`);
         }
+    }
+
+    private isColorScaleValid() {
+        const { colorKey } = this.properties;
+        if (!colorKey) {
+            return false;
+        }
+
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) {
+            return false;
+        }
+
+        const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+        const dataCount = processedData.data.length;
+        const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
+        const colorDataMissing = dataCount === 0 || dataCount === missCount;
+        return !colorDataMissing;
     }
 
     private getLabelDatum(
@@ -171,13 +207,15 @@ export class MapLineSeries
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
-        const { idKey, idName, labelKey, labelName, label } = this.properties;
+        const { idKey, idName, colorKey, colorName, labelKey, labelName, label } = this.properties;
 
         const labelText = this.getLabelText(label, {
             value: labelValue,
             datum,
             idKey,
             idName,
+            colorKey,
+            colorName,
             labelKey,
             labelName,
         });
@@ -200,15 +238,19 @@ export class MapLineSeries
     }
 
     override async createNodeData(): Promise<MapLineNodeDataContext[]> {
-        const { id: seriesId, dataModel, processedData, properties, scale } = this;
-        const { idKey, labelKey, label } = properties;
+        const { id: seriesId, dataModel, processedData, colorScale, properties, scale } = this;
+        const { idKey, colorKey, labelKey, label } = properties;
 
         if (dataModel == null || processedData == null) return [];
+
+        const colorScaleValid = this.isColorScaleValid();
 
         const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`).index;
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
         const labelIdx =
             labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
+        const colorIdx =
+            colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
 
         const font = label.getFont();
 
@@ -227,7 +269,11 @@ export class MapLineSeries
         const missingGeometries: string[] = [];
         processedData.data.forEach(({ datum, values }) => {
             const idValue = values[idIdx];
+            const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
             const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
+
+            const color: string | undefined =
+                colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {
@@ -243,7 +289,9 @@ export class MapLineSeries
                 series: this,
                 itemId: idKey,
                 datum,
-                idValue: idValue,
+                stroke: color,
+                idValue,
+                colorValue,
                 projectedGeometry,
             });
         });
@@ -343,10 +391,15 @@ export class MapLineSeries
         datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum>;
         isHighlight: boolean;
     }) {
+        const {
+            id: seriesId,
+            properties,
+            ctx: { callbackCache },
+        } = this;
         const { datumSelection, isHighlight } = opts;
-        const { stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties;
-        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
+        const { idKey, labelKey, colorKey, stroke, strokeOpacity, lineDash, lineDashOffset, formatter } = properties;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;
@@ -356,13 +409,32 @@ export class MapLineSeries
                 return;
             }
 
+            let format: AgMapLineSeriesStyle | undefined;
+            if (formatter != null) {
+                const params: _Util.RequireOptional<AgMapLineSeriesFormatterParams> = {
+                    seriesId,
+                    datum: datum.datum,
+                    itemId: datum.itemId,
+                    idKey,
+                    labelKey,
+                    colorKey,
+                    strokeOpacity,
+                    stroke,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                    highlighted: isHighlight,
+                };
+                format = callbackCache.call(formatter, params as AgMapLineSeriesFormatterParams);
+            }
+
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.stroke = highlightStyle?.stroke ?? stroke;
-            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            geoGeometry.lineDash = highlightStyle?.lineDash ?? lineDash;
-            geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            geoGeometry.stroke = highlightStyle?.stroke ?? format?.stroke ?? datum.stroke ?? stroke;
+            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
+            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
+            geoGeometry.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
+            geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
         });
     }
 
@@ -440,9 +512,22 @@ export class MapLineSeries
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
-        const { legendItemName, idKey, stroke, strokeOpacity, visible } = this.properties;
+        const { legendItemName, idKey, colorKey, colorName, colorRange, stroke, strokeOpacity, visible } =
+            this.properties;
 
-        if (legendType === 'category') {
+        if (legendType === 'gradient' && colorKey != null && colorRange != null) {
+            const colorDomain =
+                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue').index];
+            const legendDatum: _ModuleSupport.GradientLegendDatum = {
+                legendType: 'gradient',
+                enabled: visible,
+                seriesId: this.id,
+                colorName,
+                colorRange,
+                colorDomain,
+            };
+            return [legendDatum];
+        } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: this.id,
@@ -469,18 +554,23 @@ export class MapLineSeries
         const {
             id: seriesId,
             processedData,
+            properties,
             ctx: { callbackCache },
         } = this;
 
-        if (!processedData || !this.properties.isValid()) {
+        if (!processedData || !properties.isValid()) {
             return '';
         }
 
-        const { idKey, stroke, strokeWidth, formatter, tooltip } = this.properties;
-        const { datum, idValue } = nodeDatum;
+        const { idKey, colorKey, colorName, strokeWidth, formatter, tooltip } = properties;
+        const { datum, stroke, idValue, colorValue } = nodeDatum;
 
         const title = sanitizeHtml(idValue);
-        const content = '';
+        const contentLines: string[] = [];
+        if (colorValue != null) {
+            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
+        }
+        const content = contentLines.join('<br>');
 
         let format: AgMapLineSeriesStyle | undefined;
 
@@ -495,7 +585,7 @@ export class MapLineSeries
             });
         }
 
-        const color = format?.stroke ?? stroke;
+        const color = format?.stroke ?? stroke ?? properties.stroke;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

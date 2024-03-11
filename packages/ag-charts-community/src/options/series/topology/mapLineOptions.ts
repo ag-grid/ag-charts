@@ -66,6 +66,8 @@ export interface AgMapLineSeriesOptions<TDatum = any>
 export interface AgMapLineSeriesOptionsKeys {
     /** The name of the node key containing the id value. */
     idKey?: string;
+    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the line stroke. */
+    colorKey?: string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
     labelKey?: string;
 }
@@ -73,6 +75,8 @@ export interface AgMapLineSeriesOptionsKeys {
 export interface AgMapLineSeriesOptionsNames {
     /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     idName?: string;
+    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    colorName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
 }
@@ -83,7 +87,6 @@ export type AgMapLineSeriesLabelFormatterParams = AgMapLineSeriesOptionsKeys & A
 export interface AgMapLineSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgMapLineSeriesOptionsKeys,
-        AgMapLineSeriesOptionsNames,
         AgMapLineSeriesStyle {
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;

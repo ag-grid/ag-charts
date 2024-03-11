@@ -29,7 +29,10 @@ export interface AgMapMarkerSeriesMarker<TDatum> extends AgSeriesMarkerOptions<A
 
 export interface AgMapMarkerSeriesLabel<TDatum>
     extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams> {
-    /** Placement of label in relation to the marker (if visible). Defaults to `bottom`. */
+    /**
+     * Placement of label in relation to the marker.
+     * Default: `bottom`
+     */
     placement?: LabelPlacement;
 }
 
@@ -108,7 +111,6 @@ export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys
 export interface AgMapMarkerSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgMapMarkerSeriesOptionsKeys,
-        AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesStyle {
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;

@@ -216,7 +216,7 @@ function getSIPrefix(n: number) {
 }
 
 function getSIPrefixPower(n: number) {
-    return clamp(minSIPrefix, Math.floor(Math.log10(Math.abs(n)) / 3) * 3, maxSIPrefix);
+    return clamp(minSIPrefix, n ? Math.floor(Math.log10(Math.abs(n)) / 3) * 3 : 0, maxSIPrefix);
 }
 
 const minSIPrefix = -24;

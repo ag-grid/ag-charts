@@ -278,7 +278,7 @@ export function pairCategoryData(
     return { result, resultMap: resultMapSingle };
 }
 
-export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike) {
+export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike, pairData: PathPoint[]) {
     let status: NodeUpdateState = 'updated';
 
     const visible = (data: LineContextLike) => {
@@ -289,6 +289,15 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
         status = 'added';
     } else if (visible(oldData) && !visible(newData)) {
         status = 'removed';
+    } else {
+        // Verify some points are actually moving.
+        for (let i = 0; i < pairData.length; i++) {
+            if (pairData[i].change !== 'move') break;
+            if (pairData[i].from?.x !== pairData[i].to?.x) break;
+            if (pairData[i].from?.y !== pairData[i].to?.y) break;
+
+            if (i === pairData.length - 1) return 'no-op';
+        }
     }
     return status;
 }
@@ -336,7 +345,7 @@ export function prepareLinePathAnimationFns(
     visibleToggleMode: 'fade' | 'none',
     render: (pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) => void
 ) {
-    const status = determinePathStatus(newData, oldData);
+    const status = determinePathStatus(newData, oldData, pairData);
     const removePhaseFn = (ratio: number, path: Path) => {
         render(pairData, { move: 0, out: ratio }, path);
     };

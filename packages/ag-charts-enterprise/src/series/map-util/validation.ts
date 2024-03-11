@@ -8,8 +8,9 @@ function isValidCoordinates(v: any) {
     return Array.isArray(v) && v.length >= 2 && v.every(isValidCoordinate);
 }
 
+const delta = 1e-3;
 function hasSameStartEndPoint(c: number[][]) {
-    return Math.abs(c[0][0] - c[c.length - 1][0]) < 1e-3 && Math.abs(c[0][1] - c[c.length - 1][1]) < 1e-3;
+    return Math.abs(c[0][0] - c[c.length - 1][0]) < delta && Math.abs(c[0][1] - c[c.length - 1][1]) < delta;
 }
 
 function isValidPolygon(v: any) {
@@ -21,8 +22,9 @@ function isValidGeometry(v: any) {
 
     const { type, coordinates } = v;
 
-    // Point, LineString, Polygon, MultiPoint, MultiLineString, and MultiPolygon
     switch (type) {
+        case 'GeometryCollection':
+            return Array.isArray(v.geometries) && v.geometries.every(isValidGeometry);
         case 'MultiPolygon':
             return Array.isArray(coordinates) && coordinates.every(isValidPolygon);
         case 'Polygon':
