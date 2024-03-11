@@ -1,5 +1,5 @@
 import { tickFormat } from '../util/numberFormat';
-import ticks, { range, singleTickDomain, tickStep } from '../util/ticks';
+import ticks, { isDenseInterval, range, singleTickDomain, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 
 /**
@@ -28,7 +28,8 @@ export class LinearScale extends ContinuousScale<number> {
 
         if (interval) {
             const step = Math.abs(interval);
-            if (!this.isDenseInterval({ start: d0, stop: d1, interval: step })) {
+            const availableRange = this.getPixelRange();
+            if (!isDenseInterval({ start: d0, stop: d1, interval: step, availableRange })) {
                 return range(d0, d1, step);
             }
         }

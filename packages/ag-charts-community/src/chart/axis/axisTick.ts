@@ -1,3 +1,4 @@
+import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { TimeScale } from '../../scale/timeScale';
 import { Default } from '../../util/default';
@@ -14,7 +15,7 @@ import {
     predicateWithMessage,
 } from '../../util/validation';
 
-export type TickInterval<S> = S extends TimeScale ? number | TimeInterval : number;
+export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
 
 export type TickCount<S> = S extends TimeScale ? number | TimeInterval : number;
 

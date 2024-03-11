@@ -2,7 +2,7 @@ import { identity } from '../util/function';
 import { Logger } from '../util/logger';
 import { findRangeExtent } from '../util/number';
 import { format } from '../util/numberFormat';
-import generateTicks, { createNumericTicks, range } from '../util/ticks';
+import generateTicks, { createNumericTicks, isDenseInterval, range } from '../util/ticks';
 import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
@@ -102,7 +102,8 @@ export class LogScale extends ContinuousScale<number> {
                 ticks.map((x) => this.pow(x)).filter((t) => t >= start && t <= stop)
             );
 
-            if (!this.isDenseInterval({ start, stop, interval: step, count: ticks.length })) {
+            const availableRange = this.getPixelRange();
+            if (!isDenseInterval({ start, stop, interval: step, count: ticks.length, availableRange })) {
                 return ticks;
             }
         }

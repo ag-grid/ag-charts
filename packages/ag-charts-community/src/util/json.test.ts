@@ -406,7 +406,7 @@ describe('json module', () => {
     });
 
     describe('#jsonApply', () => {
-        let json: any = {
+        const json: any = {
             str: 'test-string',
             num: 123,
             date: FIXED_DATE,

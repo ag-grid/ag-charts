@@ -323,7 +323,7 @@ export function diff(
                 const prevId = prev ? createDatumId(prev.keys) : '';
                 const datumId = datum ? createDatumId(datum.keys) : '';
 
-                if (prevId === datumId) {
+                if (datum && prev && prevId === datumId) {
                     if (!arraysEqual(prev.values, datum.values)) {
                         updated.set(datumId, datum);
                         updatedIndices.set(datumId, i);

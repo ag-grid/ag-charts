@@ -120,7 +120,7 @@ export class MapShapeSeries
             return;
         }
 
-        const { data, topology } = this;
+        const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
         const featureById = new Map<string, Feature>();
@@ -154,9 +154,9 @@ export class MapShapeSeries
 
         if (colorRange != null && this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
-            this.colorScale.domain = processedData.domain.values[colorKeyIdx];
-            this.colorScale.range = colorRange;
-            this.colorScale.update();
+            colorScale.domain = processedData.domain.values[colorKeyIdx];
+            colorScale.range = colorRange;
+            colorScale.update();
         }
 
         if (topology == null) {

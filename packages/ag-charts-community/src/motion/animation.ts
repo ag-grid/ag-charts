@@ -13,7 +13,7 @@ export type AnimationMetadata = {
 };
 export const QUICK_TRANSITION = 0.2;
 
-export const PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end'] as const;
+export const PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end', 'none'] as const;
 export type AnimationPhase = (typeof PHASE_ORDER)[number];
 export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
     initial: {
@@ -41,6 +41,10 @@ export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
         animationDelay: 1 + QUICK_TRANSITION,
         animationDuration: 0,
         skipIfNoEarlierAnimations: true,
+    },
+    none: {
+        animationDuration: 0,
+        animationDelay: 0,
     },
 };
 

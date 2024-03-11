@@ -2,6 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
+import { ContinuousScale } from '../../../scale/continuousScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -77,16 +78,19 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         // automatically garbage collect the marker selection.
         if (!isContinuousX) {
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
-            if (animationEnabled && this.processedData) {
-                props.push(diff(this.processedData));
-            }
         }
         if (animationEnabled) {
             props.push(animationValidation(this, isContinuousX ? ['xValue'] : []));
+            if (this.processedData) {
+                props.push(diff(this.processedData));
+            }
         }
 
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         props.push(
-            valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
+            valueProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
             valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
@@ -469,6 +473,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
             skip();
+            return;
+        } else if (fns.status === 'no-op') {
             return;
         }
 

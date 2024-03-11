@@ -53,7 +53,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         const id = opts.id ?? Math.random().toString();
 
-        const skip = this.isSkipped();
+        const skip = this.isSkipped() || opts.phase === 'none';
         if (skip) {
             this.debug('AnimationManager - skipping animation');
         }

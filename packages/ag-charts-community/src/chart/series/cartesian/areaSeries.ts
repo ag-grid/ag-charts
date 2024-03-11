@@ -703,6 +703,8 @@ export class AreaSeries extends CartesianSeries<
             // Un-animatable diff in data, skip all animations.
             skip();
             return;
+        } else if (fns.status === 'no-op') {
+            return;
         }
 
         markerFadeInAnimation(this, animationManager, markerSelections);

@@ -10,9 +10,13 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
+    AND,
+    ARRAY,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
+    NUMBER_ARRAY,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -27,7 +31,10 @@ const { Label } = _Scene;
 export interface MapLineNodeLabelDatum extends _Util.PointLabelDatum {}
 
 export interface MapLineNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+    readonly stroke: string | undefined;
+    readonly strokeWidth: number | undefined;
     readonly idValue: string;
+    readonly colorValue: number | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
@@ -41,7 +48,7 @@ class MapLineSeriesBackground extends BaseProperties {
     topology: _ModuleSupport.FeatureCollection | undefined = undefined;
 
     @Validate(STRING, { optional: true })
-    id: string | undefined = undefined;
+    id?: string = undefined;
 
     @Validate(STRING)
     topologyIdKey: string = 'name';
@@ -82,13 +89,34 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     topologyIdKey: string = 'name';
 
     @Validate(STRING, { optional: true })
-    idName: string | undefined = undefined;
+    idName?: string = undefined;
 
     @Validate(STRING, { optional: true })
-    labelKey: string | undefined = undefined;
+    labelKey?: string = undefined;
 
     @Validate(STRING, { optional: true })
-    labelName: string | undefined = undefined;
+    labelName?: string = undefined;
+
+    @Validate(STRING, { optional: true })
+    sizeKey?: string;
+
+    @Validate(STRING, { optional: true })
+    sizeName?: string;
+
+    @Validate(STRING, { optional: true })
+    colorKey?: string;
+
+    @Validate(STRING, { optional: true })
+    colorName?: string;
+
+    @Validate(NUMBER_ARRAY, { optional: true })
+    sizeDomain?: [number, number];
+
+    @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
+    colorRange: string[] | undefined = undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    maxStrokeWidth?: number = undefined;
 
     @Validate(COLOR_STRING)
     stroke: string = 'black';

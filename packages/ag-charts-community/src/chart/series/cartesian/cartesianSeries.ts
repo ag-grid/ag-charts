@@ -104,7 +104,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
     }
 }
 
-type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing' | 'disabled';
 type CartesianAnimationEvent =
     | 'update'
     | 'updateData'
@@ -113,7 +113,8 @@ type CartesianAnimationEvent =
     | 'resize'
     | 'clear'
     | 'reset'
-    | 'skip';
+    | 'skip'
+    | 'disable';
 
 export interface CartesianAnimationData<
     TNode extends Node,
@@ -231,6 +232,7 @@ export abstract class CartesianSeries<
                     },
                     reset: 'empty',
                     skip: 'ready',
+                    disable: 'disabled',
                 },
                 ready: {
                     updateData: 'waiting',
@@ -240,6 +242,7 @@ export abstract class CartesianSeries<
                     resize: (data) => this.animateReadyResize(data),
                     reset: 'empty',
                     skip: 'ready',
+                    disable: 'disabled',
                 },
                 waiting: {
                     update: {
@@ -248,6 +251,11 @@ export abstract class CartesianSeries<
                     },
                     reset: 'empty',
                     skip: 'ready',
+                    disable: 'disabled',
+                },
+                disabled: {
+                    update: (data) => this.resetAllAnimation(data),
+                    reset: 'empty',
                 },
                 clearing: {
                     update: {
@@ -267,6 +275,8 @@ export abstract class CartesianSeries<
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
             this.animationState.transition('skip');
+        } else if (phase === 'disabled') {
+            this.animationState.transition('disable');
         }
     }
 

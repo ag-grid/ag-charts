@@ -156,5 +156,5 @@ export function prepareAreaPathAnimation(
     const fadeMode = stackVisible ? 'none' : 'fade';
     const fill = prepareLinePathAnimationFns(newData, oldData, pairData, fadeMode, renderPartialPath);
     const marker = prepareMarkerAnimation(markerPairMap, status);
-    return { fill, marker };
+    return { status: fill.status, fill, marker };
 }

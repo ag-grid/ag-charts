@@ -2,7 +2,13 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { MapLineSeries } from './mapLineSeries';
 
-const { EXTENDS_SERIES_DEFAULTS, DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, singleSeriesPaletteFactory } = _Theme;
+const {
+    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_LABEL_COLOUR,
+    singleSeriesPaletteFactory,
+} = _Theme;
 
 export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     type: 'series',
@@ -17,6 +23,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             strokeWidth: 1,
+            maxStrokeWidth: 3,
             lineDash: [0],
             lineDashOffset: 0,
             background: {
@@ -45,8 +52,13 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
         },
     },
     paletteFactory: (opts) => {
+        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
         const { fill, stroke } = singleSeriesPaletteFactory(opts);
+        const { properties } = themeTemplateParameters;
+        const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const { fills } = takeColors(colorsCount);
         return {
+            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
             stroke: fill,
             background: { fill, stroke },
         };
