@@ -5,7 +5,7 @@ import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
-    S extends BandScale<string | object> | OrdinalTimeScale = BandScale<string | object>,
+    S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
 > extends CartesianAxis<S> {
     static readonly className: string = 'CategoryAxis';
     static readonly type: string = 'category' as const;

@@ -4,7 +4,7 @@ export const ORDINAL_TIME_AXIS_THEME = {
     __extends__: _Theme.EXTENDS_AXES_DEFAULTS,
     groupPaddingInner: 0,
     label: {
-        autoRotate: true,
+        autoRotate: false,
     },
     gridLine: {
         __extends__: _Theme.EXTENDS_AXES_GRID_LINE_DEFAULTS,

@@ -1,6 +1,5 @@
 import { Logger } from '../util/logger';
 import { findMinMax } from '../util/number';
-import type { TimeInterval } from '../util/time/interval';
 import { Invalidating } from './invalidating';
 import type { Scale, ScaleConvertParams } from './scale';
 
@@ -12,7 +11,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return value instanceof ContinuousScale;
     }
 
-    private invalid = true;
+    protected invalid = true;
 
     @Invalidating
     domain: D[];
@@ -151,29 +150,5 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     protected getPixelRange() {
         const [a, b] = this.range;
         return Math.abs(b - a);
-    }
-
-    protected isDenseInterval({
-        start,
-        stop,
-        interval,
-        count,
-    }: {
-        start: number;
-        stop: number;
-        interval: number | TimeInterval;
-        count?: number;
-    }): boolean {
-        const availableRange = this.getPixelRange();
-        const step = typeof interval === 'number' ? interval : 1;
-        count ??= (stop - start) / step;
-        if (count >= availableRange) {
-            Logger.warn(
-                `the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration`
-            );
-            return true;
-        }
-
-        return false;
     }
 }

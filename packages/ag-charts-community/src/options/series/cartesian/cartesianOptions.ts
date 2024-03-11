@@ -84,8 +84,10 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     tick?: AgAxisCategoryTickOptions;
 }
 
-export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
+export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type' | 'tick'> {
     type: 'ordinal-time';
+    /** Configuration for the axis ticks. */
+    tick?: AgAxisOrdinalTimeTickOptions;
 }
 
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions {
@@ -197,6 +199,11 @@ export interface AgAxisNumberTickOptions extends AgAxisBaseTickOptions {
 export interface AgAxisTimeTickOptions extends AgAxisBaseTickOptions {
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: PixelSize;
+    /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    interval?: any;
+}
+
+export interface AgAxisOrdinalTimeTickOptions extends AgAxisBaseTickOptions {
     /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
     interval?: any;
 }
