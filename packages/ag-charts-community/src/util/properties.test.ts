@@ -1,13 +1,9 @@
-import { Logger } from './logger';
 import { BaseProperties, PropertiesArray, isProperties } from './properties';
+import { expectWarning, setupMockConsole } from './test/mockConsole';
 import { NUMBER, OBJECT_ARRAY, STRING, Validate } from './validation';
 
 describe('BaseProperties', () => {
-    const warnSpy = jest.spyOn(Logger, 'warn');
-
-    beforeEach(() => {
-        warnSpy.mockClear();
-    });
+    setupMockConsole();
 
     it('should correctly set properties on an instance', () => {
         class MyClass extends BaseProperties<{ prop1: string; prop2: number }> {
@@ -30,7 +26,7 @@ describe('BaseProperties', () => {
         }
         const instance = new MyClass();
         instance.set({ unknownProp: 'value' } as any);
-        expect(warnSpy).toHaveBeenCalledWith('unable to set [unknownProp] in MyClass - property is unknown');
+        expectWarning('AG Charts - unable to set [unknownProp] in MyClass - property is unknown');
     });
 
     it('should warn on providing non-object properties', () => {
@@ -40,7 +36,7 @@ describe('BaseProperties', () => {
         }
         const instance = new MyClass();
         instance.set('string' as any);
-        expect(warnSpy).toHaveBeenCalledWith('unable to set MyClass - expecting a properties object');
+        expectWarning('AG Charts - unable to set MyClass - expecting a properties object');
     });
 
     it('should validate required properties correctly', () => {
