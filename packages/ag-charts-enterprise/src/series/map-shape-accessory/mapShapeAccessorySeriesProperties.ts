@@ -3,21 +3,17 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
-// import type { FeatureCollection, Geometry } from 'geojson';
-type FeatureCollection = any;
-type Geometry = any;
-
 const { COLOR_STRING, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO, Validate, SeriesProperties, SeriesTooltip } =
     _ModuleSupport;
 
 export interface MapShapeAccessoryNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
-    readonly projectedGeometry: Geometry;
+    readonly projectedGeometry: _ModuleSupport.Geometry;
 }
 
 export class MapShapeAccessorySeriesProperties extends SeriesProperties<AgMapShapeAccessoryOptions> {
     @Validate(GEOJSON_OBJECT, { optional: true })
-    topology?: FeatureCollection = undefined;
+    topology?: _ModuleSupport.FeatureCollection = undefined;
 
     @Validate(COLOR_STRING)
     fill: string = 'black';

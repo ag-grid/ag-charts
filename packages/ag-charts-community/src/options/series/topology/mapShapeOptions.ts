@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, LabelPlacement } from '../../chart/types';
+import type { CssColor, GeoJSON, LabelPlacement } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -48,7 +48,7 @@ export interface AgMapShapeSeriesOptions<TDatum = any>
     /** Configuration for the Map Series. */
     type: 'map-shape';
     /** GeoJSON data. */
-    topology?: any;
+    topology?: GeoJSON;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
     topologyIdKey?: string;
     /** Human-readable description of the series. */

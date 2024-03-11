@@ -1,10 +1,4 @@
-export const gmt = [
-    { name: 'Greenland' },
-    { name: 'Iceland' },
-    { name: 'Ireland' },
-    { name: 'Portugal' },
-    { name: 'United Kingdom' },
-];
+export const gmt = [{ name: 'Iceland' }, { name: 'Ireland' }, { name: 'Portugal' }, { name: 'United Kingdom' }];
 
 export const cet = [
     { name: 'Albania' },
@@ -17,11 +11,8 @@ export const cet = [
     { name: 'Denmark' },
     { name: 'France' },
     { name: 'Germany' },
-    { name: 'Gibraltar' },
-    { name: 'Holy See/Vatican City' },
     { name: 'Hungary' },
     { name: 'Italy' },
-    { name: 'Kosovo' },
     { name: 'Liechtenstein' },
     { name: 'Luxembourg' },
     { name: 'Malta' },

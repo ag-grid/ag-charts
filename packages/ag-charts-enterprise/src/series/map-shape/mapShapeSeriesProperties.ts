@@ -9,10 +9,6 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
-// import type { FeatureCollection, Geometry } from 'geojson';
-type FeatureCollection = any;
-type Geometry = any;
-
 const {
     AND,
     ARRAY,
@@ -36,7 +32,7 @@ export interface MapShapeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
     readonly fill: string;
     readonly colorValue: number | undefined;
-    readonly projectedGeometry: Geometry | undefined;
+    readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
 class MapShapeSeriesLabel extends Label<AgMapShapeSeriesLabelFormatterParams> {
@@ -46,7 +42,7 @@ class MapShapeSeriesLabel extends Label<AgMapShapeSeriesLabelFormatterParams> {
 
 export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {
     @Validate(GEOJSON_OBJECT, { optional: true })
-    topology?: FeatureCollection = undefined;
+    topology?: _ModuleSupport.FeatureCollection = undefined;
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;

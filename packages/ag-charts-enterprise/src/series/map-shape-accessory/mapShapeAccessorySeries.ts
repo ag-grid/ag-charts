@@ -5,11 +5,6 @@ import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapShapeAccessoryNodeDatum, MapShapeAccessorySeriesProperties } from './mapShapeAccessorySeriesProperties';
 
-// import type { Feature, FeatureCollection, Geometry } from 'geojson';
-type Feature = any;
-type FeatureCollection = any;
-type Geometry = any;
-
 const { createDatumId, Series, SeriesNodePickMode, Validate } = _ModuleSupport;
 const { Selection, Group, PointerEvents } = _Scene;
 const { Logger } = _Util;
@@ -36,7 +31,7 @@ export class MapShapeAccessorySeries
     override properties = new MapShapeAccessorySeriesProperties();
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
-    private _chartTopology?: FeatureCollection = undefined;
+    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
@@ -51,7 +46,7 @@ export class MapShapeAccessorySeries
     }
 
     override get hasData() {
-        return this.topology != null;
+        return false;
     }
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
@@ -92,8 +87,8 @@ export class MapShapeAccessorySeries
         const { topology } = this;
 
         let topologyBounds: _ModuleSupport.LonLatBBox | undefined;
-        topology?.features.forEach((feature: Feature) => {
-            const geometry: Geometry = feature.geometry;
+        topology?.features.forEach((feature) => {
+            const geometry = feature.geometry;
             topologyBounds = geometryBbox(geometry, topologyBounds);
         });
 
@@ -111,8 +106,8 @@ export class MapShapeAccessorySeries
 
         const nodeData: MapShapeAccessoryNodeDatum[] = [];
         const labelData: never[] = [];
-        topology.features.forEach((feature: Feature, index: number) => {
-            const geometry: Geometry = feature.geometry;
+        topology.features.forEach((feature, index) => {
+            const { geometry } = feature;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
             if (projectedGeometry == null) return;
@@ -147,7 +142,7 @@ export class MapShapeAccessorySeries
 
         await this.updateSelections();
 
-        this.contentGroup.opacity = this.getOpacity() * (this.visible ? 1 : 0.2);
+        this.contentGroup.visible = this.visible;
 
         const { nodeData } = this.contextNodeData[0];
 

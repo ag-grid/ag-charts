@@ -12,11 +12,6 @@ import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geomet
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } from './mapShapeSeriesProperties';
 
-// import type { Feature, FeatureCollection, Geometry } from 'geojson';
-type Feature = any;
-type FeatureCollection = any;
-type Geometry = any;
-
 const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
 const { ColorScale } = _Scale;
 const { Group, Selection, Text } = _Scene;
@@ -44,7 +39,7 @@ export class MapShapeSeries
     override properties = new MapShapeSeriesProperties();
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
-    private _chartTopology?: FeatureCollection = undefined;
+    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
@@ -121,8 +116,8 @@ export class MapShapeSeries
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
-        const featureById = new Map<string, Feature>();
-        topology?.features.forEach((feature: Feature) => {
+        const featureById = new Map<string, _ModuleSupport.Feature>();
+        topology?.features.forEach((feature) => {
             const property = feature.properties?.[topologyIdKey];
             if (property == null) return;
             featureById.set(property, feature);
@@ -143,7 +138,7 @@ export class MapShapeSeries
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
         this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
-                const feature: Feature | undefined = values[featureIdx];
+                const feature: _ModuleSupport.Feature | undefined = values[featureIdx];
                 if (feature == null) return current;
                 return geometryBbox(feature.geometry, current);
             },
@@ -183,7 +178,7 @@ export class MapShapeSeries
     private getLabelDatum(
         datum: any,
         labelValue: string | undefined,
-        projectedGeometry: Geometry | undefined,
+        projectedGeometry: _ModuleSupport.Geometry | undefined,
         font: string
     ): MapShapeNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
@@ -235,10 +230,10 @@ export class MapShapeSeries
 
         const font = label.getFont();
 
-        const projectedGeometries = new Map<string, Geometry>();
+        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
         processedData.data.forEach(({ values }) => {
             const id: string | undefined = values[idIdx];
-            const geometry: Geometry | undefined = values[featureIdx]?.geometry;
+            const geometry: _ModuleSupport.Geometry | undefined = values[featureIdx]?.geometry;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
@@ -308,7 +303,8 @@ export class MapShapeSeries
 
         await this.updateSelections();
 
-        this.contentGroup.opacity = this.getOpacity() * (this.visible ? 1 : 0.2);
+        this.contentGroup.visible = this.visible;
+        this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum != null && highlightedDatum.series !== this) {
