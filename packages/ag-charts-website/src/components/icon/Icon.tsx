@@ -108,6 +108,7 @@ const CHARTS_ICON_MAP = {
     chartsFunnel: CarbonIcon.Filter,
     chartsPyramid: CarbonIcon.UpToTop,
     chartsBullet: CarbonIcon.ChartBullet,
+    chartsMap: CarbonIcon.Plan,
 };
 
 export const ICON_MAP = {
