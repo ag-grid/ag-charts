@@ -6,6 +6,7 @@ import { Text } from '../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
 import { Square } from './marker/square';
+import type { MarkerConstructor } from './marker/util';
 
 export class MarkerLabel extends Group {
     static override readonly className = 'MarkerLabel';
@@ -125,10 +126,15 @@ export class MarkerLabel extends Group {
     }
 
     private update() {
-        this.marker.size = this.markerSize;
+        const { markerSize } = this;
+
+        const center = (this.marker.constructor as MarkerConstructor).center;
+        this.marker.size = markerSize;
+        this.marker.x = (center.x - 0.5) * markerSize;
+        this.marker.y = (center.y - 0.5) * markerSize;
 
         const lineEnd = this.line.visible ? this.line.x2 : -Infinity;
-        const markerEnd = this.markerSize / 2;
+        const markerEnd = markerSize / 2;
         this.label.x = Math.max(lineEnd, markerEnd) + this.spacing;
     }
 

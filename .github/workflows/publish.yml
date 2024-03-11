@@ -30,7 +30,7 @@ jobs:
 
             - name: yarn install
               id: yarn_install
-              run: yarn install --ci --prefer-offline
+              run: yarn install --ci
 
             - name: Calculate Next Beta Version
               id: next_version

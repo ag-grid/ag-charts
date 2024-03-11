@@ -286,7 +286,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                     this.mouseDown = mouseButtonDown;
                     return [mouseButtonDown ? dragStart : 'drag-end'];
                 }
-                return [];
+                return ['enter'];
 
             case 'pagehide':
                 return ['page-left'];

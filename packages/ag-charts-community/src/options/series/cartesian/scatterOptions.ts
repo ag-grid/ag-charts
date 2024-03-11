@@ -15,7 +15,10 @@ export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
 export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
 
 export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams> {
-    /** Placement of label in relation to the marker. Defaults to `bottom`. */
+    /**
+     * Placement of label in relation to the marker.
+     * Default: `top`
+     */
     placement?: LabelPlacement;
 }
 

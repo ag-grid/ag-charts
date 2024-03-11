@@ -1,0 +1,13 @@
+diff --git a/node_modules/canvas/package.json b/node_modules/canvas/package.json
+index 77e72328c..9aea25592 100644
+--- a/node_modules/canvas/package.json
++++ b/node_modules/canvas/package.json
+@@ -31,7 +31,7 @@
+     "test-server": "node test/server.js",
+     "generate-wpt": "node ./test/wpt/generate.js",
+     "test-wpt": "mocha test/wpt/generated/*.js",
+-    "install": "node-pre-gyp install --fallback-to-build --update-binary",
++    "install": "node-pre-gyp install --fallback-to-build",
+     "dtslint": "dtslint types"
+   },
+   "binary": {
