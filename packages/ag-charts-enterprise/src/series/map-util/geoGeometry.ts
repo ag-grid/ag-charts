@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { lineStringDistance } from './lineStringUtil';
-import { polygonContains } from './polygonUtil';
+import { polygonDistance } from './polygonUtil';
 
 const { Path, Path2D, BBox, ScenePathChangeDetection } = _Scene;
 
@@ -54,10 +54,16 @@ export class GeoGeometry extends Path {
         ({ x, y } = this.transformPoint(x, y));
         if (!this.getCachedBBox().containsPoint(x, y)) return false;
 
-        return this.geometryContainsPoint(projectedGeometry, x, y);
+        return this.geometryDistance(projectedGeometry, x, y) <= 0;
     }
 
-    private geometryContainsPoint(geometry: _ModuleSupport.Geometry, x: number, y: number): boolean {
+    distanceToPoint(x: number, y: number) {
+        const { projectedGeometry } = this;
+        ({ x, y } = this.transformPoint(x, y));
+        return projectedGeometry != null ? this.geometryDistance(projectedGeometry, x, y) : Infinity;
+    }
+
+    private geometryDistance(geometry: _ModuleSupport.Geometry, x: number, y: number): number {
         const { renderMode, strokeWidth } = this;
         const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
         const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
@@ -65,24 +71,36 @@ export class GeoGeometry extends Path {
 
         switch (geometry.type) {
             case 'GeometryCollection':
-                return geometry.geometries.some((g) => this.geometryContainsPoint(g, x, y));
-            case 'MultiPolygon':
-                return drawPolygons && geometry.coordinates.some((coordinates) => polygonContains(coordinates, x, y));
-            case 'Polygon':
-                return drawPolygons && polygonContains(geometry.coordinates, x, y);
-            case 'MultiLineString':
-                return (
-                    drawLines &&
-                    geometry.coordinates.some((lineString) => {
-                        return lineStringDistance(lineString, x, y) < minStrokeDistance;
-                    })
+                return geometry.geometries.reduce(
+                    (minDistance, g) => Math.min(minDistance, this.geometryDistance(g, x, y)),
+                    Infinity
                 );
+            case 'MultiPolygon':
+                return drawPolygons
+                    ? geometry.coordinates.reduce(
+                          (minDistance, polygon) => Math.min(minDistance, Math.max(polygonDistance(polygon, x, y), 0)),
+                          Infinity
+                      )
+                    : Infinity;
+            case 'Polygon':
+                return drawPolygons ? Math.max(polygonDistance(geometry.coordinates, x, y), 0) : Infinity;
+            case 'MultiLineString':
+                return drawLines
+                    ? geometry.coordinates.reduce((minDistance, lineString) => {
+                          return Math.min(
+                              minDistance,
+                              Math.max(lineStringDistance(lineString, x, y) - minStrokeDistance, 0)
+                          );
+                      }, Infinity)
+                    : Infinity;
             case 'LineString':
-                return drawLines && lineStringDistance(geometry.coordinates, x, y) < minStrokeDistance;
+                return drawLines
+                    ? Math.max(lineStringDistance(geometry.coordinates, x, y) - minStrokeDistance, 0)
+                    : Infinity;
             case 'MultiPoint':
             case 'Point':
             default:
-                return false;
+                return Infinity;
         }
     }
 

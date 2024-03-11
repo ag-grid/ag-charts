@@ -72,7 +72,7 @@ export class MapLineSeries
             moduleCtx,
             contentGroupVirtual: false,
             useLabelLayer: true,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
     }
 
@@ -518,6 +518,21 @@ export class MapLineSeries
 
     override getSeriesDomain() {
         return [NaN, NaN];
+    }
+
+    override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        let minDistance = Infinity;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+
+        this.datumSelection.each((node, datum) => {
+            const distance = node.distanceToPoint(x, y);
+            if (distance < minDistance) {
+                minDistance = distance;
+                minDatum = datum;
+            }
+        });
+
+        return minDatum != null ? { datum: minDatum, distance: minDistance } : undefined;
     }
 
     override getLegendData(

@@ -100,7 +100,7 @@ export class MapMarkerSeries
             moduleCtx,
             contentGroupVirtual: false,
             useLabelLayer: true,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
 
         this.animationState = new StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>(
@@ -697,6 +697,26 @@ export class MapMarkerSeries
 
     override getSeriesDomain() {
         return [NaN, NaN];
+    }
+
+    override pickNodeClosestDatum(p: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        const { x: x0, y: y0 } = this.rootGroup.transformPoint(p.x, p.y);
+
+        let minDistanceSquared = Infinity;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+
+        this.contextNodeData[0].nodeData.forEach((datum) => {
+            const { x, y } = datum.point;
+            const dx = x - x0;
+            const dy = y - y0;
+            const distanceSquared = dx * dx + dy * dy;
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
+                minDatum = datum;
+            }
+        });
+
+        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
     override getLegendData(

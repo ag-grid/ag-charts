@@ -42,6 +42,9 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
         gradientLegend: {
             enabled: false,
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
