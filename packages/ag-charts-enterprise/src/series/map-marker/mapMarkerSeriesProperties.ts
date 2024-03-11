@@ -102,10 +102,10 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
         const superIsValid = super.isValid();
 
         const hasTopology = this.idKey != null;
-        const hasLatLon = this.latKey != null && this.lonKey != null;
+        const hasLatLon = this.latitudeKey != null && this.longitudeKey != null;
         if (!hasTopology && !hasLatLon) {
             Logger.warnOnce(
-                'Either both [topology] and [idKey] or both [latKey] and [lonKey] must be set to render a map marker series.'
+                'Either both [topology] and [idKey] or both [latitudeKey] and [longitudeKey] must be set to render a map marker series.'
             );
 
             return false;
@@ -130,16 +130,16 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     idName: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
-    latKey: string | undefined = undefined;
+    latitudeKey: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
-    latName: string | undefined = undefined;
+    latitudeName: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
-    lonKey: string | undefined = undefined;
+    longitudeKey: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
-    lonName: string | undefined = undefined;
+    longitudeName: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     labelKey: string | undefined = undefined;

@@ -83,9 +83,9 @@ export interface AgMapMarkerSeriesOptionsKeys {
     /** The name of the node key containing the id value. */
     idKey?: string;
     /** The latitude of a marker. */
-    latKey?: string;
+    latitudeKey?: string;
     /** The longitude of a marker. */
-    lonKey?: string;
+    longitudeKey?: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
@@ -96,9 +96,9 @@ export interface AgMapMarkerSeriesOptionsNames {
     /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     idName?: string;
     /** A human-readable description of the lat-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    latName?: string;
+    latitudeName?: string;
     /** A human-readable description of the lon-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    lonName?: string;
+    longitudeName?: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
     sizeName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
