@@ -8,7 +8,7 @@ import { deconstructSelectionsOrNodes } from './animation';
 import type { AnimationPhase, AnimationValue } from './animation';
 import * as easing from './easing';
 
-export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated';
+export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'no-op';
 export const NODE_UPDATE_PHASES: NodeUpdateState[] = ['removed', 'updated', 'added'];
 
 export type FromToMotionPropFnContext<T> = {
@@ -44,6 +44,7 @@ export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, Animati
     updated: 'update',
     removed: 'remove',
     unknown: 'initial',
+    'no-op': 'none',
 };
 
 export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
