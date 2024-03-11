@@ -11,7 +11,6 @@ import type { Chart } from '../chart';
 import type { ChartAxis } from '../chartAxis';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
-import { setupMockConsole } from '../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -20,6 +19,7 @@ import {
     repeat,
     reverseAxes,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
 

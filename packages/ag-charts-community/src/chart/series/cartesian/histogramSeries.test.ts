@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
-import { setupMockConsole } from '../../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -12,6 +11,7 @@ import {
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';

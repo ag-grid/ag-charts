@@ -7,13 +7,13 @@ import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';
 import * as examples from './test/examples';
-import { setupMockConsole } from './test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from './test/utils';
 

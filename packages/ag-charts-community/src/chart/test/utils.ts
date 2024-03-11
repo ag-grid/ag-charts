@@ -26,6 +26,7 @@ import type { PointerOffsets } from '../interaction/interactionManager';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
+export * from '../../util/test/mockConsole';
 
 export interface TestCase {
     options: AgChartOptions;

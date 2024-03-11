@@ -3,13 +3,14 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgPolarChartOptions } from '../../../options/agChartOptions';
 import type { Chart } from '../../chart';
-import { expectWarnings, setupMockConsole } from '../../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
+    expectWarnings,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from '../../test/utils';
 

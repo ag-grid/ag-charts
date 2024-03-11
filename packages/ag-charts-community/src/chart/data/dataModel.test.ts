@@ -4,7 +4,7 @@ import { isFiniteNumber } from '../../util/type-guards';
 import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
-import { expectWarning, expectWarnings, setupMockConsole } from '../test/mockConsole';
+import { expectWarning, expectWarnings, setupMockConsole } from '../test/utils';
 import {
     accumulatedValue,
     area as actualArea,

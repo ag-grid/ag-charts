@@ -3,8 +3,15 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
-import { expectWarning, setupMockConsole } from '../test/mockConsole';
-import { AgChartProxy, createChart, hoverAction, prepareTestOptions, waitForChartStability } from '../test/utils';
+import {
+    AgChartProxy,
+    createChart,
+    expectWarning,
+    hoverAction,
+    prepareTestOptions,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 

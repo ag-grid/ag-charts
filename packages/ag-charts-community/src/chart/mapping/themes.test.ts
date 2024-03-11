@@ -10,8 +10,14 @@ import type {
 } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
-import { expectWarning, expectWarnings, setupMockConsole } from '../test/mockConsole';
-import { deproxy, prepareTestOptions, waitForChartStability } from '../test/utils';
+import {
+    deproxy,
+    expectWarning,
+    expectWarnings,
+    prepareTestOptions,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 import { themes } from './themes';
 
 expect.extend({ toMatchImageSnapshot });

@@ -5,7 +5,6 @@ import type { AgPolarChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import { ChartUpdateType } from '../../chartUpdateType';
-import { setupMockConsole } from '../../test/mockConsole';
 import type { PolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -15,6 +14,7 @@ import {
     prepareTestOptions,
     repeat,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     toMatchImage,
     waitForChartStability,
