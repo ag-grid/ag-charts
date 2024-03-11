@@ -52,6 +52,7 @@ export class MapShapeSeries
     private readonly colorScale = new ColorScale();
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private itemHighlightGroup = this.contentGroup.appendChild(new Group({ name: 'itemHighlightGroup' }));
 
     private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
         this.itemGroup,
@@ -64,7 +65,7 @@ export class MapShapeSeries
         false
     );
     private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
-        this.highlightNode,
+        this.itemHighlightGroup,
         () => this.nodeFactory()
     );
 
