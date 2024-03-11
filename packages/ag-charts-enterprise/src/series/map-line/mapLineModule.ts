@@ -23,6 +23,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             strokeWidth: 1,
+            maxStrokeWidth: 3,
             lineDash: [0],
             lineDashOffset: 0,
             background: {
