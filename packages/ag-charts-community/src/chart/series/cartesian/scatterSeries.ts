@@ -362,6 +362,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             for (const children of this.contentGroup.children) {
                 for (const node of children.children) {
                     const wrapper = {
+                        get midPoint(): Point {
+                            const datum: ScatterNodeDatum = node.datum;
+                            return datum.midPoint;
+                        },
                         getCachedBBox: () => {
                             return node.getCachedBBox();
                         },
