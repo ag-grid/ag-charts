@@ -8,7 +8,13 @@ export class Navigator extends _ModuleSupport.Navigator {
     @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
         target.updateBackground(oldValue?.root, value?.root);
     })
-    override miniChart: MiniChart = new MiniChart();
+    override miniChart: MiniChart;
+
+    public constructor(ctx: _ModuleSupport.ModuleContext) {
+        super(ctx);
+
+        this.miniChart = new MiniChart(ctx);
+    }
 
     async updateData(opts: { data: any }): Promise<void> {
         await this.miniChart.updateData(opts);

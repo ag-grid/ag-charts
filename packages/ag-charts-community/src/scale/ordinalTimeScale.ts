@@ -1,18 +1,27 @@
+import type { TimeInterval } from '../util/time/interval';
 import { buildFormatter } from '../util/timeFormat';
-import {
-    DefaultTimeFormats,
-    TIME_FORMAT_STRINGS,
-    dateToNumber,
-    defaultTimeTickFormat,
-} from '../util/timeFormatDefaults';
+import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
+import { ContinuousScale } from './continuousScale';
+import { Invalidating } from './invalidating';
+import { TimeScale } from './timeScale';
 
-export class OrdinalTimeScale extends BandScale<Date> {
+export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override readonly type = 'ordinal-time';
 
     static is(value: any): value is OrdinalTimeScale {
         return value instanceof OrdinalTimeScale;
     }
+
+    @Invalidating
+    tickCount = ContinuousScale.defaultTickCount;
+    @Invalidating
+    minTickCount = 0;
+    @Invalidating
+    maxTickCount = Infinity;
+
+    @Invalidating
+    override interval?: TimeInterval | number = undefined;
 
     toDomain(d: number): Date {
         return new Date(d);
@@ -60,6 +69,39 @@ export class OrdinalTimeScale extends BandScale<Date> {
         return this._domain;
     }
 
+    override ticks(): Date[] {
+        this.refresh();
+
+        const [t0, t1] = [dateToNumber(this.domain[0]), dateToNumber(this.domain.at(-1))];
+
+        const start = Math.min(t0, t1);
+        const stop = Math.max(t0, t1);
+
+        const { interval, tickCount, minTickCount, maxTickCount } = this;
+
+        let ticks;
+        if (interval !== undefined) {
+            const [r0, r1] = this.range;
+            const availableRange = Math.abs(r1 - r0);
+            ticks = TimeScale.getTicksForInterval({ start, stop, interval, availableRange });
+        }
+
+        ticks ??= TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+
+        // max one tick per band
+        const tickPositions = new Set<number>();
+        ticks = ticks.filter((tick) => {
+            const position = this.convert(tick);
+            if (tickPositions.has(position)) {
+                return false;
+            }
+            tickPositions.add(position);
+            return true;
+        });
+
+        return ticks;
+    }
+
     override convert(d: Date): number {
         if (typeof d === 'number') {
             d = new Date(d);
@@ -99,83 +141,7 @@ export class OrdinalTimeScale extends BandScale<Date> {
      * If no specifier is provided, this method returns the default time format function.
      */
     tickFormat({ ticks, specifier }: { ticks?: any[]; specifier?: string }): (date: Date) => string {
-        return specifier == undefined
-            ? defaultTimeTickFormat(this.buildFormatString, ticks)
-            : buildFormatter(specifier);
-    }
-
-    buildFormatString(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean, ticks: any[]): string {
-        let formatStringArray: string[] = [];
-        let timeEndIndex = 0;
-
-        const firstTick = ticks[0];
-        const secondTick = ticks[1];
-
-        if (ticks.length === 0 || !(firstTick instanceof Date) || !(secondTick instanceof Date)) {
-            return ``;
-        }
-
-        switch (defaultTimeFormat) {
-            case DefaultTimeFormats.SECOND:
-                if (Math.abs(firstTick.getSeconds() - secondTick.getSeconds()) > 0) {
-                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.MINUTE]);
-                }
-            // fall through deliberately
-            case DefaultTimeFormats.MINUTE:
-                if (Math.abs(firstTick.getMinutes() - secondTick.getMinutes()) > 0) {
-                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.HOUR]);
-                }
-            // fall through deliberately
-            case DefaultTimeFormats.HOUR:
-                if (Math.abs(firstTick.getHours() - secondTick.getHours()) > 0) {
-                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
-                }
-            // fall through deliberately
-            case DefaultTimeFormats.WEEK_DAY:
-                timeEndIndex = formatStringArray.length;
-                if (Math.abs(firstTick.getMonth() - secondTick.getMonth()) > 0 || yearChange) {
-                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.SHORT_MONTH]);
-                } else if (Math.abs(firstTick.getDay() - secondTick.getDay()) > 0) {
-                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
-                }
-            // fall through deliberately
-            case DefaultTimeFormats.SHORT_MONTH:
-            case DefaultTimeFormats.MONTH:
-                const monthIndex = formatStringArray.indexOf(TIME_FORMAT_STRINGS[DefaultTimeFormats.SHORT_MONTH]);
-
-                if (monthIndex < 0) {
-                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.SHORT_MONTH]);
-                }
-            // fall through deliberately
-            case DefaultTimeFormats.YEAR:
-            default:
-                if (Math.abs(firstTick.getFullYear() - secondTick.getFullYear()) > 0 || yearChange) {
-                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.YEAR]);
-                }
-                break;
-        }
-
-        if (timeEndIndex < formatStringArray.length) {
-            // Insert a gap between all date components.
-            formatStringArray = [
-                ...formatStringArray.slice(0, timeEndIndex),
-                formatStringArray.slice(timeEndIndex).join(' '),
-            ];
-        }
-        if (timeEndIndex > 0) {
-            // Reverse order of time components, since they should be displayed in descending
-            // granularity.
-            formatStringArray = [
-                ...formatStringArray.slice(0, timeEndIndex).reverse(),
-                ...formatStringArray.slice(timeEndIndex),
-            ];
-            if (timeEndIndex < formatStringArray.length) {
-                // Insert a gap between time and date components.
-                formatStringArray.splice(timeEndIndex, 0, ' ');
-            }
-        }
-
-        return formatStringArray.join('');
+        return specifier == undefined ? defaultTimeTickFormat(ticks) : buildFormatter(specifier);
     }
 
     override invert(y: number): Date {

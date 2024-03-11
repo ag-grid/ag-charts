@@ -1,5 +1,5 @@
-import type { GeoJSON } from '../../agChartOptions';
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
+import type { GeoJSON } from '../../chart/types';
 import type { AgMapLineSeriesOptions } from './mapLineOptions';
 import type { AgMapMarkerSeriesOptions } from './mapMarkerOptions';
 import type { AgMapShapeAccessoryOptions } from './mapShapeAccessoryOptions';

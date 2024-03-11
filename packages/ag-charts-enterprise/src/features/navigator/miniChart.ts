@@ -33,18 +33,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private _destroyed: boolean = false;
 
-    override destroy() {
-        if (this._destroyed) {
-            return;
-        }
-
-        this.destroySeries(this.series);
-
-        this.axes.forEach((a) => a.destroy());
-        this.axes = [];
-
-        this._destroyed = true;
-    }
+    private miniChartAnimationPhase: 'initial' | 'ready' = 'initial';
 
     @ActionOnSet<MiniChart>({
         changeValue(newValue: _ModuleSupport.ChartAxis[], oldValue: _ModuleSupport.ChartAxis[] = []) {
@@ -69,6 +58,23 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         },
     })
     series: _ModuleSupport.Series<any, any>[] = [];
+
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+        super();
+    }
+
+    override destroy() {
+        if (this._destroyed) {
+            return;
+        }
+
+        this.destroySeries(this.series);
+
+        this.axes.forEach((a) => a.destroy());
+        this.axes = [];
+
+        this._destroyed = true;
+    }
 
     private onSeriesChange(newValue: _ModuleSupport.Series<any, any>[], oldValue?: _ModuleSupport.Series<any, any>[]) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
@@ -97,7 +103,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                 },
             };
 
-            series.resetAnimation('initial');
+            series.resetAnimation(this.miniChartAnimationPhase === 'initial' ? 'initial' : 'disabled');
             // @todo(AG-10653) Enable when there is an id per series group, irrespective of series instance
             // series.addChartEventListeners();
         }
@@ -181,6 +187,13 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     async updateData(opts: { data: any }) {
         this.series.forEach((s) => s.setChartData(opts.data));
+        if (this.miniChartAnimationPhase === 'initial') {
+            this.ctx.animationManager.onBatchStop(() => {
+                this.miniChartAnimationPhase = 'ready';
+                // Disable animations after initial load.
+                this.series.forEach((s) => s.resetAnimation('disabled'));
+            });
+        }
     }
 
     async processData(opts: { dataController: _ModuleSupport.DataController }) {

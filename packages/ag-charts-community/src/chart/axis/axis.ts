@@ -16,6 +16,7 @@ import type {
 } from '../../options/agChartOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
@@ -401,7 +402,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private setTickCount(count?: TickCount<S> | number, minTickCount?: number, maxTickCount?: number) {
         const { scale } = this;
-        if (!(count && ContinuousScale.is(scale))) {
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
+        if (!(count && continuous)) {
             return;
         }
 
@@ -795,7 +797,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             maxSpacing: tick.maxSpacing ?? NaN,
         });
 
-        const continuous = ContinuousScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
@@ -866,7 +868,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         secondaryAxis: boolean;
     }): TickStrategy[] {
         const { scale, label, tick } = this;
-        const continuous = ContinuousScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
         const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
         const autoRotate = label.autoRotate === true && label.rotation === undefined;
@@ -930,7 +932,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             maxSpacing: tick.maxSpacing ?? NaN,
         });
 
-        const continuous = ContinuousScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
