@@ -53,15 +53,12 @@ export class MapShapeSeries
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory(),
-        false
+    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
+        this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
         this.labelGroup,
-        Text,
-        false
+        Text
     );
     private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
         this.highlightNode,
@@ -445,9 +442,7 @@ export class MapShapeSeries
     }
 
     resetAnimation() {
-        this.datumSelection.cleanup();
-        this.labelSelection.cleanup();
-        this.highlightDatumSelection.cleanup();
+        // No animations
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
