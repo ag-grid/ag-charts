@@ -554,18 +554,23 @@ export class MapLineSeries
         const {
             id: seriesId,
             processedData,
+            properties,
             ctx: { callbackCache },
         } = this;
 
-        if (!processedData || !this.properties.isValid()) {
+        if (!processedData || !properties.isValid()) {
             return '';
         }
 
-        const { idKey, stroke, strokeWidth, formatter, tooltip } = this.properties;
-        const { datum, idValue } = nodeDatum;
+        const { idKey, colorKey, colorName, strokeWidth, formatter, tooltip } = properties;
+        const { datum, stroke, idValue, colorValue } = nodeDatum;
 
         const title = sanitizeHtml(idValue);
-        const content = '';
+        const contentLines: string[] = [];
+        if (colorValue != null) {
+            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
+        }
+        const content = contentLines.join('<br>');
 
         let format: AgMapLineSeriesStyle | undefined;
 
@@ -580,7 +585,7 @@ export class MapLineSeries
             });
         }
 
-        const color = format?.stroke ?? stroke;
+        const color = format?.stroke ?? stroke ?? properties.stroke;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
