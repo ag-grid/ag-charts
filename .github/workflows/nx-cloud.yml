@@ -47,7 +47,7 @@ jobs:
               id: yarn_install
               run: |
                   (yarn check --integrity && yarn postinstall) || yarn install --ci
-                  if [[ -f node_modules/canvas/build/Release/canvas.node ]] ; then
+                  if [[ ! -f node_modules/canvas/build/Release/canvas.node ]] ; then
                     echo "canvas.node binary not found, cannot proceed."
                     exit 1
                   fi
