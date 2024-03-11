@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, LabelPlacement } from '../../chart/types';
+import type { CssColor, LabelPlacement, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -38,6 +38,10 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = any>
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Configuration for an optional background */
     background?: AgMapLineSeriesBackground;
+    /** Determines the largest width a stroke can be in pixels. */
+    maxStrokeWidth?: PixelSize;
+    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
+    sizeDomain?: number[];
     /** Configuration for the labels shown on top of data points. */
     label?: AgMapLineSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
@@ -66,7 +70,9 @@ export interface AgMapLineSeriesOptions<TDatum = any>
 export interface AgMapLineSeriesOptionsKeys {
     /** The name of the node key containing the id value. */
     idKey?: string;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the line stroke. */
+    /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
+    sizeKey?: string;
+    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the stroke. */
     colorKey?: string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
     labelKey?: string;
@@ -75,6 +81,8 @@ export interface AgMapLineSeriesOptionsKeys {
 export interface AgMapLineSeriesOptionsNames {
     /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     idName?: string;
+    /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
+    sizeName?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */

@@ -13,7 +13,7 @@ import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
-const { ColorScale } = _Scale;
+const { ColorScale, LinearScale } = _Scale;
 const { Group, Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
@@ -48,6 +48,7 @@ export class MapLineSeries
     }
 
     private readonly colorScale = new ColorScale();
+    private readonly sizeScale = new LinearScale();
 
     private backgroundNode = this.contentGroup.appendChild(new GeoGeometry());
 
@@ -130,8 +131,8 @@ export class MapLineSeries
             return;
         }
 
-        const { data, topology, colorScale } = this;
-        const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
+        const { data, topology, sizeScale, colorScale } = this;
+        const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } = this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
         topology?.features.forEach((feature) => {
@@ -147,8 +148,9 @@ export class MapLineSeries
                     id: 'featureValue',
                     processor: () => (datum) => featureById.get(datum),
                 }),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey != null ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
+                ...(sizeKey != null ? [valueProperty(this, sizeKey, true, { id: 'sizeValue' })] : []),
+                ...(colorKey != null ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 
@@ -168,6 +170,12 @@ export class MapLineSeries
         }
 
         this.topologyBounds = bbox;
+
+        if (sizeKey != null) {
+            const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
+            const processedSize = processedData.domain.values[sizeIdx] ?? [];
+            sizeScale.domain = sizeDomain ?? processedSize;
+        }
 
         if (colorRange != null && this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
@@ -207,13 +215,15 @@ export class MapLineSeries
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
-        const { idKey, idName, colorKey, colorName, labelKey, labelName, label } = this.properties;
+        const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
 
         const labelText = this.getLabelText(label, {
             value: labelValue,
             datum,
             idKey,
             idName,
+            sizeKey,
+            sizeName,
             colorKey,
             colorName,
             labelKey,
@@ -238,8 +248,8 @@ export class MapLineSeries
     }
 
     override async createNodeData(): Promise<MapLineNodeDataContext[]> {
-        const { id: seriesId, dataModel, processedData, colorScale, properties, scale } = this;
-        const { idKey, colorKey, labelKey, label } = properties;
+        const { id: seriesId, dataModel, processedData, sizeScale, colorScale, properties, scale } = this;
+        const { idKey, sizeKey, colorKey, labelKey, label } = properties;
 
         if (dataModel == null || processedData == null) return [];
 
@@ -249,9 +259,11 @@ export class MapLineSeries
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
         const labelIdx =
             labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
+        const sizeIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : undefined;
         const colorIdx =
             colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
 
+        sizeScale.range = [properties.strokeWidth, properties.maxStrokeWidth ?? properties.strokeWidth];
         const font = label.getFont();
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
@@ -270,10 +282,12 @@ export class MapLineSeries
         processedData.data.forEach(({ datum, values }) => {
             const idValue = values[idIdx];
             const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
+            const sizeValue: number | undefined = sizeIdx != null ? values[sizeIdx] : undefined;
             const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue) : undefined;
 
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {
@@ -290,6 +304,7 @@ export class MapLineSeries
                 itemId: idKey,
                 datum,
                 stroke: color,
+                strokeWidth: size,
                 idValue,
                 colorValue,
                 projectedGeometry,
@@ -397,7 +412,8 @@ export class MapLineSeries
             ctx: { callbackCache },
         } = this;
         const { datumSelection, isHighlight } = opts;
-        const { idKey, labelKey, colorKey, stroke, strokeOpacity, lineDash, lineDashOffset, formatter } = properties;
+        const { idKey, labelKey, sizeKey, colorKey, stroke, strokeOpacity, lineDash, lineDashOffset, formatter } =
+            properties;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
@@ -417,6 +433,7 @@ export class MapLineSeries
                     itemId: datum.itemId,
                     idKey,
                     labelKey,
+                    sizeKey,
                     colorKey,
                     strokeOpacity,
                     stroke,
@@ -431,7 +448,10 @@ export class MapLineSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
             geoGeometry.stroke = highlightStyle?.stroke ?? format?.stroke ?? datum.stroke ?? stroke;
-            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
+            geoGeometry.strokeWidth = Math.max(
+                highlightStyle?.strokeWidth ?? 0,
+                format?.strokeWidth ?? datum.strokeWidth ?? strokeWidth
+            );
             geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
             geoGeometry.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
             geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
