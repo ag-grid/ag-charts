@@ -8,7 +8,7 @@ import {
 } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
-import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
+import { GeometryType, containsType, geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } from './mapShapeSeriesProperties';
 
@@ -126,7 +126,7 @@ export class MapShapeSeries
         const featureById = new Map<string, Feature>();
         topology?.features.forEach((feature: Feature) => {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null) return;
+            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) return;
             featureById.set(property, feature);
         });
 
@@ -207,7 +207,10 @@ export class MapShapeSeries
         const { width, height } = Text.getTextSize(String(labelText), font);
 
         const paddedSize = { width: width + 2, height: height + 2 };
-        const labelCenter = labelPosition(projectedGeometry, paddedSize, 2);
+        const labelCenter = labelPosition(projectedGeometry, paddedSize, {
+            precision: 2,
+            filter: GeometryType.Polygon,
+        });
         if (labelCenter == null) return;
 
         const [x, y] = labelCenter;
