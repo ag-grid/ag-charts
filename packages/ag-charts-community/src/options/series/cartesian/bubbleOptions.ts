@@ -18,7 +18,10 @@ export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBu
 export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
 
 export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams> {
-    /** Placement of label in relation to the marker. Defaults to `bottom`. */
+    /**
+     * Placement of label in relation to the marker.
+     * Default: `top`
+     */
     placement?: LabelPlacement;
 }
 

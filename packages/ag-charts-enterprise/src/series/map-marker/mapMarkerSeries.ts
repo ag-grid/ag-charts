@@ -1,4 +1,13 @@
-import { AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import {
+    AgMapMarkerSeriesOptionsKeys,
+    AgMapShapeSeriesStyle,
+    AgSeriesMarkerFormatterParams,
+    AgSeriesMarkerStyle,
+    _ModuleSupport,
+    _Scale,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { GeoGeometry } from '../map-util/geoGeometry';
@@ -559,20 +568,53 @@ export class MapMarkerSeries extends DataModelSeries<
         markerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum>;
         isHighlight: boolean;
     }) {
+        const {
+            id: seriesId,
+            properties,
+            ctx: { callbackCache },
+        } = this;
         const { markerSelection, isHighlight } = opts;
-        const { fill, fillOpacity, stroke, strokeOpacity, size } = this.properties.marker;
-        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(this.properties.marker.strokeWidth);
+        const { idKey, latKey, lonKey, labelKey, sizeKey } = properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, size, formatter } = properties.marker;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.marker.strokeWidth);
 
         markerSelection.each((marker, markerDatum) => {
             const { point } = markerDatum;
 
+            let format: AgSeriesMarkerStyle | undefined;
+            if (formatter != null) {
+                const params: _Util.RequireOptional<AgSeriesMarkerFormatterParams<MapMarkerNodeDatum>> &
+                    _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys> = {
+                    seriesId,
+                    datum: markerDatum.datum,
+                    itemId: markerDatum.itemId,
+                    size: point.size,
+                    idKey,
+                    latKey,
+                    lonKey,
+                    labelKey,
+                    sizeKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    highlighted: isHighlight,
+                };
+                format = callbackCache.call(
+                    formatter,
+                    params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
+                        _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
+                );
+            }
+
             marker.size = point.size > 0 ? point.size : size;
-            marker.fill = highlightStyle?.fill ?? markerDatum.fill ?? fill;
-            marker.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            marker.stroke = highlightStyle?.stroke ?? stroke;
-            marker.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            marker.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
+            marker.fill = highlightStyle?.fill ?? format?.fill ?? markerDatum.fill ?? fill;
+            marker.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
+            marker.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
+            marker.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
+            marker.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
             marker.translationX = point.x;
             marker.translationY = point.y;
         });
