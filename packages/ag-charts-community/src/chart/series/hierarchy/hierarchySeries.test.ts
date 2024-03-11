@@ -38,7 +38,7 @@ describe('HierarchySeries', () => {
     it('creates a hierarchy', async () => {
         const series = new ExampleHierarchySeries(null!);
         series.properties.sizeKey = 'size';
-        series.data = [
+        series.setChartData([
             { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
             {
                 size: 5,
@@ -48,7 +48,7 @@ describe('HierarchySeries', () => {
                     { size: 3, children: [{ size: 7 }] },
                 ],
             },
-        ];
+        ]);
         await series.processData();
 
         series.rootNode.walk((node: any) => {
@@ -63,7 +63,7 @@ describe('HierarchySeries', () => {
 
     it('handles an empty dataset', async () => {
         const series = new ExampleHierarchySeries(null!);
-        series.data = [];
+        series.setChartData([]);
         await series.processData();
 
         // @ts-expect-error - Remove circular dependencies because if this test fails, Jest won't be able to print any errors
@@ -84,7 +84,7 @@ describe('HierarchySeries', () => {
 
     it('walks tree in pre-order', async () => {
         const series = new ExampleHierarchySeries(null!);
-        series.data = [
+        series.setChartData([
             {
                 order: 1,
                 children: [{ order: 2 }, { order: 3 }, { order: 4 }],
@@ -97,7 +97,7 @@ describe('HierarchySeries', () => {
                     { order: 11, children: [{ order: 12 }] },
                 ],
             },
-        ];
+        ]);
         await series.processData();
 
         let index = 0;
@@ -115,7 +115,7 @@ describe('HierarchySeries', () => {
 
     it('checks for subtree inclusion', async () => {
         const series = new ExampleHierarchySeries(null!);
-        series.data = [
+        series.setChartData([
             {
                 order: 1,
                 children: [{ order: 2 }, { order: 3 }, { order: 4 }],
@@ -128,7 +128,7 @@ describe('HierarchySeries', () => {
                     { order: 11, children: [{ order: 12 }] },
                 ],
             },
-        ];
+        ]);
         await series.processData();
 
         const nodes = Array.from(series.rootNode);
