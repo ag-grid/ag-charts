@@ -12,16 +12,17 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import { expectWarningMessages, setupMockConsole } from '../../test/mockConsole';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    expectWarningMessages,
     extractImageData,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';

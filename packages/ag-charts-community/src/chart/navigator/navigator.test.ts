@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import type { AgCartesianChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import * as CROSSLINE_EXAMPLES from '../crossline/test/examples';
-import { setupMockConsole } from '../test/mockConsole';
 import {
     type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -12,6 +11,7 @@ import {
     prepareTestOptions,
     repeat,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
 

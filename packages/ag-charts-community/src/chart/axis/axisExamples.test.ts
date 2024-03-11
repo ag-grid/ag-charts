@@ -13,7 +13,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { ChartUpdateType } from '../chartUpdateType';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
-import { setupMockConsole } from '../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -22,6 +21,7 @@ import {
     repeat,
     reverseAxes,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
 

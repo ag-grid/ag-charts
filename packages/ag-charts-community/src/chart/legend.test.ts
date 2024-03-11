@@ -4,7 +4,6 @@ import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChart
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
-import { setupMockConsole } from './test/mockConsole';
 import { seedRandom } from './test/random';
 import {
     AgChartProxy,
@@ -19,6 +18,7 @@ import {
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from './test/utils';
 

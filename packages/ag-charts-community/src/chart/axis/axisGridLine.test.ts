@@ -3,12 +3,12 @@ import { afterEach, describe, expect } from '@jest/globals';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
-import { setupMockConsole } from '../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
 
