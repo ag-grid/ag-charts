@@ -10,7 +10,10 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
+    AND,
+    ARRAY,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     OBJECT,
@@ -27,7 +30,9 @@ const { Label } = _Scene;
 export interface MapLineNodeLabelDatum extends _Util.PointLabelDatum {}
 
 export interface MapLineNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+    readonly stroke: string | undefined;
     readonly idValue: string;
+    readonly colorValue: number | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
@@ -89,6 +94,15 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
 
     @Validate(STRING, { optional: true })
     labelName: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    colorKey?: string;
+
+    @Validate(STRING, { optional: true })
+    colorName?: string;
+
+    @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
+    colorRange: string[] | undefined = undefined;
 
     @Validate(COLOR_STRING)
     stroke: string = 'black';
