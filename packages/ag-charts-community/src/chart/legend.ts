@@ -973,9 +973,6 @@ export class Legend extends BaseProperties {
             const legendPositionedBBox = legendBBox.clone();
             legendPositionedBBox.x += this.group.translationX;
             legendPositionedBBox.y += this.group.translationY;
-            this.ctx.tooltipManager.updateExclusiveRect(this.id, legendPositionedBBox);
-        } else {
-            this.ctx.tooltipManager.updateExclusiveRect(this.id);
         }
 
         return { shrinkRect: newShrinkRect };
