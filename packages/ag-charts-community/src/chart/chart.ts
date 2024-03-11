@@ -5,7 +5,6 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
-import type { AgBaseSeriesOptions } from '../options/series/seriesOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
@@ -1140,7 +1139,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const isPixelRange = pixelRange != null;
-        const tooltipEnabled = this.tooltip.enabled && pick.series.properties.tooltip.enabled;
+        const tooltipEnabled = this.tooltip.enabled && pick.series.tooltipEnabled;
         const exactlyMatched = range === 'exact' && pick.distance === 0;
         const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
         const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
@@ -1715,7 +1714,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return seriesInstance;
     }
 
-    private applySeriesOptionModules(series: Series<any, any>, options: AgBaseSeriesOptions<any>) {
+    private applySeriesOptionModules(series: Series<any, any>, options: SeriesOptionsTypes) {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
@@ -1727,7 +1726,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private applySeriesValues(target: Series<any, any>, options: AgBaseSeriesOptions<any>) {
+    private applySeriesValues(target: Series<any, any>, options: SeriesOptionsTypes) {
         const moduleMap = target.getModuleMap();
         const { type: _, data, listeners, seriesGrouping, showInMiniChart: __, ...seriesOptions } = options as any;
 
@@ -1744,7 +1743,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.data = data;
+            target.setOptionsData(data);
         }
 
         if (listeners) {

@@ -33,18 +33,20 @@ const { sanitizeHtml, Logger } = _Util;
 export interface MapMarkerNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {
     projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
-    visible: boolean;
 }
 
 type MapMarkerAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapMarkerAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
 
-export class MapMarkerSeries extends DataModelSeries<
-    MapMarkerNodeDatum,
-    MapMarkerSeriesProperties,
-    MapMarkerNodeLabelDatum,
-    MapMarkerNodeDataContext
-> {
+export class MapMarkerSeries
+    extends DataModelSeries<
+        MapMarkerNodeDatum,
+        MapMarkerSeriesProperties,
+        MapMarkerNodeLabelDatum,
+        MapMarkerNodeDataContext
+    >
+    implements _ModuleSupport.TopologySeries
+{
     static readonly className = 'MapMarkerSeries';
     static readonly type = 'map-marker' as const;
 
@@ -449,7 +451,6 @@ export class MapMarkerSeries extends DataModelSeries<
                 nodeData,
                 labelData,
                 projectedBackgroundGeometry,
-                visible: true,
             },
         ];
     }

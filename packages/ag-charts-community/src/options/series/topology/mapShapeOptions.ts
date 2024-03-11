@@ -25,15 +25,6 @@ export interface AgMapShapeSeriesLabel<TDatum>
     placement?: LabelPlacement;
 }
 
-export interface AgMapShapeSeriesBackground extends FillOptions, StrokeOptions {
-    /** Topology to use for the background. */
-    topology?: any;
-    /** ID of the feature to use from the topology. */
-    id?: string;
-    /** The property to reference in the topology to match up with data. Defaults to `name`. */
-    topologyIdKey?: string;
-}
-
 export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     extends AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {

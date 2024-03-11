@@ -24,6 +24,7 @@ import { CandlestickModule } from './series/candlestick/main';
 import { HeatmapModule } from './series/heatmap/main';
 import { MapLineModule } from './series/map-line/main';
 import { MapMarkerModule } from './series/map-marker/main';
+import { MapShapeAccessoryModule } from './series/map-shape-accessory/main';
 import { MapShapeModule } from './series/map-shape/main';
 import { NightingaleModule } from './series/nightingale/main';
 import { RadarAreaModule } from './series/radar-area/main';
@@ -51,6 +52,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(MapLineModule);
     _ModuleSupport.registerModule(MapMarkerModule);
     _ModuleSupport.registerModule(MapShapeModule);
+    _ModuleSupport.registerModule(MapShapeAccessoryModule);
     _ModuleSupport.registerModule(NavigatorModule);
     _ModuleSupport.registerModule(GradientLegendModule);
     _ModuleSupport.registerModule(HeatmapModule);

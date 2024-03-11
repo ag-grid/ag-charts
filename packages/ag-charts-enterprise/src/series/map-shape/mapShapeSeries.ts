@@ -23,9 +23,7 @@ const { Group, Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapShapeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {
-    visible: boolean;
-}
+    extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
 export class MapShapeSeries
     extends DataModelSeries<
@@ -160,7 +158,7 @@ export class MapShapeSeries
         }
 
         if (topology == null) {
-            Logger.warnOnce(`no topology was provided for [MapSeries]; nothing will be rendered.`);
+            Logger.warnOnce(`no topology was provided for [MapShapeSeries]; nothing will be rendered.`);
         }
     }
 
@@ -294,7 +292,6 @@ export class MapShapeSeries
                 itemId: seriesId,
                 nodeData,
                 labelData,
-                visible: true,
             },
         ];
     }

@@ -26,6 +26,7 @@ import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBa
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgMapLineSeriesThemeableOptions } from '../series/topology/mapLineOptions';
 import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
+import type { AgMapShapeAccessoryThemeableOptions } from '../series/topology/mapShapeAccessoryOptions';
 import type { AgMapShapeSeriesThemeableOptions } from '../series/topology/mapShapeOptions';
 import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
@@ -154,6 +155,9 @@ export interface AgMapLineSeriesThemeOverrides extends AgBaseTopologyThemeOption
 export interface AgMapMarkerSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
     series?: AgMapMarkerSeriesThemeableOptions;
 }
+export interface AgMapShapeAccessoryThemeOverrides extends AgBaseTopologyThemeOptions {
+    series?: AgMapShapeAccessoryThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -215,6 +219,8 @@ export interface AgChartThemeOverrides {
     'map-line'?: AgMapLineSeriesThemeOverrides;
     /** Map-marker series theme overrides. */
     'map-marker'?: AgMapMarkerSeriesThemeOverrides;
+    /** Map-shape-accessory series theme overrides. */
+    'map-shape-accessory'?: AgMapMarkerSeriesThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually

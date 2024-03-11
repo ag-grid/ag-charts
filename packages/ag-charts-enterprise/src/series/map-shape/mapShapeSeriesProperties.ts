@@ -103,5 +103,5 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     readonly label = new MapShapeSeriesLabel();
 
     @Validate(OBJECT)
-    override tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
+    readonly tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
 }

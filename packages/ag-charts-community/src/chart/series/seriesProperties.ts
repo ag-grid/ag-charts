@@ -82,5 +82,5 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     @Validate(OBJECT)
     readonly highlightStyle = new HighlightStyle();
 
-    abstract tooltip: SeriesTooltip<any>;
+    abstract tooltip: SeriesTooltip<never>;
 }

@@ -20,7 +20,6 @@ const { sanitizeHtml, Logger } = _Util;
 export interface MapLineNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {
     projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
-    visible: boolean;
 }
 
 export class MapLineSeries
@@ -177,7 +176,7 @@ export class MapLineSeries
         }
 
         if (topology == null) {
-            Logger.warnOnce(`no topology was provided for [MapSeries]; nothing will be rendered.`);
+            Logger.warnOnce(`no topology was provided for [MapLineSeries]; nothing will be rendered.`);
         }
     }
 
@@ -316,7 +315,6 @@ export class MapLineSeries
                 nodeData,
                 labelData,
                 projectedBackgroundGeometry,
-                visible: true,
             },
         ];
     }
