@@ -5,8 +5,8 @@ const { DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate } =
 export class ZoomRange {
     @ActionOnSet<ZoomRange>({
         changeValue(start) {
+            this._start = start;
             this.initialStart ??= start;
-            this.onChange?.(this.getRangeWithValues(start, this.end));
         },
     })
     @Validate(OR(DATE, NUMBER), { optional: true })
@@ -14,8 +14,8 @@ export class ZoomRange {
 
     @ActionOnSet<ZoomRange>({
         changeValue(end) {
+            this._end = end;
             this.initialEnd ??= end;
-            this.onChange?.(this.getRangeWithValues(this.start, end));
         },
     })
     @Validate(OR(DATE, NUMBER), { optional: true })
@@ -25,10 +25,13 @@ export class ZoomRange {
     private initialStart?: number;
     private initialEnd?: number;
 
+    private _start?: Date | number;
+    private _end?: Date | number;
+
     constructor(private readonly onChange: (range?: { min: number; max: number }) => void) {}
 
     public getRange() {
-        return this.getRangeWithValues(this.start, this.end);
+        return this.getRangeWithValues(this._start, this._end);
     }
 
     public getInitialRange() {
@@ -45,29 +48,19 @@ export class ZoomRange {
         const end = this.domain.at(-1);
         if (end == null) return;
 
-        const start = fn(end);
-        const changed = this.start !== start || this.end !== end;
+        this._end = end;
+        this._start = fn(end);
 
-        this.end = end;
-        this.start = start;
-
-        // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.getRange());
+        this.onChange?.(this.getRange());
     }
 
     public extendAll() {
         if (!this.domain) return;
 
-        const start = this.domain[0];
-        const end = this.domain.at(-1);
+        this._start = this.domain[0];
+        this._end = this.domain.at(-1);
 
-        const changed = this.start !== start || this.end !== end;
-
-        this.start = start;
-        this.end = end;
-
-        // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.getRange());
+        this.onChange?.(this.getRange());
     }
 
     public updateAxis(axes: Array<_ModuleSupport.AxisLayout>) {
