@@ -202,6 +202,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     valueType: DatumPropertyType;
     property: K;
     forceValue?: any;
+    includeProperty?: boolean;
     invalidValue?: any;
     missing?: MissMap;
     missingValue?: any;
@@ -639,9 +640,10 @@ export class DataModel<
 
                     if (value === INVALID_VALUE || !values) continue;
 
-                    if (source !== undefined) {
+                    if (source !== undefined && def.includeProperty !== false) {
+                        const property = def.includeProperty && def.id != null ? def.id : def.property;
                         sourceDatums[source.id] ??= {};
-                        sourceDatums[source.id][def.property] = value;
+                        sourceDatums[source.id][property] = value;
                     }
 
                     if (def.useScopedValues) {
