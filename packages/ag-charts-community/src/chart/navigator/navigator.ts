@@ -6,7 +6,7 @@ import type { Group } from '../../scene/group';
 import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
+import { AND, BOOLEAN, GREATER_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionEvent, InteractionState } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';
@@ -31,22 +31,22 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     @Validate(POSITIVE_NUMBER)
     public margin: number = 10;
 
-    @Validate(RATIO, { optional: true })
     @ActionOnSet<Navigator>({
         newValue(min) {
             this._min = min;
-            this.updateZoom(min, this._max);
+            this.updateZoom();
         },
     })
+    @Validate(RATIO, { optional: true })
     public min?: number;
 
-    @Validate(RATIO, { optional: true })
     @ActionOnSet<Navigator>({
         newValue(max) {
             this._max = max;
-            this.updateZoom(this._min, max);
+            this.updateZoom();
         },
     })
+    @Validate(AND(RATIO, GREATER_THAN('min')), { optional: true })
     public max?: number;
 
     protected x = 0;
@@ -91,7 +91,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.rangeSelector.visible = enabled;
 
         if (enabled) {
-            this.updateZoom(this._min, this._max);
+            this.updateZoom();
         }
     }
 
@@ -181,7 +181,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             max = min + span;
         }
 
-        this.updateZoom(min, max);
+        this._min = min;
+        this._max = max;
+
+        this.updateZoom();
     }
 
     private onDragEnd() {
@@ -222,9 +225,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.mask.update(min, max);
     }
 
-    private updateZoom(min?: number, max?: number) {
+    private updateZoom() {
         if (!this.enabled) return;
 
+        const { _min: min, _max: max } = this;
         const zoom = this.ctx.zoomManager.getZoom();
         if (min == null || max == null) return;
 
