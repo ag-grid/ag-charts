@@ -1,7 +1,11 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from './bboxUtil';
-import { lineSegmentDistanceToPointSquared, lineSegmentDistanceToRectSquared } from './lineStringUtil';
+import {
+    lineSegmentDistanceToPointSquared,
+    lineSegmentDistanceToRectSquared,
+    lineSegmentIntersectsRect,
+} from './lineStringUtil';
 import { type List, insertManySorted } from './linkedList';
 
 export function polygonBbox(
@@ -58,13 +62,20 @@ export function preferredLabelCenter(
     const bbox = polygonBbox(polygons[0], undefined);
     if (bbox == null) return;
 
+    const boundingXCenter = (bbox.lon0 + bbox.lon1) / 2;
+    const boundingYCenter = (bbox.lat0 + bbox.lat1) / 2;
+    const boundingWidth = Math.abs(bbox.lon1 - bbox.lon0);
+    const boundingHeight = Math.abs(bbox.lon1 - bbox.lon0);
+
+    if (boundingWidth < size.width || boundingHeight < size.height) return;
+
     const centroid = polygonCentroid(polygons[0])!;
     const [cx, cy] = centroid;
     const centroidDistanceToPolygon = -polygonRectDistance(polygons, centroid, { width: 0, height: 0 });
     let bestValue = 0;
     let bestCenter: _ModuleSupport.Position | undefined;
 
-    const createLabelPlacement = (x: number, y: number, stride: number) => {
+    const createLabelPlacement = (x: number, y: number, stride: number): LabelPlacement => {
         const center: _ModuleSupport.Position = [x, y];
         const distanceToPolygon = -polygonRectDistance(polygons, center, size);
         const distanceToCentroid = Math.hypot(cx - x, cy - y);
@@ -85,10 +96,6 @@ export function preferredLabelCenter(
         return { maxValue, x, y, stride };
     };
 
-    const boundingXCenter = (bbox.lon0 + bbox.lon1) / 2;
-    const boundingYCenter = (bbox.lat0 + bbox.lat1) / 2;
-    const boundingWidth = Math.abs(bbox.lon1 - bbox.lon0);
-    const boundingHeight = Math.abs(bbox.lon1 - bbox.lon0);
     const initialStride = Math.min(boundingWidth, boundingHeight) / 2;
     let queue: List<LabelPlacement> = {
         value: createLabelPlacement(boundingXCenter, boundingYCenter, initialStride),
@@ -131,6 +138,8 @@ export function polygonRectDistance(
     let minDistanceSquared = Infinity;
 
     const [cx, cy] = center;
+    const halfWidth = size.width / 2;
+    const halfHeight = size.height / 2;
 
     for (const polygon of polygons) {
         let p0 = polygon[polygon.length - 1];
@@ -139,10 +148,14 @@ export function polygonRectDistance(
         for (const p1 of polygon) {
             const [x1, y1] = p1;
 
-            const distanceSquared = lineSegmentDistanceToRectSquared(p0, p1, center, size);
+            const rx0 = cx - halfWidth;
+            const rx1 = cx + halfWidth;
+            const ry0 = cy - halfHeight;
+            const ry1 = cy + halfHeight;
 
-            const rectangleIntersectsPolygon = distanceSquared <= 0;
-            if (rectangleIntersectsPolygon) return 0;
+            if (lineSegmentIntersectsRect(p0, p1, rx0, ry0, rx1, ry1)) return 0;
+
+            const distanceSquared = lineSegmentDistanceToRectSquared(p0, p1, rx0, ry0, rx1, ry1);
 
             if (y1 > cy !== y0 > cy && cx < ((x0 - x1) * (cy - y1)) / (y0 - y1) + x1) {
                 inside = !inside;
