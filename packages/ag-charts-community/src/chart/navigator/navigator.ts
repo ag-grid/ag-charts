@@ -6,7 +6,7 @@ import type { Group } from '../../scene/group';
 import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
-import { AND, BOOLEAN, GREATER_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
+import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionEvent, InteractionState } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';
@@ -37,7 +37,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.updateZoom();
         },
     })
-    @Validate(RATIO, { optional: true })
+    @Validate(AND(RATIO, LESS_THAN('max')), { optional: true })
     public min?: number;
 
     @ActionOnSet<Navigator>({
