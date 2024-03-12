@@ -2,7 +2,7 @@ import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, GeoJSON, LabelPlacement, PixelSize } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 export interface AgMapLineSeriesTooltipRendererParams<TDatum>
@@ -24,20 +24,9 @@ export interface AgMapLineSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum
     placement?: LabelPlacement;
 }
 
-export interface AgMapLineSeriesBackground extends FillOptions, StrokeOptions {
-    /** Topology to use for the background. */
-    topology?: GeoJSON;
-    /** ID of the feature to use from the topology. */
-    id?: string;
-    /** The property to reference in the topology to match up with data. Defaults to `name`. */
-    topologyIdKey?: string;
-}
-
 export interface AgMapLineSeriesThemeableOptions<TDatum = any>
     extends AgMapLineSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
-    /** Configuration for an optional background */
-    background?: AgMapLineSeriesBackground;
     /** Determines the largest width a stroke can be in pixels. */
     maxStrokeWidth?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
@@ -63,6 +52,8 @@ export interface AgMapLineSeriesOptions<TDatum = any>
     topology?: GeoJSON;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
     topologyIdKey?: string;
+    /** The title to use for the series. Defaults to `idName` if it exists, or `idKey` if not.  */
+    title?: string;
     /** Human-readable description of the series. */
     legendItemName?: string;
 }

@@ -26,10 +26,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             maxStrokeWidth: 3,
             lineDash: [0],
             lineDashOffset: 0,
-            background: {
-                strokeWidth: 0,
-                fillOpacity: 0.2,
-            },
             label: {
                 enabled: true,
                 fontStyle: undefined,

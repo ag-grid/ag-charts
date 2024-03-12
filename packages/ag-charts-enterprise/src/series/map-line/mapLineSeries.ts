@@ -279,6 +279,7 @@ export class MapLineSeries
                 stroke: color,
                 strokeWidth: size,
                 idValue,
+                labelValue,
                 colorValue,
                 projectedGeometry,
             });
@@ -319,7 +320,7 @@ export class MapLineSeries
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && highlightedDatum.series !== this) {
+        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.idValue == null)) {
             highlightedDatum = undefined;
         }
 
@@ -538,11 +539,12 @@ export class MapLineSeries
             return '';
         }
 
-        const { idKey, colorKey, colorName, strokeWidth, formatter, tooltip } = properties;
+        const { legendItemName, idKey, idName, colorKey, colorName, strokeWidth, formatter, tooltip } = properties;
         const { datum, stroke, idValue, colorValue } = nodeDatum;
 
-        const title = sanitizeHtml(idValue);
+        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
+        contentLines.push(sanitizeHtml((idName ?? idKey) + ': ' + idValue));
         if (colorValue != null) {
             contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
         }

@@ -37,22 +37,11 @@ export interface AgMapMarkerSeriesLabel<TDatum>
     placement?: LabelPlacement;
 }
 
-export interface AgMapMarkerSeriesBackground extends FillOptions, StrokeOptions {
-    /** Topology to use for the background. */
-    topology?: GeoJSON;
-    /** ID of the feature to use from the topology. */
-    id?: string;
-    /** The property to reference in the topology to match up with data. Defaults to `name`. */
-    topologyIdKey?: string;
-}
-
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
-    /** Configuration for an optional background */
-    background?: AgMapMarkerSeriesBackground;
     /** Configuration for the labels shown on top of data points. */
     label?: AgMapMarkerSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
@@ -74,6 +63,8 @@ export interface AgMapMarkerSeriesOptions<TDatum = any>
     topology?: GeoJSON;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
     topologyIdKey?: string;
+    /** The title to use for the series. Defaults to `idName` if it exists, or `idKey` if not.  */
+    title?: string;
     /** Human-readable description of the series. */
     legendItemName?: string;
 }

@@ -33,6 +33,7 @@ export interface MapLineNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly stroke: string | undefined;
     readonly strokeWidth: number | undefined;
     readonly idValue: string;
+    readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
@@ -45,6 +46,9 @@ class MapLineSeriesLabel extends Label<AgMapLineSeriesLabelFormatterParams> {
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
+
+    @Validate(STRING, { optional: true })
+    title?: string;
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;

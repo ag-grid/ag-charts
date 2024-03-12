@@ -266,9 +266,10 @@ export class MapShapeSeries
                 series: this,
                 itemId: idKey,
                 datum,
-                idValue: idValue,
-                fill: color ?? fillProperty,
+                idValue,
                 colorValue,
+                labelValue,
+                fill: color ?? fillProperty,
                 projectedGeometry,
             });
         });
@@ -308,7 +309,7 @@ export class MapShapeSeries
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && highlightedDatum.series !== this) {
+        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.idValue == null)) {
             highlightedDatum = undefined;
         }
 
@@ -478,8 +479,10 @@ export class MapShapeSeries
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
         const {
+            title,
             legendItemName,
             idKey,
+            idName,
             fill,
             fillOpacity,
             stroke,
@@ -507,10 +510,10 @@ export class MapShapeSeries
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: this.id,
-                itemId: legendItemName ?? idKey,
+                itemId: legendItemName ?? title ?? idName ?? idKey,
                 seriesId: this.id,
                 enabled: visible,
-                label: { text: legendItemName ?? idKey },
+                label: { text: legendItemName ?? title ?? idName ?? idKey },
                 marker: {
                     fill,
                     fillOpacity,
@@ -531,19 +534,36 @@ export class MapShapeSeries
             id: seriesId,
             processedData,
             ctx: { callbackCache },
+            properties,
         } = this;
 
-        if (!processedData || !this.properties.isValid()) {
+        if (!processedData || !properties.isValid()) {
             return '';
         }
 
-        const { idKey, colorKey, colorName, stroke, strokeWidth, formatter, tooltip } = this.properties;
-        const { datum, fill, idValue, colorValue } = nodeDatum;
+        const {
+            legendItemName,
+            idKey,
+            idName,
+            colorKey,
+            colorName,
+            labelKey,
+            labelName,
+            stroke,
+            strokeWidth,
+            formatter,
+            tooltip,
+        } = properties;
+        const { datum, fill, idValue, colorValue, labelValue } = nodeDatum;
 
-        const title = sanitizeHtml(idValue);
+        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
+        contentLines.push(sanitizeHtml((idName ?? idKey) + ': ' + idValue));
         if (colorValue != null) {
             contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
+        }
+        if (labelValue != null && labelKey !== idKey) {
+            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
         }
         const content = contentLines.join('<br>');
 
