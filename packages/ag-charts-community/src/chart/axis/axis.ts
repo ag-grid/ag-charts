@@ -1094,7 +1094,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 tickIdCounts.set(tickId, 1);
             }
 
-            ticks.push({ tick: rawTick, tickId, tickLabel, translationY });
+            ticks.push({ tick: rawTick, tickId, tickLabel, translationY: Math.floor(translationY) });
 
             if (tickLabel === '' || tickLabel == undefined) {
                 continue;
