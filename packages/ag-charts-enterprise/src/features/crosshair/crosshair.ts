@@ -263,26 +263,21 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     } {
         const { seriesRect, axisCtx } = this;
         const key = 'pointer';
-        const { datum, xKey = '' } = this.activeHighlight ?? {};
+        const { datum, xKey = '', yKey = '' } = this.activeHighlight ?? {};
         const { offsetX, offsetY } = event;
 
-        if (this.isVertical()) {
-            const x = offsetX - seriesRect.x;
-            return {
-                [key]: {
-                    position: x,
-                    value: axisCtx.continuous ? axisCtx.scaleInvert(x) : datum?.[xKey] ?? '',
-                },
-            };
-        } else {
-            const y = offsetY - seriesRect.y;
-            return {
-                [key]: {
-                    position: y,
-                    value: axisCtx.continuous ? axisCtx.scaleInvert(y) : datum?.[xKey] ?? '',
-                },
-            };
-        }
+        const x = offsetX - seriesRect.x;
+        const y = offsetY - seriesRect.y;
+
+        const isVertical = this.isVertical();
+        return {
+            [key]: {
+                position: this.isVertical() ? x : y,
+                value: axisCtx.continuous
+                    ? axisCtx.scaleInvert(isVertical ? x : y)
+                    : datum?.[isVertical ? xKey : yKey] ?? '',
+            },
+        };
     }
 
     private getActiveHighlightData(
@@ -294,7 +289,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const halfBandwidth = axisCtx.scaleBandwidth() / 2;
 
-        const isYKey = axisCtx.keys().indexOf(yKey) >= 0 && series.axes.y?.id === axisCtx.axisId;
+        const isYKey = axisCtx.keys().indexOf(yKey) > -1 && series.axes.y?.id === axisCtx.axisId;
 
         if (isYKey && aggregatedValue !== undefined) {
             return {
