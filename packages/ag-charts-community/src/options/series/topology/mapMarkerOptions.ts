@@ -1,9 +1,8 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, LabelPlacement, PixelSize } from '../../chart/types';
+import type { CssColor, GeoJSON, LabelPlacement, MarkerShape, PixelSize } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 export interface AgMapMarkerSeriesTooltipRendererParams<TDatum>
@@ -18,13 +17,15 @@ export interface AgMapMarkerSeriesTooltipRendererParams<TDatum>
 
 export interface AgMapMarkerSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {}
 
-export interface AgMapMarkerSeriesStyle {}
-
-export interface AgMapMarkerSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgMapMarkerSeriesOptionsKeys, TDatum> {
+export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions {
+    /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
+    shape?: MarkerShape;
+    /** The size in pixels of the markers. */
+    size?: PixelSize;
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    domain?: [number, number];
+    sizeDomain?: [number, number];
 }
 
 export interface AgMapMarkerSeriesLabel<TDatum>
@@ -52,8 +53,6 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     colorRange?: CssColor[];
     /** Configuration for an optional background */
     background?: AgMapMarkerSeriesBackground;
-    /** Configuration for the markers used in the series. */
-    marker?: AgMapMarkerSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points. */
     label?: AgMapMarkerSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
@@ -115,6 +114,3 @@ export interface AgMapMarkerSeriesFormatterParams<TDatum = any>
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
 }
-
-/** The formatted style of a Map sector. */
-export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions {}

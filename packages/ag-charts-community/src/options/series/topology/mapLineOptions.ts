@@ -99,6 +99,3 @@ export interface AgMapLineSeriesFormatterParams<TDatum = any>
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
 }
-
-/** The formatted style of a Map sector. */
-export interface AgMapLineSeriesStyle extends StrokeOptions {}

@@ -20,8 +20,9 @@ import { Marker } from '../marker/marker';
 import type { MarkerShape } from '../marker/util';
 import { isMarkerShape } from '../marker/util';
 
-const MARKER_SHAPE = predicateWithMessage(
-    (value) => isMarkerShape(value) || Object.getPrototypeOf(value) === Marker,
+export const MARKER_SHAPE = predicateWithMessage(
+    (value: any) =>
+        isMarkerShape(value) || (typeof Marker === 'function' && Object.create(value.prototype) instanceof Marker),
     `a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
 );
 

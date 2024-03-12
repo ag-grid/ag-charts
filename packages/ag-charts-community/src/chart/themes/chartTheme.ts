@@ -27,6 +27,7 @@ import {
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
+    DEFAULT_MAP_BACKGROUND_FILL,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
@@ -542,6 +543,7 @@ export class ChartTheme {
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke
         );
+        properties.set(DEFAULT_MAP_BACKGROUND_FILL, '#E7E7E7');
 
         return {
             extensions,

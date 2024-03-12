@@ -312,7 +312,7 @@ export class MapShapeSeries
             highlightedDatum = undefined;
         }
 
-        const { nodeData } = this.contextNodeData[0];
+        const nodeData = this.contextNodeData[0]?.nodeData ?? [];
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection, isHighlight: false });
