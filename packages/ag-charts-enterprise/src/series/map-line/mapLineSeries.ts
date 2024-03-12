@@ -52,6 +52,7 @@ export class MapLineSeries
     private backgroundNode = this.contentGroup.appendChild(new GeoGeometry());
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private itemHighlightGroup = this.contentGroup.appendChild(new Group({ name: 'itemHighlightGroup' }));
 
     private datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(this.itemGroup, () =>
         this.nodeFactory()
@@ -61,7 +62,7 @@ export class MapLineSeries
         Text
     );
     private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
-        this.highlightNode,
+        this.itemHighlightGroup,
         () => this.nodeFactory()
     );
 

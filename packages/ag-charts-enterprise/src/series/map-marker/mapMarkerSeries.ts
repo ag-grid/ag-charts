@@ -494,13 +494,17 @@ export class MapMarkerSeries
         await this.updateLabelNodes({ labelSelection });
 
         this.markerSelection = await this.updateMarkerSelection({ markerData: nodeData, markerSelection });
-        await this.updateMarkerNodes({ markerSelection, isHighlight: false });
+        await this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
 
         this.highlightMarkerSelection = await this.updateMarkerSelection({
             markerData: highlightedDatum != null ? [highlightedDatum] : [],
             markerSelection: highlightMarkerSelection,
         });
-        await this.updateMarkerNodes({ markerSelection: highlightMarkerSelection, isHighlight: true });
+        await this.updateMarkerNodes({
+            markerSelection: highlightMarkerSelection,
+            isHighlight: true,
+            highlightedDatum,
+        });
 
         const resize = this.checkResize(seriesRect);
         if (resize) {
@@ -579,20 +583,21 @@ export class MapMarkerSeries
     private async updateMarkerNodes(opts: {
         markerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum>;
         isHighlight: boolean;
+        highlightedDatum: MapMarkerNodeDatum | undefined;
     }) {
         const {
             id: seriesId,
             properties,
             ctx: { callbackCache },
         } = this;
-        const { markerSelection, isHighlight } = opts;
+        const { markerSelection, isHighlight, highlightedDatum } = opts;
         const { idKey, latitudeKey, longitudeKey, labelKey, sizeKey } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, formatter } = properties.marker;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.marker.strokeWidth);
 
         markerSelection.each((marker, markerDatum) => {
-            const { point } = markerDatum;
+            const { datum, point } = markerDatum;
 
             let format: AgSeriesMarkerStyle | undefined;
             if (formatter != null) {
@@ -629,6 +634,7 @@ export class MapMarkerSeries
             marker.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
             marker.translationX = point.x;
             marker.translationY = point.y;
+            marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
 
         if (!isHighlight) {
