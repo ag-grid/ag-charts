@@ -272,7 +272,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const isVertical = this.isVertical();
         return {
             [key]: {
-                position: this.isVertical() ? x : y,
+                position: isVertical ? x : y,
                 value: axisCtx.continuous
                     ? axisCtx.scaleInvert(isVertical ? x : y)
                     : datum?.[isVertical ? xKey : yKey] ?? '',
