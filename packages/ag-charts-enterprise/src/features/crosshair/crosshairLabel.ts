@@ -1,5 +1,5 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
 const { BBox } = _Scene;
@@ -36,6 +36,26 @@ export const defaultLabelCss = `
 export interface LabelMeta {
     x: number;
     y: number;
+}
+
+export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties {
+    @Validate(BOOLEAN)
+    enabled: boolean = true;
+
+    @Validate(STRING, { optional: true })
+    className?: string;
+
+    @Validate(NUMBER)
+    xOffset: number = 0;
+
+    @Validate(NUMBER)
+    yOffset: number = 0;
+
+    @Validate(STRING, { optional: true })
+    format?: string = undefined;
+
+    @Validate(FUNCTION, { optional: true })
+    renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
 }
 
 export class CrosshairLabel extends BaseProperties {

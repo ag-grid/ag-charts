@@ -94,16 +94,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected override resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
-        if (this.getBarDirection() === ChartAxisDirection.X) {
-            if (direction === ChartAxisDirection.X) {
-                return ChartAxisDirection.Y;
-            }
-            return ChartAxisDirection.X;
-        }
-        return direction;
-    }
-
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
     override async processData(dataController: _ModuleSupport.DataController) {

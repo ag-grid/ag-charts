@@ -3,6 +3,7 @@ import * as resetMotion from './motion/resetMotion';
 
 export { Caption } from './chart/caption';
 export { DropShadow } from './scene/dropShadow';
+export { ChangeDetectableProperties } from './scene/util/changeDetectableProperties';
 export { Group } from './scene/group';
 export { Scene } from './scene/scene';
 export { Node, PointerEvents, RedrawType, SceneChangeDetection } from './scene/node';

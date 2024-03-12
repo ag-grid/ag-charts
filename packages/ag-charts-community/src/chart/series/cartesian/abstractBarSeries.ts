@@ -102,4 +102,14 @@ export abstract class AbstractBarSeries<
 
         return { barWidth, groupIndex };
     }
+
+    protected override resolveKeyDirection(direction: ChartAxisDirection) {
+        if (this.getBarDirection() === ChartAxisDirection.X) {
+            if (direction === ChartAxisDirection.X) {
+                return ChartAxisDirection.Y;
+            }
+            return ChartAxisDirection.X;
+        }
+        return direction;
+    }
 }
