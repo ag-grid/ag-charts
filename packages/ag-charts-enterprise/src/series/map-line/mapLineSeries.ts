@@ -263,7 +263,8 @@ export class MapLineSeries
         const colorIdx =
             colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
 
-        sizeScale.range = [properties.strokeWidth, properties.maxStrokeWidth ?? properties.strokeWidth];
+        const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
+        sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
         const font = label.getFont();
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
@@ -287,7 +288,7 @@ export class MapLineSeries
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const size = sizeValue != null ? sizeScale.convert(sizeValue) : undefined;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : undefined;
 
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {
