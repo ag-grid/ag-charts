@@ -22,7 +22,6 @@ const {
     RATIO,
     STRING,
     Validate,
-    BaseProperties,
     SeriesProperties,
     SeriesTooltip,
 } = _ModuleSupport;
@@ -41,38 +40,6 @@ export interface MapLineNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 class MapLineSeriesLabel extends Label<AgMapLineSeriesLabelFormatterParams> {
     @Validate(STRING)
     placement: _Util.LabelPlacement = 'bottom';
-}
-
-class MapLineSeriesBackground extends BaseProperties {
-    @Validate(GEOJSON_OBJECT, { optional: true })
-    topology: _ModuleSupport.FeatureCollection | undefined = undefined;
-
-    @Validate(STRING, { optional: true })
-    id?: string = undefined;
-
-    @Validate(STRING)
-    topologyIdKey: string = 'name';
-
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity: number = 1;
-
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
-
-    @Validate(RATIO)
-    strokeOpacity: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 0;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
 }
 
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
@@ -135,9 +102,6 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
 
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgMapLineSeriesFormatterParams<any>) => AgMapLineSeriesStyle;
-
-    @Validate(OBJECT)
-    readonly background = new MapLineSeriesBackground();
 
     @Validate(OBJECT)
     readonly label = new MapLineSeriesLabel();

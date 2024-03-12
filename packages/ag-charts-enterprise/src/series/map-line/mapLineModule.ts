@@ -56,14 +56,13 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill, stroke } = singleSeriesPaletteFactory(opts);
+        const { fill } = singleSeriesPaletteFactory(opts);
         const { properties } = themeTemplateParameters;
         const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
             colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
             stroke: fill,
-            background: { fill, stroke },
         };
     },
 };

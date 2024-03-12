@@ -18,9 +18,7 @@ const { Group, Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapLineNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {
-    projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
-}
+    extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
 
 export class MapLineSeries
     extends DataModelSeries<MapLineNodeDatum, MapLineSeriesProperties, MapLineNodeLabelDatum, MapLineNodeDataContext>
@@ -48,8 +46,6 @@ export class MapLineSeries
 
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
-
-    private backgroundNode = this.contentGroup.appendChild(new GeoGeometry());
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private itemHighlightGroup = this.contentGroup.appendChild(new Group({ name: 'itemHighlightGroup' }));
@@ -106,23 +102,6 @@ export class MapLineSeries
         return geoGeometry;
     }
 
-    private getBackgroundGeometry(): _ModuleSupport.Geometry | undefined {
-        const { background } = this.properties;
-        const { id } = background;
-        if (id == null) return;
-
-        let topology: _ModuleSupport.FeatureCollection | undefined;
-        let topologyIdKey: string;
-        if (background.topology != null) {
-            ({ topology, topologyIdKey } = background);
-        } else {
-            topology = this.topology;
-            topologyIdKey = this.properties.topologyIdKey;
-        }
-
-        return topology?.features.find((feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
-    }
-
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         if (this.data == null || !this.properties.isValid()) {
             return;
@@ -152,7 +131,7 @@ export class MapLineSeries
         });
 
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
-        let bbox = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
+        this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
                 const feature: _ModuleSupport.Feature | undefined = values[featureIdx];
                 if (feature == null) return current;
@@ -160,13 +139,6 @@ export class MapLineSeries
             },
             undefined
         );
-
-        const backgroundGeometry = this.getBackgroundGeometry();
-        if (backgroundGeometry != null) {
-            bbox = geometryBbox(backgroundGeometry, bbox);
-        }
-
-        this.topologyBounds = bbox;
 
         if (sizeKey != null) {
             const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
@@ -312,10 +284,6 @@ export class MapLineSeries
             });
         });
 
-        const backgroundGeometry = this.getBackgroundGeometry();
-        const projectedBackgroundGeometry =
-            backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
-
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
             const excessItems = missingGeometries.length - missingGeometriesCap;
@@ -331,7 +299,6 @@ export class MapLineSeries
                 itemId: seriesId,
                 nodeData,
                 labelData,
-                projectedBackgroundGeometry,
             },
         ];
     }
@@ -356,9 +323,7 @@ export class MapLineSeries
             highlightedDatum = undefined;
         }
 
-        const { nodeData, projectedBackgroundGeometry } = this.contextNodeData[0];
-
-        this.updateBackground(projectedBackgroundGeometry);
+        const nodeData = this.contextNodeData[0]?.nodeData ?? [];
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection, isHighlight: false });
@@ -371,28 +336,6 @@ export class MapLineSeries
             datumSelection: highlightDatumSelection,
         });
         await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
-    }
-
-    private updateBackground(projectedGeometry: _ModuleSupport.Geometry | undefined) {
-        const { backgroundNode, properties } = this;
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
-            properties.background;
-
-        if (projectedGeometry == null) {
-            backgroundNode.visible = false;
-            backgroundNode.projectedGeometry = undefined;
-            return;
-        }
-
-        backgroundNode.visible = true;
-        backgroundNode.projectedGeometry = projectedGeometry;
-        backgroundNode.fill = fill;
-        backgroundNode.fillOpacity = fillOpacity;
-        backgroundNode.stroke = stroke;
-        backgroundNode.strokeWidth = strokeWidth;
-        backgroundNode.strokeOpacity = strokeOpacity;
-        backgroundNode.lineDash = lineDash;
-        backgroundNode.lineDashOffset = lineDashOffset;
     }
 
     private async updateDatumSelection(opts: {

@@ -10,7 +10,6 @@ import {
 } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
-import { GeoGeometry } from '../map-util/geoGeometry';
 import { geometryBbox, markerPositions, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -31,9 +30,7 @@ const { Group, Selection, Text, getMarker } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {
-    projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
-}
+    extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
 
 type MapMarkerAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapMarkerAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
@@ -70,8 +67,6 @@ export class MapMarkerSeries
 
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
-
-    private backgroundNode = this.contentGroup.appendChild(new GeoGeometry());
 
     private markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
     private highlightMarkerGroup = this.contentGroup.appendChild(new Group({ name: 'highlightMarkerGroup' }));
@@ -164,24 +159,10 @@ export class MapMarkerSeries
         return this.properties.labelKey != null && this.properties.label.enabled;
     }
 
-    private isMarkerEnabled() {
-        return this.properties.marker.enabled;
-    }
-
     private markerFactory(): _Scene.Marker {
-        const { shape } = this.properties.marker;
+        const { shape } = this.properties;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
-    }
-
-    private getBackgroundGeometry(): _ModuleSupport.Geometry | undefined {
-        const { background } = this.properties;
-        const { id, topologyIdKey } = background;
-        if (id == null) return;
-
-        const topology = background.topology ?? this.topology;
-        return topology?.features.find((feature: _ModuleSupport.Feature) => feature.properties?.[topologyIdKey] === id)
-            ?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -190,7 +171,7 @@ export class MapMarkerSeries
         }
 
         const { data, topology, sizeScale, colorScale } = this;
-        const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, colorRange, marker } =
+        const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } =
             this.properties;
 
         const featureById = new Map<string, _ModuleSupport.Feature>();
@@ -228,7 +209,7 @@ export class MapMarkerSeries
             idKey != null ? dataModel.resolveProcessedDataIndexById(this, `featureValue`).index : undefined;
         const latIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `latValue`).index : undefined;
         const lonIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `lonValue`).index : undefined;
-        let bbox = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
+        this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
                 const feature: _ModuleSupport.Feature | undefined = featureIdx != null ? values[featureIdx] : undefined;
                 if (feature != null) {
@@ -244,17 +225,10 @@ export class MapMarkerSeries
             undefined
         );
 
-        const backgroundGeometry = this.getBackgroundGeometry();
-        if (backgroundGeometry != null) {
-            bbox = geometryBbox(backgroundGeometry, bbox);
-        }
-
-        this.topologyBounds = bbox;
-
         if (sizeKey != null) {
             const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
             const processedSize = processedData.domain.values[sizeIdx] ?? [];
-            sizeScale.domain = marker.domain ?? processedSize;
+            sizeScale.domain = sizeDomain ?? processedSize;
         }
 
         if (colorRange != null && this.isColorScaleValid()) {
@@ -330,14 +304,14 @@ export class MapMarkerSeries
         return {
             point: { x, y, size },
             label: { width, height, text: labelText },
-            marker: getMarker(this.properties.marker.shape),
+            marker: getMarker(this.properties.shape),
             placement,
         };
     }
 
     override async createNodeData(): Promise<MapMarkerNodeDataContext[]> {
         const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
-        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label, marker } = properties;
+        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label } = properties;
 
         if (dataModel == null || processedData == null || scale == null) return [];
 
@@ -356,8 +330,8 @@ export class MapMarkerSeries
         const colorIdx =
             colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
 
-        const markerMaxSize = marker.maxSize ?? marker.size;
-        sizeScale.range = [Math.min(marker.size, markerMaxSize), markerMaxSize];
+        const markerMaxSize = properties.maxSize ?? properties.size;
+        sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
         const font = label.getFont();
 
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
@@ -387,7 +361,7 @@ export class MapMarkerSeries
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : marker.size;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : properties.size;
 
             const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
             if (idValue != null && projectGeometry == null) {
@@ -443,10 +417,6 @@ export class MapMarkerSeries
             }
         });
 
-        const backgroundGeometry = this.getBackgroundGeometry();
-        const projectedBackgroundGeometry =
-            backgroundGeometry != null ? projectGeometry(backgroundGeometry, scale) : undefined;
-
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
             const excessItems = missingGeometries.length - missingGeometriesCap;
@@ -462,7 +432,6 @@ export class MapMarkerSeries
                 itemId: seriesId,
                 nodeData,
                 labelData,
-                projectedBackgroundGeometry,
             },
         ];
     }
@@ -487,9 +456,7 @@ export class MapMarkerSeries
             highlightedDatum = undefined;
         }
 
-        const { nodeData, projectedBackgroundGeometry } = this.contextNodeData[0];
-
-        this.updateBackground(projectedBackgroundGeometry);
+        const nodeData = this.contextNodeData[0]?.nodeData ?? [];
 
         this.labelSelection = await this.updateLabelSelection({ labelSelection });
         await this.updateLabelNodes({ labelSelection });
@@ -512,28 +479,6 @@ export class MapMarkerSeries
             this.animationState.transition('resize');
         }
         this.animationState.transition('update');
-    }
-
-    private updateBackground(projectedGeometry: _ModuleSupport.Geometry | undefined) {
-        const { backgroundNode, properties } = this;
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
-            properties.background;
-
-        if (projectedGeometry == null) {
-            backgroundNode.visible = false;
-            backgroundNode.projectedGeometry = undefined;
-            return;
-        }
-
-        backgroundNode.visible = true;
-        backgroundNode.projectedGeometry = projectedGeometry;
-        backgroundNode.fill = fill;
-        backgroundNode.fillOpacity = fillOpacity;
-        backgroundNode.stroke = stroke;
-        backgroundNode.strokeWidth = strokeWidth;
-        backgroundNode.strokeOpacity = strokeOpacity;
-        backgroundNode.lineDash = lineDash;
-        backgroundNode.lineDashOffset = lineDashOffset;
     }
 
     private async updateLabelSelection(opts: {
@@ -570,13 +515,7 @@ export class MapMarkerSeries
     }) {
         const { markerData, markerSelection } = opts;
 
-        if (this.properties.marker.isDirty()) {
-            markerSelection.clear();
-            markerSelection.cleanup();
-        }
-
-        const data = this.isMarkerEnabled() ? markerData : [];
-        return markerSelection.update(data, undefined, (datum) =>
+        return markerSelection.update(markerData, undefined, (datum) =>
             createDatumId([datum.index, datum.idValue, datum.lonValue, datum.latValue])
         );
     }
@@ -592,10 +531,20 @@ export class MapMarkerSeries
             ctx: { callbackCache },
         } = this;
         const { markerSelection, isHighlight, highlightedDatum } = opts;
-        const { idKey, latitudeKey, longitudeKey, labelKey, sizeKey } = properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, formatter } = properties.marker;
+        const {
+            idKey,
+            latitudeKey,
+            longitudeKey,
+            labelKey,
+            sizeKey,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            formatter,
+        } = properties;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.marker.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         markerSelection.each((marker, markerDatum) => {
             const { datum, point } = markerDatum;
@@ -637,10 +586,6 @@ export class MapMarkerSeries
             marker.translationY = point.y;
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
-
-        if (!isHighlight) {
-            this.properties.marker.markClean();
-        }
     }
 
     onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
@@ -731,8 +676,20 @@ export class MapMarkerSeries
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
-        const { legendItemName, idKey, latitudeKey, colorKey, colorName, colorRange, visible, marker } =
-            this.properties;
+        const {
+            legendItemName,
+            idKey,
+            latitudeKey,
+            colorKey,
+            colorName,
+            colorRange,
+            visible,
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+        } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -747,8 +704,6 @@ export class MapMarkerSeries
             };
             return [legendDatum];
         } else if (legendType === 'category') {
-            const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
-
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: this.id,
@@ -776,14 +731,15 @@ export class MapMarkerSeries
             id: seriesId,
             processedData,
             ctx: { callbackCache },
+            properties,
         } = this;
 
         if (!processedData || !this.properties.isValid()) {
             return '';
         }
 
-        const { idKey, latitudeKey, longitudeKey, sizeKey, sizeName, colorKey, colorName, formatter, marker, tooltip } =
-            this.properties;
+        const { idKey, latitudeKey, longitudeKey, sizeKey, sizeName, colorKey, colorName, formatter, tooltip } =
+            properties;
         const { datum, fill, latValue, lonValue, sizeValue, colorValue } = nodeDatum;
 
         const title =
@@ -814,7 +770,7 @@ export class MapMarkerSeries
             });
         }
 
-        const color = format?.fill ?? fill ?? marker.fill;
+        const color = format?.fill ?? fill ?? properties.fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

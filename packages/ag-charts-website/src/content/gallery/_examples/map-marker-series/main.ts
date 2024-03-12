@@ -11,18 +11,16 @@ const options: AgChartOptions = {
     data,
     series: [
         {
+            type: 'map-shape-accessory',
+            topology: backgroundTopology,
+        },
+        {
             type: 'map-marker',
             latitudeKey: 'lat',
             longitudeKey: 'lon',
             sizeKey: 'count',
-            marker: {
-                size: 3,
-                maxSize: 50,
-            },
-            background: {
-                topology: backgroundTopology,
-                id: 'Surrey',
-            },
+            size: 3,
+            maxSize: 50,
         },
     ],
 };

@@ -10,12 +10,17 @@ A Map Line Series takes data and a topology in GeoJSON format, with the data ref
 
 {% chartExampleRunner title="Lines" name="lines" type="generated" /%}
 
-To create a Map Line Series, use the `map` series type.
+To create a Map Line Series, use the `map-line` series type.
+
+{% note %}
+A Map Line Series is almost always combined with a [Unnamed Map Shape Series](./map-shape/#backgrounds).
+{% /note %}
 
 ```js
 data: data,
 topology: topology,
 series: [
+    // ...
     {
         type: 'map-line',
         topologyIdKey: 'name',
@@ -32,27 +37,6 @@ In this configuration:
 {% note %}
 Topology features that did not match an item in the data will not be rendered.
 {% /note %}
-
-## Background
-
-The background property will underlay a geographic shape to provide more context.
-
-{% chartExampleRunner title="Background" name="background" type="generated" /%}
-
-```js
-series: [
-    {
-        type: 'map-line',
-        topologyIdKey: 'name',
-        idKey: 'name',
-        background: {
-            topology: backgroundTopology,
-            topologyIdKey: 'name',
-            idKey: 'name',
-        }
-    },
-],
-```
 
 In this configuration, the background properties function in the same way as their series counterparts.
 
