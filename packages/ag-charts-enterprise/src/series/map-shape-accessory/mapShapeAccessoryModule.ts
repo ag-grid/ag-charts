@@ -28,5 +28,8 @@ export const MapShapeAccessoryModule: _ModuleSupport.SeriesModule<'map-shape-acc
         gradientLegend: {
             enabled: false,
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
 };
