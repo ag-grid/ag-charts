@@ -94,8 +94,8 @@ function isChartInstance(chartOrProxy: AgChartInstance): chartOrProxy is Chart {
     return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || (chartOrProxy as Chart).className != null;
 }
 
-export function deproxy(chartOrProxy: AgChartProxy | Chart): Chart {
-    return isChartInstance(chartOrProxy) ? chartOrProxy : (chartOrProxy.chart as Chart);
+export function deproxy(chartOrProxy: AgChartInstance | AgChartProxy | Chart): Chart {
+    return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
 }
 
 export function repeat<T>(value: T, count: number): T[] {
@@ -252,7 +252,7 @@ const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
-export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy | AgChartInstance) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
