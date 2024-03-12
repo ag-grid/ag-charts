@@ -11,7 +11,6 @@ import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
-import { setupMockConsole } from './test/mockConsole';
 import {
     clickAction,
     createChart,
@@ -19,6 +18,7 @@ import {
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from './test/utils';
 

@@ -7,8 +7,7 @@ import { NumberAxis } from './axis/numberAxis';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
-import { setupMockConsole } from './test/mockConsole';
-import { deproxy, waitForChartStability } from './test/utils';
+import { deproxy, setupMockConsole, waitForChartStability } from './test/utils';
 import { ChartTheme } from './themes/chartTheme';
 
 const revenueProfitData = [

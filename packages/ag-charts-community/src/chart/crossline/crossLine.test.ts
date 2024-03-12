@@ -7,15 +7,16 @@ import type {
 } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
-import { expectWarningMessages, setupMockConsole } from '../test/mockConsole';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    expectWarningMessages,
     extractImageData,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
 import * as examples from './test/examples';

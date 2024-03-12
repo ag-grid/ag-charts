@@ -553,7 +553,7 @@
             {
                 "title": "Map",
                 "seriesName": "map",
-                "icon": "chartsSunburst",
+                "icon": "chartsMap",
                 "enterprise": true,
                 "examples": [
                     {

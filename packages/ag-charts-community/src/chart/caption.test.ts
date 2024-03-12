@@ -3,12 +3,13 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { TextAlign } from '../options/agChartOptions';
 import type { Chart } from './chart';
-import { expectWarningMessages, setupMockConsole } from './test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
+    expectWarningMessages,
     extractImageData,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from './test/utils';
 

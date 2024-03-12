@@ -12,8 +12,8 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'map-marker',
-            latKey: 'lat',
-            lonKey: 'lon',
+            latitudeKey: 'lat',
+            longitudeKey: 'lon',
             background: {
                 topology: backgroundTopology,
                 id: 'Surrey',

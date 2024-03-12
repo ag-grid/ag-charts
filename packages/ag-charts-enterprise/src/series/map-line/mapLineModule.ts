@@ -50,6 +50,9 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
         gradientLegend: {
             enabled: false,
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;

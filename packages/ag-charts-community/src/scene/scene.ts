@@ -100,12 +100,12 @@ export class Scene {
 
     async render(opts?: { debugSplitTimes: Record<string, number>; extraDebugStats: Record<string, number> }) {
         const { debugSplitTimes = { start: performance.now() }, extraDebugStats } = opts ?? {};
-        const {
-            canvas,
-            canvas: { context: ctx },
-            root,
-            pendingSize,
-        } = this;
+        const { canvas, canvas: { context: ctx } = {}, root, pendingSize } = this;
+
+        if (!ctx) {
+            // Scene.destroy() has dereferenced the HdpiCanvas instance, just abort silently.
+            return;
+        }
 
         if (pendingSize) {
             this.layersManager.resize(...pendingSize);

@@ -3,8 +3,13 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
 import * as examples from './test/examples';
-import { setupMockConsole } from './test/mockConsole';
-import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from './test/utils';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    extractImageData,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from './test/utils';
 
 describe('Scene', () => {
     setupMockConsole();

@@ -4,8 +4,7 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
-import { setupMockConsole } from '../../test/mockConsole';
-import { clickAction, prepareTestOptions } from '../../test/utils';
+import { clickAction, prepareTestOptions, setupMockConsole } from '../../test/utils';
 import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../../test/utils';
 
 expect.extend({ toMatchImageSnapshot });

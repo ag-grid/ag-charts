@@ -2,9 +2,16 @@ import { afterEach, describe, expect } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { Chart } from '../chart';
-import { expectWarningMessages, expectWarnings, setupMockConsole } from '../test/mockConsole';
 import { createChart } from '../test/utils';
-import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../test/utils';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    expectWarningMessages,
+    expectWarnings,
+    extractImageData,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 

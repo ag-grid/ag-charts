@@ -8,7 +8,7 @@ import {
 } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
-import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
+import { GeometryType, containsType, geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } from './mapShapeSeriesProperties';
 
@@ -54,15 +54,12 @@ export class MapShapeSeries
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private itemHighlightGroup = this.contentGroup.appendChild(new Group({ name: 'itemHighlightGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory(),
-        false
+    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
+        this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
         this.labelGroup,
-        Text,
-        false
+        Text
     );
     private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
         this.itemHighlightGroup,
@@ -76,7 +73,7 @@ export class MapShapeSeries
             moduleCtx,
             contentGroupVirtual: false,
             useLabelLayer: true,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
     }
 
@@ -120,7 +117,7 @@ export class MapShapeSeries
         const featureById = new Map<string, _ModuleSupport.Feature>();
         topology?.features.forEach((feature) => {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null) return;
+            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) return;
             featureById.set(property, feature);
         });
 
@@ -201,7 +198,10 @@ export class MapShapeSeries
         const { width, height } = Text.getTextSize(String(labelText), font);
 
         const paddedSize = { width: width + 2, height: height + 2 };
-        const labelCenter = labelPosition(projectedGeometry, paddedSize, 2);
+        const labelCenter = labelPosition(projectedGeometry, paddedSize, {
+            precision: 2,
+            filter: GeometryType.Polygon,
+        });
         if (labelCenter == null) return;
 
         const [x, y] = labelCenter;
@@ -446,9 +446,7 @@ export class MapShapeSeries
     }
 
     resetAnimation() {
-        this.datumSelection.cleanup();
-        this.labelSelection.cleanup();
-        this.highlightDatumSelection.cleanup();
+        // No animations
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
@@ -457,6 +455,21 @@ export class MapShapeSeries
 
     override getSeriesDomain() {
         return [NaN, NaN];
+    }
+
+    override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        let minDistance = Infinity;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+
+        this.datumSelection.each((node, datum) => {
+            const distance = node.distanceToPoint(x, y);
+            if (distance < minDistance) {
+                minDistance = distance;
+                minDatum = datum;
+            }
+        });
+
+        return minDatum != null ? { datum: minDatum, distance: minDistance } : undefined;
     }
 
     override getLegendData(
