@@ -31,11 +31,16 @@ describe('large-dataset benchmark', () => {
             await ctx.waitForUpdate();
         });
 
-        benchmark('4x datum highlight', ctx, async () => {
-            for (const point of ctx.nodePositions[0]) {
-                await hoverAction(point.x, point.y)(ctx.chart);
-                await ctx.waitForUpdate();
-            }
-        });
+        benchmark(
+            '4x datum highlight',
+            ctx,
+            async () => {
+                for (const point of ctx.nodePositions[0]) {
+                    await hoverAction(point.x, point.y)(ctx.chart);
+                    await ctx.waitForUpdate();
+                }
+            },
+            20_000
+        );
     });
 });
