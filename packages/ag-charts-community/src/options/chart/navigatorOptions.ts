@@ -87,7 +87,14 @@ export interface AgBarMiniChartSeriesOptions
 export interface AgBoxPlotMiniChartSeriesOptions
     extends Omit<
         AgBoxPlotSeriesOptions,
-        CommonIgnoredProperties | 'direction' | 'legendItemName' | 'minName' | 'q1Name' | 'medianName' | 'q3Name' | 'maxName'
+        | CommonIgnoredProperties
+        | 'direction'
+        | 'legendItemName'
+        | 'minName'
+        | 'q1Name'
+        | 'medianName'
+        | 'q3Name'
+        | 'maxName'
     > {}
 export interface AgHistogramMiniChartSeriesOptions
     extends Omit<AgHistogramSeriesOptions, CommonIgnoredProperties | 'label'> {}
