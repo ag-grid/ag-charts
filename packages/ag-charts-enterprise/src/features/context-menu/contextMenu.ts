@@ -17,7 +17,7 @@ type ContextMenuAction = _ModuleSupport.ContextMenuAction;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 type ContextMenuItem = 'download' | ContextMenuAction;
 
-const { BOOLEAN, Validate } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, getDocument, getWindow, injectStyle } = _ModuleSupport;
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -50,15 +50,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private y: number = 0;
 
     // HTML elements
-    private canvasElement: HTMLElement;
-    private container: HTMLElement;
-    private element: HTMLDivElement;
+    private readonly canvasElement: HTMLElement;
+    private readonly container: HTMLElement;
+    private readonly element: HTMLDivElement;
     private menuElement?: HTMLDivElement;
     private intersectionObserver?: IntersectionObserver;
     private mutationObserver?: MutationObserver;
-
-    // Global shared state
-    private static contextMenuDocuments: Document[] = [];
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -81,9 +78,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         // HTML elements
         this.canvasElement = ctx.scene.canvas.element;
-        this.container = ctx.document.body;
+        this.container = getDocument().body;
 
-        this.element = this.container.appendChild(ctx.document.createElement('div'));
+        this.element = this.container.appendChild(createElement('div'));
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
         this.destroyFns.push(() => this.element.parentNode?.removeChild(this.element));
@@ -117,14 +114,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.mutationObserver = observer;
         }
 
-        // Global shared state
-        if (ContextMenu.contextMenuDocuments.indexOf(ctx.document) < 0) {
-            const styleElement = ctx.document.createElement('style');
-            styleElement.innerHTML = defaultContextMenuCss;
-            // Make sure the default context menu style goes before other styles so it can be overridden.
-            ctx.document.head.insertBefore(styleElement, ctx.document.head.querySelector('style'));
-            ContextMenu.contextMenuDocuments.push(ctx.document);
-        }
+        injectStyle(defaultContextMenuCss, 'contextMenu');
 
         this.registry.registerDefaultAction({
             id: 'download',
@@ -208,7 +198,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     public renderMenu() {
-        const menuElement = this.ctx.document.createElement('div');
+        const menuElement = createElement('div');
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
@@ -243,7 +233,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createDividerElement(): HTMLElement {
-        const el = this.ctx.document.createElement('div');
+        const el = createElement('div');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         return el;
@@ -257,7 +247,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createButtonElement(label: string, callback: (params: ContextMenuActionParams) => void): HTMLElement {
-        const el = this.ctx.document.createElement('button');
+        const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.innerHTML = label;
@@ -284,7 +274,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createDisabledElement(label: string): HTMLElement {
-        const el = this.ctx.document.createElement('button');
+        const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.disabled = true;
@@ -293,24 +283,20 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private reposition() {
-        const {
-            x,
-            y,
-            ctx: { window },
-        } = this;
+        const { x, y } = this;
 
         this.element.style.top = 'unset';
         this.element.style.bottom = 'unset';
         this.element.style.left = 'unset';
         this.element.style.right = 'unset';
 
-        if (x + this.element.offsetWidth > window.innerWidth) {
+        if (x + this.element.offsetWidth > getWindow('innerWidth')) {
             this.element.style.right = `calc(100% - ${x - 1}px)`;
         } else {
             this.element.style.left = `${x + 1}px`;
         }
 
-        if (y + this.element.offsetHeight > window.innerHeight) {
+        if (y + this.element.offsetHeight > getWindow('innerHeight')) {
             this.element.style.bottom = `calc(100% - ${y}px - 0.5em)`;
         } else {
             this.element.style.top = `calc(${y}px - 0.5em)`;
@@ -319,8 +305,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     public override destroy() {
         super.destroy();
-
-        this.destroyFns.forEach((f) => f());
 
         this.intersectionObserver?.unobserve(this.canvasElement);
         this.mutationObserver?.disconnect();

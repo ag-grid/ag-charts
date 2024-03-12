@@ -1,7 +1,9 @@
 import type { ModuleInstance } from '../module/baseModule';
-import { REGISTERED_MODULES } from '../module/module';
+import type { LegendModule, RootModule } from '../module/coreModules';
+import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
+import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
@@ -63,12 +65,7 @@ import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
-import {
-    type SeriesOptionsTypes,
-    isAgCartesianChartOptions,
-    isAgPolarChartOptions,
-    isAgTopologyChartOptions,
-} from './mapping/types';
+import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
@@ -340,8 +337,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService, this.animationManager),
         ];
 
-        this.tooltip = new Tooltip(this.scene.canvas.element);
-        this.tooltipManager = new TooltipManager(this.tooltip);
+        this.tooltip = new Tooltip();
+        this.tooltipManager = new TooltipManager(this.scene.canvas.element, this.tooltip);
         this.highlight = new ChartHighlight();
         this.container = container;
 
@@ -387,8 +384,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     getModuleContext(): ModuleContext {
         return {
-            window: this.chartOptions.specialOverrides.window,
-            document: this.chartOptions.specialOverrides.document,
             scene: this.scene,
             animationManager: this.animationManager,
             chartEventManager: this.chartEventManager,
@@ -423,7 +418,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Reset animation state.
         this.animationRect = undefined;
-        this.animationManager?.reset();
+        this.animationManager.reset();
     }
 
     skipAnimations() {
@@ -1069,7 +1064,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
         if (this.interactionManager.getState() & (Default | ContextMenu)) {
-            this.checkSeriesNodeRange(event, (_series, _datum) => {
+            this.checkSeriesNodeRange(event, () => {
                 this.highlightManager.updateHighlight(this.id);
             });
         }
@@ -1417,14 +1412,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             'legend.listeners',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
+            'axes',
+            'topology',
         ];
-        if (isAgCartesianChartOptions(deltaOptions) || isAgPolarChartOptions(deltaOptions)) {
-            // Append axes to defaults.
-            skip.push('axes');
-        }
-        if (isAgTopologyChartOptions(deltaOptions)) {
-            skip.push('topology');
-        }
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if (deltaOptions.listeners) {
@@ -1569,9 +1559,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const { type: chartType } = this.constructor as any;
 
         let modulesChanged = false;
-        for (const module of REGISTERED_MODULES) {
-            if (module.type !== 'root' && module.type !== 'legend') continue;
-
+        for (const module of moduleRegistry.byType<RootModule | LegendModule>('root', 'legend')) {
             const isConfigured = options[module.optionsKey as keyof AgChartOptions] != null;
             const shouldBeEnabled = isConfigured && module.chartTypes.includes(chartType);
 
@@ -1718,8 +1706,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
-        for (const module of REGISTERED_MODULES) {
-            if (module.type !== 'series-option') continue;
+        for (const module of moduleRegistry.byType<SeriesOptionModule>('series-option')) {
             if (module.optionsKey in options && module.seriesTypes.includes(series.type)) {
                 moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));
             }
@@ -1772,15 +1759,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
-        const rootModules = REGISTERED_MODULES.filter((m): m is AxisOptionModule => m.type === 'axis-option');
         const moduleContext = axis.createModuleContext();
         const moduleMap = axis.getModuleMap();
 
-        for (const module of rootModules) {
+        for (const module of moduleRegistry.byType<AxisOptionModule>('axis-option')) {
             const shouldBeEnabled = (options as any)[module.optionsKey] != null;
-            const isEnabled = moduleMap.isEnabled(module);
 
-            if (shouldBeEnabled === isEnabled) continue;
+            if (shouldBeEnabled === moduleMap.isEnabled(module)) continue;
 
             if (shouldBeEnabled) {
                 moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));

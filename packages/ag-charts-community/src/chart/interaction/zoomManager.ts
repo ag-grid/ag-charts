@@ -131,9 +131,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
     }
 
     private applyChanges() {
-        const changed = Array.from(this.axisZoomManagers.values())
-            .map((axis) => axis.applyChanges())
-            .some(Boolean);
+        const changed = Array.from(this.axisZoomManagers.values(), (axis) => axis.applyChanges()).some(Boolean);
 
         if (!changed) {
             return;

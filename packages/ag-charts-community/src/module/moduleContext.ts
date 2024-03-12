@@ -21,8 +21,6 @@ import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
 export interface ModuleContext {
-    document: Document;
-    window: Window;
     scene: Scene;
 
     callbackCache: CallbackCache;
