@@ -1,8 +1,7 @@
-import type { BBox } from '../../scene/bbox';
 import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
-import type { InteractionEvent, InteractionManager, PointerOffsets } from './interactionManager';
+import type { PointerOffsets } from './interactionManager';
 
 interface TooltipState {
     content?: string;
@@ -15,31 +14,16 @@ interface TooltipState {
  */
 export class TooltipManager {
     private readonly stateTracker = new StateTracker<TooltipState>();
-    private readonly exclusiveAreas = new Map<string, BBox>();
     private appliedState: TooltipState | null = null;
-    private appliedExclusiveAreaId?: string;
     private destroyFns: (() => void)[] = [];
 
-    public constructor(
-        private readonly tooltip: Tooltip,
-        interactionManager: InteractionManager
-    ) {
-        this.destroyFns.push(interactionManager.addListener('hover', (e) => this.checkExclusiveRects(e)));
-    }
+    public constructor(private readonly tooltip: Tooltip) {}
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: string) {
         if (!this.tooltip.enabled) return;
         content ??= this.stateTracker.get(callerId)?.content;
         this.stateTracker.set(callerId, { content, meta });
         this.applyStates();
-    }
-
-    public updateExclusiveRect(callerId: string, area?: BBox) {
-        if (area) {
-            this.exclusiveAreas.set(callerId, area);
-        } else {
-            this.exclusiveAreas.delete(callerId);
-        }
     }
 
     public removeTooltip(callerId: string) {
@@ -58,17 +42,8 @@ export class TooltipManager {
         }
     }
 
-    private checkExclusiveRects(e: InteractionEvent<'hover'>): void {
-        for (const [areaId, area] of this.exclusiveAreas) {
-            if (area.containsPoint(e.offsetX, e.offsetY) && this.appliedExclusiveAreaId !== areaId) {
-                this.appliedExclusiveAreaId = areaId;
-                this.applyStates();
-            }
-        }
-    }
-
     private applyStates() {
-        const id = this.appliedExclusiveAreaId ?? this.stateTracker.stateId();
+        const id = this.stateTracker.stateId();
         const state = id ? this.stateTracker.get(id) : null;
 
         if (state?.meta == null || state?.content == null) {

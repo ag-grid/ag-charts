@@ -341,7 +341,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         ];
 
         this.tooltip = new Tooltip(this.scene.canvas.element);
-        this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
+        this.tooltipManager = new TooltipManager(this.tooltip);
         this.highlight = new ChartHighlight();
         this.container = container;
 
