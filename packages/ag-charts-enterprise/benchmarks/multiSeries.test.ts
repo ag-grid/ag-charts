@@ -2,7 +2,7 @@ import { beforeEach, describe } from '@jest/globals';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { benchmark, setupBenchmark } from '../../ag-charts-community/benchmarks/benchmark';
-import { AgCartesianChartOptions, AgCharts } from '../src/main';
+import { AgCartesianChartOptions } from '../src/main';
 
 /** Placeholder tests until we have real tests for Enterprise. */
 describe('multi-series benchmark', () => {

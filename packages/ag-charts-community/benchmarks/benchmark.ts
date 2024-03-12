@@ -93,7 +93,7 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
 
     const results: Point[] = [];
     const addResult = (idx: number) => {
-        let node: CartesianSeriesNodeDatum = nodeData.at(Math.floor(idx));
+        const node: CartesianSeriesNodeDatum = nodeData.at(Math.floor(idx));
         const { midPoint } = node;
         if (!midPoint) throw new Error('No node midPoint found.');
 
