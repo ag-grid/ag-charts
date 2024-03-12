@@ -53,6 +53,10 @@ export class HdpiCanvas {
         return context.drawImage(this.context.canvas, dx, dy);
     }
 
+    style(style: Partial<CSSStyleDeclaration>) {
+        Object.assign(this.element.style, style);
+    }
+
     toDataURL(type?: string): string {
         return this.element.toDataURL(type);
     }

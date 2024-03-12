@@ -27,7 +27,6 @@ import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
-import { SizeMonitor } from '../util/sizeMonitor';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
@@ -263,8 +262,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly seriesStateManager: SeriesStateManager;
     protected readonly seriesLayerManager: SeriesLayerManager;
 
-    private readonly sizeMonitor: SizeMonitor;
-
     private readonly processors: UpdateProcessor[] = [];
 
     processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
@@ -442,7 +439,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltipManager.destroy();
         this.tooltip.destroy();
         this.overlays.destroy();
-        this.sizeMonitor.unobserve(this.element);
 
         this.modulesManager.destroy();
 
@@ -832,28 +828,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 series.axes[direction] = newAxis;
             });
         });
-    }
-
-    private rawResize(size: { width: number; height: number }) {
-        let { width, height } = size;
-        width = Math.floor(width);
-        height = Math.floor(height);
-
-        if (!this.autoSize) {
-            return;
-        }
-
-        if (width === 0 && height === 0) {
-            return;
-        }
-
-        const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
-        if (autoWidth === width && authHeight === height) {
-            return;
-        }
-
-        this._lastAutoSize = [width, height];
-        this.resize(undefined, undefined, 'SizeMonitor');
     }
 
     private resize(width?: number, height?: number, source?: string) {
@@ -1581,7 +1555,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.modulesManager.addModule(module, (m) => new m.instanceConstructor(this.getModuleContext()));
 
                 if (module.type === 'legend') {
-                    this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.scene);
+                    this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.scene.root);
                 }
 
                 (this as any)[module.optionsKey] = this.modulesManager.getModule(module); // TODO remove

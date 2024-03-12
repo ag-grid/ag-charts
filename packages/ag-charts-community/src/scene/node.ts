@@ -1,7 +1,7 @@
 import type { BBoxProvider } from '../util/bboxset';
 import type { LiteralOrFn } from '../util/compare';
 import { createId } from '../util/id';
-import type { BBox } from './bbox';
+import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
