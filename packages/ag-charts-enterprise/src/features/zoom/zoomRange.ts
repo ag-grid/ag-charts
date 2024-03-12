@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-const { DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate } = _ModuleSupport;
+const { AND, DATE, GREATER_THAN, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate } = _ModuleSupport;
 
 export class ZoomRange {
     @ActionOnSet<ZoomRange>({
@@ -18,7 +18,7 @@ export class ZoomRange {
             this.onChange?.(this.getRangeWithValues(this.start, end));
         },
     })
-    @Validate(OR(DATE, NUMBER), { optional: true })
+    @Validate(AND(OR(DATE, NUMBER), GREATER_THAN('start')), { optional: true })
     public end?: Date | number;
 
     private domain?: Array<Date | number>;
