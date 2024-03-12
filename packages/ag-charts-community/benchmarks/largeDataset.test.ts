@@ -1,13 +1,45 @@
 import { describe } from '@jest/globals';
 
-import { AgCharts } from '../src/main';
-import { benchmark, setupBenchmark } from './benchmark';
+import { hoverAction } from '../src/chart/test/utils';
+import { AgCartesianChartOptions } from '../src/main';
+import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 describe('large-dataset benchmark', () => {
-    const ctx = setupBenchmark('large-dataset');
+    const ctx = setupBenchmark<AgCartesianChartOptions>('large-dataset');
 
     benchmark('initial load', ctx, async () => {
-        ctx.chart = AgCharts.create(ctx.options);
-        await (ctx.chart as any).chart.waitForUpdate();
+        ctx.create();
+        await ctx.waitForUpdate();
+    });
+
+    describe('after load', () => {
+        beforeEach(async () => {
+            ctx.create();
+            await ctx.waitForUpdate();
+            addSeriesNodePoints(ctx, 0, 4);
+        });
+
+        benchmark('1x legend toggle', ctx, async () => {
+            ctx.options.series![0].visible = false;
+            ctx.update();
+            await ctx.waitForUpdate();
+
+            ctx.options.series![0].visible = true;
+            ctx.update();
+            await ctx.waitForUpdate();
+        });
+
+        benchmark('1x datum highlight', ctx, async () => {
+            const point = ctx.nodePositions[0][1];
+            await hoverAction(point.x, point.y)(ctx.chart);
+            await ctx.waitForUpdate();
+        });
+
+        benchmark('4x datum highlight', ctx, async () => {
+            for (const point of ctx.nodePositions[0]) {
+                await hoverAction(point.x, point.y)(ctx.chart);
+                await ctx.waitForUpdate();
+            }
+        });
     });
 });

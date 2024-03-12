@@ -672,7 +672,10 @@ export class AreaSeries extends CartesianSeries<
     override animateWaitingUpdateReady(animationData: AreaAnimationData) {
         const { animationManager } = this.ctx;
         const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
-        const [[fill, stroke]] = paths;
+        const [[fill, stroke] = []] = paths;
+
+        // Handling initially hidden series case gracefully.
+        if (fill == null && stroke == null) return;
 
         super.resetAllAnimation(animationData);
 
