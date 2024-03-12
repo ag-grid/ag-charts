@@ -2,14 +2,17 @@ import { type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/anima
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 
+const DEBUG_SELECTORS = [true, 'animation'];
+
 /**
  * A batch of animations that are synchronised together. Can be skipped independently of other batches and the main
  * animation skipping status.
  */
 export class AnimationBatch {
-    private readonly debug = Debug.create(true, 'animation');
-    private readonly controllers: Map<string, IAnimation> = new Map();
     public readonly stoppedCbs: Set<() => void> = new Set();
+    private readonly controllers: Map<string, IAnimation> = new Map();
+
+    private readonly debug = Debug.create(...DEBUG_SELECTORS);
 
     private currentPhase = 0;
     private phases = new Map(PHASE_ORDER.map((p) => [p, [] as IAnimation[]]));

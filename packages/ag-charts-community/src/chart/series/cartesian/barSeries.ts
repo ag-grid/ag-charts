@@ -364,7 +364,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     opacity: 1,
                     strokeWidth,
                     cornerRadius,
-                    topLeftCornerRadius: barAlongX !== isUpward,
+                    topLeftCornerRadius: !(barAlongX === isUpward),
                     topRightCornerRadius: isUpward,
                     bottomRightCornerRadius: barAlongX === isUpward,
                     bottomLeftCornerRadius: !isUpward,

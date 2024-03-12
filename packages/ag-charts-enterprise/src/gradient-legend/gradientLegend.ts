@@ -225,8 +225,8 @@ export class GradientLegend {
         this.destroyFns.forEach((f) => f());
     }
 
-    attachLegend(scene: _Scene.Scene) {
-        scene.appendChild(this.group);
+    attachLegend(node: _Scene.Node) {
+        node.append(this.group);
     }
 
     detachLegend() {

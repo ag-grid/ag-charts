@@ -301,13 +301,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
 
-        const sizeMonitor = new SizeMonitor();
-        this.sizeMonitor = sizeMonitor;
-        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
-
-        const { overrideDevicePixelRatio } = options.specialOverrides;
-        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
-        this.scene.setRoot(root).setContainer(element);
+        this.scene = scene ?? new Scene(this.chartOptions.specialOverrides);
+        this.scene.root = root;
+        this.scene.container = element;
         this.autoSize = true;
 
         this.chartEventManager = new ChartEventManager();
@@ -985,6 +981,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected async performLayout() {
+        if (this.scene.root) {
+            this.scene.root.visible = true;
+        }
+
         const { width, height } = this.scene;
         let ctx = { shrinkRect: new BBox(0, 0, width, height) };
         ctx = this.layoutService.dispatchPerformLayout('start-layout', ctx);
@@ -992,7 +992,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const modulePromises = this.modulesManager.mapModules(async (m) => {
             if (m.performLayout != null) {
-                ctx = await m.performLayout(ctx);
+                ctx = await m.performLayout?.(ctx);
             }
         });
         await Promise.all(modulePromises);

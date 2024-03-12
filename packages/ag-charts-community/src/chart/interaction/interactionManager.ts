@@ -99,12 +99,14 @@ export enum InteractionState {
     All = Default | ZoomDrag | ContextMenu | Animation,
 }
 
+const DEBUG_SELECTORS = [true, 'interaction'];
+
 /**
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
  */
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent<InteractionTypes>> {
-    private readonly debug = Debug.create(true, 'interaction');
+    private readonly debug = Debug.create(...DEBUG_SELECTORS);
 
     private readonly rootElement: HTMLElement;
     private readonly element: HTMLElement;

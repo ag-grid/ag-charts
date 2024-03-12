@@ -1,8 +1,10 @@
 import type { BBoxProvider } from '../util/bboxset';
+import type { LiteralOrFn } from '../util/compare';
 import { createId } from '../util/id';
-import { BBox } from './bbox';
+import type { BBox } from './bbox';
+import type { HdpiCanvas } from './canvas/hdpiCanvas';
+import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
-import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import { Matrix } from './matrix';
 
 export { SceneChangeDetection, RedrawType };
@@ -35,6 +37,24 @@ export interface NodeOptions {
     isVirtual?: boolean;
     tag?: number;
     zIndex?: number;
+}
+
+type Layer = HdpiCanvas | HdpiOffscreenCanvas;
+export type ZIndexSubOrder = [LiteralOrFn<string | number>, LiteralOrFn<number>];
+
+export interface LayerManager {
+    debug: (...args: any[]) => void;
+    canvas: Layer;
+    markDirty(): void;
+    addLayer(opts: {
+        zIndex?: number;
+        zIndexSubOrder?: ZIndexSubOrder;
+        name?: string;
+        getComputedOpacity: () => number;
+        getVisibility: () => boolean;
+    }): Layer | undefined;
+    moveLayer(canvas: Layer, zIndex: number, zIndexSubOrder?: ZIndexSubOrder): void;
+    removeLayer(canvas: Layer): void;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -97,8 +117,8 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
     // but they are not quite private either, rather, they have package level visibility.
 
     protected _debug?: (...args: any[]) => void;
-    protected _layerManager?: LayersManager;
-    _setLayerManager(value?: LayersManager) {
+    protected _layerManager?: LayerManager;
+    _setLayerManager(value?: LayerManager) {
         this._layerManager = value;
         this._debug = value?.debug;
 
@@ -109,7 +129,7 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
             child._setLayerManager(value);
         }
     }
-    get layerManager(): LayersManager | undefined {
+    get layerManager(): LayerManager | undefined {
         return this._layerManager;
     }
 
@@ -201,6 +221,7 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
 
     appendChild<T extends Node>(node: T): T {
         this.append(node);
+
         return node;
     }
 

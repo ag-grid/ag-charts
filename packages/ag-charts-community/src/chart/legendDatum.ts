@@ -1,9 +1,9 @@
 import type { AgChartLegendListeners } from '../options/agChartOptions';
-import type { Scene } from '../scene/scene';
 import type { MarkerConstructor } from './marker/util';
+import type { Node } from '../scene/node';
 
 export interface ChartLegend {
-    attachLegend(scene: Scene): void;
+    attachLegend(node: Node | null): void;
     destroy(): void;
     data: any;
     listeners: AgChartLegendListeners;

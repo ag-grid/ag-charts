@@ -5,15 +5,13 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import type { ZIndexSubOrder } from '../../../scene/layersManager';
-import type { Node, NodeWithOpacity } from '../../../scene/node';
+import type { Node, NodeWithOpacity, ZIndexSubOrder } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { Debug } from '../../../util/debug';
-import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
@@ -455,9 +453,13 @@ export abstract class CartesianSeries<
     override getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         const result = super.getGroupZIndexSubOrder(type, subIndex);
         if (type === 'paths') {
-            const [superFn] = result;
             const pathOffset = this.opts.pathsZIndexSubOrderOffset[subIndex] ?? 0;
-            result[0] = isFunction(superFn) ? () => Number(superFn()) + pathOffset : Number(superFn) + pathOffset;
+            const superFn = result[0];
+            if (typeof superFn === 'function') {
+                result[0] = () => +superFn() + pathOffset;
+            } else {
+                result[0] = +superFn + pathOffset;
+            }
         }
         return result;
     }
