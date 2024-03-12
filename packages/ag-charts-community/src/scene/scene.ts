@@ -151,21 +151,17 @@ export class Scene {
             pixelRatio,
         });
 
-        if (canvas instanceof HdpiCanvas) {
-            canvas.style(
-                domLayer
-                    ? {
-                          position: 'absolute',
-                          zIndex: String(zIndex),
-                          top: '0',
-                          left: '0',
-                          opacity: `1`,
-                          pointerEvents: 'none',
-                          userSelect: 'none',
-                      }
-                    : { display: 'block', userSelect: 'none' }
-            );
-            if (domLayer && name) {
+        if (canvas instanceof HdpiCanvas && domLayer) {
+            canvas.style({
+                position: 'absolute',
+                zIndex: String(zIndex),
+                top: '0',
+                left: '0',
+                opacity: `1`,
+                pointerEvents: 'none',
+                userSelect: 'none',
+            });
+            if (name) {
                 canvas.element.id = name;
             }
         }

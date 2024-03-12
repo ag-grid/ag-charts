@@ -43,7 +43,8 @@ export class HdpiCanvas {
 
         this.context = this.element.getContext('2d')!;
 
-        this.onEnabledChange(); // Force `display: block` style
+        this.element.style.userSelect = 'none';
+        this.element.style.display = 'block';
         this.resize(width ?? 0, height ?? 0);
 
         HdpiCanvas.debugContext(this.context);
