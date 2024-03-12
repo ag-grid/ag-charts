@@ -55,7 +55,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         // { toString: () => 'Italy' }
         // { toString: () => 'Italy' }
         values.forEach((value) => {
-            if (index.get(value) === undefined) {
+            if (this.getIndex(value) === undefined) {
                 index.set(value, domain.push(value) - 1);
             }
         });
@@ -81,7 +81,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
 
     convert(d: D): number {
         this.refresh();
-        const i = this.index.get(d);
+        const i = this.getIndex(d);
         if (i === undefined) {
             return NaN;
         }
@@ -183,5 +183,20 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         this._rawBandwidth = rawBandwidth;
         this._step = step;
         this.ordinalRange = values;
+    }
+
+    private getIndex(value: D) {
+        if (!(value instanceof Date)) {
+            return this.index.get(value);
+        }
+
+        const valueOf = value.valueOf();
+        let index = 0;
+        for (const key of this.index.keys()) {
+            if (key instanceof Date && key.valueOf() === valueOf) {
+                return index;
+            }
+            index++;
+        }
     }
 }
