@@ -19,10 +19,8 @@ const options: AgChartOptions = {
             latitudeKey: 'lat',
             longitudeKey: 'lon',
             sizeKey: 'count',
-            marker: {
-                size: 3,
-                maxSize: 50,
-            },
+            size: 3,
+            maxSize: 50,
         },
     ],
 };
