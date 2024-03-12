@@ -8,25 +8,21 @@ describe('large-dataset benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('large-dataset');
 
     benchmark('initial load', ctx, async () => {
-        ctx.create();
-        await ctx.waitForUpdate();
+        await ctx.create();
     });
 
     describe('after load', () => {
         beforeEach(async () => {
-            ctx.create();
-            await ctx.waitForUpdate();
+            await ctx.create();
             addSeriesNodePoints(ctx, 0, 4);
         });
 
         benchmark('1x legend toggle', ctx, async () => {
             ctx.options.series![0].visible = false;
-            ctx.update();
-            await ctx.waitForUpdate();
+            await ctx.update();
 
             ctx.options.series![0].visible = true;
-            ctx.update();
-            await ctx.waitForUpdate();
+            await ctx.update();
         });
 
         benchmark('1x datum highlight', ctx, async () => {

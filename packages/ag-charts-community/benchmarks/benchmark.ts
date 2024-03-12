@@ -16,12 +16,14 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 
     public constructor(readonly canvasCtx: ReturnType<typeof setupMockCanvas>) {}
 
-    create() {
+    async create() {
         this.chart = AgCharts.create(this.options);
+        await this.waitForUpdate();
     }
 
-    update() {
+    async update() {
         AgCharts.update(this.chart, this.options);
+        await this.waitForUpdate();
     }
 
     async waitForUpdate() {

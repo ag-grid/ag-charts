@@ -7,32 +7,27 @@ describe('integrated charts large scale benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('integrated-large-scale');
 
     benchmark('initial load', ctx, async () => {
-        ctx.create();
-        await ctx.waitForUpdate();
+        await await ctx.create();
     });
 
     describe('after load', () => {
         beforeEach(async () => {
-            ctx.create();
-            await ctx.waitForUpdate();
+            await ctx.create();
         });
 
         benchmark('1x legend toggle', ctx, async () => {
             ctx.options.series![0].visible = false;
-            ctx.update();
-            await ctx.waitForUpdate();
+            await ctx.update();
 
             ctx.options.series![0].visible = true;
-            ctx.update();
-            await ctx.waitForUpdate();
+            await ctx.update();
         });
 
         benchmark('4x legend toggle', ctx, async () => {
             for (let i = 0; i < 2; i++) {
                 for (const visible of [false, true]) {
                     ctx.options.series![i].visible = visible;
-                    ctx.update();
-                    await ctx.waitForUpdate();
+                    await ctx.update();
                 }
             }
         });
