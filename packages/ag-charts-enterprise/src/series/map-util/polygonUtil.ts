@@ -47,8 +47,7 @@ interface LabelPlacement {
     maxValue: number;
     x: number;
     y: number;
-    width: number;
-    height: number;
+    stride: number;
 }
 
 export function preferredLabelCenter(
@@ -65,14 +64,14 @@ export function preferredLabelCenter(
     let bestValue = 0;
     let bestCenter: _ModuleSupport.Position | undefined;
 
-    const createLabelPlacement = (x: number, y: number, width: number, height: number) => {
+    const createLabelPlacement = (x: number, y: number, stride: number) => {
         const center: _ModuleSupport.Position = [x, y];
         const distanceToPolygon = -polygonRectDistance(polygons, center, size);
         const distanceToCentroid = Math.hypot(cx - x, cy - y);
 
-        const maxDistanceToPolygon = distanceToPolygon + Math.hypot(width / 2, height / 2);
-        const maxXTowardsCentroid = Math.min(Math.max(cx, x - width / 2), x + width / 2);
-        const maxYTowardsCentroid = Math.min(Math.max(cy, y - height / 2), y + height / 2);
+        const maxDistanceToPolygon = distanceToPolygon + stride * Math.SQRT2;
+        const maxXTowardsCentroid = Math.min(Math.max(cx, x - stride / 2), x + stride / 2);
+        const maxYTowardsCentroid = Math.min(Math.max(cy, y - stride / 2), y + stride / 2);
         const minDistanceToCentroid = Math.hypot(cx - maxXTowardsCentroid, cy - maxYTowardsCentroid);
 
         const value = cellValue(distanceToPolygon, distanceToCentroid, centroidDistanceToPolygon);
@@ -83,39 +82,34 @@ export function preferredLabelCenter(
             bestCenter = center;
         }
 
-        return { maxValue, x, y, width, height };
+        return { maxValue, x, y, stride };
     };
 
+    const boundingXCenter = (bbox.lon0 + bbox.lon1) / 2;
+    const boundingYCenter = (bbox.lat0 + bbox.lat1) / 2;
+    const boundingWidth = Math.abs(bbox.lon1 - bbox.lon0);
+    const boundingHeight = Math.abs(bbox.lon1 - bbox.lon0);
+    const initialStride = Math.min(boundingWidth, boundingHeight) / 2;
     let queue: List<LabelPlacement> = {
-        value: createLabelPlacement(
-            (bbox.lon0 + bbox.lon1) / 2,
-            (bbox.lat0 + bbox.lat1) / 2,
-            Math.abs(bbox.lon1 - bbox.lon0),
-            Math.abs(bbox.lat1 - bbox.lat0)
-        ),
+        value: createLabelPlacement(boundingXCenter, boundingYCenter, initialStride),
         next: null,
     };
 
     while (queue != null) {
-        const { maxValue, x, y, width, height } = queue.value;
+        const { maxValue, x, y, stride } = queue.value;
         queue = queue.next;
 
         if (maxValue - bestValue <= precision) {
             continue;
         }
 
-        let newLabelPlacements: LabelPlacement[];
-        if (width > height) {
-            newLabelPlacements = [
-                createLabelPlacement(x - width / 2, y, width / 2, height),
-                createLabelPlacement(x + width / 2, y, width / 2, height),
-            ];
-        } else {
-            newLabelPlacements = [
-                createLabelPlacement(x, y - height / 2, width, height / 2),
-                createLabelPlacement(x, y + height / 2, width, height / 2),
-            ];
-        }
+        const nextStride = stride / 2;
+        const newLabelPlacements = [
+            createLabelPlacement(x - nextStride, y - nextStride, nextStride),
+            createLabelPlacement(x + nextStride, y - nextStride, nextStride),
+            createLabelPlacement(x - nextStride, y + nextStride, nextStride),
+            createLabelPlacement(x + nextStride, y + nextStride, nextStride),
+        ];
 
         newLabelPlacements.sort(labelPlacementCmp);
 
