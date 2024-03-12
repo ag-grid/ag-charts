@@ -101,7 +101,14 @@ export interface AgHistogramMiniChartSeriesOptions
 export interface AgHeatmapMiniChartSeriesOptions
     extends Omit<
         AgHeatmapSeriesOptions,
-        CommonIgnoredProperties | 'title' | 'label' | 'colorName' | 'textAlign' | 'verticalTextAlign' | 'colorRange'
+        | CommonIgnoredProperties
+        | 'title'
+        | 'label'
+        | 'colorName'
+        | 'textAlign'
+        | 'verticalAlign'
+        | 'itemPadding'
+        | 'colorRange'
     > {}
 export interface AgWaterfallMiniChartSeriesOptions
     extends Omit<AgWaterfallSeriesOptions, CommonIgnoredProperties | 'direction'> {}
