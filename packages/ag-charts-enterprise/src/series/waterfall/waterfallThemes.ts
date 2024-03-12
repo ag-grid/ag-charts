@@ -3,6 +3,7 @@ import { _Theme } from 'ag-charts-community';
 const itemTheme = {
     strokeWidth: 0,
     label: {
+        enabled: false,
         fontStyle: undefined,
         fontWeight: _Theme.FONT_WEIGHT.NORMAL,
         fontSize: 12,
