@@ -356,7 +356,8 @@ export class MapMarkerSeries
         const colorIdx =
             colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
 
-        sizeScale.range = [marker.size, marker.maxSize ?? marker.size];
+        const markerMaxSize = marker.maxSize ?? marker.size;
+        sizeScale.range = [Math.min(marker.size, markerMaxSize), markerMaxSize];
         const font = label.getFont();
 
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
@@ -386,7 +387,7 @@ export class MapMarkerSeries
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const size = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : marker.size;
 
             const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
             if (idValue != null && projectGeometry == null) {
