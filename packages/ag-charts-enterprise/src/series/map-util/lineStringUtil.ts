@@ -32,11 +32,59 @@ export function lineSegmentDistanceToPointSquared(
     return dx * dx + dy * dy;
 }
 
+export function lineSegmentIntersectsRect(
+    [ax, ay]: _ModuleSupport.Position,
+    [bx, by]: _ModuleSupport.Position,
+    rx0: number,
+    ry0: number,
+    rx1: number,
+    ry1: number
+): boolean {
+    const abx = bx - ax;
+    const aby = by - ay;
+
+    const minX = Math.min(ax, bx);
+    const maxX = Math.max(ax, bx);
+    const minY = Math.min(ay, by);
+    const maxY = Math.max(ay, by);
+
+    if (!(Math.max(rx0, minX) <= Math.min(rx1, maxX) && Math.max(ry0, minY) <= Math.min(ry1, maxY))) {
+        return false;
+    }
+
+    if (abx !== 0) {
+        const m = aby / abx;
+
+        for (let i = 0; i < 2; i += 1) {
+            // y - y0 = m(x - x0)
+            // y = m(x - x0) + y0
+            const x = i === 0 ? rx0 : rx1;
+            const y = m * (x - ax) + ay;
+            if (x >= minY && y <= maxY && y >= ry0 && y <= ry1) return true;
+        }
+    }
+
+    if (aby !== 0) {
+        const mRecip = abx / aby;
+
+        for (let i = 0; i < 2; i += 1) {
+            // x = (y - y0) / m + x0
+            const y = i === 0 ? ry0 : ry1;
+            const x = (y - ay) * mRecip + ax;
+            if (x >= minX && x <= maxX && x >= rx0 && x <= rx1) return true;
+        }
+    }
+
+    return false;
+}
+
 export function lineSegmentDistanceToRectSquared(
-    a: _ModuleSupport.Position,
-    b: _ModuleSupport.Position,
-    center: _ModuleSupport.Position,
-    size: { width: number; height: number }
+    [ax, ay]: _ModuleSupport.Position,
+    [bx, by]: _ModuleSupport.Position,
+    rx0: number,
+    ry0: number,
+    rx1: number,
+    ry1: number
 ): number {
     /**
      * Finds the minimum distance between a line segment and a rect.
@@ -47,18 +95,10 @@ export function lineSegmentDistanceToRectSquared(
      *
      * Returns 0 if the line segment intersects the rect.
      */
-    const [ax, ay] = a;
-    const [bx, by] = b;
     const abx = bx - ax;
     const aby = by - ay;
+
     const l = abx * abx + aby * aby;
-
-    const [cx, cy] = center;
-    const rx0 = cx - size.width / 2;
-    const ry0 = cy - size.height / 2;
-    const rx1 = cx + size.width / 2;
-    const ry1 = cy + size.height / 2;
-
     let minDistanceSquared = Infinity;
 
     // Iterate over each corner
@@ -80,9 +120,6 @@ export function lineSegmentDistanceToRectSquared(
             x0 = ax + t * (bx - ax);
             y0 = ay + t * (by - ay);
         }
-
-        const rectContainsPoint = x0 >= rx0 && x0 <= rx1 && y0 >= ry0 && y0 <= ry1;
-        if (rectContainsPoint) return 0;
 
         const dx = x - x0;
         const dy = y - y0;
