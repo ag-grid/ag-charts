@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
+import { getDocument } from '../../util/dom';
 import { AgCharts } from '../agChartV2';
 import {
     AgChartProxy,
@@ -32,9 +33,7 @@ describe('Tooltip', () => {
                 },
             });
 
-            expectWarning(
-                `AG Charts - unable to set [tooltip.position] in Tooltip - can't apply type of [primitive], allowed types are: [class-instance]`
-            );
+            expectWarning(`AG Charts - unable to set TooltipPosition - expecting a properties object`);
         });
 
         it('should show 1 warning for invalid tooltip position value', async () => {
@@ -91,22 +90,22 @@ describe('Tooltip', () => {
 
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
-            expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(10, 1.3249187570726666);
-            expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(11, 1.2651169069335022);
-            expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(12, 1.3627720015958902);
-            expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(13, 1.490244608234256);
-            expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(14, 1.490244608234256);
-            expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
         });
     });
 });

@@ -1081,7 +1081,7 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data);
 
                 expect(result?.data.length).toEqual(3);
-                expect(result?.data[0].validScopes).toEqual(['scope-2']);
+                expect(result?.data[0].validScopes).toEqual(new Set(['scope-2']));
                 expect(result?.data[1].validScopes).toBeUndefined();
                 expect(result?.data[2].validScopes).toBeUndefined();
                 expectWarning('AG Charts - invalid value of type [string] ignored:', '[illegal value]');

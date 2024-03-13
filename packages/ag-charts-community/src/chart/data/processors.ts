@@ -255,9 +255,13 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
                         continue;
                     }
 
-                    if (mode === 'normal') acc += sumValue;
+                    if (mode === 'normal') {
+                        acc += sumValue;
+                    }
                     values[valueIdx] = acc;
-                    if (mode === 'trailing') acc += sumValue;
+                    if (mode === 'trailing') {
+                        acc += sumValue;
+                    }
                 }
 
                 firstRow = false;
@@ -297,26 +301,14 @@ export function diff(
         type: 'processor',
         property: 'diff',
         calculate: (processedData) => {
-            const result = {
-                changed: false,
-                moved: [] as any[],
-                added: [] as any[],
-                updated: [] as any[],
-                removed: [] as any[],
-                addedIndices: [] as number[],
-                updatedIndices: [] as number[],
-                removedIndices: [] as number[],
-            };
-
             const moved = new Map<string, any>();
             const added = new Map<string, any>();
             const updated = new Map<string, any>();
             const removed = new Map<string, any>();
-            const addedIndices = new Map<string, number>();
-            const updatedIndices = new Map<string, number>();
-            const removedIndices = new Map<string, number>();
 
-            for (let i = 0; i < Math.max(previousData.data.length, processedData.data.length); i++) {
+            const length = Math.max(previousData.data.length, processedData.data.length);
+
+            for (let i = 0; i < length; i++) {
                 const prev = previousData.data[i];
                 const datum = processedData.data[i];
 
@@ -326,7 +318,6 @@ export function diff(
                 if (datum && prev && prevId === datumId) {
                     if (!arraysEqual(prev.values, datum.values)) {
                         updated.set(datumId, datum);
-                        updatedIndices.set(datumId, i);
                     }
                     continue;
                 }
@@ -334,45 +325,27 @@ export function diff(
                 if (removed.has(datumId)) {
                     if (updateMovedDatums || !arraysEqual(removed.get(datumId).values, datum.values)) {
                         updated.set(datumId, datum);
-                        updatedIndices.set(datumId, i);
-
                         moved.set(datumId, datum);
                     }
                     removed.delete(datumId);
-                    removedIndices.delete(datumId);
                 } else if (datum) {
                     added.set(datumId, datum);
-                    addedIndices.set(datumId, i);
                 }
 
                 if (added.has(prevId)) {
                     if (updateMovedDatums || !arraysEqual(added.get(prevId).values, prev.values)) {
                         updated.set(prevId, prev);
-                        updatedIndices.set(prevId, i);
-
                         moved.set(prevId, prev);
                     }
                     added.delete(prevId);
-                    addedIndices.delete(prevId);
                 } else if (prev) {
                     updated.delete(prevId);
-                    updatedIndices.delete(prevId);
                     removed.set(prevId, prev);
-                    removedIndices.set(prevId, i);
                 }
             }
 
-            result.added = Array.from(added.keys());
-            result.updated = Array.from(updated.keys());
-            result.removed = Array.from(removed.keys());
-            result.moved = Array.from(moved.keys());
-            result.addedIndices = Array.from(addedIndices.values());
-            result.updatedIndices = Array.from(updatedIndices.values());
-            result.removedIndices = Array.from(removedIndices.values());
-
-            result.changed = result.added.length > 0 || result.updated.length > 0 || result.removed.length > 0;
-
-            return result;
+            const changed = added.size > 0 || updated.size > 0 || removed.size > 0;
+            return { changed, added, updated, removed, moved };
         },
     };
 }

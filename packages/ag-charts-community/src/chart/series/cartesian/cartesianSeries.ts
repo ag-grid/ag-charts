@@ -626,7 +626,7 @@ export abstract class CartesianSeries<
         if (match) {
             return { datum: match.datum, distance: 0 };
         } else {
-            for (const mod of this.moduleMap.modules) {
+            for (const mod of this.moduleMap.modules()) {
                 const { datum } = mod.pickNodeExact(point) ?? {};
                 if (datum !== undefined) {
                     return { datum, distance: 0 };
@@ -668,7 +668,7 @@ export abstract class CartesianSeries<
                 }
             }
         }
-        for (const mod of this.moduleMap.modules) {
+        for (const mod of this.moduleMap.modules()) {
             const modPick = mod.pickNodeNearest(point);
             if (modPick !== undefined && modPick.distanceSquared < minDistance) {
                 minDistance = modPick.distanceSquared;
@@ -750,7 +750,7 @@ export abstract class CartesianSeries<
                 0
             );
 
-            for (const mod of this.moduleMap.modules) {
+            for (const mod of this.moduleMap.modules()) {
                 const modPick = mod.pickNodeMainAxisFirst(point);
                 if (modPick !== undefined && modPick.distanceSquared < closestDistanceSquared) {
                     closestDatum = modPick.datum;

@@ -1565,11 +1565,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
         }
 
-        return {
-            changed: added.size > 0 || removed.size > 0,
-            added: Array.from(added.values()),
-            removed: Array.from(removed.values()),
-        };
+        return { changed: added.size > 0 || removed.size > 0, added, removed };
     }
 
     isReversed() {

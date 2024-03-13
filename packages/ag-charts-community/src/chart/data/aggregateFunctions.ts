@@ -60,18 +60,7 @@ export function range(scope: ScopeProvider, id: string, matchGroupId: string) {
     return result;
 }
 
-export function count(scope: ScopeProvider, id: string) {
-    const result: AggregatePropertyDefinition<any, any> = {
-        id,
-        scopes: [scope.id],
-        type: 'aggregate',
-        aggregateFunction: () => [0, 1],
-    };
-
-    return result;
-}
-
-export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyDefinition<any, any, [number, number]> {
+export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyDefinition<any, any> {
     return {
         id,
         scopes: [scope.id],
@@ -83,18 +72,6 @@ export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyD
             return acc;
         },
     };
-}
-
-export function average(scope: ScopeProvider, id: string, matchGroupId: string) {
-    const result: AggregatePropertyDefinition<any, any> = {
-        id,
-        scopes: [scope.id],
-        matchGroupIds: [matchGroupId],
-        type: 'aggregate',
-        aggregateFunction: (values) => sumValues(values).map((v) => v / values.length) as [number, number],
-    };
-
-    return result;
 }
 
 export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: string) {

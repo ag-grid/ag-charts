@@ -148,7 +148,9 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     }
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
-        this._nodes.forEach((node, i) => iterate(node, node.datum, i));
+        for (const entry of this._nodes.entries()) {
+            iterate(entry[1], entry[1].datum, entry[0]);
+        }
         return this;
     }
 
