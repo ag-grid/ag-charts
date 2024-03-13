@@ -397,8 +397,9 @@ export class AreaSeries extends CartesianSeries<
             strokePoints[0] = createMovePoint(strokePoints[0]);
         }
 
-        fillPhantomPoints.reverse();
-        fillPoints.push(...fillPhantomPoints);
+        for (let i = fillPhantomPoints.length - 1; i >= 0; i--) {
+            fillPoints.push(fillPhantomPoints[i]);
+        }
 
         return [context];
     }
