@@ -466,12 +466,20 @@ export class AreaSeries extends CartesianSeries<
             const { path: fillPath } = fill;
             fillPath.clear({ trackChanges: true });
 
+            let lastPoint: { x: number; y: number; moveTo?: boolean } | undefined;
             for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints!))) {
                 if (point.moveTo) {
                     fillPath.moveTo(point.x, point.y);
-                } else {
+                } else if (lastPoint?.y !== point.y) {
+                    if (lastPoint) {
+                        fillPath.lineTo(lastPoint.x, lastPoint.y);
+                    }
                     fillPath.lineTo(point.x, point.y);
                 }
+                lastPoint = point;
+            }
+            if (lastPoint) {
+                fillPath.lineTo(lastPoint.x, lastPoint.y);
             }
             fillPath.closePath();
             fill.checkPathDirty();
