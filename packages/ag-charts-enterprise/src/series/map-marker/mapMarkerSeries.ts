@@ -23,6 +23,7 @@ const {
     createDatumId,
     DataModelSeries,
     SeriesNodePickMode,
+    Layers,
     valueProperty,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
@@ -68,8 +69,15 @@ export class MapMarkerSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
-    private highlightMarkerGroup = this.contentGroup.appendChild(new Group({ name: 'highlightMarkerGroup' }));
+    private markerGroup = this.contentGroup.appendChild(
+        new Group({
+            name: 'markerGroup',
+            layer: true,
+            isVirtual: false,
+            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
+        })
+    );
 
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
         this.labelGroup,
@@ -82,7 +90,7 @@ export class MapMarkerSeries
         false
     );
     private highlightMarkerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum> = Selection.select(
-        this.highlightMarkerGroup,
+        this.highlightGroup,
         () => this.markerFactory()
     );
 
@@ -93,7 +101,7 @@ export class MapMarkerSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
+            contentGroupVirtual: true,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
