@@ -10,6 +10,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
+import { iterate, iterateReverseArray } from '../../../util/function';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined, isFiniteNumber } from '../../../util/type-guards';
@@ -266,7 +267,7 @@ export class AreaSeries extends CartesianSeries<
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
         const context: AreaSeriesNodeDataContext = {
             itemId,
-            fillData: { itemId, points: [] },
+            fillData: { itemId, points: [], phantomPoints: [] },
             strokeData: { itemId, points: [] },
             labelData,
             nodeData: markerData,
@@ -276,7 +277,7 @@ export class AreaSeries extends CartesianSeries<
         };
 
         const fillPoints = context.fillData.points;
-        const fillPhantomPoints: AreaPathPoint[] = [];
+        const fillPhantomPoints = context.fillData.phantomPoints!;
 
         const strokePoints = context.strokeData.points;
 
@@ -376,16 +377,13 @@ export class AreaSeries extends CartesianSeries<
                 const [top, bottom] = createPathCoordinates(xDatum, yValueStart, yValueEnd);
 
                 if (xValid && (!connectMissingData || yValid)) {
-                    fillPoints.push(prevTop);
-                    fillPhantomPoints.push(prevBottom);
-                    fillPoints.push(top);
-                    fillPhantomPoints.push(bottom);
+                    fillPoints.push(prevTop, top);
+                    fillPhantomPoints.push(prevBottom, bottom);
                 }
 
                 // stroke data
                 if (yValid && datumIdx > 0) {
-                    strokePoints.push(createMovePoint(prevTop));
-                    strokePoints.push(top);
+                    strokePoints.push(createMovePoint(prevTop), top);
                 }
 
                 lastXDatum = xDatum;
@@ -395,10 +393,6 @@ export class AreaSeries extends CartesianSeries<
 
         if (strokePoints.length > 0) {
             strokePoints[0] = createMovePoint(strokePoints[0]);
-        }
-
-        for (let i = fillPhantomPoints.length - 1; i >= 0; i--) {
-            fillPoints.push(fillPhantomPoints[i]);
         }
 
         return [context];
@@ -471,7 +465,7 @@ export class AreaSeries extends CartesianSeries<
             const [fill] = paths[contextDataIndex];
             const { path: fillPath } = fill;
             fillPath.clear({ trackChanges: true });
-            for (const { point } of fillData.points) {
+            for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints))) {
                 if (point.moveTo) {
                     fillPath.moveTo(point.x, point.y);
                 } else {
