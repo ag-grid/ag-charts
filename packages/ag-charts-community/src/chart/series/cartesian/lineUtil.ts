@@ -387,7 +387,7 @@ export function prepareLinePathAnimation(
         return;
     }
 
-    const hasMotion: boolean = (diff?.changed ?? true) || scalesChanged(newData, oldData) || status !== 'updated';
+    const hasMotion = (diff?.changed ?? true) || scalesChanged(newData, oldData) || status !== 'updated';
     const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap, status);
     return { ...pathFns, marker, hasMotion };

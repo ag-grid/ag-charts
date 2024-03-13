@@ -19,6 +19,8 @@ export class AnimationBatch {
     /** Guard against premature animation execution. */
     private isReady = false;
 
+    constructor(private readonly maxAnimationTime: number = Infinity) {}
+
     get size() {
         return this.controllers.size;
     }
@@ -118,6 +120,14 @@ export class AnimationBatch {
             this.debug(`AnimationBatch - animationTimeConsumed: ${this.animationTimeConsumed}`);
             progressPhase();
         } while (unusedTime > 0 && !arePhasesComplete());
+
+        if (this.animationTimeConsumed > this.maxAnimationTime) {
+            Logger.warnOnce(
+                'Animation batch exceeded max animation time, skipping.',
+                new Map(this.controllers.entries())
+            );
+            this.stop();
+        }
     }
 
     ready() {
