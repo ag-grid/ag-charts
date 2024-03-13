@@ -107,16 +107,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    protected override resolveKeyDirection(direction: ChartAxisDirection) {
-        if (this.getBarDirection() === ChartAxisDirection.X) {
-            if (direction === ChartAxisDirection.X) {
-                return ChartAxisDirection.Y;
-            }
-            return ChartAxisDirection.X;
-        }
-        return direction;
-    }
-
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || !this.data) {
             return;
