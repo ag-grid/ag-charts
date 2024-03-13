@@ -249,9 +249,13 @@ export class DataController {
                     updateKeyValueOpts(prop);
 
                     if (prop.id != null) {
-                        prop.ids ??= [];
+                        prop.idsMap ??= new Map();
                         for (const scope of prop.scopes ?? []) {
-                            prop.ids.push([scope, prop.id]);
+                            if (prop.idsMap.has(scope)) {
+                                prop.idsMap.get(scope)!.add(prop.id);
+                            } else {
+                                prop.idsMap.set(scope, new Set([prop.id]));
+                            }
                         }
                     }
 
@@ -267,8 +271,16 @@ export class DataController {
                     match.scopes ??= [];
                     match.scopes.push(...(prop.scopes ?? []));
 
-                    if ((match.type === 'key' || match.type === 'value') && prop.ids?.length) {
-                        match.ids?.push(...prop.ids);
+                    if ((match.type === 'key' || match.type === 'value') && prop.idsMap?.size) {
+                        for (const [scope, ids] of prop.idsMap) {
+                            if (match.idsMap.has(scope)) {
+                                for (const id of ids) {
+                                    match.idsMap.get(scope)!.add(id);
+                                }
+                            } else {
+                                match.idsMap.set(scope, new Set(ids));
+                            }
+                        }
                     }
                 }
 
@@ -279,7 +291,7 @@ export class DataController {
     }
 
     // optimized version of deep equality for `mergeRequests` which can potentially loop over 1M times
-    static skipKeys = new Set<string>(['id', 'ids', 'type', 'scopes', 'useScopedValues']);
+    static skipKeys = new Set<string>(['id', 'ids', 'idsMap', 'type', 'scopes', 'useScopedValues']);
     static deepEqual<T>(a: T, b: T): boolean {
         if (a === b) {
             return true;

@@ -177,10 +177,9 @@ export type PropertyId<K extends string> = K | { id: string };
 type PropertyIdentifiers = {
     /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
     scopes?: string[];
-    /** Unique id for a property definition within the scope(s) provided. */
-    /** Tuples of [scope, id] that match this definition. */
-    ids?: [string, string][];
     id?: string;
+    /** Map<Scope, Set<Id>> */
+    idsMap?: Map<string, Set<string>>;
     /** Optional group a property belongs to, for cross-scope combination. */
     groupId?: string;
 };
@@ -319,11 +318,7 @@ export class DataModel<
         };
         const verifyMatchIds = ({ matchIds }: { matchIds?: [string, string][] }) => {
             for (const matchId of matchIds ?? []) {
-                if (
-                    !this.values.some((def) =>
-                        def.ids?.some(([scope, id]) => scope === matchId[0] && id === matchId[1])
-                    )
-                ) {
+                if (!this.values.some((def) => def.idsMap?.get(matchId[0])?.has(matchId[1]))) {
                     throw new Error(
                         `AG Charts - internal config error: matchGroupIds properties must match defined groups (${matchId}).`
                     );
@@ -521,13 +516,16 @@ export class DataModel<
 
         this.scopeCache.clear();
         for (const def of iterate(this.keys, this.values, this.aggregates, this.groupProcessors, this.reducers)) {
-            for (const [scope, id] of def.ids ?? []) {
-                if (!this.scopeCache.has(scope)) {
-                    this.scopeCache.set(scope, new Map([[id, new Set([def])]]));
-                } else if (!this.scopeCache.get(scope)!.has(id)) {
-                    this.scopeCache.get(scope)!.set(id, new Set([def]));
-                } else {
-                    this.scopeCache.get(scope)!.get(id)!.add(def);
+            if (!def.idsMap) continue;
+            for (const [scope, ids] of def.idsMap) {
+                for (const id of ids) {
+                    if (!this.scopeCache.has(scope)) {
+                        this.scopeCache.set(scope, new Map([[id, new Set([def])]]));
+                    } else if (!this.scopeCache.get(scope)!.has(id)) {
+                        this.scopeCache.get(scope)!.set(id, new Set([def]));
+                    } else {
+                        this.scopeCache.get(scope)!.get(id)!.add(def);
+                    }
                 }
             }
         }
@@ -535,12 +533,10 @@ export class DataModel<
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
-    private hasMatchingDef(matchIds: [string, string][], defIds: [string, string][]) {
-        for (const [matchId, matchScope] of matchIds) {
-            for (const [defId, defScope] of defIds) {
-                if (defId === matchId && defScope === matchScope) {
-                    return true;
-                }
+    private hasMatchingDef(matchIds: [string, string][], defIdsMap: Map<string, Set<string>>) {
+        for (const [matchScope, matchId] of matchIds) {
+            if (defIdsMap.get(matchScope)?.has(matchId)) {
+                return true;
             }
         }
         return false;
@@ -550,7 +546,7 @@ export class DataModel<
         const result: number[] = [];
         for (const [index, def] of this.values.entries()) {
             if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) continue;
-            if (matchIds && (def.ids == null || !this.hasMatchingDef(matchIds, def.ids))) continue;
+            if (matchIds && (def.idsMap == null || !this.hasMatchingDef(matchIds, def.idsMap))) continue;
 
             result.push(index);
         }
@@ -559,26 +555,27 @@ export class DataModel<
 
     private valueIdxLookup(scopes: string[] | undefined, prop: PropertyId<string>) {
         const noScopesToMatch = scopes == null || scopes.length === 0;
-        const scopeMatch = (compareTo?: string[]) => {
-            if (compareTo == null) {
-                return true;
-            }
+        const propId = typeof prop === 'string' ? prop : prop.id;
 
-            const noScopes = compareTo.length === 0;
-            if (noScopesToMatch === noScopes) {
-                return true;
+        const hasMatchingScopeId = (def: InternalDatumPropertyDefinition<K>) => {
+            if (def.idsMap) {
+                for (const [scope, ids] of def.idsMap) {
+                    if (scopes?.includes(scope) && ids.has(propId)) {
+                        return true;
+                    }
+                }
             }
-
-            return compareTo.some((s) => scopes?.includes(s));
+            return false;
         };
 
-        const propId = typeof prop === 'string' ? prop : prop.id;
-        const idMatch = ([scope, id]: [string, string]) => scopeMatch([scope]) && id === propId;
-        const result = this.values.findIndex(
-            (def) =>
-                scopeMatch(def.scopes) &&
-                (def.ids?.some((id) => idMatch(id)) || def.property === propId || def.id === propId)
-        );
+        const result = this.values.findIndex((def) => {
+            const validDefScopes =
+                def.scopes == null ||
+                (noScopesToMatch && !def.scopes.length) ||
+                def.scopes.some((s) => scopes?.includes(s));
+
+            return validDefScopes && (def.property === propId || def.id === propId || hasMatchingScopeId(def));
+        });
 
         if (result === -1) {
             throw new Error(

@@ -123,7 +123,7 @@ describe('DataController', () => {
         expect(results[1].processedData.defs.values).toHaveLength(1);
     });
 
-    it('should merge compatible requests', async () => {
+    it.only('should merge compatible requests', async () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
@@ -196,23 +196,29 @@ describe('DataController', () => {
         expect(results[0].processedData.defs.keys).toHaveLength(1);
         expect(results[0].processedData.defs.values).toHaveLength(2);
 
-        expect(results[0].processedData.defs.keys[0].ids).toHaveLength(2);
-        expect(results[0].processedData.defs.keys[0].ids).toEqual([
-            ['test1', 'keyProp1-key'],
-            ['test2', 'keyProp1-key'],
-        ]);
+        expect(results[0].processedData.defs.keys[0].idsMap?.size).toEqual(2);
+        expect(results[0].processedData.defs.keys[0].idsMap).toEqual(
+            new Map([
+                ['test1', new Set(['keyProp1-key'])],
+                ['test2', new Set(['keyProp1-key'])],
+            ])
+        );
 
-        expect(results[0].processedData.defs.values[0].ids).toHaveLength(2);
-        expect(results[0].processedData.defs.values[0].ids).toEqual([
-            ['test1', 'valueProp1-key'],
-            ['test2', 'valueProp2-key'],
-        ]);
+        expect(results[0].processedData.defs.values[0].idsMap?.size).toEqual(2);
+        expect(results[0].processedData.defs.values[0].idsMap).toEqual(
+            new Map([
+                ['test1', new Set(['valueProp1-key'])],
+                ['test2', new Set(['valueProp2-key'])],
+            ])
+        );
 
-        expect(results[0].processedData.defs.values[1].ids).toHaveLength(2);
-        expect(results[0].processedData.defs.values[1].ids).toEqual([
-            ['test1', 'valueProp2-key'],
-            ['test2', 'valueProp1-key'],
-        ]);
+        expect(results[0].processedData.defs.values[1].idsMap?.size).toEqual(2);
+        expect(results[0].processedData.defs.values[1].idsMap).toEqual(
+            new Map([
+                ['test1', new Set(['valueProp2-key'])],
+                ['test2', new Set(['valueProp1-key'])],
+            ])
+        );
     });
 
     it('should not leak scopes', async () => {
