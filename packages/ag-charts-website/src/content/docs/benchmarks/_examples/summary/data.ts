@@ -1,6 +1,46 @@
 export function getData() {
     return [
         {
+            name: 'b9.0.0',
+            results: {
+                'integrated charts large scale benchmark initial load': 2865.563291000013,
+                'integrated charts large scale benchmark after load 1x legend toggle': 5583.170625000013,
+                'integrated charts large scale benchmark after load 4x legend toggle': 10609.00579200001,
+                'large-dataset benchmark initial load': 11270.747375,
+                'large-dataset benchmark after load 1x legend toggle': 13734.117624999992,
+                'large-dataset benchmark after load 1x datum highlight': 2834.579458,
+                'large-dataset benchmark after load 4x datum highlight': 6091.588040999995,
+                'large-scale multi-series benchmark initial load': 1823.106249999997,
+                'large-scale multi-series benchmark after load 1x legend toggle': 2688.428165999998,
+                'large-scale multi-series benchmark after load 4x legend toggle': 4933.317624999996,
+                'multi-series benchmark initial load': 274.5971669999999,
+                'multi-series benchmark after load 1x legend toggle': 214.08220800000709,
+                'multi-series benchmark after load 10x legend toggle': 794.8661250000005,
+                'multi-series benchmark after load 1x datum highlight': 87.14291700000467,
+                'multi-series benchmark after load 15x datum highlight': 806.5827920000011,
+            },
+        },
+        {
+            name: 'b9.0.2',
+            results: {
+                'integrated charts large scale benchmark initial load': 2206.8442499999946,
+                'integrated charts large scale benchmark after load 1x legend toggle': 4156.464749999999,
+                'integrated charts large scale benchmark after load 4x legend toggle': 8342.85145799999,
+                'large-dataset benchmark initial load': 12747.516375,
+                'large-dataset benchmark after load 1x legend toggle': 16663.048625000003,
+                'large-dataset benchmark after load 1x datum highlight': 2430.027083000001,
+                'large-dataset benchmark after load 4x datum highlight': 6416.735333000004,
+                'large-scale multi-series benchmark initial load': 2733.4322079999984,
+                'large-scale multi-series benchmark after load 1x legend toggle': 4855.141291000007,
+                'large-scale multi-series benchmark after load 4x legend toggle': 9463.192792000002,
+                'multi-series benchmark initial load': 321.2840409999917,
+                'multi-series benchmark after load 1x legend toggle': 310.87108300000546,
+                'multi-series benchmark after load 10x legend toggle': 1315.1935000000085,
+                'multi-series benchmark after load 1x datum highlight': 83.00820899999235,
+                'multi-series benchmark after load 15x datum highlight': 808.0248749999882,
+            },
+        },
+        {
             name: 'b9.1.1',
             results: {
                 'integrated charts large scale benchmark initial load': 2172.2572079999954,
@@ -21,7 +61,7 @@ export function getData() {
             },
         },
         {
-            name: 'latest',
+            name: 'latest-head',
             results: {
                 'integrated charts large scale benchmark initial load': 594.1213750000024,
                 'integrated charts large scale benchmark after load 1x legend toggle': 826.5434170000008,
