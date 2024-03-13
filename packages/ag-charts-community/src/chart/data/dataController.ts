@@ -291,7 +291,7 @@ export class DataController {
     }
 
     // optimized version of deep equality for `mergeRequests` which can potentially loop over 1M times
-    static skipKeys = new Set<string>(['id', 'ids', 'idsMap', 'type', 'scopes', 'useScopedValues']);
+    static skipKeys = new Set<string>(['id', 'idsMap', 'type', 'scopes', 'useScopedValues']);
     static deepEqual<T>(a: T, b: T): boolean {
         if (a === b) {
             return true;
