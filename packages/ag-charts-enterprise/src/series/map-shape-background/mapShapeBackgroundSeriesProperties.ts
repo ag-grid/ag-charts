@@ -1,4 +1,4 @@
-import type { AgMapShapeAccessoryOptions } from 'ag-charts-community';
+import type { AgMapShapeBackgroundOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -6,12 +6,12 @@ import { GEOJSON_OBJECT } from '../map-util/validation';
 const { COLOR_STRING, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO, Validate, SeriesProperties, SeriesTooltip } =
     _ModuleSupport;
 
-export interface MapShapeAccessoryNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
     readonly projectedGeometry: _ModuleSupport.Geometry;
 }
 
-export class MapShapeAccessorySeriesProperties extends SeriesProperties<AgMapShapeAccessoryOptions> {
+export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapShapeBackgroundOptions> {
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
 

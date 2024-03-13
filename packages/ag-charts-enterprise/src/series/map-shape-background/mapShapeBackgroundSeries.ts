@@ -3,32 +3,32 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { MapShapeAccessoryNodeDatum, MapShapeAccessorySeriesProperties } from './mapShapeAccessorySeriesProperties';
+import { MapShapeBackgroundNodeDatum, MapShapeBackgroundSeriesProperties } from './mapShapeBackgroundSeriesProperties';
 
 const { createDatumId, Series, SeriesNodePickMode, Validate } = _ModuleSupport;
 const { Selection, Group, PointerEvents } = _Scene;
 const { Logger } = _Util;
 
-export interface MapShapeAccessoryNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<MapShapeAccessoryNodeDatum> {}
+export interface MapShapeBackgroundNodeDataContext
+    extends _ModuleSupport.SeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
 
-export class MapShapeAccessorySeries
+export class MapShapeBackgroundSeries
     extends Series<
-        MapShapeAccessoryNodeDatum,
-        MapShapeAccessorySeriesProperties,
-        MapShapeAccessoryNodeDatum,
-        MapShapeAccessoryNodeDataContext
+        MapShapeBackgroundNodeDatum,
+        MapShapeBackgroundSeriesProperties,
+        MapShapeBackgroundNodeDatum,
+        MapShapeBackgroundNodeDataContext
     >
     implements _ModuleSupport.TopologySeries
 {
-    static readonly className = 'MapShapeShapeSeries';
-    static readonly type = 'map-shape-accessory' as const;
+    static readonly className = 'MapShapeBackgroundSeries';
+    static readonly type = 'map-shape-background' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
     public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
 
-    override properties = new MapShapeAccessorySeriesProperties();
+    override properties = new MapShapeBackgroundSeriesProperties();
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
@@ -51,13 +51,12 @@ export class MapShapeAccessorySeries
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeAccessoryNodeDatum> = Selection.select(
+    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeBackgroundNodeDatum> = Selection.select(
         this.itemGroup,
-        () => this.nodeFactory(),
-        false
+        () => this.nodeFactory()
     );
 
-    private contextNodeData: MapShapeAccessoryNodeDataContext[] = [];
+    private contextNodeData: MapShapeBackgroundNodeDataContext[] = [];
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -95,16 +94,16 @@ export class MapShapeAccessorySeries
         this.topologyBounds = topologyBounds;
 
         if (topology == null) {
-            Logger.warnOnce(`no topology was provided for [MapShapeAccessorySeries]; nothing will be rendered.`);
+            Logger.warnOnce(`no topology was provided for [MapShapeBackgroundSeries]; nothing will be rendered.`);
         }
     }
 
-    override async createNodeData(): Promise<MapShapeAccessoryNodeDataContext[]> {
+    override async createNodeData(): Promise<MapShapeBackgroundNodeDataContext[]> {
         const { id: seriesId, topology, scale } = this;
 
         if (topology == null) return [];
 
-        const nodeData: MapShapeAccessoryNodeDatum[] = [];
+        const nodeData: MapShapeBackgroundNodeDatum[] = [];
         const labelData: never[] = [];
         topology.features.forEach((feature, index) => {
             const { geometry } = feature;
@@ -151,14 +150,14 @@ export class MapShapeAccessorySeries
     }
 
     private async updateDatumSelection(opts: {
-        nodeData: MapShapeAccessoryNodeDatum[];
-        datumSelection: _Scene.Selection<GeoGeometry, MapShapeAccessoryNodeDatum>;
+        nodeData: MapShapeBackgroundNodeDatum[];
+        datumSelection: _Scene.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));
     }
 
     private async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<GeoGeometry, MapShapeAccessoryNodeDatum>;
+        datumSelection: _Scene.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
         isHighlight: boolean;
     }) {
         const { properties } = this;
@@ -188,7 +187,7 @@ export class MapShapeAccessorySeries
     }
 
     resetAnimation() {
-        this.datumSelection.cleanup();
+        // No animations
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {

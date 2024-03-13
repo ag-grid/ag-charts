@@ -1,1 +1,0 @@
-export { MapShapeAccessoryModule } from './mapShapeAccessoryModule';
