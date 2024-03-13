@@ -7,7 +7,7 @@ import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/Pa
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title="AG Charts: Page Not Found" showDocsNav={true}>
+<Layout title="AG Charts: Page Not Found" showDocsNav={true} showSearchBar={true}>
     <div class="layout-grid">
         <!-- NOTE: 404 is used for all paths, so will need to get framework from localstorage -->
         <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} pageName={'404'} />
