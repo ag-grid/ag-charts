@@ -102,7 +102,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         crosshairGroup.translationX = Math.round(bounds.x);
         crosshairGroup.translationY = Math.round(bounds.y);
 
-        const crosshairKeys = ['pointer', ...this.axisCtx.keys()];
+        const crosshairKeys = ['pointer', ...this.axisCtx.seriesKeyProperties()];
         this.updateSelections(crosshairKeys);
         this.updateLines();
         this.updateLabels(crosshairKeys);
@@ -284,35 +284,41 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         activeHighlight: Exclude<_ModuleSupport.HighlightChangeEvent['currentHighlight'], undefined>
     ): { [key: string]: { position: number; value: any } } {
         const { axisCtx } = this;
-        const { datum, series, yKey = '', xKey = '', aggregatedValue, cumulativeValue, midPoint } = activeHighlight;
-        const seriesKeys = series.getKeys(axisCtx.direction);
+        const { datum, series, xKey = '', aggregatedValue, cumulativeValue, midPoint } = activeHighlight;
+        const seriesKeyProperties = series.getKeyProperties(axisCtx.direction);
 
         const halfBandwidth = axisCtx.scaleBandwidth() / 2;
 
-        const isYKey = axisCtx.keys().indexOf(yKey) > -1 && series.axes.y?.id === axisCtx.axisId;
+        const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && series.axes.y?.id === axisCtx.axisId;
+        const isXKey = seriesKeyProperties.indexOf('xKey') > -1 && series.axes.x?.id === axisCtx.axisId;
 
         if (isYKey && aggregatedValue !== undefined) {
             return {
-                [yKey]: { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth },
+                yKey: { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth },
             };
         }
 
         if (isYKey && cumulativeValue !== undefined) {
             return {
-                [yKey]: { value: cumulativeValue, position: axisCtx.scaleConvert(cumulativeValue) + halfBandwidth },
+                yKey: { value: cumulativeValue, position: axisCtx.scaleConvert(cumulativeValue) + halfBandwidth },
             };
         }
 
-        if (!axisCtx.continuous) {
-            // use midpoint of datum on a band scale
+        if (isXKey) {
+            const position = (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0;
             return {
-                [xKey]: { value: datum[xKey], position: (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0 },
+                xKey: {
+                    value: axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[xKey],
+                    position,
+                },
             };
         }
 
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
-        seriesKeys.forEach((key) => {
-            const value = datum[key];
+
+        seriesKeyProperties.forEach((key) => {
+            const keyValue = series.properties[key];
+            const value = datum[keyValue];
             const position = axisCtx.scaleConvert(value) + halfBandwidth;
             activeHighlightData[key] = { value, position };
         });

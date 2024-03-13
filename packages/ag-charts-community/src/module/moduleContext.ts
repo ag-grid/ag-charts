@@ -57,6 +57,7 @@ export interface AxisContext {
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
     keys(): string[];
+    seriesKeyProperties(): string[];
     scaleBandwidth(): number;
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
