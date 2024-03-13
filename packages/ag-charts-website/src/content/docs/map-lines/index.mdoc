@@ -40,12 +40,56 @@ Topology features that did not match an item in the data will not be rendered.
 
 In this configuration, the background properties function in the same way as their series counterparts.
 
+## Heatmap
+
+A heat map will colour lines in the topology to denote the magnitude of the data values.
+
+{% chartExampleRunner title="Heatmap" name="heatmap" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'map-line',
+        idKey: 'name',
+        colorKey: 'dailyVehicles'
+    },
+],
+```
+
+In this configuration:
+
+-   `colorKey` is set to 'dailyVehicles', which supplies numerical values for the Colour Scale.
+
+## Scaling Stroke Widths
+
+A heat map will colour lines in the topology to denote the magnitude of the data values.
+
+{% chartExampleRunner title="Stroke Width" name="stroke-width" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'map-line',
+        idKey: 'name',
+        sizeKey: 'dailyVehicles',
+        strokeWidth: 1,
+        maxStrokeWidth: 3,
+    },
+],
+```
+
+In this configuration:
+
+-   `sizeKey` is set to 'dailyVehicles', which supplies numerical values for the Size Scale.
+-   `strokeWidth` is used for the smallest values in the Size Scale.
+-   `maxStrokeWidth` is used for the largest values in the Size Scale.
+
 ## API Reference
 
 {% tabs %}
 
-{% tabItem id="AgMapShapeSeriesOptions" label="Map Shape" %}
-{% apiReference id="AgMapShapeSeriesOptions" /%}
+{% tabItem id="AgMapLineSeriesOptions" label="Map Line" %}
+{% apiReference id="AgMapLineSeriesOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

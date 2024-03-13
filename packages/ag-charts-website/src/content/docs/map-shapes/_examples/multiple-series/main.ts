@@ -1,38 +1,38 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { cet, eet, gmt, msk } from './data';
+import { central, eastern, mountain, pacific } from './data';
 import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Timezones Across Europe',
+        text: 'Timezones Across America',
     },
     topology,
     series: [
         {
             type: 'map-shape',
-            data: gmt,
+            data: pacific,
             idKey: 'name',
-            title: 'Greenwich Mean Time',
+            title: 'Pacific',
         },
         {
             type: 'map-shape',
-            data: cet,
+            data: mountain,
             idKey: 'name',
-            title: 'Central European Time',
+            title: 'Mountain',
         },
         {
             type: 'map-shape',
-            data: eet,
+            data: central,
             idKey: 'name',
-            title: 'Eastern European Time',
+            title: 'Central',
         },
         {
             type: 'map-shape',
-            data: msk,
+            data: eastern,
             idKey: 'name',
-            title: 'Moscow Standard Time',
+            title: 'Eastern',
         },
     ],
     legend: {
