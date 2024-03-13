@@ -167,11 +167,11 @@ export function lineStringCenter(
     let totalDistance = 0;
     for (let i = 1; i < lineSegment.length; i += 1) {
         const [x1, y1] = lineSegment[i];
-        const distance = Math.hypot(x1 - x0, y1 - y0);
-        const nextDistance = totalDistance + distance;
+        const segmentDistance = Math.hypot(x1 - x0, y1 - y0);
+        const nextDistance = totalDistance + segmentDistance;
 
         if (nextDistance > targetDistance) {
-            const ratio = (targetDistance - distance) / totalDistance;
+            const ratio = (targetDistance - totalDistance) / segmentDistance;
             const point: _ModuleSupport.Position = [x0 + (x1 - x0) * ratio, y0 + (y1 - y0) * ratio];
             const angle = Math.atan2(y1 - y0, x1 - x0);
 

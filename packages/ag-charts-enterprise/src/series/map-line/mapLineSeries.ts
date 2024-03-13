@@ -8,7 +8,14 @@ import {
 } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
-import { GeometryType, containsType, geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
+import {
+    GeometryType,
+    containsType,
+    geometryBbox,
+    labelPosition,
+    markerPositions,
+    projectGeometry,
+} from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -320,7 +327,7 @@ export class MapLineSeries
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.idValue == null)) {
+        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
             highlightedDatum = undefined;
         }
 
@@ -482,6 +489,25 @@ export class MapLineSeries
         });
 
         return minDatum != null ? { datum: minDatum, distance: minDistance } : undefined;
+    }
+
+    private _previousDatumMidPoint:
+        | { datum: _ModuleSupport.SeriesNodeDatum; point: _Scene.Point | undefined }
+        | undefined = undefined;
+    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum): _Scene.Point | undefined {
+        const { _previousDatumMidPoint } = this;
+        if (_previousDatumMidPoint?.datum === datum) {
+            return _previousDatumMidPoint.point;
+        }
+
+        const projectedGeometry = (datum as MapLineNodeDatum).projectedGeometry;
+        const positions = projectedGeometry != null ? markerPositions(projectedGeometry, 2) : undefined;
+        const firstPoint = positions != null && positions.length > 0 ? positions[0] : undefined;
+        const point = firstPoint != null ? { x: firstPoint[0], y: firstPoint[1] } : undefined;
+
+        this._previousDatumMidPoint = { datum, point };
+
+        return point;
     }
 
     override getLegendData(

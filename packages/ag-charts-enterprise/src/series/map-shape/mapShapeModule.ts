@@ -30,11 +30,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 color: DEFAULT_INVERTED_LABEL_COLOUR,
                 fontWeight: 'bold',
             },
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
-            },
         },
         legend: {
             enabled: false,

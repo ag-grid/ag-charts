@@ -34,11 +34,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
-            },
         },
         legend: {
             enabled: false,

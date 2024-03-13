@@ -26,11 +26,6 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             label: {
                 color: DEFAULT_LABEL_COLOUR,
             },
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
-            },
         },
         legend: {
             enabled: false,

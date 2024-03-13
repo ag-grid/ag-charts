@@ -452,7 +452,7 @@ export class MapMarkerSeries
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.point == null)) {
+        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
             highlightedDatum = undefined;
         }
 
