@@ -12,7 +12,9 @@ type HitTesterNearest = DistantObject & {
     readonly midPoint: { x: number; y: number };
 };
 
-class QuadtreeElem<H extends DistantObject, V> {
+type HitTester = HitTesterExact | HitTesterNearest;
+
+class QuadtreeElem<H extends HitTester, V> {
     constructor(
         public hitTester: H,
         public value: V
@@ -56,7 +58,7 @@ export class Quadtree<V> {
     }
 }
 
-class QuadtreeSubdivisions<H extends DistantObject, V, FindArg> {
+class QuadtreeSubdivisions<H extends HitTester, V, FindArg> {
     constructor(
         private readonly nw: QuadtreeNode<H, V, FindArg>,
         private readonly ne: QuadtreeNode<H, V, FindArg>,
@@ -79,7 +81,7 @@ class QuadtreeSubdivisions<H extends DistantObject, V, FindArg> {
     }
 }
 
-abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
+abstract class QuadtreeNode<H extends HitTester, V, FindArg> {
     protected boundary: BBox;
     protected readonly elems: Array<QuadtreeElem<H, V>>;
 
