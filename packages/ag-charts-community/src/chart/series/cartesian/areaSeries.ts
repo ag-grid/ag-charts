@@ -465,7 +465,8 @@ export class AreaSeries extends CartesianSeries<
             const [fill] = paths[contextDataIndex];
             const { path: fillPath } = fill;
             fillPath.clear({ trackChanges: true });
-            for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints))) {
+
+            for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints!))) {
                 if (point.moveTo) {
                     fillPath.moveTo(point.x, point.y);
                 } else {
