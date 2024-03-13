@@ -46,7 +46,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     label?: AgMapMarkerSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular Map sector based on the input parameters. */
+    /** A callback function for adjusting the styles of a particular Map marker based on the input parameters. */
     formatter?: (params: AgMapMarkerSeriesFormatterParams) => AgMapMarkerSeriesStyle;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
@@ -57,24 +57,30 @@ export interface AgMapMarkerSeriesOptions<TDatum = any>
         AgMapMarkerSeriesOptionsKeys,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesThemeableOptions<TDatum> {
-    /** Configuration for the Map Series. */
+    /** Configuration for the Map Marker Series. */
     type: 'map-marker';
     /** GeoJSON data. */
     topology?: GeoJSON;
-    /** The property to reference in the topology to match up with data. Defaults to `name`. */
+    /**
+     * The property to reference in the topology to match up with data.
+     * Default: `name`
+     */
     topologyIdKey?: string;
-    /** The title to use for the series. Defaults to `idName` if it exists, or `idKey` if not.  */
+    /** The title to use for the series. */
     title?: string;
-    /** Human-readable description of the series. */
+    /**
+     * The text to display in the legend for this series.
+     * If multiple series share this value, they will be merged for the legend toggle behaviour.
+     */
     legendItemName?: string;
 }
 
 export interface AgMapMarkerSeriesOptionsKeys {
     /** The name of the node key containing the id value. */
     idKey?: string;
-    /** The latitude of a marker. */
+    /** The key to use to retrieve latitude values from the data, used to control the position of the markers. */
     latitudeKey?: string;
-    /** The longitude of a marker. */
+    /** The key to use to retrieve longitude values from the data, used to control the position of the markers. */
     longitudeKey?: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: string;
@@ -85,11 +91,11 @@ export interface AgMapMarkerSeriesOptionsKeys {
 export interface AgMapMarkerSeriesOptionsNames {
     /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     idName?: string;
-    /** A human-readable description of the lat-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A human-readable description of the latitude values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     latitudeName?: string;
-    /** A human-readable description of the lon-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A human-readable description of the longitude values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     longitudeName?: string;
-    /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
+    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;

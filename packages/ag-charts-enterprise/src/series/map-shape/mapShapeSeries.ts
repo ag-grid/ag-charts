@@ -210,7 +210,7 @@ export class MapShapeSeries
             point: { x, y, size: 0 },
             label: { width, height, text: labelText },
             marker: undefined,
-            placement: 'bottom',
+            placement: undefined,
         };
     }
 

@@ -209,13 +209,12 @@ export class MapLineSeries
 
         const [x, y] = labelCenter;
         const { width, height } = labelSize;
-        const { placement } = label;
 
         return {
             point: { x, y, size: 0 },
             label: { width, height, text: labelText },
             marker: undefined,
-            placement,
+            placement: undefined,
         };
     }
 

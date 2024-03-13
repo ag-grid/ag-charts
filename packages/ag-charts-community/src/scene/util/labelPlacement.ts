@@ -17,7 +17,7 @@ export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
     readonly marker: { center: Point } | undefined;
-    readonly placement: LabelPlacement;
+    readonly placement: LabelPlacement | undefined;
 }
 
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
@@ -113,9 +113,13 @@ export function placeLabels(
             const { point, label, marker } = d;
             const { text, width, height } = label;
             const r = point.size * 0.5;
-            const placement = labelPlacements[d.placement];
-            const dx = r > 0 ? (width * 0.5 + r + padding) * placement.x : 0;
-            const dy = r > 0 ? (height * 0.5 + r + padding) * placement.y : 0;
+            let dx = 0;
+            let dy = 0;
+            if (r > 0 && d.placement != null) {
+                const placement = labelPlacements[d.placement];
+                dx = (width * 0.5 + r + padding) * placement.x;
+                dy = (height * 0.5 + r + padding) * placement.y;
+            }
             const x = point.x - width * 0.5 + dx - ((marker?.center.x ?? 0.5) - 0.5) * point.size;
             const y = point.y - height * 0.5 + dy - ((marker?.center.y ?? 0.5) - 0.5) * point.size;
 
