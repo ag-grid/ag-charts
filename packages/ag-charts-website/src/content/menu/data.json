@@ -14,6 +14,10 @@
                 "path": "/options"
             },
             {
+                "title": "Community",
+                "path": "/community"
+            },
+            {
                 "title": "Pricing",
                 "path": "/license-pricing"
             },

@@ -11,7 +11,7 @@ const framework = getFrameworkFromPath(path);
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title="AG Charts Pipeline">
+<Layout title="AG Charts Pipeline" showSearchBar={true}>
     <div class="layout-grid">
         <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} framework={framework} />
         <Pipeline currentFramework={framework} client:only />
