@@ -2,7 +2,7 @@ import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AxisZoomStates } from './zoomTypes';
-import { constrainZoom, definedZoomState, dx, pointToRatio, translateZoom } from './zoomUtils';
+import { constrainZoom, defineZoom, dx, pointToRatio, translateZoom } from './zoomUtils';
 
 const DELTA_SCALE = 200;
 
@@ -26,7 +26,7 @@ export class ZoomScrollPanner {
         for (const [axisId, { direction, zoom: currentZoom }] of Object.entries(currentZooms)) {
             if (direction !== _ModuleSupport.ChartAxisDirection.X) continue;
 
-            let zoom = definedZoomState({ x: currentZoom });
+            let zoom = defineZoom({ x: currentZoom });
             zoom = constrainZoom(translateZoom(zoom, offsetX * dx(zoom), 0));
             newZooms[axisId] = { direction, zoom: zoom.x };
         }

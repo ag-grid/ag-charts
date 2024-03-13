@@ -2,15 +2,9 @@ import { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { DefinedZoomState } from './zoomTypes';
 
-const { clamp } = _ModuleSupport;
+const { ZoomManager, clamp } = _ModuleSupport;
 
-export const UNIT = { min: 0, max: 1 };
-
-const constrain = (value: number, min = UNIT.min, max = UNIT.max) => clamp(min, value, max);
-
-export function unitZoomState(): DefinedZoomState {
-    return { x: { ...UNIT }, y: { ...UNIT } };
-}
+const constrain = (value: number, min = ZoomManager.MIN, max = ZoomManager.MAX) => clamp(min, value, max);
 
 export function dx(zoom: DefinedZoomState) {
     return zoom.x.max - zoom.x.min;
@@ -20,10 +14,10 @@ export function dy(zoom: DefinedZoomState) {
     return zoom.y.max - zoom.y.min;
 }
 
-export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
+export function defineZoom(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
     return {
-        x: { min: zoom?.x?.min ?? UNIT.min, max: zoom?.x?.max ?? UNIT.max },
-        y: { min: zoom?.y?.min ?? UNIT.min, max: zoom?.y?.max ?? UNIT.max },
+        x: { min: zoom?.x?.min ?? ZoomManager.MIN, max: zoom?.x?.max ?? ZoomManager.MAX },
+        y: { min: zoom?.y?.min ?? ZoomManager.MIN, max: zoom?.y?.max ?? ZoomManager.MAX },
     };
 }
 
@@ -132,22 +126,10 @@ export function multiplyZoom(zoom: DefinedZoomState, nx: number, ny: number) {
  * Constrain a zoom bounding box such that no corner exceeds an edge while maintaining the same width and height.
  */
 export function constrainZoom(zoom: DefinedZoomState): DefinedZoomState {
-    const after = unitZoomState();
+    const after = { x: ZoomManager.unit(), y: ZoomManager.unit() };
 
-    after.x = constrainAxis(zoom.x);
-    after.y = constrainAxis(zoom.y);
+    after.x = ZoomManager.constrain(zoom.x);
+    after.y = ZoomManager.constrain(zoom.y);
 
     return after;
-}
-
-function constrainAxis(axis: { min: number; max: number }) {
-    const size = axis.max - axis.min;
-
-    let min = axis.max > UNIT.max ? UNIT.max - size : axis.min;
-    let max = axis.min < UNIT.min ? size : axis.max;
-
-    min = Math.max(UNIT.min, min);
-    max = Math.min(UNIT.max, max);
-
-    return { min, max };
 }

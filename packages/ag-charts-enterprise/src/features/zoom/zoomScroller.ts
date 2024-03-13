@@ -3,7 +3,7 @@ import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-commun
 import type { DefinedZoomState } from './zoomTypes';
 import {
     constrainZoom,
-    definedZoomState,
+    defineZoom,
     dx,
     dy,
     pointToRatio,
@@ -22,12 +22,12 @@ export class ZoomScroller {
         bbox: _Scene.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): DefinedZoomState {
-        const oldZoom = definedZoomState(currentZoom);
+        const oldZoom = defineZoom(currentZoom);
         const sourceEvent = event.sourceEvent as WheelEvent;
 
         // Scale the zoom bounding box
         const dir = event.deltaY;
-        let newZoom = definedZoomState(oldZoom);
+        let newZoom = defineZoom(oldZoom);
         newZoom.x.max += isScalingX ? step * dir * dx(oldZoom) : 0;
         newZoom.y.max += isScalingY ? step * dir * dy(oldZoom) : 0;
 

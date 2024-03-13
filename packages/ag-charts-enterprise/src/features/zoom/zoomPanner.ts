@@ -2,7 +2,7 @@ import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
-import { constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
+import { constrainZoom, defineZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
 
 export class ZoomPanner {
     private coords?: ZoomCoords;
@@ -17,10 +17,10 @@ export class ZoomPanner {
     }
 
     private updateCoords(x: number, y: number) {
-        if (!this.coords) {
-            this.coords = { x1: x, y1: y, x2: x, y2: y };
-        } else {
+        if (this.coords) {
             this.coords = { x1: this.coords.x2, y1: this.coords.y2, x2: x, y2: y };
+        } else {
+            this.coords = { x1: x, y1: y, x2: x, y2: y };
         }
     }
 
@@ -40,9 +40,9 @@ export class ZoomPanner {
         for (const [axisId, { direction, zoom: currentZoom }] of Object.entries(currentZooms)) {
             let zoom;
             if (direction === _ModuleSupport.ChartAxisDirection.X) {
-                zoom = definedZoomState({ x: currentZoom });
+                zoom = defineZoom({ x: currentZoom });
             } else {
-                zoom = definedZoomState({ y: currentZoom });
+                zoom = defineZoom({ y: currentZoom });
             }
 
             zoom = constrainZoom(translateZoom(zoom, offsetX * dx(zoom), offsetY * dy(zoom)));

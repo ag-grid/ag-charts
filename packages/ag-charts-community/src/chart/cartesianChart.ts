@@ -11,6 +11,7 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
+import { ZoomManager } from './interaction/zoomManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { Series } from './series/series';
 
@@ -420,7 +421,8 @@ export class CartesianChart extends Chart {
         }
 
         const { min, max } = this.zoomManager.getAxisZoom(axis.id);
-        axis.visibleRange = [min, max];
+        axis.visibleRange = [ZoomManager.ratio(min), ZoomManager.ratio(max)];
+        console.log({ min, max }, axis.visibleRange);
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const isVertical = direction === ChartAxisDirection.Y;

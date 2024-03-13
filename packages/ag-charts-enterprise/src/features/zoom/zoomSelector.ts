@@ -2,7 +2,7 @@ import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ZoomRect } from './scenes/zoomRect';
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
-import { constrainZoom, definedZoomState, multiplyZoom, pointToRatio, scaleZoom, translateZoom } from './zoomUtils';
+import { constrainZoom, defineZoom, multiplyZoom, pointToRatio, scaleZoom, translateZoom } from './zoomUtils';
 
 // "Re-rewind, when the crowd say..."
 export class ZoomSelector {
@@ -39,7 +39,7 @@ export class ZoomSelector {
     }
 
     stop(innerBBox?: _Scene.BBox, bbox?: _Scene.BBox, currentZoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
-        let zoom = definedZoomState();
+        let zoom = defineZoom();
 
         if (!innerBBox || !bbox) return zoom;
 
@@ -90,7 +90,7 @@ export class ZoomSelector {
 
         // Ensure the selection is always at the same aspect ratio, using the width as the source of truth for the size
         // of the selection and limit it to the minimum dimensions.
-        const zoom = definedZoomState(currentZoom);
+        const zoom = defineZoom(currentZoom);
         const normal = this.getNormalisedDimensions();
 
         const aspectRatio = bbox.width / bbox.height;
@@ -164,7 +164,7 @@ export class ZoomSelector {
     }
 
     private createZoomFromCoords(bbox: _Scene.BBox, currentZoom?: _ModuleSupport.AxisZoomState) {
-        const oldZoom = definedZoomState(currentZoom);
+        const oldZoom = defineZoom(currentZoom);
         const normal = this.getNormalisedDimensions();
 
         // Convert the top-left position to coordinates as a ratio of 0 to 1 of the current zoom

@@ -12,9 +12,8 @@ import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import type { DefinedZoomState } from './zoomTypes';
 import {
-    UNIT,
     constrainZoom,
-    definedZoomState,
+    defineZoom,
     dx,
     dy,
     pointToRatio,
@@ -35,6 +34,7 @@ const {
     ChartAxisDirection,
     ChartUpdateType,
     Validate,
+    ZoomManager,
     round: sharedRound,
 } = _ModuleSupport;
 
@@ -90,7 +90,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public axes: 'x' | 'y' | 'xy' = 'x';
 
     @Validate(RATIO)
-    public scrollingStep = (UNIT.max - UNIT.min) / 10;
+    public scrollingStep = 0.1;
 
     @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX = 2;
@@ -192,7 +192,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             action: (params) => this.onContextMenuPanToHere(params),
         });
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = defineZoom(this.zoomManager.getZoom());
         this.toggleContextMenuActions(zoom);
     }
 
@@ -227,7 +227,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
         if (!rangeZoom) return;
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = defineZoom(this.zoomManager.getZoom());
         zoom[direction] = rangeZoom;
         this.updateZoom(constrainZoom(zoom));
     }
@@ -244,15 +244,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             y = ratioZoom;
         }
 
-        const newZoom = constrainZoom(definedZoomState({ x, y }));
+        const newZoom = constrainZoom(defineZoom({ x, y }));
         this.updateZoom(newZoom);
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
-        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
-        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? UNIT;
+        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? ZoomManager.unit();
+        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? ZoomManager.unit();
 
         const { min: minX, max: maxX } = x;
         const { min: minY, max: maxY } = y;
@@ -291,7 +291,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             }
             // Do not allow selection only if fully zoomed in or when the pankey is pressed
             else {
-                const fullyZoomedIn = this.isMinZoom(definedZoomState(this.zoomManager.getZoom()));
+                const fullyZoomedIn = this.isMinZoom(defineZoom(this.zoomManager.getZoom()));
                 if (!fullyZoomedIn && !panKeyPressed) {
                     newDragState = DragState.Select;
                 }
@@ -308,7 +308,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.ctx.interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = defineZoom(this.zoomManager.getZoom());
 
         switch (this.dragState) {
             case DragState.Axis:
@@ -366,7 +366,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
             case DragState.Select:
                 if (!this.selector.didUpdate()) break;
-                const zoom = definedZoomState(this.zoomManager.getZoom());
+                const zoom = defineZoom(this.zoomManager.getZoom());
                 if (!this.isMinZoom(zoom)) {
                     const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
                     this.updateZoom(newZoom);
@@ -461,8 +461,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
 
         const currentZoom = this.zoomManager.getZoom();
-        const oldZoom = definedZoomState(currentZoom);
-        const newZoom = definedZoomState(currentZoom);
+        const oldZoom = defineZoom(currentZoom);
+        const newZoom = defineZoom(currentZoom);
 
         const delta = event.deltaDistance * -0.01;
         const origin = pointToRatio(this.seriesRect, event.origin.x, event.origin.y);
@@ -518,14 +518,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         newZoom.y = this.rangeY.getRange();
 
         if (newZoom.x != null || newZoom.y != null) {
-            this.updateZoom(constrainZoom(definedZoomState(newZoom)));
+            this.updateZoom(constrainZoom(defineZoom(newZoom)));
         }
     }
 
     private onUpdateComplete({ minRect, minVisibleRect }: _ModuleSupport.UpdateCompleteEvent) {
         if (!this.enabled || !this.paddedRect || !minRect || !minVisibleRect) return;
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = defineZoom(this.zoomManager.getZoom());
 
         const minVisibleItemsWidth = this.shouldFlipXY ? this.minVisibleItemsY : this.minVisibleItemsX;
         const minVisibleItemsHeight = this.shouldFlipXY ? this.minVisibleItemsX : this.minVisibleItemsY;
@@ -545,13 +545,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onContextMenuZoomToHere({ event }: ContextMenuActionParams) {
         if (!this.enabled || !this.paddedRect || !event || !event.target) return;
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = defineZoom(this.zoomManager.getZoom());
         const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
         const scaledOriginX = origin.x * dx(zoom);
         const scaledOriginY = origin.y * dy(zoom);
 
-        const size = UNIT.max - UNIT.min;
+        const size = ZoomManager.size();
         const halfSize = size / 2;
 
         let newZoom = {
@@ -572,7 +572,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onContextMenuPanToHere({ event }: ContextMenuActionParams) {
         if (!this.enabled || !this.paddedRect || !event || !event.target) return;
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = defineZoom(this.zoomManager.getZoom());
         const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
         const scaleX = dx(zoom);
@@ -581,7 +581,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const scaledOriginX = origin.x * scaleX;
         const scaledOriginY = origin.y * scaleY;
 
-        const halfSize = (UNIT.max - UNIT.min) / 2;
+        const halfSize = ZoomManager.size() / 2;
 
         let newZoom = {
             x: { min: origin.x - halfSize, max: origin.x + halfSize },
@@ -595,7 +595,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onZoomChange() {
-        this.toggleContextMenuActions(definedZoomState(this.zoomManager.getZoom()));
+        this.toggleContextMenuActions(defineZoom(this.zoomManager.getZoom()));
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
@@ -638,7 +638,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMaxZoom(zoom: DefinedZoomState): boolean {
-        return zoom.x.min === UNIT.min && zoom.x.max === UNIT.max && zoom.y.min === UNIT.min && zoom.y.max === UNIT.max;
+        return ZoomManager.isFull(zoom.x) && ZoomManager.isFull(zoom.y);
     }
 
     private updateZoom(zoom: DefinedZoomState) {
@@ -646,7 +646,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const dx_ = round(dx(zoom));
         const dy_ = round(dy(zoom));
 
-        const oldZoom = definedZoomState(this.zoomManager.getZoom());
+        const oldZoom = defineZoom(this.zoomManager.getZoom());
 
         const zoomedInTooFarX = dx_ < dx(oldZoom) && dx_ < this.minRatioX;
         const zoomedInTooFarY = dy_ < dy(oldZoom) && dy_ < this.minRatioY;
@@ -667,7 +667,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!partialZoom) return;
 
         if (!this.enableSecondaryAxis) {
-            const fullZoom = definedZoomState(this.zoomManager.getZoom());
+            const fullZoom = defineZoom(this.zoomManager.getZoom());
             fullZoom[direction] = partialZoom;
             this.updateZoom(fullZoom);
             return;

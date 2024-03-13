@@ -32,17 +32,16 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public margin: number = 10;
 
     @ActionOnSet<Navigator>({
-        newValue(min) {
-            this._min = min;
-            this.updateZoom();
+        changeValue(min?: number) {
+            this._min = min ?? 0;
         },
     })
     @Validate(AND(RATIO, LESS_THAN('max')), { optional: true })
     public min?: number;
 
     @ActionOnSet<Navigator>({
-        newValue(max) {
-            this._max = max;
+        changeValue(max?: number) {
+            this._max = max ?? 1;
             this.updateZoom();
         },
     })

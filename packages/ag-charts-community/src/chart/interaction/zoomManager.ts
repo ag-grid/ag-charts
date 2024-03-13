@@ -35,6 +35,39 @@ type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
  * and handles conflicting zoom requests.
  */
 export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
+    // public static readonly MIN = 0;
+    // public static readonly MAX = 1;
+    public static readonly MIN = 1; // TODO: should this be the scene.width?
+    public static readonly MAX = Number.MAX_SAFE_INTEGER;
+
+    public static unit() {
+        return { min: ZoomManager.MIN, max: ZoomManager.MAX };
+    }
+
+    public static size() {
+        return ZoomManager.MAX - ZoomManager.MIN;
+    }
+
+    public static isFull({ min, max }: ZoomState) {
+        return min === ZoomManager.MIN && max === ZoomManager.MAX;
+    }
+
+    public static ratio(value: number) {
+        return (value - ZoomManager.MIN) / ZoomManager.size();
+    }
+
+    public static constrain(zoom: ZoomState) {
+        const delta = zoom.max - zoom.min;
+
+        let min = zoom.max > ZoomManager.MAX ? ZoomManager.MAX - delta : zoom.min;
+        let max = zoom.min < ZoomManager.MIN ? delta : zoom.max;
+
+        min = Math.max(ZoomManager.MIN, min);
+        max = Math.min(ZoomManager.MAX, max);
+
+        return { min, max };
+    }
+
     private axisZoomManagers = new Map<string, AxisZoomManager>();
     private state = new StateTracker<AxisZoomState>(undefined, 'initial');
     private rejectCallbacks = new Map<string, (stateId: string) => void>();
@@ -116,7 +149,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
     }
 
     public getAxisZoom(axisId: string): ZoomState {
-        return this.axisZoomManagers.get(axisId)?.getZoom() ?? { min: 0, max: 1 };
+        return this.axisZoomManagers.get(axisId)?.getZoom() ?? ZoomManager.unit();
     }
 
     public getAxisZooms(): Record<string, { direction: ChartAxisDirection; zoom: ZoomState | undefined }> {
@@ -156,7 +189,7 @@ class AxisZoomManager {
     constructor(axis: ChartAxisLike) {
         this.axis = axis;
 
-        const [min = 0, max = 1] = axis.visibleRange;
+        const [min = ZoomManager.MIN, max = ZoomManager.MAX] = axis.visibleRange;
         this.state = new StateTracker({ min, max });
         this.currentZoom = this.state.stateValue()!;
     }

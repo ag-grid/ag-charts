@@ -44,6 +44,7 @@ import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { InteractionEvent } from '../interaction/interactionManager';
+import { ZoomManager } from '../interaction/zoomManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
@@ -357,7 +358,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     range: number[] = [0, 1];
-    visibleRange: number[] = [0, 1];
+    visibleRange: number[] = [ZoomManager.MIN, ZoomManager.MAX];
 
     /**
      * Checks if a point or an object is in range.
