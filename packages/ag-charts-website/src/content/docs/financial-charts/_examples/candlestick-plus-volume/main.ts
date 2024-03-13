@@ -77,7 +77,7 @@ const candlestickOptions: AgCartesianChartOptions = {
             },
         },
     ],
-};
+} as unknown as AgCartesianChartOptions;
 
 const ohlcChart = AgCharts.create(candlestickOptions);
 
@@ -115,12 +115,12 @@ const volumeOptions: AgCartesianChartOptions = {
             position: 'bottom',
             label: {
                 autoRotate: false,
-                formatter: ({ value }) => dateFormat(value, 'd-m'),
+                formatter: ({ value }: any) => dateFormat(value, 'd-m'),
             },
             crosshair: {
                 enabled: true,
                 label: {
-                    renderer: ({ value }) => {
+                    renderer: ({ value }: any) => {
                         return { text: dateFormat(value, 'd-m') };
                     },
                 },
@@ -142,10 +142,10 @@ const volumeOptions: AgCartesianChartOptions = {
                 },
             ],
             label: {
-                formatter: ({ value }) => dateFormat(value, 'm-y'),
+                formatter: ({ value }: any) => dateFormat(value, 'm-y'),
             },
         },
     },
-};
+} as unknown as AgCartesianChartOptions;
 
 const volumeChart = AgCharts.create(volumeOptions);

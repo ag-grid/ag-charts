@@ -1,10 +1,10 @@
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
     AgCandlestickSeriesFormatterParams,
     AgCandlestickSeriesOptions,
     AgCandlestickSeriesStyles,
     AgCandlestickSeriesTooltipRendererParams,
-} from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+} from 'ag-charts-community/src/options/next';
 
 const {
     BaseProperties,

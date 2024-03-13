@@ -211,15 +211,6 @@
                 ]
             },
             {
-                "title": "Financial Charts",
-                "items": [
-                    {
-                        "title": "Examples",
-                        "path": "financial-charts"
-                    }
-                ]
-            },
-            {
                 "title": "Maps",
                 "items": [
                     {
