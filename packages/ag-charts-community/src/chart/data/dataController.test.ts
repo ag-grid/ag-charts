@@ -123,7 +123,7 @@ describe('DataController', () => {
         expect(results[1].processedData.defs.values).toHaveLength(1);
     });
 
-    it.only('should merge compatible requests', async () => {
+    it('should merge compatible requests', async () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
