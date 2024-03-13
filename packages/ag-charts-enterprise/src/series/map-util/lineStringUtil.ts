@@ -60,7 +60,7 @@ export function lineSegmentIntersectsRect(
             // y = m(x - x0) + y0
             const x = i === 0 ? rx0 : rx1;
             const y = m * (x - ax) + ay;
-            if (x >= minY && y <= maxY && y >= ry0 && y <= ry1) return true;
+            if (y >= minY && y <= maxY && y >= ry0 && y <= ry1) return true;
         }
     }
 
