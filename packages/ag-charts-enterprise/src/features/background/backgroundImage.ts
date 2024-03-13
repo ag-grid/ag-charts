@@ -1,22 +1,19 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { Image } = _Scene;
-const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO, calculatePlacement } =
-    _ModuleSupport;
+const {
+    BaseProperties,
+    ObserveChanges,
+    ProxyProperty,
+    Validate,
+    NUMBER,
+    POSITIVE_NUMBER,
+    RATIO,
+    createElement,
+    calculatePlacement,
+} = _ModuleSupport;
 
 export class BackgroundImage extends BaseProperties {
-    private readonly imageElement: HTMLImageElement;
-    private loadedSynchronously: boolean = true;
-    readonly node: _Scene.Image;
-
-    constructor(ctx: Pick<_ModuleSupport.ModuleContext, 'document'>) {
-        super();
-
-        this.imageElement = ctx.document.createElement('img');
-        this.imageElement.onload = this.onImageLoad;
-        this.node = new Image(this.imageElement);
-    }
-
     @Validate(NUMBER, { optional: true })
     top?: number;
 
@@ -41,6 +38,18 @@ export class BackgroundImage extends BaseProperties {
     @ProxyProperty('imageElement.src')
     @ObserveChanges<BackgroundImage>((target) => (target.loadedSynchronously = target.complete))
     url?: string;
+
+    private readonly imageElement: HTMLImageElement;
+    private loadedSynchronously: boolean = true;
+    readonly node: _Scene.Image;
+
+    constructor() {
+        super();
+
+        this.imageElement = createElement('img');
+        this.imageElement.onload = this.onImageLoad;
+        this.node = new Image(this.imageElement);
+    }
 
     get complete() {
         // In tests image is nodejs-canvas Image, which doesn't report its status in the 'complete' method correctly.

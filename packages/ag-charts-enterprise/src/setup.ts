@@ -38,40 +38,42 @@ import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
 
 export function setupEnterpriseModules() {
-    _ModuleSupport.registerModule(AngleCategoryAxisModule);
-    _ModuleSupport.registerModule(AngleNumberAxisModule);
-    _ModuleSupport.registerModule(AnimationModule);
-    _ModuleSupport.registerModule(BackgroundModule);
-    _ModuleSupport.registerModule(BoxPlotModule);
-    _ModuleSupport.registerModule(CandlestickModule);
-    _ModuleSupport.registerModule(BulletModule);
-    _ModuleSupport.registerModule(ContextMenuModule);
-    _ModuleSupport.registerModule(CrosshairModule);
-    _ModuleSupport.registerModule(DataSourceModule);
-    _ModuleSupport.registerModule(ErrorBarsModule);
-    _ModuleSupport.registerModule(MapLineModule);
-    _ModuleSupport.registerModule(MapMarkerModule);
-    _ModuleSupport.registerModule(MapShapeModule);
-    _ModuleSupport.registerModule(MapShapeBackgroundModule);
-    _ModuleSupport.registerModule(NavigatorModule);
-    _ModuleSupport.registerModule(GradientLegendModule);
-    _ModuleSupport.registerModule(HeatmapModule);
-    _ModuleSupport.registerModule(NightingaleModule);
-    _ModuleSupport.registerModule(OrdinalTimeAxisModule);
-    _ModuleSupport.registerModule(RadarAreaModule);
-    _ModuleSupport.registerModule(RadarLineModule);
-    _ModuleSupport.registerModule(RadialBarModule);
-    _ModuleSupport.registerModule(RadialColumnModule);
-    _ModuleSupport.registerModule(RadiusCategoryAxisModule);
-    _ModuleSupport.registerModule(RadiusNumberAxisModule);
-    _ModuleSupport.registerModule(RangeBarModule);
-    _ModuleSupport.registerModule(RangeButtonsModule);
-    _ModuleSupport.registerModule(RangeAreaModule);
-    _ModuleSupport.registerModule(SunburstModule);
-    _ModuleSupport.registerModule(SyncModule);
-    _ModuleSupport.registerModule(TreemapModule);
-    _ModuleSupport.registerModule(WaterfallModule);
-    _ModuleSupport.registerModule(ZoomModule);
+    _ModuleSupport.moduleRegistry.register(
+        AngleCategoryAxisModule,
+        AngleNumberAxisModule,
+        AnimationModule,
+        BackgroundModule,
+        BoxPlotModule,
+        CandlestickModule,
+        BulletModule,
+        ContextMenuModule,
+        CrosshairModule,
+        DataSourceModule,
+        ErrorBarsModule,
+        MapLineModule,
+        MapMarkerModule,
+        MapShapeModule,
+        MapShapeBackgroundModule,
+        NavigatorModule,
+        GradientLegendModule,
+        HeatmapModule,
+        NightingaleModule,
+        OrdinalTimeAxisModule,
+        RadarAreaModule,
+        RadarLineModule,
+        RadialBarModule,
+        RadialColumnModule,
+        RadiusCategoryAxisModule,
+        RadiusNumberAxisModule,
+        RangeBarModule,
+        RangeButtonsModule,
+        RangeAreaModule,
+        SunburstModule,
+        SyncModule,
+        TreemapModule,
+        WaterfallModule,
+        ZoomModule
+    );
 
     _ModuleSupport.enterpriseModule.isEnterprise = true;
     _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>

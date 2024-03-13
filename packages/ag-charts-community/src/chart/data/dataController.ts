@@ -208,7 +208,7 @@ export class DataController {
                 dataModel,
                 processedData: {
                     ...processedData,
-                    data: processedData.data.filter(({ validScopes }) => validScopes?.some((s) => s === scope) ?? true),
+                    data: processedData.data.filter(({ validScopes }) => validScopes?.has(scope) ?? true),
                 },
             });
         }

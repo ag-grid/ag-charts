@@ -114,7 +114,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         } else {
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, lastPointerEvent: event, showArrow: false, addCustomClass: false },
+                { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.text })
             );
         }

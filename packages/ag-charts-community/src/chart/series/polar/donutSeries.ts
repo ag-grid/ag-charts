@@ -1403,9 +1403,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const supportedDiff =
-            (dataDiff?.moved.length ?? 0) === 0 &&
-            dataDiff?.addedIndices.every((i) => !dataDiff.removedIndices.includes(i));
+        const supportedDiff = (dataDiff?.moved.size ?? 0) === 0;
         const hasKeys = (processedData?.defs.keys.length ?? 0) > 0;
         const hasUniqueKeys = processedData?.reduced?.animationValidation?.uniqueKeys ?? true;
         if (!supportedDiff || !hasKeys || !hasUniqueKeys) {

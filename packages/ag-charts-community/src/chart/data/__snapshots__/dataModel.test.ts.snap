@@ -3270,10 +3270,10 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2009",
       ],
-      "validScopes": [
+      "validScopes": Set {
         "series-b",
         "series-c",
-      ],
+      },
       "values": [
         null,
         ,
@@ -3325,9 +3325,9 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2013",
       ],
-      "validScopes": [
+      "validScopes": Set {
         "series-a",
-      ],
+      },
       "values": [
         null,
         31.71,
@@ -3362,10 +3362,10 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2015",
       ],
-      "validScopes": [
+      "validScopes": Set {
         "series-a",
         "series-b",
-      ],
+      },
       "values": [
         -13.3,
         42.27,
@@ -3417,10 +3417,10 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2018",
       ],
-      "validScopes": [
+      "validScopes": Set {
         "series-a",
         "series-c",
-      ],
+      },
       "values": [
         3.2,
         null,

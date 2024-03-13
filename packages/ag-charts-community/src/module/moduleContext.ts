@@ -21,8 +21,6 @@ import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
 export interface ModuleContext {
-    document: Document;
-    window: Window;
     scene: Scene;
 
     callbackCache: CallbackCache;
@@ -57,6 +55,7 @@ export interface AxisContext {
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
     keys(): string[];
+    seriesKeyProperties(): string[];
     scaleBandwidth(): number;
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;

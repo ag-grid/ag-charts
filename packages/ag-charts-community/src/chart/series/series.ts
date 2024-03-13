@@ -528,6 +528,10 @@ export abstract class Series<
         return this.getDirectionValues(direction, this.directionKeys);
     }
 
+    getKeyProperties(direction: ChartAxisDirection): (keyof TProps & string)[] {
+        return this.directionKeys[this.resolveKeyDirection(direction)] ?? [];
+    }
+
     getNames(direction: ChartAxisDirection): (string | undefined)[] {
         return this.getDirectionValues(direction, this.directionNames);
     }

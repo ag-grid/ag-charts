@@ -3,8 +3,7 @@ import { BaseProperties } from '../util/properties';
 import { ARRAY, BOOLEAN, OBJECT, POSITIVE_NUMBER, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import { ChartOverlays } from './overlay/chartOverlays';
-
-// import { Tooltip } from './tooltip/tooltip';
+import { Tooltip } from './tooltip/tooltip';
 
 class ChartHighlight extends BaseProperties {
     @Validate(UNION(['tooltip', 'node'], 'a range'))
@@ -56,6 +55,6 @@ export class ChartProperties extends BaseProperties {
     @Validate(OBJECT)
     readonly overlays = new ChartOverlays();
 
-    // @Validate(OBJECT)
-    // readonly tooltip = new Tooltip();
+    @Validate(OBJECT)
+    readonly tooltip = new Tooltip();
 }

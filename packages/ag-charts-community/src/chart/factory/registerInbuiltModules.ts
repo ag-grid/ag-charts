@@ -1,4 +1,4 @@
-import { registerModule } from '../../module/module';
+import { moduleRegistry } from '../../module/module';
 import { CategoryAxis } from '../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
 import { LogAxis } from '../axis/logAxis';
@@ -19,19 +19,20 @@ import { ToolbarModule } from '../toolbar/toolbarModule';
 import { axisRegistry } from './axisRegistry';
 
 export function registerInbuiltModules() {
-    registerModule(BackgroundModule);
-    registerModule(CommunityLegendModule);
-    registerModule(NavigatorModule);
-    registerModule(ToolbarModule);
-
-    registerModule(AreaSeriesModule);
-    registerModule(BarSeriesModule);
-    registerModule(BubbleSeriesModule);
-    registerModule(LineSeriesModule);
-    registerModule(ScatterSeriesModule);
-    registerModule(DonutSeriesModule);
-    registerModule(PieSeriesModule);
-    registerModule(HistogramSeriesModule);
+    moduleRegistry.register(
+        BackgroundModule,
+        CommunityLegendModule,
+        NavigatorModule,
+        ToolbarModule,
+        AreaSeriesModule,
+        BarSeriesModule,
+        BubbleSeriesModule,
+        LineSeriesModule,
+        ScatterSeriesModule,
+        DonutSeriesModule,
+        PieSeriesModule,
+        HistogramSeriesModule
+    );
 
     for (const AxisConstructor of [NumberAxis, CategoryAxis, TimeAxis, GroupedCategoryAxis, LogAxis]) {
         axisRegistry.register(AxisConstructor.type, { instanceConstructor: AxisConstructor });
