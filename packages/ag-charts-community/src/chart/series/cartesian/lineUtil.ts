@@ -272,10 +272,7 @@ export function pairCategoryData(
 
     backfillPathPointData(result, backfillSplitMode);
 
-    if (multiDatum) {
-        return { result, resultMap: resultMapMulti };
-    }
-    return { result, resultMap: resultMapSingle };
+    return { result, resultMap: multiDatum ? resultMapMulti : resultMapSingle };
 }
 
 export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike, pairData: PathPoint[]) {

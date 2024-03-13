@@ -125,9 +125,13 @@ function normalisePropertyFnBuilder({
     const normalise = (val: number, start: number, span: number) => {
         const result = normaliseTo[0] + ((val - start) / span) * normaliseSpan;
 
-        if (span === 0) return zeroDomain;
-        if (result >= normaliseTo[1]) return normaliseTo[1];
-        if (result < normaliseTo[0]) return normaliseTo[0];
+        if (span === 0) {
+            return zeroDomain;
+        } else if (result >= normaliseTo[1]) {
+            return normaliseTo[1];
+        } else if (result < normaliseTo[0]) {
+            return normaliseTo[0];
+        }
         return result;
     };
 
@@ -167,10 +171,7 @@ export function normalisePropertyTo(
     };
 }
 
-export function animationValidation(
-    scope: ScopeProvider,
-    valueKeyIds: string[] = []
-): ProcessorOutputPropertyDefinition {
+export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
     return {
         type: 'processor',
         scopes: [scope.id],
@@ -183,8 +184,8 @@ export function animationValidation(
 
             const valueKeys: [number, DatumPropertyDefinition<unknown>][] = [];
             for (let k = 0; k < values.length; k++) {
-                if (!values[k].scopes?.some((s) => s === scope.id)) continue;
-                if (!valueKeyIds.some((v) => values[k].id === v)) continue;
+                if (!values[k].scopes?.includes(scope.id)) continue;
+                if (!valueKeyIds?.includes(values[k].id as string)) continue;
 
                 valueKeys.push([k, values[k]]);
             }
@@ -295,7 +296,7 @@ export function accumulateGroup(
 
 export function diff(
     previousData: ProcessedData<any>,
-    updateMovedDatums: boolean = true
+    updateMovedData: boolean = true
 ): ProcessorOutputPropertyDefinition<'diff'> {
     return {
         type: 'processor',
@@ -323,7 +324,7 @@ export function diff(
                 }
 
                 if (removed.has(datumId)) {
-                    if (updateMovedDatums || !arraysEqual(removed.get(datumId).values, datum.values)) {
+                    if (updateMovedData || !arraysEqual(removed.get(datumId).values, datum.values)) {
                         updated.set(datumId, datum);
                         moved.set(datumId, datum);
                     }
@@ -333,7 +334,7 @@ export function diff(
                 }
 
                 if (added.has(prevId)) {
-                    if (updateMovedDatums || !arraysEqual(added.get(prevId).values, prev.values)) {
+                    if (updateMovedData || !arraysEqual(added.get(prevId).values, prev.values)) {
                         updated.set(prevId, prev);
                         moved.set(prevId, prev);
                     }

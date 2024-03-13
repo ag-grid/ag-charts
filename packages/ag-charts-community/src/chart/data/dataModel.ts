@@ -427,12 +427,13 @@ export class DataModel<
         type: PropertyDefinition<any>['type'] = 'value',
         processedData: ProcessedData<K>
     ): any[] | [number, number] | [] {
-        const matches = this.resolveProcessedDataDefsById(scope, searchId);
         const domains = this.getDomainsByType(type, processedData);
 
         if (domains == null) {
             return [];
         }
+
+        const matches = this.resolveProcessedDataDefsById(scope, searchId);
 
         if (matches.length === 1) {
             return domains[matches[0].index] ?? [];
@@ -932,12 +933,11 @@ export class DataModel<
             previousDatum?: any,
             scope?: string
         ) => {
-            const hasAccessor = def.property in accessors;
             let valueInDatum: boolean;
             let value;
-            if (hasAccessor) {
+            if (accessors.has(def.property)) {
                 try {
-                    value = accessors[def.property](datum);
+                    value = accessors.get(def.property)!(datum);
                 } catch (error: any) {
                     // Swallow errors - these get reported as missing values to the user later.
                 }
@@ -994,11 +994,13 @@ export class DataModel<
     }
 
     buildAccessors(defs: Iterable<{ property: string }>) {
-        const result: Record<string, (d: any) => any> = {};
-        if (this.mode === 'integrated') return result;
+        const result = new Map<string, (d: any) => any>();
+        if (this.mode === 'integrated') {
+            return result;
+        }
 
         for (const def of defs) {
-            const isPath = def.property.indexOf('.') >= 0 || def.property.indexOf('[') >= 0;
+            const isPath = def.property.includes('.') || def.property.includes('[');
             if (!isPath) continue;
 
             let fnBody;
@@ -1008,7 +1010,7 @@ export class DataModel<
                 fnBody = `return datum.${def.property};`;
             }
             // eslint-disable-next-line @typescript-eslint/no-implied-eval
-            result[def.property] = new Function('datum', fnBody) as (d: any) => any;
+            result.set(def.property, new Function('datum', fnBody) as (d: any) => any);
         }
         return result;
     }
