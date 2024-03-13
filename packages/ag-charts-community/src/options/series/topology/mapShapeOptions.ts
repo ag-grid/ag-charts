@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, LabelPlacement } from '../../chart/types';
+import type { CssColor, GeoJSON } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -20,10 +20,7 @@ export interface AgMapShapeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlig
 export interface AgMapShapeSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgMapShapeSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams> {
-    /** Placement of label in relation to the marker (if visible). Defaults to `bottom`. */
-    placement?: LabelPlacement;
-}
+    extends AgChartLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams> {}
 
 export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     extends AgMapShapeSeriesStyle,
@@ -34,7 +31,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     label?: AgMapShapeSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular Map sector based on the input parameters. */
+    /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
     formatter?: (params: AgMapShapeSeriesFormatterParams) => AgMapShapeSeriesStyle;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
@@ -45,15 +42,21 @@ export interface AgMapShapeSeriesOptions<TDatum = any>
         AgMapShapeSeriesOptionsKeys,
         AgMapShapeSeriesOptionsNames,
         AgMapShapeSeriesThemeableOptions<TDatum> {
-    /** Configuration for the Map Series. */
+    /** Configuration for the Map Shape Series. */
     type: 'map-shape';
     /** GeoJSON data. */
     topology?: GeoJSON;
-    /** The property to reference in the topology to match up with data. Defaults to `name`. */
+    /**
+     * The property to reference in the topology to match up with data.
+     * Default: `name`
+     */
     topologyIdKey?: string;
-    /** The title to use for the series. Defaults to `idName` if it exists, or `idKey` if not.  */
+    /** The title to use for the series. */
     title?: string;
-    /** Human-readable description of the series. */
+    /**
+     * The text to display in the legend for this series.
+     * If multiple series share this value, they will be merged for the legend toggle behaviour.
+     */
     legendItemName?: string;
 }
 
@@ -62,7 +65,7 @@ export interface AgMapShapeSeriesOptionsKeys {
     idKey?: string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
     colorKey?: string;
-    /** The key to use to retrieve values from the data to use as labels for the markers. */
+    /** The key to use to retrieve values from the data to use as labels inside shapes. */
     labelKey?: string;
 }
 

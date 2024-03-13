@@ -38,11 +38,6 @@ export interface MapLineNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
-class MapLineSeriesLabel extends Label<AgMapLineSeriesLabelFormatterParams> {
-    @Validate(STRING)
-    placement: _Util.LabelPlacement = 'bottom';
-}
-
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
@@ -108,7 +103,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     formatter?: (params: AgMapLineSeriesFormatterParams<any>) => AgMapLineSeriesStyle;
 
     @Validate(OBJECT)
-    readonly label = new MapLineSeriesLabel();
+    readonly label = new Label<AgMapLineSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();

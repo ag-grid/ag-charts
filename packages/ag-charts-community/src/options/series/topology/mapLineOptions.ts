@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, LabelPlacement, PixelSize } from '../../chart/types';
+import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -19,10 +19,8 @@ export interface AgMapLineSeriesHighlightStyle<_TDatum> extends AgSeriesHighligh
 
 export interface AgMapLineSeriesStyle extends StrokeOptions, LineDashOptions {}
 
-export interface AgMapLineSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams> {
-    /** Placement of label in relation to the marker (if visible). Defaults to `bottom`. */
-    placement?: LabelPlacement;
-}
+export interface AgMapLineSeriesLabel<TDatum>
+    extends AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams> {}
 
 export interface AgMapLineSeriesThemeableOptions<TDatum = any>
     extends AgMapLineSeriesStyle,
@@ -35,7 +33,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = any>
     label?: AgMapLineSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular Map sector based on the input parameters. */
+    /** A callback function for adjusting the styles of a particular Map line based on the input parameters. */
     formatter?: (params: AgMapLineSeriesFormatterParams) => AgMapLineSeriesStyle;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
@@ -46,15 +44,21 @@ export interface AgMapLineSeriesOptions<TDatum = any>
         AgMapLineSeriesOptionsKeys,
         AgMapLineSeriesOptionsNames,
         AgMapLineSeriesThemeableOptions<TDatum> {
-    /** Configuration for the Map Series. */
+    /** Configuration for the Map Line Series. */
     type: 'map-line';
     /** GeoJSON data. */
     topology?: GeoJSON;
-    /** The property to reference in the topology to match up with data. Defaults to `name`. */
+    /**
+     * The property to reference in the topology to match up with data.
+     * Default: `name`
+     */
     topologyIdKey?: string;
-    /** The title to use for the series. Defaults to `idName` if it exists, or `idKey` if not.  */
+    /** The title to use for the series. */
     title?: string;
-    /** Human-readable description of the series. */
+    /**
+     * The text to display in the legend for this series.
+     * If multiple series share this value, they will be merged for the legend toggle behaviour.
+     */
     legendItemName?: string;
 }
 
@@ -65,14 +69,14 @@ export interface AgMapLineSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the stroke. */
     colorKey?: string;
-    /** The key to use to retrieve values from the data to use as labels for the markers. */
+    /** The key to use to retrieve values from the data to use as labels on top of lines. */
     labelKey?: string;
 }
 
 export interface AgMapLineSeriesOptionsNames {
     /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     idName?: string;
-    /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
+    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
