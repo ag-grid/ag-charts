@@ -297,6 +297,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.element = element;
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
+        element.style.userSelect = 'none';
 
         const sizeMonitor = new SizeMonitor();
         this.sizeMonitor = sizeMonitor;
