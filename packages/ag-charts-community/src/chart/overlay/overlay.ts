@@ -55,7 +55,6 @@ export class Overlay extends BaseProperties {
                 height: '100%',
                 margin: '8px',
                 font: '12px Verdana, sans-serif',
-                userSelect: 'none',
             });
             content.innerText = this.getText();
 

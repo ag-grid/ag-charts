@@ -221,7 +221,7 @@ export function pairCategoryData(
             addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
             newIndex++;
-        } else if (diff !== undefined && diff.removed.indexOf(String(bXValue)) >= 0) {
+        } else if (diff != null && diff.removed.has(String(bXValue))) {
             resultPoint = {
                 change: 'out',
                 moveTo: before.point.moveTo ?? false,
@@ -229,7 +229,7 @@ export function pairCategoryData(
             };
             addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
-        } else if (diff !== undefined && diff.added.indexOf(String(aXValue)) >= 0) {
+        } else if (diff != null && diff.added.has(String(aXValue))) {
             resultPoint = {
                 change: 'in',
                 moveTo: after.point.moveTo ?? false,

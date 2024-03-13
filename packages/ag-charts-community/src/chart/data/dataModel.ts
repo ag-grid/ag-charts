@@ -47,10 +47,10 @@ export interface UngroupedData<D> {
 
 export type ProcessedOutputDiff = {
     changed: boolean;
-    moved: any[];
-    added: any[];
-    updated: any[];
-    removed: any[];
+    added: Map<string, any>;
+    updated: Map<string, any>;
+    removed: Map<string, any>;
+    moved: Map<string, any>;
 };
 
 type GroupedDataItem<D> = UngroupedDataItem<D[], any[][]> & { area?: number };

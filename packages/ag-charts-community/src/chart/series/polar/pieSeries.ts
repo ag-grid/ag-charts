@@ -1402,7 +1402,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const supportedDiff = (dataDiff?.moved.length ?? 0) === 0;
+        const supportedDiff = (dataDiff?.moved.size ?? 0) === 0;
         const hasKeys = (processedData?.defs.keys.length ?? 0) > 0;
         const hasUniqueKeys = processedData?.reduced?.animationValidation?.uniqueKeys ?? true;
         if (!supportedDiff || !hasKeys || !hasUniqueKeys) {

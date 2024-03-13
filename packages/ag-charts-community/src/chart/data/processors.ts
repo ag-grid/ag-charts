@@ -344,13 +344,8 @@ export function diff(
                 }
             }
 
-            return {
-                changed: added.size > 0 || updated.size > 0 || removed.size > 0,
-                added: Array.from(added.keys()),
-                updated: Array.from(updated.keys()),
-                removed: Array.from(removed.keys()),
-                moved: Array.from(moved.keys()),
-            };
+            const changed = added.size > 0 || updated.size > 0 || removed.size > 0;
+            return { changed, added, updated, removed, moved };
         },
     };
 }
