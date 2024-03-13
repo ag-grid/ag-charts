@@ -1,7 +1,7 @@
 import { BBox } from '../bbox';
 import { DistantObject, NearestResult, nearestSquared } from '../nearest';
 
-type QuadtreeNearest<V> = NearestResult<QuadtreeElem<HitTesterNearest, V>>;
+type QuadtreeNearestResult<V> = NearestResult<QuadtreeElem<HitTesterNearest, V>>;
 
 type HitTesterExact = DistantObject & {
     getCachedBBox(): BBox;
@@ -25,35 +25,48 @@ class QuadtreeElem<H extends HitTester, V> {
     }
 }
 
-export class Quadtree<V> {
+export class QuadtreeExact<V> {
     private readonly exact: QuadtreeNode_Exact<V>;
-    private readonly nearest: QuadtreeNode_Nearest<V>;
 
     constructor(capacity: number, maxdepth: number, boundary?: BBox) {
         this.exact = new QuadtreeNode_Exact<V>(capacity, maxdepth, boundary);
-        this.nearest = new QuadtreeNode_Nearest<V>(capacity, maxdepth, boundary);
     }
 
     clear(boundary: BBox) {
         this.exact.clear(boundary);
-        this.nearest.clear(boundary);
     }
 
-    addValue(hitTester: HitTesterExact & HitTesterNearest, value: V): void {
+    add(hitTester: HitTesterExact, value: V): void {
         const elem = new QuadtreeElem(hitTester, value);
         this.exact.addElem(elem);
-        this.nearest.addElem(elem);
     }
 
-    findExact(x: number, y: number): Iterable<QuadtreeElem<HitTesterExact, V>> {
+    find(x: number, y: number): Iterable<QuadtreeElem<HitTesterExact, V>> {
         const foundValues: QuadtreeElem<HitTesterExact, V>[] = [];
         this.exact.find(x, y, foundValues);
         return foundValues;
     }
+}
 
-    findNearest(x: number, y: number): QuadtreeNearest<V> {
+export class QuadtreeNearest<V> {
+    private readonly root: QuadtreeNode_Nearest<V>;
+
+    constructor(capacity: number, maxdepth: number, boundary?: BBox) {
+        this.root = new QuadtreeNode_Nearest<V>(capacity, maxdepth, boundary);
+    }
+
+    clear(boundary: BBox) {
+        this.root.clear(boundary);
+    }
+
+    addValue(hitTester: HitTesterExact & HitTesterNearest, value: V): void {
+        const elem = new QuadtreeElem(hitTester, value);
+        this.root.addElem(elem);
+    }
+
+    find(x: number, y: number): QuadtreeNearestResult<V> {
         const arg = { best: { nearest: undefined, distanceSquared: Infinity } };
-        this.nearest.find(x, y, arg);
+        this.root.find(x, y, arg);
         return arg.best;
     }
 }
@@ -165,7 +178,7 @@ abstract class QuadtreeNode<H extends HitTester, V, FindArg> {
 }
 
 type FindArgExact<V> = QuadtreeElem<HitTesterExact, V>[];
-type FindArgNearest<V> = { best: QuadtreeNearest<V> };
+type FindArgNearest<V> = { best: QuadtreeNearestResult<V> };
 
 class QuadtreeNode_Exact<V> extends QuadtreeNode<HitTesterExact, V, FindArgExact<V>> {
     override addCondition(e: QuadtreeElem<HitTesterExact, V>): boolean {
