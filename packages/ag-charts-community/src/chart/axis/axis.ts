@@ -1490,6 +1490,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             direction: this.direction,
             continuous: ContinuousScale.is(this.scale),
             keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),
+            seriesKeyProperties: () =>
+                this.boundSeries.reduce((keys, series) => {
+                    const seriesKeys = series.getKeyProperties(this.direction);
+
+                    seriesKeys.forEach((key) => {
+                        if (keys.indexOf(key) < 0) {
+                            keys.push(key);
+                        }
+                    });
+
+                    return keys;
+                }, [] as string[]),
             scaleValueFormatter: (specifier: string) => this.scale.tickFormat?.({ specifier }),
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),

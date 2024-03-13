@@ -26,6 +26,7 @@ export interface ISeries<TDatum, TProps> {
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];
     getKeys(direction: ChartAxisDirection): string[];
+    getKeyProperties(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
     getMinRects(width: number, height: number): { minRect: BBox; minVisibleRect: BBox } | undefined;
     datumMidPoint?<T extends SeriesNodeDatum>(datum: T): Point | undefined;
