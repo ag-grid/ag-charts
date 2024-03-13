@@ -19,7 +19,7 @@ export class AnimationBatch {
     /** Guard against premature animation execution. */
     private isReady = false;
 
-    constructor(private readonly maxAnimationTime: number = Infinity) {}
+    constructor(private readonly maxAnimationTime: number) {}
 
     get size() {
         return this.controllers.size;

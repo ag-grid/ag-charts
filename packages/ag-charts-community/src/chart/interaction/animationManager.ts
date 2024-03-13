@@ -16,7 +16,7 @@ interface AnimationEvent {
 
 function validAnimationDuration(testee?: number) {
     if (testee == null) return true;
-    return testee < 0 || testee > 2 || !isNaN(testee);
+    return !isNaN(testee) && testee >= 0 && testee <= 2;
 }
 
 /**
