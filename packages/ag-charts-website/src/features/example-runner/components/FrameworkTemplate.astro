@@ -81,7 +81,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             indexFragment={indexFragment!}
             appLocation={appLocation}
             extraStyles={extraStyles}
-        ></JavascriptTemplate>
+        />
     ) : internalFramework === 'typescript' ? (
         <TypescriptTemplate
             isDev={isDev}
@@ -93,7 +93,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
-        ></TypescriptTemplate>
+        />
     ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
         <ReactTemplate
             isDev={isDev}
@@ -106,7 +106,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}
             extraStyles={extraStyles}
-        ></ReactTemplate>
+        />
     ) : internalFramework === 'angular' ? (
         <AngularTemplate
             isDev={isDev}
@@ -118,7 +118,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
-        ></AngularTemplate>
+        />
     ) : internalFramework === 'vue' || internalFramework === 'vue3' ? (
         <VueTemplate
             isDev={isDev}
@@ -131,7 +131,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             vueFramework={internalFramework}
             extraStyles={extraStyles}
-        ></VueTemplate>
+        />
     ) : null
 }
 

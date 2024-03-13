@@ -72,7 +72,7 @@ export function setupEnterpriseModules() {
         SyncModule,
         TreemapModule,
         WaterfallModule,
-        ZoomModule,
+        ZoomModule
     );
 
     _ModuleSupport.enterpriseModule.isEnterprise = true;
