@@ -386,8 +386,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
         //*
-        for (const { value } of this.getQuadTree().findExact(point.x, point.y)) {
-            if (value.containsPoint(point.x, point.y)) {
+        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
+        for (const { value } of this.getQuadTree().findExact(x, y)) {
+            if (value.containsPoint(x, y)) {
                 return { datum: value.datum, distance: 0 };
             }
         }
@@ -398,7 +399,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         //*
-        const { nearest, distanceSquared } = this.getQuadTree().findNearest(point.x, point.y);
+        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
+        const { nearest, distanceSquared } = this.getQuadTree().findNearest(x, y);
         if (nearest !== undefined) {
             return { datum: nearest.value.datum, distance: Math.sqrt(distanceSquared) };
         }
