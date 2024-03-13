@@ -59,6 +59,7 @@ export class TopologyChart extends Chart {
         const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
 
         const combinedBbox: LonLatBBox | undefined = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
+            if (!series.visible) return combined;
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
             if (combined == null) return bbox;
