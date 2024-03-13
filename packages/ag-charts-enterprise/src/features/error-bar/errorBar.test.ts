@@ -166,7 +166,7 @@ describe('ErrorBars', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {

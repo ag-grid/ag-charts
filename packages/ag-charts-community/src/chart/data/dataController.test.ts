@@ -352,6 +352,65 @@ describe('DataController', () => {
             expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
             expect(results[1].processedData.data[0].datum).not.toHaveProperty('test2');
         });
+
+        it('should extract scoped data for each request and not include given properties', async () => {
+            const data1 = [{ valueProp1: 100 }, { valueProp1: 200 }, { valueProp1: 300 }];
+            const data2 = [{ valueProp1: 40 }, { valueProp1: 50 }, { valueProp1: 60 }];
+
+            const promise1 = controller.request('test1', data1, {
+                props: [
+                    {
+                        scopes: ['test1'],
+                        id: 'valueProp1-key1',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'category',
+                    },
+                    {
+                        scopes: ['test1'],
+                        id: 'valueProp1-key2',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'category',
+                        includeProperty: false,
+                        processor: () => (value) => `key2 ${value}`,
+                    },
+                ],
+            });
+
+            const promise2 = controller.request('test2', data2, {
+                props: [
+                    {
+                        scopes: ['test2'],
+                        id: 'valueProp1-key1',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'category',
+                    },
+                    {
+                        scopes: ['test2'],
+                        id: 'valueProp1-key2',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'category',
+                        includeProperty: false,
+                        processor: () => (value) => `key2 ${value}`,
+                    },
+                ],
+            });
+
+            await controller.execute();
+            const results = await Promise.all([promise1, promise2]);
+
+            expect(results[0].processedData.data[0].datum).toEqual({ valueProp1: 100 });
+            expect(results[1].processedData.data[0].datum).toEqual({ valueProp1: 40 });
+
+            expect(results[0].processedData.data[0].values).toEqual([100, 'key2 100']);
+            expect(results[1].processedData.data[0].values).toEqual([40, 'key2 40']);
+
+            expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
+            expect(results[1].processedData.data[0].datum).not.toHaveProperty('test2');
+        });
     });
 
     describe('deepEqual', () => {
