@@ -48,7 +48,8 @@ function updateSummaryExample(results) {
     const updatedDataFile = `export function getData() {\nreturn ${JSON.stringify(data)};\n}\n`;
 
     console.info(`Updating ${summaryExampleDataFile}...`);
-    prettier.format(updatedDataFile, { filepath: summaryExampleDataFile, tabWidth: 4 }).then((formatted) => {
+    const prettierOpts = { filepath: summaryExampleDataFile, tabWidth: 4, singleQuote: true };
+    prettier.format(updatedDataFile, prettierOpts).then((formatted) => {
         fs.writeFileSync(summaryExampleDataFile, formatted);
     });
 }
