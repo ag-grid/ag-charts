@@ -289,9 +289,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const halfBandwidth = axisCtx.scaleBandwidth() / 2;
 
-        const axisId = series.axes[axisCtx.direction]?.id;
-        const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && axisId === axisCtx.axisId;
-        const isXKey = seriesKeyProperties.indexOf('xKey') > -1 && axisId === axisCtx.axisId;
+        const matchingAxisId = series.axes[axisCtx.direction]?.id === axisCtx.axisId;
+        const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && matchingAxisId;
+        const isXKey = seriesKeyProperties.indexOf('xKey') > -1 && matchingAxisId;
 
         if (isYKey && aggregatedValue !== undefined) {
             return {
