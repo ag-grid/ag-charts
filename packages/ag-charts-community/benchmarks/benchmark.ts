@@ -39,14 +39,14 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
             await callback();
             const duration = performance.now() - start;
 
-            const newImageData = extractImageData(ctx.canvasCtx);
-            expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-
             const { currentTestName, testPath } = expect.getState();
             if (testPath == null || currentTestName == null) {
                 throw new Error('Unable to resolve current test name.');
             }
             recordTiming(testPath, currentTestName, duration);
+
+            const newImageData = extractImageData(ctx.canvasCtx);
+            expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         },
         timeoutMs
     );
