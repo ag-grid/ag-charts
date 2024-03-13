@@ -538,8 +538,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const ratioX = round(widthRatio * dx(zoom));
         const ratioY = round(heightRatio * dy(zoom));
 
-        this.minRatioX = this.isScalingX() ? Math.min(1, ratioX) : 1;
-        this.minRatioY = this.isScalingY() ? Math.min(1, ratioY) : 1;
+        if (this.isScalingX()) {
+            this.minRatioX = Math.min(1, ratioX);
+        }
+
+        if (this.isScalingY()) {
+            this.minRatioY = Math.min(1, ratioY);
+        }
+
+        this.minRatioX ||= this.minRatioY || 0;
+        this.minRatioY ||= this.minRatioX || 0;
     }
 
     private onContextMenuZoomToHere({ event }: ContextMenuActionParams) {
