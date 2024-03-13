@@ -34,7 +34,7 @@ const chartOptions1: AgCartesianChartOptions = {
         type: 'bar' as const,
         xKey: 'name',
         yKey: `results['${key}']`,
-        yName: key.replace(' initial load', ''),
+        yName: key.replace(' initial load', '').replace(' benchmark', ''),
     })),
 };
 
@@ -53,7 +53,7 @@ const chartOptions2: AgCartesianChartOptions = {
             type: 'bar' as const,
             xKey: 'name',
             yKey: `results['${key}']`,
-            yName: key.replace(' legend toggle', ''),
+            yName: key.replace(' legend toggle', '').replace(' benchmark after load', ''),
         })),
     ],
 };
@@ -73,7 +73,7 @@ const chartOptions3: AgCartesianChartOptions = {
             type: 'bar' as const,
             xKey: 'name',
             yKey: `results['${key}']`,
-            yName: key.replace(' datum highlight', ''),
+            yName: key.replace(' datum highlight', '').replace(' benchmark after load', ''),
         })),
     ],
 };
