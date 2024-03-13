@@ -34,7 +34,11 @@ function extractUniqueYears(events) {
 const EventItem = ({ event }) => {
     const [darkMode] = useDarkmode();
     return (
-        <div onClick={() => event.eventPage ? window.open(event.eventPage) : window.open(event.recording)} target="_blank" className={styles.linkWrapper}>
+        <div
+            onClick={() => (event.eventPage ? window.open(event.eventPage) : window.open(event.recording))}
+            target="_blank"
+            className={styles.linkWrapper}
+        >
             <div className={styles.eventItemContainer}>
                 <div className={styles.eventItemLeftColumn}>
                     <div className={styles.titleContainer}>
@@ -145,7 +149,12 @@ const Events = () => {
             {activeTab == 'past' && (
                 <div className={styles.filterContainer}>
                     {extractUniqueYears(events).map((year, index) => (
-                        <button className={`${styles.tabButton} ${selectedYear == year ? styles.active : ''}`} onClick={() => filterYears(year)}>{year}</button>
+                        <button
+                            className={`${styles.tabButton} ${selectedYear == year ? styles.active : ''}`}
+                            onClick={() => filterYears(year)}
+                        >
+                            {year}
+                        </button>
                     ))}
                 </div>
             )}

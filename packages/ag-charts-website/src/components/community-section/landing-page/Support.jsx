@@ -8,7 +8,12 @@ const Support = () => {
     return (
         <div className={styles.container}>
             {supportSites.map((site, index) => (
-                <div onClick={() => window.open(site.link)} target="_blank" className={styles.supportChannelContainer} key={index}>
+                <div
+                    onClick={() => window.open(site.link)}
+                    target="_blank"
+                    className={styles.supportChannelContainer}
+                    key={index}
+                >
                     <div key={index} className={styles.supportChannel}>
                         <div className={styles.header}>
                             <Icon alt={`${site.icon} logo`} name={site.icon} svgClasses={styles.siteIcon} />

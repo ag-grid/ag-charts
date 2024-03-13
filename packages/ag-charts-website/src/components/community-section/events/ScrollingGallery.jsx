@@ -11,7 +11,6 @@ const shuffleArray = (array) => {
     return array;
 };
 
-
 const ScrollingGallery = () => {
     const scrollRef = useRef(null);
     useEffect(() => {

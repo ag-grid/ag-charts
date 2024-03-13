@@ -1,9 +1,9 @@
+import ScrollingGallery from '@components/community-section/events/ScrollingGallery';
 import { Icon } from '@components/icon/Icon';
 import styles from '@design-system/modules/CommunityUpcomingEvents.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import React, { useEffect, useRef, useState } from 'react';
 
-import ScrollingGallery from '@components/community-section/events/ScrollingGallery';
 import events from '../../../content/community/events.json';
 
 const separateEventsByDate = (events) => {
@@ -88,7 +88,7 @@ const UpcomingEvents = ({ enableFilters = false }) => {
                 <ScrollingGallery />
                 <div className={styles.eventTilesContainer}>
                     {currEvents.map((event, index) => (
-                        <a href={event.eventPage} target='_blank' className={styles.linkWrapper} key={index}>
+                        <a href={event.eventPage} target="_blank" className={styles.linkWrapper} key={index}>
                             <div key={index} className={styles.eventTile}>
                                 <span className={styles.location}>
                                     <Icon className={styles.locationIcon} name="mapPin" />

@@ -19,9 +19,9 @@
 }
 
 .articleImage {
-    width: 100%; 
-    height: 150px; 
-    margin-bottom: 0px; 
+    width: 100%;
+    height: 150px;
+    margin-bottom: 0px;
     object-fit: cover;
     border-radius: var(--radius-md) 0px 0px;
 }
@@ -39,7 +39,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    align-self: flex-start; 
+    align-self: flex-start;
     font-size: var(--text-fs-base);
 }
 
@@ -50,7 +50,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.6em;
-    height: 3em; 
+    height: 3em;
 }
 
 .learnMoreLink {

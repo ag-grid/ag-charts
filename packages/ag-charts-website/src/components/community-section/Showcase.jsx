@@ -17,7 +17,7 @@ const GitHubDetails = ({ favouritesOnly, repo }) => {
     } else {
         return (
             <div className={styles.gitHubDetails}>
-                <Icon name="github" svgClasses={styles.gibHubIcon }/>
+                <Icon name="github" svgClasses={styles.gibHubIcon} />
             </div>
         );
     }
@@ -32,7 +32,7 @@ const Showcase = ({ favouritesOnly = false, maxItems = -1 }) => {
         <div className={styles.cardContainer}>
             {products.map((product, index) => (
                 <div onClick={() => window.open(product.link)} key={index} target="_blank">
-                    <div className={`${styles.card} ${favouritesOnly ? "" : styles.smallCard}`}>
+                    <div className={`${styles.card} ${favouritesOnly ? '' : styles.smallCard}`}>
                         {favouritesOnly && (
                             <div className={styles.header}>
                                 <img
@@ -55,22 +55,24 @@ const Showcase = ({ favouritesOnly = false, maxItems = -1 }) => {
                             </div>
                             <p className={styles.description}>{product.description}</p>
                         </div>
-                        {favouritesOnly && <div className={styles.footer}>
-                            {product.frameworks?.map((framework, index) => (
-                                <span key={'framework-' + index} className={styles.tags}>
-                                    <img
-                                        src={`/community/frameworks/${framework.toLowerCase()}.svg`}
-                                        style={{ width: 18, height: 18, marginRight: 6 }}
-                                    />
-                                    <p>{framework}</p>
-                                </span>
-                            ))}
-                            {product.tags?.map((tag, index) => (
-                                <span key={'tag-' + index} className={styles.tags}>
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>}
+                        {favouritesOnly && (
+                            <div className={styles.footer}>
+                                {product.frameworks?.map((framework, index) => (
+                                    <span key={'framework-' + index} className={styles.tags}>
+                                        <img
+                                            src={`/community/frameworks/${framework.toLowerCase()}.svg`}
+                                            style={{ width: 18, height: 18, marginRight: 6 }}
+                                        />
+                                        <p>{framework}</p>
+                                    </span>
+                                ))}
+                                {product.tags?.map((tag, index) => (
+                                    <span key={'tag-' + index} className={styles.tags}>
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             ))}
