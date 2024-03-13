@@ -36,9 +36,9 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string | undefined;
     readonly lonValue: number | undefined;
     readonly latValue: number | undefined;
+    readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
-    readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
     readonly point: Readonly<_Scene.SizedPoint>;
 }
 
@@ -66,6 +66,9 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
 
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology: _ModuleSupport.FeatureCollection | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    title?: string;
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;

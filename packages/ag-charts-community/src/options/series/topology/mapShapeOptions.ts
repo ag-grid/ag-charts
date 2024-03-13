@@ -51,6 +51,8 @@ export interface AgMapShapeSeriesOptions<TDatum = any>
     topology?: GeoJSON;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
     topologyIdKey?: string;
+    /** The title to use for the series. Defaults to `idName` if it exists, or `idKey` if not.  */
+    title?: string;
     /** Human-readable description of the series. */
     legendItemName?: string;
 }

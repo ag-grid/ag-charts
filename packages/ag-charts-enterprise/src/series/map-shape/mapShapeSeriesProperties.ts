@@ -30,8 +30,9 @@ export interface MapShapeNodeLabelDatum extends _Util.PointLabelDatum {}
 
 export interface MapShapeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
-    readonly fill: string;
     readonly colorValue: number | undefined;
+    readonly labelValue: string | undefined;
+    readonly fill: string;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
@@ -43,6 +44,9 @@ class MapShapeSeriesLabel extends Label<AgMapShapeSeriesLabelFormatterParams> {
 export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology?: _ModuleSupport.FeatureCollection = undefined;
+
+    @Validate(STRING, { optional: true })
+    title?: string;
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;

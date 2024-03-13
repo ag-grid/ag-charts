@@ -384,9 +384,9 @@ export class MapMarkerSeries
                         idValue,
                         lonValue,
                         latValue,
+                        labelValue,
                         sizeValue,
                         colorValue,
-                        projectedGeometry,
                         point: { x, y, size },
                     });
                 });
@@ -409,9 +409,9 @@ export class MapMarkerSeries
                     idValue,
                     lonValue,
                     latValue,
+                    labelValue,
                     sizeValue,
                     colorValue,
-                    projectedGeometry: undefined,
                     point: { x, y, size },
                 });
             }
@@ -452,7 +452,7 @@ export class MapMarkerSeries
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && highlightedDatum.series !== this) {
+        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.point == null)) {
             highlightedDatum = undefined;
         }
 
@@ -677,9 +677,10 @@ export class MapMarkerSeries
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
         const {
+            title,
             legendItemName,
+            idName,
             idKey,
-            latitudeKey,
             colorKey,
             colorName,
             colorRange,
@@ -707,10 +708,10 @@ export class MapMarkerSeries
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: this.id,
-                itemId: (legendItemName ?? idKey ?? latitudeKey)!,
+                itemId: legendItemName ?? title ?? idName ?? idKey ?? this.id,
                 seriesId: this.id,
                 enabled: visible,
-                label: { text: (legendItemName ?? idKey ?? latitudeKey)! },
+                label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.id },
                 marker: {
                     fill,
                     fillOpacity,
@@ -738,22 +739,43 @@ export class MapMarkerSeries
             return '';
         }
 
-        const { idKey, latitudeKey, longitudeKey, sizeKey, sizeName, colorKey, colorName, formatter, tooltip } =
-            properties;
-        const { datum, fill, latValue, lonValue, sizeValue, colorValue } = nodeDatum;
+        const {
+            legendItemName,
+            idKey,
+            idName,
+            latitudeKey,
+            longitudeKey,
+            sizeKey,
+            sizeName,
+            colorKey,
+            colorName,
+            labelKey,
+            labelName,
+            formatter,
+            tooltip,
+        } = properties;
+        const { datum, fill, idValue, latValue, lonValue, labelValue, sizeValue, colorValue } = nodeDatum;
 
-        const title =
-            sanitizeHtml(idKey) ??
-            (latValue != null && lonValue != null
-                ? sanitizeHtml(`${latValue.toFixed(6)} ${lonValue.toFixed(6)}`)
-                : undefined) ??
-            '';
+        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
-        if (sizeValue != null) {
-            contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
+        if (idValue != null) {
+            contentLines.push(sanitizeHtml((idName ?? idKey) + ': ' + idValue));
         }
         if (colorValue != null) {
             contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
+        }
+        if (sizeValue != null) {
+            contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
+        }
+        if (labelValue != null) {
+            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
+        }
+        if (latValue != null && lonValue != null) {
+            contentLines.push(
+                sanitizeHtml(
+                    `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'W' : 'E'}`
+                )
+            );
         }
         const content = contentLines.join('<br>');
 
