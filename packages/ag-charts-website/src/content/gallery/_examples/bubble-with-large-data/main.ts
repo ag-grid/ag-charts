@@ -35,6 +35,9 @@ const options: AgChartOptions = {
             label: {
                 enabled: false,
             },
+            crosshair: {
+                enabled: false,
+            },
         },
         {
             position: 'left',
@@ -44,6 +47,9 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
+                enabled: false,
+            },
+            crosshair: {
                 enabled: false,
             },
         },

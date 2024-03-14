@@ -2,6 +2,11 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const formatter = new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+});
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -67,6 +72,12 @@ const options: AgChartOptions = {
             label: {
                 padding: 20,
                 formatter: ({ value }) => `${value}%`,
+            },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatter.format(value)}%</div>`,
+                },
             },
         },
         {

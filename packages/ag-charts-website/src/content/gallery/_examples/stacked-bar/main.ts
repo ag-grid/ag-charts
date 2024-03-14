@@ -108,6 +108,9 @@ const options: AgChartOptions = {
             label: {
                 enabled: false,
             },
+            crosshair: {
+                enabled: false,
+            },
         },
     ],
 };

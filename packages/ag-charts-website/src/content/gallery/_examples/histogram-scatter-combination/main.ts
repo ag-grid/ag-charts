@@ -52,6 +52,9 @@ const options: AgChartOptions = {
                 enabled: true,
                 text: 'Engine Size',
             },
+            crosshair: {
+                enabled: false,
+            },
         },
         {
             position: 'left',
@@ -66,6 +69,9 @@ const options: AgChartOptions = {
                 ],
             },
             label: {
+                enabled: false,
+            },
+            crosshair: {
                 enabled: false,
             },
         },

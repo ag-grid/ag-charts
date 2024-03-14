@@ -94,6 +94,9 @@ const options: AgChartOptions = {
             gridLine: {
                 width: 2,
             },
+            crosshair: {
+                enabled: false,
+            },
         },
     ],
     legend: {

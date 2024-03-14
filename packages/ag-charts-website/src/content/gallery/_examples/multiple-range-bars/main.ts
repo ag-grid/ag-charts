@@ -44,6 +44,12 @@ const options: AgChartOptions = {
                 padding: 15,
                 formatter: ({ value }) => `${value} ℃`,
             },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Math.round(value)} ℃</div>`,
+                },
+            },
             crossLines: [
                 {
                     type: 'line',

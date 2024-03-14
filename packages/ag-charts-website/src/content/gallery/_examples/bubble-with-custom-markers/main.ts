@@ -25,13 +25,16 @@ class RainDrop extends Marker {
     }
 }
 
+const formatNumber = (value: number) => {
+    return `${Math.round(value)}mm`;
+};
+
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        const rainVolume = Math.round(datum[yKey]);
         const season = seasons[Math.round(datum[xKey]) - 1];
         return {
             title: season,
-            content: `Volume: ${rainVolume}mm`,
+            content: `Volume: ${formatNumber(datum[yKey])}`,
         };
     },
 };
@@ -96,6 +99,12 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: false,
+            },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatNumber(value)}</div>`,
+                },
             },
         },
     ],

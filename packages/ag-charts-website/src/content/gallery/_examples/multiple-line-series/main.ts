@@ -2,6 +2,10 @@ import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-
 
 import { getData } from './data';
 
+function formatNumber(value: number) {
+    return `${Math.floor(value / 60)}h ${Math.round(value % 60)}m`;
+}
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -15,9 +19,7 @@ const options: AgChartOptions = {
                     tooltip: {
                         renderer: ({ title, datum, xKey, yKey, xName }: AgLineSeriesTooltipRendererParams) => ({
                             title,
-                            content: `${xName} ${datum[xKey].toFixed(0)}: ${Math.floor(datum[yKey] / 60)}h ${Math.round(
-                                datum[yKey] % 60
-                            )}m`,
+                            content: `${xName} ${datum[xKey].toFixed(0)}: ${formatNumber(datum[yKey])}`,
                         }),
                     },
                 },
@@ -99,6 +101,12 @@ const options: AgChartOptions = {
             },
             label: {
                 formatter: ({ value }) => `${Math.floor(value / 60)}h`,
+            },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatNumber(value)}</div>`,
+                },
             },
         },
     ],
