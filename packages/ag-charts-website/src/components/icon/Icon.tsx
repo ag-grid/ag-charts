@@ -18,6 +18,8 @@ import minimizeIcon from '@images/inline-svgs/minimize.svg?react';
 import NewTabIcon from '@images/inline-svgs/new-tab.svg?react';
 import PageResult from '@images/inline-svgs/page-result.svg?react';
 import PlunkerIcon from '@images/inline-svgs/plunker.svg?react';
+import RadarArea from '@images/inline-svgs/radar-area.svg?react';
+import RadialColumn from '@images/inline-svgs/radial-column.svg?react';
 import ReplayDemoIcon from '@images/inline-svgs/replay-demo-icon.svg?react';
 import RowsIcon from '@images/inline-svgs/rows.svg?react';
 import StackBlitzIcon from '@images/inline-svgs/stack-blitz.svg?react';
@@ -96,7 +98,7 @@ const CHARTS_ICON_MAP = {
     chartsScatter: CarbonIcon.ChartScatter,
     chartsBubble: CarbonIcon.ChartBubble,
     chartsPie: CarbonIcon.ChartPie,
-    chartsDoughnut: CarbonIcon.ChartRing,
+    chartsDonut: CarbonIcon.ChartRing,
     chartsCombination: CarbonIcon.ChartCombo,
     chartsHistogram: CarbonIcon.Ordinal,
     chartsHeatmap: CarbonIcon.HeatMap_03,
@@ -106,8 +108,9 @@ const CHARTS_ICON_MAP = {
     chartsErrorBar: CarbonIcon.ChartErrorBar,
     chartsWaterfall: CarbonIcon.ChartWaterfall,
     chartsRadar: CarbonIcon.ChartRadar,
+    chartsRadarArea: RadarArea,
     chartsNightingale: CarbonIcon.ChartRose,
-    chartsRadialColumn: CarbonIcon.ChartSpiral,
+    chartsRadialColumn: RadialColumn,
     chartsRadialBar: CarbonIcon.ChartRadial,
     chartsTreemap: CarbonIcon.ChartTreemap,
     chartsSunburst: CarbonIcon.ChartSunburst,
@@ -115,6 +118,7 @@ const CHARTS_ICON_MAP = {
     chartsFunnel: CarbonIcon.Filter,
     chartsPyramid: CarbonIcon.UpToTop,
     chartsBullet: CarbonIcon.ChartBullet,
+    chartsMap: CarbonIcon.Plan,
 };
 
 export const ICON_MAP = {
