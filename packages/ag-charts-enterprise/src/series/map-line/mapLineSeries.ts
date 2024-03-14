@@ -282,6 +282,7 @@ export class MapLineSeries
                 idValue,
                 labelValue,
                 colorValue,
+                sizeValue,
                 projectedGeometry,
             });
         });
@@ -559,14 +560,32 @@ export class MapLineSeries
             return '';
         }
 
-        const { legendItemName, idKey, idName, colorKey, colorName, strokeWidth, formatter, tooltip } = properties;
-        const { datum, stroke, idValue, colorValue } = nodeDatum;
+        const {
+            legendItemName,
+            idKey,
+            idName,
+            colorKey,
+            colorName,
+            sizeKey,
+            sizeName,
+            labelKey,
+            labelName,
+            formatter,
+            tooltip,
+        } = properties;
+        const { datum, stroke, idValue, colorValue, sizeValue, labelValue } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
-        contentLines.push(sanitizeHtml((idName ?? idKey) + ': ' + idValue));
+        contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
         if (colorValue != null) {
             contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
+        }
+        if (sizeValue != null) {
+            contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
+        }
+        if (labelValue != null && labelKey !== idKey) {
+            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
         }
         const content = contentLines.join('<br>');
 
@@ -578,7 +597,7 @@ export class MapLineSeries
                 datum,
                 idKey,
                 stroke,
-                strokeWidth: this.getStrokeWidth(strokeWidth),
+                strokeWidth: this.getStrokeWidth(nodeDatum.strokeWidth ?? properties.strokeWidth),
                 highlighted: false,
             });
         }
