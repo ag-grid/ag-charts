@@ -1053,12 +1053,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 continue;
             }
 
-            const seriesRange=series.properties.tooltip.range;
+            const seriesRange = series.properties.tooltip.range;
             const pickModes = seriesRange === 'exact' ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-            const 
-                maxDistance = typeof(seriesRange)==='number' ? seriesRange : Infinity;
-
-
+            const maxDistance = typeof seriesRange === 'number' ? seriesRange : Infinity;
 
             const { match, distance } = series.pickNode(point, pickModes) ?? {};
             if (!match || distance == null) {
