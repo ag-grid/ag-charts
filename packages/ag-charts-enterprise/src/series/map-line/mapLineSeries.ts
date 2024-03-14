@@ -99,6 +99,7 @@ export class MapLineSeries
         const geoGeometry = new GeoGeometry();
         geoGeometry.renderMode = GeoGeometryRenderMode.Lines;
         geoGeometry.lineJoin = 'round';
+        geoGeometry.lineCap = 'round';
         return geoGeometry;
     }
 
