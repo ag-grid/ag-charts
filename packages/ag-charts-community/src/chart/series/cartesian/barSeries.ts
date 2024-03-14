@@ -476,7 +476,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     private getQuadTree() {
         if (this.quadtree === undefined) {
-            this.quadtree = new QuadtreeNearest(100, 10, this.contentGroup.computeTransformedBBox());
+            this.quadtree = new QuadtreeNearest(100, 10, this.chart?.seriesRect);
             for (const children of this.contentGroup.children) {
                 for (const node of children.children) {
                     const rect = node as Rect;
