@@ -76,7 +76,9 @@ export enum GeometryType {
     Point = 0b100,
 }
 
-export function containsType(geometry: _ModuleSupport.Geometry, type: GeometryType): boolean {
+export function containsType(geometry: _ModuleSupport.Geometry | null, type: GeometryType): boolean {
+    if (geometry == null) return false;
+
     switch (geometry.type) {
         case 'GeometryCollection':
             return geometry.geometries.some((g) => containsType(g, type));
