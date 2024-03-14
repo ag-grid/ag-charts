@@ -4,6 +4,8 @@ import { type List, insertManySorted } from './linkedList';
 import { polygonBbox, polygonCentroid, polygonDistance } from './polygonUtil';
 
 interface LabelPlacement {
+    distance: number;
+    value: number;
     maxValue: number;
     x: number;
     y: number;
@@ -15,13 +17,14 @@ export function polygonPointSearch(
     precision: number,
     valueFn: (
         polygons: _ModuleSupport.Position[][],
-        center: _ModuleSupport.Position,
+        x: number,
+        y: number,
         stride: number
     ) => {
         distance: number;
         maxDistance: number;
     }
-): { center: _ModuleSupport.Position; distance: number } | undefined {
+): { x: number; y: number; distance: number } | undefined {
     const bbox = polygonBbox(polygons[0], undefined);
     if (bbox == null) return;
 
@@ -33,19 +36,16 @@ export function polygonPointSearch(
     const centroid = polygonCentroid(polygons[0])!;
     const [cx, cy] = centroid;
     const centroidDistanceToPolygon = -polygonDistance(polygons, cx, cy);
-    let bestValue = 0;
-    let bestDistance = 0;
-    let bestCenter: _ModuleSupport.Position | undefined;
+    let bestResult: LabelPlacement | undefined;
 
     const cellValue = (distanceToPolygon: number, distanceToCentroid: number) => {
-        const centroidDriftFactor = 1; // Increase to pull labels closer towards 'center'
+        const centroidDriftFactor = 0.5; // Increase to pull labels closer towards 'center'
         const centroidDrift = Math.max(distanceToCentroid - centroidDistanceToPolygon, 0);
         return Math.max(distanceToPolygon - centroidDriftFactor * centroidDrift, 0);
     };
 
     const createLabelPlacement = (x: number, y: number, stride: number): LabelPlacement => {
-        const center: _ModuleSupport.Position = [x, y];
-        const { distance, maxDistance } = valueFn(polygons, center, stride);
+        const { distance, maxDistance } = valueFn(polygons, x, y, stride);
         const distanceToCentroid = Math.hypot(cx - x, cy - y);
 
         const maxXTowardsCentroid = Math.min(Math.max(cx, x - stride / 2), x + stride / 2);
@@ -55,13 +55,7 @@ export function polygonPointSearch(
         const value = cellValue(distance, distanceToCentroid);
         const maxValue = cellValue(maxDistance, minDistanceToCentroid);
 
-        if (distance > 0 && value > bestValue) {
-            bestValue = value;
-            bestDistance = distance;
-            bestCenter = center;
-        }
-
-        return { maxValue, x, y, stride };
+        return { distance, value, maxValue, x, y, stride };
     };
 
     const initialStride = Math.min(boundingWidth, boundingHeight) / 2;
@@ -71,10 +65,15 @@ export function polygonPointSearch(
     };
 
     while (queue != null) {
-        const { maxValue, x, y, stride } = queue.value;
+        const item = queue.value;
+        const { distance, value, maxValue, x, y, stride } = item;
         queue = queue.next;
 
-        if (maxValue - bestValue <= precision) {
+        if (distance > 0 && (bestResult == null || value > bestResult.value)) {
+            bestResult = item;
+        }
+
+        if (bestResult != null && maxValue - bestResult.value <= precision) {
             continue;
         }
 
@@ -91,7 +90,10 @@ export function polygonPointSearch(
         queue = insertManySorted(queue, newLabelPlacements, labelPlacementCmp);
     }
 
-    return bestCenter != null ? { center: bestCenter, distance: bestDistance } : undefined;
+    if (bestResult == null) return;
+
+    const { distance, x, y } = bestResult;
+    return { x, y, distance };
 }
 
 const labelPlacementCmp = (a: LabelPlacement, b: LabelPlacement) => a.maxValue - b.maxValue;

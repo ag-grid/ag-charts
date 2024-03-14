@@ -24,6 +24,17 @@ const { sanitizeHtml, Logger } = _Util;
 export interface MapShapeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
+const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
+
+interface LabelLayout {
+    geometry: _ModuleSupport.Geometry;
+    labelText: string;
+    aspectRatio: number;
+    x: number;
+    y: number;
+    maxWidth: number;
+    fixedPolygon: _ModuleSupport.Position[][];
+}
 export class MapShapeSeries
     extends DataModelSeries<
         MapShapeNodeDatum,
@@ -177,16 +188,14 @@ export class MapShapeSeries
         return !colorDataMissing;
     }
 
-    private getLabelDatum(
+    private getLabelLayout(
         datum: any,
         labelValue: string | undefined,
-        projectedGeometry: _ModuleSupport.Geometry | undefined,
-        font: string
-    ): MapShapeNodeLabelDatum | undefined {
-        if (labelValue == null || projectedGeometry == null) return;
-
-        const polygon = largestPolygon(projectedGeometry);
-        if (polygon == null) return;
+        font: string,
+        geometry: _ModuleSupport.Geometry | undefined,
+        previousLabelLayout: LabelLayout | undefined
+    ): LabelLayout | undefined {
+        if (labelValue == null || geometry == null) return;
 
         const { idKey, idName, colorKey, colorName, labelKey, labelName, padding, label } = this.properties;
 
@@ -204,40 +213,74 @@ export class MapShapeSeries
 
         const baseSize = Text.getTextSize(String(labelText), font);
         const aspectRatio = (baseSize.width + 2 * padding) / (AutoSizedLabel.lineHeight(label.fontSize) + 2 * padding);
-        const labelPlacement = preferredLabelCenter(polygon, {
+
+        if (
+            previousLabelLayout?.geometry === geometry &&
+            previousLabelLayout?.labelText === labelText &&
+            previousLabelLayout?.aspectRatio === aspectRatio
+        ) {
+            return previousLabelLayout;
+        }
+
+        const fixedGeometry = projectGeometry(geometry, fixedScale);
+        const fixedPolygon = largestPolygon(fixedGeometry);
+        if (fixedPolygon == null) return;
+
+        const labelPlacement = preferredLabelCenter(fixedPolygon, {
             aspectRatio,
-            precision: 2,
+            precision: 1e-4,
         });
         if (labelPlacement == null) return;
 
-        const { maxWidth, center } = labelPlacement;
-        const maxHeight = (labelPlacement.maxWidth + 2 * padding) / aspectRatio - 2 * padding;
+        const { x, y, maxWidth } = labelPlacement;
+
+        return { geometry, labelText, aspectRatio, x, y, maxWidth, fixedPolygon };
+    }
+
+    private getLabelDatum(
+        labelLayout: LabelLayout,
+        scale: number,
+        originX: number,
+        originY: number
+    ): MapShapeNodeLabelDatum | undefined {
+        const { padding, label } = this.properties;
+        const { labelText, aspectRatio, x, y, maxWidth, fixedPolygon } = labelLayout;
+
+        const maxSizeWithoutTruncation = {
+            width: maxWidth * scale,
+            height: (maxWidth * scale + 2 * padding) / aspectRatio - 2 * padding,
+            meta: null,
+        };
         const labelFormatting = formatSingleLabel<null, AgMapShapeSeriesLabelFormatterParams>(
             labelText,
             label,
             { padding },
             (height, allowTruncation) => {
-                if (!allowTruncation) {
-                    return { width: maxWidth, height: maxHeight, meta: null };
-                }
+                if (!allowTruncation) return maxSizeWithoutTruncation;
 
-                const width = maxWidthInPolygonForRectOfHeight(polygon, center, height);
+                const width = maxWidthInPolygonForRectOfHeight(fixedPolygon, x, y, height / scale) * scale;
                 return { width, height, meta: null };
             }
         );
         if (labelFormatting == null) return;
 
-        const [x, y] = center;
         const [{ text, fontSize, lineHeight }] = labelFormatting;
 
         // FIXME - formatSingleLabel should never return an ellipsis
         if (text === Text.ellipsis) return;
 
-        return { x, y, text, fontSize, lineHeight };
+        return {
+            x: x * scale - originX,
+            y: y * scale - originY,
+            text,
+            fontSize,
+            lineHeight,
+        };
     }
 
+    private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override async createNodeData(): Promise<MapShapeNodeDataContext[]> {
-        const { id: seriesId, dataModel, processedData, colorScale, properties, scale } = this;
+        const { id: seriesId, dataModel, processedData, colorScale, properties, scale, previousLabelLayouts } = this;
         const { idKey, colorKey, labelKey, label, fill: fillProperty } = properties;
 
         if (dataModel == null || processedData == null) return [];
@@ -253,15 +296,8 @@ export class MapShapeSeries
 
         const font = label.getFont();
 
-        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        processedData.data.forEach(({ values }) => {
-            const id: string | undefined = values[idIdx];
-            const geometry: _ModuleSupport.Geometry | undefined = values[featureIdx]?.geometry;
-            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
-            if (id != null && projectedGeometry != null) {
-                projectedGeometries.set(id, projectedGeometry);
-            }
-        });
+        const labelLayouts = new Map<string, LabelLayout>();
+        this.previousLabelLayouts = labelLayouts;
 
         const nodeData: MapShapeNodeDatum[] = [];
         const labelData: MapShapeNodeLabelDatum[] = [];
@@ -271,18 +307,34 @@ export class MapShapeSeries
             const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
             const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
 
-            const projectedGeometry = projectedGeometries.get(idValue);
-            if (projectedGeometry == null) {
+            const geometry = values[featureIdx]?.geometry;
+            if (geometry == null) {
                 missingGeometries.push(idValue);
             }
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
-            const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, font);
+            const labelLayout = this.getLabelLayout(
+                datum,
+                labelValue,
+                font,
+                geometry,
+                previousLabelLayouts?.get(idValue)
+            );
+            if (labelLayout != null) {
+                labelLayouts.set(idValue, labelLayout);
+            }
+
+            const labelDatum =
+                labelLayout != null && scale != null
+                    ? this.getLabelDatum(labelLayout, scale.scale / fixedScale.scale, scale.originX, scale.originY)
+                    : undefined;
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
+
+            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
             nodeData.push({
                 series: this,

@@ -5,13 +5,19 @@ import { lineStringCenter } from './lineStringUtil';
 import { polygonPointSearch } from './polygonPointSearch';
 import { polygonDistance } from './polygonUtil';
 
-export function polygonMarkerCenter(polygons: _ModuleSupport.Position[][], precision: number) {
-    const result = polygonPointSearch(polygons, precision, (p, [x, y], stride) => {
+export function polygonMarkerCenter(
+    polygons: _ModuleSupport.Position[][],
+    precision: number
+): _ModuleSupport.Position | undefined {
+    const result = polygonPointSearch(polygons, precision, (p, x, y, stride) => {
         const distance = -polygonDistance(p, x, y);
         const maxDistance = distance + stride * Math.SQRT2;
         return { distance, maxDistance };
     });
-    return result?.center;
+    if (result == null) return;
+
+    const { x, y } = result;
+    return [x, y];
 }
 
 export function markerPositions(geometry: _ModuleSupport.Geometry, precision: number): _ModuleSupport.Position[] {
