@@ -116,7 +116,7 @@ export type AgCartesianAxisOptions =
     | AgNumberAxisOptions
     | AgLogAxisOptions
     | AgCategoryAxisOptions
-    | AgOrdinalTimeAxisOptions
+    // | AgOrdinalTimeAxisOptions
     | AgGroupedCategoryAxisOptions
     | AgTimeAxisOptions;
 

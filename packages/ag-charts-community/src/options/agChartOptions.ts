@@ -22,7 +22,6 @@ export * from './series/cartesian/cartesianSeriesTypes';
 export * from './series/cartesian/areaOptions';
 export * from './series/cartesian/barOptions';
 export * from './series/cartesian/boxPlotOptions';
-export * from './series/cartesian/candlestickOptions';
 export * from './series/cartesian/bubbleOptions';
 export * from './series/cartesian/bulletOptions';
 export * from './series/cartesian/commonOptions';

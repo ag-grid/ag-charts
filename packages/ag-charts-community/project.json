@@ -32,6 +32,7 @@
       "options": {
         "outputPath": "packages/ag-charts-community/dist/types",
         "main": "packages/ag-charts-community/src/main.ts",
+        "additionalEntryPoints": ["packages/ag-charts-community/src/options/next.ts"],
         "tsConfig": "packages/ag-charts-community/tsconfig.types.json",
         "compiler": "tsc"
       },
