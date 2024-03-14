@@ -5,11 +5,16 @@ import { getData } from './data';
 const formatDate = (value: number | Date | undefined) => {
     return Intl.DateTimeFormat('en-GB').format(value);
 };
+
+const formatNumber = (value: number) => {
+    return `$${Math.floor(value)}B`;
+};
+
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
         const date = formatDate(datum[xKey]);
         return {
-            content: `${date}: $${Math.round(datum[yKey])}B`,
+            content: `${date}: ${formatNumber(datum[yKey])}`,
         };
     },
 };
@@ -40,7 +45,7 @@ const options: AgChartOptions = {
                         formatDate(new Date(2020, 10, 25)),
                         formatDate(new Date(2023, 0, 1)),
                     ];
-                    return dates.includes(formatDate(datum[xKey])) ? `$${Math.round(datum[yKey])}B` : '';
+                    return dates.includes(formatDate(datum[xKey])) ? formatNumber(datum[yKey]) : '';
                 },
             },
         },
@@ -53,12 +58,24 @@ const options: AgChartOptions = {
             tick: {
                 values: [new Date(2009, 0, 1), new Date(2013, 0, 1), new Date(2017, 0, 1), new Date(2021, 0, 1)],
             },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatDate(value)}</div>`,
+                },
+            },
         },
         {
             type: 'number',
             position: 'left',
             label: {
-                formatter: ({ value }) => `$${value}B`,
+                formatter: ({ value }) => formatNumber(value),
+            },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatNumber(value)}</div>`,
+                },
             },
         },
     ],

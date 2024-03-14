@@ -2,6 +2,14 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const month = new Intl.DateTimeFormat('en-GB', {
+    month: 'short',
+});
+
+const day = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+});
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -51,6 +59,12 @@ const options: AgChartOptions = {
                         lineDash: [2, 2],
                     },
                 ],
+            },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${month.format(value)} ${day.format(value)}</div>`,
+                },
             },
         },
         {

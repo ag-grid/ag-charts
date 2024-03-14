@@ -79,7 +79,8 @@ const options: AgCartesianChartOptions = {
             },
             crosshair: {
                 label: {
-                    format: `s`,
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Number(Math.round(value)).toLocaleString()}</div>`,
                 },
             },
         },
