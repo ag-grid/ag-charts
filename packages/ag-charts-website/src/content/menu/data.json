@@ -218,15 +218,23 @@
                 "title": "Maps",
                 "items": [
                     {
-                        "title": "Shapes",
+                        "title": "Maps Overview",
+                        "path": "maps"
+                    },
+                    {
+                        "title": "Map Topology",
+                        "path": "map-topology"
+                    },
+                    {
+                        "title": "Geographic Areas",
                         "path": "map-shapes"
                     },
                     {
-                        "title": "Lines",
+                        "title": "Routes and Connections",
                         "path": "map-lines"
                     },
                     {
-                        "title": "Markers",
+                        "title": "Markers and Points of Interest",
                         "path": "map-markers"
                     }
                 ]

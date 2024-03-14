@@ -135,8 +135,9 @@ export class MapLineSeries
         this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
                 const feature: _ModuleSupport.Feature | undefined = values[featureIdx];
-                if (feature == null) return current;
-                return geometryBbox(feature.geometry, current);
+                const geometry = feature?.geometry;
+                if (geometry == null) return current;
+                return geometryBbox(geometry, current);
             },
             undefined
         );

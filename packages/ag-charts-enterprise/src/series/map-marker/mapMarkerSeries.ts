@@ -222,8 +222,9 @@ export class MapMarkerSeries
         this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
                 const feature: _ModuleSupport.Feature | undefined = featureIdx != null ? values[featureIdx] : undefined;
-                if (feature != null) {
-                    current = geometryBbox(feature.geometry, current);
+                const geometry = feature?.geometry;
+                if (geometry != null) {
+                    current = geometryBbox(geometry, current);
                 }
                 if (latIdx != null && lonIdx != null) {
                     const lon = values[lonIdx];

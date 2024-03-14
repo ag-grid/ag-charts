@@ -85,13 +85,11 @@ export class MapShapeBackgroundSeries
     override async processData(): Promise<void> {
         const { topology } = this;
 
-        let topologyBounds: _ModuleSupport.LonLatBBox | undefined;
-        topology?.features.forEach((feature) => {
+        this.topologyBounds = topology?.features.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
             const geometry = feature.geometry;
-            topologyBounds = geometryBbox(geometry, topologyBounds);
-        });
-
-        this.topologyBounds = topologyBounds;
+            if (geometry == null) return current;
+            return geometryBbox(geometry, current);
+        }, undefined);
 
         if (topology == null) {
             Logger.warnOnce(`no topology was provided for [MapShapeBackgroundSeries]; nothing will be rendered.`);

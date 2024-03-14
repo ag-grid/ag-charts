@@ -48,7 +48,7 @@ interface GeoJsonObject {
 
 export interface Feature extends GeoJsonObject {
     type: 'Feature';
-    geometry: Geometry;
+    geometry: Geometry | null;
     id?: string | number;
     properties: Record<string, any> | null;
 }

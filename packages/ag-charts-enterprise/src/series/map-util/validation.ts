@@ -18,7 +18,8 @@ function isValidPolygon(v: any) {
 }
 
 function isValidGeometry(v: any) {
-    if (v === null || typeof v !== 'object' || v.type == null) return false;
+    if (v === null) return true;
+    if (typeof v !== 'object' || v.type == null) return false;
 
     const { type, coordinates } = v;
 
