@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
+import type { CssColor, GeoJSON, Opacity, PixelSize } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -17,7 +17,14 @@ export interface AgMapLineSeriesTooltipRendererParams<TDatum>
 
 export interface AgMapLineSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, StrokeOptions {}
 
-export interface AgMapLineSeriesStyle extends StrokeOptions, LineDashOptions {}
+export interface AgMapLineSeriesStyle extends LineDashOptions {
+    /** The colour for the stroke of the line. */
+    stroke?: CssColor;
+    /** The width of the stroke in pixels. */
+    strokeWidth?: PixelSize;
+    /** The opacity of the stroke colour. */
+    strokeOpacity?: Opacity;
+}
 
 export interface AgMapLineSeriesLabel<TDatum>
     extends AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams> {}
