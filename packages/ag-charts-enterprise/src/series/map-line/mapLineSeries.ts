@@ -125,9 +125,10 @@ export class MapLineSeries
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(this, idKey, false, { id: 'idValue' }),
+                valueProperty(this, idKey, false, { id: 'idValue', includeProperty: false }),
                 valueProperty(this, idKey, false, {
                     id: 'featureValue',
+                    includeProperty: false,
                     processor: () => (datum) => featureById.get(datum),
                 }),
                 ...(labelKey != null ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
