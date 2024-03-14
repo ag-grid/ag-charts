@@ -655,7 +655,7 @@ export class MapShapeSeries
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
-        contentLines.push(sanitizeHtml((idName ?? idKey) + ': ' + idValue));
+        contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
         if (colorValue != null) {
             contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
         }

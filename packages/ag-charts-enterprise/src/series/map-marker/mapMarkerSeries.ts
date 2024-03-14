@@ -767,12 +767,12 @@ export class MapMarkerSeries
             formatter,
             tooltip,
         } = properties;
-        const { datum, fill, idValue, latValue, lonValue, labelValue, sizeValue, colorValue } = nodeDatum;
+        const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
         if (idValue != null) {
-            contentLines.push(sanitizeHtml((idName ?? idKey) + ': ' + idValue));
+            contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
         }
         if (colorValue != null) {
             contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
@@ -780,7 +780,7 @@ export class MapMarkerSeries
         if (sizeValue != null) {
             contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
         }
-        if (labelValue != null) {
+        if (labelValue != null && (idKey == null || idKey !== labelKey)) {
             contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
         }
         if (latValue != null && lonValue != null) {

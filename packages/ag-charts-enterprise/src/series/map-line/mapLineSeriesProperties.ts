@@ -35,6 +35,7 @@ export interface MapLineNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
     readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;
+    readonly sizeValue: number | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
