@@ -6,24 +6,25 @@ export function preferredLabelCenter(
     polygons: _ModuleSupport.Position[][],
     { aspectRatio, precision }: { aspectRatio: number; precision: number }
 ) {
-    const result = polygonPointSearch(polygons, precision, (p, center, stride) => {
-        const width = maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(p, center, aspectRatio);
+    const result = polygonPointSearch(polygons, precision, (p, cx, cy, stride) => {
+        const width = maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(p, cx, cy, aspectRatio);
         const distance = width * Math.SQRT2;
         const maxDistance = distance + stride * stride;
         return { distance, maxDistance };
     });
     if (result == null) return;
 
-    const { center, distance } = result;
+    const { x, y, distance } = result;
     const maxWidth = distance / Math.SQRT2;
 
-    return { center, maxWidth };
+    return { x, y, maxWidth };
 }
 
 export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
     a: _ModuleSupport.Position,
     b: _ModuleSupport.Position,
-    [cx, cy]: _ModuleSupport.Position,
+    cx: number,
+    cy: number,
     aspectRatio: number
 ) {
     const [ax, ay] = a;
@@ -107,13 +108,12 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
 
 export function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
     polygons: _ModuleSupport.Position[][],
-    center: _ModuleSupport.Position,
+    cx: number,
+    cy: number,
     aspectRatio: number
 ) {
     let inside = false;
     let minWidth = Infinity;
-
-    const [cx, cy] = center;
 
     for (const polygon of polygons) {
         let p0 = polygon[polygon.length - 1];
@@ -126,7 +126,7 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
                 inside = !inside;
             }
 
-            const width = maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(p0, p1, center, aspectRatio);
+            const width = maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(p0, p1, cx, cy, aspectRatio);
 
             minWidth = Math.min(minWidth, width);
             p0 = p1;
@@ -141,7 +141,8 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
 export function maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(
     a: _ModuleSupport.Position,
     b: _ModuleSupport.Position,
-    [cx, cy]: _ModuleSupport.Position,
+    cx: number,
+    cy: number,
     height: number
 ) {
     const ry0 = cy - height / 2;
@@ -190,7 +191,8 @@ export function maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(
 
 export function maxWidthInPolygonForRectOfHeight(
     polygons: _ModuleSupport.Position[][],
-    center: _ModuleSupport.Position,
+    cx: number,
+    cy: number,
     height: number
 ) {
     let minWidth = Infinity;
@@ -199,7 +201,7 @@ export function maxWidthInPolygonForRectOfHeight(
         let p0 = polygon[polygon.length - 1];
 
         for (const p1 of polygon) {
-            const width = maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(p0, p1, center, height);
+            const width = maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(p0, p1, cx, cy, height);
 
             minWidth = Math.min(minWidth, width);
             p0 = p1;

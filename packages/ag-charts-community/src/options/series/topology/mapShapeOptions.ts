@@ -1,5 +1,5 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
+import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -25,7 +25,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown inside the shape. */
-    label?: AgChartAutoSizedLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams>;
+    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
     /** Series-specific tooltip configuration. */
