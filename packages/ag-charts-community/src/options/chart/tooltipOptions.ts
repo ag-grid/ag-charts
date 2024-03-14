@@ -72,6 +72,8 @@ export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams> 
     showArrow?: boolean;
     /** The position of the tooltip. */
     position?: AgTooltipPositionOptions;
+    /** Range from a point that triggers the tooltip to show. */
+    range?: InteractionRange;
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
     /** Function used to create the content for tooltips. */
