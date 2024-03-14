@@ -212,7 +212,9 @@ export class MapShapeSeries
         if (labelText == null) return;
 
         const baseSize = Text.getTextSize(String(labelText), font);
-        const aspectRatio = (baseSize.width + 2 * padding) / (AutoSizedLabel.lineHeight(label.fontSize) + 2 * padding);
+        const numLines = labelText.split('\n').length;
+        const aspectRatio =
+            (baseSize.width + 2 * padding) / (numLines * AutoSizedLabel.lineHeight(label.fontSize) + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&
