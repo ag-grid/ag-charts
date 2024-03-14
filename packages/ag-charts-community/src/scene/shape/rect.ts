@@ -1,4 +1,5 @@
 import { BBox } from '../bbox';
+import type { DistantObject } from '../nearest';
 import { Path2D } from '../path2D';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
@@ -258,7 +259,7 @@ const insetCornerRadiusRect = (
     path.closePath();
 };
 
-export class Rect extends Path {
+export class Rect extends Path implements DistantObject {
     static override readonly className: string = 'Rect';
 
     readonly borderPath = new Path2D();
@@ -441,6 +442,14 @@ export class Rect extends Path {
 
     override isPointInPath(x: number, y: number): boolean {
         return this.hittester(x, y);
+    }
+
+    get midPoint(): { x: number; y: number } {
+        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+    }
+
+    distanceSquared(x: number, y: number): number {
+        return this.getCachedBBox().distanceSquared(x, y);
     }
 
     protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {

@@ -1,3 +1,6 @@
+import { QuadtreeNearest } from 'packages/ag-charts-community/src/scene/util/quadtree';
+import { Logger } from 'packages/ag-charts-community/src/util/logger';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
@@ -24,7 +27,13 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import {
+    SeriesNodePickMatch,
+    SeriesNodePickMode,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
@@ -95,7 +104,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,
@@ -463,6 +472,34 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum.label);
         });
+    }
+
+    private getQuadTree() {
+        if (this.quadtree === undefined) {
+            this.quadtree = new QuadtreeNearest(100, 10, this.contentGroup.computeTransformedBBox());
+            for (const children of this.contentGroup.children) {
+                for (const node of children.children) {
+                    const rect = node as Rect;
+                    const datum: BarNodeDatum | undefined = node.datum;
+                    if (datum !== undefined) {
+                        this.quadtree.addValue(rect, datum);
+                    } else {
+                        Logger.error('undefined datum');
+                    }
+                }
+            }
+        }
+        return this.quadtree;
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
+        const { nearest, distanceSquared } = this.getQuadTree().find(x, y);
+        if (nearest !== undefined) {
+            return { datum: nearest.value, distance: Math.sqrt(distanceSquared) };
+        }
+
+        return undefined;
     }
 
     getTooltipHtml(nodeDatum: BarNodeDatum): string {
