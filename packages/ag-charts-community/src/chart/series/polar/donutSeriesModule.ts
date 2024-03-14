@@ -10,7 +10,6 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
 
     identifier: 'donut',
     instanceConstructor: DonutSeries,
-    seriesDefaults: {},
     themeTemplate: pieTheme,
     paletteFactory: piePaletteFactory,
 };

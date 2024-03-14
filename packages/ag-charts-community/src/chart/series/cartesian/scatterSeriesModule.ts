@@ -17,18 +17,16 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
 
     identifier: 'scatter',
     instanceConstructor: ScatterSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: CARTESIAN_AXIS_TYPE.NUMBER,
-                position: POSITION.BOTTOM,
-            },
-            {
-                type: CARTESIAN_AXIS_TYPE.NUMBER,
-                position: POSITION.LEFT,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.BOTTOM,
+        },
+        {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.LEFT,
+        },
+    ],
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,

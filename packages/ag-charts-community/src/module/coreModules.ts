@@ -1,9 +1,9 @@
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgChartThemeOverrides } from '../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions } from '../options/agChartOptions';
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { NextSeriesOptionTypes } from '../options/next';
-import type { BaseModule, ModuleInstance } from './baseModule';
+import type { BaseModule, ChartTypes, ModuleInstance } from './baseModule';
 import type { NextSeriesTypes, RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
@@ -37,20 +37,30 @@ export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = SeriesType 
     ? any
     : Extensible<NonNullable<AgChartThemeOverrides[SeriesType]>>;
 
-export type ExtensibleDefaults<SeriesType extends RequiredSeriesType> = Extensible<
-    AgChartOptions & { series?: { type: SeriesType } }
+export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
+    SeriesOptionsTypes,
+    { type: SeriesType }
 >;
 
-export type SeriesOptions<SeriesType extends RequiredSeriesType> = Extract<SeriesOptionsTypes, { type: SeriesType }>;
+type OptionsSeriesType<T extends AgChartOptions> = NonNullable<T['series']>[number]['type'];
+type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> =
+    SeriesType extends OptionsSeriesType<AgCartesianChartOptions>
+        ? AgCartesianChartOptions['axes']
+        : SeriesType extends OptionsSeriesType<AgPolarChartOptions>
+          ? AgPolarChartOptions['axes']
+          : never;
 
-export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSeriesType> extends BaseModule {
+export interface SeriesModule<
+    SeriesType extends RequiredSeriesType = RequiredSeriesType,
+    ChartType extends ChartTypes = ChartTypes,
+> extends BaseModule<ChartType> {
     type: 'series';
 
     identifier: SeriesType;
     instanceConstructor: SeriesConstructor;
     hidden?: boolean;
 
-    seriesDefaults: ExtensibleDefaults<SeriesType>;
+    defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
     enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
@@ -58,5 +68,5 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     stackable?: boolean;
     groupable?: boolean;
     stackedByDefault?: boolean;
-    swapDefaultAxesCondition?: (opts: SeriesOptions<SeriesType>) => boolean;
+    swapDefaultAxesCondition?: (opts: SeriesTypeOptions<SeriesType>) => boolean;
 }

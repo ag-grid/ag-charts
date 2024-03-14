@@ -9,7 +9,7 @@ export type Module<M extends ModuleInstance = ModuleInstance> =
     | AxisModule
     | AxisOptionModule
     | LegendModule
-    | SeriesModule<any>
+    | SeriesModule<any, any>
     | SeriesOptionModule;
 
 export abstract class BaseModuleInstance {

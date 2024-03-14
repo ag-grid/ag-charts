@@ -13,18 +13,16 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     identifier: 'waterfall',
     solo: true,
     instanceConstructor: WaterfallSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: _Theme.POSITION.BOTTOM,
-            },
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                position: _Theme.POSITION.LEFT,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: _Theme.POSITION.BOTTOM,
+        },
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+            position: _Theme.POSITION.LEFT,
+        },
+    ],
     themeTemplate: WATERFALL_SERIES_THEME,
     swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {

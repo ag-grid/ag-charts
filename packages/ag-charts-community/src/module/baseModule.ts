@@ -9,9 +9,11 @@ export interface ModuleInstance {
     destroy(): void;
 }
 
-export interface BaseModule {
+export type ChartTypes = 'cartesian' | 'polar' | 'hierarchy' | 'topology';
+
+export interface BaseModule<T extends ChartTypes = ChartTypes> {
     optionsKey: string;
     packageType: 'community' | 'enterprise';
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology')[];
+    chartTypes: T[];
     identifier?: string;
 }

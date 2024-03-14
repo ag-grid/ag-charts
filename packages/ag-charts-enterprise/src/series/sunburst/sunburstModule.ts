@@ -12,7 +12,6 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
 
     identifier: 'sunburst',
     instanceConstructor: SunburstSeries,
-    seriesDefaults: {},
     solo: true,
     themeTemplate: {
         series: {

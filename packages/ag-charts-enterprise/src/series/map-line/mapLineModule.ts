@@ -18,7 +18,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
 
     identifier: 'map-line',
     instanceConstructor: MapLineSeries,
-    seriesDefaults: {},
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,

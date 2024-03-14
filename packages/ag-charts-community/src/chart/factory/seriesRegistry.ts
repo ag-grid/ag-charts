@@ -23,7 +23,7 @@ export type SeriesOptions =
 
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
-    seriesDefaults?: object;
+    defaultAxes?: object[];
     paletteFactory?: SeriesPaletteFactory;
     solo?: boolean;
     groupable?: boolean;
@@ -41,7 +41,7 @@ export class SeriesRegistry {
         {
             chartTypes: [chartType],
             instanceConstructor,
-            seriesDefaults,
+            defaultAxes,
             themeTemplate,
             enterpriseThemeTemplate,
             paletteFactory,
@@ -51,12 +51,12 @@ export class SeriesRegistry {
             stackedByDefault,
             swapDefaultAxesCondition,
             hidden,
-        }: SeriesModule<any>
+        }: SeriesModule<any, any>
     ) {
         this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
         this.seriesMap.set(seriesType, {
             instanceConstructor,
-            seriesDefaults,
+            defaultAxes,
             paletteFactory,
             solo,
             stackable,
@@ -78,8 +78,9 @@ export class SeriesRegistry {
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    cloneDefaults(seriesType: SeriesType) {
-        return deepClone(this.seriesMap.get(seriesType)?.seriesDefaults ?? {});
+    cloneDefaultAxes(seriesType: SeriesType) {
+        const defaultAxes = this.seriesMap.get(seriesType)?.defaultAxes;
+        return defaultAxes ? { axes: deepClone(defaultAxes) } : null;
     }
 
     setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}, enterpriseThemeTemplate = {}) {

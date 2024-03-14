@@ -17,7 +17,6 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
 
     identifier: 'map-marker',
     instanceConstructor: MapMarkerSeries,
-    seriesDefaults: {},
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,

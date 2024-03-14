@@ -15,7 +15,7 @@ import {
 } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgCartesianChartOptions, AgChartOptions } from '../options/chart/chartBuilderOptions';
+import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
 import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesianOptions';
 import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
@@ -72,7 +72,7 @@ const unthemedSeries = new Set<SeriesType>(['map-shape-background']);
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
-    seriesDefaults: T;
+    defaultAxes: T;
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
 
@@ -85,13 +85,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.userOptions = options;
         this.activeTheme = getChartTheme(options.theme);
-        this.seriesDefaults = this.getOptionsDefaults(options);
+        this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
         const { axes: axesThemes = {}, series: _, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
 
         this.processedOptions = deepClone(
-            mergeDefaults(this.userOptions, themeDefaults, this.seriesDefaults),
+            mergeDefaults(this.userOptions, themeDefaults, this.defaultAxes),
             cloneOptions
         ) as T;
 
@@ -128,15 +128,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return deepClone(this.activeTheme?.config[seriesType] ?? {});
     }
 
-    protected getOptionsDefaults(options: T) {
+    protected getDefaultAxes(options: T) {
         const optionsType = this.optionsType(options);
-        const seriesDefaults = seriesRegistry.cloneDefaults(optionsType) as T;
+        const axesDefaults = seriesRegistry.cloneDefaultAxes(optionsType) as T;
 
         if (seriesRegistry.isDefaultAxisSwapNeeded(options)) {
-            this.swapAxesPosition(seriesDefaults);
+            this.swapAxesPosition(axesDefaults);
         }
 
-        return seriesDefaults;
+        return axesDefaults;
     }
 
     protected optionsType(options: Partial<T>) {
@@ -176,7 +176,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!('axes' in options)) return;
         options.axes = options.axes!.map((axis: any) => {
             const { crossLines: crossLinesTheme, ...axisTheme } = mergeDefaults(
-                (this.seriesDefaults as AgCartesianChartOptions).axes?.find(({ type }) => type === axis.type),
                 axesThemes[axis.type]?.[axis.position],
                 axesThemes[axis.type]
             );

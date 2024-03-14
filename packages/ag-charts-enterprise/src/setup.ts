@@ -15,7 +15,7 @@ import { NavigatorModule } from './features/navigator/navigatorModule';
 import { RangeButtonsModule } from './features/range-buttons/main';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
-import { GradientLegendModule } from './gradient-legend/main';
+import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import { BoxPlotModule } from './series/box-plot/main';

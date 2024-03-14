@@ -11,16 +11,14 @@ export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = 
 
     identifier: 'radial-column',
     instanceConstructor: RadialColumnSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
-            },
-            {
-                type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+        },
+        {
+            type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
+        },
+    ],
     themeTemplate: RADIAL_COLUMN_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {
