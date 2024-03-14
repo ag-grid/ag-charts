@@ -12,6 +12,7 @@ const options: AgChartOptions = {
                 series: {
                     stroke: 'transparent',
                     strokeWidth: 2,
+                    cornerRadius: 6,
                     label: {
                         enabled: true,
                         formatter: ({ value }) => `${Math.abs(value)}`,

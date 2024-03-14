@@ -26,6 +26,7 @@ const options: AgChartOptions = {
         yLowName: 'Lowest Cost',
         yHighName: 'Highest Cost',
         yName: country,
+        cornerRadius: 2,
     })),
     axes: [
         {

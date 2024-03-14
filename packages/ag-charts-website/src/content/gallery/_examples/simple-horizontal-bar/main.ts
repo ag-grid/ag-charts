@@ -20,6 +20,7 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'type',
             yKey: 'earnings',
+            cornerRadius: 4,
             errorBar: {
                 yLowerKey: 'earningsLower',
                 yUpperKey: 'earningsUpper',

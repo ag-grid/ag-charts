@@ -23,6 +23,7 @@ const options: AgChartOptions = {
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
             aggregation: 'mean',
+            cornerRadius: 6,
             fillOpacity: 0.7,
             label: {
                 formatter: ({ value }) => value.toFixed(0),

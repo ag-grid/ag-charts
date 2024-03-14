@@ -25,6 +25,7 @@ const options: AgChartOptions = {
             medianKey: 'median',
             q3Key: 'q3',
             maxKey: 'max',
+            cornerRadius: 8,
             strokeOpacity: 0,
             whisker: {
                 strokeOpacity: 0.9,

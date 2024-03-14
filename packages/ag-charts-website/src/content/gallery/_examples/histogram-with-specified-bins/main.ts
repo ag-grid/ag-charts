@@ -51,6 +51,7 @@ const options: AgChartOptions = {
         },
         stroke: 'transparent',
         strokeWidth: 2,
+        cornerRadius: 6,
     })),
     axes: [
         {

@@ -27,6 +27,7 @@ const options: AgChartOptions = {
             yLowName: 'Lowest Cost',
             yHighName: 'Highest Cost',
             yName: 'Production Cost Range',
+            cornerRadius: 2,
         },
         {
             type: 'range-bar',
@@ -38,6 +39,7 @@ const options: AgChartOptions = {
             yLowName: 'Lowest Price',
             yHighName: 'Highest Price',
             yName: 'Retail Price Range',
+            cornerRadius: 2,
         },
         {
             type: 'bubble',

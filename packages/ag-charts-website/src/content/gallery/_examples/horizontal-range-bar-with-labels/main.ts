@@ -59,6 +59,7 @@ const options: AgChartOptions = {
             formatter: ({ datum, yHighKey, yLowKey }) => ({
                 fillOpacity: (datum[yHighKey] - datum[yLowKey]) / 100000,
             }),
+            cornerRadius: 4,
             strokeWidth: 1,
             lineDash: [3, 5],
             tooltip,

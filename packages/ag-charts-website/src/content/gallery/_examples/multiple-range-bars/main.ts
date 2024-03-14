@@ -17,6 +17,7 @@ const options: AgChartOptions = {
         yName: continent,
         yLowKey: 'lowTemperature',
         yHighKey: 'highTemperature',
+        cornerRadius: 2,
     })),
     axes: [
         {

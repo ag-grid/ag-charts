@@ -25,6 +25,7 @@ const options: AgChartOptions = {
             yName: 'Exam Results Range',
             yLowKey: 'low',
             yHighKey: 'high',
+            cornerRadius: 3,
             formatter: ({ datum, xKey }) => {
                 const isSecondExam = datum[xKey].slice(-1) === '2';
                 return {

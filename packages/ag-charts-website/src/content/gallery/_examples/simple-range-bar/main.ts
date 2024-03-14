@@ -22,6 +22,7 @@ const options: AgChartOptions = {
             yLowKey: 'low',
             yHighKey: 'high',
             strokeWidth: 1,
+            cornerRadius: 3,
         },
     ],
     axes: [

@@ -21,6 +21,7 @@ const options: AgChartOptions = {
             xName: 'Engine Size',
             stroke: 'transparent',
             strokeWidth: 2,
+            cornerRadius: 6,
         },
     ],
     axes: [

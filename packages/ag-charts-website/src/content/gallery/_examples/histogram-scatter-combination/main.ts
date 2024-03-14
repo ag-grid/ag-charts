@@ -22,6 +22,7 @@ const options: AgChartOptions = {
             aggregation: 'mean',
             strokeWidth: 2,
             strokeOpacity: 0,
+            cornerRadius: 6,
         },
         {
             type: 'scatter',
