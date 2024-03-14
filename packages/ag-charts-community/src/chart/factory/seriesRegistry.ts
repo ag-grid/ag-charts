@@ -6,6 +6,7 @@ import type {
     AgCartesianSeriesOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
+    InteractionRange,
 } from '../../options/agChartOptions';
 import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
 import type { AgTopologySeriesOptions } from '../../options/series/topology/topologyOptions';
@@ -24,6 +25,7 @@ export type SeriesOptions =
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
     seriesDefaults?: object;
+    tooltipDefaults?: { range: InteractionRange };
     paletteFactory?: SeriesPaletteFactory;
     solo?: boolean;
     groupable?: boolean;
@@ -42,6 +44,7 @@ export class SeriesRegistry {
             chartTypes: [chartType],
             instanceConstructor,
             seriesDefaults,
+            tooltipDefaults,
             themeTemplate,
             enterpriseThemeTemplate,
             paletteFactory,
@@ -56,6 +59,7 @@ export class SeriesRegistry {
         this.seriesMap.set(seriesType, {
             instanceConstructor,
             seriesDefaults,
+            tooltipDefaults,
             paletteFactory,
             solo,
             stackable,
@@ -93,6 +97,10 @@ export class SeriesRegistry {
 
     getPaletteFactory(seriesType: SeriesType) {
         return this.seriesMap.get(seriesType)?.paletteFactory;
+    }
+
+    getTooltipDefaults(seriesType: SeriesType) {
+        return this.seriesMap.get(seriesType)?.tooltipDefaults;
     }
 
     isSolo(seriesType: SeriesType) {

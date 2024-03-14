@@ -31,6 +31,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             },
         ],
     },
+    tooltipDefaults: { range: 'exact' },
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     themeTemplate: {
         series: {
@@ -40,7 +41,6 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             strokeWidth: 0,
             lineDash: [0],
             lineDashOffset: 0,
-            tooltip: { range: 'exact' },
             label: {
                 enabled: false,
                 fontStyle: undefined,

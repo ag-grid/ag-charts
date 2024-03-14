@@ -4,6 +4,7 @@ import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
+import type { InteractionRange } from '../options/agChartOptions';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
@@ -71,6 +72,7 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import type { SeriesProperties } from './series/seriesProperties';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
@@ -1004,21 +1006,26 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+    private pickSeriesNode(point: Point): { pick: PickedNode | undefined; range: InteractionRange } {
         const start = performance.now();
-
-        // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
         const reverseSeries = [...this.series].reverse();
 
+        let range = this.tooltip.range;
         let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
+
+            range = series.properties.tooltip.range;
+            const exactMatchOnly = range === 'exact';
+            const maxDistance = isFiniteNumber(range) ? range : undefined;
+            // Disable 'nearest match' options if looking for exact matches only
+            const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
+
             const { match, distance } = series.pickNode(point, pickModes) ?? {};
             if (!match || distance == null) {
                 continue;
@@ -1035,7 +1042,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             (this.extraDebugStats['pickSeriesNode'] ?? 0) + (performance.now() - start)
         );
 
-        return result;
+        return { pick: result, range };
     }
 
     private lastPick?: SeriesNodeDatum;
@@ -1105,15 +1112,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected handlePointerTooltip(event: PointerOffsets, disablePointer: (highlightOnly?: boolean) => void) {
-        const { lastPick, tooltip } = this;
-        const { range } = tooltip;
+        const { lastPick } = this;
         const { offsetX, offsetY } = event;
 
-        let pixelRange;
-        if (isFiniteNumber(range)) {
-            pixelRange = range;
-        }
-        const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
+        const { pick, range } = this.pickSeriesNode({ x: offsetX, y: offsetY });
 
         if (!pick) {
             this.tooltipManager.removeTooltip(this.id);
@@ -1134,7 +1136,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
         }
 
-        const isPixelRange = pixelRange != null;
+        const isPixelRange = isFiniteNumber(range);
         const tooltipEnabled = this.tooltip.enabled && pick.series.tooltipEnabled;
         const exactlyMatched = range === 'exact' && pick.distance === 0;
         const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;

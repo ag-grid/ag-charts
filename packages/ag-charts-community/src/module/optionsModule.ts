@@ -14,6 +14,7 @@ import {
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
+import type { InteractionRange } from '../options/agChartOptions';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
@@ -96,7 +97,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
-        this.processSeriesOptions(this.processedOptions);
+        this.processSeriesOptions(this.processedOptions, this.userOptions);
         this.processMiniChartSeriesOptions(this.processedOptions);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
@@ -198,7 +199,24 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }
 
-    protected processSeriesOptions(options: T) {
+    private processTooltipRange(
+        seriesOptions: undefined | { type?: SeriesType; tooltip?: { range?: InteractionRange } },
+        userOptions: T
+    ) {
+        const seriesRange = seriesOptions?.tooltip?.range;
+        if (seriesRange !== undefined) {
+            return { tooltip: { range: seriesRange } };
+        }
+
+        const userRange = userOptions?.tooltip?.range;
+        if (userRange !== undefined) {
+            return { tooltip: { range: userRange } };
+        }
+
+        return { tooltip: { ...seriesRegistry.getTooltipDefaults(seriesOptions?.type) } };
+    }
+
+    protected processSeriesOptions(options: T, userOptions: T) {
         const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
         const paletteOptions = {
@@ -213,12 +231,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const palette = !unthemedSeries.has(series.type)
                 ? this.getSeriesPalette(series.type, paletteOptions)
                 : undefined;
+            const tooltip = this.processTooltipRange(series, userOptions);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
                 defaultTooltipPosition,
                 seriesTheme,
-                palette
+                palette,
+                tooltip
             );
 
             if (seriesOptions.innerLabels) {

@@ -1,6 +1,6 @@
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgChartThemeOverrides } from '../options/agChartOptions';
+import type { AgChartThemeOverrides, InteractionRange } from '../options/agChartOptions';
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { NextSeriesOptionTypes } from '../options/next';
 import type { BaseModule, ModuleInstance } from './baseModule';
@@ -50,6 +50,7 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     instanceConstructor: SeriesConstructor;
 
     seriesDefaults: ExtensibleDefaults<SeriesType>;
+    tooltipDefaults?: { range: InteractionRange };
     themeTemplate: ExtensibleTheme<SeriesType>;
     enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
