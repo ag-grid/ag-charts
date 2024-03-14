@@ -151,3 +151,21 @@ function constrainAxis(axis: { min: number; max: number }) {
 
     return { min, max };
 }
+
+export function constrainAxisWithOld(
+    { min, max }: { min: number; max: number },
+    old: { min: number; max: number },
+    minRatio: number
+) {
+    if (max === old.max) {
+        min = max - minRatio;
+    } else if (min === old.min) {
+        max = min + minRatio;
+    } else {
+        const cx = old.min + (old.max - old.min) / 2;
+        min = cx - minRatio / 2;
+        max = cx + minRatio / 2;
+    }
+
+    return { min, max };
+}
