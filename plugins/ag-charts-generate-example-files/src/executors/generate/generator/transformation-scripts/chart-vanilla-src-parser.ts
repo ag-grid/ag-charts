@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
-import type { SignatureDeclaration } from 'typescript';
+import type { ObjectLiteralExpression, SignatureDeclaration } from 'typescript';
+import ts from 'typescript';
 
 import type { ExampleSettings } from '../types';
 import {
@@ -152,8 +153,11 @@ export function internalParser(js, html, exampleSettings) {
     // optionsCollectors captures all events, properties etc that are related to options
     tsCollectors.push({
         matches: (node) => tsNodeIsGlobalVarWithName(node, optionsVariableName),
-        apply: (bindings, node) => {
-            node.initializer.properties.forEach((prop) => {
+        apply: (bindings, node: ts.VariableDeclaration) => {
+            const initializer = node.initializer;
+            if (initializer?.kind !== ts.SyntaxKind.ObjectLiteralExpression) return bindings;
+
+            (initializer as ObjectLiteralExpression).properties.forEach((prop) => {
                 bindings = tsCollect(prop, bindings, tsOptionsCollectors, false);
             });
 
