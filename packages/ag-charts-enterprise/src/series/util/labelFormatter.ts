@@ -133,7 +133,10 @@ export type StackedLabelFormatting<Meta> = {
       }
 );
 
-type SizeFittingHeightFn<Meta> = (height: number) => {
+type SizeFittingHeightFn<Meta> = (
+    height: number,
+    canTruncate: boolean
+) => {
     width: number;
     height: number;
     meta: Meta;
@@ -154,7 +157,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
     const minimumHeight =
         (labelProps.minimumFontSize ?? labelProps.fontSize) +
         (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
-    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust).height - heightAdjust) {
+    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) {
         return;
     }
 
@@ -189,7 +192,10 @@ export function formatStackedLabels<Meta, FormatterParams>(
         const allowTruncation = index === 0;
         const labelLineHeight = AutoSizedLabel.lineHeight(labelFontSize);
         const secondaryLabelLineHeight = AutoSizeableSecondaryLabel.lineHeight(secondaryLabelFontSize);
-        const sizeFitting = sizeFittingHeight(labelLineHeight + secondaryLabelLineHeight + heightAdjust);
+        const sizeFitting = sizeFittingHeight(
+            labelLineHeight + secondaryLabelLineHeight + heightAdjust,
+            allowTruncation
+        );
         const availableWidth = sizeFitting.width - widthAdjust;
         const availableHeight = sizeFitting.height - heightAdjust;
 
@@ -306,15 +312,14 @@ export function formatSingleLabel<Meta, FormatterParams>(
 
     return maximumValueSatisfying<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
         const lineHeight = AutoSizedLabel.lineHeight(fontSize);
-        const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust);
+        const allowTruncation = fontSize === minimumFontSize;
+        const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
         const availableWidth = sizeFitting.width - sizeAdjust;
         const availableHeight = sizeFitting.height - sizeAdjust;
 
         if (lineHeight > availableHeight) {
             return;
         }
-
-        const allowTruncation = fontSize === minimumFontSize;
 
         textSizeProps.fontSize = fontSize;
         const { lines } = Text.wrapLines(

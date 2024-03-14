@@ -8,14 +8,8 @@ import {
 } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
-import {
-    GeometryType,
-    containsType,
-    geometryBbox,
-    labelPosition,
-    markerPositions,
-    projectGeometry,
-} from '../map-util/geometryUtil';
+import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
+import { lineStringCenter } from '../map-util/lineStringUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -191,6 +185,9 @@ export class MapLineSeries
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
+        const lineString = largestLineString(projectedGeometry);
+        if (lineString == null) return;
+
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
 
         const labelText = this.getLabelText(label, {
@@ -208,13 +205,10 @@ export class MapLineSeries
         if (labelText == null) return;
 
         const labelSize = Text.getTextSize(String(labelText), font);
-        const labelCenter = labelPosition(projectedGeometry, labelSize, {
-            precision: 2,
-            filter: GeometryType.LineString,
-        });
+        const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
-        const [x, y] = labelCenter;
+        const [x, y] = labelCenter.point;
         const { width, height } = labelSize;
 
         return {
@@ -500,9 +494,9 @@ export class MapLineSeries
         }
 
         const projectedGeometry = (datum as MapLineNodeDatum).projectedGeometry;
-        const positions = projectedGeometry != null ? markerPositions(projectedGeometry, 2) : undefined;
-        const firstPoint = positions != null && positions.length > 0 ? positions[0] : undefined;
-        const point = firstPoint != null ? { x: firstPoint[0], y: firstPoint[1] } : undefined;
+        const lineString = projectedGeometry != null ? largestLineString(projectedGeometry) : undefined;
+        const center = lineString != null ? lineStringCenter(lineString)?.point : undefined;
+        const point = center != null ? { x: center[0], y: center[1] } : undefined;
 
         this._previousDatumMidPoint = { datum, point };
 

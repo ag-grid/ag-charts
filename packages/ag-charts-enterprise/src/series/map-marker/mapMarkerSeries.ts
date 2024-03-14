@@ -10,8 +10,9 @@ import {
 } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
-import { geometryBbox, markerPositions, projectGeometry } from '../map-util/geometryUtil';
+import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
+import { markerPositions } from '../map-util/markerUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapMarkerNodeDatum, MapMarkerNodeLabelDatum, MapMarkerSeriesProperties } from './mapMarkerSeriesProperties';
 

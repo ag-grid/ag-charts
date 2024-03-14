@@ -1,5 +1,6 @@
 import {
     AgMapShapeSeriesFormatterParams,
+    AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesStyle,
     _ModuleSupport,
     _Scale,
@@ -8,15 +9,11 @@ import {
 } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
-import {
-    GeometryType,
-    containsType,
-    geometryBbox,
-    labelPosition,
-    markerPositions,
-    projectGeometry,
-} from '../map-util/geometryUtil';
+import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
+import { polygonMarkerCenter } from '../map-util/markerUtil';
+import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
+import { AutoSizedLabel, formatSingleLabel } from '../util/labelFormatter';
 import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } from './mapShapeSeriesProperties';
 
 const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
@@ -63,7 +60,7 @@ export class MapShapeSeries
     private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
         this.nodeFactory()
     );
-    private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
+    private labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum> = Selection.select(
         this.labelGroup,
         Text
     );
@@ -188,7 +185,10 @@ export class MapShapeSeries
     ): MapShapeNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
-        const { idKey, idName, colorKey, colorName, labelKey, labelName, label } = this.properties;
+        const polygon = largestPolygon(projectedGeometry);
+        if (polygon == null) return;
+
+        const { idKey, idName, colorKey, colorName, labelKey, labelName, padding, label } = this.properties;
 
         const labelText = this.getLabelText(label, {
             value: labelValue,
@@ -202,23 +202,38 @@ export class MapShapeSeries
         });
         if (labelText == null) return;
 
-        const { width, height } = Text.getTextSize(String(labelText), font);
-
-        const paddedSize = { width: width + 2, height: height + 2 };
-        const labelCenter = labelPosition(projectedGeometry, paddedSize, {
+        const baseSize = Text.getTextSize(String(labelText), font);
+        const aspectRatio = (baseSize.width + 2 * padding) / (AutoSizedLabel.lineHeight(label.fontSize) + 2 * padding);
+        const labelPlacement = preferredLabelCenter(polygon, {
+            aspectRatio,
             precision: 2,
-            filter: GeometryType.Polygon,
         });
-        if (labelCenter == null) return;
+        if (labelPlacement == null) return;
 
-        const [x, y] = labelCenter;
+        const { maxWidth, center } = labelPlacement;
+        const maxHeight = (labelPlacement.maxWidth + 2 * padding) / aspectRatio - 2 * padding;
+        const labelFormatting = formatSingleLabel<null, AgMapShapeSeriesLabelFormatterParams>(
+            labelText,
+            label,
+            { padding },
+            (height, allowTruncation) => {
+                if (!allowTruncation) {
+                    return { width: maxWidth, height: maxHeight, meta: null };
+                }
 
-        return {
-            point: { x, y, size: 0 },
-            label: { width, height, text: labelText },
-            marker: undefined,
-            placement: undefined,
-        };
+                const width = maxWidthInPolygonForRectOfHeight(polygon, center, height);
+                return { width, height, meta: null };
+            }
+        );
+        if (labelFormatting == null) return;
+
+        const [x, y] = center;
+        const [{ text, fontSize, lineHeight }] = labelFormatting;
+
+        // FIXME - formatSingleLabel should never return an ellipsis
+        if (text === Text.ellipsis) return;
+
+        return { x, y, text, fontSize, lineHeight };
     }
 
     override async createNodeData(): Promise<MapShapeNodeDataContext[]> {
@@ -321,11 +336,12 @@ export class MapShapeSeries
         }
 
         const nodeData = this.contextNodeData[0]?.nodeData ?? [];
+        const labelData = this.contextNodeData[0]?.labelData ?? [];
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection, isHighlight: false });
 
-        this.labelSelection = await this.updateLabelSelection({ labelSelection });
+        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
         await this.updateLabelNodes({ labelSelection });
 
         this.highlightDatumSelection = await this.updateDatumSelection({
@@ -399,27 +415,27 @@ export class MapShapeSeries
     }
 
     private async updateLabelSelection(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        labelData: MapShapeNodeLabelDatum[];
+        labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum>;
     }) {
-        const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
-        return opts.labelSelection.update(placedLabels);
+        const labels = this.isLabelEnabled() ? opts.labelData : [];
+        return opts.labelSelection.update(labels);
     }
 
-    private async updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
-    }) {
+    private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum> }) {
         const { labelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
+        const { color: fill, fontStyle, fontWeight, fontFamily } = this.properties.label;
 
-        labelSelection.each((label, { x, y, width, height, text }) => {
+        labelSelection.each((label, { x, y, text, fontSize, lineHeight }) => {
             label.visible = true;
-            label.x = x + width / 2;
-            label.y = y + height / 2;
+            label.x = x;
+            label.y = y;
             label.text = text;
             label.fill = fill;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
+            label.lineHeight = lineHeight;
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
@@ -458,7 +474,7 @@ export class MapShapeSeries
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
-        return this.contextNodeData.flatMap(({ labelData }) => labelData);
+        return [];
     }
 
     override getSeriesDomain() {
@@ -490,9 +506,9 @@ export class MapShapeSeries
         }
 
         const projectedGeometry = (datum as MapShapeNodeDatum).projectedGeometry;
-        const positions = projectedGeometry != null ? markerPositions(projectedGeometry, 2) : undefined;
-        const firstPoint = positions != null && positions.length > 0 ? positions[0] : undefined;
-        const point = firstPoint != null ? { x: firstPoint[0], y: firstPoint[1] } : undefined;
+        const polygon = projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
+        const center = polygon != null ? polygonMarkerCenter(polygon, 2) : undefined;
+        const point = center != null ? { x: center[0], y: center[1] } : undefined;
 
         this._previousDatumMidPoint = { datum, point };
 
