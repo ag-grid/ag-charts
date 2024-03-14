@@ -1,3 +1,5 @@
+import type { QuadtreeNearest } from 'packages/ag-charts-community/src/scene/util/quadtree';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
@@ -52,7 +54,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
-import { childrenOfChildrenIter, createQuadtree } from './quadtreeUtil';
+import { addHitTestersToQuadtree, childrenOfChildrenIter } from './quadtreeUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -472,11 +474,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    private getQuadTree() {
-        if (this.quadtree === undefined) {
-            this.quadtree = createQuadtree(this.chart?.seriesRect, childrenOfChildrenIter<Rect>(this.contentGroup));
-        }
-        return this.quadtree;
+    protected override initQuadTree(quadtree: QuadtreeNearest<BarNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, childrenOfChildrenIter<Rect>(this.contentGroup));
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {

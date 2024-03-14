@@ -1,7 +1,6 @@
-import type { BBox } from '../../../scene/bbox';
 import type { DistantObject } from '../../../scene/nearest';
 import type { Node } from '../../../scene/node';
-import { QuadtreeNearest } from '../../../scene/util/quadtree';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Logger } from '../../../util/logger';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
@@ -21,11 +20,10 @@ export function* childrenOfChildrenIter<TNode extends Node = Node>(contentGroup:
     }
 }
 
-export function createQuadtree<TNode extends QuadtreeCompatibleNode, TDatum extends CartesianSeriesNodeDatum>(
-    seriesRect: BBox | undefined,
+export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TDatum extends CartesianSeriesNodeDatum>(
+    quadtree: QuadtreeNearest<TDatum>,
     hitTesters: Iterable<TNode>
-): QuadtreeNearest<TDatum> {
-    const quadtree = new QuadtreeNearest<TDatum>(100, 10, seriesRect);
+) {
     for (const node of hitTesters) {
         const datum: TDatum | undefined = node.datum;
         if (datum !== undefined) {
@@ -35,5 +33,5 @@ export function createQuadtree<TNode extends QuadtreeCompatibleNode, TDatum exte
         }
     }
 
-    return quadtree;
+    return;
 }
