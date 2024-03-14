@@ -574,17 +574,20 @@
                     {
                         "title": "Multiple Series",
                         "description": "",
-                        "name": "multiple-map-series"
+                        "name": "multiple-map-series",
+                        "hidden": true
                     },
                     {
                         "title": "Heatmap Series",
                         "description": "",
-                        "name": "map-heatmap-series"
+                        "name": "map-heatmap-series",
+                        "hidden": true
                     },
                     {
                         "title": "Map Marker Series",
                         "description": "",
-                        "name": "map-marker-series"
+                        "name": "map-marker-series",
+                        "hidden": true
                     }
                 ]
             }

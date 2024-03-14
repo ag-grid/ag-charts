@@ -24,6 +24,7 @@ export interface GalleryExample {
      * Example identifier
      */
     name: string;
+    hidden?: boolean;
 }
 export interface GalleryExampleChartType {
     title: string;
