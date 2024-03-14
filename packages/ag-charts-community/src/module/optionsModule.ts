@@ -200,7 +200,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private processTooltipRange(
         seriesOptions: undefined | { type?: SeriesType; tooltip?: { range?: InteractionRange } },
-        userOptions: T
+        userOptions: Partial<T>
     ) {
         const seriesRange = seriesOptions?.tooltip?.range;
         if (seriesRange !== undefined) {
@@ -215,7 +215,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { tooltip: { ...seriesRegistry.getTooltipDefaults(seriesOptions?.type) } };
     }
 
-    protected processSeriesOptions(options: T, userOptions: T) {
+    protected processSeriesOptions(options: T, userOptions: Partial<T>) {
         const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
         const userPalette = Boolean(isObject(options.theme) && options.theme.palette);
