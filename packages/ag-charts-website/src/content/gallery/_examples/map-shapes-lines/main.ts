@@ -1,11 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { londonBoroughData } from './londonBoroughData';
-import { londonBoroughTopology } from './londonBoroughTopology';
-import { otherCountiesData } from './otherCountiesData';
-import { otherCountiesTopology } from './otherCountiesTopology';
-import { tubeData } from './tubeData';
-import { tubeTopology } from './tubeTopology';
+import { londonBoroughData, otherCountiesData, tubeData } from './data';
+import { londonBoroughTopology, otherCountiesTopology, tubeTopology } from './topology';
 
 const sizeDomain = [0, 97.92];
 const strokeWidth = 2;

@@ -1,11 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { cycleCounterData } from './cycleCounterData';
-import { cycleCounterTopology } from './cycleCounterTopology';
-import { cycleRouteData } from './cycleRouteData';
-import { cycleRouteTopology } from './cycleRouteTopology';
-import { yorkData } from './yorkData';
-import { yorkTopology } from './yorkTopology';
+import { cycleCounterData, cycleRouteData, yorkData } from './data';
+import { cycleCounterTopology, cycleRouteTopology, yorkTopology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
