@@ -16,6 +16,7 @@ export interface Scale<D, R, I = number> {
     convert(value: D, params?: ScaleConvertParams): R;
     invert?(value: R): D;
     ticks?(): D[];
+    ticksBetween?(start: number, end: number): D[];
     tickFormat?(params: ScaleTickFormatParams): (x: any) => string;
     getDomain?(): D[];
     bandwidth?: number;

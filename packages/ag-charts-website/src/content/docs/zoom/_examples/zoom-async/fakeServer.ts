@@ -7,7 +7,7 @@ import { Database, Datum, dataEnd, dataStart, day, hour, week } from './data';
 export const FakeServer = {
     get: async function (params: { windowStart?: Date; windowEnd?: Date }) {
         // Simulate a real server with a random 2000-2500ms delay
-        const delayTime = 2000 + Math.floor(Math.random() * 500);
+        const delayTime = 2 + Math.floor(Math.random() * 5);
         await delay(delayTime);
 
         // Fetch the data from the fake database

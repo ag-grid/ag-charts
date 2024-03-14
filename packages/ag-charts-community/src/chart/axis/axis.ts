@@ -115,7 +115,15 @@ export type LabelNodeDatum = {
     range: number[];
 };
 
-type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
+interface TickMeta {
+    extents?: [any, any];
+    size: number;
+}
+
+interface TickData extends TickMeta {
+    ticks: TickDatum[];
+    labelCount: number;
+}
 
 interface TickGenerationParams {
     primaryTickCount?: number;
@@ -296,7 +304,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (options?.respondsToZoom !== false) {
             this.destroyFns.push(
                 moduleCtx.updateService.addListener('update-complete', (e) => {
-                    this.minRect = e.minRect;
+                    this.minRect = e.minVisibleRect;
                 })
             );
         }
@@ -813,9 +821,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
 
         let tickData: TickData = {
-            rawTicks: [],
             ticks: [],
             labelCount: 0,
+            size: 0,
         };
 
         let index = 0;
@@ -853,8 +861,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const combinedRotation = defaultRotation + configuredRotation + autoRotation;
 
-        if (!secondaryAxis && tickData.rawTicks.length > 0) {
-            primaryTickCount = tickData.rawTicks.length;
+        if (!secondaryAxis && tickData.size > 0) {
+            primaryTickCount = tickData.size;
         }
 
         return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
@@ -945,23 +953,24 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let unchanged = true;
         while (unchanged && index <= maxIterations) {
-            const prevTicks = tickData.rawTicks;
+            // const previousTicks = tickData.rawTicks;
+            const previousSize = tickData.size;
             tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
 
-            const { rawTicks, ticks, labelCount } = this.getTicks({
+            const { ticks, labelCount } = this.getTicks({
                 tickGenerationType,
-                previousTicks: prevTicks,
+                previousTicks,
                 tickCount,
                 minTickCount,
                 maxTickCount,
                 primaryTickCount,
             });
 
-            tickData.rawTicks = rawTicks;
+            tickData.size = size;
             tickData.ticks = ticks;
             tickData.labelCount = labelCount;
 
-            unchanged = regenerateTicks ? areArrayNumbersEqual(rawTicks, prevTicks) : false;
+            unchanged = true; //regenerateTicks ? areArrayNumbersEqual(rawTicks, previousTicks) : false;
             index++;
         }
 
@@ -1033,6 +1042,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let rawTicks: any[];
 
+        // if (this.id.startsWith('TimeAxis')) console.log(TickGenerationType[tickGenerationType]);
+
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 if (ContinuousScale.is(scale)) {
@@ -1102,7 +1113,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             labelCount++;
         }
 
-        return { rawTicks, ticks, labelCount };
+        if (this.id.startsWith('TimeAxis'))
+            console.log(rawTicks.length, rawTicks.slice(start, end).length, ticks.length, labelCount);
+
+        return { rawTicks: rawTicks.slice(start, end), ticks, labelCount };
     }
 
     private filterTicks(ticks: any, tickCount: number): any[] {

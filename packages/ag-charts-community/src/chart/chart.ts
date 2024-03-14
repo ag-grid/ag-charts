@@ -1377,10 +1377,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             maxVisibleHeight = Math.max(maxVisibleHeight, minVisibleRect.height);
         }
 
-        const minRect = new BBox(0, 0, maxWidth, maxHeight);
+        const minRect = new BBox(0, 0, 1, 1);
         let minVisibleRect = minRect.clone();
         if (maxVisibleWidth > 0 && maxVisibleHeight > 0) {
-            minVisibleRect = new BBox(0, 0, maxVisibleWidth, maxVisibleHeight);
+            minVisibleRect = new BBox(0, 0, 1, 1);
         }
 
         return { minRect, minVisibleRect };

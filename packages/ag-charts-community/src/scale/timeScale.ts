@@ -152,6 +152,11 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
     }
 
+    ticksBetween(start: number, stop: number): Date[] {
+        const { tickCount, minTickCount, maxTickCount } = this;
+        return TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+    }
+
     static getDefaultTicks({
         start,
         stop,
@@ -172,6 +177,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
             minCount: minTickCount,
             maxCount: maxTickCount,
         });
+        console.log('rangeMeta', t?.rangeMeta(new Date(start), new Date(stop)));
         return t ? t.range(new Date(start), new Date(stop)) : []; // inclusive stop
     }
 
@@ -286,12 +292,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
             });
         }
 
-        if (i) {
-            const intervalRange = i.range(new Date(start), new Date(stop), true);
-            const domain = isReversed ? [...intervalRange].reverse() : intervalRange;
-            const n0 = domain[0];
-            const n1 = domain.at(-1)!;
-            this.niceDomain = [n0, n1];
+        const meta = i?.rangeMeta(new Date(start), new Date(stop), true);
+        if (meta) {
+            this.niceDomain = isReversed ? meta.extents.reverse() : meta.extents;
         }
     }
 }

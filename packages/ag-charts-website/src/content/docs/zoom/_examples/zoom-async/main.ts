@@ -16,6 +16,7 @@ const options: AgCartesianChartOptions = {
     },
     zoom: {
         enabled: true,
+        anchorPointX: 'pointer',
     },
     series: [
         {
@@ -43,14 +44,14 @@ const options: AgCartesianChartOptions = {
                 minSpacing: 100,
                 maxSpacing: 200,
             },
-            label: {
-                formatter: ({ value }) =>
-                    Intl.DateTimeFormat('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: '2-digit',
-                    }).format(new Date(value)),
-            },
+            // label: {
+            //     formatter: ({ value }) =>
+            //         Intl.DateTimeFormat('en-GB', {
+            //             day: '2-digit',
+            //             month: 'short',
+            //             year: '2-digit',
+            //         }).format(new Date(value)),
+            // },
         },
     ],
 };

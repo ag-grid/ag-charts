@@ -56,8 +56,7 @@ export class TimeInterval {
     range(start: Date, stop: Date, extend?: boolean): Date[] {
         const rangeCallback = this._rangeCallback?.(start, stop);
 
-        const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
-        const e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
+        const [e0, e1] = this.extents(start, stop, extend);
         if (e1 < e0) {
             return [];
         }
@@ -71,6 +70,25 @@ export class TimeInterval {
         rangeCallback?.();
 
         return range;
+    }
+
+    rangeMeta(start: Date, stop: Date, extend?: boolean) {
+        const [e0, e1] = this.extents(start, stop, extend);
+        if (e1 < e0) {
+            return;
+        }
+
+        const extents = [this._decode(e0), this._decode(e1)];
+        const size = e1 - e0 + 1;
+
+        return { extents, size };
+    }
+
+    private extents(start: Date, stop: Date, extend?: boolean): [number, number] {
+        const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
+        const e1 = this._encode(extend ? this.ceil(stop) : this.floor(stop));
+
+        return [e0, e1];
     }
 }
 
