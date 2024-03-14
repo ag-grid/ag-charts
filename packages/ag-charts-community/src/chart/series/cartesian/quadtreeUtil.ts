@@ -7,6 +7,12 @@ import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 type QuadtreeCompatibleNode = Node & DistantObject & { readonly midPoint: { x: number; y: number } };
 
+export function* childrenIter<TNode extends Node = Node>(parent: Node): Iterable<TNode> {
+    for (const node of parent.children) {
+        yield node as TNode;
+    }
+}
+
 export function* childrenOfChildrenIter<TNode extends Node = Node>(contentGroup: Node): Iterable<TNode> {
     for (const children of contentGroup.children) {
         for (const node of children.children) {
