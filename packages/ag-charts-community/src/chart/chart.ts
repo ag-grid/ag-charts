@@ -1029,35 +1029,26 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickSeriesNode(
-        point: Point,
-        exactMatchOnly?: boolean,
-        maxDistance?: number
-    ): { pick: PickedNode | undefined; range: InteractionRange } {
+    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
         const start = performance.now();
+
+        // Disable 'nearest match' options if looking for exact matches only
+        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
         const reverseSeries = [...this.series].reverse();
 
-        let range = this.tooltip.range;
         let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
-
-            range = series.properties.tooltip.range;
-            exactMatchOnly = exactMatchOnly || range === 'exact';
-            const maxRange = maxDistance ?? isFiniteNumber(range) ? range : undefined;
-            // Disable 'nearest match' options if looking for exact matches only
-            const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-
             const { match, distance } = series.pickNode(point, pickModes) ?? {};
             if (!match || distance == null) {
                 continue;
             }
-            if ((!result || result.distance > distance) && distance <= (maxRange ?? Infinity)) {
+            if ((!result || result.distance > distance) && distance <= (maxDistance ?? Infinity)) {
                 result = { series, distance, datum: match };
             }
             if (distance === 0) {
@@ -1069,7 +1060,48 @@ export abstract class Chart extends Observable implements AgChartInstance {
             (this.extraDebugStats['pickSeriesNode'] ?? 0) + (performance.now() - start)
         );
 
-        return { pick: result, range };
+        return result;
+    }
+
+    private pickSeriesTooltipNode(point: Point): { pick: PickedNode | undefined; range: InteractionRange } {
+        const start = performance.now();
+
+        // Iterate through series in reverse, as later declared series appears on top of earlier
+        // declared series.
+        const reverseSeries = [...this.series].reverse();
+
+        let range = this.tooltip.range;
+        let pick: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
+        for (const series of reverseSeries) {
+            if (!series.visible || !series.rootGroup.visible) {
+                continue;
+            }
+
+            const seriesRange=series.properties.tooltip.range;
+            const pickModes = seriesRange === 'exact' ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
+            const 
+                maxDistance = typeof(seriesRange)==='number' ? seriesRange : Infinity;
+
+
+
+            const { match, distance } = series.pickNode(point, pickModes) ?? {};
+            if (!match || distance == null) {
+                continue;
+            }
+            if ((!pick || pick.distance > distance) && distance <= maxDistance) {
+                pick = { series, distance, datum: match };
+                range = seriesRange;
+            }
+            if (distance === 0) {
+                break;
+            }
+        }
+
+        this.extraDebugStats['pickSeriesNode'] = Math.round(
+            (this.extraDebugStats['pickSeriesNode'] ?? 0) + (performance.now() - start)
+        );
+
+        return { pick, range };
     }
 
     private lastPick?: SeriesNodeDatum;
@@ -1149,7 +1181,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const { lastPick } = this;
         const { offsetX, offsetY } = event;
 
-        const { pick, range } = this.pickSeriesNode({ x: offsetX, y: offsetY });
+        const { pick, range } = this.pickSeriesTooltipNode({ x: offsetX, y: offsetY });
 
         if (!pick) {
             this.tooltipManager.removeTooltip(this.id);
@@ -1239,7 +1271,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         event: PointerEvent,
         callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
     ): boolean {
-        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false).pick;
+        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
 
         const datum = nearestNode?.datum;
         const nodeClickRange = datum?.series.properties.nodeClickRange;
@@ -1250,7 +1282,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         // Find the node if exactly matched and update the highlight picked node
-        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true).pick;
+        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
         if (pickedNode) {
             this.highlightManager.updatePicked(this.id, pickedNode.datum);
         } else {
@@ -1264,7 +1296,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         if (nodeClickRange !== 'exact') {
-            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false, pixelRange).pick;
+            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false, pixelRange);
         }
 
         if (!pickedNode) return false;
@@ -1278,7 +1310,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 event.pointerHistory === undefined ||
                 event.pointerHistory?.every((pastEvent) => {
                     const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
-                    const historyNode = this.pickSeriesNode(historyPoint, false, pixelRange).pick;
+                    const historyNode = this.pickSeriesNode(historyPoint, false, pixelRange);
                     return historyNode?.datum === pickedNode?.datum;
                 });
             if (allMatch) {
