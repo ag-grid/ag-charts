@@ -4,12 +4,16 @@ import type { ChartAxis } from '../chartAxis';
 
 export class AxisRegistry {
     private axesMap = new Map<string, new (moduleContext: ModuleContext) => ChartAxis>();
+    private hidden = new Set<string>();
     private themeTemplates = new Map<string, object>();
 
-    register(axisType: string, module: Pick<AxisModule, 'instanceConstructor' | 'themeTemplate'>) {
+    register(axisType: string, module: Pick<AxisModule, 'instanceConstructor' | 'themeTemplate' | 'hidden'>) {
         this.axesMap.set(axisType, module.instanceConstructor);
         if (module.themeTemplate) {
             this.setThemeTemplate(axisType, module.themeTemplate);
+        }
+        if (module.hidden) {
+            this.hidden.add(axisType);
         }
     }
 
@@ -27,6 +31,10 @@ export class AxisRegistry {
 
     keys() {
         return this.axesMap.keys();
+    }
+
+    publicKeys() {
+        return [...this.keys()].filter((k) => !this.hidden.has(k));
     }
 
     setThemeTemplate(axisType: string, themeTemplate: object) {

@@ -1,5 +1,5 @@
 import { axisRegistry } from '../chart/factory/axisRegistry';
-import { chartTypes } from '../chart/factory/chartTypes';
+import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { type SeriesOptions, seriesRegistry } from '../chart/factory/seriesRegistry';
@@ -430,8 +430,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {
                     delete options.axes;
-                    const expectedTypes = Array.from(axisRegistry.keys()).join(', ');
-                    Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}, ignoring.`);
+                    const expectedTypes = Array.from(axisRegistry.publicKeys()).join(', ');
+                    Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}`);
                 }
             }
         }
@@ -443,7 +443,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (type == null || isSeriesOptionType(type) || isEnterpriseSeriesType(type)) {
                 return true;
             }
-            Logger.warnOnce(`unknown series type: ${type}; expected one of: ${chartTypes.seriesTypes.join(', ')}`);
+            Logger.warnOnce(
+                `unknown series type: ${type}; expected one of: ${publicChartTypes.seriesTypes.join(', ')}`
+            );
         }) as T['series'];
     }
 

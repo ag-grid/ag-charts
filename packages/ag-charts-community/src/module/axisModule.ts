@@ -10,6 +10,7 @@ export interface AxisModule extends BaseModule {
 
     identifier: string;
     instanceConstructor: AxisConstructor;
+    hidden?: boolean;
 
     themeTemplate?: {};
 }

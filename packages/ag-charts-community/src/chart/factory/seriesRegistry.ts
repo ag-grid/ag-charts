@@ -13,7 +13,7 @@ import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
-import { chartTypes } from './chartTypes';
+import { chartTypes, publicChartTypes } from './chartTypes';
 
 export type SeriesOptions =
     | AgCartesianSeriesOptions
@@ -50,6 +50,7 @@ export class SeriesRegistry {
             groupable,
             stackedByDefault,
             swapDefaultAxesCondition,
+            hidden,
         }: SeriesModule<any>
     ) {
         this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
@@ -64,6 +65,9 @@ export class SeriesRegistry {
             swapDefaultAxesCondition,
         });
         chartTypes.set(seriesType, chartType);
+        if (!hidden) {
+            publicChartTypes.set(seriesType, chartType);
+        }
     }
 
     create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {

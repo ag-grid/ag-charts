@@ -48,6 +48,7 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
 
     identifier: SeriesType;
     instanceConstructor: SeriesConstructor;
+    hidden?: boolean;
 
     seriesDefaults: ExtensibleDefaults<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
