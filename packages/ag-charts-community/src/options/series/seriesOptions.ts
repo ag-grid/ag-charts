@@ -13,7 +13,7 @@ export interface AgSeriesHighlightSeriesStyle {
 }
 
 export interface AgSeriesHighlightStyle {
-    /** Highlight style used for an individual marker when hovered. */
+    /** Highlight style used for an individual item within a series. */
     item?: AgSeriesHighlightMarkerStyle;
     /** Highlight style used for whole series when a series or legend item is hovered. */
     series?: AgSeriesHighlightSeriesStyle;

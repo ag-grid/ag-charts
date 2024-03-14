@@ -38,6 +38,7 @@ const hiddenInterfaces = [
     'FontWeight',
     'FontSize',
     'FontFamily',
+    'GeoJSON',
     'Opacity',
     'PixelSize',
     'Ratio',
