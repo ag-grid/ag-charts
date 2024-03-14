@@ -195,9 +195,10 @@ export class MapMarkerSeries
             props: [
                 ...(idKey != null
                     ? [
-                          valueProperty(this, idKey, false, { id: 'idValue' }),
+                          valueProperty(this, idKey, false, { id: 'idValue', includeProperty: false }),
                           valueProperty(this, idKey, false, {
                               id: 'featureValue',
+                              includeProperty: false,
                               processor: () => (datum) => featureById.get(datum),
                           }),
                       ]
@@ -397,6 +398,7 @@ export class MapMarkerSeries
                         sizeValue,
                         colorValue,
                         point: { x, y, size },
+                        midPoint: { x, y },
                     });
                 });
             }
@@ -422,6 +424,7 @@ export class MapMarkerSeries
                     sizeValue,
                     colorValue,
                     point: { x, y, size },
+                    midPoint: { x, y },
                 });
             }
         });
@@ -667,9 +670,9 @@ export class MapMarkerSeries
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.contextNodeData[0].nodeData.forEach((datum) => {
-            const { x, y } = datum.point;
-            const dx = x - x0;
-            const dy = y - y0;
+            const { x, y, size } = datum.point;
+            const dx = Math.max(Math.abs(x - x0) - size, 0);
+            const dy = Math.max(Math.abs(y - y0) - size, 0);
             const distanceSquared = dx * dx + dy * dy;
             if (distanceSquared < minDistanceSquared) {
                 minDistanceSquared = distanceSquared;

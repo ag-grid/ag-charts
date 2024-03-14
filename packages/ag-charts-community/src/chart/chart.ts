@@ -1325,7 +1325,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    async waitForUpdate(timeoutMs = 5000): Promise<void> {
+    async waitForUpdate(timeoutMs = 10_000, failOnTimeout = false): Promise<void> {
         const start = performance.now();
 
         if (this._pendingFactoryUpdatesCount > 0) {
@@ -1335,9 +1335,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         while (this.performUpdateType !== ChartUpdateType.NONE) {
             if (performance.now() - start > timeoutMs) {
-                throw new Error('waitForUpdate() timeout reached.');
+                const message = `Chart.waitForUpdate() timeout of ${timeoutMs} reached - first chart update taking too long.`;
+                if (failOnTimeout) {
+                    throw new Error(message);
+                } else {
+                    Logger.warnOnce(message);
+                }
             }
-            await sleep(5);
+            await sleep(50);
         }
 
         // wait until any remaining updates are flushed through.

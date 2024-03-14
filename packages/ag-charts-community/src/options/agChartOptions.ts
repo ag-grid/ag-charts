@@ -22,7 +22,6 @@ export * from './series/cartesian/cartesianSeriesTypes';
 export * from './series/cartesian/areaOptions';
 export * from './series/cartesian/barOptions';
 export * from './series/cartesian/boxPlotOptions';
-export * from './series/cartesian/candlestickOptions';
 export * from './series/cartesian/bubbleOptions';
 export * from './series/cartesian/bulletOptions';
 export * from './series/cartesian/commonOptions';
@@ -49,7 +48,7 @@ export * from './series/polar/radialOptions';
 export * from './series/topology/mapShapeOptions';
 export * from './series/topology/mapLineOptions';
 export * from './series/topology/mapMarkerOptions';
-export * from './series/topology/mapShapeAccessoryOptions';
+export * from './series/topology/mapShapeBackgroundOptions';
 export * from './series/markerOptions';
 
 /**

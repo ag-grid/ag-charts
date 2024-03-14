@@ -13,6 +13,7 @@ import { ZoomSelector } from './zoomSelector';
 import type { DefinedZoomState } from './zoomTypes';
 import {
     UNIT,
+    constrainAxisWithOld,
     constrainZoom,
     definedZoomState,
     dx,
@@ -38,7 +39,7 @@ const {
     round: sharedRound,
 } = _ModuleSupport;
 
-const round = (value: number) => sharedRound(value, 8);
+const round = (value: number) => sharedRound(value, 10);
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
@@ -533,8 +534,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const widthRatio = (minVisibleRect.width * minVisibleItemsWidth) / this.paddedRect.width;
         const heightRatio = (minVisibleRect.height * minVisibleItemsHeight) / this.paddedRect.height;
 
-        // We don't need to check flipping here again, as it is already built into the width & height ratios and the
-        // zoom.x/y values themselves do not flip and are bound to width/height respectively.
+        // Round the ratios to reduce jiggle from floating point precision limitations
         const ratioX = round(widthRatio * dx(zoom));
         const ratioY = round(heightRatio * dy(zoom));
 
@@ -638,11 +638,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
-        // Round the comparison values to avoid floating point issues, but not too much to break "infinite" zoom
         const isMinXZoom = round(dx(zoom)) <= this.minRatioX;
         const isMinYZoom = round(dy(zoom)) <= this.minRatioY;
 
-        return isMinXZoom && isMinYZoom;
+        return isMinXZoom || isMinYZoom;
     }
 
     private isMaxZoom(zoom: DefinedZoomState): boolean {
@@ -650,18 +649,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateZoom(zoom: DefinedZoomState) {
-        // Round the comparison values to avoid floating point issues, but not too much to break "infinite" zoom
-        const dx_ = round(dx(zoom));
-        const dy_ = round(dy(zoom));
+        const dx_ = dx(zoom);
+        const dy_ = dy(zoom);
 
         const oldZoom = definedZoomState(this.zoomManager.getZoom());
 
-        const zoomedInTooFarX = dx_ < dx(oldZoom) && dx_ < this.minRatioX;
-        const zoomedInTooFarY = dy_ < dy(oldZoom) && dy_ < this.minRatioY;
+        const zoomedInTooFarX = dx_ <= dx(oldZoom) && dx_ < this.minRatioX;
+        const zoomedInTooFarY = dy_ <= dy(oldZoom) && dy_ < this.minRatioY;
 
-        if (zoomedInTooFarX || zoomedInTooFarY) {
-            this.toggleContextMenuActions(zoom);
-            return;
+        if (zoomedInTooFarX) {
+            zoom.x = constrainAxisWithOld(zoom.x, oldZoom.x, this.minRatioX);
+        }
+
+        if (zoomedInTooFarY) {
+            zoom.y = constrainAxisWithOld(zoom.y, oldZoom.y, this.minRatioY);
         }
 
         this.zoomManager.updateZoom('zoom', zoom);

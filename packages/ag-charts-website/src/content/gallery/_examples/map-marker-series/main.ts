@@ -11,7 +11,7 @@ const options: AgChartOptions = {
     data,
     series: [
         {
-            type: 'map-shape-accessory',
+            type: 'map-shape-background',
             topology: backgroundTopology,
         },
         {

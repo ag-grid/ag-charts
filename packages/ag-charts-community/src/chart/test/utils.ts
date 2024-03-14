@@ -131,14 +131,14 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
     const timeoutMs = 5000;
     const chart = deproxy(chartOrProxy);
     const chartAny = chart as any; // to access private properties
-    await chart.waitForUpdate(timeoutMs);
+    await chart.waitForUpdate(timeoutMs, true);
     if (chart.autoSize === true && !chartAny._lastAutoSize) {
         // Bypass wait for SizeObservable callback - it's never going to be invoked.
         const width = chart.width ?? chart.scene.canvas.width;
         const height = chart.height ?? chart.scene.canvas.height;
         chartAny._lastAutoSize = [width, height];
         chartAny.resize(width, height);
-        await chart.waitForUpdate(timeoutMs);
+        await chart.waitForUpdate(timeoutMs, true);
     }
 
     if (activeAnimateCb) {
@@ -146,7 +146,7 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
         if (animationAdvanceMs > 0) {
             await activeAnimateCb(animationAdvanceMs, 1);
         }
-        await chart.waitForUpdate(timeoutMs);
+        await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
         throw new Error(`animationAdvancedMs is non-zero, but no animation mocks are present.`);
     }

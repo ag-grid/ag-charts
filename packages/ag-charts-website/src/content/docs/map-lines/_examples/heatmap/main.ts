@@ -13,7 +13,7 @@ const options: AgChartOptions = {
     topology,
     series: [
         {
-            type: 'map-shape-accessory',
+            type: 'map-shape-background',
             topology: backgroundTopology,
         },
         {

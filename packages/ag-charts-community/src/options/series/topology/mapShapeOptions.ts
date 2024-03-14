@@ -24,7 +24,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
-    /** Configuration for the labels shown on top of data points. */
+    /** Configuration for the labels shown inside the shape. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;

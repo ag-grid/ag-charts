@@ -18,7 +18,7 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
                 position: _Theme.POSITION.LEFT,
             },
             {
-                type: _Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
+                type: _Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME as any,
                 position: _Theme.POSITION.BOTTOM,
             },
         ],

@@ -42,7 +42,7 @@ series: [
     {
         type: 'map-shape',
         idKey: 'name',
-        labelKey: 'code'
+        labelKey: 'code',
     },
 ],
 ```
@@ -62,7 +62,7 @@ series: [
     {
         type: 'map-shape',
         idKey: 'name',
-        sizeKey: 'gdp'
+        colorKey: 'gdp',
     },
 ],
 ```
@@ -73,7 +73,20 @@ In this configuration:
 
 ## Backgrounds
 
+The Map Shape Background is a way to underlay all the shapes of a topology without accompanying data. This can be useful to keep context as Map Shape Series are toggled off in the legend, or to provide context to [Map Line Series](./map-lines/) and [Map Marker Series](./map-markers/).
+
+As this is a background series rather than a data series, many normal series behaviours are disabled - including appearing in the legend.
+
 {% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'map-shape-background',
+    },
+    // ...
+],
+```
 
 ## API Reference
 
@@ -81,6 +94,10 @@ In this configuration:
 
 {% tabItem id="AgMapShapeSeriesOptions" label="Map Shape" %}
 {% apiReference id="AgMapShapeSeriesOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgMapShapeBackgroundOptions" label="Map Shape Background" %}
+{% apiReference id="AgMapShapeBackgroundOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

@@ -14,6 +14,10 @@
                 "path": "/options"
             },
             {
+                "title": "Community",
+                "path": "/community"
+            },
+            {
                 "title": "Pricing",
                 "path": "/license-pricing"
             },
@@ -207,15 +211,6 @@
                     {
                         "title": "Upgrade to AG Charts 9",
                         "path": "upgrade-to-ag-charts-9"
-                    }
-                ]
-            },
-            {
-                "title": "Financial Charts",
-                "items": [
-                    {
-                        "title": "Examples",
-                        "path": "financial-charts"
                     }
                 ]
             },
