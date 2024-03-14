@@ -28,6 +28,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             },
         ],
     },
+    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,

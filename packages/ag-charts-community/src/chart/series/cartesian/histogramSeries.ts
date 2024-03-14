@@ -2,6 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
 import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
@@ -14,7 +15,7 @@ import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from 
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { Series, SeriesNodePickMatch, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
 import {
@@ -24,6 +25,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
+import { childrenIter, createQuadtree } from './quadtreeUtil';
 
 enum HistogramSeriesNodeTag {
     Bin,
@@ -45,7 +47,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
             datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
@@ -435,6 +437,23 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 text.visible = false;
             }
         });
+    }
+
+    private getQuadTree() {
+        if (this.quadtree === undefined) {
+            this.quadtree = createQuadtree(this.chart?.seriesRect, childrenIter<Rect>(this.contentGroup.children[0]));
+        }
+        return this.quadtree;
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
+        const { nearest, distanceSquared } = this.getQuadTree().find(x, y);
+        if (nearest !== undefined) {
+            return { datum: nearest.value, distance: Math.sqrt(distanceSquared) };
+        }
+
+        return undefined;
     }
 
     getTooltipHtml(nodeDatum: HistogramNodeDatum): string {
