@@ -80,7 +80,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
         }
         if (animationEnabled) {
-            props.push(animationValidation(this, isContinuousX ? ['xValue'] : []));
+            props.push(animationValidation(this, isContinuousX ? ['xValue'] : undefined));
             if (this.processedData) {
                 props.push(diff(this.processedData));
             }
