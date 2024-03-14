@@ -1,6 +1,6 @@
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions } from '../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions, InteractionRange } from '../options/agChartOptions';
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { NextSeriesOptionTypes } from '../options/next';
 import type { BaseModule, ChartTypes, ModuleInstance } from './baseModule';
@@ -61,6 +61,7 @@ export interface SeriesModule<
     hidden?: boolean;
 
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
+    tooltipDefaults?: { range: InteractionRange };
     themeTemplate: ExtensibleTheme<SeriesType>;
     enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
