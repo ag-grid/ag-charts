@@ -608,7 +608,9 @@ export abstract class CartesianSeries<
 
     protected getQuadTree(): QuadtreeNearest<TDatum> {
         if (this.quadtree === undefined) {
-            this.quadtree = new QuadtreeNearest<TDatum>(100, 10, this.chart?.seriesRect);
+            const { width, height } = this.ctx.scene.canvas;
+            const canvasRect = new BBox(0, 0, width, height);
+            this.quadtree = new QuadtreeNearest<TDatum>(100, 10, canvasRect);
             this.initQuadTree(this.quadtree);
         }
         return this.quadtree;
