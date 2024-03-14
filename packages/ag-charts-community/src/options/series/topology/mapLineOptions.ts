@@ -29,7 +29,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = any>
     maxStrokeWidth?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     sizeDomain?: number[];
-    /** Configuration for the labels shown on top of data points. */
+    /** Configuration for the labels shown on top of the line. */
     label?: AgMapLineSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum>>;
