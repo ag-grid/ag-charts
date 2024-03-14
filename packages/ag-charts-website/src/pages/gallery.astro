@@ -51,7 +51,7 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
                             <div class="gallery-list">
                                 {series.map(({ title, seriesName, examples }) => (
                                     <>
-                                        {examples.map(({ title, name }: GalleryExample, i) => (
+                                        {examples.filter(({ hidden }) => !hidden).map(({ title, name }: GalleryExample, i) => (
                                             <GalleryExampleLink
                                                 client:visible
                                                 label={title}

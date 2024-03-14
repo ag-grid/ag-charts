@@ -94,7 +94,7 @@ export const getChartExampleTitle = ({
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
     const series = galleryData.series.flat();
 
-    const allExamples = series.flatMap((s) => s.examples).filter((e) => e.hidden === true);
+    const allExamples = series.flatMap((s) => s.examples).filter((e) => e.hidden !== true);
 
     const galleryExamples = series.flatMap((s) => {
         const { examples } = s;
