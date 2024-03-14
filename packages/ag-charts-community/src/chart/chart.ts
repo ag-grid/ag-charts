@@ -72,7 +72,6 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesProperties } from './series/seriesProperties';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
@@ -1006,7 +1005,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickSeriesNode(point: Point): { pick: PickedNode | undefined; range: InteractionRange } {
+    private pickSeriesNode(
+        point: Point,
+        exactMatchOnly?: boolean,
+        maxDistance?: number
+    ): { pick: PickedNode | undefined; range: InteractionRange } {
         const start = performance.now();
 
         // Iterate through series in reverse, as later declared series appears on top of earlier
@@ -1021,8 +1024,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
 
             range = series.properties.tooltip.range;
-            const exactMatchOnly = range === 'exact';
-            const maxDistance = isFiniteNumber(range) ? range : undefined;
+            exactMatchOnly = exactMatchOnly || range === 'exact';
+            const maxRange = maxDistance ?? isFiniteNumber(range) ? range : undefined;
             // Disable 'nearest match' options if looking for exact matches only
             const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
@@ -1030,7 +1033,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (!match || distance == null) {
                 continue;
             }
-            if ((!result || result.distance > distance) && distance <= (maxDistance ?? Infinity)) {
+            if ((!result || result.distance > distance) && distance <= (maxRange ?? Infinity)) {
                 result = { series, distance, datum: match };
             }
             if (distance === 0) {
@@ -1205,7 +1208,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         event: PointerEvent,
         callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
     ): boolean {
-        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
+        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false).pick;
 
         const datum = nearestNode?.datum;
         const nodeClickRange = datum?.series.properties.nodeClickRange;
@@ -1216,7 +1219,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         // Find the node if exactly matched and update the highlight picked node
-        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
+        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true).pick;
         if (pickedNode) {
             this.highlightManager.updatePicked(this.id, pickedNode.datum);
         } else {
@@ -1230,7 +1233,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         if (nodeClickRange !== 'exact') {
-            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false, pixelRange);
+            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false, pixelRange).pick;
         }
 
         if (!pickedNode) return false;
@@ -1244,7 +1247,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 event.pointerHistory === undefined ||
                 event.pointerHistory?.every((pastEvent) => {
                     const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
-                    const historyNode = this.pickSeriesNode(historyPoint, false, pixelRange);
+                    const historyNode = this.pickSeriesNode(historyPoint, false, pixelRange).pick;
                     return historyNode?.datum === pickedNode?.datum;
                 });
             if (allMatch) {
