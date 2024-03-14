@@ -11,6 +11,7 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
 
     identifier: 'candlestick',
     instanceConstructor: CandlestickSeries,
+    hidden: true,
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
