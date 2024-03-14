@@ -33,6 +33,20 @@ const options: AgChartOptions = {
             cap: {
                 lengthRatio: 0,
             },
+            tooltip: {
+                renderer: (params) => {
+                    const { datum, xKey, xName, minKey, q1Key, medianKey, q3Key, maxKey } = params;
+                    const values = [
+                        `${xName}: ${datum[xKey]}`,
+                        `min: ${datum[minKey]}`,
+                        `q1: ${datum[q1Key]}`,
+                        `median: ${datum[medianKey]}`,
+                        `q3: ${datum[q3Key]}`,
+                        `max: ${datum[maxKey]}`,
+                    ];
+                    return `<div class="ag-chart-tooltip-title">Jan - Mar 2023</div><div class="ag-chart-tooltip-content">${values.join('<br>')}</div>`;
+                },
+            },
         },
         {
             data: data['April - June 2023'],
@@ -51,6 +65,20 @@ const options: AgChartOptions = {
             },
             cap: {
                 lengthRatio: 0,
+            },
+            tooltip: {
+                renderer: (params) => {
+                    const { datum, xKey, xName, minKey, q1Key, medianKey, q3Key, maxKey } = params;
+                    const values = [
+                        `${xName}: ${datum[xKey]}`,
+                        `min: ${datum[minKey]}`,
+                        `q1: ${datum[q1Key]}`,
+                        `median: ${datum[medianKey]}`,
+                        `q3: ${datum[q3Key]}`,
+                        `max: ${datum[maxKey]}`,
+                    ];
+                    return `<div class="ag-chart-tooltip-title">April - June 2023</div><div class="ag-chart-tooltip-content">${values.join('<br>')}</div>`;
+                },
             },
         },
     ],

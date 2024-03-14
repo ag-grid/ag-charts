@@ -2,6 +2,11 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const formatter = new Intl.DateTimeFormat('en-GB', {
+    month: 'short',
+    year: '2-digit',
+});
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -25,6 +30,10 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `${value === 113.4 ? value : ''}`,
             },
+            tooltip: {
+                renderer: ({ datum, xKey, yLowKey, yHighKey }) =>
+                    `<div class="ag-chart-tooltip-content">${formatter.format(datum[xKey])}: ${datum[yLowKey]} - ${datum[yHighKey]}</div>`,
+            },
         },
         {
             type: 'range-area',
@@ -34,6 +43,10 @@ const options: AgChartOptions = {
             fillOpacity: 0.2,
             label: {
                 formatter: ({ value }) => `${value === 149.9 ? value : ''}`,
+            },
+            tooltip: {
+                renderer: ({ datum, xKey, yLowKey, yHighKey }) =>
+                    `<div class="ag-chart-tooltip-content">${formatter.format(datum[xKey])}: ${datum[yLowKey]} - ${datum[yHighKey]}</div>`,
             },
         },
     ],
