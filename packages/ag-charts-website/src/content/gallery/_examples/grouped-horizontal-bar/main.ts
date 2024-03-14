@@ -18,6 +18,7 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'menDelta',
             yName: 'Male',
+            cornerRadius: 3,
             label: {
                 formatter: ({ value }) => value.toFixed(0),
             },
@@ -28,6 +29,7 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'womenDelta',
             yName: 'Female',
+            cornerRadius: 3,
             label: {
                 formatter: ({ value }) => value.toFixed(0),
             },

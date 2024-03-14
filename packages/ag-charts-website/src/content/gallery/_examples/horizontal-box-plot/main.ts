@@ -29,6 +29,7 @@ const options: AgChartOptions = {
             maxKey: 'max',
             maxName: 'Max',
             strokeWidth: 1,
+            cornerRadius: 3,
         },
     ],
     axes: [

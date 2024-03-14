@@ -43,6 +43,7 @@ const options: AgCartesianChartOptions = {
             yLowName: 'Low',
             yHighKey: 'high',
             yHighName: 'High',
+            cornerRadius: 5,
             formatter: ({ datum, yHighKey }) => {
                 return {
                     fillOpacity: getOpacity(datum[yHighKey], yHighKey, 0.4, 1),

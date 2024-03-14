@@ -18,6 +18,7 @@ const options: AgChartOptions = {
                 series: {
                     stroke: 'transparent',
                     strokeWidth: 2,
+                    cornerRadius: 6,
                     fillOpacity: 0.8,
                     label: {
                         enabled: true,
