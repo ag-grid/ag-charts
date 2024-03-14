@@ -14,7 +14,6 @@ import {
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
-import type { InteractionRange } from '../options/agChartOptions';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
@@ -198,21 +197,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }
 
-    private processTooltipRange(
-        seriesOptions: undefined | { type?: SeriesType; tooltip?: { range?: InteractionRange } },
-        userOptions: Partial<T>
-    ) {
-        const seriesRange = seriesOptions?.tooltip?.range;
-        if (seriesRange !== undefined) {
-            return { tooltip: { range: seriesRange } };
-        }
-
+    private processTooltipRange(type: SeriesType, userOptions: Partial<T>) {
         const userRange = userOptions?.tooltip?.range;
         if (userRange !== undefined) {
             return { tooltip: { range: userRange } };
         }
 
-        return { tooltip: { ...seriesRegistry.getTooltipDefaults(seriesOptions?.type) } };
+        return { tooltip: { ...seriesRegistry.getTooltipDefaults(type) } };
     }
 
     protected processSeriesOptions(options: T, userOptions: Partial<T>) {
@@ -233,7 +224,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? paletteOptions
                 : { colourIndex: 0, userPalette };
             const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
-            const tooltip = this.processTooltipRange(series, userOptions);
+            const tooltip = this.processTooltipRange(series.type, userOptions);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
