@@ -26,9 +26,11 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             strokeWidth: 1,
             lineDash: [0],
             lineDashOffset: 0,
+            padding: 2,
             label: {
                 color: DEFAULT_INVERTED_LABEL_COLOUR,
                 fontWeight: 'bold',
+                overflowStrategy: 'hide',
             },
         },
         legend: {

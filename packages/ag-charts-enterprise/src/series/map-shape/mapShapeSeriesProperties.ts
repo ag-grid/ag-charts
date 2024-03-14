@@ -8,6 +8,7 @@ import type {
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
+import { AutoSizeableSecondaryLabel } from '../util/labelFormatter';
 
 const {
     AND,
@@ -24,9 +25,14 @@ const {
     SeriesProperties,
     SeriesTooltip,
 } = _ModuleSupport;
-const { Label } = _Scene;
 
-export interface MapShapeNodeLabelDatum extends _Util.PointLabelDatum {}
+export interface MapShapeNodeLabelDatum {
+    readonly x: number;
+    readonly y: number;
+    readonly text: string;
+    readonly fontSize: number;
+    readonly lineHeight: number;
+}
 
 export interface MapShapeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
@@ -91,11 +97,14 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
+    @Validate(POSITIVE_NUMBER)
+    padding: number = 0;
+
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgMapShapeSeriesFormatterParams<any>) => AgMapShapeSeriesStyle;
 
     @Validate(OBJECT)
-    readonly label = new Label<AgMapShapeSeriesLabelFormatterParams>();
+    readonly label = new AutoSizeableSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();

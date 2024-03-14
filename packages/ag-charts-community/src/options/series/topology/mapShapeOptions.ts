@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON } from '../../chart/types';
+import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -19,16 +19,15 @@ export interface AgMapShapeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlig
 
 export interface AgMapShapeSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgMapShapeSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams> {}
-
 export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     extends AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown on top of data points. */
-    label?: AgMapShapeSeriesLabel<TDatum>;
+    label?: AgChartAutoSizedLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams>;
+    /** Distance between the shape edges and the text. */
+    padding?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
