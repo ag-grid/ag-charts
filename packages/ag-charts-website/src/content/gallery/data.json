@@ -557,6 +557,21 @@
                 "enterprise": true,
                 "examples": [
                     {
+                        "title": "Map With Shapes And Lines",
+                        "description": "",
+                        "name": "map-shapes-lines"
+                    },
+                    {
+                        "title": "Map With Lines and Markers",
+                        "description": "",
+                        "name": "map-lines-markers"
+                    },
+                    {
+                        "title": "World Map",
+                        "description": "",
+                        "name": "map-world"
+                    },
+                    {
                         "title": "Multiple Series",
                         "description": "",
                         "name": "multiple-map-series"
