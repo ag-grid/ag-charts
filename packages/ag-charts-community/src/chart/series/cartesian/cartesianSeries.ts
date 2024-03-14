@@ -12,7 +12,7 @@ import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
+import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
@@ -527,6 +527,18 @@ export abstract class CartesianSeries<
 
     protected markQuadtreeDirty() {
         this.quadtree = undefined;
+    }
+
+    protected getQuadTree(): QuadtreeNearest<TDatum> {
+        if (this.quadtree === undefined) {
+            this.quadtree = new QuadtreeNearest<TDatum>(100, 10, this.chart?.seriesRect);
+            this.initQuadTree(this.quadtree);
+        }
+        return this.quadtree;
+    }
+
+    protected initQuadTree(_quadtree: QuadtreeNearest<TDatum>) {
+        // Override point for subclasses
     }
 
     protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {

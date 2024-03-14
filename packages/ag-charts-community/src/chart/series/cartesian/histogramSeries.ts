@@ -6,6 +6,7 @@ import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
 import ticks, { tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
@@ -26,7 +27,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
-import { childrenIter, createQuadtree } from './quadtreeUtil';
+import { addHitTestersToQuadtree, childrenIter } from './quadtreeUtil';
 
 enum HistogramSeriesNodeTag {
     Bin,
@@ -436,11 +437,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         });
     }
 
-    private getQuadTree() {
-        if (this.quadtree === undefined) {
-            this.quadtree = createQuadtree(this.chart?.seriesRect, childrenIter<Rect>(this.contentGroup.children[0]));
-        }
-        return this.quadtree;
+    protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, childrenIter<Rect>(this.contentGroup.children[0]));
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
