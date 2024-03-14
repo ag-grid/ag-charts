@@ -1,6 +1,7 @@
+import type { InteractionRange } from '../../options/agChartOptions';
 import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult } from '../../options/chart/tooltipOptions';
 import { BaseProperties } from '../../util/properties';
-import { BOOLEAN, FUNCTION, OBJECT, Validate } from '../../util/validation';
+import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, Validate } from '../../util/validation';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
@@ -22,6 +23,9 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> extends Base
 
     @Validate(OBJECT)
     readonly interaction = new SeriesTooltipInteraction();
+
+    @Validate(INTERACTION_RANGE)
+    range: InteractionRange = 'nearest';
 
     @Validate(OBJECT)
     readonly position = new TooltipPosition();
