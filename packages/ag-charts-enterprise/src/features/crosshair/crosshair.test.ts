@@ -156,6 +156,7 @@ const SIMPLE_LINE_OPTIONS: AgCartesianChartOptions = {
 const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: CATEGORY_AXIS_OPTIONS,
+    tooltip: { range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar' })) as AgBarSeriesOptions[],
 };
 
@@ -167,18 +168,21 @@ const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
 const STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SIMPLE_AXIS_OPTIONS,
+    tooltip: { range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: true })) as AgBarSeriesOptions[],
 };
 
 const GROUPED_COLUMN_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: CATEGORY_AXIS_OPTIONS,
+    tooltip: { range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({ ...s, type: 'bar', stacked: false })) as AgBarSeriesOptions[],
 };
 
 const STACKED_BAR_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SIMPLE_AXIS_OPTIONS,
+    tooltip: { range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
         type: 'bar',
@@ -207,6 +211,7 @@ const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
             crosshair: CROSSHAIR_OPTIONS,
         },
     ],
+    tooltip: { range: 'exact' },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
         type: 'bar',
