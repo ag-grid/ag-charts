@@ -9,9 +9,7 @@ import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { extent } from '../../../util/array';
-import { Logger } from '../../../util/logger';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import { LogAxis } from '../../axis/logAxis';
@@ -53,6 +51,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
+import { childrenOfChildrenIter, createQuadtree } from './quadtreeUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -480,18 +479,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     private getQuadTree() {
         if (this.quadtree === undefined) {
-            this.quadtree = new QuadtreeNearest(100, 10, this.chart?.seriesRect);
-            for (const children of this.contentGroup.children) {
-                for (const node of children.children) {
-                    const rect = node as Rect;
-                    const datum: BarNodeDatum | undefined = node.datum;
-                    if (datum !== undefined) {
-                        this.quadtree.addValue(rect, datum);
-                    } else {
-                        Logger.error('undefined datum');
-                    }
-                }
-            }
+            this.quadtree = createQuadtree(this.chart?.seriesRect, childrenOfChildrenIter<Rect>(this.contentGroup));
         }
         return this.quadtree;
     }
