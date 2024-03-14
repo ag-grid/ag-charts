@@ -506,6 +506,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateNoRenderCount = 0;
+    private _performUpdateSerialId = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
 
@@ -640,6 +641,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.updateShortcutCount = 0;
                 this.updateRequestors = {};
                 this._performUpdateSkipAnimations = false;
+                this._performUpdateSerialId++;
                 this.animationManager.endBatch();
         }
 
@@ -1042,6 +1044,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected onMouseMove(event: InteractionEvent<'hover'>): void {
         this.lastInteractionEvent = event;
+        this.lastInteractionUpdateId = this._performUpdateSerialId;
         this.pointerScheduler.schedule();
 
         this.extraDebugStats['mouseX'] = event.offsetX;
@@ -1071,12 +1074,23 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private lastInteractionEvent?: InteractionEvent<'hover'> = undefined;
+    private lastInteractionEvent?: InteractionEvent<'hover'>;
+    private lastInteractionUpdateId?: number;
     private pointerScheduler = debouncedAnimationFrame(() => {
-        if (this.lastInteractionEvent) {
-            this.handlePointer(this.lastInteractionEvent, false);
-            this.lastInteractionEvent = undefined;
+        if (!this.lastInteractionEvent) return;
+
+        if (
+            this.performUpdateType !== ChartUpdateType.NONE &&
+            (this.lastInteractionUpdateId ?? 0) <= this._performUpdateSerialId
+        ) {
+            // Reschedule until the current update processing is complete, if we try to
+            // perform a highlight mid-update then we may not have fresh node data to work with.
+            this.pointerScheduler.schedule();
+            return;
         }
+
+        this.handlePointer(this.lastInteractionEvent, false);
+        this.lastInteractionEvent = undefined;
     });
     protected handlePointer(event: PointerOffsets, redisplay: boolean) {
         if (this.interactionManager.getState() !== InteractionState.Default) {
