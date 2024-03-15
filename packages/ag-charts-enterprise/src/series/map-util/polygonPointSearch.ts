@@ -5,6 +5,7 @@ import { polygonBbox, polygonCentroid, polygonDistance } from './polygonUtil';
 
 interface LabelPlacement {
     distance: number;
+    maxDistance: number;
     value: number;
     maxValue: number;
     x: number;
@@ -41,11 +42,12 @@ export function polygonPointSearch(
     const cellValue = (distanceToPolygon: number, distanceToCentroid: number) => {
         const centroidDriftFactor = 0.5; // Increase to pull labels closer towards 'center'
         const centroidDrift = Math.max(distanceToCentroid - centroidDistanceToPolygon, 0);
-        return Math.max(distanceToPolygon - centroidDriftFactor * centroidDrift, 0);
+        return distanceToPolygon - centroidDriftFactor * centroidDrift;
     };
 
     const createLabelPlacement = (x: number, y: number, stride: number): LabelPlacement => {
         const { distance, maxDistance } = valueFn(polygons, x, y, stride);
+
         const distanceToCentroid = Math.hypot(cx - x, cy - y);
 
         const maxXTowardsCentroid = Math.min(Math.max(cx, x - stride / 2), x + stride / 2);
@@ -55,7 +57,14 @@ export function polygonPointSearch(
         const value = cellValue(distance, distanceToCentroid);
         const maxValue = cellValue(maxDistance, minDistanceToCentroid);
 
-        return { distance, value, maxValue, x, y, stride };
+        return { distance, maxDistance, value, maxValue, x, y, stride };
+    };
+
+    const appendLabelPlacement = (into: LabelPlacement[], x: number, y: number, stride: number) => {
+        const labelPlacement = createLabelPlacement(x, y, stride);
+        if (labelPlacement.maxDistance >= 0) {
+            into.push(labelPlacement);
+        }
     };
 
     const initialStride = Math.min(boundingWidth, boundingHeight) / 2;
@@ -78,12 +87,11 @@ export function polygonPointSearch(
         }
 
         const nextStride = stride / 2;
-        const newLabelPlacements = [
-            createLabelPlacement(x - nextStride, y - nextStride, nextStride),
-            createLabelPlacement(x + nextStride, y - nextStride, nextStride),
-            createLabelPlacement(x - nextStride, y + nextStride, nextStride),
-            createLabelPlacement(x + nextStride, y + nextStride, nextStride),
-        ];
+        const newLabelPlacements: LabelPlacement[] = [];
+        appendLabelPlacement(newLabelPlacements, x - nextStride, y - nextStride, nextStride);
+        appendLabelPlacement(newLabelPlacements, x + nextStride, y - nextStride, nextStride);
+        appendLabelPlacement(newLabelPlacements, x - nextStride, y + nextStride, nextStride);
+        appendLabelPlacement(newLabelPlacements, x + nextStride, y + nextStride, nextStride);
 
         newLabelPlacements.sort(labelPlacementCmp);
 
@@ -96,4 +104,4 @@ export function polygonPointSearch(
     return { x, y, distance };
 }
 
-const labelPlacementCmp = (a: LabelPlacement, b: LabelPlacement) => a.maxValue - b.maxValue;
+const labelPlacementCmp = (a: LabelPlacement, b: LabelPlacement) => b.maxValue - a.maxValue;

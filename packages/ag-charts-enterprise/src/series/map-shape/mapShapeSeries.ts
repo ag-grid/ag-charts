@@ -231,7 +231,7 @@ export class MapShapeSeries
 
         const labelPlacement = preferredLabelCenter(fixedPolygon, {
             aspectRatio,
-            precision: 1e-4,
+            precision: 1e-2,
         });
         if (labelPlacement == null) return;
 
