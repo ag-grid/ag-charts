@@ -205,6 +205,10 @@
                 "title": "Migration",
                 "items": [
                     {
+                        "title": "Upgrade to AG Charts 9.2",
+                        "path": "upgrade-to-ag-charts-9-2"
+                    },
+                    {
                         "title": "Upgrade to AG Charts 9.1",
                         "path": "upgrade-to-ag-charts-9-1"
                     },
