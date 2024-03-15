@@ -103,6 +103,11 @@
           "commands": [
             "node {projectRoot}/tools/compare-gallery-thumbnails.js -u dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
           ]
+        },
+        "ci": {
+          "commands": [
+            "node {projectRoot}/tools/compare-gallery-thumbnails.js -ci dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
+          ]
         }
       }
     },

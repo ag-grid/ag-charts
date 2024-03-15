@@ -17,16 +17,14 @@ const fail = (msg, usage) => {
 };
 
 // Parse argv.
-let update = false;
-
 let argv = process.argv.slice(2);
-if (argv[0] === '-u') {
-    update = true;
-    argv.shift();
-}
-if (argv.some((v) => v.startsWith('-'))) {
-    fail('Unexpected flag', true);
-} else if (argv.length !== 2) {
+const flags = new Set(argv.filter((v) => v.startsWith('-')));
+
+const update = flags.has('-u');
+const ci = flags.has('-ci');
+
+argv = argv.filter((v) => !v.startsWith('-'));
+if (argv.length !== 2) {
     fail('Wrong number of arguments', true);
 }
 
@@ -48,6 +46,7 @@ let snapshots = {
     updated: 0,
     mismatching: 0,
     matched: 0,
+    skipped: 0,
 };
 const mismatched = [];
 const inputs = glob.sync('**/ag-default.png', { cwd: inputDir });
@@ -55,7 +54,19 @@ for (const input of inputs) {
     const inputPath = path.join(inputDir, input);
     const comparePath = path.join(compareDir, input);
 
+    if (fs.existsSync(path.join(path.dirname(comparePath), '.skip'))) {
+        console.log('\x1b[33m%s\x1b[0m', `[skipped] ${comparePath}`);
+        snapshots.skipped++;
+        continue;
+    }
+
     if (!fs.existsSync(comparePath)) {
+        if (ci) {
+            mismatched.push(`[missing] ${inputPath}\n     [vs] ${comparePath}`);
+            snapshots.mismatching++;
+            continue;
+        }
+
         fs.mkdirSync(path.dirname(comparePath), { recursive: true });
         fs.copyFileSync(inputPath, comparePath);
 
