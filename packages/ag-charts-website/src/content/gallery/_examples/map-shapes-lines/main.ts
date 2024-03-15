@@ -41,7 +41,7 @@ const options: AgChartOptions = {
             type: 'map-shape',
             topology: otherCountiesTopology,
             data: otherCountiesData,
-            topologyIdKey: 'county',
+            topologyIdKey: 'name',
             idKey: 'county',
             fillOpacity: 0,
             stroke: 'gray',
