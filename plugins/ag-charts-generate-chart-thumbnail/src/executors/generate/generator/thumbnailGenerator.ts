@@ -32,7 +32,13 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
 
     const entryFile = files[entryFileName];
 
-    const preamble = [files['data.js'] ?? '', files['topology.js'] ?? '', files['backgroundTopology.js'] ?? ''];
+    const preamble = Object.entries(files).map(([fileName, contents]) => {
+        if (fileName.endsWith('.js') && fileName !== entryFileName) {
+            return contents;
+        } else {
+            return '';
+        }
+    });
     const { optionsById } = transformPlainEntryFile(entryFile, preamble);
 
     const { rows, columns, charts } = getChartLayout(files['index.html']);
