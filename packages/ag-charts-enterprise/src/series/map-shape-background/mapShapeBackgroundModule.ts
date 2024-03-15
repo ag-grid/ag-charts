@@ -2,7 +2,7 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
 
-const { DEFAULT_MAP_BACKGROUND_FILL, DEFAULT_BACKGROUND_COLOUR } = _Theme;
+const { DEFAULT_BACKGROUND_COLOUR, DEFAULT_HIERARCHY_FILLS } = _Theme;
 
 export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-background'> = {
     type: 'series',
@@ -14,7 +14,6 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     instanceConstructor: MapShapeBackgroundSeries,
     themeTemplate: {
         series: {
-            fill: DEFAULT_MAP_BACKGROUND_FILL,
             stroke: DEFAULT_BACKGROUND_COLOUR,
             strokeWidth: 1,
         },
@@ -27,5 +26,11 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
         tooltip: {
             range: 'exact',
         },
+    },
+    paletteFactory: ({ themeTemplateParameters }) => {
+        const { properties } = themeTemplateParameters;
+        return {
+            fill: properties.get(DEFAULT_HIERARCHY_FILLS)?.[1],
+        };
     },
 };

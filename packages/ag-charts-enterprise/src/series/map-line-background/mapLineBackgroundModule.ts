@@ -2,7 +2,7 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { MapLineBackgroundSeries } from './mapLineBackgroundSeries';
 
-const { EXTENDS_SERIES_DEFAULTS, DEFAULT_LABEL_COLOUR } = _Theme;
+const { EXTENDS_SERIES_DEFAULTS, DEFAULT_HIERARCHY_STROKES } = _Theme;
 
 export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-background'> = {
     type: 'series',
@@ -15,9 +15,7 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
-            stroke: DEFAULT_LABEL_COLOUR,
             strokeWidth: 1,
-            strokeOpacity: 0.2,
             lineDash: [0],
             lineDashOffset: 0,
         },
@@ -30,5 +28,11 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
         tooltip: {
             range: 'exact',
         },
+    },
+    paletteFactory: ({ themeTemplateParameters }) => {
+        const { properties } = themeTemplateParameters;
+        return {
+            stroke: properties.get(DEFAULT_HIERARCHY_STROKES)?.[1],
+        };
     },
 };
