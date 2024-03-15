@@ -86,6 +86,23 @@ In this configuration:
 -   `strokeWidth` is used for the smallest values in the Size Scale.
 -   `maxStrokeWidth` is used for the largest values in the Size Scale.
 
+## Backgrounds
+
+The Map Line Background is a way to underlay all the lines of a topology without accompanying data. This can be useful provide context to other [Map Line Series](./map-lines/) or [Map Marker Series](./map-markers/).
+
+As this is a background series rather than a data series, many normal series behaviours are disabled - including appearing in the legend.
+
+{% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'map-line-background',
+    },
+    // ...
+],
+```
+
 ## API Reference
 
 {% tabs %}

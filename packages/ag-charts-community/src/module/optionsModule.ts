@@ -67,7 +67,7 @@ enum GroupingType {
     GROUP = 'group',
 }
 
-const unthemedSeries = new Set<SeriesType>(['map-shape-background']);
+const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;

@@ -24,6 +24,7 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
+import type { AgMapLineBackgroundThemeableOptions } from '../series/topology/mapLineBackgroundOptions';
 import type { AgMapLineSeriesThemeableOptions } from '../series/topology/mapLineOptions';
 import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
 import type { AgMapShapeBackgroundThemeableOptions } from '../series/topology/mapShapeBackgroundOptions';
@@ -158,6 +159,9 @@ export interface AgMapMarkerSeriesThemeOverrides extends AgBaseTopologyThemeOpti
 export interface AgMapShapeBackgroundThemeOverrides extends AgBaseTopologyThemeOptions {
     series?: AgMapShapeBackgroundThemeableOptions;
 }
+export interface AgMapLineBackgroundThemeOverrides extends AgBaseTopologyThemeOptions {
+    series?: AgMapLineBackgroundThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -220,7 +224,9 @@ export interface AgChartThemeOverrides {
     /** Map-marker series theme overrides. */
     'map-marker'?: AgMapMarkerSeriesThemeOverrides;
     /** map-shape-background series theme overrides. */
-    'map-shape-background'?: AgMapMarkerSeriesThemeOverrides;
+    'map-shape-background'?: AgMapShapeBackgroundThemeOverrides;
+    /** map-line-background series theme overrides. */
+    'map-line-background'?: AgMapLineBackgroundThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually

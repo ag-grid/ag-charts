@@ -13,7 +13,8 @@ function isTopologySeries(series: Series<any, any>): series is TopologySeries {
         series.type === 'map-shape' ||
         series.type === 'map-line' ||
         series.type === 'map-marker' ||
-        series.type === 'map-shape-background'
+        series.type === 'map-shape-background' ||
+        series.type === 'map-line-background'
     );
 }
 
