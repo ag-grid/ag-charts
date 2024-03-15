@@ -1,5 +1,6 @@
 import { Icon } from '@components/icon/Icon';
 import styles from '@design-system/modules/CommunityToolsExtensions.module.scss';
+import { useDarkmode } from '@utils/hooks/useDarkmode';
 import React, { useState } from 'react';
 
 import tools from '../../content/community/tools-extensions.json';
@@ -18,6 +19,7 @@ const frameworks = [
 ];
 
 const ToolsExtensions = ({ limit = -1 }) => {
+    const [darkMode] = useDarkmode();
     const applyLimit = (arr) => arr?.slice(0, limit == -1 ? tools.length : limit);
     const filterFrameworks = (framework) => {
         let filter = framework ? tools.filter((item) => item.frameworks?.includes(framework)) : tools;
@@ -65,6 +67,7 @@ const ToolsExtensions = ({ limit = -1 }) => {
                                 onClick={() => filterFrameworks(framework)}
                             >
                                 <img
+                                    className={framework === 'Rust' && darkMode ? styles.invert : ''}
                                     src={`/community/frameworks/${framework.toLowerCase()}.svg`}
                                     alt={`${framework}`}
                                 />
@@ -90,6 +93,7 @@ const ToolsExtensions = ({ limit = -1 }) => {
                                         {
                                             <img
                                                 src={`${tool.img ? `/community/tools-extensions/${tool.img}` : getGithubImage(tool.repo)}`}
+                                                alt={`${tool.name} logo`}
                                             />
                                         }
                                     </div>
@@ -97,7 +101,13 @@ const ToolsExtensions = ({ limit = -1 }) => {
                                         <div className={styles.toolHeader}>
                                             <span className={styles.title}>{tool.title}</span>
                                             {tool.repo && (
-                                                <div onClick={() => window.open(tool.repo)} target="_blank">
+                                                <div
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(tool.repo);
+                                                    }}
+                                                    target="_blank"
+                                                >
                                                     <div className={styles.logoContainer}>
                                                         <Icon
                                                             alt={`GitHub logo`}
@@ -115,6 +125,7 @@ const ToolsExtensions = ({ limit = -1 }) => {
                                                     <img
                                                         src={`/community/frameworks/${framework.toLowerCase()}.svg`}
                                                         className={styles.frameworkLogo}
+                                                        alt={`${framework} logo`}
                                                     />
                                                     {framework}
                                                 </span>

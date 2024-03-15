@@ -70,6 +70,10 @@
             margin-right: $spacing-size-2;
             padding: 4px;
             object-fit: contain;
+
+            &.invert {
+                filter: invert(1);
+            }
         }
 
         &[active='true'] {

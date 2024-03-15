@@ -34,6 +34,7 @@ const Podcasts = () => {
                                 <img
                                     className={styles.publicationLogo}
                                     src={`/community/podcasts/${podcast.publicationLogo}`}
+                                    alt={`${podcast.publicationLogo} logo`}
                                 />
                                 <span className={styles.publication}>{podcast.publication}</span>
                                 <span>|</span>
