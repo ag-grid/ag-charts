@@ -19,18 +19,16 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     instanceConstructor: BarSeries,
     stackable: true,
     groupable: true,
-    seriesDefaults: {
-        axes: [
-            {
-                type: CARTESIAN_AXIS_TYPE.NUMBER,
-                position: POSITION.LEFT,
-            },
-            {
-                type: CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: POSITION.BOTTOM,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.LEFT,
+        },
+        {
+            type: CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: POSITION.BOTTOM,
+        },
+    ],
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     themeTemplate: {
         series: {

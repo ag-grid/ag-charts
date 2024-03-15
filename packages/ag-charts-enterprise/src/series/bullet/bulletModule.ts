@@ -11,18 +11,16 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     identifier: 'bullet',
     solo: true,
     instanceConstructor: BulletSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                position: _Theme.POSITION.LEFT,
-            },
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: _Theme.POSITION.BOTTOM,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+            position: _Theme.POSITION.LEFT,
+        },
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: _Theme.POSITION.BOTTOM,
+        },
+    ],
     themeTemplate: BULLET_SERIES_THEME,
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {

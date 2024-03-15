@@ -19,18 +19,16 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     instanceConstructor: AreaSeries,
     stackable: true,
-    seriesDefaults: {
-        axes: [
-            {
-                type: CARTESIAN_AXIS_TYPE.NUMBER,
-                position: POSITION.LEFT,
-            },
-            {
-                type: CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: POSITION.BOTTOM,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.LEFT,
+        },
+        {
+            type: CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: POSITION.BOTTOM,
+        },
+    ],
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,

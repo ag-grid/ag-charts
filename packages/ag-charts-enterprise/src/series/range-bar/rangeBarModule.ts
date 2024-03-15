@@ -11,18 +11,16 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
 
     identifier: 'range-bar',
     instanceConstructor: RangeBarSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: _Theme.POSITION.BOTTOM,
-            },
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                position: _Theme.POSITION.LEFT,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: _Theme.POSITION.BOTTOM,
+        },
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+            position: _Theme.POSITION.LEFT,
+        },
+    ],
     themeTemplate: RANGE_BAR_SERIES_THEME,
 
     paletteFactory: ({ takeColors }) => {

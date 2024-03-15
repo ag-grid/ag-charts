@@ -10,7 +10,6 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
 
     identifier: 'pie',
     instanceConstructor: PieSeries,
-    seriesDefaults: {},
     themeTemplate: pieTheme,
     paletteFactory: piePaletteFactory,
 };

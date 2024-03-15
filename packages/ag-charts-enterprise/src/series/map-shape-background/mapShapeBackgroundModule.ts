@@ -12,7 +12,6 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
 
     identifier: 'map-shape-background',
     instanceConstructor: MapShapeBackgroundSeries,
-    seriesDefaults: {},
     themeTemplate: {
         series: {
             fill: DEFAULT_MAP_BACKGROUND_FILL,

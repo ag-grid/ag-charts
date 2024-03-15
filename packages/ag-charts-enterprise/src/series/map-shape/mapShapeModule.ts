@@ -18,7 +18,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
 
     identifier: 'map-shape',
     instanceConstructor: MapShapeSeries,
-    seriesDefaults: {},
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
