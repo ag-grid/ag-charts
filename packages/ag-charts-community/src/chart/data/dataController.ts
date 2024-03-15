@@ -100,9 +100,12 @@ export class DataController {
                     resultCbs.forEach((callback, requestIdx) =>
                         callback({
                             dataModel,
-                            processedData: needsValueExtraction
-                                ? this.extractScopedData(ids[requestIdx], processedData, scopes)
-                                : this.removeScopedData(processedData, scopes),
+                            processedData: this.processScopedData(
+                                ids[requestIdx],
+                                processedData,
+                                scopes,
+                                needsValueExtraction
+                            ),
                         })
                     );
                 } else if (processedData) {
@@ -124,12 +127,17 @@ export class DataController {
         return false;
     }
 
-    private extractScopedData(id: string, processedData: UngroupedData<any>, ids: string[]) {
+    private processScopedData(
+        id: string,
+        processedData: UngroupedData<any>,
+        ids: string[],
+        needsValueExtraction: boolean
+    ) {
         const extractDatum = (datum: any): any => {
             if (Array.isArray(datum)) {
                 return datum.map(extractDatum);
             }
-            const extracted = { ...datum, ...datum[id] };
+            const extracted = needsValueExtraction ? { ...datum, ...datum[id] } : datum;
             for (const otherId of ids) {
                 delete extracted[otherId];
             }
@@ -148,18 +156,9 @@ export class DataController {
             data: processedData.data.map((datum) => ({
                 ...datum,
                 datum: extractDatum(datum.datum),
-                values: datum.values?.map(extractValues),
+                values: needsValueExtraction ? datum.values?.map(extractValues) : datum.values,
             })),
         };
-    }
-
-    private removeScopedData(processedData: UngroupedData<any>, ids: string[]) {
-        for (const datum of processedData.data) {
-            for (const otherId of ids) {
-                delete datum.datum[otherId];
-            }
-        }
-        return processedData;
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {
