@@ -3,16 +3,10 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { data } from './data';
 import { topology } from './topology';
 
-const numberFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    useGrouping: true,
-});
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'GDP of American States',
+        text: 'GDP by State',
     },
     data,
     topology,
@@ -22,8 +16,8 @@ const options: AgChartOptions = {
             idKey: 'name',
             colorKey: 'gdp',
             tooltip: {
-                renderer: ({ datum, title }) => ({
-                    title,
+                renderer: ({ datum }) => ({
+                    title: datum.name,
                     content: `GDP: ${numberFormatter.format(datum?.gdp)}`,
                 }),
             },
@@ -46,3 +40,9 @@ const options: AgChartOptions = {
 };
 
 AgCharts.create(options);
+
+const numberFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    useGrouping: true,
+});

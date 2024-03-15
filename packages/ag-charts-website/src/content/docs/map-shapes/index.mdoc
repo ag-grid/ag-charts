@@ -2,11 +2,9 @@
 title: 'Geographic Areas'
 ---
 
-The Map Shape Series allows you to visualise geographic boundaries, such as countries.
+The Map Shape Series visualises data representing geographic areas such as countries, using colours to denote distinct series or the magnitude of the values.
 
 ## Simple Map Shapes
-
-A Map Shape Series takes data and a topology in GeoJSON format, with the data referencing items in the topology.
 
 {% chartExampleRunner title="Multiple Series" name="multiple-series" type="generated" /%}
 
@@ -18,7 +16,6 @@ topology: topology,
 series: [
     {
         type: 'map-shape',
-        topologyIdKey: 'name',
         idKey: 'name',
     },
 ],
@@ -26,11 +23,34 @@ series: [
 
 In this configuration:
 
--   `topologyIdKey` defines the property key to match against in the topology GeoJSON
--   `idKey` defines the property key in the data that will be matched against the property value in the topology
+-   `idKey` defines the property key in the data that will be matched against the property value in the topology.
 
 {% note %}
-Topology features that did not match an item in the data will not be rendered.
+See [Map Topology](./map-topology/#connecting-data) for details of how to connect the data and topology.
+{% /note %}
+
+## Colour Scale
+
+{% chartExampleRunner title="Heatmap" name="heatmap" type="generated" /%}
+
+To colour the shapes based on the magnitude of the data, use `colorKey`.
+
+```js
+series: [
+    {
+        type: 'map-shape',
+        idKey: 'name',
+        colorKey: 'gdp',
+    },
+],
+```
+
+In this configuration:
+
+-   `colorKey` is set to 'gdp', which supplies numerical values for the colour scale.
+
+{% note %}
+Click the links for more information on how to customise the [colour range](./heatmap-series/#colour-range) and [Gradient Legend](./heatmap-series/#gradient-legend).
 {% /note %}
 
 ## Labels
@@ -51,44 +71,30 @@ In this configuration:
 
 -   `labelKey` defines the variable used for the labels.
 
-## Heatmap
+{% note %}
+See [Label options](#reference-AgMapShapeSeriesOptions-label) for options for handling long labels.
+{% /note %}
 
-A heat map will colour shapes to denote the magnitude of the data values.
+## Background Shapes
 
-{% chartExampleRunner title="Heatmap" name="heatmap" type="generated" /%}
+The Map Shape Background series displays all the shapes of a topology without requiring data.
 
-```js
-series: [
-    {
-        type: 'map-shape',
-        idKey: 'name',
-        colorKey: 'gdp',
-    },
-],
-```
-
-In this configuration:
-
--   `colorKey` is set to 'gdp', which supplies numerical values for the Colour Scale.
-
-See [Heatmap Series](./heatmap/) for more information on how to customise Colour Scales and the Gradient Legend.
-
-## Backgrounds
-
-The Map Shape Background is a way to underlay all the shapes of a topology without accompanying data. This can be useful to keep context as Map Shape Series are toggled off in the legend, or to provide context to [Map Line Series](./map-lines/) and [Map Marker Series](./map-markers/).
-
-As this is a background series rather than a data series, many normal series behaviours are disabled - including appearing in the legend.
+This can be useful to keep context as Map Shape Series are toggled off in the legend, or to provide context to [Map Line Series](./map-lines/) and [Map Marker Series](./map-markers/).
 
 {% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
 
 ```js
 series: [
-    {
-        type: 'map-shape-background',
-    },
-    // ...
+{
+    type: 'map-shape-background',
+},
+// ...
 ],
 ```
+
+{% note %}
+As this is a background series rather than a data series, many normal series behaviours are disabled - including appearing in the legend.
+{% /note %}
 
 ## API Reference
 

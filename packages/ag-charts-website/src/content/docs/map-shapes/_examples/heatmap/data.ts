@@ -1,6 +1,5 @@
 export const data = [
     { name: 'Alabama', code: 'AL', gdp: 302289 },
-    { name: 'Alaska', code: 'AK', gdp: 67673 },
     { name: 'Arizona', code: 'AZ', gdp: 512504 },
     { name: 'Arkansas', code: 'AR', gdp: 176878 },
     { name: 'California', code: 'CA', gdp: 3898158 },
@@ -10,7 +9,6 @@ export const data = [
     { name: 'District of Columbia', code: 'DC', gdp: 176491 },
     { name: 'Florida', code: 'FL', gdp: 1595347 },
     { name: 'Georgia', code: 'GA', gdp: 811294 },
-    { name: 'Hawaii', code: 'HI', gdp: 108993 },
     { name: 'Idaho', code: 'ID', gdp: 119810 },
     { name: 'Illinois', code: 'IL', gdp: 1092246 },
     { name: 'Indiana', code: 'IN', gdp: 501267 },
