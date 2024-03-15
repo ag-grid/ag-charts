@@ -698,6 +698,7 @@ export class MapMarkerSeries
             colorName,
             colorRange,
             visible,
+            shape,
             fill,
             stroke,
             fillOpacity,
@@ -726,6 +727,7 @@ export class MapMarkerSeries
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.id },
                 marker: {
+                    shape,
                     fill,
                     fillOpacity,
                     stroke,
