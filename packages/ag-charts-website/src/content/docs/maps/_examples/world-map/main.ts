@@ -6,7 +6,10 @@ import { topology } from './topology';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'World Population',
+        text: 'todo - WORLD MAP EXAMPLE - todo',
+    },
+    subtitle: {
+        text: 'Heatmap world with pins',
     },
     topology,
     data,

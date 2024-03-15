@@ -226,10 +226,6 @@
                         "path": "maps"
                     },
                     {
-                        "title": "Map Topology",
-                        "path": "map-topology"
-                    },
-                    {
                         "title": "Geographic Areas",
                         "path": "map-shapes"
                     },
@@ -240,6 +236,10 @@
                     {
                         "title": "Markers and Points of Interest",
                         "path": "map-markers"
+                    },
+                    {
+                        "title": "Map Topology",
+                        "path": "map-topology"
                     }
                 ]
             }
