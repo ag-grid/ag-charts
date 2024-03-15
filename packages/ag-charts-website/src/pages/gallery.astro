@@ -51,15 +51,17 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
                             <div class="gallery-list">
                                 {series.map(({ title, seriesName, examples }) => (
                                     <>
-                                        {examples.filter(({ hidden }) => !hidden).map(({ title, name }: GalleryExample, i) => (
-                                            <GalleryExampleLink
-                                                client:visible
-                                                label={title}
-                                                exampleName={name}
-                                                id={i === 0 ? seriesName : null}
-                                                enableDprScaling={enableDprScaling}
-                                            />
-                                        ))}
+                                        {examples
+                                            .filter(({ hidden }) => !hidden)
+                                            .map(({ title, name }: GalleryExample, i) => (
+                                                <GalleryExampleLink
+                                                    client:visible
+                                                    label={title}
+                                                    exampleName={name}
+                                                    id={i === 0 ? seriesName : null}
+                                                    enableDprScaling={enableDprScaling}
+                                                />
+                                            ))}
                                     </>
                                 ))}
                             </div>
