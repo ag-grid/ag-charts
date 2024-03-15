@@ -116,7 +116,7 @@ export class Text extends Shape {
 
         const font = getFont(this);
         for (let i = 0; i < lines.length; i++) {
-            const metrics = Text.measureText(lines[i], font, textBaseline, textAlign);
+            const metrics: any = Text.measureText(lines[i], font, textBaseline, textAlign);
 
             left = Math.max(left, metrics.actualBoundingBoxLeft);
             width = Math.max(width, metrics.width);
@@ -125,13 +125,15 @@ export class Text extends Shape {
                 top += metrics.actualBoundingBoxAscent;
                 height += metrics.actualBoundingBoxAscent;
             } else {
-                baselineDistance += metrics.fontBoundingBoxAscent;
+                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
+                baselineDistance += metrics.fontBoundingBoxAscent ?? metrics.emHeightAscent;
             }
 
             if (i == lines.length - 1) {
                 height += metrics.actualBoundingBoxDescent;
             } else {
-                baselineDistance += metrics.fontBoundingBoxDescent;
+                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
+                baselineDistance += metrics.fontBoundingBoxDescent ?? metrics.emHeightDescent;
             }
         }
 
