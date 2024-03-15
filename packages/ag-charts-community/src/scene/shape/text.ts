@@ -150,8 +150,12 @@ export class Text extends Shape {
             return this.lineHeight;
         }
 
-        const metrics = Text.measureText(line, this.font, this.textBaseline, this.textAlign);
-        return metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+        const metrics: any = Text.measureText(line, this.font, this.textBaseline, this.textAlign);
+        return (
+            // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
+            (metrics.fontBoundingBoxAscent ?? metrics.emHeightAscent) +
+            (metrics.fontBoundingBoxDescent ?? metrics.emHeightDescent)
+        );
     }
 
     isPointInPath(x: number, y: number): boolean {
