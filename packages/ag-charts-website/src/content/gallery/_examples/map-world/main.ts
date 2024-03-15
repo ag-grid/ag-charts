@@ -93,6 +93,7 @@ const options: AgChartOptions = {
             sizeName: 'Population Estimate',
             size: 5,
             maxSize: 60,
+            showInLegend: false,
         },
         {
             type: 'map-line',
@@ -141,7 +142,7 @@ const options: AgChartOptions = {
             idName: 'GDP (USD Billion)',
             sizeKey: 'gdp_per_capita_usd_thousand',
             sizeName: 'GDP Per Capita (USD thousand)',
-            legendItemName: 'Largest Economies',
+            showInLegend: false,
         },
     ],
     legend: {
