@@ -254,7 +254,7 @@ export class MapShapeSeries
 
         const maxSizeWithoutTruncation = {
             width: Math.ceil(maxWidth * scale),
-            height: Math.ceil((maxWidth * scale + 2 * padding) / aspectRatio - 2 * padding),
+            height: Math.ceil((maxWidth * scale) / aspectRatio),
             meta: untruncatedX,
         };
         const labelFormatting = formatSingleLabel<number, AgMapShapeSeriesLabelFormatterParams>(
@@ -274,10 +274,12 @@ export class MapShapeSeries
         );
         if (labelFormatting == null) return;
 
-        const [{ text, fontSize, lineHeight }, x] = labelFormatting;
-
+        const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
         // FIXME - formatSingleLabel should never return an ellipsis
         if (text === Text.ellipsis) return;
+
+        // Only shift horizontally if necessary
+        const x = width > maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
 
         return {
             x: x * scale - originX,

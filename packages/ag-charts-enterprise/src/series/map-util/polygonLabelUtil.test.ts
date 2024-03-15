@@ -42,7 +42,7 @@ describe('maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment', () => {
     });
 });
 
-describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
+describe('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
     test('Left intersection', () => {
         expect(
             xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
@@ -70,6 +70,19 @@ describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
             minX: -3,
             maxX: Infinity,
         });
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [-3, -10],
+                [-3, 10],
+                0,
+                0,
+                1
+            )
+        ).toEqual({
+            minX: -3,
+            maxX: Infinity,
+        });
     });
 
     test('Right intersection', () => {
@@ -82,7 +95,10 @@ describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
                 0,
                 10
             )
-        ).toEqual({ minX: -Infinity, maxX: 3 });
+        ).toEqual({
+            minX: -Infinity,
+            maxX: 3,
+        });
         expect(
             xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
                 { minX: -Infinity, maxX: Infinity },
@@ -92,7 +108,23 @@ describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
                 0,
                 10
             )
-        ).toEqual({ minX: -Infinity, maxX: 3 });
+        ).toEqual({
+            minX: -Infinity,
+            maxX: 3,
+        });
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [3, -10],
+                [3, 10],
+                0,
+                0,
+                1
+            )
+        ).toEqual({
+            minX: -Infinity,
+            maxX: 3,
+        });
     });
 
     test('Top intersection', () => {
@@ -105,7 +137,10 @@ describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
                 0,
                 2
             )
-        ).toEqual({ minX: -Infinity, maxX: 3 });
+        ).toEqual({
+            minX: -Infinity,
+            maxX: 3,
+        });
         expect(
             xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
                 { minX: -Infinity, maxX: Infinity },
@@ -115,7 +150,10 @@ describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
                 0,
                 2
             )
-        ).toEqual({ minX: -3, maxX: Infinity });
+        ).toEqual({
+            minX: -3,
+            maxX: Infinity,
+        });
     });
 
     test('Bottom intersection', () => {
@@ -128,7 +166,10 @@ describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
                 0,
                 2
             )
-        ).toEqual({ minX: -Infinity, maxX: 3 });
+        ).toEqual({
+            minX: -Infinity,
+            maxX: 3,
+        });
         expect(
             xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
                 { minX: -Infinity, maxX: Infinity },
@@ -138,6 +179,9 @@ describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
                 0,
                 2
             )
-        ).toEqual({ minX: -3, maxX: Infinity });
+        ).toEqual({
+            minX: -3,
+            maxX: Infinity,
+        });
     });
 });
