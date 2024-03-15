@@ -198,11 +198,6 @@
                         "name": "multiple-bubble-series"
                     },
                     {
-                        "title": "Bubble With Large Data",
-                        "description": "",
-                        "name": "bubble-with-large-data"
-                    },
-                    {
                         "title": "Bubble With Categories",
                         "description": "",
                         "name": "bubble-with-categories"
@@ -210,12 +205,14 @@
                     {
                         "title": "Bubble With Custom Markers",
                         "description": "",
-                        "name": "bubble-with-custom-markers"
+                        "name": "bubble-with-custom-markers",
+                        "hidden": true
                     },
                     {
                         "title": "Bubble With Labels",
                         "description": "",
-                        "name": "bubble-with-labels"
+                        "name": "bubble-with-labels",
+                        "hidden": true
                     }
                 ]
             }
