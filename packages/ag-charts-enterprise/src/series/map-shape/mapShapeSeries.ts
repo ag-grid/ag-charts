@@ -18,7 +18,7 @@ import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } f
 
 const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
 const { ColorScale } = _Scale;
-const { Group, Selection, Text } = _Scene;
+const { Group, Selection, Text, PointerEvents } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapShapeNodeDataContext
@@ -67,12 +67,13 @@ export class MapShapeSeries
     private readonly colorScale = new ColorScale();
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
     private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
         this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum> = Selection.select(
-        this.labelGroup,
+        this.itemLabelGroup,
         Text
     );
     private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
@@ -89,6 +90,8 @@ export class MapShapeSeries
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
+
+        this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
 
     setChartTopology(topology: any): void {
@@ -250,8 +253,8 @@ export class MapShapeSeries
         const { labelText, aspectRatio, x: untruncatedX, y, maxWidth, fixedPolygon } = labelLayout;
 
         const maxSizeWithoutTruncation = {
-            width: maxWidth * scale,
-            height: (maxWidth * scale + 2 * padding) / aspectRatio - 2 * padding,
+            width: Math.ceil(maxWidth * scale),
+            height: Math.ceil((maxWidth * scale + 2 * padding) / aspectRatio - 2 * padding),
             meta: untruncatedX,
         };
         const labelFormatting = formatSingleLabel<number, AgMapShapeSeriesLabelFormatterParams>(

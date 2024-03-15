@@ -33,9 +33,8 @@ const options: AgChartOptions = {
             fillOpacity: 0.2,
             strokeWidth: 2,
             label: {
-                fontWeight: 'lighter',
                 fontSize: 10,
-                color: 'gray',
+                minimumFontSize: 8,
             },
         },
         {
@@ -49,11 +48,10 @@ const options: AgChartOptions = {
             strokeOpacity: 0.2,
             labelKey: 'county',
             label: {
-                color: 'gray',
-                fontWeight: 'lighter',
                 fontSize: 10,
+                minimumFontSize: 8,
+                color: 'rgba(128,128,128,0.2)',
                 formatter: ({ value }) => {
-                    console.log(value);
                     return value === 'Chiltern' || value === 'Three Rivers' || value === 'Epping Forest' ? value : '';
                 },
             },
