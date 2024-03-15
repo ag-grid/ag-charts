@@ -1,3 +1,4 @@
+// source: https://cartographyvectors.com/map/759-world-outline-low-precision
 export const topology = {
     type: 'FeatureCollection',
     features: [
