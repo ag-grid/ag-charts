@@ -55,7 +55,11 @@ const EventItem = ({ event }) => {
                     <div className={styles.footer}>
                         <div className={styles.locationContainer}>
                             {event.countryIcon ? (
-                                <img className={styles.flag} src={`/example-assets/flags/${event.countryIcon}`} />
+                                <img
+                                    className={styles.flag}
+                                    src={`/example-assets/flags/${event.countryIcon}`}
+                                    alt={`${event.countryIcon}`}
+                                />
                             ) : (
                                 ''
                             )}
@@ -64,7 +68,10 @@ const EventItem = ({ event }) => {
                         <div className={styles.ctaContainer}>
                             {event.eventPage && (
                                 <div
-                                    onClick={() => window.open(event.eventPage)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(event.eventPage);
+                                    }}
                                     target="_blank"
                                     className={event.recording ? styles.secondaryCta : styles.primaryCta}
                                 >
@@ -73,7 +80,10 @@ const EventItem = ({ event }) => {
                             )}
                             {event.recording && (
                                 <div
-                                    onClick={() => window.open(event.recording)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(event.recording);
+                                    }}
                                     target="_blank"
                                     className={event.eventPage ? styles.primaryCta : styles.secondaryCta}
                                 >
@@ -85,11 +95,16 @@ const EventItem = ({ event }) => {
                 </div>
                 <div className={styles.eventItemRightColumn}>
                     {event.collage ? (
-                        <img className={styles.eventImage} src={`/community/events/collages/${event.collage}`} />
+                        <img
+                            className={styles.eventImage}
+                            src={`/community/events/collages/${event.collage}`}
+                            alt={`${event.collage}`}
+                        />
                     ) : (
                         <img
                             className={styles.eventLogo}
                             src={darkMode || !event.logoLight ? event.logo : event.logoLight}
+                            alt={`${event.eventLogo}`}
                         />
                     )}
                 </div>
@@ -150,6 +165,7 @@ const Events = () => {
                 <div className={styles.filterContainer}>
                     {extractUniqueYears(events).map((year, index) => (
                         <button
+                            key={index}
                             className={`${styles.tabButton} ${selectedYear == year ? styles.active : ''}`}
                             onClick={() => filterYears(year)}
                         >

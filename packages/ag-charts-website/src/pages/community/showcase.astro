@@ -5,7 +5,12 @@ import LayoutStyles from '@design-system/modules/CommunityLayout.module.scss';
 import Showcase from '@components/community-section/Showcase';
 ---
 
-<Layout title="AG Grid" showSearchBar={true} showDocsNav={false}>
+<Layout
+    showSearchBar={true}
+    showDocsNav={false}
+    title="AG Grid: Showcase"
+    description="AG Grid's products are downloaded millions of times per week. Most projects are internal and closed source, but we've hand-picked 200+ open-source examples to help inspire your next project."
+>
     <div class="layout-max-width-large">
         <div class={LayoutStyles.header}>
             <CommunityMenu path={Astro.url.pathname} client:load />

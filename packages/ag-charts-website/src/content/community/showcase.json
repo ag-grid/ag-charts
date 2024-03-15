@@ -11,7 +11,7 @@
             "tags": ["Finance"],
             "frameworks": ["React"],
             "products": ["Grid", "Charts"],
-            "img": "open-bb-terminal-pro.png",
+            "img": "open-bb-terminal-pro.webp",
             "favourite": true
         },
         {
@@ -22,7 +22,7 @@
             "type": "Product",
             "open_source": true,
             "stars": 8000,
-            "img": "windmill.png",
+            "img": "windmill.webp",
             "tags": ["Platform"],
             "frameworks": ["Svelte"],
             "products": ["Grid"]
@@ -35,7 +35,7 @@
             "stars": 13100,
             "type": "Product",
             "link": "https://pinpoint-apm.gitbook.io/pinpoint",
-            "img": "pinpoint.png",
+            "img": "pinpoint.webp",
             "frameworks": ["React", "Angular", "Vue"],
             "products": ["Grid", "Charts"]
         },
@@ -48,7 +48,7 @@
             "stars": 1700,
             "type": "Product",
             "favourite": true,
-            "img": "prisma-studio.png",
+            "img": "prisma-studio.webp",
             "tags": ["Database"],
             "frameworks": ["React"],
             "products": ["Grid"]
@@ -62,7 +62,7 @@
             "stars": 1000,
             "type": "Product",
             "favourite": true,
-            "img": "apache-traffic-control.png",
+            "img": "apache-traffic-control.webp",
             "tags": ["CDN"],
             "frameworks": ["Angular"],
             "products": ["Grid"]
@@ -75,7 +75,7 @@
             "type": "Product",
             "open_source": true,
             "stars": 16700,
-            "img": "ml-flow.png",
+            "img": "ml-flow.webp",
             "favourite": true,
             "tags": ["ML / AI"],
             "frameworks": ["React"],
@@ -90,7 +90,7 @@
             "open_source": true,
             "stars": 100,
             "favourite": true,
-            "img": "salt-ds.png",
+            "img": "salt-ds.webp",
             "tags": ["Design System"],
             "frameworks": ["React"],
             "products": ["Grid"]
@@ -104,7 +104,7 @@
             "type": "Product",
             "link": "https://phac-nml.github.io/irida-documentation/user/tutorials/web-upload/",
             "favourite": true,
-            "img": "irida.png",
+            "img": "irida.webp",
             "tags": ["Public Health"],
             "frameworks": ["React"],
             "products": ["Grid"]
@@ -117,7 +117,7 @@
             "stars": 200,
             "type": "Integration",
             "link": "https://allianz.github.io/ng-aquila/documentation/ag-grid/overview",
-            "img": "allianz-ng.png",
+            "img": "allianz-ng.webp",
             "favourite": true,
             "tags": ["Components"],
             "frameworks": ["Angular"],
@@ -132,7 +132,7 @@
             "type": "Product",
             "link": "https://microsoft.github.io/msrgamut/",
             "favourite": true,
-            "img": "mdr-gamut.png",
+            "img": "mdr-gamut.webp",
             "tags": ["Demo"],
             "frameworks": ["React"],
             "products": ["Grid"]
@@ -146,7 +146,7 @@
             "type": "Integration",
             "link": "https://ix.siemens.io/docs/controls/grid",
             "favourite": true,
-            "img": "siemens.png",
+            "img": "siemens.webp",
             "frameworks": ["React", "Angular", "Vue"],
             "products": ["Grid"]
         },
@@ -159,7 +159,7 @@
             "type": "Product",
             "link": "https://nasa-ammos.github.io/aerie-docs/",
             "favourite": true,
-            "img": "nasa-eerie.png",
+            "img": "nasa-eerie.webp",
             "companyLogo": "nasa.svg",
             "tags": ["Science"],
             "frameworks": ["Svelte"],
@@ -174,7 +174,7 @@
             "type": "Product",
             "link": "https://mongodb.com/compass",
             "favourite": true,
-            "img": "mongodb-compass.png",
+            "img": "mongodb-compass.webp",
             "tags": ["Database"],
             "frameworks": ["Angular"],
             "products": ["Grid"]
@@ -187,7 +187,7 @@
             "open_source": true,
             "type": "Integration",
             "stars": 23500,
-            "img": "react-admin.png",
+            "img": "react-admin.webp",
             "tags": ["Library"],
             "frameworks": ["React"],
             "products": ["Grid"]
@@ -200,7 +200,7 @@
             "open_source": true,
             "stars": 1600,
             "type": "Product",
-            "img": "tableflow.png",
+            "img": "tableflow.webp",
             "tags": ["Library"],
             "frameworks": ["React", "JavaScript"],
             "products": ["Grid"]
@@ -213,7 +213,7 @@
             "stars": 16900,
             "type": "Product",
             "link": "https://react-pivot-table-demo.cube.dev/#/",
-            "img": "cube-js.png",
+            "img": "cube-js.webp",
             "tags": ["Library"],
             "frameworks": ["React"],
             "products": ["Grid"]
@@ -257,7 +257,7 @@
         },
         {
             "repo": "https://github.com/yobulkdev/yobulkdev",
-            "link": "https://yobulk.dev/",
+            "link": "https://www.yobulk.dev/",
             "title": "YoBulk",
             "description": "Open Source & AI driven Data Onboarding Platform:Free flatfile.com alternative",
             "open_source": true,
@@ -358,7 +358,7 @@
             "repo": "https://github.com/vishwajeetraj11/quizco-frontend",
             "title": "Quizco",
             "description": "Quiz Builder and Assessment Application",
-            "link": "quizco-app.netlify.app/",
+            "link": "https://quizco-app.netlify.app/",
             "type": "Product",
             "open_source": true,
             "stars": 19
@@ -439,7 +439,7 @@
             "repo": "https://github.com/vegaprotocol/vega.xyz",
             "title": "Vega",
             "description": "Vega's main website",
-            "link": "vega.xyz",
+            "link": "https://vega.xyz",
             "type": "Product",
             "open_source": true,
             "stars": 10
@@ -883,7 +883,7 @@
             "open_source": true,
             "stars": 760,
             "type": "Product",
-            "link": "https://slickflow.com"
+            "link": "https://github.com/besley/Slickflow"
         },
         {
             "title": "Research Literature Manager",
@@ -1128,7 +1128,7 @@
             "stars": 615,
             "type": "Product",
             "tags": ["Grid", "Charts", "React"],
-            "img": "sample.png"
+            "img": "sample.webp"
         },
         {
             "title": "React Importer",

@@ -1,7 +1,7 @@
 [
     {
         "link": "https://www.adaptabletools.com/",
-        "title": "Adaptable",
+        "title": "AdapTable",
         "description": "AdapTable for AG Grid is a powerful extension for the market-leading AG Grid Data Grid. AdapTable extends the powerful functionality provided by AG Grid to enable you to build data management applications unparalleled in power and sophistication, with features not previously available.",
         "open_source": false,
         "type": "Extension",
@@ -9,7 +9,7 @@
         "tags": ["Extension"],
         "frameworks": ["React", "TypeScript", "Angular"],
         "products": ["Grid", "Charts"],
-        "img": "adaptable.png",
+        "img": "adaptable.webp",
         "favourite": true
     },
     {
@@ -20,7 +20,7 @@
         "type": "Wrapper",
         "open_source": true,
         "stars": 120,
-        "img": "plotly-dash.png",
+        "img": "plotly-dash.webp",
         "frameworks": ["Python"],
         "tags": ["Wrapper"]
     },
@@ -32,7 +32,7 @@
         "type": "Integration",
         "open_source": true,
         "stars": 80,
-        "img": "astro-uxds.jpeg",
+        "img": "astro-uxds.webp",
         "frameworks": ["React"],
         "tags": ["Design System"]
     },
@@ -44,7 +44,7 @@
         "stars": 900,
         "type": "Wrapper",
         "link": "https://pypi.org/project/streamlit-aggrid/",
-        "img": "streamlit-aggrid.png",
+        "img": "streamlit-aggrid.webp",
         "frameworks": ["Python"],
         "tags": ["Wrapper"]
     },
@@ -54,7 +54,7 @@
         "description": "NiceGUI is an open-source Python library to write graphical user interfaces which run in the browser. It has a very gentle learning curve while still offering the option for advanced customizations. NiceGUI follows a backend-first philosophy: It handles all the web development details.",
         "type": "Integration",
         "open_source": true,
-        "img": "nicegui.png",
+        "img": "nicegui.webp",
         "link": "https://nicegui.io/documentation/section_data_elements#ag_grid",
         "stars": 6600,
         "frameworks": ["Python"],
@@ -67,7 +67,7 @@
         "open_source": true,
         "stars": 60,
         "type": "Wrapper",
-        "img": "goodata-ui.png",
+        "img": "goodata-ui.webp",
         "link": "https://www.gooddata.com/docs/gooddata-ui/latest/",
         "frameworks": ["TypeScript"],
         "tags": ["Component Library"]
@@ -79,7 +79,7 @@
         "repo": "https://github.com/blackbaud/skyux",
         "stars": 20,
         "title": "Sky UX",
-        "img": "sky-ux.png",
+        "img": "sky-ux.webp",
         "description": "Blackbaud's open source framework leverages reusable design patterns and components to create impactful, cohesive experiences across web applications.",
         "frameworks": ["Angular"],
         "tags": ["Integration"]
@@ -91,7 +91,6 @@
         "repo": "https://github.com/MichaelKim/ag-grid-svelte",
         "type": "Wrapper",
         "open_source": true,
-        "img": "svelte-aggrid.png",
         "stars": 36,
         "frameworks": ["Svelte"],
         "tags": ["Wrapper"]
@@ -104,7 +103,6 @@
         "type": "Wrapper",
         "open_source": true,
         "stars": 46,
-        "img": "ipya-aggrid.png",
         "frameworks": ["Python"],
         "tags": ["Wrapper"]
     },
@@ -116,20 +114,9 @@
         "type": "Integration",
         "open_source": true,
         "stars": 2500,
-        "img": "lowdefy.png",
+        "img": "lowdefy.webp",
         "frameworks": ["React"],
         "tags": ["Integration"]
-    },
-    {
-        "repo": "https://github.com/systelab/systelab-components",
-        "title": "Systelab Components",
-        "description": "systelab-components is a library with common UI components to speed up your Angular developments.",
-        "link": "https://systelab.github.io/components/",
-        "type": "Integration",
-        "open_source": true,
-        "stars": 15,
-        "frameworks": ["Angular"],
-        "tags": ["Component Library"]
     },
     {
         "repo": "https://github.com/xh/hoist-react",
@@ -150,7 +137,6 @@
         "type": "Integration",
         "open_source": true,
         "stars": 3200,
-        "img": "vuestic.png",
         "frameworks": ["Vue"],
         "tags": ["Component Library"]
     },
@@ -185,17 +171,6 @@
         "tags": ["Utility"]
     },
     {
-        "repo": "https://github.com/syncfusion/ej2-angular-ui-components",
-        "title": "Syncfusion Angular UI Components",
-        "description": "Syncfusion Angular UI components library offer more than 50+ cross-browser, responsive, and lightweight angular UI controls for building modern web applications.",
-        "link": "https://www.syncfusion.com/angular-components",
-        "type": "Integration",
-        "open_source": true,
-        "frameworks": ["Angular"],
-        "stars": 270,
-        "tags": ["Component Library"]
-    },
-    {
         "repo": "https://github.com/terrestris/react-geo",
         "title": "React GEO",
         "description": "react-geo is a JavaScript library providing a large number of components to build modern mapping applications. It is used in combination with React, OpenLayers and Ant Design.",
@@ -203,7 +178,6 @@
         "open_source": true,
         "stars": 350,
         "link": "https://terrestris.github.io/react-geo/docs/latest/#/Components/Grids/AgFeatureGrid",
-        "img": "react-geo.png",
         "frameworks": ["React"],
         "tags": ["Component Library"]
     },
@@ -215,7 +189,6 @@
         "stars": 5,
         "type": "Wrapper",
         "link": "https://bbj-plugins.github.io/BBjGridExWidget/",
-        "img": "bbjgridwidget.png",
         "frameworks": ["JavaScript"],
         "tags": ["Wrapper"]
     },
@@ -227,7 +200,6 @@
         "stars": 20,
         "type": "Integration",
         "link": "https://openmrs.org/",
-        "img": "openmrs.png",
         "frameworks": ["React"],
         "tags": ["Component Library"]
     },
