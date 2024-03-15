@@ -1,7 +1,9 @@
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
+import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
-import { toRadians } from '../../../util/angle';
+import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Circle } from '../../marker/circle';
+import { SeriesNodePickMatch } from '../series';
 
 type AnimatableSectorDatum = {
     radius: number;
@@ -116,4 +118,30 @@ export function resetPieSelectionsFn(_node: Sector, datum: AnimatableSectorDatum
         fill: datum.sectorFormat.fill,
         stroke: datum.sectorFormat.stroke,
     };
+}
+
+type SectorSeries = {
+    centerX: number;
+    centerY: number;
+    getItemNodes(): Sector[];
+};
+
+export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesNodePickMatch | undefined {
+    const dy = point.y - series.centerY;
+    const dx = point.x - series.centerX;
+    const angle = Math.atan2(dy, dx);
+    const sectors: Sector[] = series.getItemNodes();
+    for (const sector of sectors) {
+        if (isBetweenAngles(angle, sector.startAngle, sector.endAngle)) {
+            const radius = Math.sqrt(dx * dx + dy * dy);
+            let distance = 0;
+            if (radius < sector.innerRadius) {
+                distance = sector.innerRadius - radius;
+            } else if (radius > sector.outerRadius) {
+                distance = radius - sector.outerRadius;
+            }
+            return { datum: sector.datum, distance };
+        }
+    }
+    return undefined;
 }
