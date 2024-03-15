@@ -17,9 +17,6 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
             fill: DEFAULT_MAP_BACKGROUND_FILL,
             stroke: DEFAULT_BACKGROUND_COLOUR,
             strokeWidth: 1,
-            tooltip: {
-                enabled: false,
-            },
         },
         legend: {
             enabled: false,

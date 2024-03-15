@@ -53,6 +53,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-line' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-marker' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-shape-background' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-line-background' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];
 

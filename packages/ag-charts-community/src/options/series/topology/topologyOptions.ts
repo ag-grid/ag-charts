@@ -1,5 +1,6 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { GeoJSON } from '../../chart/types';
+import type { AgMapLineBackgroundOptions } from './mapLineBackgroundOptions';
 import type { AgMapLineSeriesOptions } from './mapLineOptions';
 import type { AgMapMarkerSeriesOptions } from './mapMarkerOptions';
 import type { AgMapShapeBackgroundOptions } from './mapShapeBackgroundOptions';
@@ -9,7 +10,8 @@ export type AgTopologySeriesOptions =
     | AgMapShapeSeriesOptions
     | AgMapLineSeriesOptions
     | AgMapMarkerSeriesOptions
-    | AgMapShapeBackgroundOptions;
+    | AgMapShapeBackgroundOptions
+    | AgMapLineBackgroundOptions;
 
 export interface AgBaseTopologyChartOptions {
     /** Series configurations. */

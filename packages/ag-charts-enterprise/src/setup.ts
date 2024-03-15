@@ -22,6 +22,7 @@ import { BoxPlotModule } from './series/box-plot/main';
 import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
 import { HeatmapModule } from './series/heatmap/main';
+import { MapLineBackgroundModule } from './series/map-line-background/main';
 import { MapLineModule } from './series/map-line/main';
 import { MapMarkerModule } from './series/map-marker/main';
 import { MapShapeBackgroundModule } from './series/map-shape-background/main';
@@ -51,6 +52,7 @@ export function setupEnterpriseModules() {
         DataSourceModule,
         ErrorBarsModule,
         MapLineModule,
+        MapLineBackgroundModule,
         MapMarkerModule,
         MapShapeModule,
         MapShapeBackgroundModule,
