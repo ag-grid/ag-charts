@@ -142,7 +142,8 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
 function applyX(into: { minX: number; maxX: number }, cx: number, x: number) {
     if (x >= cx) {
         into.maxX = Math.min(into.maxX, x - cx);
-    } else if (x <= cx) {
+    }
+    if (x <= cx) {
         into.minX = Math.max(into.minX, x - cx);
     }
 }
@@ -178,7 +179,7 @@ export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
                 applyX(into, cx, x);
             }
         }
-    } else if ((ay >= ry0 && ay <= ry1) || (by >= ry0 && by <= ry1)) {
+    } else if (Math.max(ry0, Math.min(ay, by)) <= Math.min(ry1, Math.max(ay, by))) {
         applyX(into, cx, ax);
     }
 
