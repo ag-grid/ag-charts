@@ -57,6 +57,9 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: false,
             },
+            crosshair: {
+                snap: true,
+            },
             nice: false,
             min: 100,
             max: 160,
