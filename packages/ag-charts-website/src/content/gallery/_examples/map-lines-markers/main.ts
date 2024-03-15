@@ -4,14 +4,13 @@ import { cycleCounterData } from './cycleCounterData';
 import { cycleCounterTopology } from './cycleCounterTopology';
 import { cycleRouteData } from './cycleRouteData';
 import { cycleRouteTopology } from './cycleRouteTopology';
-import { yorkRoadsData } from './yorkRoadsData';
 import { yorkRoadsTopology } from './yorkRoadsTopology';
 import { yorkTopology } from './yorkTopology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'UK Motorways',
+    footnote: {
+        text: 'York Cycle Network',
     },
     series: [
         {
@@ -19,14 +18,9 @@ const options: AgChartOptions = {
             topology: yorkTopology,
         },
         {
-            type: 'map-line',
-            topologyIdKey: 'name',
-            idKey: 'name',
+            type: 'map-line-background',
             topology: yorkRoadsTopology,
-            data: yorkRoadsData,
-            stroke: '#888',
-            strokeWidth: 10,
-            strokeOpacity: 0.1,
+            strokeWidth: 3,
         },
         {
             type: 'map-line',
@@ -41,6 +35,9 @@ const options: AgChartOptions = {
             topologyIdKey: 'RoadName',
             topology: cycleCounterTopology,
             data: cycleCounterData,
+            fillOpacity: 1,
+            shape: 'pin',
+            size: 15,
         },
     ],
 };
