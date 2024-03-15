@@ -269,6 +269,49 @@
         ],
         [
             {
+                "title": "Map",
+                "seriesName": "map",
+                "icon": "chartsMap",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Map With Shapes And Lines",
+                        "description": "",
+                        "name": "map-shapes-lines"
+                    },
+                    {
+                        "title": "Map With Lines and Markers",
+                        "description": "",
+                        "name": "map-lines-markers"
+                    },
+                    {
+                        "title": "World Map",
+                        "description": "",
+                        "name": "map-world"
+                    },
+                    {
+                        "title": "Multiple Series",
+                        "description": "",
+                        "name": "multiple-map-series",
+                        "hidden": true
+                    },
+                    {
+                        "title": "Heatmap Series",
+                        "description": "",
+                        "name": "map-heatmap-series",
+                        "hidden": true
+                    },
+                    {
+                        "title": "Map Marker Series",
+                        "description": "",
+                        "name": "map-marker-series",
+                        "hidden": true
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Histogram",
                 "seriesName": "histogram",
                 "icon": "chartsHistogram",
@@ -409,26 +452,6 @@
         ],
         [
             {
-                "title": "Bullet Chart",
-                "seriesName": "bullet-chart",
-                "icon": "chartsBullet",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Simple Bullet",
-                        "description": "",
-                        "name": "simple-bullet"
-                    },
-                    {
-                        "title": "Horizontal Bullet",
-                        "description": "",
-                        "name": "horizontal-bullet"
-                    }
-                ]
-            }
-        ],
-        [
-            {
                 "title": "Radar Line",
                 "seriesName": "radar-line",
                 "icon": "chartsRadar",
@@ -548,49 +571,6 @@
         ],
         [
             {
-                "title": "Map",
-                "seriesName": "map",
-                "icon": "chartsMap",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Map With Shapes And Lines",
-                        "description": "",
-                        "name": "map-shapes-lines"
-                    },
-                    {
-                        "title": "Map With Lines and Markers",
-                        "description": "",
-                        "name": "map-lines-markers"
-                    },
-                    {
-                        "title": "World Map",
-                        "description": "",
-                        "name": "map-world"
-                    },
-                    {
-                        "title": "Multiple Series",
-                        "description": "",
-                        "name": "multiple-map-series",
-                        "hidden": true
-                    },
-                    {
-                        "title": "Heatmap Series",
-                        "description": "",
-                        "name": "map-heatmap-series",
-                        "hidden": true
-                    },
-                    {
-                        "title": "Map Marker Series",
-                        "description": "",
-                        "name": "map-marker-series",
-                        "hidden": true
-                    }
-                ]
-            }
-        ],
-        [
-            {
                 "title": "Sunburst",
                 "seriesName": "sunburst",
                 "icon": "chartsSunburst",
@@ -660,6 +640,26 @@
                         "title": "Calendar Heatmap",
                         "description": "",
                         "name": "calendar-heatmap"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Bullet Chart",
+                "seriesName": "bullet-chart",
+                "icon": "chartsBullet",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Bullet",
+                        "description": "",
+                        "name": "simple-bullet"
+                    },
+                    {
+                        "title": "Horizontal Bullet",
+                        "description": "",
+                        "name": "horizontal-bullet"
                     }
                 ]
             }
