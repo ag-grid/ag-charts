@@ -72,6 +72,9 @@ const options: AgChartOptions = {
             title: {
                 text: 'Magnitude',
             },
+            crosshair: {
+                snap: true,
+            },
         },
     ],
 };

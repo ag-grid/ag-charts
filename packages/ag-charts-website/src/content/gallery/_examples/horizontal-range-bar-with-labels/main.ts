@@ -84,6 +84,7 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => Number(value).toLocaleString('en-GB', numberFormatOptions),
             },
             crosshair: {
+                snap: true,
                 label: {
                     format: `s`,
                 },
