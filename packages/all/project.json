@@ -119,6 +119,14 @@
           "nx run ag-charts-website-src_content_gallery__examples_{args.example}_main.ts:generate-example --skip-nx-cache"
         ]
       }
+    },
+    "generate-gallery-thumbnail": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run ag-charts-website-src_content_gallery__examples_{args.example}_main.ts:generate-thumbnail --skip-nx-cache"
+        ]
+      }
     }
   },
   "implicitDependencies": [
