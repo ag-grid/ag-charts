@@ -10,7 +10,6 @@ import { tubeTopology } from './tubeTopology';
 const sizeDomain = [0, 141537];
 const strokeWidth = 1;
 const maxStrokeWidth = 4;
-const lineDash = [1, 4];
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -121,7 +120,6 @@ const options: AgChartOptions = {
             sizeDomain,
             strokeWidth,
             maxStrokeWidth,
-            lineDash,
         },
         {
             type: 'map-line',
@@ -166,7 +164,6 @@ const options: AgChartOptions = {
             sizeDomain,
             strokeWidth,
             maxStrokeWidth,
-            lineDash,
         },
         {
             type: 'map-line',
@@ -178,7 +175,6 @@ const options: AgChartOptions = {
             sizeDomain,
             strokeWidth,
             maxStrokeWidth,
-            lineDash,
         },
     ],
 };
