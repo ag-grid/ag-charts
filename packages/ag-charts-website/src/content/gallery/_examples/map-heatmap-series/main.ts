@@ -12,7 +12,7 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Population of America',
+        text: 'GDP of American States',
     },
     data,
     topology,

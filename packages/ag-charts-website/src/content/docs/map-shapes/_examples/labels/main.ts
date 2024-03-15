@@ -6,7 +6,7 @@ import { topology } from './topology';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Population of America',
+        text: 'American States',
     },
     data,
     topology,
