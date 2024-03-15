@@ -1,5 +1,32 @@
 [
     {
+        "version": "9.2.0",
+        "date": "March 20th 2024",
+        "highlights": [
+            {
+                "text": "New Map Series Types",
+                "url": "/react/maps/"
+            },
+            {
+                "text": "Map Series for Geographic Areas",
+                "url": "/react/map-shapes/"
+            },
+            {
+                "text": "Map Series for Routes and Connections",
+                "url": "/react/map-lines/"
+            },
+            {
+                "text": "Map Series for Markers and Points of Interest",
+                "url": "/react/map-markers/"
+            },
+            {
+                "text": "Rounded Corners for All Bar Series",
+                "url": "/react/bar-series/#corner-radius"
+            }
+        ],
+        "notesUrl": "/javascript/upgrade-to-ag-charts-9-2/"
+    },
+    {
         "version": "9.1.0",
         "date": "February 20th 2024",
         "highlights": [
