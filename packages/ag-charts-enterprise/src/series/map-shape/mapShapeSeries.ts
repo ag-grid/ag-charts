@@ -231,7 +231,7 @@ export class MapShapeSeries
 
         const labelPlacement = preferredLabelCenter(fixedPolygon, {
             aspectRatio,
-            precision: 1e-2,
+            precision: 1e-3,
         });
         if (labelPlacement == null) return;
 
@@ -247,27 +247,31 @@ export class MapShapeSeries
         originY: number
     ): MapShapeNodeLabelDatum | undefined {
         const { padding, label } = this.properties;
-        const { labelText, aspectRatio, x, y, maxWidth, fixedPolygon } = labelLayout;
+        const { labelText, aspectRatio, x: untruncatedX, y, maxWidth, fixedPolygon } = labelLayout;
 
         const maxSizeWithoutTruncation = {
             width: maxWidth * scale,
             height: (maxWidth * scale + 2 * padding) / aspectRatio - 2 * padding,
-            meta: null,
+            meta: untruncatedX,
         };
-        const labelFormatting = formatSingleLabel<null, AgMapShapeSeriesLabelFormatterParams>(
+        const labelFormatting = formatSingleLabel<number, AgMapShapeSeriesLabelFormatterParams>(
             labelText,
             label,
             { padding },
             (height, allowTruncation) => {
                 if (!allowTruncation) return maxSizeWithoutTruncation;
 
-                const width = maxWidthInPolygonForRectOfHeight(fixedPolygon, x, y, height / scale) * scale;
-                return { width, height, meta: null };
+                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scale);
+                return {
+                    width: result.width * scale,
+                    height,
+                    meta: result.x,
+                };
             }
         );
         if (labelFormatting == null) return;
 
-        const [{ text, fontSize, lineHeight }] = labelFormatting;
+        const [{ text, fontSize, lineHeight }, x] = labelFormatting;
 
         // FIXME - formatSingleLabel should never return an ellipsis
         if (text === Text.ellipsis) return;
