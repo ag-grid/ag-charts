@@ -7,9 +7,10 @@ import { otherCountiesTopology } from './otherCountiesTopology';
 import { tubeData } from './tubeData';
 import { tubeTopology } from './tubeTopology';
 
-const sizeDomain = [0, 97.92];
-const strokeWidth = 2;
-const lineDash = [4, 10];
+const sizeDomain = [0, 141537];
+const strokeWidth = 1;
+const maxStrokeWidth = 4;
+const lineDash = [1, 4];
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -66,6 +67,7 @@ const options: AgChartOptions = {
             stroke: '#B26300',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -76,6 +78,7 @@ const options: AgChartOptions = {
             stroke: '#F589A6',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -86,6 +89,7 @@ const options: AgChartOptions = {
             stroke: '#838D93',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -96,6 +100,7 @@ const options: AgChartOptions = {
             stroke: '#039BE5',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -106,6 +111,7 @@ const options: AgChartOptions = {
             stroke: '#007D32',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -116,6 +122,7 @@ const options: AgChartOptions = {
             stroke: '#9B0058',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
             lineDash,
         },
         {
@@ -127,6 +134,7 @@ const options: AgChartOptions = {
             stroke: 'black',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -137,6 +145,7 @@ const options: AgChartOptions = {
             stroke: '#0019A8',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -147,6 +156,7 @@ const options: AgChartOptions = {
             stroke: '#76D0BD',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
         },
         {
             type: 'map-line',
@@ -157,6 +167,7 @@ const options: AgChartOptions = {
             stroke: '#FFC80A',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
             lineDash,
         },
         {
@@ -168,6 +179,7 @@ const options: AgChartOptions = {
             stroke: '#DC241F',
             sizeDomain,
             strokeWidth,
+            maxStrokeWidth,
             lineDash,
         },
     ],

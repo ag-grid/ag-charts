@@ -799,17 +799,6 @@ export const tubeTopology = {
                 type: 'LineString',
                 coordinates: [
                     [-0.2172, 51.5139],
-                    [-0.2265, 51.5058],
-                ],
-            },
-            properties: { name: '6:150-227' },
-        },
-        {
-            type: 'Feature',
-            geometry: {
-                type: 'LineString',
-                coordinates: [
-                    [-0.2172, 51.5139],
                     [-0.224301, 51.510031],
                 ],
             },
@@ -3780,17 +3769,6 @@ export const tubeTopology = {
                 type: 'LineString',
                 coordinates: [
                     [-0.4227, 51.4669],
-                    [-0.4524, 51.4713],
-                ],
-            },
-            properties: { name: '10:116-117' },
-        },
-        {
-            type: 'Feature',
-            geometry: {
-                type: 'LineString',
-                coordinates: [
-                    [-0.4227, 51.4669],
                     [-0.4476, 51.4598],
                 ],
             },
@@ -3806,28 +3784,6 @@ export const tubeTopology = {
                 ],
             },
             properties: { name: '10:116-132' },
-        },
-        {
-            type: 'Feature',
-            geometry: {
-                type: 'LineString',
-                coordinates: [
-                    [-0.4524, 51.4713],
-                    [-0.4476, 51.4598],
-                ],
-            },
-            properties: { name: '10:117-118' },
-        },
-        {
-            type: 'Feature',
-            geometry: {
-                type: 'LineString',
-                coordinates: [
-                    [-0.4524, 51.4713],
-                    [-0.49108, 51.47006],
-                ],
-            },
-            properties: { name: '10:117-308' },
         },
         {
             type: 'Feature',
