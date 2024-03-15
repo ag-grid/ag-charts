@@ -12,7 +12,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
-import { Series, SeriesNodePickMode } from '../series';
+import { Series, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
 
@@ -120,7 +120,7 @@ export abstract class HierarchySeries<
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
             contentGroupVirtual: false,
         });
 
@@ -302,6 +302,10 @@ export abstract class HierarchySeries<
             this.animationState.transition('resize', animationData);
         }
         this.animationState.transition('update', animationData);
+    }
+
+    protected override pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
+        return undefined;
     }
 
     protected resetAllAnimation(data: HierarchyAnimationData<TNode, TDatum>) {

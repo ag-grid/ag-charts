@@ -72,15 +72,21 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
+class DistantGroup extends _Scene.Group implements _Scene.DistantObject {
+    distanceSquared(x: number, y: number): number {
+        return this.computeBBox().distanceSquared(x, y);
+    }
+}
+
 export class TreemapSeries<
     TDatum extends _ModuleSupport.SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum,
-> extends _ModuleSupport.HierarchySeries<_Scene.Group, TreemapSeriesProperties, TDatum> {
+> extends _ModuleSupport.HierarchySeries<DistantGroup, TreemapSeriesProperties, TDatum> {
     static readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
 
     override properties = new TreemapSeriesProperties();
 
-    groupSelection = Selection.select(this.contentGroup, Group);
+    groupSelection = Selection.select(this.contentGroup, DistantGroup);
     private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.highlightGroup,
         Group
@@ -662,6 +668,20 @@ export class TreemapSeries<
                 node.midPoint.y = bbox.y;
             }
         });
+    }
+
+    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
+
+        // We don't need to recurse on the tree because the root's nodes bounding-box contain all bounding boxes
+        // of the descendants. Therefore the nearest node is always a child of the root. If there is an exact
+        // match, then the pickNodeExactShape function will return a result, and this function wouldn't be called.
+        const { nearest, distanceSquared } = _Scene.nearestSquared(x, y, this.groupSelection.nodes());
+        if (nearest !== undefined) {
+            return { datum: nearest.datum, distance: Math.sqrt(distanceSquared) };
+        }
+
+        return undefined;
     }
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
