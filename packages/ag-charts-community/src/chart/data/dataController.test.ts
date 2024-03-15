@@ -411,6 +411,50 @@ describe('DataController', () => {
             expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
             expect(results[1].processedData.data[0].datum).not.toHaveProperty('test2');
         });
+
+        it('should extract scoped grouped data and not leak scopes', async () => {
+            const data1 = [
+                { keyProp1: '2020', valueProp1: 100 },
+                { keyProp1: '2021', valueProp1: 200 },
+                { keyProp1: '2022', valueProp1: 300 },
+            ];
+            const data2 = [
+                { keyProp1: '2020', valueProp1: 40 },
+                { keyProp1: '2021', valueProp1: 50 },
+                { keyProp1: '2022', valueProp1: 60 },
+            ];
+
+            const def: DataModelOptions<'keyProp1' | 'valueProp1', any> = {
+                groupByKeys: true,
+                props: [
+                    {
+                        scopes: ['test1'],
+                        property: 'keyProp1',
+                        type: 'key',
+                        valueType: 'category',
+                    },
+                    {
+                        scopes: ['test1'],
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'range',
+                        groupId: 'valueProp1',
+                        useScopedValues: false,
+                        id: undefined,
+                        processor: () => (next: number, total?: number) => next + (total ?? 0),
+                    },
+                ],
+            };
+
+            const promise1 = controller.request('test1', data1, def);
+            const promise2 = controller.request('test2', data2, def);
+
+            await controller.execute();
+            const results = await Promise.all([promise1, promise2]);
+
+            expect((results[0].processedData.data[0].datum as any)[0]).not.toHaveProperty('test1');
+            expect((results[1].processedData.data[0].datum as any)[0]).not.toHaveProperty('test1');
+        });
     });
 
     describe('deepEqual', () => {
