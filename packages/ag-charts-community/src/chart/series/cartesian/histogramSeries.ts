@@ -27,7 +27,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
-import { addHitTestersToQuadtree, childrenIter } from './quadtreeUtil';
+import { addHitTestersToQuadtree, childrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 enum HistogramSeriesNodeTag {
     Bin,
@@ -442,13 +442,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
-        const { nearest, distanceSquared } = this.getQuadTree().find(x, y);
-        if (nearest !== undefined) {
-            return { datum: nearest.value, distance: Math.sqrt(distanceSquared) };
-        }
-
-        return undefined;
+        return findQuadtreeMatch(this, point);
     }
 
     getTooltipHtml(nodeDatum: HistogramNodeDatum): string {

@@ -529,7 +529,7 @@ export abstract class CartesianSeries<
         this.quadtree = undefined;
     }
 
-    protected getQuadTree(): QuadtreeNearest<TDatum> {
+    public getQuadTree(): QuadtreeNearest<TDatum> {
         if (this.quadtree === undefined) {
             const { width, height } = this.ctx.scene.canvas;
             const canvasRect = new BBox(0, 0, width, height);

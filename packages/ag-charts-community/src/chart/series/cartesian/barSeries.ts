@@ -53,7 +53,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
-import { addHitTestersToQuadtree, childrenOfChildrenIter } from './quadtreeUtil';
+import { addHitTestersToQuadtree, childrenOfChildrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -484,13 +484,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
-        const { nearest, distanceSquared } = this.getQuadTree().find(x, y);
-        if (nearest !== undefined) {
-            return { datum: nearest.value, distance: Math.sqrt(distanceSquared) };
-        }
-
-        return undefined;
+        return findQuadtreeMatch(this, point);
     }
 
     getTooltipHtml(nodeDatum: BarNodeDatum): string {
