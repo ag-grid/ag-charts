@@ -8,8 +8,9 @@ export function preferredLabelCenter(
 ) {
     const result = polygonPointSearch(polygons, precision, (p, cx, cy, stride) => {
         const width = maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(p, cx, cy, aspectRatio);
+        const maxWidth = width + 2 * stride * aspectRatio;
         const distance = width * Math.SQRT2;
-        const maxDistance = distance + stride * stride;
+        const maxDistance = maxWidth * Math.SQRT2;
         return { distance, maxDistance };
     });
     if (result == null) return;
