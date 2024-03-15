@@ -1,6 +1,6 @@
 import {
     maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment,
-    maxWidthOfRectConstrainedByCenterAndHeightToLineSegment,
+    xExtentsOfRectConstrainedByCenterAndHeightToLineSegment,
 } from './polygonLabelUtil';
 
 describe('maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment', () => {
@@ -42,24 +42,102 @@ describe('maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment', () => {
     });
 });
 
-describe('maxWidthOfRectConstrainedByCenterAndHeightToLineSegment', () => {
+describe.only('xExtentsOfRectConstrainedByCenterAndHeightToLineSegment', () => {
     test('Left intersection', () => {
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([-3, 1], [-5, -1], 0, 0, 10)).toBe(6);
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([-5, -1], [-3, 1], 0, 0, 10)).toBe(6);
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [-3, 1],
+                [-5, -1],
+                0,
+                0,
+                10
+            )
+        ).toEqual({
+            minX: -3,
+            maxX: Infinity,
+        });
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [-5, -1],
+                [-3, 1],
+                0,
+                0,
+                10
+            )
+        ).toEqual({
+            minX: -3,
+            maxX: Infinity,
+        });
     });
 
     test('Right intersection', () => {
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([3, 1], [5, -1], 0, 0, 10)).toBe(6);
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([5, -1], [3, 1], 0, 0, 10)).toBe(6);
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [3, 1],
+                [5, -1],
+                0,
+                0,
+                10
+            )
+        ).toEqual({ minX: -Infinity, maxX: 3 });
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [5, -1],
+                [3, 1],
+                0,
+                0,
+                10
+            )
+        ).toEqual({ minX: -Infinity, maxX: 3 });
     });
 
     test('Top intersection', () => {
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([2, 2], [4, 0], 0, 0, 2)).toBe(6);
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([-2, 2], [-4, 0], 0, 0, 2)).toBe(6);
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [2, 2],
+                [4, 0],
+                0,
+                0,
+                2
+            )
+        ).toEqual({ minX: -Infinity, maxX: 3 });
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [-2, 2],
+                [-4, 0],
+                0,
+                0,
+                2
+            )
+        ).toEqual({ minX: -3, maxX: Infinity });
     });
 
     test('Bottom intersection', () => {
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([2, -2], [4, 0], 0, 0, 2)).toBe(6);
-        expect(maxWidthOfRectConstrainedByCenterAndHeightToLineSegment([-2, -2], [-4, 0], 0, 0, 2)).toBe(6);
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [2, -2],
+                [4, 0],
+                0,
+                0,
+                2
+            )
+        ).toEqual({ minX: -Infinity, maxX: 3 });
+        expect(
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                { minX: -Infinity, maxX: Infinity },
+                [-2, -2],
+                [-4, 0],
+                0,
+                0,
+                2
+            )
+        ).toEqual({ minX: -3, maxX: Infinity });
     });
 });

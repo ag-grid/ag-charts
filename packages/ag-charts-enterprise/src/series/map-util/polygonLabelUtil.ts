@@ -139,7 +139,16 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
     return (inside ? 1 : -1) * minWidth;
 }
 
-export function maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(
+function applyX(into: { minX: number; maxX: number }, cx: number, x: number) {
+    if (x >= cx) {
+        into.maxX = Math.min(into.maxX, x - cx);
+    } else if (x <= cx) {
+        into.minX = Math.max(into.minX, x - cx);
+    }
+}
+
+export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+    into: { minX: number; maxX: number },
     a: _ModuleSupport.Position,
     b: _ModuleSupport.Position,
     cx: number,
@@ -158,8 +167,6 @@ export function maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(
     const [leftPointX, leftPointY] = ax <= bx ? a : b;
     const [rightPointX, rightPointY] = ax <= bx ? b : a;
 
-    let maxWidth = Infinity;
-
     if (abx !== 0) {
         const abm = aby / abx;
 
@@ -168,26 +175,22 @@ export function maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(
             // y - ay = abm * (x - ax)
             const x = (y - ay) / abm + ax;
             if (x >= leftPointX && x <= rightPointX) {
-                const width = Math.abs(cx - x) * 2;
-                maxWidth = Math.min(maxWidth, width);
+                applyX(into, cx, x);
             }
         }
     } else if ((ay >= ry0 && ay <= ry1) || (by >= ry0 && by <= ry1)) {
-        const width = Math.abs(cx - ax) * 2;
-        maxWidth = Math.min(maxWidth, width);
+        applyX(into, cx, ax);
     }
 
     if (rightPointX < cx && rightPointY >= ry0 && rightPointY <= ry1) {
         // Line completely to left center
-        const width = Math.abs(cx - rightPointX) * 2;
-        maxWidth = Math.min(maxWidth, width);
+        applyX(into, cx, rightPointX);
     } else if (leftPointX > cx && leftPointY >= ry0 && leftPointY <= ry1) {
         // Line completely to right center
-        const width = Math.abs(cx - leftPointX) * 2;
-        maxWidth = Math.min(maxWidth, width);
+        applyX(into, cx, leftPointX);
     }
 
-    return maxWidth;
+    return into;
 }
 
 export function maxWidthInPolygonForRectOfHeight(
@@ -196,18 +199,24 @@ export function maxWidthInPolygonForRectOfHeight(
     cy: number,
     height: number
 ) {
-    let minWidth = Infinity;
+    const result = {
+        minX: -Infinity,
+        maxX: Infinity,
+    };
 
     for (const polygon of polygons) {
         let p0 = polygon[polygon.length - 1];
 
         for (const p1 of polygon) {
-            const width = maxWidthOfRectConstrainedByCenterAndHeightToLineSegment(p0, p1, cx, cy, height);
-
-            minWidth = Math.min(minWidth, width);
+            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(result, p0, p1, cx, cy, height);
             p0 = p1;
         }
     }
 
-    return minWidth;
+    const { minX, maxX } = result;
+    if (Number.isFinite(minX) && Number.isFinite(maxX)) {
+        return { x: cx + (minX + maxX) / 2, width: maxX - minX };
+    } else {
+        return { x: cx, width: 0 };
+    }
 }
