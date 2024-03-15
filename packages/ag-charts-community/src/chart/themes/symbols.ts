@@ -40,4 +40,3 @@ export const DEFAULT_DIVERGING_SERIES_COLOUR_RANGE = Symbol(
 ) as unknown as string;
 export const DEFAULT_HIERARCHY_FILLS = Symbol('default-hierarchy-fills') as unknown as string;
 export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
-export const DEFAULT_MAP_BACKGROUND_FILL = Symbol('default-map-fill') as unknown as string;

@@ -200,18 +200,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected processSeriesOptions(options: T) {
         const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
+        const userPalette = Boolean(isObject(options.theme) && options.theme.palette);
         const paletteOptions = {
             colourIndex: 0,
-            userPalette: Boolean(isObject(options.theme) && options.theme.palette),
+            userPalette,
         };
 
         const processedSeries = options.series!.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
-            const palette = !unthemedSeries.has(series.type)
-                ? this.getSeriesPalette(series.type, paletteOptions)
-                : undefined;
+            // Don't advance series index for background series
+            const seriesPaletteOptions = !unthemedSeries.has(series.type)
+                ? paletteOptions
+                : { colourIndex: 0, userPalette };
+            const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
