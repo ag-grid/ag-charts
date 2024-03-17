@@ -20,6 +20,7 @@ const options: AgChartOptions = {
             type: 'map-line',
             idKey: 'name',
             sizeKey: 'dailyVehicles',
+            sizeName: 'Daily Vehicles',
             strokeWidth: 1,
             maxStrokeWidth: 3,
         },

@@ -20,6 +20,7 @@ const options: AgChartOptions = {
             type: 'map-line',
             idKey: 'name',
             colorKey: 'dailyVehicles',
+            colorName: 'Daily Vehicles',
         },
     ],
 };

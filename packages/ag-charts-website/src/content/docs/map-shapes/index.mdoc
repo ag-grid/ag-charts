@@ -8,26 +8,30 @@ The Map Shape Series visualises data representing geographic areas such as count
 
 {% chartExampleRunner title="Multiple Series" name="multiple-series" type="generated" /%}
 
-To create a Map Shape Series, use the `map-shape` series type.
+To create a Map Shape Series, use the `map-shape` series type and provide data and [topology](./map-topology/). These can be provided in either the chart or series objects.
 
 ```js
-data: data,
 topology: topology,
 series: [
     {
         type: 'map-shape',
+        data: pacific,
         idKey: 'name',
+        title: 'Pacific'
     },
+    // ...
 ],
+legend: {
+    enabled: true,
+  }
 ```
 
-In this configuration:
+In this example:
 
+-   The `topology` is provided once on the chart level, and the `data` is provided in each series.
 -   `idKey` defines the property key in the data that will be matched against the property value in the topology.
-
-{% note %}
-See [Map Topology](./map-topology/#connecting-data) for details of how to connect the data and topology.
-{% /note %}
+    See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
+-   `title` provides a name for the series, and is used in the [Legend](./legend/) and [Tooltips](./tooltips/).
 
 ## Colour Scale
 
@@ -50,7 +54,7 @@ In this configuration:
 -   `colorKey` is set to 'gdp', which supplies numerical values for the colour scale.
 
 {% note %}
-Click the links for more information on how to customise the [colour range](./heatmap-series/#colour-range) and [Gradient Legend](./heatmap-series/#gradient-legend).
+See [Colour Range](./heatmap-series/#colour-range) and [Gradient Legend](./heatmap-series/#gradient-legend) for more details about customising these features.
 {% /note %}
 
 ## Labels
@@ -77,13 +81,14 @@ See [Label options](#reference-AgMapShapeSeriesOptions-label) for options for ha
 
 ## Background Shapes
 
-The Map Shape Background series displays all the shapes of a topology without requiring data.
+The Map Shape Background series displays all the shapes of a topology without requiring any data.
 
-This can be useful to keep context as Map Shape Series are toggled off in the legend, or to provide context to [Map Line Series](./map-lines/) and [Map Marker Series](./map-markers/).
+This can be useful to show disabled Map Shape Series when toggled off in the legend, or to provide context to [Map Line Series](./map-lines/) and [Map Marker Series](./map-markers/).
 
 {% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
 
 ```js
+topology,
 series: [
 {
     type: 'map-shape-background',
@@ -93,7 +98,7 @@ series: [
 ```
 
 {% note %}
-As this is a background series rather than a data series, many normal series behaviours are disabled - including appearing in the legend.
+As this is a background series rather than a data series, many normal series behaviours are disabled - including interactivity and appearing in the legend.
 {% /note %}
 
 ## API Reference

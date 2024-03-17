@@ -51,7 +51,6 @@ export const data = [
     { name: 'M898', dailyVehicles: 51831 },
     { name: 'A1(M)', dailyVehicles: 143012 },
     { name: 'A3(M)', dailyVehicles: 92989 },
-    { name: 'A8(M)', dailyVehicles: 10586 },
     { name: 'A38(M)', dailyVehicles: 146908 },
     { name: 'A48(M)', dailyVehicles: 47203 },
     { name: 'A57(M)', dailyVehicles: 90785 },
@@ -66,5 +65,4 @@ export const data = [
     { name: 'A404(M)', dailyVehicles: 59816 },
     { name: 'A627(M)', dailyVehicles: 55749 },
     { name: 'A823(M)', dailyVehicles: 20363 },
-    { name: 'A1077(M)', dailyVehicles: 18213 },
 ];
