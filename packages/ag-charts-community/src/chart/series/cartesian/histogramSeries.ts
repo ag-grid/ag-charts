@@ -7,6 +7,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { sanitizeHtml } from '../../../util/sanitize';
 import ticks, { tickStep } from '../../../util/ticks';
+import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
@@ -59,10 +60,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     // During processData phase, used to unify different ways of the user specifying
     // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
     private deriveBins(xDomain: [number, number]): [number, number][] {
-        if (this.properties.binCount) {
-            return this.calculateNiceBins(xDomain, this.properties.binCount);
-        }
-
         const binStarts = ticks(xDomain[0], xDomain[1], defaultBinCount);
         const binSize = tickStep(xDomain[0], xDomain[1], defaultBinCount);
         const [firstBinEnd] = binStarts;
@@ -157,7 +154,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 return () => [];
             }
 
-            const bins = this.properties.bins ?? this.deriveBins(xExtent);
+            const bins = isNumber(this.properties.binCount)
+                ? this.calculateNiceBins(xExtent, this.properties.binCount)
+                : this.properties.bins ?? this.deriveBins(xExtent);
             const binCount = bins.length;
             this.calculatedBins = [...bins];
 
