@@ -379,31 +379,6 @@ export class MapMarkerSeries
                 missingGeometries.push(idValue);
             }
 
-            if (projectedGeometry != null) {
-                markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
-                    const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, font);
-                    if (labelDatum) {
-                        labelData.push(labelDatum);
-                    }
-
-                    nodeData.push({
-                        series: this,
-                        itemId: latitudeKey,
-                        datum,
-                        index,
-                        fill: color,
-                        idValue,
-                        lonValue,
-                        latValue,
-                        labelValue,
-                        sizeValue,
-                        colorValue,
-                        point: { x, y, size },
-                        midPoint: { x, y },
-                    });
-                });
-            }
-
             if (lonValue != null && latValue != null) {
                 const [x, y] = scale.convert([lonValue, latValue]);
 
@@ -426,6 +401,29 @@ export class MapMarkerSeries
                     colorValue,
                     point: { x, y, size },
                     midPoint: { x, y },
+                });
+            } else if (projectedGeometry != null) {
+                markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
+                    const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, font);
+                    if (labelDatum) {
+                        labelData.push(labelDatum);
+                    }
+
+                    nodeData.push({
+                        series: this,
+                        itemId: latitudeKey,
+                        datum,
+                        index,
+                        fill: color,
+                        idValue,
+                        lonValue,
+                        latValue,
+                        labelValue,
+                        sizeValue,
+                        colorValue,
+                        point: { x, y, size },
+                        midPoint: { x, y },
+                    });
                 });
             }
         });
