@@ -5,9 +5,7 @@ import { cables, capitals, topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'World Map with Shapes, Markers and Lines',
-    },
+    background: { fill: 'rgb(246,255,255)' },
     topology,
     series: [
         {
