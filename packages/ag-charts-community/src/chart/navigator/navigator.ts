@@ -92,6 +92,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         if (enabled) {
             this.updateZoom();
+        } else {
+            this.ctx.zoomManager.updateZoom('navigator');
         }
     }
 
