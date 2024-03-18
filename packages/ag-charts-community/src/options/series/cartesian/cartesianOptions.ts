@@ -110,7 +110,7 @@ export interface AgTimeAxisOptions extends AgBaseCartesianAxisOptions {
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
-export type AgCartesianAxisType = 'category' | 'grouped-category' | 'ordinal-time' | 'number' | 'log' | 'time';
+export type AgCartesianAxisType = 'category' | 'grouped-category' | 'number' | 'log' | 'time';
 
 export type AgCartesianAxisOptions =
     | AgNumberAxisOptions

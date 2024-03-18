@@ -248,7 +248,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
-                undefined,
                 seriesTheme,
                 this.getSeriesPalette(series.type, paletteOptions)
             );
