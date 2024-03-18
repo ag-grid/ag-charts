@@ -10,7 +10,7 @@ const CARTESIAN_AXIS_POSITIONS: AgCartesianAxisPosition[] = ['top', 'right', 'bo
 const CARTESIAN_AXIS_TYPES: AgCartesianAxisType[] = [
     'category',
     'grouped-category',
-    'ordinal-time',
+    // 'ordinal-time',
     'number',
     'log',
     'time',

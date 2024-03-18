@@ -35,7 +35,7 @@ type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Exten
 };
 export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = SeriesType extends NextSeriesTypes
     ? any
-    : Extensible<NonNullable<AgChartThemeOverrides[SeriesType]>>;
+    : Extensible<NonNullable<AgChartThemeOverrides[Exclude<SeriesType, 'candlestick'>]>>;
 
 export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     SeriesOptionsTypes,
