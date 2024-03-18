@@ -24,6 +24,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'map-line',
+            title: 'Cycle Lanes',
             topologyIdKey: 'name',
             idKey: 'name',
             topology: cycleRouteTopology,
@@ -31,6 +32,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'map-marker',
+            title: 'Cycle Traffic Cameras',
             idKey: 'RoadName',
             topologyIdKey: 'RoadName',
             topology: cycleCounterTopology,
@@ -40,6 +42,9 @@ const options: AgChartOptions = {
             size: 15,
         },
     ],
+    legend: {
+        enabled: true,
+    },
 };
 
 AgCharts.create(options);

@@ -22,6 +22,41 @@ const options: AgChartOptions = {
     },
     series: [
         {
+            type: 'map-shape',
+            topology: otherCountiesTopology,
+            data: otherCountiesData,
+            topologyIdKey: 'name',
+            idKey: 'county',
+            labelKey: 'county',
+            fill: '#0000',
+            stroke: '#8882',
+            strokeWidth: 1,
+            label: {
+                fontSize: 10,
+                minimumFontSize: 8,
+                color: '#8883',
+                formatter: ({ value }) => {
+                    return value === 'Chiltern' || value === 'Three Rivers' || value === 'Epping Forest' ? value : '';
+                },
+            },
+        },
+        {
+            type: 'map-shape',
+            topology: londonBoroughTopology,
+            data: londonBoroughData,
+            idKey: 'name',
+            topologyIdKey: 'name',
+            labelKey: 'name',
+            fill: '#8881',
+            stroke: '#8882',
+            strokeWidth: 1,
+            label: {
+                fontSize: 10,
+                minimumFontSize: 8,
+                color: '#8884',
+            },
+        },
+        {
             type: 'map-line',
             title: 'Bakerloo',
             data: tubeData['Bakerloo'],
@@ -141,42 +176,6 @@ const options: AgChartOptions = {
             sizeDomain,
             strokeWidth,
             maxStrokeWidth,
-        },
-
-        {
-            type: 'map-shape',
-            topology: londonBoroughTopology,
-            data: londonBoroughData,
-            idKey: 'name',
-            topologyIdKey: 'name',
-            labelKey: 'name',
-            fillOpacity: 0.1,
-            stroke: 'gray',
-            strokeWidth: 1,
-            label: {
-                fontWeight: 'lighter',
-                fontSize: 10,
-                minimumFontSize: 8,
-                color: 'gray',
-            },
-        },
-        {
-            type: 'map-shape',
-            topology: otherCountiesTopology,
-            data: otherCountiesData,
-            topologyIdKey: 'name',
-            idKey: 'county',
-            fillOpacity: 0.2,
-            labelKey: 'county',
-            label: {
-                fontWeight: 'lighter',
-                fontSize: 10,
-                minimumFontSize: 8,
-                color: 'gray',
-                formatter: ({ value }) => {
-                    return value === 'Chiltern' || value === 'Three Rivers' || value === 'Epping Forest' ? value : '';
-                },
-            },
         },
     ],
 };

@@ -512,8 +512,10 @@ export class MapLineSeries
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
         const {
+            title,
             legendItemName,
             idKey,
+            idName,
             colorKey,
             colorName,
             colorRange,
@@ -540,10 +542,10 @@ export class MapLineSeries
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: this.id,
-                itemId: legendItemName ?? idKey,
+                itemId: legendItemName ?? title ?? idName ?? idKey,
                 seriesId: this.id,
                 enabled: visible,
-                label: { text: legendItemName ?? idKey },
+                label: { text: legendItemName ?? title ?? idName ?? idKey },
                 marker: {
                     fill: stroke,
                     fillOpacity: strokeOpacity,

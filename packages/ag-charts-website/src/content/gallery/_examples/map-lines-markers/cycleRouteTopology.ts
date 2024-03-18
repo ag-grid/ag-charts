@@ -216,7 +216,7 @@ export const cycleRouteTopology = {
                     [-1.059, 53.95],
                 ],
             },
-            properties: { name: 'Retreat Lane_offroad' },
+            properties: { name: 'Retreat Lane offroad' },
         },
         {
             type: 'Feature',
@@ -513,7 +513,7 @@ export const cycleRouteTopology = {
                     [-1.092, 53.936],
                 ],
             },
-            properties: { name: 'NCN 65 Green Lane to Bishopthrpe Rd_1' },
+            properties: { name: 'NCN 65 Green Lane to Bishopthrpe Rd 1' },
         },
         {
             type: 'Feature',
@@ -568,7 +568,7 @@ export const cycleRouteTopology = {
                     [-1.094, 53.931],
                 ],
             },
-            properties: { name: 'Green Lane - YrkSelby_Junc_Racetrack' },
+            properties: { name: 'Green Lane - YrkSelby Junc Racetrack' },
         },
         {
             type: 'Feature',
@@ -609,7 +609,7 @@ export const cycleRouteTopology = {
                     [-1.05, 53.982],
                 ],
             },
-            properties: { name: 'Vangard_Path_Martello_Wy_Kathryn_Ave' },
+            properties: { name: 'Vangard Path Martello Wy Kathryn Ave' },
         },
         {
             type: 'Feature',
@@ -622,7 +622,7 @@ export const cycleRouteTopology = {
                     [-1.073, 54.001],
                 ],
             },
-            properties: { name: 'Wigginton_Rd_Haxby_Rd2' },
+            properties: { name: 'Wigginton Rd Haxby Rd2' },
         },
         {
             type: 'Feature',
@@ -634,7 +634,7 @@ export const cycleRouteTopology = {
                     [-1.08, 53.999],
                 ],
             },
-            properties: { name: 'Wigginton_Rd_Haxby_Rd1' },
+            properties: { name: 'Wigginton Rd Haxby Rd1' },
         },
         {
             type: 'Feature',
@@ -652,7 +652,7 @@ export const cycleRouteTopology = {
                     [-1.134, 53.97],
                 ],
             },
-            properties: { name: 'A59_Pop_to_Beckfld' },
+            properties: { name: 'A59 Pop to Beckfld' },
         },
         {
             type: 'Feature',
@@ -665,7 +665,7 @@ export const cycleRouteTopology = {
                     [-1.096, 53.986],
                 ],
             },
-            properties: { name: 'Water_Ln_Hazelnut_Gr' },
+            properties: { name: 'Water Ln Hazelnut Gr' },
         },
         {
             type: 'Feature',
@@ -679,7 +679,7 @@ export const cycleRouteTopology = {
                     [-1.036, 53.947],
                 ],
             },
-            properties: { name: 'Lakeside_Way_Hes_E_Pt1' },
+            properties: { name: 'Lakeside Way Hes E Pt1' },
         },
         {
             type: 'Feature',
@@ -691,7 +691,7 @@ export const cycleRouteTopology = {
                     [-1.141, 53.933],
                 ],
             },
-            properties: { name: 'Moor_Ln_N_side' },
+            properties: { name: 'Moor Ln N side' },
         },
         {
             type: 'Feature',
@@ -702,7 +702,7 @@ export const cycleRouteTopology = {
                     [-1.074, 53.942],
                 ],
             },
-            properties: { name: 'Fulford_Rd_E_OffRd_Barracks_Moorland_Rd' },
+            properties: { name: 'Fulford Rd E OffRd Barracks Moorland Rd' },
         },
         {
             type: 'Feature',
@@ -713,7 +713,7 @@ export const cycleRouteTopology = {
                     [-1.075, 53.96],
                 ],
             },
-            properties: { name: 'Hungate_Br_to _Palmers_Ln' },
+            properties: { name: 'Hungate Br to  Palmers Ln' },
         },
         {
             type: 'Feature',
@@ -725,7 +725,7 @@ export const cycleRouteTopology = {
                     [-1.072, 53.959],
                 ],
             },
-            properties: { name: 'Foss_Islands_Retail_Pk_Link' },
+            properties: { name: 'Foss Islands Retail Pk Link' },
         },
         {
             type: 'Feature',
@@ -738,7 +738,7 @@ export const cycleRouteTopology = {
                     [-1.07, 53.963],
                 ],
             },
-            properties: { name: 'James_St_Hallfield_Rd_W_side' },
+            properties: { name: 'James St Hallfield Rd W side' },
         },
         {
             type: 'Feature',
@@ -750,7 +750,7 @@ export const cycleRouteTopology = {
                     [-1.082, 53.968],
                 ],
             },
-            properties: { name: 'Wigg_Rd_MSCP_path' },
+            properties: { name: 'Wigg Rd MSCP path' },
         },
         {
             type: 'Feature',
@@ -783,7 +783,7 @@ export const cycleRouteTopology = {
                     [-1.03, 53.953],
                 ],
             },
-            properties: { name: 'Field_Ln_N' },
+            properties: { name: 'Field Ln N' },
         },
         {
             type: 'Feature',
@@ -798,7 +798,7 @@ export const cycleRouteTopology = {
                     [-1.106, 53.931],
                 ],
             },
-            properties: { name: 'Revival_Green_Ln_N' },
+            properties: { name: 'Revival Green Ln N' },
         },
         {
             type: 'Feature',
@@ -810,7 +810,7 @@ export const cycleRouteTopology = {
                     [-1.069, 53.96],
                 ],
             },
-            properties: { name: 'ORR_James_St_Morrisons_Elvington' },
+            properties: { name: 'ORR James St Morrisons Elvington' },
         },
         {
             type: 'Feature',
@@ -824,7 +824,7 @@ export const cycleRouteTopology = {
                     [-1.108, 53.984],
                 ],
             },
-            properties: { name: 'Rawcliffe_Rec_Rawcliffe_Lake' },
+            properties: { name: 'Rawcliffe Rec Rawcliffe Lake' },
         },
         {
             type: 'Feature',
@@ -836,7 +836,7 @@ export const cycleRouteTopology = {
                     [-1.134, 53.963],
                 ],
             },
-            properties: { name: 'Beckfield_Ln_off_rd_Ostman_Almsford' },
+            properties: { name: 'Beckfield Ln off rd Ostman Almsford' },
         },
         {
             type: 'Feature',
@@ -902,7 +902,7 @@ export const cycleRouteTopology = {
                     [-1.046, 53.954],
                 ],
             },
-            properties: { name: 'Hull_Rd_THL_Carlton_Ave' },
+            properties: { name: 'Hull Rd THL Carlton Ave' },
         },
         {
             type: 'Feature',
@@ -927,7 +927,7 @@ export const cycleRouteTopology = {
                     [-1.126, 53.944],
                 ],
             },
-            properties: { name: 'Acorn_Rugby_W' },
+            properties: { name: 'Acorn Rugby W' },
         },
         {
             type: 'Feature',
@@ -940,7 +940,7 @@ export const cycleRouteTopology = {
                     [-1.054, 53.978],
                 ],
             },
-            properties: { name: 'Malton_Rd_Outbound_New_Ln_Martello_Wy' },
+            properties: { name: 'Malton Rd Outbound New Ln Martello Wy' },
         },
         {
             type: 'Feature',
@@ -954,7 +954,7 @@ export const cycleRouteTopology = {
                     [-1.049, 53.979],
                 ],
             },
-            properties: { name: 'Malton_Rd_inbound_access_rd_Straylands' },
+            properties: { name: 'Malton Rd inbound access rd Straylands' },
         },
         {
             type: 'Feature',
@@ -967,7 +967,7 @@ export const cycleRouteTopology = {
                     [-1.054, 53.983],
                 ],
             },
-            properties: { name: 'New_Ln_to_MXP&R' },
+            properties: { name: 'New Ln to MXP&R' },
         },
         {
             type: 'Feature',
@@ -983,7 +983,7 @@ export const cycleRouteTopology = {
                     [-1.09, 53.995],
                 ],
             },
-            properties: { name: 'Stirling_Rd_CM_Access' },
+            properties: { name: 'Stirling Rd CM Access' },
         },
         {
             type: 'Feature',
@@ -1552,7 +1552,7 @@ export const cycleRouteTopology = {
                     [-1.108, 53.947],
                 ],
             },
-            properties: { name: 'Hob Moor_KingswayW_ECML_Subway' },
+            properties: { name: 'Hob Moor KingswayW ECML Subway' },
         },
         {
             type: 'Feature',
@@ -1730,7 +1730,7 @@ export const cycleRouteTopology = {
                     [-1.105, 53.99],
                 ],
             },
-            properties: { name: 'Stirling_Rd' },
+            properties: { name: 'Stirling Rd' },
         },
         {
             type: 'Feature',
@@ -1754,7 +1754,7 @@ export const cycleRouteTopology = {
                     [-1.022, 53.955],
                 ],
             },
-            properties: { name: 'Hull_Rd_Inbound_P&Rgate_to_accessrd' },
+            properties: { name: 'Hull Rd Inbound P&Rgate to accessrd' },
         },
         {
             type: 'Feature',
@@ -1821,7 +1821,7 @@ export const cycleRouteTopology = {
                     [-1.145, 53.938],
                 ],
             },
-            properties: { name: 'Old_Askham_Ln' },
+            properties: { name: 'Old Askham Ln' },
         },
         {
             type: 'Feature',
@@ -1835,7 +1835,7 @@ export const cycleRouteTopology = {
                     [-1.07, 53.952],
                 ],
             },
-            properties: { name: 'OCR_Melbourne_St_Hes_Rd' },
+            properties: { name: 'OCR Melbourne St Hes Rd' },
         },
         {
             type: 'Feature',
@@ -1852,7 +1852,7 @@ export const cycleRouteTopology = {
                     [-1.074, 53.949],
                 ],
             },
-            properties: { name: 'Fulf_Rd_onroad' },
+            properties: { name: 'Fulf Rd onroad' },
         },
         {
             type: 'Feature',
@@ -1876,7 +1876,7 @@ export const cycleRouteTopology = {
                     [-1.082, 53.972],
                 ],
             },
-            properties: { name: 'Wigginton_Rd_S' },
+            properties: { name: 'Wigginton Rd S' },
         },
         {
             type: 'Feature',
@@ -1889,7 +1889,7 @@ export const cycleRouteTopology = {
                     [-1.094, 53.954],
                 ],
             },
-            properties: { name: 'Holgate_Br_onwards_inbound' },
+            properties: { name: 'Holgate Br onwards inbound' },
         },
         {
             type: 'Feature',
@@ -1902,7 +1902,7 @@ export const cycleRouteTopology = {
                     [-1.046, 53.946],
                 ],
             },
-            properties: { name: 'Heslington_Ln_Ph3' },
+            properties: { name: 'Heslington Ln Ph3' },
         },
         {
             type: 'Feature',
@@ -1916,7 +1916,7 @@ export const cycleRouteTopology = {
                     [-1.06, 53.941],
                 ],
             },
-            properties: { name: 'Heslington_Ln_SRTS' },
+            properties: { name: 'Heslington Ln SRTS' },
         },
         {
             type: 'Feature',
@@ -1928,7 +1928,7 @@ export const cycleRouteTopology = {
                     [-1.121, 53.956],
                 ],
             },
-            properties: { name: 'Hope_St_Gladstone_St' },
+            properties: { name: 'Hope St Gladstone St' },
         },
         {
             type: 'Feature',
@@ -1944,7 +1944,7 @@ export const cycleRouteTopology = {
                     [-1.118, 53.956],
                 ],
             },
-            properties: { name: 'OCR_Green_Ln_Rdbt_York_Rd' },
+            properties: { name: 'OCR Green Ln Rdbt York Rd' },
         },
         {
             type: 'Feature',
@@ -1984,7 +1984,7 @@ export const cycleRouteTopology = {
                     [-1.089, 53.946],
                 ],
             },
-            properties: { name: 'OCR_Albemarle_to_Count_de_Burgh' },
+            properties: { name: 'OCR Albemarle to Count de Burgh' },
         },
         {
             type: 'Feature',
@@ -1997,7 +1997,7 @@ export const cycleRouteTopology = {
                     [-1.09, 53.959],
                 ],
             },
-            properties: { name: 'Station_Rd_Queen_St_Br' },
+            properties: { name: 'Station Rd Queen St Br' },
         },
         {
             type: 'Feature',
@@ -2009,7 +2009,7 @@ export const cycleRouteTopology = {
                     [-1.077, 53.988],
                 ],
             },
-            properties: { name: 'Alder_Wy_to_Garth_Way_Offroad' },
+            properties: { name: 'Alder Wy to Garth Way Offroad' },
         },
         {
             type: 'Feature',
@@ -2040,7 +2040,7 @@ export const cycleRouteTopology = {
                     [-1.093, 53.988],
                 ],
             },
-            properties: { name: 'Kettlestring_Ln_Audax_Rd' },
+            properties: { name: 'Kettlestring Ln Audax Rd' },
         },
         {
             type: 'Feature',
@@ -2850,7 +2850,7 @@ export const cycleRouteTopology = {
                     [-1.115, 53.964],
                 ],
             },
-            properties: { name: 'Water_End_eastbound_lane' },
+            properties: { name: 'Water End eastbound lane' },
         },
         {
             type: 'Feature',
@@ -3172,7 +3172,7 @@ export const cycleRouteTopology = {
                     [-1.116, 53.963],
                 ],
             },
-            properties: { name: 'Boroughbridge_Rd_Inbound' },
+            properties: { name: 'Boroughbridge Rd Inbound' },
         },
         {
             type: 'Feature',
@@ -3186,7 +3186,7 @@ export const cycleRouteTopology = {
                     [-1.047, 53.948],
                 ],
             },
-            properties: { name: 'University_Road' },
+            properties: { name: 'University Road' },
         },
         {
             type: 'Feature',
@@ -3217,7 +3217,7 @@ export const cycleRouteTopology = {
                     [-1.149, 53.965],
                 ],
             },
-            properties: { name: 'Rufforth_to_Knapton_Ph1' },
+            properties: { name: 'Rufforth to Knapton Ph1' },
         },
         {
             type: 'Feature',
@@ -3229,7 +3229,7 @@ export const cycleRouteTopology = {
                     [-1.05, 53.986],
                 ],
             },
-            properties: { name: 'Jockey_Ln_Range_to_Sainsbury' },
+            properties: { name: 'Jockey Ln Range to Sainsbury' },
         },
         {
             type: 'Feature',
@@ -3243,7 +3243,7 @@ export const cycleRouteTopology = {
                     [-1.045, 53.985],
                 ],
             },
-            properties: { name: 'Jockey_Ln_MartelloWay_to_Asda_Toucan' },
+            properties: { name: 'Jockey Ln MartelloWay to Asda Toucan' },
         },
         {
             type: 'Feature',
@@ -3256,7 +3256,7 @@ export const cycleRouteTopology = {
                     [-1.029, 53.989],
                 ],
             },
-            properties: { name: 'Malton_Rd_Hopgrove_end' },
+            properties: { name: 'Malton Rd Hopgrove end' },
         },
         {
             type: 'Feature',
@@ -3267,7 +3267,7 @@ export const cycleRouteTopology = {
                     [-1.047, 53.98],
                 ],
             },
-            properties: { name: 'Malton_Rd_N_of_MonksX_Rdbt' },
+            properties: { name: 'Malton Rd N of MonksX Rdbt' },
         },
         {
             type: 'Feature',
@@ -3278,7 +3278,7 @@ export const cycleRouteTopology = {
                     [-1.076, 53.975],
                 ],
             },
-            properties: { name: 'Haxby_Rd_Bridge' },
+            properties: { name: 'Haxby Rd Bridge' },
         },
         {
             type: 'Feature',
@@ -3295,7 +3295,7 @@ export const cycleRouteTopology = {
                     [-1.081, 53.979],
                 ],
             },
-            properties: { name: 'Bootham_Stray' },
+            properties: { name: 'Bootham Stray' },
         },
         {
             type: 'Feature',
@@ -3308,7 +3308,7 @@ export const cycleRouteTopology = {
                     [-1.082, 53.974],
                 ],
             },
-            properties: { name: 'Wigginton_Rd_Nestle' },
+            properties: { name: 'Wigginton Rd Nestle' },
         },
         {
             type: 'Feature',
@@ -3319,7 +3319,7 @@ export const cycleRouteTopology = {
                     [-1.097, 53.976],
                 ],
             },
-            properties: { name: 'Lilbourne_Dr_path' },
+            properties: { name: 'Lilbourne Dr path' },
         },
         {
             type: 'Feature',
@@ -3332,7 +3332,7 @@ export const cycleRouteTopology = {
                     [-1.095, 53.971],
                 ],
             },
-            properties: { name: 'Kingsway_N_Cyclepath' },
+            properties: { name: 'Kingsway N Cyclepath' },
         },
         {
             type: 'Feature',
@@ -3344,7 +3344,7 @@ export const cycleRouteTopology = {
                     [-1.052, 53.944],
                 ],
             },
-            properties: { name: 'Walmgate_Stray_S_East' },
+            properties: { name: 'Walmgate Stray S East' },
         },
         {
             type: 'Feature',
@@ -3358,7 +3358,7 @@ export const cycleRouteTopology = {
                     [-1.049, 53.941],
                 ],
             },
-            properties: { name: 'Holmfield_Lane_path' },
+            properties: { name: 'Holmfield Lane path' },
         },
         {
             type: 'Feature',
@@ -3371,7 +3371,7 @@ export const cycleRouteTopology = {
                     [-1.102, 53.93],
                 ],
             },
-            properties: { name: 'Revival_Green_Ln_S' },
+            properties: { name: 'Revival Green Ln S' },
         },
         {
             type: 'Feature',
@@ -3384,7 +3384,7 @@ export const cycleRouteTopology = {
                     [-1.089, 53.946],
                 ],
             },
-            properties: { name: 'OCR_Albemarle_Brunswick' },
+            properties: { name: 'OCR Albemarle Brunswick' },
         },
         {
             type: 'Feature',
@@ -3396,7 +3396,7 @@ export const cycleRouteTopology = {
                     [-1.068, 53.953],
                 ],
             },
-            properties: { name: 'Barbican_Mews_Regent_St_Link' },
+            properties: { name: 'Barbican Mews Regent St Link' },
         },
         {
             type: 'Feature',
@@ -3409,7 +3409,7 @@ export const cycleRouteTopology = {
                     [-1.108, 53.944],
                 ],
             },
-            properties: { name: 'Nelsons_Ln_Park' },
+            properties: { name: 'Nelsons Ln Park' },
         },
         {
             type: 'Feature',
@@ -3421,7 +3421,7 @@ export const cycleRouteTopology = {
                     [-1.111, 53.987],
                 ],
             },
-            properties: { name: 'Moor_Ln_Rawcliffe_Rec' },
+            properties: { name: 'Moor Ln Rawcliffe Rec' },
         },
         {
             type: 'Feature',
@@ -3439,7 +3439,7 @@ export const cycleRouteTopology = {
                     [-1.108, 53.984],
                 ],
             },
-            properties: { name: 'Rawcliffe_Lake' },
+            properties: { name: 'Rawcliffe Lake' },
         },
         {
             type: 'Feature',
@@ -3452,7 +3452,7 @@ export const cycleRouteTopology = {
                     [-1.078, 53.987],
                 ],
             },
-            properties: { name: 'Alder_Way' },
+            properties: { name: 'Alder Way' },
         },
         {
             type: 'Feature',
@@ -3478,7 +3478,7 @@ export const cycleRouteTopology = {
                     [-1.048, 53.972],
                 ],
             },
-            properties: { name: 'Stockton_Ln_Greenfields_To_Charles_Moor' },
+            properties: { name: 'Stockton Ln Greenfields To Charles Moor' },
         },
         {
             type: 'Feature',
@@ -3489,7 +3489,7 @@ export const cycleRouteTopology = {
                     [-1.063, 53.968],
                 ],
             },
-            properties: { name: 'Malton_Rd_outbound_side_to_Muncastergate' },
+            properties: { name: 'Malton Rd outbound side to Muncastergate' },
         },
         {
             type: 'Feature',
@@ -3500,7 +3500,7 @@ export const cycleRouteTopology = {
                     [-1.058, 53.976],
                 ],
             },
-            properties: { name: 'Malton_Rd_Outbound_Laburnum_New_Ln' },
+            properties: { name: 'Malton Rd Outbound Laburnum New Ln' },
         },
         {
             type: 'Feature',
@@ -3514,7 +3514,7 @@ export const cycleRouteTopology = {
                     [-1.049, 53.98],
                 ],
             },
-            properties: { name: 'Martello_Way_MXRdbt_to_P&R_Office' },
+            properties: { name: 'Martello Way MXRdbt to P&R Office' },
         },
         {
             type: 'Feature',
@@ -3526,7 +3526,7 @@ export const cycleRouteTopology = {
                     [-1.048, 53.991],
                 ],
             },
-            properties: { name: 'Alpha_Ct_link_E_Side' },
+            properties: { name: 'Alpha Ct link E Side' },
         },
         {
             type: 'Feature',
@@ -3537,7 +3537,7 @@ export const cycleRouteTopology = {
                     [-1.069, 53.997],
                 ],
             },
-            properties: { name: 'Haxby_Rd_to_Hunt_Village1' },
+            properties: { name: 'Haxby Rd to Hunt Village1' },
         },
         {
             type: 'Feature',
@@ -3554,7 +3554,7 @@ export const cycleRouteTopology = {
                     [-1.062, 53.998],
                 ],
             },
-            properties: { name: 'Haxby_Rd_to_Hunt_Village2' },
+            properties: { name: 'Haxby Rd to Hunt Village2' },
         },
         {
             type: 'Feature',
@@ -3567,7 +3567,7 @@ export const cycleRouteTopology = {
                     [-1.075, 53.955],
                 ],
             },
-            properties: { name: 'Hungate_Br_To_George_St' },
+            properties: { name: 'Hungate Br To George St' },
         },
         {
             type: 'Feature',
@@ -3579,7 +3579,7 @@ export const cycleRouteTopology = {
                     [-1.073, 53.955],
                 ],
             },
-            properties: { name: 'Long_Close_Lane' },
+            properties: { name: 'Long Close Lane' },
         },
         {
             type: 'Feature',
@@ -3590,7 +3590,7 @@ export const cycleRouteTopology = {
                     [-1.091, 53.956],
                 ],
             },
-            properties: { name: 'Blossom_St' },
+            properties: { name: 'Blossom St' },
         },
         {
             type: 'Feature',
@@ -3604,7 +3604,7 @@ export const cycleRouteTopology = {
                     [-1.133, 53.953],
                 ],
             },
-            properties: { name: 'Askham_Ln_The_Green' },
+            properties: { name: 'Askham Ln The Green' },
         },
         {
             type: 'Feature',
@@ -3616,7 +3616,7 @@ export const cycleRouteTopology = {
                     [-1.031, 53.948],
                 ],
             },
-            properties: { name: 'Hes_East_Pathway' },
+            properties: { name: 'Hes East Pathway' },
         },
         {
             type: 'Feature',
@@ -3630,7 +3630,7 @@ export const cycleRouteTopology = {
                     [-1.051, 53.96],
                 ],
             },
-            properties: { name: 'NCN66_Tang_Hall_Ln' },
+            properties: { name: 'NCN66 Tang Hall Ln' },
         },
         {
             type: 'Feature',
@@ -3645,7 +3645,7 @@ export const cycleRouteTopology = {
                     [-1.02, 53.952],
                 ],
             },
-            properties: { name: 'York_Sport_Access_Rd' },
+            properties: { name: 'York Sport Access Rd' },
         },
         {
             type: 'Feature',
@@ -3658,7 +3658,7 @@ export const cycleRouteTopology = {
                     [-1.069, 53.948],
                 ],
             },
-            properties: { name: 'Kilburn_Rd_allotments_site' },
+            properties: { name: 'Kilburn Rd allotments site' },
         },
         {
             type: 'Feature',
@@ -3669,7 +3669,7 @@ export const cycleRouteTopology = {
                     [-1.069, 53.948],
                 ],
             },
-            properties: { name: 'Kilburn_Rd' },
+            properties: { name: 'Kilburn Rd' },
         },
         {
             type: 'Feature',
@@ -3683,7 +3683,7 @@ export const cycleRouteTopology = {
                     [-1.119, 53.928],
                 ],
             },
-            properties: { name: 'Askham_Bar_onsite' },
+            properties: { name: 'Askham Bar onsite' },
         },
         {
             type: 'Feature',
@@ -3695,7 +3695,7 @@ export const cycleRouteTopology = {
                     [-1.117, 53.929],
                 ],
             },
-            properties: { name: 'Askham_Bar_onsite2' },
+            properties: { name: 'Askham Bar onsite2' },
         },
         {
             type: 'Feature',
@@ -3708,7 +3708,7 @@ export const cycleRouteTopology = {
                     [-1.151, 53.973],
                 ],
             },
-            properties: { name: 'Poppleton_Bar_onsite1' },
+            properties: { name: 'Poppleton Bar onsite1' },
         },
         {
             type: 'Feature',
@@ -3720,7 +3720,7 @@ export const cycleRouteTopology = {
                     [-1.071, 53.963],
                 ],
             },
-            properties: { name: 'Innovation_Way' },
+            properties: { name: 'Innovation Way' },
         },
         {
             type: 'Feature',
@@ -3731,7 +3731,7 @@ export const cycleRouteTopology = {
                     [-1.091, 53.953],
                 ],
             },
-            properties: { name: 'E_Mount_Rd' },
+            properties: { name: 'E Mount Rd' },
         },
         {
             type: 'Feature',
@@ -3754,7 +3754,7 @@ export const cycleRouteTopology = {
                     [-1.095, 53.949],
                 ],
             },
-            properties: { name: 'Scarcroft_Hill' },
+            properties: { name: 'Scarcroft Hill' },
         },
         {
             type: 'Feature',
@@ -3766,7 +3766,7 @@ export const cycleRouteTopology = {
                     [-1.065, 53.922],
                 ],
             },
-            properties: { name: 'A19_S_of_Des_Out_W' },
+            properties: { name: 'A19 S of Des Out W' },
         },
         {
             type: 'Feature',
@@ -3777,7 +3777,7 @@ export const cycleRouteTopology = {
                     [-1.065, 53.924],
                 ],
             },
-            properties: { name: 'A19_S_of_Des_Out_E' },
+            properties: { name: 'A19 S of Des Out E' },
         },
         {
             type: 'Feature',
@@ -3789,7 +3789,7 @@ export const cycleRouteTopology = {
                     [-1.067, 53.926],
                 ],
             },
-            properties: { name: 'A19_between_Rdbts_E' },
+            properties: { name: 'A19 between Rdbts E' },
         },
         {
             type: 'Feature',
@@ -3801,7 +3801,7 @@ export const cycleRouteTopology = {
                     [-1.069, 53.928],
                 ],
             },
-            properties: { name: 'A19_N_of_Des_Out_E' },
+            properties: { name: 'A19 N of Des Out E' },
         },
         {
             type: 'Feature',
@@ -3948,7 +3948,7 @@ export const cycleRouteTopology = {
                     [-1.099, 53.954],
                 ],
             },
-            properties: { name: 'Holgate Road_Fox to Bridge' },
+            properties: { name: 'Holgate Road Fox to Bridge' },
         },
         {
             type: 'Feature',
@@ -3960,7 +3960,7 @@ export const cycleRouteTopology = {
                     [-1.06, 53.974],
                 ],
             },
-            properties: { name: 'Malton_Rd_inbound_Straylands_Bus_Gate' },
+            properties: { name: 'Malton Rd inbound Straylands Bus Gate' },
         },
         {
             type: 'Feature',
@@ -3972,7 +3972,7 @@ export const cycleRouteTopology = {
                     [-1.062, 53.973],
                 ],
             },
-            properties: { name: 'Malton_Rd_outbound_Muncastergate_to_Motosave' },
+            properties: { name: 'Malton Rd outbound Muncastergate to Motosave' },
         },
         {
             type: 'Feature',
@@ -3984,7 +3984,7 @@ export const cycleRouteTopology = {
                     [-1.102, 53.946],
                 ],
             },
-            properties: { name: 'Little_Hob_Moor_ECML_Taddy_Rd' },
+            properties: { name: 'Little Hob Moor ECML Taddy Rd' },
         },
         {
             type: 'Feature',
@@ -3998,7 +3998,7 @@ export const cycleRouteTopology = {
                     [-1.09, 53.938],
                 ],
             },
-            properties: { name: 'NCN 65 Green Lane to Bishopthrpe Rd_2' },
+            properties: { name: 'NCN 65 Green Lane to Bishopthrpe Rd 2' },
         },
         {
             type: 'Feature',
@@ -4009,7 +4009,7 @@ export const cycleRouteTopology = {
                     [-1.073, 53.938],
                 ],
             },
-            properties: { name: 'Fulford_Rd_E_OffRd_Broadway_Hes_Lane' },
+            properties: { name: 'Fulford Rd E OffRd Broadway Hes Lane' },
         },
         {
             type: 'Feature',
@@ -4020,7 +4020,7 @@ export const cycleRouteTopology = {
                     [-1.134, 53.968],
                 ],
             },
-            properties: { name: 'Beckfield_Ln_off_rd_Newlands_Borobridge' },
+            properties: { name: 'Beckfield Ln off rd Newlands Borobridge' },
         },
         {
             type: 'Feature',
@@ -4061,7 +4061,7 @@ export const cycleRouteTopology = {
                     [-1.194, 53.956],
                 ],
             },
-            properties: { name: 'Wetherby_Rd_Milestone_Ave_Rufforth' },
+            properties: { name: 'Wetherby Rd Milestone Ave Rufforth' },
         },
         {
             type: 'Feature',
@@ -4075,7 +4075,7 @@ export const cycleRouteTopology = {
                     [-1.149, 53.965],
                 ],
             },
-            properties: { name: 'Northfield_Lane_to_Knapton_Main_St' },
+            properties: { name: 'Northfield Lane to Knapton Main St' },
         },
     ],
 };
