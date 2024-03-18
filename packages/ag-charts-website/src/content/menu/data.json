@@ -57,6 +57,7 @@
         "items": [
             {
                 "title": "Getting Started",
+                "feature": false,
                 "items": [
                     {
                         "title": "Quick Start",
@@ -203,6 +204,7 @@
             },
             {
                 "title": "Migration",
+                "feature": false,
                 "items": [
                     {
                         "title": "Upgrade to AG Charts 9.2",

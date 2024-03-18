@@ -6,9 +6,8 @@ import styles from '@design-system/modules/FeatureComparator.module.scss';
 import { getEntry } from 'astro:content';
 
 const { pathname } = Astro.url;
-const { direction } = Astro.props;
 const { data: menuContent } = await getEntry('menu', 'data');
-const features = [...menuContent.main.items.slice(1), ...menuContent.charts.items];
+const features = [...menuContent.main.items, ...menuContent.charts.items].filter(i => i.feature !== false);
 const framework = getFrameworkFromPath(pathname);
 ---
 
@@ -19,7 +18,7 @@ const framework = getFrameworkFromPath(pathname);
         <th>Enterprise <Icon name="enterprise" svgClasses={styles.enterpriseIcon} /></th>
     </tr>
     {
-        features.map(({ title, path, isEnterprise, items }) => {
+        features.map(({ title, isEnterprise, items }) => {
             const isRootNode = Array.isArray(items) && items.length > 0;
             return (
                 <>

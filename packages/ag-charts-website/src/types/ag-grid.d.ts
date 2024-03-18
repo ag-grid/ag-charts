@@ -50,6 +50,7 @@ export interface MenuItem {
     icon?: IconName;
     frameworks?: Framework[];
     isEnterprise?: boolean;
+    feature?: boolean;
     items?: MenuItem[];
 }
 
