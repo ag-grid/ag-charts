@@ -131,9 +131,21 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { labels, ctx, axisLayout } = this;
         keys.forEach((key) => {
             labels[key] ??= new CrosshairLabel(ctx.scene.canvas.container ?? getDocument().body);
+
+            this.updateLabel(labels[key]);
         });
         const format = this.label.format ?? axisLayout?.label.format;
         this.labelFormatter = format ? this.axisCtx.scaleValueFormatter(format) : undefined;
+    }
+
+    private updateLabel(label: CrosshairLabel) {
+        const { enabled, className, xOffset, yOffset, format, renderer } = this.label;
+        label.enabled = enabled;
+        label.className = className;
+        label.xOffset = xOffset;
+        label.yOffset = yOffset;
+        label.format = format;
+        label.renderer = renderer;
     }
 
     private updateLines() {
