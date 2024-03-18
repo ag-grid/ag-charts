@@ -1,3 +1,4 @@
+import type { BBox } from '../../scene/bbox';
 import { createElement } from '../../util/dom';
 import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
@@ -29,14 +30,18 @@ export class Overlay extends BaseProperties {
         return this.text ?? this.defaultText;
     }
 
-    getElement(animationManager?: AnimationManager) {
+    getElement(animationManager: AnimationManager | undefined, rect: BBox) {
         this.element ??= createElement('div');
         this.element.classList.add(this.className, DEFAULT_OVERLAY_CLASS);
         this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
 
         const element = this.element;
 
-        Object.assign(element.style, { position: 'absolute', inset: '0' });
+        element.style.position = 'absolute';
+        element.style.left = `${rect.x}px`;
+        element.style.top = `${rect.y}px`;
+        element.style.width = `${rect.width}px`;
+        element.style.height = `${rect.height}px`;
 
         if (this.renderer) {
             const htmlContent = this.renderer();
