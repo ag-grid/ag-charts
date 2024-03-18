@@ -42,6 +42,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
+    private isLoadingData = false;
     private freshRequests: Array<number> = [];
     private requestCounter = 0;
 
@@ -72,6 +73,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
     }
 
     public load(params: DataSourceCallbackParams) {
+        this.isLoadingData = true;
         this.throttledFetch(params);
     }
 
@@ -80,7 +82,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
     }
 
     public isLoading() {
-        return this.isLazy() && (this.isLoadingInitialData || this.freshRequests.length > 0);
+        return this.isLazy() && (this.isLoadingInitialData || this.isLoadingData);
     }
 
     private createThrottledFetch(requestThrottle: number) {
@@ -135,6 +137,10 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         }
 
         this.freshRequests = this.freshRequests.slice(requestIndex + 1);
+
+        if (this.freshRequests.length === 0) {
+            this.isLoadingData = false;
+        }
 
         // Dispatch response if no failure.
         if (Array.isArray(response)) {
