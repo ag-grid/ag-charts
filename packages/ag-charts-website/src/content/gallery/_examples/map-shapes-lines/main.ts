@@ -29,12 +29,12 @@ const options: AgChartOptions = {
             idKey: 'county',
             labelKey: 'county',
             fill: '#0000',
-            stroke: '#8882',
+            stroke: '#84889211',
             strokeWidth: 1,
             label: {
                 fontSize: 10,
                 minimumFontSize: 8,
-                color: '#8883',
+                color: '#84889244',
                 formatter: ({ value }) => {
                     return value === 'Chiltern' || value === 'Three Rivers' || value === 'Epping Forest' ? value : '';
                 },
@@ -47,13 +47,13 @@ const options: AgChartOptions = {
             idKey: 'name',
             topologyIdKey: 'name',
             labelKey: 'name',
-            fill: '#8881',
-            stroke: '#8882',
+            fill: '#84889211',
+            stroke: '#84889211',
             strokeWidth: 1,
             label: {
                 fontSize: 10,
                 minimumFontSize: 8,
-                color: '#8884',
+                color: '#84889255',
             },
         },
         {
