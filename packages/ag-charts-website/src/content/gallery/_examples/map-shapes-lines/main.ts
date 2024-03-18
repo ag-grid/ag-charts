@@ -53,7 +53,6 @@ const options: AgChartOptions = {
             label: {
                 fontSize: 10,
                 minimumFontSize: 8,
-                // color: '#84889255',
             },
         },
         {
