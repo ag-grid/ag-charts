@@ -253,6 +253,40 @@
     },
     {
         "group": {
+            "name": "Maps"
+        },
+        "items": [
+            {
+                "label": {
+                    "name": "Geographic Areas",
+                    "link": "https://charts.ag-grid.com/react/map-shapes/"
+                },
+                "community": false,
+                "enterprise": true,
+                "chartsGrid": true
+            },
+            {
+                "label": {
+                    "name": "Routes and Connections",
+                    "link": "https://charts.ag-grid.com/react/map-lines/"
+                },
+                "community": false,
+                "enterprise": true,
+                "chartsGrid": true
+            },
+            {
+                "label": {
+                    "name": "Markers and Points of Interest",
+                    "link": "https://charts.ag-grid.com/react/map-markers/"
+                },
+                "community": false,
+                "enterprise": true,
+                "chartsGrid": true
+            }
+        ]
+    },
+    {
+        "group": {
             "name": "Interactivity"
         },
         "items": [

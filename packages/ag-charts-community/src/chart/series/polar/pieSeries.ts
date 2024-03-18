@@ -1472,7 +1472,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     getDatumId(datum: PieNodeDatum) {
         const { index } = datum;
 
-        return this.getDatumIdFromData(datum.datum) ?? `${index}`;
+        const datumId = this.getDatumIdFromData(datum.datum);
+        return datumId != null ? String(datumId) : `${index}`;
     }
 
     protected override onDataChange() {

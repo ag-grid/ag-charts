@@ -12,7 +12,7 @@ export function processFunction(code: string): string {
     );
 }
 
-function getImports(componentFilenames: string[], bindings): string[] {
+function getImports(componentFilenames: string[], bindings: any): string[] {
     const useCallback = bindings.externalEventHandlers?.length + bindings.instanceMethods?.length > 0;
 
     const reactImports = ['Fragment', 'useState'];
@@ -23,10 +23,6 @@ function getImports(componentFilenames: string[], bindings): string[] {
         `import React, { ${reactImports.join(', ')} } from 'react';`,
         `import { createRoot } from 'react-dom/client';`,
     ];
-
-    if (bindings.chartSettings.enterprise) {
-        imports.push(`import 'ag-charts-enterprise';`);
-    }
 
     imports.push(`import { AgChartsReact } from 'ag-charts-react';`);
 

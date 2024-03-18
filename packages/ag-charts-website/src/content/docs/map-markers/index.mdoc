@@ -12,7 +12,7 @@ The Map Marker Series visualises data for geographic points, with the ability to
 To create a Map Marker Series, use the `map-marker` series type and provide data and [topology](./map-topology/). These can be provided in either the chart or series objects.
 
 {% note %}
-A Map Marker Series should be combined with a [Map Shape Background Series](./map-shapes/#backgrounds).
+A Map Marker Series should be combined with a [Map Shape Background Series](./map-shapes/#background-shapes).
 {% /note %}
 
 ```js
@@ -34,7 +34,7 @@ In this configuration:
 -   `idKey` defines the property key in the data that will be matched against the property value in the topology.
     See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
 -   The `map-shape-background` series has its topology defined on the series level.
--   The `map-shape-background` series is rendered behind the `map-line` series due to their order in the series array.
+-   The `map-shape-background` series is rendered behind the `map-marker` series due to their order in the series array.
 
 ## Map Marker Position from Data
 

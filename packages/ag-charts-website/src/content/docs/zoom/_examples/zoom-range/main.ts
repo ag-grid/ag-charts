@@ -69,6 +69,6 @@ function changeRangeAugust() {
 }
 
 function changeRangeAll() {
-    options.zoom!.rangeX = undefined;
+    options.zoom!.rangeX = {};
     AgCharts.update(chart, options);
 }
