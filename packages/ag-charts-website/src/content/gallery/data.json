@@ -270,7 +270,7 @@
         [
             {
                 "title": "Map",
-                "seriesName": "map",
+                "seriesName": "maps",
                 "icon": "chartsMap",
                 "enterprise": true,
                 "examples": [
