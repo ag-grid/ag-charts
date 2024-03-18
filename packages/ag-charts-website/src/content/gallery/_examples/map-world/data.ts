@@ -45,7 +45,7 @@ export const europeData = [
         gdp_md: 250680,
         iso2: 'CZ',
         iso3: 'CZE',
-        name: 'Czech Republic',
+        name: 'Czechia',
     },
     {
         pop_est: 83132799,
@@ -126,14 +126,6 @@ export const europeData = [
         iso2: 'AL',
         iso3: 'ALB',
         name: 'Albania',
-    },
-    {
-        pop_est: 1794248,
-        pop_rank: 12,
-        gdp_md: 7926,
-        iso2: 'XK',
-        iso3: '-99',
-        name: 'Kosovo',
     },
     {
         pop_est: 47076781,
@@ -341,7 +333,7 @@ export const europeData = [
         gdp_md: -99,
         iso2: 'VA',
         iso3: 'VAT',
-        name: 'Vatican',
+        name: 'Vatican City',
     },
     {
         pop_est: 361313,
@@ -384,20 +376,12 @@ export const europeData = [
         name: 'Isle of Man',
     },
     {
-        pop_est: 29884,
-        pop_rank: 7,
-        gdp_md: 1563,
-        iso2: 'AX',
-        iso3: 'ALA',
-        name: 'Åland Islands',
-    },
-    {
         pop_est: 48678,
         pop_rank: 7,
         gdp_md: 3116,
         iso2: 'FO',
         iso3: 'FRO',
-        name: 'Faeroe Islands',
+        name: 'Faroes',
     },
 ];
 
@@ -443,6 +427,14 @@ export const asiaData = [
         name: 'China',
     },
     {
+        pop_est: 23570000,
+        pop_rank: 57,
+        gdp_md: 791610,
+        iso2: 'TW',
+        iso3: 'TWN',
+        name: 'Taiwan',
+    },
+    {
         pop_est: 9053300,
         pop_rank: 13,
         gdp_md: 394652,
@@ -480,7 +472,7 @@ export const asiaData = [
         gdp_md: 1646739,
         iso2: 'KR',
         iso3: 'KOR',
-        name: 'Republic of Korea',
+        name: 'South Korea',
     },
     {
         pop_est: 25666161,
@@ -488,7 +480,7 @@ export const asiaData = [
         gdp_md: 40000,
         iso2: 'KP',
         iso3: 'PRK',
-        name: 'Dem. Rep. Korea',
+        name: 'North Korea',
     },
     {
         pop_est: 763092,
@@ -584,7 +576,7 @@ export const asiaData = [
         gdp_md: 761425,
         iso2: 'TR',
         iso3: 'TUR',
-        name: 'Turkey',
+        name: 'Türkiye',
     },
     {
         pop_est: 7169455,
@@ -592,7 +584,7 @@ export const asiaData = [
         gdp_md: 18173,
         iso2: 'LA',
         iso3: 'LAO',
-        name: 'Lao PDR',
+        name: 'Laos',
     },
     {
         pop_est: 6456900,
@@ -680,7 +672,7 @@ export const asiaData = [
         gdp_md: 13469,
         iso2: 'BN',
         iso3: 'BRN',
-        name: 'Brunei Darussalam',
+        name: 'Brunei',
     },
     {
         pop_est: 54045420,
@@ -688,7 +680,7 @@ export const asiaData = [
         gdp_md: 76085,
         iso2: 'MM',
         iso3: 'MMR',
-        name: 'Myanmar',
+        name: 'Myanmar/Burma',
     },
     {
         pop_est: 163046161,
@@ -747,22 +739,6 @@ export const asiaData = [
         name: 'Hong Kong',
     },
     {
-        pop_est: 326000,
-        pop_rank: 10,
-        gdp_md: 3600,
-        iso2: '-99',
-        iso3: '-99',
-        name: 'Northern Cyprus',
-    },
-    {
-        pop_est: 6000,
-        pop_rank: 5,
-        gdp_md: 15,
-        iso2: '-99',
-        iso3: '-99',
-        name: 'Siachen Glacier',
-    },
-    {
         pop_est: 108116615,
         pop_rank: 17,
         gdp_md: 376795,
@@ -779,14 +755,6 @@ export const asiaData = [
         name: 'Sri Lanka',
     },
     {
-        pop_est: 23568378,
-        pop_rank: 15,
-        gdp_md: 1127000,
-        iso2: 'TW',
-        iso3: 'TWN',
-        name: 'Taiwan',
-    },
-    {
         pop_est: 126264931,
         pop_rank: 17,
         gdp_md: 5081769,
@@ -800,7 +768,7 @@ export const asiaData = [
         gdp_md: 35,
         iso2: 'AU',
         iso3: 'AUS',
-        name: 'Indian Ocean Territories',
+        name: 'British Indian Ocean Territory',
     },
     {
         pop_est: 5703569,
@@ -817,14 +785,6 @@ export const asiaData = [
         iso2: 'BH',
         iso3: 'BHR',
         name: 'Bahrain',
-    },
-    {
-        pop_est: 640445,
-        pop_rank: 11,
-        gdp_md: 53859,
-        iso2: 'MO',
-        iso3: 'MAC',
-        name: 'Macao',
     },
 ];
 
@@ -875,15 +835,7 @@ export const africaData = [
         gdp_md: 63177,
         iso2: 'TZ',
         iso3: 'TZA',
-        name: 'Tanzania',
-    },
-    {
-        pop_est: 5096159,
-        pop_rank: 13,
-        gdp_md: 17836,
-        iso2: '-99',
-        iso3: '-99',
-        name: 'Somaliland',
+        name: 'United Republic of Tanzania',
     },
     {
         pop_est: 36471769,
@@ -907,7 +859,7 @@ export const africaData = [
         gdp_md: 12267,
         iso2: 'CG',
         iso3: 'COG',
-        name: 'Republic of the Congo',
+        name: 'Congo',
     },
     {
         pop_est: 86790567,
@@ -915,7 +867,7 @@ export const africaData = [
         gdp_md: 50400,
         iso2: 'CD',
         iso3: 'COD',
-        name: 'Democratic Republic of the Congo',
+        name: 'Democratic Republic of The Congo',
     },
     {
         pop_est: 2494530,
@@ -1019,7 +971,7 @@ export const africaData = [
         gdp_md: 58539,
         iso2: 'CI',
         iso3: 'CIV',
-        name: "Côte d'Ivoire",
+        name: 'Côte D’Ivoire',
     },
     {
         pop_est: 19658031,
@@ -1107,7 +1059,7 @@ export const africaData = [
         gdp_md: 4471,
         iso2: 'SZ',
         iso3: 'SWZ',
-        name: 'Kingdom of eSwatini',
+        name: 'Eswatini',
     },
     {
         pop_est: 11530580,
@@ -1227,7 +1179,7 @@ export const africaData = [
         gdp_md: 1826,
         iso2: 'GM',
         iso3: 'GMB',
-        name: 'The Gambia',
+        name: 'Gambia',
     },
     {
         pop_est: 26969307,
@@ -1251,7 +1203,7 @@ export const africaData = [
         gdp_md: 418,
         iso2: 'ST',
         iso3: 'STP',
-        name: 'São Tomé and Principe',
+        name: 'São Tomé and Príncipe',
     },
     {
         pop_est: 549935,
@@ -1259,7 +1211,7 @@ export const africaData = [
         gdp_md: 1981,
         iso2: 'CV',
         iso3: 'CPV',
-        name: 'Republic of Cabo Verde',
+        name: 'Cape Verde',
     },
 ];
 
@@ -1281,20 +1233,12 @@ export const northAmericaData = [
         name: 'Nicaragua',
     },
     {
-        pop_est: 38002,
-        pop_rank: 7,
-        gdp_md: 562,
-        iso2: 'MF',
-        iso3: 'MAF',
-        name: 'Saint-Martin',
-    },
-    {
         pop_est: 40733,
         pop_rank: 7,
         gdp_md: 1185,
         iso2: 'SX',
         iso3: 'SXM',
-        name: 'Sint Maarten',
+        name: 'Sint-Maarten',
     },
     {
         pop_est: 11263077,
@@ -1454,7 +1398,7 @@ export const northAmericaData = [
         gdp_md: 824,
         iso2: 'VC',
         iso3: 'VCT',
-        name: 'Saint Vincent and the Grenadines',
+        name: 'Saint Vincent and The Grenadines',
     },
     {
         pop_est: 287025,
@@ -1510,7 +1454,7 @@ export const northAmericaData = [
         gdp_md: 3855,
         iso2: 'VI',
         iso3: 'VIR',
-        name: 'United States Virgin Islands',
+        name: 'Us Virgin Islands',
     },
     {
         pop_est: 9961,
@@ -1518,7 +1462,7 @@ export const northAmericaData = [
         gdp_md: 255,
         iso2: 'BL',
         iso3: 'BLM',
-        name: 'Saint-Barthélemy',
+        name: 'Saint Barthélemy',
     },
     {
         pop_est: 3193694,
@@ -1673,7 +1617,7 @@ export const southAmericaData = [
         gdp_md: 282,
         iso2: 'FK',
         iso3: 'FLK',
-        name: 'Falkland Islands / Malvinas',
+        name: 'Falkland Islands',
     },
 ];
 
@@ -1775,14 +1719,6 @@ export const oceaniaData = [
         name: 'Tonga',
     },
     {
-        pop_est: 11558,
-        pop_rank: 6,
-        gdp_md: 60,
-        iso2: 'WF',
-        iso3: 'WLF',
-        name: 'Wallis and Futuna Islands',
-    },
-    {
         pop_est: 197097,
         pop_rank: 9,
         gdp_md: 852,
@@ -1820,7 +1756,7 @@ export const oceaniaData = [
         gdp_md: 401,
         iso2: 'FM',
         iso3: 'FSM',
-        name: 'Federated States of Micronesia',
+        name: 'Micronesia',
     },
     {
         pop_est: 299882,
@@ -1869,14 +1805,6 @@ export const oceaniaData = [
         iso2: 'MP',
         iso3: 'MNP',
         name: 'Northern Mariana Islands',
-    },
-    {
-        pop_est: 0,
-        pop_rank: 1,
-        gdp_md: 0,
-        iso2: 'AU',
-        iso3: 'AUS',
-        name: 'Ashmore and Cartier Islands',
     },
 ];
 

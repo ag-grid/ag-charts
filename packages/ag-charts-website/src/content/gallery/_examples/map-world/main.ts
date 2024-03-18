@@ -1,14 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { africaData, asiaData, europeData, gdpData, northAmericaData, oceaniaData, southAmericaData } from './data';
-import {
-    africaTopology,
-    asiaTopology,
-    europeTopology,
-    northAmericaTopology,
-    oceaniaTopology,
-    southAmericaTopology,
-} from './topology';
+import { topology } from './topology';
 
 const labelOptions = {
     labelKey: 'iso2',
@@ -23,68 +16,69 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'World Population and Largest Economies',
     },
+    topology,
     series: [
         {
+            type: 'map-shape-background',
+            topology,
+        },
+        {
             type: 'map-shape',
-            topology: europeTopology,
+            topology,
             data: europeData,
             title: 'Europe',
             idKey: 'name',
+            topologyIdKey: 'NAME_ENGL',
             ...labelOptions,
         },
         {
             type: 'map-shape',
-            topology: asiaTopology,
+            topology,
             data: asiaData,
             title: 'Asia',
             idKey: 'name',
+            topologyIdKey: 'NAME_ENGL',
             ...labelOptions,
         },
         {
             type: 'map-shape',
-            topology: africaTopology,
+            topology,
             data: africaData,
             title: 'Africa',
             idKey: 'name',
+            topologyIdKey: 'NAME_ENGL',
             ...labelOptions,
         },
         {
             type: 'map-shape',
-            topology: northAmericaTopology,
+            topology,
             data: northAmericaData,
             title: 'North America',
             idKey: 'name',
+            topologyIdKey: 'NAME_ENGL',
             ...labelOptions,
         },
         {
             type: 'map-shape',
-            topology: southAmericaTopology,
+            topology,
             data: southAmericaData,
             title: 'South America',
             idKey: 'name',
+            topologyIdKey: 'NAME_ENGL',
             ...labelOptions,
         },
         {
             type: 'map-shape',
-            topology: oceaniaTopology,
+            topology,
             data: oceaniaData,
             title: 'Oceania',
             idKey: 'name',
+            topologyIdKey: 'NAME_ENGL',
             ...labelOptions,
         },
         {
             type: 'map-marker',
-            topology: {
-                type: 'FeatureCollection',
-                features: [
-                    ...europeTopology.features,
-                    ...asiaTopology.features,
-                    ...africaTopology.features,
-                    ...northAmericaTopology.features,
-                    ...southAmericaTopology.features,
-                    ...oceaniaTopology.features,
-                ],
-            },
+            topology,
             data: [...europeData, ...asiaData, ...africaData, ...northAmericaData, ...southAmericaData, ...oceaniaData],
             title: 'Population',
             idKey: 'name',
