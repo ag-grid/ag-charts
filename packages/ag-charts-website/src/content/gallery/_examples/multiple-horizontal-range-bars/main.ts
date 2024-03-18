@@ -20,7 +20,7 @@ const options: AgChartOptions = {
         type: 'range-bar',
         direction: 'horizontal',
         xKey: 'product',
-        xName: 'Smartphone',
+        xName: 'Product',
         yLowKey: 'exportAmount',
         yHighKey: 'importAmount',
         yLowName: 'Lowest Cost',
