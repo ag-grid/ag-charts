@@ -31,9 +31,9 @@ const options: AgChartOptions = {
                 const animation = document.createElement('style');
                 animation.innerText = '@keyframes loading-spinner { to { transform: rotate(0.5turn); } }';
 
-                container.replaceChildren(spinner, animation);
+                container.append(spinner, animation);
 
-                return container.outerHTML;
+                return container;
             },
         },
     },
