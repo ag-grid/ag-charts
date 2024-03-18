@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { data } from './data';
+import { currencyData, getCurrencyData } from './data';
 import { cables, capitals, topology } from './topology';
 
 const options: AgChartOptions = {
@@ -9,7 +9,6 @@ const options: AgChartOptions = {
         text: 'World Map with Shapes, Markers and Lines',
     },
     topology,
-    data,
     series: [
         {
             type: 'map-shape-background',

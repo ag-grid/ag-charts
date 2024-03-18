@@ -20094,8 +20094,6 @@ export const capitals = {
         },
         {
             type: 'Feature',
-            geometry: { type: 'Point', coordinates: [-172, -9] },
-            type: 'Feature',
             geometry: { type: 'Point', coordinates: [-15.35, 11.51] },
             properties: { country: 'Guinea-Bissau', city: 'Bissau' },
         },
@@ -20441,8 +20439,6 @@ export const capitals = {
         },
         {
             type: 'Feature',
-            geometry: { type: 'Point', coordinates: [113.33, 22.1] },
-            type: 'Feature',
             geometry: { type: 'Point', coordinates: [106.55, 47.55] },
             properties: { country: 'Mongolia', city: 'Ulaanbaatar' },
         },
@@ -20612,8 +20608,6 @@ export const capitals = {
             properties: { country: 'Nepal', city: 'Kathmandu' },
         },
         {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [166.55, -0.32] },
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [-169.55, -19.01] },
             properties: { country: 'Niue', city: 'Alofi' },
@@ -21057,13 +21051,6 @@ export const capitals = {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [-68.56, 12.06] },
             properties: { country: 'Netherlands Antilles', city: 'Willemstad' },
-        },
-        {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [0, -90] },
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [0, 0] },
-            properties: { country: 'Asia &amp; Pacific' },
         },
         {
             type: 'Feature',
