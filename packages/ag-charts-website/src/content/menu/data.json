@@ -220,26 +220,32 @@
             },
             {
                 "title": "Maps",
+                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Maps Overview",
-                        "path": "maps"
+                        "path": "maps",
+                        "isEnterprise": true
                     },
                     {
                         "title": "Geographic Areas",
-                        "path": "map-shapes"
+                        "path": "map-shapes",
+                        "isEnterprise": true
                     },
                     {
                         "title": "Routes and Connections",
-                        "path": "map-lines"
+                        "path": "map-lines",
+                        "isEnterprise": true
                     },
                     {
                         "title": "Markers and Points of Interest",
-                        "path": "map-markers"
+                        "path": "map-markers",
+                        "isEnterprise": true
                     },
                     {
                         "title": "Map Topology",
-                        "path": "map-topology"
+                        "path": "map-topology",
+                        "isEnterprise": true
                     }
                 ]
             }
