@@ -1,3 +1,4 @@
+// source: https://geojson-maps.ash.ms/
 export const europeTopology = {
     type: 'FeatureCollection',
     features: [

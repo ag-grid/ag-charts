@@ -18,12 +18,28 @@ const labelOptions = {
     },
 };
 
+const worldTopology = {
+    type: 'FeatureCollection',
+    features: [
+        ...europeTopology.features,
+        ...asiaTopology.features,
+        ...africaTopology.features,
+        ...northAmericaTopology.features,
+        ...southAmericaTopology.features,
+        ...oceaniaTopology.features,
+    ],
+};
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     subtitle: {
         text: 'World Population and Largest Economies',
     },
     series: [
+        {
+            type: 'map-shape-background',
+            topology: worldTopology,
+        },
         {
             type: 'map-shape',
             topology: europeTopology,
@@ -74,17 +90,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'map-marker',
-            topology: {
-                type: 'FeatureCollection',
-                features: [
-                    ...europeTopology.features,
-                    ...asiaTopology.features,
-                    ...africaTopology.features,
-                    ...northAmericaTopology.features,
-                    ...southAmericaTopology.features,
-                    ...oceaniaTopology.features,
-                ],
-            },
+            topology: worldTopology,
             data: [...europeData, ...asiaData, ...africaData, ...northAmericaData, ...southAmericaData, ...oceaniaData],
             title: 'Population',
             idKey: 'name',
@@ -93,37 +99,6 @@ const options: AgChartOptions = {
             sizeName: 'Population Estimate',
             size: 5,
             maxSize: 60,
-            showInLegend: false,
-        },
-        {
-            type: 'map-line',
-            topology: {
-                type: 'FeatureCollection',
-                features: [
-                    {
-                        type: 'Feature',
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: [
-                                [-97.0, 38.0],
-                                [105.0, 35.0],
-                                [138.0, 36.0],
-                                [9.0, 51.0],
-                                [77.0, 20.0],
-                                [-2.0, 54.0],
-                                [2.0, 46.0],
-                                [12.8333, 42.8333],
-                                [-55.0, -10.0],
-                                [-95.0, 60.0],
-                                [-97.0, 38.0],
-                            ],
-                        },
-                        properties: { name: 'largest_economies' },
-                    },
-                ],
-            },
-            data: [{ name: 'largest_economies' }],
-            idKey: 'name',
             showInLegend: false,
         },
         {
