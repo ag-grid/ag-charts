@@ -511,8 +511,18 @@ export class MapLineSeries
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
-        const { legendItemName, idKey, colorKey, colorName, colorRange, stroke, strokeOpacity, visible } =
-            this.properties;
+        const {
+            legendItemName,
+            idKey,
+            colorKey,
+            colorName,
+            colorRange,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            visible,
+        } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -540,6 +550,13 @@ export class MapLineSeries
                     stroke: undefined,
                     strokeWidth: 0,
                     strokeOpacity: 0,
+                    enabled: false,
+                },
+                line: {
+                    stroke,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
                 },
                 legendItemName,
             };
