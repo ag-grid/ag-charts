@@ -9,7 +9,7 @@ import { tubeTopology } from './tubeTopology';
 
 const sizeDomain = [0, 141537];
 const strokeWidth = 1;
-const maxStrokeWidth = 4;
+const maxStrokeWidth = 5;
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -29,12 +29,12 @@ const options: AgChartOptions = {
             idKey: 'county',
             labelKey: 'county',
             fill: '#0000',
-            stroke: '#84889211',
+            stroke: '#6687990C',
             strokeWidth: 1,
             label: {
                 fontSize: 10,
                 minimumFontSize: 8,
-                color: '#84889244',
+                color: '#66879933',
                 formatter: ({ value }) => {
                     return value === 'Chiltern' || value === 'Three Rivers' || value === 'Epping Forest' ? value : '';
                 },
@@ -47,13 +47,13 @@ const options: AgChartOptions = {
             idKey: 'name',
             topologyIdKey: 'name',
             labelKey: 'name',
-            fill: '#84889211',
-            stroke: '#84889211',
+            fill: '#66879933',
+            stroke: '#6687990C',
             strokeWidth: 1,
             label: {
                 fontSize: 10,
                 minimumFontSize: 8,
-                color: '#84889255',
+                // color: '#84889255',
             },
         },
         {
