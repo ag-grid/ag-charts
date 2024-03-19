@@ -75,14 +75,14 @@
     }
 
     h5 {
-        padding-left: 6px;
+        padding-left: $spacing-size-2;
         font-weight: var(--text-bold);
         color: var(--color-fg-secondary);
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         display: block;
-        max-width: $spacing-size-64 + $spacing-size-4;
+        max-width: $spacing-size-64 + $spacing-size-4 + 5;
         padding-top: 0;
     }
 }

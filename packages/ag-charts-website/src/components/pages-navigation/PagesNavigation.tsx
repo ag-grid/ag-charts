@@ -161,7 +161,11 @@ function findActiveTopLevelMenuItem({
     activeMenuItemPath: string;
 }) {
     const isTopLevelPath = createIsTopLevelPath(activeMenuItemPath);
-    return menuData.main.items.find(isTopLevelPath) || menuData.charts.items.find(isTopLevelPath);
+    return (
+        menuData.main.items.find(isTopLevelPath) ||
+        menuData.maps.items.find(isTopLevelPath) ||
+        menuData.charts.items.find(isTopLevelPath)
+    );
 }
 
 function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuData; activeMenuItemPath: string }) {
@@ -177,6 +181,7 @@ function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuDa
 
     return (
         menuData.main.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined) ||
+        menuData.maps.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined) ||
         menuData.charts.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined)
     );
 }
@@ -222,6 +227,50 @@ function MainPagesNavigation({
                 })}
             </ul>
         </>
+    );
+}
+
+function MapsPagesNavigation({
+    menuData,
+    framework,
+    activeMenuItem,
+    activeTopLevelMenuItem,
+}: {
+    menuData: MenuData;
+    framework: Framework;
+    activeMenuItem?: MenuItem;
+    activeTopLevelMenuItem?: MenuItem;
+}) {
+    const [topLevelSeriesItem] = menuData.maps.items;
+    const chartsMenuItems = topLevelSeriesItem.items;
+
+    return (
+        <ul
+            className={classnames(
+                styles.mapsTypesNav,
+                styles.menuInner,
+                gridStyles.menuInner,
+                gridStyles.menuGroup,
+                'list-style-none'
+            )}
+        >
+            <hr />
+            <h5>Maps</h5>
+            {chartsMenuItems?.map((menuItem) => {
+                const { title, path } = menuItem;
+                const isActive = menuItem === activeTopLevelMenuItem;
+
+                return (
+                    <NavItemContainer
+                        key={`${title}-${path}`}
+                        framework={framework}
+                        menuItem={menuItem}
+                        isActive={isActive}
+                        activeMenuItem={activeMenuItem}
+                    />
+                );
+            })}
+        </ul>
     );
 }
 
@@ -316,6 +365,12 @@ export function PagesNavigation({
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
                     setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
+                />
+                <MapsPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeTopLevelMenuItem={activeTopLevelMenuItem}
                 />
                 <SeriesPagesNavigation
                     menuData={menuData}
