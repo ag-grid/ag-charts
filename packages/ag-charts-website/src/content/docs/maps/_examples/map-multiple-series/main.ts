@@ -63,6 +63,9 @@ const options: AgChartOptions = {
     ],
     legend: {
         enabled: true,
+        item: {
+            showSeriesStroke: true,
+        },
     },
 };
 

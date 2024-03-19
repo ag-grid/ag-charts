@@ -1750,8 +1750,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.registerListeners(target, listeners as Record<string, TypedEventListener>);
         }
 
-        if (seriesGrouping) {
-            target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
+        if ('seriesGrouping' in options) {
+            if (seriesGrouping == null) {
+                target.seriesGrouping = undefined;
+            } else {
+                target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
+            }
         }
     }
 

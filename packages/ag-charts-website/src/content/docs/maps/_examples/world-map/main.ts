@@ -5,9 +5,6 @@ import { cables, capitals, topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'World Map with Shapes, Markers and Lines',
-    },
     topology,
     series: [
         {
@@ -17,92 +14,127 @@ const options: AgChartOptions = {
             type: 'map-shape',
             legendItemName: 'Shapes',
             title: 'Other Currency',
-            fillOpacity: 0.7,
-            stroke: 'black',
-            data: topology.features.map((t) => {
-                return { name: t.properties.name };
+            // fillOpacity: 0.7,
+            stroke: 'rgb(246,255,255)',
+            data: topology.features.map((t: any) => {
+                const { name } = t.properties;
+                return { name };
             }),
             idKey: 'name',
+            fill: '#BBDEFB',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Dollar',
             idKey: 'name',
             data: getCurrencyData('dollar'),
+            fill: '#FFCCBC',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Euro',
             idKey: 'name',
             data: getCurrencyData('euro'),
+            fill: '#DCEDC8',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Franc',
             idKey: 'name',
             data: getCurrencyData('franc'),
+            fill: '#B2EBF2',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Pound',
             idKey: 'name',
             data: getCurrencyData('pound'),
+            fill: '#FFE0B2',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Dinar',
             idKey: 'name',
             data: getCurrencyData('dinar'),
+            fill: '#E1BEE7',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Peso',
             idKey: 'name',
             data: getCurrencyData('peso'),
+            fill: '#CFD8DC',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Rupee',
             idKey: 'name',
             data: getCurrencyData('rupee'),
+            fill: '#FFF9C4',
         },
         {
             type: 'map-shape',
             legendItemName: 'Shapes',
             showInLegend: false,
             fillOpacity: 0.7,
-            stroke: 'black',
+            stroke: 'rgb(246,255,255)',
             title: 'Rial',
             idKey: 'name',
             data: getCurrencyData('rial'),
+            fill: '#D7CCC8',
+        },
+        {
+            type: 'map-line',
+            topology: cables,
+            legendItemName: 'Lines',
+            data: cables.features.map((t: any) => {
+                return { name: t.properties.name };
+            }),
+            idKey: 'name',
+            title: 'Submarine Cables',
+            stroke: '#B0C4DE',
+        },
+        {
+            type: 'map-marker',
+            topology: capitals,
+            legendItemName: 'Markers',
+            showInLegend: false,
+            data: capitals.features.map((t: any) => {
+                return { name: t.properties.city };
+            }),
+            idKey: 'name',
+            title: 'Capital City',
+            topologyIdKey: 'city',
+            fillOpacity: 1,
+            fill: 'orange',
         },
         {
             type: 'map-marker',
@@ -123,35 +155,15 @@ const options: AgChartOptions = {
             shape: 'pin',
             size: 40,
             fillOpacity: 1,
-            stroke: 'black',
-        },
-        {
-            type: 'map-line',
-            topology: cables,
-            legendItemName: 'Lines',
-            data: cables.features.map((t) => {
-                return { name: t.properties.name };
-            }),
-            idKey: 'name',
-            title: 'Submarine Cables',
-        },
-        {
-            type: 'map-marker',
-            topology: capitals,
-            legendItemName: 'Markers',
-            showInLegend: false,
-            data: capitals.features.map((t) => {
-                return { name: t.properties.city };
-            }),
-            idKey: 'name',
-            title: 'Capital City',
-            topologyIdKey: 'city',
-            fillOpacity: 1,
-            fill: 'orange',
+            fill: '#EF5452',
+            // stroke: 'rgb(246,255,255)',
         },
     ],
     legend: {
         enabled: true,
+        item: {
+            showSeriesStroke: true,
+        },
     },
 };
 
