@@ -3,7 +3,7 @@ import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
 import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Circle } from '../../marker/circle';
-import { SeriesNodePickMatch } from '../series';
+import type { SeriesNodePickMatch } from '../series';
 
 type AnimatableSectorDatum = {
     radius: number;
