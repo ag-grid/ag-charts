@@ -9,9 +9,6 @@ import { stationTopology } from './stationTopology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Ireland Railways',
-    },
     series: [
         {
             type: 'map-shape-background',

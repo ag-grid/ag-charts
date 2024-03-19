@@ -5,17 +5,13 @@ import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'World Population',
-        spacing: 0,
-    },
-    topology,
     padding: {
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
     },
+    topology,
     series: [
         {
             type: 'map-shape-background',
