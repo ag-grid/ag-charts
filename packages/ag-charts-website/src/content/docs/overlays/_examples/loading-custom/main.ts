@@ -29,7 +29,8 @@ const options: AgChartOptions = {
                 spinner.style.animation = 'loading-spinner 1s infinite';
 
                 const animation = document.createElement('style');
-                animation.innerText = '@keyframes loading-spinner { to { transform: rotate(0.5turn); } }';
+                animation.innerText =
+                    '@keyframes loading-spinner { from { rotate(0turn); } to { transform: rotate(0.5turn); } }';
 
                 container.append(spinner, animation);
 
