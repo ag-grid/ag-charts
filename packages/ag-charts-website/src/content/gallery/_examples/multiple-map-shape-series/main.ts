@@ -13,8 +13,8 @@ const labelOptions = {
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    subtitle: {
-        text: 'World Population',
+    title: {
+        text: 'World Map',
     },
     topology,
     series: [
@@ -75,20 +75,6 @@ const options: AgChartOptions = {
             idKey: 'name',
             topologyIdKey: 'NAME_ENGL',
             ...labelOptions,
-        },
-        {
-            type: 'map-marker',
-            topology,
-            data: [...europeData, ...asiaData, ...africaData, ...northAmericaData, ...southAmericaData, ...oceaniaData],
-            title: 'Population',
-            idKey: 'name',
-            idName: 'Country',
-            sizeKey: 'pop_est',
-            sizeName: 'Population Estimate',
-            topologyIdKey: 'NAME_ENGL',
-            size: 5,
-            maxSize: 60,
-            showInLegend: false,
         },
     ],
     legend: {
