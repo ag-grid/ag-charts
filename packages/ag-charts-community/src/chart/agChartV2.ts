@@ -276,7 +276,8 @@ class AgChartsInternal {
     }
 
     private static async prepareResizedChart({ chart }: AgChartInstanceProxy, opts: DownloadOptions = {}) {
-        const { width = chart.width, height = chart.height } = opts;
+        const width: number = opts.width ?? chart.width ?? chart.scene.canvas.width;
+        const height: number = opts.height ?? chart.height ?? chart.scene.canvas.height;
 
         const options: ChartExtendedOptions = mergeDefaults(
             {
