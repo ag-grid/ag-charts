@@ -27,7 +27,7 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
-const { sanitizeHtml, isContinuous, isNumber } = _Util;
+const { sanitizeHtml, isContinuous } = _Util;
 const { ContinuousScale, OrdinalTimeScale } = _Scale;
 
 type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
@@ -423,7 +423,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     xName,
                     yName,
                 },
-                (v) => (isNumber(v) ? v.toFixed(2) : String(v))
+                (v) => valueAxis.formatDatum(v)
             );
 
             const nodeDatum: WaterfallNodeDatum = {

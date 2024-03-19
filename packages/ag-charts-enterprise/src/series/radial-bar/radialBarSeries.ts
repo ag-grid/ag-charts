@@ -243,7 +243,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const labelText = this.getLabelText(
                 label,
                 { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                (value) => angleAxis.formatDatum(value)
             );
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
