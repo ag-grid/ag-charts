@@ -70,7 +70,7 @@
     },
     "dev": {
       "executor": "nx:run-commands",
-      "dependsOn": ["dev:setup"],
+      "dependsOn": ["dev:setup", "ag-charts-website:generate-examples", "ag-charts-website:generate-thumbnails"],
       "inputs": [],
       "outputs": [],
       "options": {
