@@ -109,6 +109,7 @@ export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }
                         ...example,
                         seriesTitle: s.title,
                         chartSeriesName: s.seriesName,
+                        seriesLink: s.seriesLink,
                         docsUrl: getPageHashUrl({ chartSeriesName: s.seriesName }),
                         icon: s.icon,
                         enterprise: s.enterprise,
