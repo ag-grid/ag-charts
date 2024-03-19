@@ -27,6 +27,7 @@ env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: x
     NX_BRANCH: ${{ github.ref }}
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
     prepare:
@@ -77,15 +78,14 @@ jobs:
                   echo "tag=b${NEW_VERSION}" >> $GITHUB_OUTPUT
 
             - name: Commit Changes
-              uses: EndBug/add-and-commit@v9
-              if: success()
-              with:
-                  default_author: github_actions
-                  message: Release prep for ${{ steps.update_version.outputs.version }}.
+              id: commit_changes
+              run: |
+                  git add .
+                  git commit -m "Release prep for ${{ steps.update_version.outputs.version }}."
+                  git push -f origin ${BRANCH_NAME}
 
             - name: Tag Latest Successful Commit For Publish
-              uses: EndBug/latest-tag@latest
               if: success() && github.event.inputs.update_tag == 'true'
-              with:
-                  ref: latest-beta-version
-                  description: Latest commit to pass GitHub Actions workflow on latest branch.
+              run: |
+                  git tag -f latest-beta-version
+                  git push origin -f latest-beta-version
