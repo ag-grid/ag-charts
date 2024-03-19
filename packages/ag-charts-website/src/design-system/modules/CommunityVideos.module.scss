@@ -48,8 +48,8 @@
 .videoContainer {
     display: flex;
     overflow-x: scroll !important;
-    gap: $spacing-size-4;
-    padding-bottom: $spacing-size-6;
+    gap: $spacing-size-4;    
+    padding-bottom: $spacing-size-6; 
 }
 
 .video {
@@ -62,7 +62,7 @@
     object-fit: cover;
     width: 220px;
     height: 165px;
-    clip-path: inset(22px 0);
+    clip-path: inset(22px 0); 
 }
 
 .videoThumbnail {
@@ -73,9 +73,8 @@
     margin-top: 22px;
 }
 
-.videoThumbnail,
-.youtubeThumbnail {
-    transition: transform 0.3s ease;
+.videoThumbnail, .youtubeThumbnail {    
+    transition: transform 0.3s ease; 
     &:hover {
         transform: scale(1.05);
     }

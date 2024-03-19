@@ -1,9 +1,8 @@
 import styles from '@design-system/modules/CommunityVideos.module.scss';
-import React, { useState } from 'react';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { useState } from 'react';
 
-import videos from '../../../content/community/news-updates/videos.json';
-
-const Videos = () => {
+const Videos = ({ videos }) => {
     const [currentVideo, setCurrentVideo] = useState(videos[0]);
 
     const handleVideoSelect = (video) => {
@@ -42,7 +41,11 @@ const Videos = () => {
                                 className={styles.youtubeThumbnail}
                             />
                         ) : (
-                            <img src={`${video.thumbnail}`} alt="Video thumbnail" className={styles.videoThumbnail} />
+                            <img
+                                src={urlWithBaseUrl(video.thumbnail)}
+                                alt="Video thumbnail"
+                                className={styles.videoThumbnail}
+                            />
                         )}
                     </div>
                 ))}

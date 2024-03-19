@@ -1,18 +1,7 @@
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { ModuleRegistry } from '@ag-grid-community/core';
-import { AgGridReact } from '@ag-grid-community/react';
-import '@ag-grid-community/styles/ag-grid.css';
-import '@ag-grid-community/styles/ag-theme-quartz.css';
-import { Icon } from '@components/icon/Icon';
 import styles from '@design-system/modules/CommunityPodcasts.module.scss';
-import React from 'react';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
-import podcasts from '../../../content/community/news-updates/podcasts.json';
-
-// Register AG Grid modules
-ModuleRegistry.registerModules([ClientSideRowModelModule]);
-
-const Podcasts = () => {
+const Podcasts = ({ podcasts }) => {
     const guestsToString = (arr) => {
         if (!arr.length) return '';
         if (arr.length === 1) return arr[0];
@@ -33,7 +22,7 @@ const Podcasts = () => {
                             <div className={styles.creditsContainer}>
                                 <img
                                     className={styles.publicationLogo}
-                                    src={`/community/podcasts/${podcast.publicationLogo}`}
+                                    src={urlWithBaseUrl(`/community/podcasts/${podcast.publicationLogo}`)}
                                     alt={`${podcast.publicationLogo} logo`}
                                 />
                                 <span className={styles.publication}>{podcast.publication}</span>
@@ -44,7 +33,7 @@ const Podcasts = () => {
                             </div>
                         </div>
                         <div className={styles.podcastPlayerContainer}>
-                            <audio controls src={podcast.link}>
+                            <audio controls src={urlWithBaseUrl(podcast.link)}>
                                 Your browser does not support the audio element.
                             </audio>
                         </div>

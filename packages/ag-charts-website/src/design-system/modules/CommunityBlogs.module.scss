@@ -60,6 +60,11 @@
     color: var(--color-text-secondary);
     opacity: 0.7;
     text-align: left;
+    font-weight: var(--text-semibold);
+
+    &:hover {
+        color: var(--color-link-hover);
+    }
 }
 
 .linkWrapper {
