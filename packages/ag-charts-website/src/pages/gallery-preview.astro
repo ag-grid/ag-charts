@@ -1,0 +1,45 @@
+---
+import { getEntry } from 'astro:content';
+import Layout from '@layouts/Layout.astro';
+import type { GalleryData, GalleryExampleChartType } from '@ag-grid-types';
+import { GalleryExampleImage } from '@features/gallery/components/GalleryExampleImage';
+
+/**
+ * Test gallery page to create images for homepage scrolling hero
+ */
+
+const galleryDataEntry = await getEntry('gallery', 'data');
+const galleryData: GalleryData = galleryDataEntry?.data;
+const { series } = galleryData;
+---
+
+<Layout title="AG Charts Gallery" hideFooter={true}>
+    <div class="content">
+        {
+            series
+                .flat()
+                .flatMap((series: GalleryExampleChartType) => series.examples)
+                .map(({ title, name }) => (
+                    <GalleryExampleImage client:visible label={title} exampleName={name} />
+                ))
+        }
+    </div>
+</Layout>
+
+<style lang="scss" is:global>
+    @use '../design-system' as *;
+
+    .site-header {
+        display: none !important;
+    }
+
+    .content {
+        display: grid;
+        grid: auto-flow / repeat(3, 432px);
+        gap: 20px;
+    }
+
+    .content div {
+        border-radius: 3px;
+    }
+</style>
