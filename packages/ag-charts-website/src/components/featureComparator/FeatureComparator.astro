@@ -7,7 +7,7 @@ import { getEntry } from 'astro:content';
 
 const { pathname } = Astro.url;
 const { data: menuContent } = await getEntry('menu', 'data');
-const features = [...menuContent.main.items, ...menuContent.charts.items].filter(i => i.feature !== false);
+const features = [...menuContent.main.items, ...menuContent.charts.items].filter((i) => i.feature !== false);
 const framework = getFrameworkFromPath(pathname);
 ---
 

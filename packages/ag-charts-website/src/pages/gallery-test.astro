@@ -15,21 +15,28 @@ const { series } = galleryData;
 
 <Layout title="AG Charts Gallery" hideFooter={true}>
     <div class="gallery-outer homepage-image-gen text-sm">
-        <div class="content">
+        <div class="content gallery-test">
             {
                 series.map((series: GalleryExampleChartType[]) => (
                     <div class="chart-type">
                         <div class="gallery-list">
-                            {series.map(({ title, name, examples }) => (
-                                <>
-                                    <h3 id={name} class="gallery-list-title">
-                                        {title}
-                                    </h3>
-                                    {examples.map(({ title, name }: GalleryExample) => (
-                                        <GalleryExampleLink client:visible label={title} exampleName={name} />
-                                    ))}
-                                </>
-                            ))}
+                            {series.map(({ title, name, examples }) => {
+                                const threeColExamples = examples.toSpliced(0, examples.length % 3);
+
+                                return (
+                                    <>
+                                        <h3 id={name} class="gallery-list-title">
+                                            {title}
+                                        </h3>
+
+                                        {threeColExamples.map(({ title, name }: GalleryExample) => (
+                                            <span class="gallery-test-item">
+                                                <GalleryExampleLink client:visible label={title} exampleName={name} />
+                                            </span>
+                                        ))}
+                                    </>
+                                );
+                            })}
                         </div>
                     </div>
                 ))
@@ -40,6 +47,38 @@ const { series } = galleryData;
 
 <style lang="scss">
     @use '../design-system' as *;
+
+    :global([data-dark-mode='false']) {
+        .gallery-test {
+            background-color: var(--color-bg-site-header);
+        }
+
+        .gallery-test-item :global(a) {
+            background-color: var(--color-bg-primary);
+        }
+    }
+
+    .gallery-test {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $spacing-size-6;
+        max-width: 1344px;
+        padding: 0 !important;
+        margin: $spacing-size-16;
+
+        .chart-type,
+        .gallery-list {
+            display: contents;
+        }
+    }
+
+    .gallery-test-item {
+        display: contents;
+
+        :global(span) {
+            display: none;
+        }
+    }
 
     .enterpriseIcon {
         --color-icon: var(--color-enterprise-icon);
