@@ -222,7 +222,6 @@
             },
             {
                 "title": "Maps",
-                "isEnterprise": true,
                 "items": [
                     {
                         "title": "Maps Overview",
