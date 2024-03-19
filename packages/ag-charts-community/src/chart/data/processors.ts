@@ -1,6 +1,6 @@
 import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
-import { isNegative } from '../../util/number';
+import { clamp, isNegative } from '../../util/number';
 import { isArray, isFiniteNumber } from '../../util/type-guards';
 import { transformIntegratedCategoryValue } from '../../util/value';
 import type {
@@ -123,16 +123,12 @@ function normalisePropertyFnBuilder({
 }) {
     const normaliseSpan = normaliseTo[1] - normaliseTo[0];
     const normalise = (val: number, start: number, span: number) => {
-        const result = normaliseTo[0] + ((val - start) / span) * normaliseSpan;
-
         if (span === 0) {
             return zeroDomain;
-        } else if (result >= normaliseTo[1]) {
-            return normaliseTo[1];
-        } else if (result < normaliseTo[0]) {
-            return normaliseTo[0];
         }
-        return result;
+
+        const result = normaliseTo[0] + ((val - start) / span) * normaliseSpan;
+        return clamp(normaliseTo[0], result, normaliseTo[1]);
     };
 
     return () => (pData: ProcessedData<any>, pIdx: number) => {
@@ -238,7 +234,7 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
 function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum: 'current' | 'last' }) {
     return () => {
         // Entire data-set scope.
-        const lastValues: any[] = [];
+        const lastValues: any = {};
         let firstRow = true;
         return () => {
             // Group scope.

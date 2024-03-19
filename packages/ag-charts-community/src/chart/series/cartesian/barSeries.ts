@@ -196,7 +196,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 return keys;
             }
 
-            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             const isReversed = categoryAxis?.isReversed();
 
@@ -242,6 +242,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const contexts: Array<CartesianSeriesNodeDataContext<BarNodeDatum>> = [];
+        const scales = this.calculateScaling();
 
         const { groupScale, processedData } = this;
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
@@ -250,8 +251,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     itemId: yKey,
                     nodeData: [],
                     labelData: [],
-                    scales: super.calculateScaling(),
                     visible: this.visible || animationEnabled,
+                    scales,
                 };
 
                 const xValue = keys[xIndex];
