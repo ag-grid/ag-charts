@@ -1763,12 +1763,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 12,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2116,12 +2110,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 5,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2510,12 +2498,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     "count": 8,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      6002,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2908,12 +2890,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     "count": 8,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      23.7745,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
