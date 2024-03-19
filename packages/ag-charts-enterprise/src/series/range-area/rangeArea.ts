@@ -4,7 +4,6 @@ import { RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties
 
 const {
     valueProperty,
-    trailingValueProperty,
     keyProperty,
     ChartAxisDirection,
     mergeDefaults,
@@ -120,14 +119,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
                 valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
-                trailingValueProperty(this, yLowKey, isContinuousY, {
-                    id: `yLowTrailingValue`,
-                    invalidValue: undefined,
-                }),
-                trailingValueProperty(this, yHighKey, isContinuousY, {
-                    id: `yHighTrailingValue`,
-                    invalidValue: undefined,
-                }),
                 ...extraProps,
             ],
             dataVisible: this.visible,
@@ -187,13 +178,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const itemId = `${yLowKey}-${yHighKey}`;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
-        const defs = dataModel.resolveProcessedDataDefsByIds(this, [
-            `xValue`,
-            `yHighValue`,
-            `yLowValue`,
-            `yHighTrailingValue`,
-            `yLowTrailingValue`,
-        ]);
+        const defs = dataModel.resolveProcessedDataDefsByIds(this, [`xValue`, `yHighValue`, `yLowValue`]);
 
         const createCoordinates = (xValue: any, yHigh: number, yLow: number): [RadarAreaPoint, RadarAreaPoint] => {
             const x = xScale.convert(xValue) + xOffset;
