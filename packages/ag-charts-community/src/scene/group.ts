@@ -76,11 +76,10 @@ export class Group extends Node {
 
         if (!this._layerManager || this.opts?.layer !== true) return;
 
-        const { zIndex, zIndexSubOrder, name } = this.opts ?? {};
         this.layer = this._layerManager.addLayer({
-            name,
-            zIndex,
-            zIndexSubOrder,
+            name: this.name,
+            zIndex: this.zIndex,
+            zIndexSubOrder: this.zIndexSubOrder,
             getComputedOpacity: () => this.getComputedOpacity(),
             getVisibility: () => this.getVisibility(),
         });
