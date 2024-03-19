@@ -4,6 +4,8 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 const GitHubDetails = ({ favouritesOnly, repo }) => {
     if (repo != '' && repo != undefined && favouritesOnly) {
+        // False positive for "no-useless-escape"
+        //eslint-disable-next-line
         const regex = /github\.com\/([^\/]+)\/([^\/]+)/;
         const match = repo?.match(regex);
         return (

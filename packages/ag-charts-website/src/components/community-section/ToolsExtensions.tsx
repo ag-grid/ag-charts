@@ -23,7 +23,7 @@ const ToolsExtensions = ({ limit = -1 }) => {
     const [darkMode] = useDarkmode();
     const applyLimit = (arr) => arr?.slice(0, limit == -1 ? tools.length : limit);
     const filterFrameworks = (framework) => {
-        let filter = framework ? tools.filter((item) => item.frameworks?.includes(framework)) : tools;
+        const filter = framework ? tools.filter((item) => item.frameworks?.includes(framework)) : tools;
         setSelectedFramework(framework);
         setFilteredTools(applyLimit(filter));
     };
@@ -33,6 +33,8 @@ const ToolsExtensions = ({ limit = -1 }) => {
 
     const getGithubImage = (repo) => {
         // Extract the 'owner' and 'repo' from the GitHub URL
+        // False positive for "no-useless-escape"
+        //eslint-disable-next-line
         const regex = /github\.com\/([^\/]+)\/([^\/]+)/;
         const match = repo.match(regex);
         if (match && match.length >= 3) {
