@@ -4,7 +4,7 @@ import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
-import type { RenderContext } from './node';
+import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 
 export class Group extends Node {
@@ -69,17 +69,21 @@ export class Group extends Node {
         }
 
         super._setLayerManager(layersManager);
+    }
 
-        if (layersManager && this.opts?.layer) {
-            const { zIndex, zIndexSubOrder, name } = this.opts ?? {};
-            this.layer = layersManager.addLayer({
-                name,
-                zIndex,
-                zIndexSubOrder,
-                getComputedOpacity: () => this.getComputedOpacity(),
-                getVisibility: () => this.getVisibility(),
-            });
-        }
+    private initialiseLayer() {
+        if (this.layer) return;
+
+        if (!this._layerManager || this.opts?.layer !== true) return;
+
+        const { zIndex, zIndexSubOrder, name } = this.opts ?? {};
+        this.layer = this._layerManager.addLayer({
+            name,
+            zIndex,
+            zIndexSubOrder,
+            getComputedOpacity: () => this.getComputedOpacity(),
+            getVisibility: () => this.getVisibility(),
+        });
     }
 
     protected getComputedOpacity() {
@@ -139,6 +143,22 @@ export class Group extends Node {
     }
 
     private lastBBox?: BBox = undefined;
+
+    override preRender(): ChildNodeCounts {
+        const counts = super.preRender();
+
+        // Correct counts for this group.
+        counts.groups += 1;
+        counts.nonGroups -= 1;
+
+        if (this.opts?.layer !== true || this.layer != null) return counts;
+
+        if (counts.nonGroups > 0) {
+            this.initialiseLayer();
+        }
+
+        return counts;
+    }
 
     override render(renderCtx: RenderContext) {
         const { opts: { name = undefined } = {}, _debug: debug } = this;
