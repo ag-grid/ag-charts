@@ -16,7 +16,7 @@ const options: AgChartOptions = {
             type: 'map-shape-background',
             topology: backgroundTopologyNI,
             fill: '#badc58',
-            fillOpacity: 0.2,
+            fillOpacity: 0.4,
         },
         {
             type: 'map-shape-background',
