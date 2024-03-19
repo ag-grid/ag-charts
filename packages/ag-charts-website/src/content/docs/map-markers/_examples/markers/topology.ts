@@ -1,3 +1,4 @@
+// https://simplemaps.com/data/gb-cities
 export const topology = {
     type: 'FeatureCollection',
     features: [
