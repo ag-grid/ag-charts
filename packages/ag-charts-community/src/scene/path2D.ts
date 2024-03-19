@@ -1,3 +1,5 @@
+import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
+import { Logger } from '../util/logger';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 
 enum Command {
@@ -276,6 +278,55 @@ export class Path2D {
         }
 
         return intersectionCount % 2 === 1;
+    }
+
+    distanceSquared(x: number, y: number): number {
+        let best = Infinity;
+        const commands = this.commands;
+        const params = this.params;
+        const cn = commands.length;
+        // the starting point of the  current path
+        let sx: number = NaN;
+        let sy: number = NaN;
+        // the previous point of the current path
+        let px = 0;
+        let py = 0;
+
+        for (let ci = 0, pi = 0; ci < cn; ci++) {
+            switch (commands[ci]) {
+                case Command.Move:
+                    px = sx = params[pi++];
+                    py = sy = params[pi++];
+                    break;
+                case Command.Line: {
+                    const nx = params[pi++];
+                    const ny = params[pi++];
+                    best = lineDistanceSquared(x, y, px, py, nx, ny, best);
+                    break;
+                }
+                case Command.Curve:
+                    Logger.error('Command.Curve distanceSquare not implemented');
+                    break;
+                case Command.Arc: {
+                    const cx = params[pi++];
+                    const cy = params[pi++];
+                    const r = params[pi++];
+                    const startAngle = params[pi++];
+                    const endAngle = params[pi++];
+                    const startX = cx + Math.cos(startAngle) * r;
+                    const startY = cy + Math.sin(startAngle) * r;
+                    const counterClockwise = Boolean(params[pi++]);
+                    best = lineDistanceSquared(x, y, px, py, startX, startY, best);
+                    best = arcDistanceSquared(x, y, cx, cy, r, startAngle, endAngle, counterClockwise, best);
+                    break;
+                }
+                case Command.ClosePath:
+                    best = lineDistanceSquared(x, y, px, py, sx, sy, best);
+                    break;
+            }
+        }
+
+        return best;
     }
 
     getPoints(): Array<{ x: number; y: number }> {
