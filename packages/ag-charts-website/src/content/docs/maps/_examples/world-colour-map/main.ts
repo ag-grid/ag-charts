@@ -5,9 +5,6 @@ import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Access to clean fuels and technologies for cooking',
-    },
     data,
     topology,
     series: [
