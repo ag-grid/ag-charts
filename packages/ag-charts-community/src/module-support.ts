@@ -36,7 +36,6 @@ export * from './chart/data/dataModel';
 export * from './chart/data/dataController';
 export * from './chart/data/dataService';
 export * from './chart/data/processors';
-export * from './chart/data/aggregateFunctions';
 export * from './chart/updateService';
 export * from './chart/layout/layoutService';
 export * from './chart/interaction/animationManager';

@@ -1,25 +1,23 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { isFiniteNumber } from '../../util/type-guards';
-import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
 import { expectWarning, expectWarnings, setupMockConsole } from '../test/utils';
-import {
-    accumulatedValue,
-    area as actualArea,
-    groupAverage as actualGroupAverage,
-    groupCount as actualGroupCount,
-    range as actualRange,
-    sum as actualSum,
-} from './aggregateFunctions';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
 import { DataModel } from './dataModel';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
+    accumulatedValue,
+    area as actualArea,
+    groupAverage as actualGroupAverage,
+    groupCount as actualGroupCount,
     normaliseGroupTo as actualNormaliseGroupTo,
     normalisePropertyTo as actualNormalisePropertyTo,
+    range as actualRange,
+    sum as actualSum,
+    rangedValueProperty,
 } from './processors';
 
 const rangeKey = (property: string) => ({ scope: 'test', property, type: 'key' as const, valueType: 'range' as const });

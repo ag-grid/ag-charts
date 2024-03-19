@@ -9,13 +9,22 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import ticks, { tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
+import {
+    SORT_DOMAIN_GROUPS,
+    area,
+    createDatumId,
+    diff,
+    groupAverage,
+    groupCount,
+    groupSum,
+    keyProperty,
+    valueProperty,
+} from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { Series, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
 import {

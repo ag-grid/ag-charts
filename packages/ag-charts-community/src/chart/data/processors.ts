@@ -2,8 +2,10 @@ import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { clamp, isNegative } from '../../util/number';
 import { isArray, isFiniteNumber } from '../../util/type-guards';
-import { transformIntegratedCategoryValue } from '../../util/value';
+import { checkDatum, transformIntegratedCategoryValue } from '../../util/value';
+import { ContinuousDomain } from './dataDomain';
 import type {
+    AggregatePropertyDefinition,
     DatumPropertyDefinition,
     GroupValueProcessorDefinition,
     ProcessedData,
@@ -334,4 +336,257 @@ export function createDatumId(keys: KeyType | KeyType[]) {
         return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
     }
     return transformIntegratedCategoryValue(keys);
+}
+
+function basicContinuousCheckDatumValidation(v: any) {
+    return checkDatum(v, true) != null;
+}
+
+function basicDiscreteCheckDatumValidation(v: any) {
+    return checkDatum(v, false) != null;
+}
+
+export function keyProperty<K>(
+    scope: ScopeProvider,
+    propName: K,
+    continuous: boolean,
+    opts: Partial<DatumPropertyDefinition<K>> = {}
+) {
+    const result: DatumPropertyDefinition<K> = {
+        scopes: [scope.id],
+        property: propName,
+        type: 'key',
+        valueType: continuous ? 'range' : 'category',
+        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        ...opts,
+    };
+    return result;
+}
+
+export function valueProperty<K>(
+    scope: ScopeProvider,
+    propName: K,
+    continuous: boolean,
+    opts: Partial<DatumPropertyDefinition<K>> = {}
+) {
+    const result: DatumPropertyDefinition<K> = {
+        scopes: [scope.id],
+        property: propName,
+        type: 'value',
+        valueType: continuous ? 'range' : 'category',
+        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        ...opts,
+    };
+    return result;
+}
+
+export function rangedValueProperty<K>(
+    scope: ScopeProvider,
+    propName: K,
+    opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
+): DatumPropertyDefinition<K> {
+    const { min = -Infinity, max = Infinity, ...defOpts } = opts;
+    return {
+        scopes: [scope.id],
+        type: 'value',
+        property: propName,
+        valueType: 'range',
+        validation: basicContinuousCheckDatumValidation,
+        processor: () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum),
+        ...defOpts,
+    };
+}
+
+export function accumulativeValueProperty<K>(
+    scope: ScopeProvider,
+    propName: K,
+    continuous: boolean,
+    opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
+) {
+    const { onlyPositive, ...defOpts } = opts;
+    const result: DatumPropertyDefinition<K> = {
+        ...valueProperty(scope, propName, continuous, defOpts),
+        processor: accumulatedValue(onlyPositive),
+    };
+    return result;
+}
+
+export function trailingAccumulatedValueProperty<K>(
+    scope: ScopeProvider,
+    propName: K,
+    continuous: boolean,
+    opts: Partial<DatumPropertyDefinition<K>> = {}
+) {
+    const result: DatumPropertyDefinition<K> = {
+        ...valueProperty(scope, propName, continuous, opts),
+        processor: trailingAccumulatedValue(),
+    };
+    return result;
+}
+
+export function groupAccumulativeValueProperty<K>(
+    scope: ScopeProvider,
+    propName: K,
+    continuous: boolean,
+    mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
+    sum: 'current' | 'last' = 'current',
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
+) {
+    return [
+        valueProperty(scope, propName, continuous, opts),
+        accumulateGroup(scope, opts.groupId, mode, sum, opts.separateNegative),
+        ...(opts.rangeId != null ? [range(scope, opts.rangeId, opts.groupId)] : []),
+    ];
+}
+
+function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
+    for (const value of values) {
+        if (typeof value !== 'number') {
+            continue;
+        }
+        if (value < 0) {
+            accumulator[0] += value;
+        }
+        if (value > 0) {
+            accumulator[1] += value;
+        }
+    }
+    return accumulator;
+}
+
+export function sum(scope: ScopeProvider, id: string, matchGroupId: string) {
+    const result: AggregatePropertyDefinition<any, any> = {
+        id,
+        scopes: [scope.id],
+        matchGroupIds: [matchGroupId],
+        type: 'aggregate',
+        aggregateFunction: (values) => sumValues(values),
+    };
+
+    return result;
+}
+
+export function groupSum(
+    scope: ScopeProvider,
+    id: string,
+    matchGroupId?: string
+): AggregatePropertyDefinition<any, any> {
+    return {
+        id,
+        scopes: [scope.id],
+        type: 'aggregate',
+        matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
+        aggregateFunction: (values) => sumValues(values),
+        groupAggregateFunction: (next, acc = [0, 0]) => {
+            acc[0] += next?.[0] ?? 0;
+            acc[1] += next?.[1] ?? 0;
+            return acc;
+        },
+    };
+}
+
+export function range(scope: ScopeProvider, id: string, matchGroupId: string) {
+    const result: AggregatePropertyDefinition<any, any> = {
+        id,
+        scopes: [scope.id],
+        matchGroupIds: [matchGroupId],
+        type: 'aggregate',
+        aggregateFunction: (values) => ContinuousDomain.extendDomain(values),
+    };
+
+    return result;
+}
+
+export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyDefinition<any, any> {
+    return {
+        id,
+        scopes: [scope.id],
+        type: 'aggregate',
+        aggregateFunction: () => [0, 1],
+        groupAggregateFunction: (next, acc = [0, 0]) => {
+            acc[0] += next?.[0] ?? 0;
+            acc[1] += next?.[1] ?? 0;
+            return acc;
+        },
+    };
+}
+
+export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: string) {
+    const def: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
+        id,
+        scopes: [scope.id],
+        matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
+        type: 'aggregate',
+        aggregateFunction: (values) => sumValues(values),
+        groupAggregateFunction: (next, acc = [0, 0, -1]) => {
+            acc[0] += next?.[0] ?? 0;
+            acc[1] += next?.[1] ?? 0;
+            acc[2]++;
+            return acc;
+        },
+        finalFunction: (acc = [0, 0, 0]) => {
+            const result = acc[0] + acc[1];
+            if (result >= 0) {
+                return [0, result / acc[2]];
+            }
+            return [result / acc[2], 0];
+        },
+    };
+
+    return def;
+}
+
+export function area(
+    scope: ScopeProvider,
+    id: string,
+    aggFn: AggregatePropertyDefinition<any, any>,
+    matchGroupId?: string
+) {
+    const result: AggregatePropertyDefinition<any, any> = {
+        id,
+        scopes: [scope.id],
+        matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
+        type: 'aggregate',
+        aggregateFunction: (values, keyRange = []) => {
+            const keyWidth = keyRange[1] - keyRange[0];
+            return aggFn.aggregateFunction(values).map((v) => v / keyWidth) as [number, number];
+        },
+    };
+
+    if (aggFn.groupAggregateFunction) {
+        result.groupAggregateFunction = aggFn.groupAggregateFunction;
+    }
+
+    return result;
+}
+
+export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinition<any>['processor'] {
+    return () => {
+        let value = 0;
+
+        return (datum: any) => {
+            if (!isFiniteNumber(datum)) {
+                return datum;
+            }
+
+            value += onlyPositive ? Math.max(0, datum) : datum;
+            return value;
+        };
+    };
+}
+
+export function trailingAccumulatedValue(): DatumPropertyDefinition<any>['processor'] {
+    return () => {
+        let value = 0;
+
+        return (datum: any) => {
+            if (!isFiniteNumber(datum)) {
+                return datum;
+            }
+
+            const trailingValue = value;
+            value += datum;
+            return trailingValue;
+        };
+    };
 }
