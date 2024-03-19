@@ -84,6 +84,8 @@ export interface AgMapMarkerSeriesOptionsKeys {
     longitudeKey?: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: string;
+    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the markers. */
+    colorKey?: string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
     labelKey?: string;
 }
@@ -97,6 +99,8 @@ export interface AgMapMarkerSeriesOptionsNames {
     longitudeName?: string;
     /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
+    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    colorName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
 }
