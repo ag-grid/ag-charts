@@ -844,10 +844,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 const rotated = configuredRotation !== 0 || autoRotation !== 0;
                 const labelRotation = initialRotation + autoRotation;
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-                labelOverlap = this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, {
-                    ...textProps,
-                    textAlign,
-                });
+                labelOverlap = this.label.avoidCollisions
+                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, {
+                          ...textProps,
+                          textAlign,
+                      })
+                    : false;
             }
         }
 
@@ -1121,7 +1123,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const { minRect } = this;
+        const {
+            minRect,
+            label: { avoidCollisions },
+        } = this;
+
+        if (!avoidCollisions) {
+            return {
+                minTickCount: ContinuousScale.defaultMaxTickCount,
+                maxTickCount: ContinuousScale.defaultMaxTickCount,
+                defaultTickCount: ContinuousScale.defaultMaxTickCount,
+            };
+        }
 
         const rangeWithBleed = this.calculateRangeWithBleed();
         const defaultMinSpacing = Math.max(
