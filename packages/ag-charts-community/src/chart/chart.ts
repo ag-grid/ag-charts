@@ -1752,6 +1752,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (seriesGrouping) {
             target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
+        } else {
+            target.seriesGrouping = undefined;
         }
     }
 
