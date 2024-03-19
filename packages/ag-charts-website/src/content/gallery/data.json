@@ -296,9 +296,9 @@
                         "name": "map-shapes-lines"
                     },
                     {
-                        "title": "Map Marker Series",
+                        "title": "Map with Lines and Markers",
                         "description": "",
-                        "name": "map-markers"
+                        "name": "map-lines-markers"
                     },
                     {
                         "title": "Map Kitchen Sink",
