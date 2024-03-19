@@ -398,29 +398,27 @@ export class CartesianChart extends Chart {
         let { clipSeries } = opts;
         const { position = 'left', direction } = axis;
 
-        const axisLeftRightRange = (targetAxis: ChartAxis) => {
-            if (targetAxis instanceof CategoryAxis || targetAxis instanceof GroupedCategoryAxis) {
-                return [0, seriesRect.height];
-            }
-            return [seriesRect.height, 0];
-        };
+        const isCategory = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+        const isLeftRight = position === 'left' || position === 'right';
 
         const axisOffset = newAxisWidths[position] ?? 0;
-        switch (position) {
-            case 'top':
-            case 'bottom':
-                axis.range = [0, seriesRect.width];
-                axis.gridLength = seriesRect.height;
-                break;
-            case 'right':
-            case 'left':
-                axis.range = axisLeftRightRange(axis);
-                axis.gridLength = seriesRect.width;
-                break;
-        }
 
         const { min, max } = this.zoomManager.getAxisZoom(axis.id);
-        axis.visibleRange = [min, max];
+
+        if (isLeftRight) {
+            if (isCategory) {
+                axis.range = [0, seriesRect.height];
+                axis.visibleRange = [1 - max, 1 - min];
+            } else {
+                axis.range = [seriesRect.height, 0];
+                axis.visibleRange = [min, max];
+            }
+            axis.gridLength = seriesRect.width;
+        } else {
+            axis.range = [0, seriesRect.width];
+            axis.visibleRange = [min, max];
+            axis.gridLength = seriesRect.height;
+        }
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const isVertical = direction === ChartAxisDirection.Y;
