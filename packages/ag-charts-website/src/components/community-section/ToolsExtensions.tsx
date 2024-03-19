@@ -1,7 +1,8 @@
 import { Icon } from '@components/icon/Icon';
 import styles from '@design-system/modules/CommunityToolsExtensions.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
-import React, { useState } from 'react';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { useState } from 'react';
 
 import tools from '../../content/community/tools-extensions.json';
 
@@ -22,7 +23,7 @@ const ToolsExtensions = ({ limit = -1 }) => {
     const [darkMode] = useDarkmode();
     const applyLimit = (arr) => arr?.slice(0, limit == -1 ? tools.length : limit);
     const filterFrameworks = (framework) => {
-        let filter = framework ? tools.filter((item) => item.frameworks?.includes(framework)) : tools;
+        const filter = framework ? tools.filter((item) => item.frameworks?.includes(framework)) : tools;
         setSelectedFramework(framework);
         setFilteredTools(applyLimit(filter));
     };
@@ -32,6 +33,8 @@ const ToolsExtensions = ({ limit = -1 }) => {
 
     const getGithubImage = (repo) => {
         // Extract the 'owner' and 'repo' from the GitHub URL
+        // False positive for "no-useless-escape"
+        //eslint-disable-next-line
         const regex = /github\.com\/([^\/]+)\/([^\/]+)/;
         const match = repo.match(regex);
         if (match && match.length >= 3) {
@@ -68,7 +71,7 @@ const ToolsExtensions = ({ limit = -1 }) => {
                             >
                                 <img
                                     className={framework === 'Rust' && darkMode ? styles.invert : ''}
-                                    src={`/community/frameworks/${framework.toLowerCase()}.svg`}
+                                    src={urlWithBaseUrl(`/community/frameworks/${framework.toLowerCase()}.svg`)}
                                     alt={`${framework}`}
                                 />
                                 {framework}
@@ -79,35 +82,27 @@ const ToolsExtensions = ({ limit = -1 }) => {
             </div>
 
             <div className={styles.listContainer}>
-                {filteredTools.map(
-                    (tool, index) =>
+                {filteredTools.map((tool, index) => {
+                    const link = tool.link ? tool.link : tool.repo;
+                    return (
                         (!selectedFramework || tool.frameworks?.includes(selectedFramework)) && (
-                            <div
-                                onClick={() => window.open(tool.link ? tool.link : tool.repo)}
-                                target="_blank"
-                                className={styles.linkWrapper}
-                                key={index}
-                            >
+                            <div className={styles.linkWrapper} key={index}>
                                 <div key={index} className={styles.itemContainer}>
-                                    <div className={styles.image}>
+                                    <a href={link} target="_blank" className={styles.image}>
                                         {
                                             <img
-                                                src={`${tool.img ? `/community/tools-extensions/${tool.img}` : getGithubImage(tool.repo)}`}
+                                                src={`${tool.img ? urlWithBaseUrl(`/community/tools-extensions/${tool.img}`) : getGithubImage(tool.repo)}`}
                                                 alt={`${tool.name} logo`}
                                             />
                                         }
-                                    </div>
+                                    </a>
                                     <div className={styles.content}>
                                         <div className={styles.toolHeader}>
-                                            <span className={styles.title}>{tool.title}</span>
+                                            <a href={link} target="_blank" className={styles.title}>
+                                                {tool.title}
+                                            </a>
                                             {tool.repo && (
-                                                <div
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        window.open(tool.repo);
-                                                    }}
-                                                    target="_blank"
-                                                >
+                                                <a href={tool.repo} target="_blank">
                                                     <div className={styles.logoContainer}>
                                                         <Icon
                                                             alt={`GitHub logo`}
@@ -115,15 +110,19 @@ const ToolsExtensions = ({ limit = -1 }) => {
                                                             svgClasses={styles.githubIcon}
                                                         />
                                                     </div>
-                                                </div>
+                                                </a>
                                             )}
                                         </div>
-                                        <span className={styles.description}>{tool.description}</span>
+                                        <a href={link} target="_blank" className={styles.description}>
+                                            {tool.description}
+                                        </a>
                                         <div className={styles.tagContainer}>
                                             {tool?.frameworks?.map((framework, index) => (
                                                 <span key={index} className={styles.tag}>
                                                     <img
-                                                        src={`/community/frameworks/${framework.toLowerCase()}.svg`}
+                                                        src={urlWithBaseUrl(
+                                                            `/community/frameworks/${framework.toLowerCase()}.svg`
+                                                        )}
                                                         className={styles.frameworkLogo}
                                                         alt={`${framework} logo`}
                                                     />
@@ -140,7 +139,8 @@ const ToolsExtensions = ({ limit = -1 }) => {
                                 </div>
                             </div>
                         )
-                )}
+                    );
+                })}
             </div>
         </div>
     );

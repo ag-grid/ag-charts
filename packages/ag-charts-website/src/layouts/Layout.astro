@@ -46,6 +46,10 @@ const isApiLayout = apiMenuItems.some((item) => {
     const removeTrailingSlash = (s: string) => s.replace(/\/$/, '');
     const currentPath = removeTrailingSlash(path);
     const itemPath = removeTrailingSlash(urlWithBaseUrl(item.path));
+
+    // Hack to ensure API menu never apears on a community page
+    if (currentPath.includes('community')) return false;
+
     if (isDynamicFrameworkPath(itemPath)) {
         return isDynamicFrameworkPathMatch({
             dynamicFrameworkPath: itemPath,
