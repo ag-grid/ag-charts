@@ -271,6 +271,7 @@
             {
                 "title": "Map",
                 "seriesName": "maps",
+                "seriesLink": "./maps/",
                 "icon": "chartsMap",
                 "enterprise": true,
                 "examples": [
