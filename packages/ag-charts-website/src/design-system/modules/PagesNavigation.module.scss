@@ -59,7 +59,8 @@
     }
 
     // Override menuGroup styles
-    .seriesTypesNav > li {
+    .seriesTypesNav > li,
+    .mapsTypesNav > li {
         margin-bottom: 0 !important;
 
         // Remove left line and adjust spacing
@@ -72,6 +73,10 @@
 
     .seriesTypesNav .enterpriseIcon svg {
         transform: translate(-0.05em, 0.275em);
+    }
+
+    .mapsTypesNav .enterpriseIcon svg {
+        transform: translate(-0.05em, 3px);
     }
 }
 
