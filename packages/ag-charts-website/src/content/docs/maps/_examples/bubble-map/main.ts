@@ -1,48 +1,49 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { data } from './data';
+import { africaData, asiaData, europeData, northAmericaData, oceaniaData, southAmericaData } from './data';
 import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'US GDP By State',
+        text: 'World Population',
+        spacing: 0,
     },
-    data,
     topology,
+    padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+    },
     series: [
         {
-            type: 'map-marker',
-            idKey: 'name',
-            labelKey: 'name',
-            sizeKey: 'gdp',
-            fillOpacity: 1,
-            label: {
-                color: 'gray',
-            },
-            size: 5,
-            maxSize: 50,
-            sizeName: 'GDP',
-            tooltip: {
-                renderer: ({ datum }) => ({
-                    title: datum.name,
-                    content: `GDP: ${numberFormatter.format(datum.gdp)}`,
-                }),
-            },
+            type: 'map-shape-background',
+            topology,
         },
         {
-            type: 'map-shape-background',
-            fillOpacity: 0,
-            stroke: 'gray',
-            strokeOpacity: 0.2,
+            type: 'map-marker',
+            topology,
+            data: [...europeData, ...asiaData, ...africaData, ...northAmericaData, ...southAmericaData, ...oceaniaData],
+            title: 'Population',
+            idKey: 'name',
+            idName: 'Country',
+            sizeKey: 'pop_est',
+            sizeName: 'Population Estimate',
+            topologyIdKey: 'NAME_ENGL',
+            size: 5,
+            maxSize: 60,
+            labelKey: 'name',
+            showInLegend: false,
         },
     ],
 };
 
 AgCharts.create(options);
-
-const numberFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    useGrouping: true,
-});
+const labelOptions = {
+    labelKey: 'iso2',
+    labelName: 'Country Code',
+    label: {
+        fontWeight: 'lighter',
+    },
+};

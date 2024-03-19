@@ -155,7 +155,7 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
             .toFile(path.join(outputPath, `${theme}${dpiExt}.png`)),
         s
             .clone()
-            .webp()
+            .webp({ quality: 90 })
             .toFile(path.join(outputPath, `${theme}${dpiExt}.webp`)),
     ]);
 }
