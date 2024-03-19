@@ -82,7 +82,7 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         display: block;
-        max-width: $spacing-size-64 + $spacing-size-4;
+        max-width: $spacing-size-64 + $spacing-size-4 + 5;
         padding-top: 0;
     }
 }
