@@ -306,6 +306,11 @@
                         "description": "",
                         "name": "map-marker-series",
                         "hidden": true
+                    },
+                    {
+                        "title": "Map Kitchen Sink",
+                        "description": "Almost every mapping feature in one map",
+                        "name": "map-kitchen-sink"
                     }
                 ]
             }
