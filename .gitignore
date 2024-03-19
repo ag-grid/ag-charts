@@ -45,3 +45,4 @@ packages/ag-charts-website/.env
 # Astro build generated files
 .astro
 src/env.d.ts
+.env.local

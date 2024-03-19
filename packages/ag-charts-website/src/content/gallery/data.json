@@ -276,37 +276,29 @@
                 "enterprise": true,
                 "examples": [
                     {
-                        "title": "Map With Shapes And Lines",
+                        "title": "Map With Multiple Shape Series",
+                        "description": "",
+                        "name": "multiple-map-shape-series"
+                    },
+                    {
+                        "title": "Multiple Map Series",
+                        "description": "",
+                        "name": "multiple-map-series"
+                    },
+                    {
+                        "title": "Map with Heatmap",
+                        "description": "",
+                        "name": "map-heatmap-series"
+                    },
+                    {
+                        "title": "Map With Shapes and Lines",
                         "description": "",
                         "name": "map-shapes-lines"
                     },
                     {
-                        "title": "Map With Lines and Markers",
+                        "title": "Map with Lines and Markers",
                         "description": "",
                         "name": "map-lines-markers"
-                    },
-                    {
-                        "title": "World Map",
-                        "description": "",
-                        "name": "map-world"
-                    },
-                    {
-                        "title": "Multiple Series",
-                        "description": "",
-                        "name": "multiple-map-series",
-                        "hidden": true
-                    },
-                    {
-                        "title": "Heatmap Series",
-                        "description": "",
-                        "name": "map-heatmap-series",
-                        "hidden": true
-                    },
-                    {
-                        "title": "Map Marker Series",
-                        "description": "",
-                        "name": "map-marker-series",
-                        "hidden": true
                     },
                     {
                         "title": "Map Kitchen Sink",
