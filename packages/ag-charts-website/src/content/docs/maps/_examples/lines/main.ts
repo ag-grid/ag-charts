@@ -2,6 +2,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
 import { backgroundTopologyNI } from './backgroundTopologyNI';
+import { routeData } from './routeData';
 import { routeTopology } from './routeTopology';
 import { stationData } from './stationData';
 import { stationTopology } from './stationTopology';
@@ -26,7 +27,7 @@ const options: AgChartOptions = {
         {
             type: 'map-line',
             topology: routeTopology,
-            data: [{ name: 'Railways' }],
+            data: routeData,
             idKey: 'name',
             stroke: '#4834d4',
             strokeWidth: 2,
