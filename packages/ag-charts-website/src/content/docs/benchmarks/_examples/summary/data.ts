@@ -100,5 +100,25 @@ export function getData() {
                 'multi-series benchmark after load 15x datum highlight': 795.3247080000001,
             },
         },
+        {
+            name: 'ajt/experimental-lazy-init-layers',
+            results: {
+                'integrated charts large scale benchmark initial load': 587.166541999999,
+                'integrated charts large scale benchmark after load 1x legend toggle': 786.5451660000035,
+                'integrated charts large scale benchmark after load 4x legend toggle': 1530.3821670000034,
+                'large-dataset benchmark initial load': 6015.398708,
+                'large-dataset benchmark after load 1x legend toggle': 7673.425624999996,
+                'large-dataset benchmark after load 1x datum highlight': 3005.681833999999,
+                'large-dataset benchmark after load 4x datum highlight': 5853.991999999998,
+                'large-scale multi-series benchmark initial load': 788.7439579999991,
+                'large-scale multi-series benchmark after load 1x legend toggle': 947.2478750000009,
+                'large-scale multi-series benchmark after load 4x legend toggle': 1800.046957999999,
+                'multi-series benchmark initial load': 207.63754199999676,
+                'multi-series benchmark after load 1x legend toggle': 196.3637499999968,
+                'multi-series benchmark after load 10x legend toggle': 884.572208000005,
+                'multi-series benchmark after load 1x datum highlight': 80.79991699999664,
+                'multi-series benchmark after load 15x datum highlight': 794.3713340000031,
+            },
+        },
     ];
 }
