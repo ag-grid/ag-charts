@@ -289,6 +289,8 @@ export class MapMarkerSeries
             longitudeName,
             sizeKey,
             sizeName,
+            colorKey,
+            colorName,
             labelKey,
             labelName,
             label,
@@ -305,6 +307,8 @@ export class MapMarkerSeries
             longitudeName,
             sizeKey,
             sizeName,
+            colorKey,
+            colorName,
             labelKey,
             labelName,
         });
