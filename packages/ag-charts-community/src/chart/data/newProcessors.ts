@@ -1,4 +1,23 @@
-import type { GroupValueProcessDefinition, ReducerProcessDefinition } from './dataModel';
+export interface ProcessorOptions {
+    scopeId: string;
+    defs: UnifiedProcessDefinition[];
+    visible?: boolean;
+    groupBy?: 'data' | 'keys' | Function;
+}
+
+export type UnifiedProcessDefinition<T extends string = string> = ReducerProcessDefinition<T>;
+
+export interface ReducerProcessDefinition<T extends string> {
+    type: 'reducer';
+    subtype: T;
+    property: string;
+}
+
+export interface GroupValueProcessDefinition<T extends string> {
+    type: 'group-value-processor';
+    subtype: T;
+    property: string;
+}
 
 export const SmallestIntervalDef: ReducerProcessDefinition<'smallest-interval'> = {
     type: 'reducer',

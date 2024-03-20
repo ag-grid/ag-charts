@@ -148,37 +148,37 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                accumulativeValueProperty(this, yKey, true, {
+                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrent`,
                 }),
-                accumulativeValueProperty(this, yKey, true, {
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     missingValue: 0,
                     id: `yCurrentTotal`,
                 }),
-                accumulativeValueProperty(this, yKey, true, {
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrentPositive`,
                     validation: positiveNumber,
                 }),
-                accumulativeValueProperty(this, yKey, true, {
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrentNegative`,
                     validation: negativeNumber,
                 }),
-                trailingAccumulatedValueProperty(this, yKey, true, {
+                trailingAccumulatedValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yPrevious`,
                 }),
-                valueProperty(this, yKey, true, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty(this, 'totalType', false, {
+                valueProperty(yKey, true, { id: `yRaw` }), // Raw value pass-through.
+                valueProperty('totalType', false, {
                     id: `totalTypeValue`,
                     missingValue: undefined,
                     validation: totalTypeValue,

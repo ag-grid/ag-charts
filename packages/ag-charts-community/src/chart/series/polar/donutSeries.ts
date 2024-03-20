@@ -202,23 +202,22 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         // Order here should match `getDatumIdFromData()`.
         if (legendItemKey) {
-            extraKeyProps.push(keyProperty(this, legendItemKey, false, { id: `legendItemKey` }));
+            extraKeyProps.push(keyProperty(legendItemKey, false, { id: `legendItemKey` }));
         } else if (calloutLabelKey) {
-            extraKeyProps.push(keyProperty(this, calloutLabelKey, false, { id: `calloutLabelKey` }));
+            extraKeyProps.push(keyProperty(calloutLabelKey, false, { id: `calloutLabelKey` }));
         } else if (sectorLabelKey) {
-            extraKeyProps.push(keyProperty(this, sectorLabelKey, false, { id: `sectorLabelKey` }));
+            extraKeyProps.push(keyProperty(sectorLabelKey, false, { id: `sectorLabelKey` }));
         }
 
         if (radiusKey) {
             extraProps.push(
-                rangedValueProperty(this, radiusKey, {
+                rangedValueProperty(radiusKey, {
                     id: 'radiusValue',
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
                 }),
-                valueProperty(this, radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
+                valueProperty(radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
                 normalisePropertyToRatio(
-                    this,
                     { id: 'radiusValue' },
                     1,
                     this.properties.radiusMin ?? 0,
@@ -227,27 +226,27 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             );
         }
         if (calloutLabelKey) {
-            extraProps.push(valueProperty(this, calloutLabelKey, false, { id: `calloutLabelValue` }));
+            extraProps.push(valueProperty(calloutLabelKey, false, { id: `calloutLabelValue` }));
         }
         if (sectorLabelKey) {
-            extraProps.push(valueProperty(this, sectorLabelKey, false, { id: `sectorLabelValue` }));
+            extraProps.push(valueProperty(sectorLabelKey, false, { id: `sectorLabelValue` }));
         }
         if (legendItemKey) {
-            extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
+            extraProps.push(valueProperty(legendItemKey, false, { id: `legendItemValue` }));
         }
         if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
             extraProps.push(diff(this.processedData));
         }
-        extraProps.push(animationValidation(this));
+        extraProps.push(animationValidation());
 
         data = data.map((d, idx) => (visible && seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
-                accumulativeValueProperty(this, angleKey, true, { id: `angleValue`, onlyPositive: true }),
-                valueProperty(this, angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
-                normalisePropertyToRatio(this, { id: 'angleValue' }, 0, 0),
+                accumulativeValueProperty(angleKey, true, { id: `angleValue`, onlyPositive: true }),
+                valueProperty(angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
+                normalisePropertyToRatio({ id: 'angleValue' }, 0, 0),
                 ...extraProps,
             ],
         });

@@ -123,7 +123,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
+            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -131,26 +131,26 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             if (this.processedData) {
                 extraProps.push(diff(this.processedData));
             }
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
 
         await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, radiusKey, false, { id: 'radiusValue' }),
-                valueProperty(this, angleKey, true, {
+                keyProperty(radiusKey, false, { id: 'radiusValue' }),
+                valueProperty(angleKey, true, {
                     id: 'angleValue-raw',
                     invalidValue: null,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, angleKey, true, 'normal', 'current', {
+                ...groupAccumulativeValueProperty(angleKey, true, 'normal', 'current', {
                     id: `angleValue-end`,
                     invalidValue: null,
                     groupId: stackGroupId,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, angleKey, true, 'trailing', 'current', {
+                ...groupAccumulativeValueProperty(angleKey, true, 'trailing', 'current', {
                     id: `angleValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,

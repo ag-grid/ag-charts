@@ -140,14 +140,14 @@ export class MapShapeSeries
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(this, idKey, false, { id: 'idValue', includeProperty: false }),
-                valueProperty(this, idKey, false, {
+                valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
+                valueProperty(idKey, false, {
                     id: 'featureValue',
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum),
                 }),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
+                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 

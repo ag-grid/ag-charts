@@ -6,27 +6,6 @@ import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 
-export interface ProcessorOptions {
-    scopeId: string;
-    defs: UnifiedProcessDefinition[];
-    visible?: boolean;
-    groupBy?: 'data' | 'keys' | Function;
-}
-
-export type UnifiedProcessDefinition<T extends string = string> = ReducerProcessDefinition<T>;
-
-export interface ReducerProcessDefinition<T extends string> {
-    type: 'reducer';
-    subtype: T;
-    property: string;
-}
-
-export interface GroupValueProcessDefinition<T extends string> {
-    type: 'group-value-processor';
-    subtype: T;
-    property: string;
-}
-
 export type ScopeProvider = { id: string };
 
 export type UngroupedDataItem<D, V> = {
@@ -220,7 +199,6 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     missing?: MissMap;
     missingValue?: any;
     separateNegative?: boolean;
-    useScopedValues?: boolean;
     validation: (value: any, datum: any) => boolean;
     processor?: () => ProcessorFn;
 };
@@ -636,12 +614,7 @@ export class DataModel<
                         sourceDatums[source.id][property] = value;
                     }
 
-                    if (def.useScopedValues) {
-                        values[valueDefIdx] ??= {};
-                        values[valueDefIdx][scope] = value;
-                    } else {
-                        values[valueDefIdx] = value;
-                    }
+                    values[valueDefIdx] = value;
                 }
 
                 if (value === INVALID_VALUE) {
@@ -891,8 +864,8 @@ export class DataModel<
 
         const scopes = new Set<string>();
         for (const valueDef of valueDefs) {
-            if (!valueDef.scopes) continue;
-            for (const scope of valueDef.scopes) {
+            if (!valueDef.idsMap) continue;
+            for (const scope of valueDef.idsMap.keys()) {
                 scopes.add(scope);
             }
         }
@@ -907,7 +880,7 @@ export class DataModel<
                     dataDomain.set(def, new DiscreteDomain());
                 } else {
                     dataDomain.set(def, new ContinuousDomain());
-                    allScopesHaveSameDefs &&= (def.scopes ?? []).length === scopes.size;
+                    allScopesHaveSameDefs &&= def.idsMap?.size === scopes.size;
                 }
             }
         };

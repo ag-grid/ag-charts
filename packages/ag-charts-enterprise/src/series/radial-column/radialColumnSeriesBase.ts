@@ -132,7 +132,7 @@ export abstract class RadialColumnSeriesBase<
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
+            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -140,26 +140,26 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
 
         await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, true, {
+                keyProperty(angleKey, false, { id: 'angleValue' }),
+                valueProperty(radiusKey, true, {
                     id: 'radiusValue-raw',
                     invalidValue: null,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'normal', 'current', {
+                ...groupAccumulativeValueProperty(radiusKey, true, 'normal', 'current', {
                     id: `radiusValue-end`,
                     invalidValue: null,
                     groupId: stackGroupId,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'trailing', 'current', {
+                ...groupAccumulativeValueProperty(radiusKey, true, 'trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,

@@ -38,7 +38,6 @@ const scopedValue = (scope: string[] | string | undefined, property: string, gro
         valueType: 'range' as const,
         groupId,
         id,
-        useScopedValues: Array.isArray(scope) ? scope.length > 1 : false,
     };
 };
 const value = (property: string, groupId?: string, id?: string) => scopedValue('test', property, groupId, id);
@@ -53,13 +52,11 @@ const accumulatedGroupValue = (property: string, groupId: string = property, id?
     processor: () => (next: number, total?: number) => next + (total ?? 0),
 });
 
-const groupAverage = (groupId: string) => actualGroupAverage({ id: 'test' }, `groupAverage-${groupId}`);
-const groupCount = () => actualGroupCount({ id: 'test' }, `groupCount`);
-const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) =>
-    actualArea({ id: 'test' }, `area-${groupId}`, aggFn);
-const normaliseGroupTo = (groupId: string, normaliseTo: number) =>
-    actualNormaliseGroupTo({ id: 'test' }, [groupId], normaliseTo);
-const normalisePropertyTo = (prop: PropertyId<any>) => actualNormalisePropertyTo({ id: 'test' }, prop, 0);
+const groupAverage = (groupId: string) => actualGroupAverage(`groupAverage-${groupId}`);
+const groupCount = () => actualGroupCount(`groupCount`);
+const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) => actualArea(`area-${groupId}`, aggFn);
+const normaliseGroupTo = (groupId: string, normaliseTo: number) => actualNormaliseGroupTo([groupId], normaliseTo);
+const normalisePropertyTo = (prop: PropertyId<any>) => actualNormalisePropertyTo(prop, 0);
 
 describe.skip('DataModel', () => {
     setupMockConsole();
@@ -1027,7 +1024,7 @@ describe.skip('DataModel', () => {
             const dataModel = new DataModel<any, any>({
                 props: [
                     // accumulatedPropertyValue('share', 'angleGroup', 'angle'),
-                    rangedValueProperty({ id: 'test' }, 'share', {
+                    rangedValueProperty('share', {
                         id: 'radius',
                         min: 0.05,
                         max: 0.7,
@@ -1051,7 +1048,7 @@ describe.skip('DataModel', () => {
                         property: 'year',
                         type: 'key' as const,
                         valueType: 'category' as const,
-                        useScopedValues: true,
+                        validation: () => true,
                     },
                     scopedValue(['test1', 'test2'], 'ie'),
                     scopedValue(['test1', 'test2'], 'chrome'),

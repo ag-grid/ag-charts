@@ -90,16 +90,16 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                valueProperty(this, openKey, true, { id: `openValue` }),
-                valueProperty(this, closeKey, true, { id: `closeValue` }),
-                valueProperty(this, highKey, true, { id: `highValue` }),
-                valueProperty(this, lowKey, true, { id: `lowValue` }),
+                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
+                valueProperty(openKey, true, { id: `openValue` }),
+                valueProperty(closeKey, true, { id: `closeValue` }),
+                valueProperty(highKey, true, { id: `highValue` }),
+                valueProperty(lowKey, true, { id: `lowValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],

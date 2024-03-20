@@ -13,7 +13,6 @@ import type {
     PropertyId,
     PropertyValueProcessorDefinition,
     ReducerOutputPropertyDefinition,
-    ScopeProvider,
 } from './dataModel';
 
 type KeyType = string | number | object;
@@ -124,12 +123,10 @@ export function diff(
 // scoped
 // area, bar, radial-bar, radial-column
 export function normaliseGroupTo(
-    scope: ScopeProvider,
     matchGroupIds: string[],
     normaliseTo: number
 ): GroupValueProcessorDefinition<any, any> {
     return {
-        scopes: [scope.id],
         type: 'group-value-processor',
         matchGroupIds,
         adjust: memo({ normaliseTo }, normaliseFnBuilder),
@@ -139,14 +136,12 @@ export function normaliseGroupTo(
 // scoped
 // donut, pie
 export function normalisePropertyToRatio(
-    scope: ScopeProvider,
     property: PropertyId<any>,
     zeroDomain: number,
     rangeMin?: number,
     rangeMax?: number
 ): PropertyValueProcessorDefinition<any> {
     return {
-        scopes: [scope.id],
         type: 'property-value-processor',
         property,
         adjust: memo({ rangeMin, rangeMax, zeroDomain }, normalisePropertyFnBuilder),
@@ -155,10 +150,9 @@ export function normalisePropertyToRatio(
 
 // scoped
 // area, bar, line, donut, pie, box-plot, bullet, candlestick, radar, radial-bar, radial-column, range-area, range-bar, waterfall
-export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
+export function animationValidation(valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
     return {
         type: 'processor',
-        scopes: [scope.id],
         property: 'animationValidation',
         calculate(result: ProcessedData<any>) {
             const { keys, values } = result.defs;
@@ -168,10 +162,9 @@ export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]
 
             const valueKeys: [number, DatumPropertyDefinition<unknown>][] = [];
             for (let k = 0; k < values.length; k++) {
-                if (!values[k].scopes?.includes(scope.id)) continue;
-                if (!valueKeyIds?.includes(values[k].id as string)) continue;
-
-                valueKeys.push([k, values[k]]);
+                if (valueKeyIds?.includes(values[k].id as string)) {
+                    valueKeys.push([k, values[k]]);
+                }
             }
 
             const processKey = (idx: number, def: DatumPropertyDefinition<unknown>, type: 'keys' | 'values') => {
@@ -189,6 +182,7 @@ export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]
                     lastValue = keyValue;
                 }
             };
+
             for (let k = 0; (uniqueKeys || orderedKeys) && k < keys.length; k++) {
                 processKey(k, keys[k], 'keys');
             }
@@ -205,14 +199,8 @@ export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]
 
 // scoped
 // area, bar, bubble, histogram, line, scatter, donut, pie, box-plot, bullet, candlestick, radial-bar, radial-column, range-area, range-bar, waterfall
-export function keyProperty<K>(
-    scope: ScopeProvider,
-    propName: K,
-    continuous: boolean,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
-) {
+export function keyProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
-        scopes: [scope.id],
         property: propName,
         type: 'key',
         valueType: continuous ? 'range' : 'category',
@@ -224,14 +212,8 @@ export function keyProperty<K>(
 
 // scoped
 // area, bar, bubble, histogram, line, scatter, donut, pie, error-bar, box-plot, bullet, candlestick, heatmap, map*, radar, radial-bar, radial-column, range-area, range-bar, waterfall
-export function valueProperty<K>(
-    scope: ScopeProvider,
-    propName: K,
-    continuous: boolean,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
-) {
+export function valueProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
-        scopes: [scope.id],
         property: propName,
         type: 'value',
         valueType: continuous ? 'range' : 'category',
@@ -244,13 +226,11 @@ export function valueProperty<K>(
 // scoped
 // donut, pie
 export function rangedValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
 ): DatumPropertyDefinition<K> {
     const { min = -Infinity, max = Infinity, ...defOpts } = opts;
     return {
-        scopes: [scope.id],
         type: 'value',
         property: propName,
         valueType: 'range',
@@ -263,14 +243,13 @@ export function rangedValueProperty<K>(
 // scoped
 // donut, pie, waterfall
 export function accumulativeValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     continuous: boolean,
     opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
 ) {
     const { onlyPositive, ...defOpts } = opts;
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(scope, propName, continuous, defOpts),
+        ...valueProperty(propName, continuous, defOpts),
         processor: accumulatedValue(onlyPositive),
     };
     return result;
@@ -279,13 +258,12 @@ export function accumulativeValueProperty<K>(
 // scoped
 // waterfall
 export function trailingAccumulatedValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     continuous: boolean,
     opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(scope, propName, continuous, opts),
+        ...valueProperty(propName, continuous, opts),
         processor: trailingAccumulatedValue(),
     };
     return result;
@@ -294,7 +272,6 @@ export function trailingAccumulatedValueProperty<K>(
 // scoped
 // area, bar, error-bar, radial-bar, radial-column
 export function groupAccumulativeValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     continuous: boolean,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
@@ -302,18 +279,17 @@ export function groupAccumulativeValueProperty<K>(
     opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
 ) {
     return [
-        valueProperty(scope, propName, continuous, opts),
-        accumulateGroup(scope, opts.groupId, mode, sum, opts.separateNegative),
-        ...(opts.rangeId != null ? [range(scope, opts.rangeId, opts.groupId)] : []),
+        valueProperty(propName, continuous, opts),
+        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
+        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
     ];
 }
 
 // scoped
 // histogram
-export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyDefinition<any, any> {
+export function groupCount(id: string): AggregatePropertyDefinition<any, any> {
     return {
         id,
-        scopes: [scope.id],
         type: 'aggregate',
         aggregateFunction: () => [0, 1],
         groupAggregateFunction: (next, acc = [0, 0]) => {
@@ -326,10 +302,9 @@ export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyD
 
 // scoped
 // histogram
-export function groupAverage(scope: ScopeProvider, id: string) {
+export function groupAverage(id: string) {
     const def: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
         id,
-        scopes: [scope.id],
         type: 'aggregate',
         aggregateFunction: sumValues,
         groupAggregateFunction: (next, acc = [0, 0, -1]) => {
@@ -352,10 +327,9 @@ export function groupAverage(scope: ScopeProvider, id: string) {
 
 // scoped
 // histogram
-export function area(scope: ScopeProvider, id: string, aggFn: AggregatePropertyDefinition<any, any>) {
+export function area(id: string, aggFn: AggregatePropertyDefinition<any, any>) {
     const result: AggregatePropertyDefinition<any, any> = {
         id,
-        scopes: [scope.id],
         type: 'aggregate',
         aggregateFunction: (values, keyRange = []) => {
             const keyWidth = keyRange[1] - keyRange[0];
@@ -372,10 +346,9 @@ export function area(scope: ScopeProvider, id: string, aggFn: AggregatePropertyD
 
 // scoped
 // histogram
-export function groupSum(scope: ScopeProvider, id: string): AggregatePropertyDefinition<any, any> {
+export function groupSum(id: string): AggregatePropertyDefinition<any, any> {
     return {
         id,
-        scopes: [scope.id],
         type: 'aggregate',
         aggregateFunction: sumValues,
         groupAggregateFunction: (next, acc = [0, 0]) => {
@@ -410,10 +383,9 @@ function sumValues(values: any[]) {
     return accumulator;
 }
 
-function range(scope: ScopeProvider, id: string, matchGroupId: string) {
+function range(id: string, matchGroupId: string) {
     const result: AggregatePropertyDefinition<any, any> = {
         id,
-        scopes: [scope.id],
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
         aggregateFunction: (values) => ContinuousDomain.extendDomain(values),
@@ -567,7 +539,6 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
 }
 
 function accumulateGroup(
-    scope: ScopeProvider,
     matchGroupId: string,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
     sum: 'current' | 'last',
@@ -582,7 +553,6 @@ function accumulateGroup(
     }
 
     return {
-        scopes: [scope.id],
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
         adjust,

@@ -110,13 +110,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                valueProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
+                valueProperty(angleKey, false, { id: 'angleValue' }),
+                valueProperty(radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
                 ...extraProps,
             ],
         });
