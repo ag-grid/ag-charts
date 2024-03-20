@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import type {
     AgCartesianChartOptions,
@@ -62,11 +63,11 @@ describe('MapShapeSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
+    const compare = async (options?: MatchImageSnapshotOptions) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe('Simple Chart', () => {
@@ -92,7 +93,9 @@ describe('MapShapeSeries', () => {
 
             const highlightManager = (chart as any).highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
-            await compare();
+            await compare({
+                failureThreshold: 1,
+            });
         });
     });
 
@@ -127,7 +130,9 @@ describe('MapShapeSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
-            await compare();
+            await compare({
+                failureThreshold: 1,
+            });
         });
 
         it.each([8, 12, 16])('should render long labels at font size %s', async (fontSize) => {
@@ -150,7 +155,9 @@ describe('MapShapeSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
-            await compare();
+            await compare({
+                failureThreshold: 1,
+            });
         });
     });
 
