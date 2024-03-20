@@ -15,6 +15,11 @@ export function lineDistanceSquared(
     y2: number,
     best: number
 ): number {
+    if (x1 === x2 && y1 === y2) {
+        // The input line isn't a line (it's a point). Just return the distance to this point,
+        // otherwise we'll get t = NaN due to a division by 0.
+        return Math.min(best, pointsDistanceSquared(x, y, x1, y1));
+    }
     const dx = x2 - x1;
     const dy = y2 - y1;
     // Find the normalised [0,1] position on the input line ((x1,y1),(x2,y2)) which is perdendicular
