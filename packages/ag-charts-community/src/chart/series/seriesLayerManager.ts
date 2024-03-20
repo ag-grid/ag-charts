@@ -167,8 +167,8 @@ export class SeriesLayerManager {
         if (groupInfo?.seriesIds.length === 0) {
             // Last member of the layer, cleanup.
             this.seriesRoot.removeChild(groupInfo.group);
-            this.seriesRoot.removeChild(groupInfo.highlight);
-            this.seriesRoot.removeChild(groupInfo.annotation);
+            this.highlightRoot.removeChild(groupInfo.highlight);
+            this.annotationRoot.removeChild(groupInfo.annotation);
             delete this.groups[type][lookupIndex];
             delete this.groups[type][internalId];
         } else if (groupInfo?.seriesIds.length > 0) {
