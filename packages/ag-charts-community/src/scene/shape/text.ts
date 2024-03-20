@@ -57,7 +57,7 @@ export class Text extends Shape {
 
     private lines: string[] = [];
     private onTextChange() {
-        this.lines = this.text?.split('\n') ?? [];
+        this.lines = this.text?.split('\n').map((s) => s.trim()) ?? [];
     }
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR, changeCb: (o: Text) => o.onTextChange() })
@@ -94,55 +94,17 @@ export class Text extends Shape {
 
     // TextMetrics are used if lineHeight is not defined.
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    lineHeight?: number = undefined;
+    lineHeight?: number;
 
     override computeBBox(): BBox {
-        const {
-            x,
-            y,
+        const { x, y, lines, lineHeight, textBaseline, textAlign } = this;
+        const { top, left, width, height } = Text.getTextSizeMultiline(
             lines,
-            lineHeight,
-            textBaseline = Text.defaultStyles.textBaseline,
-            textAlign = Text.defaultStyles.textAlign,
-        } = this;
-
-        let left = 0;
-        let top = 0;
-        let width = 0;
-        let height = 0;
-
-        // Distance between first and last baselines.
-        let baselineDistance = 0;
-
-        const font = getFont(this);
-        for (let i = 0; i < lines.length; i++) {
-            const metrics: any = Text.measureText(lines[i], font, textBaseline, textAlign);
-
-            left = Math.max(left, metrics.actualBoundingBoxLeft);
-            width = Math.max(width, metrics.width);
-
-            if (i == 0) {
-                top += metrics.actualBoundingBoxAscent;
-                height += metrics.actualBoundingBoxAscent;
-            } else {
-                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
-                baselineDistance += metrics.fontBoundingBoxAscent ?? metrics.emHeightAscent;
-            }
-
-            if (i == lines.length - 1) {
-                height += metrics.actualBoundingBoxDescent;
-            } else {
-                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
-                baselineDistance += metrics.fontBoundingBoxDescent ?? metrics.emHeightDescent;
-            }
-        }
-
-        if (lineHeight !== undefined) {
-            baselineDistance = (lines.length - 1) * lineHeight;
-        }
-        height += baselineDistance;
-
-        top += baselineDistance * this.getVerticalModifier(textBaseline);
+            getFont(this),
+            textBaseline,
+            textAlign,
+            lineHeight
+        );
 
         return new BBox(x - left, y - top, width, height);
     }
@@ -239,9 +201,9 @@ export class Text extends Shape {
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
         const { lines, x, y } = this;
-        const lineHeights = this.lines.map((line) => this.getLineHeight(line));
+        const lineHeights = lines.map((line) => this.getLineHeight(line));
         const totalHeight = lineHeights.reduce((a, b) => a + b, 0);
-        let offsetY: number = -(totalHeight - lineHeights[0]) * this.getVerticalModifier(this.textBaseline);
+        let offsetY: number = (lineHeights[0] - totalHeight) * Text.getVerticalModifier(this.textBaseline);
 
         for (let i = 0; i < lines.length; i++) {
             renderCallback(lines[i], x, y + offsetY);
@@ -623,7 +585,7 @@ export class Text extends Shape {
         this.textBaseline = props.textBaseline;
     }
 
-    protected getVerticalModifier(textBaseline: CanvasTextBaseline): number {
+    protected static getVerticalModifier(textBaseline: CanvasTextBaseline): number {
         switch (textBaseline) {
             case 'top':
             case 'hanging':
@@ -657,16 +619,28 @@ export class Text extends Shape {
             textAlign: CanvasTextAlign;
         }) => {
             const ctx = this.textContext;
-            ctx.font = font;
-            ctx.textBaseline = textBaseline;
-            ctx.textAlign = textAlign;
+
+            // optimisation, don't simplify
+            if (ctx.font !== font) {
+                ctx.font = font;
+            }
+            if (ctx.textBaseline !== textBaseline) {
+                ctx.textBaseline = textBaseline;
+            }
+            if (ctx.textAlign !== textAlign) {
+                ctx.textAlign = textAlign;
+            }
+
             return ctx.measureText(text);
         }
     );
 
     private static _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) => {
         const ctx = this.textContext;
-        ctx.font = font;
+        // optimisation, don't simplify
+        if (ctx.font !== font) {
+            ctx.font = font;
+        }
         const metrics = ctx.measureText(text);
 
         return {
@@ -692,6 +666,53 @@ export class Text extends Shape {
     static getTextSize(text: string, font: string) {
         return this._getTextSize({ text, font });
     }
+
+    static getTextSizeMultiline(
+        lines: string[],
+        font: string,
+        textBaseline: CanvasTextBaseline = Text.defaultStyles.textBaseline,
+        textAlign: CanvasTextAlign = Text.defaultStyles.textAlign,
+        lineHeight?: number
+    ): { top: number; left: number; width: number; height: number } {
+        let top = 0;
+        let left = 0;
+        let width = 0;
+        let height = 0;
+
+        // Distance between first and last baselines.
+        let baselineDistance = 0;
+
+        for (const [i, text] of lines.entries()) {
+            const metrics: any = this._measureText({ text, font, textBaseline, textAlign });
+
+            left = Math.max(left, metrics.actualBoundingBoxLeft);
+            width = Math.max(width, metrics.width);
+
+            if (i == 0) {
+                top += metrics.actualBoundingBoxAscent;
+                height += metrics.actualBoundingBoxAscent;
+            } else {
+                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
+                baselineDistance += metrics.fontBoundingBoxAscent ?? metrics.emHeightAscent;
+            }
+
+            if (i == lines.length - 1) {
+                height += metrics.actualBoundingBoxDescent;
+            } else {
+                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
+                baselineDistance += metrics.fontBoundingBoxDescent ?? metrics.emHeightDescent;
+            }
+        }
+
+        if (lineHeight != null) {
+            baselineDistance = (lines.length - 1) * lineHeight;
+        }
+        height += baselineDistance;
+
+        top += baselineDistance * Text.getVerticalModifier(textBaseline);
+
+        return { top, left, width, height };
+    }
 }
 
 export class TextMeasurer {
@@ -702,7 +723,12 @@ export class TextMeasurer {
     }
 
     size(text: string) {
-        return Text.getTextSize(text, this.font);
+        return text.includes('\n')
+            ? Text.getTextSizeMultiline(
+                  text.split('\n').map((s) => s.trim()),
+                  this.font
+              )
+            : Text.getTextSize(text, this.font);
     }
 
     width(text: string): number {

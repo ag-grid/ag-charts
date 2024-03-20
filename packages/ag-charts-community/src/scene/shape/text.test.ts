@@ -5,7 +5,7 @@ import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import type { LayersManager } from '../layersManager';
 import { Text } from './text';
 
-function setUpMockLayerManager(canvasCtx): LayersManager {
+function setUpMockLayerManager(canvasCtx: any): LayersManager {
     return {
         debug: {} as any,
         canvas: canvasCtx.nodeCanvas,
@@ -13,7 +13,7 @@ function setUpMockLayerManager(canvasCtx): LayersManager {
         addLayer: () => undefined,
         moveLayer: () => {},
         removeLayer: () => {},
-    };
+    } as any;
 }
 
 const BASE_OPTIONS = {
@@ -229,7 +229,7 @@ describe('Text', () => {
                     textNode._setLayerManager(mockLayerManager);
 
                     ctx.save();
-                    textNode.render({ ctx, forceRender: true, resized: false, debugNodes: {} });
+                    textNode.render({ ctx, forceRender: true, resized: false, devicePixelRatio: 1, debugNodes: {} });
                     ctx.restore();
 
                     const { x, y, width, height } = textNode.computeBBox();
@@ -282,7 +282,7 @@ describe('Text', () => {
                     textNode._setLayerManager(mockLayerManager);
 
                     ctx.save();
-                    textNode.render({ ctx, forceRender: true, resized: false, debugNodes: {} });
+                    textNode.render({ ctx, forceRender: true, resized: false, devicePixelRatio: 1, debugNodes: {} });
                     ctx.restore();
 
                     const { x, y } = textNode.computeBBox();
@@ -317,6 +317,25 @@ describe('Text', () => {
             // The word is broken here, so does not overflow
             expect(Text.wrap(exampleString, 50, 1000, font, 'hyphenate', 'hide').text).not.toBe('');
             expect(Text.wrap(exampleString, 50, 1000, font, 'always', 'hide').text).not.toBe('');
+        });
+    });
+
+    describe('text measurements', () => {
+        it('should measure text currently', () => {
+            expect(Text.measureText('Hello world!', '24px serif', 'bottom', 'start')).toMatchSnapshot();
+            expect(Text.measureText('Hello world!', 'bold 48px serif', 'middle', 'center')).toMatchSnapshot();
+        });
+
+        it('should measure text size currently', () => {
+            expect(Text.getTextSize('Hello world!', '24px serif')).toMatchSnapshot();
+            expect(Text.getTextSize('Hello world!', 'bold 48px serif')).toMatchSnapshot();
+        });
+
+        it('should measure multiline text size currently', () => {
+            expect(Text.getTextSizeMultiline(['Hello', 'world!'], '24px serif', 'bottom', 'start')).toMatchSnapshot();
+            expect(
+                Text.getTextSizeMultiline(['Hello', 'world!'], 'bold 48px serif', 'middle', 'center')
+            ).toMatchSnapshot();
         });
     });
 });
