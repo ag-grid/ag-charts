@@ -112,21 +112,20 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        const { angleKey, radiusKey, normalizedTo, visible } = this.properties;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        if (!this.properties.isValid() || !(visible || animationEnabled)) return;
 
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
 
-        const { angleKey, radiusKey, normalizedTo, visible } = this.properties;
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
             extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
         if (animationEnabled) {
             if (this.processedData) {
                 extraProps.push(diff(this.processedData));
@@ -158,7 +157,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 }),
                 ...extraProps,
             ],
-            dataVisible: visible || animationEnabled,
         });
 
         this.animationState.transition('updateData');

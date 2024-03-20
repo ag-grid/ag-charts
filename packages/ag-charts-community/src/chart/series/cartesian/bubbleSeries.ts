@@ -72,9 +72,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null) {
-            return;
-        }
+        if (!this.properties.isValid() || this.data == null || !this.visible) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const { xKey, yKey, sizeKey, labelKey, colorDomain, colorRange, colorKey, marker } = this.properties;
@@ -89,7 +87,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
             ],
-            dataVisible: this.visible,
         });
 
         const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;

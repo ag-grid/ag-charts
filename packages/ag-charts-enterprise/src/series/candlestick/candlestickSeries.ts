@@ -73,9 +73,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
 
@@ -103,7 +101,6 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.smallestDataInterval = {

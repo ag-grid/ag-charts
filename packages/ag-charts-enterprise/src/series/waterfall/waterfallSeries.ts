@@ -100,9 +100,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yKey, totals } = this.properties;
         const { data = [] } = this;
 
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const positiveNumber = (v: any) => {
             return isContinuous(v) && Number(v) >= 0;
@@ -186,7 +184,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.smallestDataInterval = {

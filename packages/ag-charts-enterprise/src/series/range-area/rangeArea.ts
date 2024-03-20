@@ -98,9 +98,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, yLowKey, yHighKey } = this.properties;
         const { isContinuousX, isContinuousY } = this.isContinuous();
@@ -121,7 +119,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.animationState.transition('updateData');

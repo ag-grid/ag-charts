@@ -72,9 +72,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
 
@@ -99,7 +97,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.smallestDataInterval = {

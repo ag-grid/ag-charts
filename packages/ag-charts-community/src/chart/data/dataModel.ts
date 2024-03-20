@@ -154,7 +154,6 @@ export type DataModelOptions<K, Grouped extends boolean | undefined> = {
     readonly groupByKeys?: Grouped;
     readonly groupByData?: Grouped;
     readonly groupByFn?: GroupByFn;
-    readonly dataVisible?: boolean;
     readonly mode?: ChartMode;
 };
 
@@ -532,90 +531,84 @@ export class DataModel<
     }
 
     private extractData(data: D[], sources?: { id: string; data: D[] }[]): UngroupedData<D> {
-        const {
-            keys: keyDefs,
-            values: valueDefs,
-            opts: { dataVisible = true },
-        } = this;
+        const { keys: keyDefs, values: valueDefs } = this;
 
         const { dataDomain, processValue, scopes, allScopesHaveSameDefs } = this.initDataDomainProcessor();
 
-        const resultData = new Array(dataVisible ? data.length : 0);
+        const resultData = new Array(data.length);
 
         let partialValidDataCount = 0;
 
-        if (dataVisible) {
-            let resultDataIdx = 0;
+        let resultDataIdx = 0;
 
-            for (const [datumIdx, datum] of data.entries()) {
-                const sourceDatums: Record<string, any> = {};
+        for (const [datumIdx, datum] of data.entries()) {
+            const sourceDatums: Record<string, any> = {};
 
-                const validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
-                const keys = new Array(keyDefs.length);
-                let keyIdx = 0;
-                let key;
-                for (const def of keyDefs) {
-                    key = processValue(def, datum, key);
-                    if (key === INVALID_VALUE) break;
-                    if (keys) {
-                        keys[keyIdx++] = key;
-                    }
+            const validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
+            const keys = new Array(keyDefs.length);
+            let keyIdx = 0;
+            let key;
+            for (const def of keyDefs) {
+                key = processValue(def, datum, key);
+                if (key === INVALID_VALUE) break;
+                if (keys) {
+                    keys[keyIdx++] = key;
                 }
-                if (key === INVALID_VALUE) continue;
-
-                const values = valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
-                let value;
-
-                const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
-                for (const source of sources ?? []) {
-                    sourcesById[source.id] = source;
-                }
-
-                for (const [valueDefIdx, def] of valueDefs.entries()) {
-                    for (const scope of def.scopes ?? scopes) {
-                        const source = sourcesById[scope];
-                        const valueDatum = source?.data[datumIdx] ?? datum;
-
-                        value = processValue(def, valueDatum, value, scope);
-
-                        if (value === INVALID_VALUE || !values) continue;
-
-                        if (source !== undefined && def.includeProperty !== false) {
-                            const property = def.includeProperty && def.id != null ? def.id : def.property;
-                            sourceDatums[source.id] ??= {};
-                            sourceDatums[source.id][property] = value;
-                        }
-
-                        values[valueDefIdx] = value;
-                    }
-
-                    if (value === INVALID_VALUE) {
-                        if (allScopesHaveSameDefs) break;
-                        for (const scope of def.scopes ?? scopes) {
-                            validScopes?.delete(scope);
-                        }
-                        if (validScopes?.size === 0) break;
-                    }
-                }
-
-                if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
-                if (validScopes?.size === 0) continue;
-
-                const result: UngroupedDataItem<D, any> = {
-                    datum: { ...datum, ...sourceDatums },
-                    keys: keys!,
-                    values,
-                };
-
-                if (!allScopesHaveSameDefs && validScopes && validScopes.size < scopes.size) {
-                    partialValidDataCount++;
-                    result.validScopes = new Set(validScopes);
-                }
-
-                resultData[resultDataIdx++] = result;
             }
-            resultData.length = resultDataIdx;
+            if (key === INVALID_VALUE) continue;
+
+            const values = valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
+            let value;
+
+            const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
+            for (const source of sources ?? []) {
+                sourcesById[source.id] = source;
+            }
+
+            for (const [valueDefIdx, def] of valueDefs.entries()) {
+                for (const scope of def.scopes ?? scopes) {
+                    const source = sourcesById[scope];
+                    const valueDatum = source?.data[datumIdx] ?? datum;
+
+                    value = processValue(def, valueDatum, value, scope);
+
+                    if (value === INVALID_VALUE || !values) continue;
+
+                    if (source !== undefined && def.includeProperty !== false) {
+                        const property = def.includeProperty && def.id != null ? def.id : def.property;
+                        sourceDatums[source.id] ??= {};
+                        sourceDatums[source.id][property] = value;
+                    }
+
+                    values[valueDefIdx] = value;
+                }
+
+                if (value === INVALID_VALUE) {
+                    if (allScopesHaveSameDefs) break;
+                    for (const scope of def.scopes ?? scopes) {
+                        validScopes?.delete(scope);
+                    }
+                    if (validScopes?.size === 0) break;
+                }
+            }
+
+            if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
+            if (validScopes?.size === 0) continue;
+
+            const result: UngroupedDataItem<D, any> = {
+                datum: { ...datum, ...sourceDatums },
+                keys: keys!,
+                values,
+            };
+
+            if (!allScopesHaveSameDefs && validScopes && validScopes.size < scopes.size) {
+                partialValidDataCount++;
+                result.validScopes = new Set(validScopes);
+            }
+
+            resultData[resultDataIdx++] = result;
         }
+        resultData.length = resultDataIdx;
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
             const defDomain = dataDomain.get(def)!;
