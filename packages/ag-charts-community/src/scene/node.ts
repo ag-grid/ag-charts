@@ -39,6 +39,11 @@ export interface NodeOptions {
 
 export type NodeWithOpacity = Node & { opacity: number };
 
+export type ChildNodeCounts = {
+    groups: number;
+    nonGroups: number;
+};
+
 /**
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
@@ -424,6 +429,24 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         });
 
         this.dirtyTransform = false;
+    }
+
+    private _childNodeCounts: ChildNodeCounts = {
+        groups: 0,
+        nonGroups: 0,
+    };
+    /** Perform any pre-rendering initialization. */
+    preRender(): ChildNodeCounts {
+        this._childNodeCounts.groups = 0;
+        this._childNodeCounts.nonGroups = 1; // Assume this node isn't a group.
+
+        for (const child of this.children) {
+            const childCounts = child.preRender();
+            this._childNodeCounts.groups += childCounts.groups;
+            this._childNodeCounts.nonGroups += childCounts.nonGroups;
+        }
+
+        return this._childNodeCounts;
     }
 
     render(renderCtx: RenderContext): void {

@@ -161,6 +161,7 @@ export class Scene {
             });
 
             if (root.visible) {
+                root.preRender();
                 ctx.save();
                 root.render(renderCtx);
                 ctx.restore();
