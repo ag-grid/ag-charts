@@ -1502,7 +1502,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
                     return keys;
                 }, [] as string[]),
-            scaleValueFormatter: (specifier: string) => this.scale.tickFormat?.({ specifier }),
+            scaleValueFormatter: (specifier?: string) =>
+                specifier ? this.scale.tickFormat?.({ specifier }) : this.formatDatum,
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),
             scaleInvert: (val) => this.scale.invert?.(val),
