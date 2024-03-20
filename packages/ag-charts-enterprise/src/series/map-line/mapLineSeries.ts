@@ -15,7 +15,7 @@ import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from
 
 const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
-const { Group, Selection, Text } = _Scene;
+const { Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapLineNodeDataContext
@@ -48,9 +48,7 @@ export class MapLineSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
-
-    private datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(this.itemGroup, () =>
+    private datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(this.contentGroup, () =>
         this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
@@ -58,7 +56,7 @@ export class MapLineSeries
         Text
     );
     private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
-        this.highlightGroup,
+        this.highlightNode,
         () => this.nodeFactory()
     );
 
