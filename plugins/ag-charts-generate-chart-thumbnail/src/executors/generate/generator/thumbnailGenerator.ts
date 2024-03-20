@@ -145,17 +145,18 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
 
     const buffer = output.multiple === true ? output.canvas.toBuffer('image/png') : output.buffer;
 
-    const s = sharp(buffer);
+    const sharpBuffer = sharp(buffer);
 
     const dpiExt = dpi === 1 ? '' : `@${dpi}x`;
-    const baseFilename = `${theme}${dpiExt}${mockText ? '-platform-agnostic' : ''}`;
+    const fontExt = mockText ? '-platform-agnostic' : '';
+    const baseFilename = `${theme}${fontExt}${dpiExt}`;
 
     await Promise.all([
-        s
+        sharpBuffer
             .clone()
             .png()
             .toFile(path.join(outputPath, `${baseFilename}.png`)),
-        s
+        sharpBuffer
             .clone()
             .webp({ quality: 90 })
             .toFile(path.join(outputPath, `${baseFilename}.webp`)),

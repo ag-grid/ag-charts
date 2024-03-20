@@ -54,7 +54,7 @@
     },
     "test": {
       "executor": "nx:noop",
-      "dependsOn": ["test:vitest", "test:thumbnails"],
+      "dependsOn": ["test:vitest"],
       "inputs": [],
       "outputs": [],
       "configurations": {
@@ -87,7 +87,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["generate-thumbnails"],
       "inputs": [
-        "{workspaceRoot}/dist/generated-thumbnails/**/ag-default.png",
+        "{workspaceRoot}/dist/generated-thumbnails/**/ag-default-platform-agnostic.png",
         "{projectRoot}/tools/expected-thumbnails/**/*.png",
         "{projectRoot}/tools/compare-gallery-thumbnails.js"
       ],

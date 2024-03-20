@@ -45,6 +45,7 @@ let snapshots = {
     created: 0,
     updated: 0,
     mismatching: 0,
+    missing: 0,
     matched: 0,
     skipped: 0,
 };
@@ -63,7 +64,7 @@ for (const input of inputs) {
     if (!fs.existsSync(comparePath)) {
         if (ci) {
             mismatched.push(`[missing] ${inputPath}\n     [vs] ${comparePath}`);
-            snapshots.mismatching++;
+            snapshots.missing++;
             continue;
         }
 
@@ -96,14 +97,14 @@ for (const input of inputs) {
         continue;
     }
 
-    mismatched.push(`[mismatched] ${inputPath}\n        [vs] ${comparePath}`);
+    mismatched.push(`[mismatched] ${inputPath}\n        [vs] ${comparePath}\n             ${match} pixels different`);
     snapshots.mismatching++;
 }
 
 console.log('\n\nResults:');
 console.table(snapshots);
 
-if (snapshots.mismatching > 0) {
+if (snapshots.mismatching > 0 || snapshots.missing > 0) {
     console.log('\x1b[31m%s\x1b[0m', '\n\nFailures:');
     mismatched.forEach((m) => console.error('\x1b[31m%s\x1b[0m', m));
     process.exit(1);
