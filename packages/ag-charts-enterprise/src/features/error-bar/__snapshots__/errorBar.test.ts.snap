@@ -9,7 +9,7 @@ HTMLCollection [
     <div
       class="ag-chart-tooltip-content"
     >
-      May: 14.50
+      May: 14.5
     </div>
   </div>,
 ]
@@ -27,12 +27,12 @@ HTMLCollection [
       <b>
         volume
       </b>
-      : 2.50
+      : 2.5
       <br />
       <b>
         pressure
       </b>
-      : 4.20
+      : 4.2
     </div>
   </div>,
 ]
