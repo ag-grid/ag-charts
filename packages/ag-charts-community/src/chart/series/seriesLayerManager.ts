@@ -33,8 +33,6 @@ type LayerState = {
 const SERIES_THRESHOLD_FOR_AGGRESSIVE_LAYER_REDUCTION = 30;
 
 export class SeriesLayerManager {
-    private readonly rootGroup: Group;
-
     private readonly groups: {
         [type: string]: {
             [id: string]: LayerState;
@@ -45,9 +43,11 @@ export class SeriesLayerManager {
     private expectedSeriesCount = 1;
     private mode: 'normal' | 'aggressive-grouping' = 'normal';
 
-    constructor(rootGroup: Group) {
-        this.rootGroup = rootGroup;
-    }
+    constructor(
+        private readonly seriesRoot: Group,
+        private readonly highlightRoot: Group,
+        private readonly annotationRoot: Group
+    ) {}
 
     public setSeriesCount(count: number) {
         this.expectedSeriesCount = count;
@@ -83,7 +83,7 @@ export class SeriesLayerManager {
         if (!groupInfo) {
             groupInfo = this.groups[type][lookupIndex] ??= {
                 seriesIds: [],
-                group: this.rootGroup.appendChild(
+                group: this.seriesRoot.appendChild(
                     new Group({
                         name: `${type}-content`,
                         layer: true,
@@ -91,18 +91,16 @@ export class SeriesLayerManager {
                         zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('data'),
                     })
                 ),
-                highlight: this.rootGroup.appendChild(
+                highlight: this.highlightRoot.appendChild(
                     new Group({
                         name: `${type}-highlight`,
-                        layer: true,
                         zIndex: Layers.SERIES_LAYER_ZINDEX,
                         zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('highlight'),
                     })
                 ),
-                annotation: this.rootGroup.appendChild(
+                annotation: this.annotationRoot.appendChild(
                     new Group({
                         name: `${type}-annotation`,
-                        layer: true,
                         zIndex: Layers.SERIES_LAYER_ZINDEX,
                         zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('annotation'),
                     })
@@ -168,9 +166,9 @@ export class SeriesLayerManager {
 
         if (groupInfo?.seriesIds.length === 0) {
             // Last member of the layer, cleanup.
-            this.rootGroup.removeChild(groupInfo.group);
-            this.rootGroup.removeChild(groupInfo.highlight);
-            this.rootGroup.removeChild(groupInfo.annotation);
+            this.seriesRoot.removeChild(groupInfo.group);
+            this.highlightRoot.removeChild(groupInfo.highlight);
+            this.annotationRoot.removeChild(groupInfo.annotation);
             delete this.groups[type][lookupIndex];
             delete this.groups[type][internalId];
         } else if (groupInfo?.seriesIds.length > 0) {
@@ -205,9 +203,9 @@ export class SeriesLayerManager {
     public destroy() {
         for (const groups of Object.values(this.groups)) {
             for (const groupInfo of Object.values(groups)) {
-                this.rootGroup.removeChild(groupInfo.group);
-                this.rootGroup.removeChild(groupInfo.highlight);
-                this.rootGroup.removeChild(groupInfo.annotation);
+                this.seriesRoot.removeChild(groupInfo.group);
+                this.highlightRoot.removeChild(groupInfo.highlight);
+                this.annotationRoot.removeChild(groupInfo.annotation);
             }
         }
         (this as any).groups = {};

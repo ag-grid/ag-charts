@@ -38,7 +38,7 @@ export class CartesianChart extends Chart {
 
     override async performLayout() {
         const shrinkRect = await super.performLayout();
-        const { firstSeriesTranslation, seriesRoot } = this;
+        const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
 
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
         this.seriesRoot.visible = visibility.series;
@@ -48,8 +48,10 @@ export class CartesianChart extends Chart {
         const { x, y } = seriesRect;
         if (firstSeriesTranslation) {
             // For initial rendering, don't animate.
-            seriesRoot.translationX = Math.floor(x);
-            seriesRoot.translationY = Math.floor(y);
+            for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+                group.translationX = Math.floor(x);
+                group.translationY = Math.floor(y);
+            }
             this.firstSeriesTranslation = false;
         } else {
             // Animate seriesRect movements - typically caused by axis size changes.
@@ -58,7 +60,7 @@ export class CartesianChart extends Chart {
                 this.id,
                 'seriesRect',
                 this.animationManager,
-                [this.seriesRoot],
+                [seriesRoot, highlightRoot, annotationRoot],
                 { translationX, translationY },
                 { translationX: Math.floor(x), translationY: Math.floor(y) },
                 { phase: 'update' }

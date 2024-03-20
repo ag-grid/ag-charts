@@ -431,7 +431,7 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         this.dirtyTransform = false;
     }
 
-    private _childNodeCounts: ChildNodeCounts = {
+    readonly _childNodeCounts: ChildNodeCounts = {
         groups: 0,
         nonGroups: 0,
     };
