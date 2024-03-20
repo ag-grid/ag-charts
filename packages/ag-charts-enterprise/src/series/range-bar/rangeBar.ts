@@ -337,17 +337,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const paddingDirection = placement === 'outside' ? 1 : -1;
         const labelPadding = padding * paddingDirection;
 
-        const yAxis = this.getValueAxis();
-
         const yLowLabel: RangeBarNodeLabelDatum = {
             x: rect.x + (barAlongX ? -labelPadding : rect.width / 2),
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(
-                label,
-                { itemId: 'low', value: yLowValue, ...labelParams },
-                (value) => yAxis?.formatDatum(value) ?? String(value)
+            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, (value) =>
+                isNumber(value) ? value.toFixed(2) : ''
             ),
             itemId: 'low',
             datum,

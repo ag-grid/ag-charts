@@ -23,7 +23,7 @@ const {
     updateClipPath,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
-const { sanitizeHtml, extent } = _Util;
+const { sanitizeHtml, extent, isNumber } = _Util;
 
 type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     text: string;
@@ -343,8 +343,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 ? -1
                 : 1;
 
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
         return {
             x: point.x,
             y: point.y + padding * direction,
@@ -354,7 +352,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             text: this.getLabelText(
                 label,
                 { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                (v) => yAxis?.formatDatum(v) ?? String(v)
+                (v) => (isNumber(v) ? v.toFixed(2) : String(v))
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',

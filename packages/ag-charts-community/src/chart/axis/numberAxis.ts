@@ -38,17 +38,15 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     @Default(NaN)
     max: number = NaN;
 
-    override formatDatum(datum: any): string {
+    override formatDatum(datum: number): string {
         if (typeof datum === 'number') {
-            const formatter = this.labelFormatter ?? ((v) => v.toFixed(2));
-
-            return this.moduleCtx.callbackCache.call(formatter, datum);
-        } else if (datum instanceof Date) {
+            return datum.toFixed(2);
+        } else {
             Logger.warnOnce(
                 'data contains Date objects which are being plotted against a number axis, please only use a number axis for numbers.'
             );
+            return String(datum);
         }
-        return String(datum);
     }
 
     protected override createTick() {
