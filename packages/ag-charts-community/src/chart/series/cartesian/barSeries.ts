@@ -241,11 +241,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
 
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
-        const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
-        const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
-        const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`);
+        const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`);
+        const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`);
+        const yRangeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-range`);
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const contexts: Array<CartesianSeriesNodeDataContext<BarNodeDatum>> = [];
         const scales = this.calculateScaling();

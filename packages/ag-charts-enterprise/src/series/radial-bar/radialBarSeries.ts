@@ -205,9 +205,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             return [];
         }
 
-        const angleStartIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-start`).index;
-        const angleEndIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-end`).index;
-        const angleRawIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-raw`).index;
+        const angleStartIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-start`);
+        const angleEndIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-end`);
+        const angleRawIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-raw`);
 
         let groupPaddingInner = 0;
         if (radiusAxis instanceof RadiusCategoryAxis) {

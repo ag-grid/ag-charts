@@ -166,8 +166,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return [];
         }
 
-        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`).index;
-        const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index;
+        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`);
+        const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`);
         const axisInnerRadius = this.getAxisInnerRadius();
 
         const radiusAxis = this.axes[ChartAxisDirection.Y];

@@ -75,7 +75,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         });
 
         if (colorKey) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`);
             this.colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
             this.colorScale.range = colorRange;
             this.colorScale.update();
@@ -111,10 +111,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             return [];
         }
 
-        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
-        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
+        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
+        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;

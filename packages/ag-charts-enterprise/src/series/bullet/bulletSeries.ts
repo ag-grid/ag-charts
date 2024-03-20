@@ -178,9 +178,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const multiplier = xScale.bandwidth ?? NaN;
         const maxValue = this.getMaxValue();
-        const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
-        const targetIndex =
-            targetKey === undefined ? NaN : dataModel.resolveProcessedDataIndexById(this, 'target').index;
+        const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value');
+        const targetIndex = targetKey === undefined ? NaN : dataModel.resolveProcessedDataIndexById(this, 'target');
         const context: _ModuleSupport.CartesianSeriesNodeDataContext<BulletNodeDatum> = {
             itemId: valueKey,
             nodeData: [],

@@ -347,8 +347,8 @@ export class DataModel<
         }
     }
 
-    resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        return this.resolveProcessedDataDefById(scope, searchId) ?? {};
+    resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): number {
+        return this.resolveProcessedDataDefById(scope, searchId).index;
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {

@@ -89,12 +89,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             ],
         });
 
-        const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
+        const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
         const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];
         this.sizeScale.domain = marker.domain ? marker.domain : processedSize;
 
         if (colorKey) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`);
             this.colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
             this.colorScale.range = colorRange;
             this.colorScale.update();
@@ -131,11 +131,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             return [];
         }
 
-        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const sizeDataIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : -1;
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
-        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
+        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const sizeDataIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : -1;
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
+        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;

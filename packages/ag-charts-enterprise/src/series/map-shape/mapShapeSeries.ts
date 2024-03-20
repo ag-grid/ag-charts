@@ -299,12 +299,10 @@ export class MapShapeSeries
 
         const colorScaleValid = this.isColorScaleValid();
 
-        const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`).index;
-        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
-        const labelIdx =
-            labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
-        const colorIdx =
-            colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
+        const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`);
+        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`);
+        const labelIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : undefined;
+        const colorIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : undefined;
 
         const font = label.getFont();
 
@@ -602,7 +600,7 @@ export class MapShapeSeries
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue').index];
+                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue')];
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
