@@ -91,7 +91,7 @@ export class MapMarkerSeries
         false
     );
     private highlightMarkerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum> = Selection.select(
-        this.highlightGroup,
+        this.highlightNode,
         () => this.markerFactory()
     );
 

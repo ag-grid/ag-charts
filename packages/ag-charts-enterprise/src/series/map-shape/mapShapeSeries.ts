@@ -77,7 +77,7 @@ export class MapShapeSeries
         Text
     );
     private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
-        this.highlightGroup,
+        this.highlightNode,
         () => this.nodeFactory()
     );
 
