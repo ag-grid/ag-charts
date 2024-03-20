@@ -53,6 +53,17 @@
       }
     },
     "test": {
+      "executor": "nx:noop",
+      "dependsOn": ["test:vitest", "test:thumbnails"],
+      "inputs": [],
+      "outputs": [],
+      "configurations": {
+        "ci": {},
+        "watch": {},
+        "update": {}
+      }
+    },
+    "test:vitest": {
       "executor": "@nx/vite:test",
       "outputs": ["{workspaceRoot}/reports/ag-charts-website.xml"],
       "dependsOn": [],
@@ -69,6 +80,34 @@
         },
         "update": {
           "update": true
+        }
+      }
+    },
+    "test:thumbnails": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["generate-thumbnails"],
+      "inputs": [
+        "{workspaceRoot}/dist/generated-thumbnails/**/ag-default.png",
+        "{projectRoot}/tools/expected-thumbnails/**/*.png",
+        "{projectRoot}/tools/compare-gallery-thumbnails.js"
+      ],
+      "outputs": [],
+      "cache": true,
+      "options": {
+        "commands": [
+          "node {projectRoot}/tools/compare-gallery-thumbnails.js dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
+        ]
+      },
+      "configurations": {
+        "update": {
+          "commands": [
+            "node {projectRoot}/tools/compare-gallery-thumbnails.js -u dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
+          ]
+        },
+        "ci": {
+          "commands": [
+            "node {projectRoot}/tools/compare-gallery-thumbnails.js -ci dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
+          ]
         }
       }
     },

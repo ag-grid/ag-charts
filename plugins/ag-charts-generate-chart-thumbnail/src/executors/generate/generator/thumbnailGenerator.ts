@@ -25,9 +25,10 @@ interface Params {
     theme: AgChartThemeName;
     outputPath: string;
     dpi: number;
+    mockText: boolean;
 }
 
-export async function generateExample({ example, theme, outputPath, dpi }: Params) {
+export async function generateThumbnail({ example, theme, outputPath, dpi, mockText }: Params) {
     const { entryFileName, files = {} } = example;
 
     const entryFile = files[entryFileName];
@@ -68,7 +69,7 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
             width: DEFAULT_THUMBNAIL_WIDTH * dpi,
             height: DEFAULT_THUMBNAIL_HEIGHT * dpi,
             document,
-            mockText: false,
+            mockText,
         });
 
         const chartProxy = AgCharts.create({
@@ -147,15 +148,16 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
     const s = sharp(buffer);
 
     const dpiExt = dpi === 1 ? '' : `@${dpi}x`;
+    const baseFilename = `${theme}${dpiExt}${mockText ? '-platform-agnostic' : ''}`;
 
     await Promise.all([
         s
             .clone()
             .png()
-            .toFile(path.join(outputPath, `${theme}${dpiExt}.png`)),
+            .toFile(path.join(outputPath, `${baseFilename}.png`)),
         s
             .clone()
             .webp({ quality: 90 })
-            .toFile(path.join(outputPath, `${theme}${dpiExt}.webp`)),
+            .toFile(path.join(outputPath, `${baseFilename}.webp`)),
     ]);
 }
