@@ -142,11 +142,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             extraProps.push(animationValidation());
         }
 
-        // await this.newRequestDataModel(dataController, data, {
-        //     groupBy: 'keys',
-        //     defs: [{ type: 'key' }],
-        // });
-
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
