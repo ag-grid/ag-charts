@@ -318,6 +318,8 @@ export class Path2D {
                     const counterClockwise = Boolean(params[pi++]);
                     best = lineDistanceSquared(x, y, px, py, startX, startY, best);
                     best = arcDistanceSquared(x, y, cx, cy, r, startAngle, endAngle, counterClockwise, best);
+                    px = cx + Math.cos(endAngle) * r;
+                    py = cy + Math.sin(endAngle) * r;
                     break;
                 }
                 case Command.ClosePath:
