@@ -1,9 +1,10 @@
 import type { AgBoxPlotSeriesStyles } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const { Group, Rect, Line, BBox, Selection } = _Scene;
+const { Logger } = _Util;
 
 enum GroupTags {
     Box,
@@ -13,7 +14,7 @@ enum GroupTags {
     Cap,
 }
 
-export class BoxPlotGroup extends Group {
+export class BoxPlotGroup extends Group implements _Scene.DistantObject {
     constructor() {
         super();
         this.append([
@@ -158,5 +159,19 @@ export class BoxPlotGroup extends Group {
             cornerRadius,
             fillOpacity: 0,
         });
+    }
+
+    distanceSquared(x: number, y: number): number {
+        const nodes = Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, Rect, Line);
+        return _Scene.nearestSquared(x, y, nodes).distanceSquared;
+    }
+
+    get midPoint(): { x: number; y: number } {
+        const datum: { midPoint?: { readonly x: number; readonly y: number } } = this.datum;
+        if (datum.midPoint === undefined) {
+            Logger.error('BoxPlotGroup.datum.midPoint is undefined');
+            return { x: NaN, y: NaN };
+        }
+        return datum.midPoint;
     }
 }
