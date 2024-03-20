@@ -366,6 +366,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             node.lineDash = this.properties.lineDash;
             node.lineJoin = 'round';
             node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
+            node.cornerRadius = 20;
 
             if (highlight) {
                 node.startAngle = datum.startAngle;

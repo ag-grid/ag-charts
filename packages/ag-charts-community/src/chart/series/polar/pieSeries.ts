@@ -701,6 +701,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sector.endAngle = datum.endAngle;
                 sector.innerRadius = datum.innerRadius;
                 sector.outerRadius = datum.outerRadius;
+
+                sector.cornerRadius = 50;
             }
             if (isDatumHighlighted || animationDisabled) {
                 sector.fill = format.fill;
