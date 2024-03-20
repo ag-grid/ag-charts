@@ -208,16 +208,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const labelText =
                 colorValue == null
                     ? undefined
-                    : this.getLabelText(label, {
-                          value: colorValue,
-                          datum,
-                          colorKey,
-                          colorName,
-                          xKey,
-                          yKey,
-                          xName,
-                          yName,
-                      });
+                    : this.getLabelText(
+                          label,
+                          {
+                              value: colorValue,
+                              datum,
+                              colorKey,
+                              colorName,
+                              xKey,
+                              yKey,
+                              xName,
+                              yName,
+                          },
+                          (value) => yAxis.formatDatum(value)
+                      );
 
             const labels = formatLabels(
                 labelText,

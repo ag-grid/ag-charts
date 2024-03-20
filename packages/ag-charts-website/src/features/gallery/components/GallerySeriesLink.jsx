@@ -9,12 +9,13 @@ import classnames from 'classnames';
 import GithubSlugger from 'github-slugger';
 import React from 'react';
 
-export const GallerySeriesLink = ({ series }) => {
+export const GallerySeriesLink = ({ series, link }) => {
     const internalFramework = useStore($internalFramework);
     const frameworkFromInternalFramework = getFrameworkFromInternalFramework(internalFramework);
 
     const slugger = new GithubSlugger();
-    const url = urlWithPrefix({ url: `./${slugger.slug(series)}-series`, framework: frameworkFromInternalFramework });
+    const baseUrl = link ?? `./${slugger.slug(series)}-series`;
+    const url = urlWithPrefix({ url: baseUrl, framework: frameworkFromInternalFramework });
 
     return (
         <a href={url} className={classnames(styles.seriesLink, 'text-base')}>

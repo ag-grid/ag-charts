@@ -91,7 +91,7 @@ export class MapMarkerSeries
         false
     );
     private highlightMarkerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum> = Selection.select(
-        this.highlightGroup,
+        this.highlightNode,
         () => this.markerFactory()
     );
 
@@ -289,6 +289,8 @@ export class MapMarkerSeries
             longitudeName,
             sizeKey,
             sizeName,
+            colorKey,
+            colorName,
             labelKey,
             labelName,
             label,
@@ -305,6 +307,8 @@ export class MapMarkerSeries
             longitudeName,
             sizeKey,
             sizeName,
+            colorKey,
+            colorName,
             labelKey,
             labelName,
         });
@@ -548,6 +552,7 @@ export class MapMarkerSeries
             longitudeKey,
             labelKey,
             sizeKey,
+            colorKey,
             fill,
             fillOpacity,
             stroke,
@@ -573,6 +578,7 @@ export class MapMarkerSeries
                     longitudeKey,
                     labelKey,
                     sizeKey,
+                    colorKey,
                     fill,
                     fillOpacity,
                     stroke,

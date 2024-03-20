@@ -5,9 +5,6 @@ import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Access to clean fuels and technologies for cooking',
-    },
     data,
     topology,
     series: [
@@ -24,11 +21,15 @@ const options: AgChartOptions = {
     ],
     gradientLegend: {
         enabled: true,
+        position: 'right',
+        reverseOrder: true,
         gradient: {
             preferredLength: 200,
+            thickness: 2,
         },
         scale: {
             label: {
+                fontSize: 10,
                 formatter: (p) => p.value + '%',
             },
         },

@@ -59,19 +59,24 @@
     }
 
     // Override menuGroup styles
-    .seriesTypesNav > li {
+    .seriesTypesNav > li,
+    .mapsTypesNav > li {
         margin-bottom: 0 !important;
 
         // Remove left line and adjust spacing
         a {
             margin-left: $spacing-size-1;
-            padding-left: $spacing-size-1;
+            padding-left: 19px;
             border-left: none;
         }
     }
 
     .seriesTypesNav .enterpriseIcon svg {
         transform: translate(-0.05em, 0.275em);
+    }
+
+    .mapsTypesNav .enterpriseIcon svg {
+        transform: translate(-0.05em, 3px);
     }
 }
 
@@ -94,7 +99,7 @@ button .menuIcon {
     --icon-size: 1.75em;
 
     bottom: 0.15em;
-    margin-right: $spacing-size-1;
+    margin-right: $spacing-size-2;
     opacity: 0.6666;
     transition:
         fill $transition-default-timing,

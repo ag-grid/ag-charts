@@ -5,7 +5,7 @@ import path from 'path';
 import type { AgChartThemeName } from 'ag-charts-community';
 
 import { consolePrefix, ensureDirectory, readJSONFile } from '../../executors-utils';
-import { generateExample } from './generator/thumbnailGenerator';
+import { generateThumbnail } from './generator/thumbnailGenerator';
 
 export type ExecutorOptions = {
     outputPath: string;
@@ -54,12 +54,15 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
         for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
             for (const dpi of dpiOutputs) {
                 try {
-                    await generateExample({ example, theme, outputPath, dpi });
+                    await generateThumbnail({ example, theme, outputPath, dpi, mockText: false });
                 } catch (e) {
                     throw new Error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
                 }
             }
         }
+
+        // Generate a platform agnostic (font-wise) rendering for visual comparison purposes.
+        await generateThumbnail({ example, theme: 'ag-default', outputPath, dpi: 1, mockText: true });
     });
 
     if (timesCalled.error > 0) {

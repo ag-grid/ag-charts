@@ -14,6 +14,9 @@ const maxStrokeWidth = 5;
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     topology: tubeTopology,
+    title: {
+        text: 'London Tube Lines',
+    },
     padding: {
         top: 0,
         bottom: 0,

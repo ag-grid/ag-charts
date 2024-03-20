@@ -219,12 +219,16 @@
                         "path": "upgrade-to-ag-charts-9"
                     }
                 ]
-            },
+            }
+        ]
+    },
+    "maps": {
+        "items": [
             {
                 "title": "Maps",
                 "items": [
                     {
-                        "title": "Maps Overview",
+                        "title": "Overview",
                         "path": "maps",
                         "isEnterprise": true
                     },

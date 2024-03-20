@@ -132,16 +132,20 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const labelText = this.getLabelText(label, {
-                value: labelKey ? values[labelDataIdx] : yDatum,
-                datum,
-                xKey,
-                yKey,
-                labelKey,
-                xName,
-                yName,
-                labelName,
-            });
+            const labelText = this.getLabelText(
+                label,
+                {
+                    value: labelKey ? values[labelDataIdx] : yDatum,
+                    datum,
+                    xKey,
+                    yKey,
+                    labelKey,
+                    xName,
+                    yName,
+                    labelName,
+                },
+                (value) => yAxis.formatDatum(value)
+            );
 
             const size = Text.getTextSize(labelText, font);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;

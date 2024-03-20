@@ -10,7 +10,7 @@ const itemTheme = {
         fontFamily: _Theme.DEFAULT_FONT_FAMILY,
         color: _Theme.DEFAULT_LABEL_COLOUR,
         formatter: undefined,
-        placement: 'inside' as const,
+        placement: 'end' as const,
     },
 };
 
