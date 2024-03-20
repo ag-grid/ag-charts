@@ -347,10 +347,6 @@ export class DataModel<
         }
     }
 
-    resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): number {
-        return this.resolveProcessedDataDefById(scope, searchId).index;
-    }
-
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
         const def = this.scopeCache.get(scope.id)?.get(searchId);
 
@@ -359,6 +355,10 @@ export class DataModel<
         }
 
         return { index: def.index, def };
+    }
+
+    resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): number {
+        return this.resolveProcessedDataDefById(scope, searchId).index;
     }
 
     resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef][] {
@@ -384,14 +384,7 @@ export class DataModel<
         processedData: ProcessedData<K>
     ): any[] | [number, number] | [] {
         const domains = this.getDomainsByType(type, processedData);
-
-        if (domains == null) {
-            return [];
-        }
-
-        const match = this.resolveProcessedDataDefById(scope, searchId);
-
-        return domains[match.index] ?? [];
+        return domains?.[this.resolveProcessedDataIndexById(scope, searchId)] ?? [];
     }
 
     private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
@@ -474,15 +467,14 @@ export class DataModel<
                 for (const id of ids) {
                     if (!this.scopeCache.has(scope)) {
                         this.scopeCache.set(scope, new Map([[id, def]]));
+                    } else if (this.scopeCache.get(scope)?.has(id)) {
+                        throw new Error('duplicate definition ids on the same scope are not allowed.');
                     } else {
                         this.scopeCache.get(scope)!.set(id, def);
-                        // throw new Error(`dup ${scope}:${id}`);
                     }
                 }
             }
         }
-
-        // console.log(this.scopeCache);
 
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
