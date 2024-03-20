@@ -529,6 +529,14 @@ export abstract class CartesianSeries<
         this.quadtree = undefined;
     }
 
+    protected *datumNodesIter(): Iterable<TNode> {
+        for (const subGroup of this.subGroups) {
+            for (const { node } of subGroup.datumSelection) {
+                yield node;
+            }
+        }
+    }
+
     public getQuadTree(): QuadtreeNearest<TDatum> {
         if (this.quadtree === undefined) {
             const { width, height } = this.ctx.scene.canvas;

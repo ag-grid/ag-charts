@@ -25,13 +25,7 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import {
-    SeriesNodePickMatch,
-    SeriesNodePickMode,
-    groupAccumulativeValueProperty,
-    keyProperty,
-    valueProperty,
-} from '../series';
+import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
@@ -52,7 +46,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
-import { addHitTestersToQuadtree, childrenOfChildrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -476,14 +469,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum.label);
         });
-    }
-
-    protected override initQuadTree(quadtree: QuadtreeNearest<BarNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, childrenOfChildrenIter<Rect>(this.contentGroup));
-    }
-
-    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        return findQuadtreeMatch(this, point);
     }
 
     getTooltipHtml(nodeDatum: BarNodeDatum): string {

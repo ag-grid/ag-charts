@@ -13,7 +13,6 @@ import type { ZIndexSubOrder } from '../../scene/layersManager';
 import { DistantObject, nearestSquared } from '../../scene/nearest';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
-import type { Selection } from '../../scene/selection';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
