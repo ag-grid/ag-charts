@@ -363,7 +363,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         highlighted: boolean
     ) {
         const nodeData = this.getNodeData();
-        if (nodeData === undefined) return;
+        if (nodeData == null) return;
 
         // Search for the ErrorBarNode that matches this highlight change. This
         // isn't a good solution in terms of performance. However, it's assumed

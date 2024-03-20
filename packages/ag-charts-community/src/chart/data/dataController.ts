@@ -92,8 +92,8 @@ export class DataController {
                 }
 
                 if (processedData?.partialValidDataCount === 0) {
-                    resolves.forEach((callback, requestIdx) =>
-                        callback({
+                    resolves.forEach((resolve, requestIdx) =>
+                        resolve({
                             dataModel,
                             processedData: this.processScopedData(
                                 ids[requestIdx],
@@ -208,7 +208,7 @@ export class DataController {
         }
     }
 
-    private static groupMatch({ opts, data }: RequestedProcessing<any, any, any>) {
+    private static groupMatch({ data, opts }: RequestedProcessing<any, any, any>) {
         function keys(props: PropertyDefinition<any>[]) {
             return props
                 .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')

@@ -30,7 +30,6 @@ export interface UngroupedData<D> {
     reduced?: {
         diff?: ProcessedOutputDiff;
         smallestKeyInterval?: number;
-        aggValuesExtent?: [number, number];
         sortedGroupDomain?: any[][];
         animationValidation?: {
             uniqueKeys: boolean;
@@ -289,7 +288,7 @@ export class DataModel<
             }
         }
 
-        this.opts = { dataVisible: true, ...opts };
+        this.opts = opts;
         this.keys = [];
         this.values = [];
         this.aggregates = [];
@@ -560,70 +559,72 @@ export class DataModel<
         const {
             keys: keyDefs,
             values: valueDefs,
-            opts: { dataVisible },
+            opts: { dataVisible = true },
         } = this;
 
         const { dataDomain, processValue, scopes, allScopesHaveSameDefs } = this.initDataDomainProcessor();
 
         const resultData = new Array(dataVisible ? data.length : 0);
-        let resultDataIdx = 0;
+
         let partialValidDataCount = 0;
 
-        for (const [datumIdx, datum] of data.entries()) {
-            const sourceDatums: Record<string, any> = {};
+        if (dataVisible) {
+            let resultDataIdx = 0;
 
-            const validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
-            const keys = dataVisible ? new Array(keyDefs.length) : undefined;
-            let keyIdx = 0;
-            let key;
-            for (const def of keyDefs) {
-                key = processValue(def, datum, key);
-                if (key === INVALID_VALUE) break;
-                if (keys) {
-                    keys[keyIdx++] = key;
-                }
-            }
-            if (key === INVALID_VALUE) continue;
+            for (const [datumIdx, datum] of data.entries()) {
+                const sourceDatums: Record<string, any> = {};
 
-            const values = dataVisible && valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
-            let value;
-
-            const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
-            for (const source of sources ?? []) {
-                sourcesById[source.id] = source;
-            }
-
-            for (const [valueDefIdx, def] of valueDefs.entries()) {
-                for (const scope of def.scopes ?? scopes) {
-                    const source = sourcesById[scope];
-                    const valueDatum = source?.data[datumIdx] ?? datum;
-
-                    value = processValue(def, valueDatum, value, scope);
-
-                    if (value === INVALID_VALUE || !values) continue;
-
-                    if (source !== undefined && def.includeProperty !== false) {
-                        const property = def.includeProperty && def.id != null ? def.id : def.property;
-                        sourceDatums[source.id] ??= {};
-                        sourceDatums[source.id][property] = value;
+                const validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
+                const keys = new Array(keyDefs.length);
+                let keyIdx = 0;
+                let key;
+                for (const def of keyDefs) {
+                    key = processValue(def, datum, key);
+                    if (key === INVALID_VALUE) break;
+                    if (keys) {
+                        keys[keyIdx++] = key;
                     }
+                }
+                if (key === INVALID_VALUE) continue;
 
-                    values[valueDefIdx] = value;
+                const values = valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
+                let value;
+
+                const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
+                for (const source of sources ?? []) {
+                    sourcesById[source.id] = source;
                 }
 
-                if (value === INVALID_VALUE) {
-                    if (allScopesHaveSameDefs) break;
+                for (const [valueDefIdx, def] of valueDefs.entries()) {
                     for (const scope of def.scopes ?? scopes) {
-                        validScopes?.delete(scope);
+                        const source = sourcesById[scope];
+                        const valueDatum = source?.data[datumIdx] ?? datum;
+
+                        value = processValue(def, valueDatum, value, scope);
+
+                        if (value === INVALID_VALUE || !values) continue;
+
+                        if (source !== undefined && def.includeProperty !== false) {
+                            const property = def.includeProperty && def.id != null ? def.id : def.property;
+                            sourceDatums[source.id] ??= {};
+                            sourceDatums[source.id][property] = value;
+                        }
+
+                        values[valueDefIdx] = value;
                     }
-                    if (validScopes?.size === 0) break;
+
+                    if (value === INVALID_VALUE) {
+                        if (allScopesHaveSameDefs) break;
+                        for (const scope of def.scopes ?? scopes) {
+                            validScopes?.delete(scope);
+                        }
+                        if (validScopes?.size === 0) break;
+                    }
                 }
-            }
 
-            if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
-            if (validScopes?.size === 0) continue;
+                if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
+                if (validScopes?.size === 0) continue;
 
-            if (dataVisible) {
                 const result: UngroupedDataItem<D, any> = {
                     datum: { ...datum, ...sourceDatums },
                     keys: keys!,
@@ -637,8 +638,8 @@ export class DataModel<
 
                 resultData[resultDataIdx++] = result;
             }
+            resultData.length = resultDataIdx;
         }
-        resultData.length = resultDataIdx;
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
             const defDomain = dataDomain.get(def)!;

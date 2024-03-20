@@ -383,15 +383,13 @@ function sumValues(values: any[]) {
     return accumulator;
 }
 
-function range(id: string, matchGroupId: string) {
-    const result: AggregatePropertyDefinition<any, any> = {
+function range(id: string, matchGroupId: string): AggregatePropertyDefinition<any, any> {
+    return {
         id,
-        matchGroupIds: [matchGroupId],
         type: 'aggregate',
+        matchGroupIds: [matchGroupId],
         aggregateFunction: (values) => ContinuousDomain.extendDomain(values),
     };
-
-    return result;
 }
 
 function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinition<any>['processor'] {
