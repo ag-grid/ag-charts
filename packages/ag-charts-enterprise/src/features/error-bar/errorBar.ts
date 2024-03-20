@@ -87,7 +87,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private isStacked(): boolean {
         const stackCount = this.cartesianSeries.seriesGrouping?.stackCount;
-        return stackCount === undefined ? false : stackCount > 0;
+        return stackCount == null ? false : stackCount > 0;
     }
 
     private getUnstackPropertyDefinition(opts: PropertyDefinitionOpts) {
@@ -95,16 +95,16 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { isContinuousX, isContinuousY } = opts;
 
-        if (yLowerKey !== undefined && yUpperKey !== undefined) {
+        if (yLowerKey != null && yUpperKey != null) {
             props.push(
-                valueProperty(yLowerKey, isContinuousY, { id: yErrorsID }),
-                valueProperty(yUpperKey, isContinuousY, { id: yErrorsID })
+                valueProperty(yLowerKey, isContinuousY, { id: `${yErrorsID}-lower` }),
+                valueProperty(yUpperKey, isContinuousY, { id: `${yErrorsID}-upper` })
             );
         }
-        if (xLowerKey !== undefined && xUpperKey !== undefined) {
+        if (xLowerKey != null && xUpperKey != null) {
             props.push(
-                valueProperty(xLowerKey, isContinuousX, { id: xErrorsID }),
-                valueProperty(xUpperKey, isContinuousX, { id: xErrorsID })
+                valueProperty(xLowerKey, isContinuousX, { id: `${xErrorsID}-lower` }),
+                valueProperty(xUpperKey, isContinuousX, { id: `${xErrorsID}-upper` })
             );
         }
         return props;
@@ -137,11 +137,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             );
         };
 
-        if (yLowerKey !== undefined && yUpperKey !== undefined) {
+        if (yLowerKey != null && yUpperKey != null) {
             pushErrorProperties(yLowerKey, yUpperKey, isContinuousY, yErrorsID);
         }
 
-        if (xLowerKey !== undefined && xUpperKey !== undefined) {
+        if (xLowerKey != null && xUpperKey != null) {
             pushErrorProperties(xLowerKey, xUpperKey, isContinuousX, xErrorsID);
         }
 
@@ -173,16 +173,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             const axis = series.axes[direction];
             const id = { x: xErrorsID, y: yErrorsID }[direction];
 
-            if (dataModel !== undefined && processedData !== undefined) {
-                if (this.isStacked()) {
-                    const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
-                    const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
-                    const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
-                    return fixNumericExtent(domain as any, axis);
-                } else {
-                    const domain = dataModel.getDomain(series, id, 'value', processedData);
-                    return fixNumericExtent(domain as any, axis);
-                }
+            if (dataModel != null && processedData != null) {
+                const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
+                const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
+                const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
+                return fixNumericExtent(domain as any, axis);
             }
         }
         return [];
@@ -215,7 +210,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         for (let i = 0; i < nodeData.length; i++) {
             const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(nodeData, i);
-            if (midPoint !== undefined) {
+            if (midPoint != null) {
                 let xBar, yBar;
                 if (isDefined(xLower) && isDefined(xUpper)) {
                     xBar = {
@@ -248,11 +243,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private static getDatumKey(datum: ErrorBarNodeDatum, key: string | undefined, offset: number): number | undefined {
         // Check if the user input datum has the error value for `key`:
-        if (key === undefined) {
+        if (key == null) {
             return;
         }
         const value: unknown = datum.datum[key];
-        if (value === undefined) {
+        if (value == null) {
             return;
         }
 
@@ -269,9 +264,9 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
         const datum = nodeData[datumIndex];
 
-        // In stacked bar series, we need to calculate the cumalative error values.
+        // In stacked bar series, we need to calculate the cumulative error values.
         // But generally, these offsets will both be 0.
-        const d = datum.cumulativeValue === undefined || !this.isStacked() ? 0 : datum.cumulativeValue - datum.yValue;
+        const d = datum.cumulativeValue == null || !this.isStacked() ? 0 : datum.cumulativeValue - datum.yValue;
         const [xOffset, yOffset] = this.cartesianSeries.shouldFlipXY() ? [d, 0] : [0, d];
 
         return {
@@ -290,7 +285,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private update() {
         const nodeData = this.getNodeData();
-        if (nodeData !== undefined) {
+        if (nodeData != null) {
             this.selection.update(nodeData);
             this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
         }
@@ -305,7 +300,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     pickNodeExact(point: Point): PickNodeDatumResult {
         const { x, y } = this.groupNode.transformPoint(point.x, point.y);
         const node = this.groupNode.pickNode(x, y);
-        if (node !== undefined) {
+        if (node != null) {
             return { datum: node.datum, distanceSquared: 0 };
         }
     }

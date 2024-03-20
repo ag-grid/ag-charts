@@ -259,8 +259,7 @@ export class DataModel<
     Grouped extends boolean | undefined = undefined,
 > {
     private readonly debug = Debug.create(true, 'data-model');
-    private readonly scopeCache: Map<string, Map<string, Set<PropertyDefinition<any> & InternalDefinition>>> =
-        new Map();
+    private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition>> = new Map();
 
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
@@ -354,45 +353,29 @@ export class DataModel<
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        const { value, done } = this.scopeDefs(scope, searchId).next();
+        const def = this.scopeCache.get(scope.id)?.get(searchId);
 
-        if (done) {
+        if (!def) {
             throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}]`);
         }
 
-        return value;
+        return { index: def.index, def };
     }
 
-    resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef[]][] {
-        return searchIds.map((searchId) => [searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
+    resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef][] {
+        return searchIds.map((searchId) => [searchId, this.resolveProcessedDataDefById(scope, searchId)]);
     }
 
     resolveProcessedDataDefsValues<T extends string>(
-        defs: [T, ProcessedDataDef[]][],
+        defs: [T, ProcessedDataDef][],
         { keys, values }: { keys: unknown[]; values: unknown[] }
     ): Record<T, any> {
         const result: Record<string, any> = {};
-        for (const [searchId, [{ index, def }]] of defs) {
+        for (const [searchId, { index, def }] of defs) {
             const processedData = def.type === 'key' ? keys : values;
             result[searchId] = processedData[index];
         }
         return result;
-    }
-
-    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
-        const result = Array.from(this.scopeDefs(searchScope, searchId));
-
-        if (!result.length) {
-            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
-        }
-
-        return result;
-    }
-
-    private *scopeDefs(searchScope: ScopeProvider, searchId: string) {
-        for (const def of this.scopeCache.get(searchScope.id)?.get(searchId) ?? []) {
-            yield { index: def.index, def };
-        }
     }
 
     getDomain(
@@ -407,17 +390,9 @@ export class DataModel<
             return [];
         }
 
-        const matches = this.resolveProcessedDataDefsById(scope, searchId);
+        const match = this.resolveProcessedDataDefById(scope, searchId);
 
-        if (matches.length === 1) {
-            return domains[matches[0].index] ?? [];
-        } else {
-            const result: [number, number] = [Infinity, -Infinity];
-            for (const { index } of matches) {
-                ContinuousDomain.extendDomain(domains[index] ?? [], result);
-            }
-            return result;
-        }
+        return domains[match.index] ?? [];
     }
 
     private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
@@ -499,15 +474,16 @@ export class DataModel<
             for (const [scope, ids] of def.idsMap) {
                 for (const id of ids) {
                     if (!this.scopeCache.has(scope)) {
-                        this.scopeCache.set(scope, new Map([[id, new Set([def])]]));
-                    } else if (!this.scopeCache.get(scope)!.has(id)) {
-                        this.scopeCache.get(scope)!.set(id, new Set([def]));
+                        this.scopeCache.set(scope, new Map([[id, def]]));
                     } else {
-                        this.scopeCache.get(scope)!.get(id)!.add(def);
+                        this.scopeCache.get(scope)!.set(id, def);
+                        // throw new Error(`dup ${scope}:${id}`);
                     }
                 }
             }
         }
+
+        // console.log(this.scopeCache);
 
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
@@ -677,7 +653,7 @@ export class DataModel<
 
         for (const dataEntry of data.data) {
             const { keys, values, datum, validScopes } = dataEntry;
-            const group = groupingFn ? groupingFn(dataEntry) : keys;
+            const group = groupingFn?.(dataEntry) ?? keys;
             const groupStr = toKeyString(group);
 
             if (processedData.has(groupStr)) {
