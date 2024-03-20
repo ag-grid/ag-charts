@@ -998,7 +998,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const measurer = new TextMeasurer(textProps);
 
         for (const { tickLabel, translationY } of tickData) {
-            if (tickLabel === '' || tickLabel == undefined) continue;
+            if (tickLabel === '' || tickLabel == null) continue;
 
             const { width, height } = measurer.size(tickLabel);
             const bbox = new BBox(labelX, translationY, width, height);
