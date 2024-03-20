@@ -22,6 +22,7 @@ const {
     resetLabelFn,
     animationValidation,
     createDatumId,
+    isFiniteNumber,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -342,8 +343,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, (value) =>
-                isNumber(value) ? value.toFixed(2) : ''
+            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, (v) =>
+                isFiniteNumber(v) ? v.toFixed(2) : String(v)
             ),
             itemId: 'low',
             datum,
