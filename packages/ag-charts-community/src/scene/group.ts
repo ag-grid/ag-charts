@@ -170,13 +170,8 @@ export class Group extends Node {
         this.sortChildren(children);
 
         const lastChild = children.at(-1);
-        if (lastChild) {
-            this.zIndex = lastChild.zIndex ?? -Infinity;
-            this.zIndexSubOrder = lastChild.zIndexSubOrder;
-        } else {
-            this.zIndex = -Infinity;
-            this.zIndexSubOrder = undefined;
-        }
+        this.zIndex = lastChild?.zIndex ?? -Infinity;
+        this.zIndexSubOrder = lastChild?.zIndexSubOrder;
     }
 
     override render(renderCtx: RenderContext) {
