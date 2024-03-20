@@ -18,6 +18,7 @@ const {
     seriesLabelFadeOutAnimation,
     valueProperty,
     animationValidation,
+    isFiniteNumber,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -258,7 +259,7 @@ export abstract class RadialColumnSeriesBase<
             const labelText = this.getLabelText(
                 label,
                 { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
             );
 
             if (labelText) {

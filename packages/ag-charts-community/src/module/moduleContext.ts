@@ -59,7 +59,7 @@ export interface AxisContext {
     scaleBandwidth(): number;
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
-    scaleValueFormatter(specifier: string): ((x: any) => string) | undefined;
+    scaleValueFormatter(specifier?: string): ((x: any) => string) | undefined;
 }
 
 export interface SeriesContext extends ModuleContext {

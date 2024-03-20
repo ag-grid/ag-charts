@@ -8,6 +8,7 @@ import { resetMotion } from '../../motion/resetMotion';
 import { StateMachine } from '../../motion/states';
 import type {
     AgAxisCaptionFormatterParams,
+    AgAxisLabelFormatterParams,
     CssColor,
     FontFamily,
     FontSize,
@@ -1384,6 +1385,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting (nice rounded) tick values.
     formatTick(datum: any, index: number): string {
+        return this.datumFormatter(index)(datum);
+    }
+
+    // For formatting arbitrary values between the ticks.
+    formatDatum(datum: any): string {
+        return this.datumFormatter()(datum);
+    }
+
+    datumFormatter(index: number = 0): (datum: any) => string {
         const {
             label,
             labelFormatter,
@@ -1392,25 +1402,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         } = this;
 
         if (label.formatter) {
-            const value = fractionDigits > 0 ? datum : String(datum);
-            return (
-                callbackCache.call(label.formatter, {
-                    value,
+            return (datum) =>
+                callbackCache.call(label.formatter as (params: AgAxisLabelFormatterParams) => string, {
+                    value: fractionDigits > 0 ? datum : String(datum),
                     index,
                     fractionDigits,
                     formatter: labelFormatter,
-                }) ?? value
-            );
+                }) ?? datum;
         } else if (labelFormatter) {
-            return callbackCache.call(labelFormatter, datum) ?? String(datum);
+            return (datum) => callbackCache.call(labelFormatter, datum) ?? String(datum);
         }
         // The axis is using a logScale or the`datum` is an integer, a string or an object
-        return String(datum);
-    }
-
-    // For formatting arbitrary values between the ticks.
-    formatDatum(datum: any): string {
-        return this.formatTick(datum, 0);
+        return (datum) => String(datum);
     }
 
     maxThickness: number = Infinity;
@@ -1502,7 +1505,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
                     return keys;
                 }, [] as string[]),
-            scaleValueFormatter: (specifier: string) => this.scale.tickFormat?.({ specifier }),
+            scaleValueFormatter: (specifier?: string) =>
+                specifier ? this.scale.tickFormat?.({ specifier }) : this.datumFormatter(),
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),
             scaleInvert: (val) => this.scale.invert?.(val),

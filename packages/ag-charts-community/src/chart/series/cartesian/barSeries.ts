@@ -311,7 +311,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         yName,
                         legendItemName,
                     },
-                    (v) => (isFiniteNumber(v) ? v.toFixed(2) : '')
+                    (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
                 );
                 const labelDatum = labelText
                     ? {
