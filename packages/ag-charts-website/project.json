@@ -30,7 +30,7 @@
       }
     },
     "dev": {
-      "dependsOn": ["^build", "^docs-resolved-interfaces"],
+      "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples", "generate-thumbnails"],
       "inputs": [],
       "outputs": [],
       "command": "astro dev --port=${PORT} --host",
