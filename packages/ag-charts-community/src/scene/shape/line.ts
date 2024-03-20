@@ -1,9 +1,11 @@
+import { lineDistanceSquared } from '../../util/distance';
 import { BBox } from '../bbox';
+import type { DistantObject } from '../nearest';
 import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
-export class Line extends Shape {
+export class Line extends Shape implements DistantObject {
     static readonly className = 'Line';
 
     protected static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
@@ -55,6 +57,11 @@ export class Line extends Shape {
                 .containsPoint(x, y);
         }
         return false;
+    }
+
+    distanceSquared(px: number, py: number): number {
+        const { x1, y1, x2, y2 } = this;
+        return lineDistanceSquared(px, py, x1, y1, x2, y2, Infinity);
     }
 
     override render(renderCtx: RenderContext) {
