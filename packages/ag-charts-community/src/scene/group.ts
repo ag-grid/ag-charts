@@ -165,13 +165,17 @@ export class Group extends Node {
     }
 
     deriveZIndexFromChildren() {
-        const { children } = this;
+        const children = this.children.filter((c) => c._childNodeCounts.nonGroups > 0);
+
         this.sortChildren(children);
 
         const lastChild = children.at(-1);
         if (lastChild) {
             this.zIndex = lastChild.zIndex ?? -Infinity;
             this.zIndexSubOrder = lastChild.zIndexSubOrder;
+        } else {
+            this.zIndex = -Infinity;
+            this.zIndexSubOrder = undefined;
         }
     }
 
