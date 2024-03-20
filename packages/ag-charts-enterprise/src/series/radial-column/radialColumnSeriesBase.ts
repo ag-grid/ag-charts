@@ -258,7 +258,7 @@ export abstract class RadialColumnSeriesBase<
             const labelText = this.getLabelText(
                 label,
                 { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                (value) => radiusAxis?.formatDatum(value) ?? String(value)
+                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
             );
 
             if (labelText) {

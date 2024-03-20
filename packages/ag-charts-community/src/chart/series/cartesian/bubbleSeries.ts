@@ -155,22 +155,18 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const labelText = this.getLabelText(
-                label,
-                {
-                    value: labelKey ? values[labelDataIdx] : yDatum,
-                    datum,
-                    xKey,
-                    yKey,
-                    sizeKey,
-                    labelKey,
-                    xName,
-                    yName,
-                    sizeName,
-                    labelName,
-                },
-                (value) => yAxis.formatDatum(value)
-            );
+            const labelText = this.getLabelText(label, {
+                value: labelKey ? values[labelDataIdx] : yDatum,
+                datum,
+                xKey,
+                yKey,
+                sizeKey,
+                labelKey,
+                xName,
+                yName,
+                sizeName,
+                labelName,
+            });
 
             const size = Text.getTextSize(String(labelText), font);
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;

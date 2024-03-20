@@ -269,7 +269,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                             yKey,
                             xName,
                             yName,
-                        }) ?? yAxis.formatDatum(total),
+                        }) ?? String(total),
                     fontStyle: labelFontStyle,
                     fontWeight: labelFontWeight,
                     fontSize: labelFontSize,

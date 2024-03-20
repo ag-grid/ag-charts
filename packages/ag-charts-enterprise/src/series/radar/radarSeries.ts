@@ -15,7 +15,7 @@ const {
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
-const { extent, isNumberEqual, sanitizeHtml } = _Util;
+const { extent, isNumber, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
 export interface RadarPathPoint {
     x: number;
@@ -170,8 +170,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index;
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
-
         const nodeData = processedData.data.map((group): RadarNodeDatum => {
             const { datum, values } = group;
 
@@ -192,7 +190,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 const labelText = this.getLabelText(
                     label,
                     { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                    (value) => radiusAxis?.formatDatum(value) ?? String(value)
+                    (value) => (isNumber(value) ? value.toFixed(2) : String(value))
                 );
 
                 if (labelText) {
@@ -358,15 +356,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return '';
         }
 
-        const { id: seriesId, axes } = this;
+        const { id: seriesId } = this;
         const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
         const { datum, angleValue, radiusValue } = nodeDatum;
 
-        const radiusAxis = axes[ChartAxisDirection.Y];
-        const angleAxis = axes[ChartAxisDirection.X];
-
-        const formattedAngleValue = angleAxis?.formatDatum(angleValue) ?? String(angleValue);
-        const formattedRadiusValue = radiusAxis?.formatDatum(radiusValue) ?? String(radiusValue);
+        const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
+        const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
 

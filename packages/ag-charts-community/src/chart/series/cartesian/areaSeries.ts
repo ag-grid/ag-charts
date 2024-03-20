@@ -336,7 +336,7 @@ export class AreaSeries extends CartesianSeries<
                             xName: this.properties.xName,
                             yName: this.properties.yName,
                         },
-                        (value) => yAxis.formatDatum(value)
+                        (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
                     );
 
                     labelData.push({
