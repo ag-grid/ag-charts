@@ -145,7 +145,7 @@ export abstract class RadialColumnSeriesBase<
 
         const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
 
-        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
+        await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(angleKey, false, { id: 'angleValue' }),
                 valueProperty(radiusKey, true, {

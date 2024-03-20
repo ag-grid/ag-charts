@@ -2,6 +2,7 @@ import { Debug } from '../../util/debug';
 import { iterate } from '../../util/function';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
+import { hasIntersection } from '../../util/set';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
@@ -143,10 +144,6 @@ export function fixNumericExtent(
 // AG-10337 Keep track of the number of missing values in each per-series data array.
 type MissMap = Map<string | undefined, number>;
 
-function defaultMissMap(): MissMap {
-    return new Map([[undefined, 0]]);
-}
-
 export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | undefined) {
     return missMap?.get(scopeProvider.id) ?? 0;
 }
@@ -154,7 +151,6 @@ export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | un
 type GroupingFn<K> = (data: UngroupedDataItem<K, any[]>) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined> = {
-    readonly scopes?: string[];
     readonly props: PropertyDefinition<K>[];
     readonly groupByKeys?: Grouped;
     readonly groupByData?: Grouped;
@@ -176,7 +172,7 @@ export type PropertyId<K extends string> = K | { id: string };
 
 type PropertyIdentifiers = {
     /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
-    scopes?: string[];
+    scopes?: Set<string>;
     id?: string;
     /** Map<Scope, Set<Id>> */
     idsMap?: Map<string, Set<string>>;
@@ -315,7 +311,7 @@ export class DataModel<
         for (const def of props) {
             switch (def.type) {
                 case 'key':
-                    this.keys.push({ ...def, index: this.keys.length, missing: defaultMissMap() });
+                    this.keys.push({ ...def, index: this.keys.length, missing: new Map() });
                     break;
 
                 case 'value':
@@ -326,7 +322,7 @@ export class DataModel<
                             )}`
                         );
                     }
-                    this.values.push({ ...def, index: this.values.length, missing: defaultMissMap() });
+                    this.values.push({ ...def, index: this.values.length, missing: new Map() });
                     break;
 
                 case 'aggregate':
@@ -499,7 +495,7 @@ export class DataModel<
         }
 
         this.scopeCache.clear();
-        for (const def of iterate(this.keys, this.values, this.aggregates, this.groupProcessors, this.reducers)) {
+        for (const def of iterate(this.keys, this.values, this.aggregates)) {
             if (!def.idsMap) continue;
             for (const [scope, ids] of def.idsMap) {
                 for (const id of ids) {
@@ -527,14 +523,14 @@ export class DataModel<
         return result;
     }
 
-    private valueIdxLookup(scopes: string[] | undefined, prop: PropertyId<string>) {
-        const noScopesToMatch = scopes == null || scopes.length === 0;
+    private valueIdxLookup(scopes: Set<string> | undefined, prop: PropertyId<string>) {
+        const noScopesToMatch = scopes == null || scopes.size === 0;
         const propId = typeof prop === 'string' ? prop : prop.id;
 
         const hasMatchingScopeId = (def: InternalDatumPropertyDefinition<K>) => {
             if (def.idsMap) {
                 for (const [scope, ids] of def.idsMap) {
-                    if (scopes?.includes(scope) && ids.has(propId)) {
+                    if (scopes?.has(scope) && ids.has(propId)) {
                         return true;
                     }
                 }
@@ -544,9 +540,7 @@ export class DataModel<
 
         const result = this.values.findIndex((def) => {
             const validDefScopes =
-                def.scopes == null ||
-                (noScopesToMatch && !def.scopes.length) ||
-                def.scopes.some((s) => scopes?.includes(s));
+                def.idsMap == null || (noScopesToMatch && !def.idsMap?.size) || hasIntersection(scopes, def.idsMap);
 
             return validDefScopes && (def.property === propId || def.id === propId || hasMatchingScopeId(def));
         });
@@ -844,7 +838,7 @@ export class DataModel<
             const reducer = def.reducer();
             let accValue: any = def.initialValue;
             for (const datum of processedData.data) {
-                if (!datum.validScopes || def.scopes?.some((s) => datum.validScopes?.has(s))) {
+                if (!datum.validScopes || hasIntersection(def.scopes, datum.validScopes)) {
                     accValue = reducer(accValue, datum);
                 }
             }

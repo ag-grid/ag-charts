@@ -191,7 +191,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             props.push(diff(this.processedData, false));
         }
 
-        await this.requestDataModel<any>(dataController, this.data ?? [], {
+        await this.requestDataModel<any>(dataController, this.data, {
             props,
             dataVisible: this.visible,
             groupByFn,
@@ -203,15 +203,17 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.calculatedBins.length) return [];
+        if (!processedData || !dataModel || !this.calculatedBins.length) {
+            return [];
+        }
 
-        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
-        const xDomainMin = this.calculatedBins?.[0][0];
-        const xDomainMax = this.calculatedBins?.[(this.calculatedBins?.length ?? 0) - 1][1];
         if (direction === ChartAxisDirection.X) {
+            const xDomainMin = this.calculatedBins?.[0][0];
+            const xDomainMax = this.calculatedBins?.[(this.calculatedBins?.length ?? 0) - 1][1];
             return fixNumericExtent([xDomainMin, xDomainMax]);
         }
 
+        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
         return fixNumericExtent(yDomain);
     }
 

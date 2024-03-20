@@ -92,20 +92,19 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private getUnstackPropertyDefinition(opts: PropertyDefinitionOpts) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
-        const { cartesianSeries } = this;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { isContinuousX, isContinuousY } = opts;
 
         if (yLowerKey !== undefined && yUpperKey !== undefined) {
             props.push(
-                valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: yErrorsID }),
-                valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: yErrorsID })
+                valueProperty(yLowerKey, isContinuousY, { id: yErrorsID }),
+                valueProperty(yUpperKey, isContinuousY, { id: yErrorsID })
             );
         }
         if (xLowerKey !== undefined && xUpperKey !== undefined) {
             props.push(
-                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: xErrorsID }),
-                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: xErrorsID })
+                valueProperty(xLowerKey, isContinuousX, { id: xErrorsID }),
+                valueProperty(xUpperKey, isContinuousX, { id: xErrorsID })
             );
         }
         return props;
@@ -125,7 +124,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             ...(cartesianSeries.visible ? {} : { forceValue: 0 }),
         };
         const makeErrorProperty = (key: string, continuous: boolean, id: string, type: 'lower' | 'upper') => {
-            return groupAccumulativeValueProperty(cartesianSeries, key, continuous, 'normal', 'current', {
+            return groupAccumulativeValueProperty(key, continuous, 'normal', 'current', {
                 id: `${id}-${type}`,
                 groupId: `errorGroup-${groupIndex}-${type}`,
                 ...groupOpts,

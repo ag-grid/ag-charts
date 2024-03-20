@@ -6,8 +6,7 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
     let min = Infinity;
     let max = -Infinity;
 
-    for (const v of values) {
-        let n = v;
+    for (let n of values) {
         if (n instanceof Date) {
             n = n.getTime();
         }

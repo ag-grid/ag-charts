@@ -114,7 +114,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             extraProps.push(animationValidation());
         }
 
-        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
+        await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),

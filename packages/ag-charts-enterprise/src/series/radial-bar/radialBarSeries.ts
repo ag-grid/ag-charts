@@ -136,7 +136,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
 
-        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
+        await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(radiusKey, false, { id: 'radiusValue' }),
                 valueProperty(angleKey, true, {

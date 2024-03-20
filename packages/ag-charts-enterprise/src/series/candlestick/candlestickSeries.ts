@@ -93,7 +93,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(animationValidation());
         }
 
-        const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
+        const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
                 valueProperty(openKey, true, { id: `openValue` }),

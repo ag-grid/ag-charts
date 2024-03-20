@@ -18,7 +18,7 @@ interface RequestedProcessing<
     id: string;
     opts: DataModelOptions<K, any>;
     data: D[];
-    resultCb: (result: Result<D, K, G>) => void;
+    resolve: (result: Result<D, K, G>) => void;
     reject: (reason?: any) => void;
 }
 
@@ -30,7 +30,7 @@ interface MergedRequests<
     ids: string[];
     opts: DataModelOptions<K, any>;
     data: D[];
-    resultCbs: ((result: Result<D, K, G>) => void)[];
+    resolves: ((result: Result<D, K, G>) => void)[];
     rejects: ((reason?: any) => void)[];
 }
 
@@ -59,7 +59,7 @@ export class DataController {
         }
 
         return new Promise<Result<D, K, G>>((resolve, reject) => {
-            this.requested.push({ id, opts, data, resultCb: resolve, reject });
+            this.requested.push({ id, opts, data, resolve, reject });
         });
     }
 
@@ -82,7 +82,7 @@ export class DataController {
 
         const scopes = this.requested.map(({ id }) => id);
         const needsValueExtraction = this.hasMultipleDataSources(valid);
-        for (const { opts, data, resultCbs, rejects, ids } of merged) {
+        for (const { opts, data, resolves, rejects, ids } of merged) {
             try {
                 const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
                 const processedData = dataModel.processData(data, valid);
@@ -92,7 +92,7 @@ export class DataController {
                 }
 
                 if (processedData?.partialValidDataCount === 0) {
-                    resultCbs.forEach((callback, requestIdx) =>
+                    resolves.forEach((callback, requestIdx) =>
                         callback({
                             dataModel,
                             processedData: this.processScopedData(
@@ -104,7 +104,7 @@ export class DataController {
                         })
                     );
                 } else if (processedData) {
-                    this.splitResult(dataModel, processedData, ids, resultCbs);
+                    this.splitResult(dataModel, processedData, ids, resolves);
                 } else {
                     rejects.forEach((cb) => cb(new Error(`AG Charts - no processed data generated`)));
                 }
@@ -192,13 +192,13 @@ export class DataController {
         dataModel: DataModel<any>,
         processedData: ProcessedData<any>,
         scopes: string[],
-        resultCbs: ((result: Result<any, any, any>) => void)[]
+        resolves: ((result: Result<any, any, any>) => void)[]
     ) {
         for (let i = 0; i < scopes.length; i++) {
             const scope = scopes[i];
-            const resultCb = resultCbs[i];
+            const resolve = resolves[i];
 
-            resultCb({
+            resolve({
                 dataModel,
                 processedData: {
                     ...processedData,
@@ -226,15 +226,15 @@ export class DataController {
 
     private static mergeRequests(requests: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
         return requests.reduce(
-            (result, { id, data, resultCb, reject, opts: { props, ...opts } }) => {
+            (result, { id, data, resolve, reject, opts: { props, ...opts } }) => {
                 result.ids.push(id);
                 result.rejects.push(reject);
-                result.resultCbs.push(resultCb);
+                result.resolves.push(resolve);
                 result.data ??= data;
                 result.opts ??= { ...opts, props: [] };
 
                 for (const prop of props) {
-                    prop.scopes ??= [id];
+                    prop.scopes ??= new Set([id]);
                     DataController.createIdsMap(id, prop);
 
                     const match = result.opts.props.find(
@@ -246,7 +246,7 @@ export class DataController {
                         continue;
                     }
 
-                    match.scopes.push(id);
+                    match.scopes.add(id);
 
                     if ((match.type === 'key' || match.type === 'value') && prop.idsMap?.size) {
                         DataController.mergeIdsMap(prop.idsMap, match.idsMap);
@@ -255,7 +255,7 @@ export class DataController {
 
                 return result;
             },
-            { ids: [], rejects: [], resultCbs: [], data: null, opts: null } as any
+            { ids: [], rejects: [], resolves: [], data: null, opts: null } as any
         );
     }
 

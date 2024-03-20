@@ -88,7 +88,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(animationValidation());
         }
 
-        const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
+        const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(minKey, true, { id: `minValue` }),
