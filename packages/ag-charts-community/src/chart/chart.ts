@@ -137,7 +137,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
     className?: string;
 
     readonly scene: Scene;
-    readonly seriesRoot = new Group({ name: `${this.id}-Series-root` });
+    readonly seriesRoot = new Group({ name: `${this.id}-series-root` });
+    readonly highlightRoot = new Group({
+        name: `${this.id}-highlight-root`,
+        layer: true,
+        zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
+        nonEmptyChildDerivedZIndex: true,
+    });
+    readonly annotationRoot = new Group({
+        name: `${this.id}-annotation-root`,
+        layer: true,
+        zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
+    });
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -287,6 +298,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // (before first layout is performed).
         root.visible = false;
         root.append(this.seriesRoot);
+        root.append(this.highlightRoot);
+        root.append(this.annotationRoot);
 
         this.axisGridGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
         root.appendChild(this.axisGridGroup);
@@ -319,7 +332,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, opts) => this.update(type, opts));
         this.seriesStateManager = new SeriesStateManager();
-        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
+        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
         this.callbackCache = new CallbackCache();
 
         this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
