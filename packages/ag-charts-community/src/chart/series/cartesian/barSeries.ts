@@ -119,7 +119,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const { xKey, yKey, normalizedTo } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -132,10 +131,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
-        const normaliseTo = normalizedToAbs && isFinite(normalizedToAbs) ? normalizedToAbs : undefined;
         const extraProps = [];
-        if (normaliseTo) {
-            extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
+        if (isFiniteNumber(normalizedTo)) {
+            extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo)));
         }
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
@@ -143,6 +141,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         if (animationEnabled) {
             extraProps.push(animationValidation(this));
         }
+
+        // await this.newRequestDataModel(dataController, data, {
+        //     groupBy: 'keys',
+        //     defs: [{ type: 'key' }],
+        // });
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {

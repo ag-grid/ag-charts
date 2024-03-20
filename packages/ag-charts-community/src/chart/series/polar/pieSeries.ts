@@ -26,7 +26,7 @@ import {
     animationValidation,
     diff,
     keyProperty,
-    normalisePropertyTo,
+    normalisePropertyToRatio,
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
@@ -214,10 +214,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     max: this.properties.radiusMax,
                 }),
                 valueProperty(this, radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
-                normalisePropertyTo(
+                normalisePropertyToRatio(
                     this,
                     { id: 'radiusValue' },
-                    [0, 1],
                     1,
                     this.properties.radiusMin ?? 0,
                     this.properties.radiusMax
@@ -245,7 +244,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 ...extraKeyProps,
                 accumulativeValueProperty(this, angleKey, true, { id: `angleValue`, onlyPositive: true }),
                 valueProperty(this, angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
-                normalisePropertyTo(this, { id: 'angleValue' }, [0, 1], 0, 0),
+                normalisePropertyToRatio(this, { id: 'angleValue' }, 0, 0),
                 ...extraProps,
             ],
         });

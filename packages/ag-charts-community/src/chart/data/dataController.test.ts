@@ -7,6 +7,8 @@ describe('DataController', () => {
     let controller: DataController;
     let data: Record<string, number>[];
 
+    const validation = () => true;
+
     beforeEach(() => {
         controller = new DataController('standalone');
         data = [];
@@ -20,11 +22,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key' as const,
                     valueType: 'category' as const,
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value' as const,
                     valueType: 'range' as const,
+                    validation,
                 },
             ],
         };
@@ -47,11 +51,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -63,11 +69,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -88,11 +96,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -104,11 +114,13 @@ describe('DataController', () => {
                     property: 'keyProp2',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -132,6 +144,7 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     scopes: ['test1'],
@@ -139,6 +152,7 @@ describe('DataController', () => {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
                 {
                     scopes: ['test1'],
@@ -146,6 +160,7 @@ describe('DataController', () => {
                     property: 'valueProp2',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -158,6 +173,7 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     scopes: ['test2'],
@@ -165,6 +181,7 @@ describe('DataController', () => {
                     property: 'valueProp2',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
                 {
                     scopes: ['test2'],
@@ -172,6 +189,7 @@ describe('DataController', () => {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -236,6 +254,7 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     scopes: ['test1'],
@@ -243,6 +262,7 @@ describe('DataController', () => {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -274,6 +294,7 @@ describe('DataController', () => {
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
                         scopes: ['test1', 'test2'],
@@ -281,6 +302,7 @@ describe('DataController', () => {
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',
+                        validation,
                     },
                 ],
             };
@@ -319,6 +341,7 @@ describe('DataController', () => {
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
                         scopes: ['test1'],
@@ -326,6 +349,7 @@ describe('DataController', () => {
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',
+                        validation,
                     },
                 ],
             });
@@ -338,6 +362,7 @@ describe('DataController', () => {
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
                         scopes: ['test2'],
@@ -345,6 +370,7 @@ describe('DataController', () => {
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',
+                        validation,
                     },
                 ],
             });
@@ -371,6 +397,7 @@ describe('DataController', () => {
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
+                        validation,
                     },
                     {
                         scopes: ['test1'],
@@ -380,6 +407,7 @@ describe('DataController', () => {
                         valueType: 'category',
                         includeProperty: false,
                         processor: () => (value) => `key2 ${value}`,
+                        validation,
                     },
                 ],
             });
@@ -392,6 +420,7 @@ describe('DataController', () => {
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
+                        validation,
                     },
                     {
                         scopes: ['test2'],
@@ -401,6 +430,7 @@ describe('DataController', () => {
                         valueType: 'category',
                         includeProperty: false,
                         processor: () => (value) => `key2 ${value}`,
+                        validation,
                     },
                 ],
             });
@@ -438,6 +468,7 @@ describe('DataController', () => {
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
                         scopes: ['test1'],
@@ -448,6 +479,7 @@ describe('DataController', () => {
                         useScopedValues: false,
                         id: undefined,
                         processor: () => (next: number, total?: number) => next + (total ?? 0),
+                        validation,
                     },
                 ],
             };

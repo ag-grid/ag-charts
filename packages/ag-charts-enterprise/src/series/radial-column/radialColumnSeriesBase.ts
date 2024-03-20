@@ -132,9 +132,7 @@ export abstract class RadialColumnSeriesBase<
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(
-                normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo), 'range')
-            );
+            extraProps.push(normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();

@@ -6,6 +6,27 @@ import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 
+export interface ProcessorOptions {
+    scopeId: string;
+    defs: UnifiedProcessDefinition[];
+    visible?: boolean;
+    groupBy?: 'data' | 'keys' | Function;
+}
+
+export type UnifiedProcessDefinition<T extends string = string> = ReducerProcessDefinition<T>;
+
+export interface ReducerProcessDefinition<T extends string> {
+    type: 'reducer';
+    subtype: T;
+    property: string;
+}
+
+export interface GroupValueProcessDefinition<T extends string> {
+    type: 'group-value-processor';
+    subtype: T;
+    property: string;
+}
+
 export type ScopeProvider = { id: string };
 
 export type UngroupedDataItem<D, V> = {
@@ -200,7 +221,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     missingValue?: any;
     separateNegative?: boolean;
     useScopedValues?: boolean;
-    validation?: (value: any, datum: any) => boolean;
+    validation: (value: any, datum: any) => boolean;
     processor?: () => ProcessorFn;
 };
 
@@ -716,7 +737,7 @@ export class DataModel<
         const resultData = new Array(processedData.size);
         const resultGroups = new Array(processedData.size);
         let dataIndex = 0;
-        for (const [, { keys, values, datum, validScopes }] of processedData.entries()) {
+        for (const { keys, values, datum, validScopes } of processedData.values()) {
             if (validScopes?.size === 0) continue;
 
             resultGroups[dataIndex] = keys;
@@ -932,17 +953,14 @@ export class DataModel<
                 initDataDomain();
             }
 
-            if (valueInDatum) {
-                const valid = def.validation?.(value, datum) ?? true;
-                if (!valid) {
-                    if ('invalidValue' in def) {
-                        value = def.invalidValue;
-                    } else {
-                        if (this.mode !== 'integrated') {
-                            Logger.warnOnce(`invalid value of type [${typeof value}] ignored:`, `[${value}]`);
-                        }
-                        return INVALID_VALUE;
+            if (valueInDatum && !def.validation(value, datum)) {
+                if ('invalidValue' in def) {
+                    value = def.invalidValue;
+                } else {
+                    if (this.mode !== 'integrated') {
+                        Logger.warnOnce(`invalid value of type [${typeof value}] ignored:`, `[${value}]`);
                     }
+                    return INVALID_VALUE;
                 }
             }
 

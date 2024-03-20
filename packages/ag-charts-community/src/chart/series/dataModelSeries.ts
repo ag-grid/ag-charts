@@ -2,7 +2,13 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
-import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
+import type {
+    DataModel,
+    DataModelOptions,
+    ProcessedData,
+    ProcessorOptions,
+    PropertyDefinition,
+} from '../data/dataModel';
 import type { SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
@@ -45,6 +51,12 @@ export abstract class DataModelSeries<
         this.dispatch('data-processed', { dataModel, processedData });
         return { dataModel, processedData };
     }
+
+    protected async newRequestDataModel(
+        _dataController: DataController,
+        _data: any[] | undefined,
+        _options: ProcessorOptions
+    ) {}
 
     protected isProcessedDataAnimatable() {
         const validationResults = this.processedData?.reduced?.animationValidation;

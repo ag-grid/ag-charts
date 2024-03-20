@@ -13,12 +13,8 @@ const isNumberObject = (value: unknown): value is NumberObject =>
 export const isContinuous = (value: unknown): value is number | Date | NumberObject =>
     isFiniteNumber(value) || isNumberObject(value) || isValidDate(value);
 
-export function checkDatum<T>(value: T, isContinuousScale: boolean): T | string | undefined {
-    if (isContinuousScale && isContinuous(value)) {
-        return value;
-    } else if (!isContinuousScale) {
-        return isString(value) || isStringObject(value) ? value : String(value);
-    }
+export function checkDatum<T>(value: T, isContinuousScale: boolean): boolean {
+    return (!isContinuousScale || isContinuous(value)) && value != null;
 }
 
 /**
