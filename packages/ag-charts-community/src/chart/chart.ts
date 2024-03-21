@@ -576,8 +576,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.performUpdateTrigger.schedule(opts?.backOffMs);
         }
     }
+
+    private _performUpdateSplits: Record<string, number> = {};
     private async performUpdate(count: number) {
-        const { performUpdateType, extraDebugStats } = this;
+        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
@@ -590,20 +592,26 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
-        const splits: Record<string, number> = { start: performance.now() };
+        let previousSplit = performance.now();
+        splits.start ??= previousSplit;
+        const updateSplits = (splitName: string) => {
+            splits[splitName] ??= 0;
+            splits[splitName] += performance.now() - previousSplit;
+            previousSplit = performance.now();
+        };
 
         let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
             case ChartUpdateType.UPDATE_DATA:
                 await this.updateData();
-                splits['⬇️'] = performance.now();
+                updateSplits('⬇️');
             // fallthrough
 
             case ChartUpdateType.PROCESS_DATA:
                 await this.processData();
                 this.resetPointer(true);
-                splits['🏭'] = performance.now();
+                updateSplits('🏭');
             // fallthrough
 
             case ChartUpdateType.PERFORM_LAYOUT:
@@ -614,7 +622,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 }
 
                 await this.processLayout();
-                splits['⌖'] = performance.now();
+                updateSplits('⌖');
             // fallthrough
 
             case ChartUpdateType.SERIES_UPDATE:
@@ -623,7 +631,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 const { seriesRect } = this;
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
 
-                splits['🤔'] = performance.now();
+                updateSplits('🤔');
             // fallthrough
 
             case ChartUpdateType.TOOLTIP_RECALCULATION:
@@ -634,7 +642,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta?.lastPointerEvent != null) {
                     this.handlePointer(tooltipMeta.lastPointerEvent, true);
                 }
-                splits['↖'] = performance.now();
+                updateSplits('↖');
             // fallthrough
 
             case ChartUpdateType.SCENE_RENDER:
@@ -646,6 +654,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
+                for (const key in splits) {
+                    delete splits[key];
+                }
             // fallthrough
 
             case ChartUpdateType.NONE:
