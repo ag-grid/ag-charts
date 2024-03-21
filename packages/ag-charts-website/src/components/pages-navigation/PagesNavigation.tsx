@@ -234,7 +234,7 @@ function MainPagesNavigation({
     );
 }
 
-function MeunGroupPagesNavigation({
+function MenuGroupPagesNavigation({
     menuData,
     framework,
     activeMenuItem,
@@ -330,7 +330,7 @@ export function PagesNavigation({
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
                     setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
                 />
-                <MeunGroupPagesNavigation
+                <MenuGroupPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
@@ -338,7 +338,7 @@ export function PagesNavigation({
                     menuGroupKey="maps"
                     className={styles.menuGroupTypesNav}
                 />
-                <MeunGroupPagesNavigation
+                <MenuGroupPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
@@ -346,7 +346,7 @@ export function PagesNavigation({
                     menuGroupKey="financialCharts"
                     className={styles.menuGroupTypesNav}
                 />
-                <MeunGroupPagesNavigation
+                <MenuGroupPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
