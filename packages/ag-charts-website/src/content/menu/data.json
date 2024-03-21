@@ -262,7 +262,7 @@
                 "title": "Financial Charts",
                 "items": [
                     {
-                        "title": "Examples",
+                        "title": "Overview",
                         "path": "financial-charts",
                         "isEnterprise": true
                     }
