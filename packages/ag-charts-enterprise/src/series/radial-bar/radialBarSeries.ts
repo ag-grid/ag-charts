@@ -343,6 +343,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const stroke = highlightedStyle?.stroke ?? this.properties.stroke;
         const strokeOpacity = this.properties.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.properties.strokeWidth;
+        const cornerRadius = this.properties.cornerRadius;
 
         const idFn = (datum: RadialBarNodeDatum) => datum.radiusValue;
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
@@ -367,6 +368,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             node.lineDash = this.properties.lineDash;
             node.lineJoin = 'round';
             node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
+            node.endInnerCornerRadius = cornerRadius;
+            node.endOuterCornerRadius = cornerRadius;
 
             if (highlight) {
                 node.startAngle = datum.startAngle;
