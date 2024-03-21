@@ -2,6 +2,54 @@ import { BBox } from '../bbox';
 import { isPointInSector } from '../util/sector';
 import { Path, ScenePathChangeDetection } from './path';
 
+const findOuterRadiiScalingFactor = (r: number, sweep: number, a: number, b: number) => {
+    let s0 = 0;
+    let s1 = 0;
+    let ds01 = Infinity;
+    let iterations = 0;
+
+    while (iterations < 1e2 && ds01 > 1e-8) {
+        const s = s1;
+
+        const fs = Math.asin((s * a) / (r - s * a)) + Math.asin((s * b) / (r - s * b)) - sweep;
+
+        const df_ds =
+            ((a ** 2 * s) / (r - a * s) ** 2 + a / (r - a * s)) / Math.sqrt(1 - (a ** 2 * s ** 2) / (r - a * s) ** 2) +
+            ((b ** 2 * s) / (r - b * s) ** 2 + b / (r - b * s)) / Math.sqrt(1 - (b ** 2 * s ** 2) / (r - b * s) ** 2);
+
+        s0 = s;
+        s1 = s - fs / df_ds;
+        ds01 = Math.abs(s1 - s0);
+        iterations += 1;
+    }
+
+    return Number.isFinite(s1) ? s1 : 1;
+};
+
+const findInnerRadiiScalingFactor = (r: number, sweep: number, a: number, b: number) => {
+    let s0 = 1;
+    let s1 = 1;
+    let ds01 = Infinity;
+    let iterations = 0;
+
+    while (iterations < 1e2 && ds01 > 1e-8) {
+        const s = s1;
+
+        const fs = Math.asin((s * a) / (r + s * a)) + Math.asin((s * b) / (r + s * b)) - sweep;
+
+        const df_ds =
+            (a / (a * s + r) - (a ** 2 * s) / (a * s + r) ** 2) / Math.sqrt(1 - (a ** 2 * s ** 2) / (a * s + r) ** 2) +
+            (b / (b * s + r) - (b ** 2 * s) / (b * s + r) ** 2) / Math.sqrt(1 - (b ** 2 * s ** 2) / (b * s + r) ** 2);
+
+        s0 = s;
+        s1 = s - fs / df_ds;
+        ds01 = Math.abs(s1 - s0);
+        iterations += 1;
+    }
+
+    return Number.isFinite(s1) ? s1 : 1;
+};
+
 export class Sector extends Path {
     static override readonly className = 'Sector';
 
@@ -98,60 +146,58 @@ export class Sector extends Path {
 
         let radiusScale = 1;
 
-        const outerEdgeLength = outerRadius * (endAngle - startAngle);
-        let startOuterCornerRadiusAngleSweep = Math.asin(
-            startOuterCornerRadius / (outerRadius - startOuterCornerRadius)
-        );
-        let endOuterCornerRadiusAngleSweep = Math.asin(startOuterCornerRadius / (outerRadius - startOuterCornerRadius));
-        const outerRadiusLength =
-            outerRadius * startOuterCornerRadiusAngleSweep + outerRadius * endOuterCornerRadiusAngleSweep;
-        radiusScale = Math.max(outerRadiusLength / outerEdgeLength, radiusScale);
-
         const radialLength = outerRadius - innerRadius;
         const maxRadialRadiusLength = Math.max(
             startOuterCornerRadius + startInnerCornerRadius,
             endOuterCornerRadius + endInnerCornerRadius
         );
-        radiusScale = Math.max(maxRadialRadiusLength / radialLength, radiusScale);
+        const radialScalingFactor = radialLength / maxRadialRadiusLength;
+        radiusScale = Math.min(radialScalingFactor, radiusScale);
 
-        let startInnerCornerRadiusAngleSweep = 0;
-        let endInnerCornerRadiusAngleSweep = 0;
+        const outerScalingFactor = findOuterRadiiScalingFactor(
+            outerRadius,
+            sweep - 2 * outerAngleOffset,
+            startOuterCornerRadius,
+            endOuterCornerRadius
+        );
+        radiusScale = Math.min(outerScalingFactor, radiusScale);
 
-        if (!innerAngleExceeded && innerRadius > 0) {
-            startInnerCornerRadiusAngleSweep = Math.asin(
-                startInnerCornerRadius / (innerRadius + startInnerCornerRadius)
+        if (innerAngleExceeded || innerRadius === 0) {
+            startInnerCornerRadius = 0;
+            endInnerCornerRadius = 0;
+        } else {
+            const innerScalingFactor = findInnerRadiiScalingFactor(
+                innerRadius,
+                sweep - 2 * innerAngleOffset,
+                startOuterCornerRadius,
+                endOuterCornerRadius
             );
-            endInnerCornerRadiusAngleSweep = Math.asin(startInnerCornerRadius / (innerRadius + startInnerCornerRadius));
-            const innerEdgeLength = innerRadius * (endAngle - innerAngleOffset - (startAngle + innerAngleOffset));
-            const innerRadiusLength =
-                innerRadius * startInnerCornerRadiusAngleSweep + innerRadius * endInnerCornerRadiusAngleSweep;
-            radiusScale = Math.max(innerRadiusLength / innerEdgeLength, radiusScale);
+            radiusScale = Math.min(innerScalingFactor, radiusScale);
         }
 
-        if (radiusScale > 1) {
-            startOuterCornerRadius /= radiusScale;
-            endOuterCornerRadius /= radiusScale;
-            startInnerCornerRadius /= radiusScale;
-            endInnerCornerRadius /= radiusScale;
-
-            startOuterCornerRadiusAngleSweep = Math.asin(
-                startOuterCornerRadius / (outerRadius - startOuterCornerRadius)
-            );
-            endOuterCornerRadiusAngleSweep = Math.asin(startOuterCornerRadius / (outerRadius - startOuterCornerRadius));
-            startInnerCornerRadiusAngleSweep = Math.asin(
-                startInnerCornerRadius / (innerRadius + startInnerCornerRadius)
-            );
-            endInnerCornerRadiusAngleSweep = Math.asin(startInnerCornerRadius / (innerRadius + startInnerCornerRadius));
+        if (radiusScale < 1) {
+            startOuterCornerRadius *= radiusScale;
+            endOuterCornerRadius *= radiusScale;
+            startInnerCornerRadius *= radiusScale;
+            endInnerCornerRadius *= radiusScale;
         }
 
-        if (this.strokeWidth > 1) {
-            console.log(radiusScale);
-        }
-
-        const startInnerRadiusAngleOffset = startInnerCornerRadius / (innerRadius + startInnerCornerRadius);
-        const endInnerRadiusAngleOffset = endInnerCornerRadius / (innerRadius + endInnerCornerRadius);
-        const startOuterRadiusAngleOffset = startOuterCornerRadius / (outerRadius - startOuterCornerRadius);
-        const endOuterRadiusAngleOffset = endOuterCornerRadius / (outerRadius - endOuterCornerRadius);
+        const startOuterCornerRadiusAngleSweep =
+            startOuterCornerRadius < outerRadius - startOuterCornerRadius
+                ? Math.asin(startOuterCornerRadius / (outerRadius - startOuterCornerRadius))
+                : sweep;
+        const endOuterCornerRadiusAngleSweep =
+            endOuterCornerRadius < outerRadius - endOuterCornerRadius
+                ? Math.asin(endOuterCornerRadius / (outerRadius - endOuterCornerRadius))
+                : sweep;
+        const startInnerCornerRadiusAngleSweep =
+            startInnerCornerRadius < innerRadius + startInnerCornerRadius
+                ? Math.asin(startInnerCornerRadius / (innerRadius + startInnerCornerRadius))
+                : sweep;
+        const endInnerCornerRadiusAngleSweep =
+            endInnerCornerRadius < innerRadius + endInnerCornerRadius
+                ? Math.asin(endInnerCornerRadius / (innerRadius + endInnerCornerRadius))
+                : sweep;
 
         if (innerAngleExceeded) {
             // Draw a wedge on a cartesian co-ordinate with radius `sweep`
@@ -186,32 +232,38 @@ export class Sector extends Path {
             const cx =
                 centerX +
                 (outerRadius - startOuterCornerRadius) *
-                    Math.cos(startAngle + outerAngleOffset + startOuterRadiusAngleOffset);
+                    Math.cos(startAngle + outerAngleOffset + startOuterCornerRadiusAngleSweep);
             const cy =
                 centerY +
                 (outerRadius - startOuterCornerRadius) *
-                    Math.sin(startAngle + outerAngleOffset + startOuterRadiusAngleOffset);
-            path.arc(cx, cy, startOuterCornerRadius, startAngle - Math.PI * 0.5, startAngle);
+                    Math.sin(startAngle + outerAngleOffset + startOuterCornerRadiusAngleSweep);
+            path.arc(
+                cx,
+                cy,
+                startOuterCornerRadius,
+                startAngle - Math.PI * 0.5,
+                startAngle + startOuterCornerRadiusAngleSweep
+            );
         }
 
         path.arc(
             centerX,
             centerY,
             outerRadius,
-            startAngle + outerAngleOffset + startOuterRadiusAngleOffset,
-            endAngle - outerAngleOffset - endOuterRadiusAngleOffset
+            startAngle + outerAngleOffset + startOuterCornerRadiusAngleSweep,
+            endAngle - outerAngleOffset - endOuterCornerRadiusAngleSweep
         );
 
         if (endOuterCornerRadius > 0) {
             const cx =
                 centerX +
                 (outerRadius - endOuterCornerRadius) *
-                    Math.cos(endAngle - outerAngleOffset - endOuterRadiusAngleOffset);
+                    Math.cos(endAngle - outerAngleOffset - endOuterCornerRadiusAngleSweep);
             const cy =
                 centerY +
                 (outerRadius - endOuterCornerRadius) *
-                    Math.sin(endAngle - outerAngleOffset - endOuterRadiusAngleOffset);
-            path.arc(cx, cy, endOuterCornerRadius, endAngle, endAngle + Math.PI * 0.5);
+                    Math.sin(endAngle - outerAngleOffset - endOuterCornerRadiusAngleSweep);
+            path.arc(cx, cy, endOuterCornerRadius, endAngle - endOuterCornerRadiusAngleSweep, endAngle + Math.PI * 0.5);
         }
 
         if (innerAngleExceeded) {
@@ -221,33 +273,48 @@ export class Sector extends Path {
                 const cx =
                     centerX +
                     (innerRadius + endInnerCornerRadius) *
-                        Math.cos(endAngle - innerAngleOffset - endInnerRadiusAngleOffset);
+                        Math.cos(endAngle - innerAngleOffset - endInnerCornerRadiusAngleSweep);
                 const cy =
                     centerY +
                     (innerRadius + endInnerCornerRadius) *
-                        Math.sin(endAngle - innerAngleOffset - endInnerRadiusAngleOffset);
-                path.arc(cx, cy, endInnerCornerRadius, endAngle + Math.PI * 0.5, endAngle + Math.PI);
+                        Math.sin(endAngle - innerAngleOffset - endInnerCornerRadiusAngleSweep);
+                path.arc(
+                    cx,
+                    cy,
+                    endInnerCornerRadius,
+                    endAngle + Math.PI * 0.5,
+                    endAngle + Math.PI - endInnerCornerRadiusAngleSweep
+                );
             }
 
-            path.arc(
-                centerX,
-                centerY,
-                innerRadius,
-                endAngle - innerAngleOffset - endInnerRadiusAngleOffset,
-                startAngle + innerAngleOffset + startInnerRadiusAngleOffset,
-                true
-            );
+            // Floating point errors can cause this arc to be flipped
+            if (endInnerCornerRadiusAngleSweep + startInnerCornerRadiusAngleSweep < sweep - 2 * innerAngleOffset) {
+                path.arc(
+                    centerX,
+                    centerY,
+                    innerRadius,
+                    endAngle - innerAngleOffset - endInnerCornerRadiusAngleSweep,
+                    startAngle + innerAngleOffset + startInnerCornerRadiusAngleSweep,
+                    true
+                );
+            }
 
             if (startInnerCornerRadius > 0) {
                 const cx =
                     centerX +
                     (innerRadius + startInnerCornerRadius) *
-                        Math.cos(startAngle + innerAngleOffset + startInnerRadiusAngleOffset);
+                        Math.cos(startAngle + innerAngleOffset + startInnerCornerRadiusAngleSweep);
                 const cy =
                     centerY +
                     (innerRadius + startInnerCornerRadius) *
-                        Math.sin(startAngle + innerAngleOffset + startInnerRadiusAngleOffset);
-                path.arc(cx, cy, startInnerCornerRadius, startAngle + Math.PI, startAngle - Math.PI * 0.5);
+                        Math.sin(startAngle + innerAngleOffset + startInnerCornerRadiusAngleSweep);
+                path.arc(
+                    cx,
+                    cy,
+                    startInnerCornerRadius,
+                    startAngle + Math.PI + startInnerCornerRadiusAngleSweep,
+                    startAngle - Math.PI * 0.5
+                );
             }
         } else {
             path.lineTo(centerX, centerY);

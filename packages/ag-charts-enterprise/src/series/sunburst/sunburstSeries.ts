@@ -181,7 +181,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         }
 
         const { width, height } = chart.seriesRect!;
-        const { sectorSpacing = 0, padding = 0, highlightStyle } = this.properties;
+        const { sectorSpacing = 0, padding = 0, cornerRadius, highlightStyle } = this.properties;
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
@@ -254,6 +254,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.startAngle = angleDatum.start;
             sector.endAngle = angleDatum.end;
             sector.inset = baseInset + strokeWidth * 0.5;
+            sector.cornerRadius = cornerRadius;
         };
 
         this.groupSelection.selectByClass(Sector).forEach((sector) => {

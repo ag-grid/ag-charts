@@ -701,8 +701,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sector.endAngle = datum.endAngle;
                 sector.innerRadius = datum.innerRadius;
                 sector.outerRadius = datum.outerRadius;
-
-                sector.cornerRadius = 50;
             }
             if (isDatumHighlighted || animationDisabled) {
                 sector.fill = format.fill;
@@ -715,6 +713,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             sector.lineDash = this.properties.lineDash;
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
+            sector.cornerRadius = this.properties.cornerRadius;
             // @todo(AG-10275) Remove sectorSpacing null case
             sector.inset =
                 this.properties.sectorSpacing != null
