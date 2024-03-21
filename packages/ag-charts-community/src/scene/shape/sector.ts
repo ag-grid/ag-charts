@@ -2,53 +2,32 @@ import { BBox } from '../bbox';
 import { isPointInSector } from '../util/sector';
 import { Path, ScenePathChangeDetection } from './path';
 
-const findOuterRadiiScalingFactor = (r: number, sweep: number, a: number, b: number) => {
-    let s0 = 0;
-    let s1 = 0;
-    let ds01 = Infinity;
-    let iterations = 0;
+// https://ag-grid.atlassian.net/wiki/spaces/AG/pages/3090087939/Sector+Corner+Radii
+// We only care about values between 0 and 1
+// An analytic solution may exist, but I can't find it
+// Instead, use interval bisection between these two values
+// Pass in negative values for outer radius, positive for inner
+function findRadiiScalingFactor(r: number, sweep: number, a: number, b: number) {
+    if (a === 0 && b === 0) return 0;
 
-    while (iterations < 1e2 && ds01 > 1e-8) {
-        const s = s1;
+    const fs1 = Math.asin(Math.abs(1 * a) / (r + 1 * a)) + Math.asin(Math.abs(1 * b) / (r + 1 * b)) - sweep;
+    if (fs1 < 0) return 1;
 
-        const fs = Math.asin((s * a) / (r - s * a)) + Math.asin((s * b) / (r - s * b)) - sweep;
-
-        const df_ds =
-            ((a ** 2 * s) / (r - a * s) ** 2 + a / (r - a * s)) / Math.sqrt(1 - (a ** 2 * s ** 2) / (r - a * s) ** 2) +
-            ((b ** 2 * s) / (r - b * s) ** 2 + b / (r - b * s)) / Math.sqrt(1 - (b ** 2 * s ** 2) / (r - b * s) ** 2);
-
-        s0 = s;
-        s1 = s - fs / df_ds;
-        ds01 = Math.abs(s1 - s0);
-        iterations += 1;
+    let start = 0;
+    let end = 1;
+    for (let i = 0; i < 8; i += 1) {
+        const s = (start + end) / 2;
+        const fs = Math.asin(Math.abs(s * a) / (r + s * a)) + Math.asin(Math.abs(s * b) / (r + s * b)) - sweep;
+        if (fs > 0) {
+            end = s;
+        } else {
+            start = s;
+        }
     }
 
-    return Number.isFinite(s1) ? s1 : 1;
-};
-
-const findInnerRadiiScalingFactor = (r: number, sweep: number, a: number, b: number) => {
-    let s0 = 1;
-    let s1 = 1;
-    let ds01 = Infinity;
-    let iterations = 0;
-
-    while (iterations < 1e2 && ds01 > 1e-8) {
-        const s = s1;
-
-        const fs = Math.asin((s * a) / (r + s * a)) + Math.asin((s * b) / (r + s * b)) - sweep;
-
-        const df_ds =
-            (a / (a * s + r) - (a ** 2 * s) / (a * s + r) ** 2) / Math.sqrt(1 - (a ** 2 * s ** 2) / (a * s + r) ** 2) +
-            (b / (b * s + r) - (b ** 2 * s) / (b * s + r) ** 2) / Math.sqrt(1 - (b ** 2 * s ** 2) / (b * s + r) ** 2);
-
-        s0 = s;
-        s1 = s - fs / df_ds;
-        ds01 = Math.abs(s1 - s0);
-        iterations += 1;
-    }
-
-    return Number.isFinite(s1) ? s1 : 1;
-};
+    // Ensure we aren't returning scaling values that are too large
+    return start;
+}
 
 export class Sector extends Path {
     static override readonly className = 'Sector';
@@ -154,11 +133,11 @@ export class Sector extends Path {
         const radialScalingFactor = radialLength / maxRadialRadiusLength;
         radiusScale = Math.min(radialScalingFactor, radiusScale);
 
-        const outerScalingFactor = findOuterRadiiScalingFactor(
+        const outerScalingFactor = findRadiiScalingFactor(
             outerRadius,
             sweep - 2 * outerAngleOffset,
-            startOuterCornerRadius,
-            endOuterCornerRadius
+            -startOuterCornerRadius,
+            -endOuterCornerRadius
         );
         radiusScale = Math.min(outerScalingFactor, radiusScale);
 
@@ -166,7 +145,7 @@ export class Sector extends Path {
             startInnerCornerRadius = 0;
             endInnerCornerRadius = 0;
         } else {
-            const innerScalingFactor = findInnerRadiiScalingFactor(
+            const innerScalingFactor = findRadiiScalingFactor(
                 innerRadius,
                 sweep - 2 * innerAngleOffset,
                 startOuterCornerRadius,
@@ -175,29 +154,33 @@ export class Sector extends Path {
             radiusScale = Math.min(innerScalingFactor, radiusScale);
         }
 
-        if (radiusScale < 1) {
-            startOuterCornerRadius *= radiusScale;
-            endOuterCornerRadius *= radiusScale;
-            startInnerCornerRadius *= radiusScale;
-            endInnerCornerRadius *= radiusScale;
+        startOuterCornerRadius *= radiusScale;
+        endOuterCornerRadius *= radiusScale;
+        startInnerCornerRadius *= radiusScale;
+        endInnerCornerRadius *= radiusScale;
+
+        let startOuterCornerRadiusAngleSweep = 0;
+        let endOuterCornerRadiusAngleSweep = 0;
+        const delta = 1e-6;
+        const startOuterCornerRadiusSweep = startOuterCornerRadius / (outerRadius - startOuterCornerRadius);
+        const endOuterCornerRadiusSweep = endOuterCornerRadius / (outerRadius - endOuterCornerRadius);
+        if (startOuterCornerRadiusSweep >= 0 && startOuterCornerRadiusSweep < 1 - delta) {
+            startOuterCornerRadiusAngleSweep = Math.asin(startOuterCornerRadiusSweep);
+        } else {
+            startOuterCornerRadiusAngleSweep = sweep / 2;
+            startOuterCornerRadius = outerRadius / (1 / Math.sin(startOuterCornerRadiusAngleSweep) + 1);
+        }
+        if (endOuterCornerRadiusSweep >= 0 && endOuterCornerRadiusSweep < 1 - delta) {
+            endOuterCornerRadiusAngleSweep = Math.asin(endOuterCornerRadiusSweep);
+        } else {
+            endOuterCornerRadiusAngleSweep = sweep / 2;
+            endOuterCornerRadius = outerRadius / (1 / Math.sin(endOuterCornerRadiusAngleSweep) + 1);
         }
 
-        const startOuterCornerRadiusAngleSweep =
-            startOuterCornerRadius < outerRadius - startOuterCornerRadius
-                ? Math.asin(startOuterCornerRadius / (outerRadius - startOuterCornerRadius))
-                : sweep;
-        const endOuterCornerRadiusAngleSweep =
-            endOuterCornerRadius < outerRadius - endOuterCornerRadius
-                ? Math.asin(endOuterCornerRadius / (outerRadius - endOuterCornerRadius))
-                : sweep;
-        const startInnerCornerRadiusAngleSweep =
-            startInnerCornerRadius < innerRadius + startInnerCornerRadius
-                ? Math.asin(startInnerCornerRadius / (innerRadius + startInnerCornerRadius))
-                : sweep;
-        const endInnerCornerRadiusAngleSweep =
-            endInnerCornerRadius < innerRadius + endInnerCornerRadius
-                ? Math.asin(endInnerCornerRadius / (innerRadius + endInnerCornerRadius))
-                : sweep;
+        const startInnerCornerRadiusAngleSweep = Math.asin(
+            startInnerCornerRadius / (innerRadius + startInnerCornerRadius)
+        );
+        const endInnerCornerRadiusAngleSweep = Math.asin(endInnerCornerRadius / (innerRadius + endInnerCornerRadius));
 
         if (innerAngleExceeded) {
             // Draw a wedge on a cartesian co-ordinate with radius `sweep`
@@ -246,13 +229,15 @@ export class Sector extends Path {
             );
         }
 
-        path.arc(
-            centerX,
-            centerY,
-            outerRadius,
-            startAngle + outerAngleOffset + startOuterCornerRadiusAngleSweep,
-            endAngle - outerAngleOffset - endOuterCornerRadiusAngleSweep
-        );
+        if (endOuterCornerRadiusAngleSweep + startOuterCornerRadiusAngleSweep < sweep - 2 * outerAngleOffset) {
+            path.arc(
+                centerX,
+                centerY,
+                outerRadius,
+                startAngle + outerAngleOffset + startOuterCornerRadiusAngleSweep,
+                endAngle - outerAngleOffset - endOuterCornerRadiusAngleSweep
+            );
+        }
 
         if (endOuterCornerRadius > 0) {
             const cx =
