@@ -54,7 +54,7 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
-import type { InteractionEvent, PointerOffsets } from './interaction/interactionManager';
+import type { PointerInteractionEvent as InteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';

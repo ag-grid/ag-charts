@@ -8,7 +8,7 @@ const DELTA_SCALE = 200;
 
 export class ZoomScrollPanner {
     update(
-        event: _ModuleSupport.InteractionEvent<'wheel'>,
+        event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
         step: number,
         bbox: _Scene.BBox,
         zooms: AxisZoomStates

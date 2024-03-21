@@ -164,7 +164,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return true; // domain.includes(value); // TODO: does not work with dates
     }
 
-    private onHover(event: _ModuleSupport.InteractionEvent<'hover'>) {
+    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
         const {
             active,
             annotations,
@@ -186,7 +186,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onClick(_event: _ModuleSupport.InteractionEvent<'click' | 'drag-start'>) {
+    private onClick(_event: _ModuleSupport.PointerInteractionEvent<'click' | 'drag-start'>) {
         if (this.active != null) {
             this.annotations.nodes()[this.active].toggleActive(false);
         }
@@ -198,7 +198,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotations.nodes()[this.active].toggleActive(true);
     }
 
-    private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
+    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
             active,
             annotationData,
@@ -221,7 +221,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd(_event: _ModuleSupport.InteractionEvent<'drag-end'>) {
+    private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
         const { active, annotations } = this;
         if (active != null) {
             annotations.nodes()[active].stopDragging();

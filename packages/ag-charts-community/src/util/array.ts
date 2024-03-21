@@ -109,3 +109,8 @@ export function bifurcate<T>(isLeft: (array: T) => boolean, array: T[]): [T[], T
         [[], []] as [T[], T[]]
     );
 }
+
+export function constStringsIncludes<T extends string>(array: readonly T[], value: string): boolean {
+    const casting: readonly string[] = array;
+    return casting.includes(value);
+}
