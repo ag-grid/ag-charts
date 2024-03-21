@@ -47,8 +47,6 @@ type SUPPORTED_EVENTS =
     | 'wheel';
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
-    'blur',
-    'focus',
     'click',
     'dblclick',
     'contextmenu',
@@ -144,7 +142,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private stateQueue: InteractionState = InteractionState.Default;
 
-    public constructor(element: HTMLElement) {
+    public constructor(element: HTMLElement, container?: HTMLElement) {
         super();
 
         this.rootElement = getDocument('body');
@@ -162,6 +160,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
+        }
+
+        if (container) {
+            for (const type of ['blur', 'focus']) {
+                container.addEventListener(type, this.eventHandler);
+            }
         }
 
         injectStyle(CSS, 'interactionManager');
