@@ -53,7 +53,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly stroke: string;
     readonly strokeWidth: number;
     readonly opacity: number;
-    readonly cornerRadiusBbox?: _Scene.BBox;
+    readonly clipBBox?: _Scene.BBox;
 }
 
 interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {

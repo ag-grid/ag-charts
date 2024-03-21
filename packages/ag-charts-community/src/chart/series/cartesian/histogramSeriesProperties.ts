@@ -36,7 +36,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly topRightCornerRadius: boolean;
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
-    readonly cornerRadiusBbox?: BBox;
+    readonly clipBBox?: BBox;
     readonly strokeWidth: number;
     readonly aggregatedValue: number;
     readonly frequency: number;

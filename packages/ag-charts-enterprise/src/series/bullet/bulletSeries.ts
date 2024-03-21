@@ -26,7 +26,7 @@ interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly height: number;
     readonly cumulativeValue: number;
     readonly opacity: number;
-    readonly cornerRadiusBbox?: _Scene.BBox;
+    readonly clipBBox?: _Scene.BBox;
     readonly target?: {
         readonly value: number;
         readonly x1: number;
