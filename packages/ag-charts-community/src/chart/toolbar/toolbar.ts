@@ -2,7 +2,7 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
-import type { InteractionEvent } from '../interaction/interactionManager';
+import type { PointerInteractionEvent as InteractionEvent } from '../interaction/interactionManager';
 import type { ToolbarEvent } from '../interaction/toolbarManager';
 import { ToolbarButton } from './scenes/toolbarButton';
 import { ToolbarContainer } from './scenes/toolbarContainer';

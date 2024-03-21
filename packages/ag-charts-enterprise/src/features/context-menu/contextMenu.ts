@@ -140,7 +140,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private onContextMenu(event: _ModuleSupport.InteractionEvent<'contextmenu'>) {
+    private onContextMenu(event: _ModuleSupport.PointerInteractionEvent<'contextmenu'>) {
         if (!this.enabled) return;
 
         this.showEvent = event.sourceEvent as MouseEvent;

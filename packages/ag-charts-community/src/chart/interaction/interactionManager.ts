@@ -1,3 +1,4 @@
+import { constStringsIncludes } from '../../util/array';
 import { Debug } from '../../util/debug';
 import { getDocument, getWindow, injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
@@ -19,7 +20,21 @@ export const INTERACTION_TYPES = [
     'wheel',
 ] as const;
 
-export type InteractionTypes = (typeof INTERACTION_TYPES)[number];
+const FOCUS_INTERACTION_TYPES = ['blur', 'focus'] as const;
+
+export type PointerInteractionTypes = (typeof INTERACTION_TYPES)[number];
+
+export type FocusInteractionTypes = (typeof FOCUS_INTERACTION_TYPES)[number];
+
+export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes;
+
+function isPointerInteractionType(type: InteractionTypes): type is PointerInteractionTypes {
+    return constStringsIncludes(INTERACTION_TYPES, type);
+}
+
+function isPointerInteractionTypeArray(types: InteractionTypes[]): types is PointerInteractionTypes[] {
+    return !types.some((v) => !isPointerInteractionType(v));
+}
 
 type SUPPORTED_EVENTS =
     | 'click'
@@ -51,6 +66,13 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'wheel',
 ];
 
+type BaseInteractionEvent<T extends InteractionTypes> = {
+    type: T;
+    /** Consume the event, don't notify other listeners! */
+    consume(): void;
+    consumed?: boolean;
+};
+
 export type PointerOffsets = {
     offsetX: number;
     offsetY: number;
@@ -58,18 +80,21 @@ export type PointerOffsets = {
 
 export type PointerHistoryEvent = PointerOffsets & { type: string };
 
-export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = PointerOffsets & {
-    type: T;
-    pageX: number;
-    pageY: number;
-    deltaX: number;
-    deltaY: number;
-    pointerHistory: PointerHistoryEvent[];
-    sourceEvent: Event;
-    /** Consume the event, don't notify other listeners! */
-    consume(): void;
-    consumed?: boolean;
-};
+export type PointerInteractionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PointerOffsets &
+    BaseInteractionEvent<T> & {
+        pageX: number;
+        pageY: number;
+        deltaX: number;
+        deltaY: number;
+        pointerHistory: PointerHistoryEvent[];
+        sourceEvent: Event;
+    };
+
+type FocusInteractionEvent<T extends FocusInteractionTypes = FocusInteractionTypes> = BaseInteractionEvent<T>;
+
+export type InteractionEvent =
+    | PointerInteractionEvent<PointerInteractionTypes>
+    | FocusInteractionEvent<FocusInteractionTypes>;
 
 interface Coords {
     clientX: number;
@@ -103,7 +128,7 @@ export enum InteractionState {
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
  */
-export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent<InteractionTypes>> {
+export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
     private readonly rootElement: HTMLElement;
@@ -161,7 +186,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     // Wrapper to only broadcast events when the InteractionManager is a given state.
     override addListener<T extends InteractionTypes>(
         type: T,
-        handler: (event: InteractionEvent<T> & { type: T }) => void,
+        handler: (event: InteractionEvent & { type: T }) => void,
         triggeringStates: InteractionState = InteractionState.Default
     ) {
         return super.addListener(type, (e) => {
@@ -195,6 +220,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
+        if (isPointerInteractionTypeArray(types)) {
+            this.dispatchPointerEvent(event, types);
+        }
+    }
+
+    private dispatchPointerEvent(event: SupportedEvent, types: PointerInteractionTypes[]) {
         const coords = this.calculateCoordinates(event);
 
         if (coords == null) {
@@ -209,7 +240,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                         handler(interactionEvent);
                     }
                 },
-                this.buildEvent({ type, event, ...coords })
+                this.buildPointerEvent({ type, event, ...coords })
             );
         }
     }
@@ -358,8 +389,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         return event.type === 'wheel';
     }
 
-    private buildEvent(opts: {
-        type: InteractionTypes;
+    private buildPointerEvent(opts: {
+        type: PointerInteractionTypes;
         event: Event;
         clientX: number;
         clientY: number;
@@ -367,7 +398,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-    }): InteractionEvent<(typeof opts)['type']> {
+    }): PointerInteractionEvent<PointerInteractionTypes> {
         const { type, event, clientX, clientY } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 

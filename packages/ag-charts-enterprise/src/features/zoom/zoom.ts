@@ -249,7 +249,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(newZoom);
     }
 
-    private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
+    private onDoubleClick(event: _ModuleSupport.PointerInteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
         const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
@@ -273,7 +273,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
+    private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
         if (!this.enabled || !this.paddedRect) return;
 
         // Determine which ZoomDrag behaviour to use.
@@ -304,7 +304,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
+    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
 
         this.ctx.interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
@@ -380,7 +380,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 
-    private onWheel(event: _ModuleSupport.InteractionEvent<'wheel'>) {
+    private onWheel(event: _ModuleSupport.PointerInteractionEvent<'wheel'>) {
         if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
 
         const currentZoom = this.zoomManager.getZoom();

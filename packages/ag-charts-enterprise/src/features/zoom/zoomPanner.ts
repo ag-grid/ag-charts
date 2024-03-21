@@ -7,7 +7,11 @@ import { constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } 
 export class ZoomPanner {
     private coords?: ZoomCoords;
 
-    update(event: _ModuleSupport.InteractionEvent<'drag'>, bbox: _Scene.BBox, zooms: AxisZoomStates): AxisZoomStates {
+    update(
+        event: _ModuleSupport.PointerInteractionEvent<'drag'>,
+        bbox: _Scene.BBox,
+        zooms: AxisZoomStates
+    ): AxisZoomStates {
         this.updateCoords(event.offsetX, event.offsetY);
         return this.translateZooms(bbox, zooms);
     }

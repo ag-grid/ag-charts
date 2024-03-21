@@ -2,7 +2,11 @@ import type { BBoxProvider } from '../../util/bboxset';
 import { BBoxSet } from '../../util/bboxset';
 import { Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
-import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
+import type {
+    PointerInteractionEvent as InteractionEvent,
+    InteractionManager,
+    PointerInteractionTypes as InteractionTypes,
+} from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
 export type RegionName = 'legend' | 'navigator' | 'pagination' | 'root' | 'series' | 'toolbar';
