@@ -3,16 +3,6 @@ import { RedrawType, SceneChangeDetection } from '../node';
 import { Path2D } from '../path2D';
 import { Shape } from './shape';
 
-export function ScenePathChangeDetection(opts?: {
-    redraw?: RedrawType;
-    convertor?: (o: any) => any;
-    changeCb?: (t: any) => any;
-}) {
-    const { redraw = RedrawType.MAJOR, changeCb, convertor } = opts ?? {};
-
-    return SceneChangeDetection({ redraw, type: 'path', convertor, changeCb });
-}
-
 export class BatchPath<DatumType> extends Shape {
     static readonly className: string = 'BatchPath';
 
