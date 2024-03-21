@@ -1,4 +1,4 @@
-import { constStringsIncludes } from '../../util/array';
+import { allInStringUnion } from '../../util/array';
 import { Debug } from '../../util/debug';
 import { getDocument, getWindow, injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
@@ -28,15 +28,9 @@ export type FocusInteractionTypes = (typeof FOCUS_INTERACTION_TYPES)[number];
 
 export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes;
 
-function isPointerInteractionType(type: InteractionTypes): type is PointerInteractionTypes {
-    return constStringsIncludes(INTERACTION_TYPES, type);
-}
-
-function isPointerInteractionTypeArray(types: InteractionTypes[]): types is PointerInteractionTypes[] {
-    return !types.some((v) => !isPointerInteractionType(v));
-}
-
 type SUPPORTED_EVENTS =
+    | 'blur'
+    | 'focus'
     | 'click'
     | 'dblclick'
     | 'contextmenu'
@@ -53,6 +47,8 @@ type SUPPORTED_EVENTS =
     | 'wheel';
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
+    'blur',
+    'focus',
     'click',
     'dblclick',
     'contextmenu',
@@ -220,10 +216,18 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
-        if (isPointerInteractionTypeArray(types)) {
+        if (allInStringUnion(INTERACTION_TYPES, types)) {
             this.dispatchPointerEvent(event, types);
+        } else if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
+            this.dispatchFocusEvent(types);
         }
     }
+
+    private dispatchWrapper: (handler: (e: InteractionEvent) => void, e: InteractionEvent) => void = (handler, e) => {
+        if (!e.consumed) {
+            handler(e);
+        }
+    };
 
     private dispatchPointerEvent(event: SupportedEvent, types: PointerInteractionTypes[]) {
         const coords = this.calculateCoordinates(event);
@@ -235,13 +239,15 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         for (const type of types) {
             this.listeners.dispatchWrapHandlers(
                 type,
-                (handler, interactionEvent) => {
-                    if (!interactionEvent.consumed) {
-                        handler(interactionEvent);
-                    }
-                },
+                this.dispatchWrapper,
                 this.buildPointerEvent({ type, event, ...coords })
             );
+        }
+    }
+
+    private dispatchFocusEvent(types: FocusInteractionTypes[]) {
+        for (const type of types) {
+            this.listeners.dispatchWrapHandlers(type, this.dispatchWrapper, this.buildConsumable({ type }));
         }
     }
 
@@ -264,6 +270,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         const dragStart = 'drag-start';
 
         switch (event.type) {
+            case 'blur':
+            case 'focus':
             case 'click':
             case 'dblclick':
             case 'contextmenu':
@@ -389,6 +397,18 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         return event.type === 'wheel';
     }
 
+    private buildConsumable<T>(obj: T): T & { consume: () => void; consumed?: boolean } {
+        const builtEvent = {
+            ...obj,
+
+            consumed: false,
+            consume() {
+                builtEvent.consumed = true;
+            },
+        };
+        return builtEvent;
+    }
+
     private buildPointerEvent(opts: {
         type: PointerInteractionTypes;
         event: Event;
@@ -432,7 +452,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pointerHistory = this.dblclickHistory;
         }
 
-        const builtEvent = {
+        const builtEvent = this.buildConsumable({
             type,
             offsetX,
             offsetY,
@@ -442,11 +462,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             deltaY,
             pointerHistory,
             sourceEvent: event,
-            consumed: false,
-            consume() {
-                builtEvent.consumed = true;
-            },
-        };
+        });
 
         this.debug('InteractionManager - builtEvent: ', builtEvent);
         return builtEvent;
