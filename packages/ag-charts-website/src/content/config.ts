@@ -66,6 +66,9 @@ const menu = defineCollection({
         maps: z.object({
             items: z.array(level1MenuItem),
         }),
+        financialCharts: z.object({
+            items: z.array(level1MenuItem),
+        }),
         charts: z.object({
             items: z.array(level1MenuItem),
         }),

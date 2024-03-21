@@ -11,7 +11,6 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
 
     identifier: 'candlestick',
     instanceConstructor: CandlestickSeries,
-    hidden: true,
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
@@ -21,7 +20,7 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
             type: _Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
             position: _Theme.POSITION.BOTTOM,
         },
-    ] as any,
+    ],
     themeTemplate: CANDLESTICK_SERIES_THEME,
     groupable: false,
     paletteFactory: ({ takeColors, colorsCount }) => {

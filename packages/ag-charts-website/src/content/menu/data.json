@@ -256,6 +256,20 @@
             }
         ]
     },
+    "financialCharts": {
+        "items": [
+            {
+                "title": "Financial Charts",
+                "items": [
+                    {
+                        "title": "Examples",
+                        "path": "financial-charts",
+                        "isEnterprise": true
+                    }
+                ]
+            }
+        ]
+    },
     "charts": {
         "items": [
             {

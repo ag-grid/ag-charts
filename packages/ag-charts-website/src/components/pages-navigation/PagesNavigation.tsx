@@ -179,11 +179,14 @@ function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuDa
         return childMenuItem ? childMenuItem : foundMenuItem;
     };
 
-    return (
-        menuData.main.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined) ||
-        menuData.maps.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined) ||
-        menuData.charts.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined)
-    );
+    for (const key of ['main', 'maps', 'charts', 'financialCharts'] as const) {
+        const result = menuData[key].items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined);
+        if (result) {
+            return result;
+        }
+    }
+
+    return undefined;
 }
 
 function MainPagesNavigation({
@@ -256,6 +259,50 @@ function MapsPagesNavigation({
         >
             <hr />
             <h5>Maps</h5>
+            {chartsMenuItems?.map((menuItem) => {
+                const { title, path } = menuItem;
+                const isActive = menuItem === activeTopLevelMenuItem;
+
+                return (
+                    <NavItemContainer
+                        key={`${title}-${path}`}
+                        framework={framework}
+                        menuItem={menuItem}
+                        isActive={isActive}
+                        activeMenuItem={activeMenuItem}
+                    />
+                );
+            })}
+        </ul>
+    );
+}
+
+function FinancialChartsPagesNavigation({
+    menuData,
+    framework,
+    activeMenuItem,
+    activeTopLevelMenuItem,
+}: {
+    menuData: MenuData;
+    framework: Framework;
+    activeMenuItem?: MenuItem;
+    activeTopLevelMenuItem?: MenuItem;
+}) {
+    const [topLevelSeriesItem] = menuData.financialCharts.items;
+    const chartsMenuItems = topLevelSeriesItem.items;
+
+    return (
+        <ul
+            className={classnames(
+                styles.financialChartsTypesNav,
+                styles.menuInner,
+                gridStyles.menuInner,
+                gridStyles.menuGroup,
+                'list-style-none'
+            )}
+        >
+            <hr />
+            <h5>Financial Charts</h5>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
                 const isActive = menuItem === activeTopLevelMenuItem;
@@ -367,6 +414,12 @@ export function PagesNavigation({
                     setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
                 />
                 <MapsPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeTopLevelMenuItem={activeTopLevelMenuItem}
+                />
+                <FinancialChartsPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}

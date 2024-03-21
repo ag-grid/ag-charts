@@ -1,5 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type { AgCandlestickSeriesItemType } from 'ag-charts-community/src/options/next';
+import { AgCandlestickSeriesItemType, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { ActiveCandlestickGroupStyles, CandlestickGroup } from './candlestickGroup';
 import { CandlestickSeriesItem, CandlestickSeriesProperties } from './candlestickSeriesProperties';
