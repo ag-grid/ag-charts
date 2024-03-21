@@ -350,7 +350,7 @@ export abstract class CartesianSeries<
         seriesIdx: number,
         seriesHighlighted?: boolean
     ) {
-        const { datumSelection, labelSelection, markerSelection, paths } = subGroup;
+        const { datumSelection, labelSelection, markerSelection, markerGroup, paths } = subGroup;
         const contextData = this._contextNodeData[seriesIdx];
         const { nodeData, labelData, itemId } = contextData;
 
@@ -358,7 +358,12 @@ export abstract class CartesianSeries<
         subGroup.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection, seriesIdx });
         subGroup.labelSelection = await this.updateLabelSelection({ labelData, labelSelection, seriesIdx });
         if (markerSelection) {
-            subGroup.markerSelection = await this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx });
+            subGroup.markerSelection = await this.updateMarkerSelection({
+                nodeData,
+                markerSelection,
+                markerGroup: markerGroup!,
+                seriesIdx,
+            });
         }
     }
 
@@ -589,6 +594,7 @@ export abstract class CartesianSeries<
         this.highlightSelection = await this.updateHighlightSelectionItem({
             items: highlightItems,
             highlightSelection,
+            highlightGroup: this.highlightGroup,
         });
         this.highlightLabelSelection = await this.updateHighlightSelectionLabel({
             items: labelItems,
@@ -901,17 +907,22 @@ export abstract class CartesianSeries<
     protected updateHighlightSelectionItem(opts: {
         items?: TDatum[];
         highlightSelection: Selection<TNode, TDatum>;
+        highlightGroup: Group;
     }): Promise<Selection<TNode, TDatum>> {
         const {
             opts: { hasMarkers },
         } = this;
 
-        const { items, highlightSelection } = opts;
+        const { items, highlightSelection, highlightGroup } = opts;
         const nodeData = items ?? [];
 
         if (hasMarkers) {
-            const markerSelection = highlightSelection as any;
-            return this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx: -1 }) as any;
+            return this.updateMarkerSelection({
+                nodeData,
+                markerSelection: highlightSelection as any,
+                markerGroup: highlightGroup,
+                seriesIdx: -1,
+            }) as any;
         } else {
             return this.updateDatumSelection({
                 nodeData,
@@ -952,6 +963,7 @@ export abstract class CartesianSeries<
     protected async updateMarkerSelection(opts: {
         nodeData: TDatum[];
         markerSelection: Selection<Marker, TDatum>;
+        markerGroup: Group;
         seriesIdx: number;
     }): Promise<Selection<Marker, TDatum>> {
         // Override point for sub-classes.

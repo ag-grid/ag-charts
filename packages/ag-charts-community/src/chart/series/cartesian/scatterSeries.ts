@@ -3,6 +3,7 @@ import { ColorScale } from '../../../scale/colorScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
+import { BatchPath } from '../../../scene/shape/batchPath';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
@@ -34,6 +35,17 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     override properties = new ScatterSeriesProperties();
 
     readonly colorScale = new ColorScale();
+
+    readonly markerRenderFn = (datum: ScatterNodeDatum, ctx: CanvasRenderingContext2D) => {
+        const { x, y, size } = datum.point;
+        const r = size / 2;
+
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+    };
+
+    readonly markerNodes = new BatchPath(this.markerRenderFn);
+    readonly highlightNodes = new BatchPath(this.markerRenderFn);
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -191,26 +203,49 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     protected override async updateMarkerSelection(opts: {
         nodeData: ScatterNodeDatum[];
         markerSelection: Selection<Marker, ScatterNodeDatum>;
+        markerGroup: Group;
+        seriesIdx: number;
     }) {
-        const { nodeData, markerSelection } = opts;
+        const nodeData = this.properties.marker.enabled ? opts.nodeData : [];
 
-        if (this.properties.marker.isDirty()) {
-            markerSelection.clear();
-            markerSelection.cleanup();
+        if (opts.seriesIdx !== -1) {
+            if (!opts.markerGroup.children.includes(this.markerNodes)) {
+                opts.markerGroup.appendChild(this.markerNodes);
+            }
+            this.markerNodes.datums = nodeData;
+
+            return opts.markerSelection;
         }
 
-        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
+        if (this.properties.marker.isDirty()) {
+            opts.markerSelection.clear();
+            opts.markerSelection.cleanup();
+        }
+
+        return opts.markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
     protected override async updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
+        seriesIdx: number;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+        const { isHighlight: highlighted } = opts;
         const { xKey, yKey, labelKey, marker, highlightStyle } = this.properties;
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
 
-        markerSelection.each((node, datum) => {
+        if (opts.seriesIdx !== -1) {
+            const datum = this.markerNodes.datums[0];
+            if (!datum) return;
+
+            const params = { datum, highlighted, xKey, yKey, labelKey };
+            const activeStyle = this.getMarkerStyle(marker, params, baseStyle);
+
+            this.markerNodes.setProperties(activeStyle);
+            return;
+        }
+
+        opts.markerSelection.each((node, datum) => {
             this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle);
         });
 

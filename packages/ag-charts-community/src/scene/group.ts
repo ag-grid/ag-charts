@@ -199,7 +199,9 @@ export class Group extends Node {
 
         if (dirtyTransform) {
             forceRender = 'dirtyTransform';
-        } else if (layer) {
+        }
+
+        if (layer) {
             // If bounding-box of a layer changes, force re-render.
             const currentBBox = this.computeBBox();
             if (this.lastBBox === undefined || !this.lastBBox.equals(currentBBox)) {
