@@ -73,7 +73,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly topRightCornerRadius: boolean;
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
-    readonly cornerRadiusBbox: BBox | undefined;
+    readonly clipBBox: BBox | undefined;
     readonly label?: BarNodeLabelDatum;
 }
 
@@ -276,19 +276,22 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
                 const bboxHeight = yScale.convert(yRange);
                 const bboxBottom = yScale.convert(0);
-                const cornerRadiusBbox = new BBox(
-                    barAlongX ? Math.min(bboxBottom, bboxHeight) : barX,
-                    barAlongX ? barX : Math.min(bboxBottom, bboxHeight),
-                    barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth,
-                    barAlongX ? barWidth : Math.abs(bboxBottom - bboxHeight)
-                );
 
                 const rect = {
                     x: barAlongX ? Math.min(y, bottomY) : barX,
                     y: barAlongX ? barX : Math.min(y, bottomY),
                     width: barAlongX ? Math.abs(bottomY - y) : barWidth,
                     height: barAlongX ? barWidth : Math.abs(bottomY - y),
-                    cornerRadiusBbox,
+                };
+
+                const clipBBox = new BBox(rect.x, rect.y, rect.width, rect.height);
+
+                const barRect = {
+                    x: barAlongX ? Math.min(bboxBottom, bboxHeight) : barX,
+                    y: barAlongX ? barX : Math.min(bboxBottom, bboxHeight),
+                    width: barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth,
+                    height: barAlongX ? barWidth : Math.abs(bboxBottom - bboxHeight),
+                    clipBBox,
                 };
 
                 const {
@@ -344,10 +347,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         lengthRatioMultiplier: lengthRatioMultiplier,
                         lengthMax: lengthRatioMultiplier,
                     },
-                    x: rect.x,
-                    y: rect.y,
-                    width: rect.width,
-                    height: rect.height,
+                    x: barRect.x,
+                    y: barRect.y,
+                    width: barRect.width,
+                    height: barRect.height,
                     midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
                     fill,
                     stroke,
@@ -358,7 +361,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     topRightCornerRadius: isUpward,
                     bottomRightCornerRadius: barAlongX === isUpward,
                     bottomLeftCornerRadius: !isUpward,
-                    cornerRadiusBbox,
+                    clipBBox,
                     label: labelDatum,
                 };
                 contexts[contextIndex].nodeData.push(nodeData);
@@ -429,7 +432,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 bottomRightCornerRadius: datum.bottomRightCornerRadius,
                 bottomLeftCornerRadius: datum.bottomLeftCornerRadius,
             };
-            const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
+            const visible = categoryAlongX
+                ? (datum.clipBBox?.width ?? datum.width) > 0
+                : (datum.clipBBox?.height ?? datum.height) > 0;
 
             const config = getRectConfig({
                 datum,
