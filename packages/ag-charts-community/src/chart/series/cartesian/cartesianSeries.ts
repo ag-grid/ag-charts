@@ -339,6 +339,8 @@ export abstract class CartesianSeries<
         await this.updateNodes(highlightItems, seriesHighlighted, visible);
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
+        if (!animationData) return;
+
         if (resize) {
             this.animationState.transition('resize', animationData);
         }
@@ -449,7 +451,7 @@ export abstract class CartesianSeries<
         dataNodeGroup.visible = animationEnabled || visible;
         labelGroup.visible = visible;
 
-        if (markerGroup) {
+        if (hasMarkers) {
             markerGroup.opacity = opacity;
             markerGroup.zIndex =
                 dataNodeGroup.zIndex >= Layers.SERIES_LAYER_ZINDEX ? dataNodeGroup.zIndex : dataNodeGroup.zIndex + 1;
@@ -475,7 +477,7 @@ export abstract class CartesianSeries<
 
         await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
         await this.updateLabelNodes({ labelSelection });
-        if (hasMarkers && markerSelection) {
+        if (hasMarkers) {
             await this.updateMarkerNodes({ markerSelection, isHighlight: false });
         }
     }
@@ -916,11 +918,11 @@ export abstract class CartesianSeries<
         if (label) {
             resetMotion([data.labelSelection], label);
         }
-        if (marker && data.markerSelection) {
+        if (marker && this.opts.hasMarkers) {
             resetMotion([data.markerSelection], marker);
         }
 
-        if (data.contextData.animationValid === false) {
+        if (data.contextData?.animationValid === false) {
             this.ctx.animationManager.skipCurrentBatch();
         }
     }
@@ -959,16 +961,22 @@ export abstract class CartesianSeries<
     }
 
     protected animationTransitionClear() {
-        this.animationState.transition('clear', this.getAnimationData());
+        const animationData = this.getAnimationData();
+        if (!animationData) return;
+
+        this.animationState.transition('clear', animationData);
     }
 
     private getAnimationData(seriesRect?: BBox, previousContextData?: TContext) {
+        const { _contextNodeData: contextData } = this;
+        if (!contextData) return;
+
         const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelection: this.datumSelection,
             markerSelection: this.markerSelection,
             labelSelection: this.labelSelection,
             annotationSelections: [...this.annotationSelections],
-            contextData: this._contextNodeData!,
+            contextData,
             previousContextData,
             paths: this.paths,
             seriesRect,

@@ -710,7 +710,7 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, 'added', markerSelection);
+        markerFadeInAnimation(this, animationManager, undefined, markerSelection);
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
 

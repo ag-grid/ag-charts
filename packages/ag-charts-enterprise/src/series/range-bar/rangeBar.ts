@@ -48,6 +48,7 @@ interface RangeBarNodeDatum
     extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>,
         Readonly<_Scene.Point> {
     readonly index: number;
+    readonly valueIndex: number;
     readonly itemId: string;
     readonly yLowKey: string;
     readonly yHighKey: string;
@@ -246,7 +247,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
-            values.forEach((value, contextIndex) => {
+            values.forEach((value, valueIndex) => {
                 const xDatum = keys[xIndex];
                 const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
 
@@ -279,15 +280,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     barAlongX,
                     yLowValue,
                     yHighValue,
-                    datum: datum[contextIndex],
+                    datum: datum[valueIndex],
                     series: this,
                 });
 
                 const nodeDatum: RangeBarNodeDatum = {
                     index: dataIndex,
+                    valueIndex,
                     series: this,
                     itemId,
-                    datum: datum[contextIndex],
+                    datum: datum[valueIndex],
                     xValue: xDatum,
                     yLowValue: rawLowValue,
                     yHighValue: rawHighValue,
@@ -583,7 +585,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.ctx.animationManager,
             [datumSelections],
             fns,
-            (_, datum) => createDatumId(datum.xValue),
+            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
             dataDiff
         );
 
@@ -591,7 +593,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {
-        return `${datum.xValue}`;
+        return `${datum.xValue}-${datum.valueIndex}`;
     }
 
     protected isLabelEnabled() {

@@ -60,6 +60,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly xValue: string | number;
     readonly yValue: string | number;
+    readonly valueIndex: number;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -251,7 +252,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const { groupScale, processedData } = this;
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
-            values.forEach((value, contextIndex) => {
+            values.forEach((value, valueIndex) => {
                 const xValue = keys[xIndex];
                 const x = xScale.convert(xValue);
 
@@ -304,7 +305,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const labelText = this.getLabelText(
                     this.properties.label,
                     {
-                        datum: seriesDatum[contextIndex],
+                        datum: seriesDatum[valueIndex],
                         value: yRawValue,
                         xKey,
                         yKey,
@@ -335,7 +336,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const nodeData: BarNodeDatum = {
                     series: this,
                     itemId: yKey,
-                    datum: seriesDatum[contextIndex],
+                    datum: seriesDatum[valueIndex],
+                    valueIndex,
                     cumulativeValue: currY,
                     xValue,
                     yValue: yRawValue,
@@ -383,7 +385,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             (rect) => {
                 rect.tag = BarSeriesNodeTag.Bar;
             },
-            (datum) => createDatumId(datum.xValue)
+            (datum) => createDatumId(datum.xValue, datum.valueIndex)
         );
     }
 
@@ -562,7 +564,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const dataDiff = this.processedData?.reduced?.diff;
-        const mode = previousContextData != null ? 'fade' : 'normal';
+        const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
         fromToMotion(
@@ -571,7 +573,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             this.ctx.animationManager,
             [datumSelection],
             fns,
-            (_, datum) => createDatumId(datum.xValue),
+            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
             dataDiff
         );
 
