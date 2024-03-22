@@ -6,7 +6,7 @@ import { Sector } from './sector';
 
 describe('Sector', () => {
     describe('rendering', () => {
-        const canvasCtx = setupMockCanvas();
+        const canvasCtx = setupMockCanvas({ width: 600, height: 1600 });
 
         const shadowFn = (offset: number) => Object.assign(new DropShadow(), { xOffset: offset, yOffset: offset });
         const fullCircle = 2 * Math.PI;
@@ -26,6 +26,32 @@ describe('Sector', () => {
             { startAngle: 0, endAngle: 4, innerRadius: 0, outerRadius: 30, inset: 5 },
             { startAngle: 0, endAngle: 2 * Math.PI, innerRadius: 0, outerRadius: 30, inset: 5 },
         ];
+        const CORNER_RADII_BASE_CASES: Partial<Sector>[][] = [
+            [
+                { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 3 },
+                { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 5 },
+                { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 8 },
+                { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 10 },
+                { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 15 },
+                { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 100 },
+            ],
+            [
+                { startAngle: 0, endAngle: Math.PI, cornerRadius: 3 },
+                { startAngle: 0, endAngle: Math.PI, cornerRadius: 5 },
+                { startAngle: 0, endAngle: Math.PI, cornerRadius: 8 },
+                { startAngle: 0, endAngle: Math.PI, cornerRadius: 10 },
+                { startAngle: 0, endAngle: Math.PI, cornerRadius: 15 },
+                { startAngle: 0, endAngle: Math.PI, cornerRadius: 100 },
+            ],
+            [
+                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 3 },
+                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 5 },
+                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 8 },
+                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 10 },
+                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 15 },
+                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 100 },
+            ],
+        ];
         const STROKE_TC_PARAMS: Partial<Sector> = {
             stroke: 'red',
             fill: 'yellow',
@@ -39,6 +65,9 @@ describe('Sector', () => {
             strokeWidth: 2,
             stroke: 'purple',
             fill: 'cyan',
+        };
+        const CORNER_RADIUS_TC_PARAMS: Partial<Sector> = {
+            fill: 'purple',
         };
         const TEST_CASES: (Partial<Sector> | undefined)[][] = [
             // Angle cases.
@@ -66,6 +95,48 @@ describe('Sector', () => {
                 ...insets,
                 ...INSET_TC_PARAMS,
             })),
+            ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
+                cases.map(
+                    (c): Partial<Sector> => ({
+                        ...c,
+                        ...CORNER_RADIUS_TC_PARAMS,
+                        innerRadius: 0,
+                        outerRadius: 30,
+                    })
+                )
+            ),
+            ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
+                cases.map(
+                    (c): Partial<Sector> => ({
+                        ...c,
+                        ...CORNER_RADIUS_TC_PARAMS,
+                        innerRadius: 15,
+                        outerRadius: 30,
+                    })
+                )
+            ),
+            ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
+                cases.map(
+                    (c): Partial<Sector> => ({
+                        ...c,
+                        ...CORNER_RADIUS_TC_PARAMS,
+                        innerRadius: 0,
+                        outerRadius: 30,
+                        inset: 2,
+                    })
+                )
+            ),
+            ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
+                cases.map(
+                    (c): Partial<Sector> => ({
+                        ...c,
+                        ...CORNER_RADIUS_TC_PARAMS,
+                        innerRadius: 15,
+                        outerRadius: 30,
+                        inset: 2,
+                    })
+                )
+            ),
             [
                 // Shadow cases.
                 { fillShadow: shadowFn(5), strokeWidth: 3, stroke: 'yellow', fill: 'blue' },
