@@ -33,7 +33,7 @@ const chartOptions1: AgCartesianChartOptions = {
     series: initialLoadKeys.map((key) => ({
         type: 'bar' as const,
         xKey: 'name',
-        yKey: `results['${key}']`,
+        yKey: `results['${key}'].timeMs`,
         yName: key.replace(' initial load', '').replace(' benchmark', ''),
     })),
 };
@@ -52,7 +52,7 @@ const chartOptions2: AgCartesianChartOptions = {
         ...seriesToggleKeys.map((key) => ({
             type: 'bar' as const,
             xKey: 'name',
-            yKey: `results['${key}']`,
+            yKey: `results['${key}'].timeMs`,
             yName: key.replace(' legend toggle', '').replace(' benchmark after load', ''),
         })),
     ],
@@ -72,7 +72,7 @@ const chartOptions3: AgCartesianChartOptions = {
         ...seriesHighlightKeys.map((key) => ({
             type: 'bar' as const,
             xKey: 'name',
-            yKey: `results['${key}']`,
+            yKey: `results['${key}'].timeMs`,
             yName: key.replace(' datum highlight', '').replace(' benchmark after load', ''),
         })),
     ],
