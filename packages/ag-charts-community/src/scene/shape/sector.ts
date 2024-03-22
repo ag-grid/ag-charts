@@ -18,10 +18,10 @@ function findRadiiScalingFactor(r: number, sweep: number, a: number, b: number) 
     for (let i = 0; i < 8; i += 1) {
         const s = (start + end) / 2;
         const fs = Math.asin(Math.abs(s * a) / (r + s * a)) + Math.asin(Math.abs(s * b) / (r + s * b)) - sweep;
-        if (fs > 0) {
-            end = s;
-        } else {
+        if (fs < 0) {
             start = s;
+        } else {
+            end = s;
         }
     }
 
