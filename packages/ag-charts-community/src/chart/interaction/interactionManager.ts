@@ -22,11 +22,15 @@ export const INTERACTION_TYPES = [
 
 const FOCUS_INTERACTION_TYPES = ['blur', 'focus'] as const;
 
+const KEY_INTERACTION_TYPES = ['keydown', 'keyup'] as const;
+
 export type PointerInteractionTypes = (typeof INTERACTION_TYPES)[number];
 
 export type FocusInteractionTypes = (typeof FOCUS_INTERACTION_TYPES)[number];
 
-export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes;
+export type KeyInteractionTypes = (typeof KEY_INTERACTION_TYPES)[number];
+
+export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes | KeyInteractionTypes;
 
 type SUPPORTED_EVENTS =
     | 'blur'
@@ -34,6 +38,8 @@ type SUPPORTED_EVENTS =
     | 'click'
     | 'dblclick'
     | 'contextmenu'
+    | 'keydown'
+    | 'keyup'
     | 'mousedown'
     | 'mousemove'
     | 'mouseup'
@@ -60,8 +66,9 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'wheel',
 ];
 
-type BaseInteractionEvent<T extends InteractionTypes> = {
+type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = {
     type: T;
+    sourceEvent: TEvent;
     /** Consume the event, don't notify other listeners! */
     consume(): void;
     consumed?: boolean;
@@ -75,20 +82,28 @@ export type PointerOffsets = {
 export type PointerHistoryEvent = PointerOffsets & { type: string };
 
 export type PointerInteractionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PointerOffsets &
-    BaseInteractionEvent<T> & {
+    BaseInteractionEvent<T, Event> & {
         pageX: number;
         pageY: number;
         deltaX: number;
         deltaY: number;
         pointerHistory: PointerHistoryEvent[];
-        sourceEvent: Event;
     };
 
-type FocusInteractionEvent<T extends FocusInteractionTypes = FocusInteractionTypes> = BaseInteractionEvent<T>;
+export type FocusInteractionEvent<T extends FocusInteractionTypes = FocusInteractionTypes> = BaseInteractionEvent<
+    T,
+    FocusEvent
+>;
+
+export type KeyInteractionEvent<T extends KeyInteractionTypes = KeyInteractionTypes> = BaseInteractionEvent<
+    T,
+    KeyboardEvent
+>;
 
 export type InteractionEvent =
     | PointerInteractionEvent<PointerInteractionTypes>
-    | FocusInteractionEvent<FocusInteractionTypes>;
+    | FocusInteractionEvent<FocusInteractionTypes>
+    | KeyInteractionEvent<KeyInteractionTypes>;
 
 interface Coords {
     clientX: number;
@@ -163,7 +178,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         if (container) {
-            for (const type of ['blur', 'focus']) {
+            for (const type of ['blur', 'focus', 'keydown', 'keyup']) {
                 container.addEventListener(type, this.eventHandler);
             }
         }
@@ -223,7 +238,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         if (allInStringUnion(INTERACTION_TYPES, types)) {
             this.dispatchPointerEvent(event, types);
         } else if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
-            this.dispatchFocusEvent(types);
+            this.dispatchFocusEvent(event as FocusEvent, types);
+        } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
+            this.dispatchKeyEvent(event as KeyboardEvent, types);
         }
     }
 
@@ -249,9 +266,23 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
     }
 
-    private dispatchFocusEvent(types: FocusInteractionTypes[]) {
+    private dispatchFocusEvent(sourceEvent: FocusEvent, types: FocusInteractionTypes[]) {
         for (const type of types) {
-            this.listeners.dispatchWrapHandlers(type, this.dispatchWrapper, this.buildConsumable({ type }));
+            this.listeners.dispatchWrapHandlers(
+                type,
+                this.dispatchWrapper,
+                this.buildConsumable({ type, sourceEvent })
+            );
+        }
+    }
+
+    private dispatchKeyEvent(sourceEvent: KeyboardEvent, types: KeyInteractionTypes[]) {
+        for (const type of types) {
+            this.listeners.dispatchWrapHandlers(
+                type,
+                this.dispatchWrapper,
+                this.buildConsumable({ type, sourceEvent })
+            );
         }
     }
 
@@ -276,6 +307,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         switch (event.type) {
             case 'blur':
             case 'focus':
+            case 'keydown':
+            case 'keyup':
             case 'click':
             case 'dblclick':
             case 'contextmenu':
