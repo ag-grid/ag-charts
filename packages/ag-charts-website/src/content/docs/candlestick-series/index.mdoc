@@ -40,25 +40,29 @@ Note the orientation of a Candlestick is vertical.
 
 Series items are customised via the `item` configuration object.
 
-Candlestick wicks inherit series item styles but can be individually customised. Here, the `item.up.wick` property is used to customise the wick line styles of the rising candlestick items.
+Candlestick wicks inherit series item styles but can be individually customised. Here, the `wick` property on `item.up` and `item.down` is used to customise the wick line styles of the rising and falling candlestick items.
 
 ```js
 series: [
     {
         type: 'candlestick',
         // ...
-        item: {
-            up: {
-                strokeWidth: 2,
-            },
-            down: {
-                fillOpacity: 0.5,
-                strokeWidth: 0,
-                wick: {
-                    strokeWidth: 2,
+            item: {
+                up: {
+                    fill: '#45ba45',
+                    stroke: 'black',
+                    wick: {
+                        strokeWidth: 2,
+                    },
+                },
+                down: {
+                    fill: '#ba4545',
+                    stroke: 'black',
+                    wick: {
+                        strokeWidth: 2,
+                    },
                 },
             },
-        },
     },
 ],
 ```
