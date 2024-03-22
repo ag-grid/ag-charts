@@ -454,7 +454,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: RangeBarNodeLabelDatum[];
-        labelSelection: RangeBarAnimationData['labelSelections'];
+        labelSelection: RangeBarAnimationData['labelSelection'];
     }) {
         const labelData = this.properties.label.enabled ? opts.labelData : [];
         return opts.labelSelection.update(labelData, (text) => {
@@ -563,14 +563,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection }: RangeBarAnimationData) {
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'));
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelections], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateWaitingUpdateReady(data: RangeBarAnimationData) {
-        const { datumSelections, labelSelections } = data;
+        const { datumSelection: datumSelections, labelSelection: labelSelections } = data;
         const { processedData } = this;
         const dataDiff = processedData?.reduced?.diff;
 

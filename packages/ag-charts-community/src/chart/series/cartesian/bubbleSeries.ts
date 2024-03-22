@@ -376,9 +376,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         ];
     }
 
-    override animateEmptyUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
-        markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+    override animateEmptyUpdateReady({ markerSelection, labelSelection }: BubbleAnimationData) {
+        markerScaleInAnimation(this, this.ctx.animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     protected isLabelEnabled() {

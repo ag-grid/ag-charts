@@ -704,11 +704,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         // Legend item toggling is unsupported.
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection, contextData, paths }: WaterfallAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelections], fns);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
 
         const { pointData } = contextData;
         if (!pointData) return;

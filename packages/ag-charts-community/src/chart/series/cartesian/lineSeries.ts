@@ -419,14 +419,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
-        const { markerSelections, labelSelections, annotationSelections, contextData, paths } = animationData;
+        const { markerSelection, labelSelection, annotationSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateLinePaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
-        resetMotion([markerSelections], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        resetMotion([markerSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
     }
 
@@ -439,8 +439,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
     protected override animateWaitingUpdateReady(animationData: LineAnimationData) {
         const { animationManager } = this.ctx;
-        const { markerSelections, labelSelections, annotationSelections, contextData, paths, previousContextData } =
-            animationData;
+        const {
+            markerSelection: markerSelections,
+            labelSelection: labelSelections,
+            annotationSelections,
+            contextData,
+            paths,
+            previousContextData,
+        } = animationData;
         const [path] = paths;
 
         super.resetAllAnimation(animationData);

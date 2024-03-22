@@ -548,16 +548,16 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelections], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelections, labelSelections, annotationSelections, previousContextData } = data;
+        const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -569,7 +569,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             this.id,
             'nodes',
             this.ctx.animationManager,
-            [datumSelections],
+            [datumSelection],
             fns,
             (_, datum) => createDatumId(datum.xValue),
             dataDiff
@@ -577,7 +577,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
-            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
     }

@@ -112,9 +112,9 @@ export interface CartesianAnimationData<
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > {
-    datumSelections: Selection<TNode, TDatum>;
-    markerSelections: Selection<Marker, TDatum>;
-    labelSelections: Selection<Text, TLabel>;
+    datumSelection: Selection<TNode, TDatum>;
+    markerSelection: Selection<Marker, TDatum>;
+    labelSelection: Selection<Text, TLabel>;
     annotationSelections: Selection<NodeWithOpacity, TDatum>[];
     contextData: TContext;
     previousContextData?: TContext;
@@ -911,13 +911,13 @@ export abstract class CartesianSeries<
             });
         }
         if (datum) {
-            resetMotion([data.datumSelections], datum);
+            resetMotion([data.datumSelection], datum);
         }
         if (label) {
-            resetMotion([data.labelSelections], label);
+            resetMotion([data.labelSelection], label);
         }
-        if (marker && data.markerSelections) {
-            resetMotion([data.markerSelections], marker);
+        if (marker && data.markerSelection) {
+            resetMotion([data.markerSelection], marker);
         }
 
         if (data.contextData.animationValid === false) {
@@ -964,9 +964,9 @@ export abstract class CartesianSeries<
 
     private getAnimationData(seriesRect?: BBox, previousContextData?: TContext) {
         const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
-            datumSelections: this.datumSelection,
-            markerSelections: this.markerSelection,
-            labelSelections: this.labelSelection,
+            datumSelection: this.datumSelection,
+            markerSelection: this.markerSelection,
+            labelSelection: this.labelSelection,
             annotationSelections: [...this.annotationSelections],
             contextData: this._contextNodeData!,
             previousContextData,

@@ -654,14 +654,14 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
-        const { markerSelections, labelSelections, contextData, paths } = animationData;
+        const { markerSelection, labelSelection, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
-        resetMotion([markerSelections], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        resetMotion([markerSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     protected override animateReadyResize(animationData: AreaAnimationData): void {
@@ -673,7 +673,7 @@ export class AreaSeries extends CartesianSeries<
 
     override animateWaitingUpdateReady(animationData: AreaAnimationData) {
         const { animationManager } = this.ctx;
-        const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
+        const { markerSelection, labelSelection, contextData, paths, previousContextData } = animationData;
         const [fill, stroke] = paths;
 
         // Handling initially hidden series case gracefully.
@@ -694,10 +694,10 @@ export class AreaSeries extends CartesianSeries<
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', markerSelections);
+            markerFadeInAnimation(this, animationManager, 'added', markerSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
-            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
             return;
         }
 
@@ -710,13 +710,13 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, 'added', markerSelections);
+        markerFadeInAnimation(this, animationManager, 'added', markerSelection);
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
 
         this.updateStrokePath(paths, contextData);
         pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     protected isLabelEnabled() {

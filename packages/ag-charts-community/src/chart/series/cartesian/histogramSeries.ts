@@ -506,11 +506,11 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection }: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
-        fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelections], fns);
+        fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
@@ -521,13 +521,13 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             this.id,
             'datums',
             this.ctx.animationManager,
-            [data.datumSelections],
+            [data.datumSelection],
             fns,
             (_, datum) => createDatumId(datum.domain),
             dataDiff
         );
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelection);
     }
 
     protected isLabelEnabled() {

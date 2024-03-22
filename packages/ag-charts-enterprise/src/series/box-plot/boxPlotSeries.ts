@@ -332,12 +332,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override animateEmptyUpdateReady({
-        datumSelections,
+        datumSelection,
     }: _ModuleSupport.CartesianAnimationData<BoxPlotGroup, BoxPlotNodeDatum>) {
         const isVertical = this.isVertical();
         const { from, to } = prepareBoxPlotFromTo(isVertical);
-        motion.resetMotion([datumSelections], resetBoxPlotSelectionsScalingCenterFn(isVertical));
-        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelections], from, to, {
+        motion.resetMotion([datumSelection], resetBoxPlotSelectionsScalingCenterFn(isVertical));
+        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
             phase: 'initial',
         });
     }

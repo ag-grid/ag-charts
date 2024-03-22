@@ -358,12 +358,12 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override animateEmptyUpdateReady({
-        datumSelections,
+        datumSelection,
     }: _ModuleSupport.CartesianAnimationData<CandlestickGroup, CandlestickNodeDatum>) {
         const isVertical = this.isVertical();
         const { from, to } = prepareCandlestickFromTo(isVertical);
-        motion.resetMotion([datumSelections], resetCandlestickSelectionsScalingStartFn(isVertical));
-        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelections], from, to, {
+        motion.resetMotion([datumSelection], resetCandlestickSelectionsScalingStartFn(isVertical));
+        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
             phase: 'initial',
         });
     }
