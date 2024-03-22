@@ -176,8 +176,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-        if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
-        if (widthRatio === undefined || lengthRatio === undefined) return [];
+        if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return;
+        if (widthRatio === undefined || lengthRatio === undefined) return;
 
         const multiplier = xScale.bandwidth ?? NaN;
         const maxValue = this.getMaxValue();
@@ -261,7 +261,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             return result;
         });
 
-        return [context];
+        return context;
     }
 
     private getColorRanges(): BulletColorRange[] {
@@ -395,8 +395,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelections], fns);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BulletAnimationData) {
@@ -411,7 +411,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             this.id,
             'nodes',
             this.ctx.animationManager,
-            datumSelections,
+            [datumSelections],
             fns,
             (_, datum) => createDatumId(datum.xValue),
             dataDiff
@@ -419,7 +419,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
-            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
     }
 }

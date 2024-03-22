@@ -95,7 +95,7 @@ export class MapMarkerSeries
         () => this.markerFactory()
     );
 
-    private contextNodeData: MapMarkerNodeDataContext[] = [];
+    private contextNodeData?: MapMarkerNodeDataContext;
 
     private animationState: _ModuleSupport.StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
 
@@ -324,11 +324,11 @@ export class MapMarkerSeries
         };
     }
 
-    override async createNodeData(): Promise<MapMarkerNodeDataContext[]> {
+    override async createNodeData() {
         const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
         const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label } = properties;
 
-        if (dataModel == null || processedData == null || scale == null) return [];
+        if (dataModel == null || processedData == null || scale == null) return;
 
         const colorScaleValid = this.isColorScaleValid();
 
@@ -442,13 +442,11 @@ export class MapMarkerSeries
             Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
         }
 
-        return [
-            {
-                itemId: seriesId,
-                nodeData,
-                labelData,
-            },
-        ];
+        return {
+            itemId: seriesId,
+            nodeData,
+            labelData,
+        };
     }
 
     async updateSelections(): Promise<void> {
@@ -471,7 +469,7 @@ export class MapMarkerSeries
             highlightedDatum = undefined;
         }
 
-        const nodeData = this.contextNodeData[0]?.nodeData ?? [];
+        const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.labelSelection = await this.updateLabelSelection({ labelSelection });
         await this.updateLabelNodes({ labelSelection });
@@ -661,7 +659,7 @@ export class MapMarkerSeries
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
-        return this.contextNodeData.flatMap(({ labelData }) => labelData);
+        return this.contextNodeData?.labelData ?? [];
     }
 
     override getSeriesDomain() {
@@ -674,7 +672,7 @@ export class MapMarkerSeries
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
-        this.contextNodeData[0].nodeData.forEach((datum) => {
+        this.contextNodeData?.nodeData.forEach((datum) => {
             const { x, y, size } = datum.point;
             const dx = Math.max(Math.abs(x - x0) - size, 0);
             const dy = Math.max(Math.abs(y - y0) - size, 0);

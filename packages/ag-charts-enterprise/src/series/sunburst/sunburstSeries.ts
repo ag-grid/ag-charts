@@ -561,7 +561,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     override async createNodeData() {
-        return [];
+        return undefined;
     }
 
     protected override animateEmptyUpdateReady({

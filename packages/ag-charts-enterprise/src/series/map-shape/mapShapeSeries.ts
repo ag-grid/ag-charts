@@ -81,7 +81,7 @@ export class MapShapeSeries
         () => this.nodeFactory()
     );
 
-    private contextNodeData: MapShapeNodeDataContext[] = [];
+    private contextNodeData?: MapShapeNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -291,11 +291,11 @@ export class MapShapeSeries
     }
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
-    override async createNodeData(): Promise<MapShapeNodeDataContext[]> {
+    override async createNodeData() {
         const { id: seriesId, dataModel, processedData, colorScale, properties, scale, previousLabelLayouts } = this;
         const { idKey, colorKey, labelKey, label, fill: fillProperty } = properties;
 
-        if (dataModel == null || processedData == null) return [];
+        if (dataModel == null || processedData == null) return;
 
         const colorScaleValid = this.isColorScaleValid();
 
@@ -370,13 +370,11 @@ export class MapShapeSeries
             Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
         }
 
-        return [
-            {
-                itemId: seriesId,
-                nodeData,
-                labelData,
-            },
-        ];
+        return {
+            itemId: seriesId,
+            nodeData,
+            labelData,
+        };
     }
 
     async updateSelections(): Promise<void> {
@@ -399,8 +397,8 @@ export class MapShapeSeries
             highlightedDatum = undefined;
         }
 
-        const nodeData = this.contextNodeData[0]?.nodeData ?? [];
-        const labelData = this.contextNodeData[0]?.labelData ?? [];
+        const nodeData = this.contextNodeData?.nodeData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection, isHighlight: false });

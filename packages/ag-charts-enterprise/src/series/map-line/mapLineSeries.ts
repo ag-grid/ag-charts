@@ -60,7 +60,7 @@ export class MapLineSeries
         () => this.nodeFactory()
     );
 
-    private contextNodeData: MapLineNodeDataContext[] = [];
+    private contextNodeData?: MapLineNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -219,11 +219,11 @@ export class MapLineSeries
         };
     }
 
-    override async createNodeData(): Promise<MapLineNodeDataContext[]> {
+    override async createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, colorScale, properties, scale } = this;
         const { idKey, sizeKey, colorKey, labelKey, label } = properties;
 
-        if (dataModel == null || processedData == null) return [];
+        if (dataModel == null || processedData == null) return;
 
         const colorScaleValid = this.isColorScaleValid();
 
@@ -296,13 +296,11 @@ export class MapLineSeries
             Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
         }
 
-        return [
-            {
-                itemId: seriesId,
-                nodeData,
-                labelData,
-            },
-        ];
+        return {
+            itemId: seriesId,
+            nodeData,
+            labelData,
+        };
     }
 
     async updateSelections(): Promise<void> {
@@ -325,7 +323,7 @@ export class MapLineSeries
             highlightedDatum = undefined;
         }
 
-        const nodeData = this.contextNodeData[0]?.nodeData ?? [];
+        const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection, isHighlight: false });
@@ -463,7 +461,7 @@ export class MapLineSeries
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
-        return this.contextNodeData.flatMap(({ labelData }) => labelData);
+        return this.contextNodeData?.labelData ?? [];
     }
 
     override getSeriesDomain() {

@@ -221,7 +221,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yAxis = this.getValueAxis();
 
         if (!(data && visible && xAxis && yAxis && dataModel)) {
-            return [];
+            return;
         }
 
         const xScale = xAxis.scale;
@@ -232,7 +232,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
-        const contexts: RangeBarContext[] = [];
+        const context: RangeBarContext = {
+            itemId,
+            nodeData: [],
+            labelData: [],
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
 
         const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`).index;
         const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`).index;
@@ -241,14 +247,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             values.forEach((value, contextIndex) => {
-                contexts[contextIndex] ??= {
-                    itemId,
-                    nodeData: [],
-                    labelData: [],
-                    scales: super.calculateScaling(),
-                    visible: this.visible,
-                };
-
                 const xDatum = keys[xIndex];
                 const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
 
@@ -308,12 +306,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     labels: labelData,
                 };
 
-                contexts[contextIndex].nodeData.push(nodeDatum);
-                contexts[contextIndex].labelData.push(...labelData);
+                context.nodeData.push(nodeDatum);
+                context.labelData.push(...labelData);
             });
         });
 
-        return contexts;
+        return context;
     }
 
     private createLabelData({
@@ -456,7 +454,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: RangeBarNodeLabelDatum[];
-        labelSelection: RangeBarAnimationData['labelSelections'][number];
+        labelSelection: RangeBarAnimationData['labelSelections'];
     }) {
         const labelData = this.properties.label.enabled ? opts.labelData : [];
         return opts.labelSelection.update(labelData, (text) => {
@@ -567,7 +565,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'));
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelections], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
@@ -583,7 +581,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.id,
             'datums',
             this.ctx.animationManager,
-            datumSelections,
+            [datumSelections],
             fns,
             (_, datum) => createDatumId(datum.xValue),
             dataDiff

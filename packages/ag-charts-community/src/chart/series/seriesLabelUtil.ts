@@ -7,7 +7,7 @@ export function seriesLabelFadeInAnimation<T>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
-    labelSelections: Selection<NodeWithOpacity, T>[]
+    ...labelSelections: Selection<NodeWithOpacity, T>[]
 ) {
     staticFromToMotion(
         id,
@@ -24,7 +24,7 @@ export function seriesLabelFadeOutAnimation<T>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
-    labelSelections: Selection<NodeWithOpacity, T>[]
+    ...labelSelections: Selection<NodeWithOpacity, T>[]
 ) {
     staticFromToMotion(
         id,

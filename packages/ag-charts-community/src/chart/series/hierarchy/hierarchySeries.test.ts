@@ -1,5 +1,4 @@
 import type { BBox } from '../../../scene/bbox';
-import type { ChartAxisDirection } from '../../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
 import type { SeriesTooltip } from '../seriesTooltip';
@@ -13,11 +12,11 @@ class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<any> {
 class ExampleHierarchySeries extends HierarchySeries<any, any> {
     override properties = new ExampleHierarchySeriesProperties();
 
-    override getSeriesDomain(_direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(): number[] {
         throw new Error('Method not implemented.');
     }
 
-    override createNodeData(): Promise<SeriesNodeDataContext<any, any>[]> {
+    override createNodeData(): Promise<SeriesNodeDataContext<any, any>> {
         throw new Error('Method not implemented.');
     }
 

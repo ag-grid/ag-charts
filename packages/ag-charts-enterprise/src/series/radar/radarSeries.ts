@@ -147,7 +147,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     async maybeRefreshNodeData() {
         const didCircleChange = this.didCircleChange();
         if (!didCircleChange && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = await this.createNodeData();
+        const { nodeData = [] } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -156,7 +156,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { processedData, dataModel } = this;
 
         if (!processedData || !dataModel || !this.properties.isValid()) {
-            return [];
+            return;
         }
 
         const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
@@ -164,7 +164,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const radiusScale = this.axes[ChartAxisDirection.Y]?.scale;
 
         if (!angleScale || !radiusScale) {
-            return [];
+            return;
         }
 
         const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`).index;
@@ -230,7 +230,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             };
         });
 
-        return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
+        return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
 
     async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
@@ -623,8 +623,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             onStop: () => this.animatePaths(1),
         });
 
-        markerFadeInAnimation(this, animationManager, [itemSelection], 'added');
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, [labelSelection]);
+        markerFadeInAnimation(this, animationManager, 'added', itemSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     override animateWaitingUpdateReady(data: _ModuleSupport.PolarAnimationData) {

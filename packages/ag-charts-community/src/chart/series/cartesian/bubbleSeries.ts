@@ -131,7 +131,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!(dataModel && processedData && visible && xAxis && yAxis)) {
-            return [];
+            return;
         }
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
@@ -190,15 +190,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             });
         }
 
-        return [
-            {
-                itemId: yKey,
-                nodeData,
-                labelData: nodeData,
-                scales: super.calculateScaling(),
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: yKey,
+            nodeData,
+            labelData: nodeData,
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -206,7 +204,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override getLabelData(): PointLabelDatum[] {
-        return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
+        return this.contextNodeData?.labelData ?? [];
     }
 
     protected override markerFactory() {

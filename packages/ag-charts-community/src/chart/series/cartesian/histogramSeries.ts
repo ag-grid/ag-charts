@@ -218,7 +218,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!this.visible || !xAxis || !yAxis || !processedData || processedData.type !== 'grouped') {
-            return [];
+            return;
         }
 
         const { scale: xScale } = xAxis;
@@ -316,16 +316,14 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             });
         });
 
-        return [
-            {
-                itemId: this.properties.yKey ?? this.id,
-                nodeData,
-                labelData: nodeData,
-                scales: super.calculateScaling(),
-                animationValid: true,
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: this.properties.yKey ?? this.id,
+            nodeData,
+            labelData: nodeData,
+            scales: super.calculateScaling(),
+            animationValid: true,
+            visible: this.visible,
+        };
     }
 
     protected override nodeFactory() {
@@ -510,7 +508,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
-        fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
+        fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelections], fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
@@ -523,7 +521,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             this.id,
             'datums',
             this.ctx.animationManager,
-            data.datumSelections,
+            [data.datumSelections],
             fns,
             (_, datum) => createDatumId(datum.domain),
             dataDiff
