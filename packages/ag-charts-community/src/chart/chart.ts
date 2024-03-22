@@ -55,6 +55,7 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { PointerInteractionEvent as InteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
+import { KeyNavManager } from './interaction/keyNavManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { ToolbarManager } from './interaction/toolbarManager';
@@ -259,6 +260,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly contextMenuRegistry: ContextMenuRegistry;
     protected readonly cursorManager: CursorManager;
     protected readonly interactionManager: InteractionManager;
+    protected readonly keyNavManager: KeyNavManager;
     protected readonly regionManager: RegionManager;
     protected readonly toolbarManager: ToolbarManager;
     protected readonly gestureDetector: GestureDetector;
@@ -329,6 +331,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             element,
             container ?? options.userOptions.container ?? undefined
         );
+        this.keyNavManager = new KeyNavManager(this.interactionManager);
         this.regionManager = new RegionManager(this.interactionManager);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(element);
