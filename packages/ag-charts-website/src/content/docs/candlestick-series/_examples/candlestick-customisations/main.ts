@@ -6,30 +6,34 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'S&P 500 Index',
+        text: 'Dow Jones Industrial Average',
     },
     subtitle: {
-        text: 'Daily High and Low Prices',
+        text: 'Candlestick Patterns',
     },
     footnote: {
-        text: '1 Aug 2023 - 1 Nov 2023',
+        text: '1 Minute',
     },
     series: [
         {
             type: 'candlestick',
             xKey: 'date',
-            xName: 'Date',
+            xName: 'Time',
             lowKey: 'low',
             highKey: 'high',
             openKey: 'open',
             closeKey: 'close',
             item: {
                 up: {
-                    strokeWidth: 2,
+                    fill: '#45ba45',
+                    stroke: 'black',
+                    wick: {
+                        strokeWidth: 2,
+                    },
                 },
                 down: {
-                    fillOpacity: 0.5,
-                    strokeWidth: 0,
+                    fill: '#ba4545',
+                    stroke: 'black',
                     wick: {
                         strokeWidth: 2,
                     },
@@ -39,18 +43,10 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            type: 'category',
+            type: 'ordinal-time',
             position: 'bottom',
             label: {
-                formatter: ({ value }) =>
-                    new Date(value).toLocaleString('en-GB', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                    }),
-            },
-            tick: {
-                minSpacing: 150,
+                format: '%H:%M',
             },
         },
         {
