@@ -25,30 +25,6 @@ const options: AgChartOptions = {
             closeKey: 'close',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-            label: {
-                formatter: ({ value }) =>
-                    new Date(value).toLocaleString('en-GB', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                    }),
-            },
-            tick: {
-                minSpacing: 150,
-            },
-        },
-        {
-            type: 'number',
-            position: 'right',
-            label: {
-                formatter: ({ value }) => Number(value).toLocaleString(),
-            },
-        },
-    ],
 };
 
 AgCharts.create(options);
