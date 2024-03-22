@@ -1,0 +1,76 @@
+---
+title: 'Candlestick Series'
+enterprise: true
+---
+
+A Candlestick Series shows open and close data with bars, and high and low data with wicks.
+
+## Simple Candlestick
+
+{% chartExampleRunner title="Simple Candlestick" name="simple-candlestick" type="generated" /%}
+
+To create a Candlestick Series, use the `candlestick` series type.
+
+```js
+series: [
+    {
+        type: 'candlestick',
+        xKey: 'date',
+        lowKey: 'low',
+        openKey: 'open',
+        closeKey: 'close',
+        highKey: 'high',
+    },
+],
+```
+
+In this configuration:
+
+-   `xKey` sets the candlestick's x value.
+-   `lowKey` maps to the low/min value.
+-   `openKey` maps to the open value.
+-   `closeKey` maps to the close value.
+-   `highKey` maps to the high/max value.
+
+Note the orientation of a Candlestick is vertical.
+
+## Customisation
+
+{% chartExampleRunner title="Candlestick Customisations" name="candlestick-customisations" type="generated" /%}
+
+Series items are customised via the `item` configuration object.
+
+Candlestick wicks inherit series item styles but can be individually customised. Here, the `item.up.wick` property is used to customise the wick line styles of the rising candlestick items.
+
+```js
+series: [
+    {
+        type: 'candlestick',
+        // ...
+        item: {
+            up: {
+                strokeWidth: 2,
+            },
+            down: {
+                fillOpacity: 0.5,
+                strokeWidth: 0,
+                wick: {
+                    strokeWidth: 2,
+                },
+            },
+        },
+    },
+],
+```
+
+In this configuration `up` and `down` change rising/falling series items.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgCandlestickSeriesOptions" label="Candlestick Series" %}
+{% apiReference id="AgCandlestickSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

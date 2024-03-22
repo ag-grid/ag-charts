@@ -265,6 +265,12 @@
                         "title": "Overview",
                         "path": "financial-charts",
                         "isEnterprise": true
+                    },
+                    {
+                        "title": "Candlestick",
+                        "icon": "chartsCandlestick",
+                        "path": "candlestick-series",
+                        "isEnterprise": true
                     }
                 ]
             }
