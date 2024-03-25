@@ -50,6 +50,7 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
             await callback();
             const duration = performance.now() - start;
             const memoryUsageAfter = getMemoryUsage();
+            const canvasInstances = memoryUsageBefore && memoryUsageAfter && ctx.canvasCtx.getActiveCanvasInstances();
 
             const { currentTestName, testPath } = expect.getState();
             if (testPath == null || currentTestName == null) {
@@ -60,7 +61,21 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
                 timeMs: duration,
                 memory:
                     memoryUsageBefore && memoryUsageAfter
-                        ? { before: memoryUsageBefore, after: memoryUsageAfter }
+                        ? {
+                              before: memoryUsageBefore,
+                              after: memoryUsageAfter,
+                              nativeAllocations: canvasInstances
+                                  ? {
+                                        canvas: {
+                                            count: canvasInstances.length,
+                                            bytes: canvasInstances.reduce(
+                                                (totalBytes, canvas) => totalBytes + getBitmapMemoryUsage(canvas),
+                                                0
+                                            ),
+                                        },
+                                    }
+                                  : undefined,
+                          }
                         : undefined,
             });
 
@@ -125,4 +140,11 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     }
 
     ctx.nodePositions.push(results);
+}
+
+function getBitmapMemoryUsage(dimensions: { width: number; height: number }, bitsPerPixel: number = 32): number {
+    const { width, height } = dimensions;
+    const numPixels = width * height;
+    const bytesPerPixel = bitsPerPixel / 8;
+    return numPixels * bytesPerPixel;
 }

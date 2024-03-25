@@ -101,7 +101,7 @@ function generatePerformanceChartOptions(
             {
                 type: 'number',
                 position: 'right',
-                keys: keys.map((key) => `results['${key}'].heapUsed`),
+                keys: keys.map((key) => `results['${key}'].memoryUsage`),
                 label: {
                     formatter: (params) => (params.value == null ? params.value : formatBytes(Number(params.value))),
                 },
@@ -124,16 +124,16 @@ function generatePerformanceChartOptions(
                 {
                     type: 'line' as const,
                     xKey: 'name',
-                    yKey: `results['${key}'].heapUsed`,
+                    yKey: `results['${key}'].memoryUsage`,
                     yName: `${yName(key)} (heap usage)`,
                     strokeOpacity: 0.5,
                     lineDash: [4, 4],
                     tooltip: {
                         enabled: true,
                         renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
-                            const heapUsed = datum.results[key].heapUsed;
+                            const memoryUsage = datum.results[key].memoryUsage;
                             return {
-                                content: heapUsed ? formatBytes(heapUsed) : undefined,
+                                content: memoryUsage ? formatBytes(memoryUsage) : undefined,
                             };
                         },
                     },
