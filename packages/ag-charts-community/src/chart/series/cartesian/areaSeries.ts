@@ -271,7 +271,7 @@ export class AreaSeries extends CartesianSeries<
             strokeData: { itemId, points: [] },
             labelData,
             nodeData: markerData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
         };

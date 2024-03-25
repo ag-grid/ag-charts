@@ -277,7 +277,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 itemId: this.properties.yKey ?? this.id,
                 nodeData,
                 labelData,
-                scales: super.calculateScaling(),
+                scales: this.calculateScaling(),
                 visible: this.visible,
             },
         ];

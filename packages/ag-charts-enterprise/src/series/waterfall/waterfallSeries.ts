@@ -313,6 +313,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         let trailingSubtotal = 0;
+        const scales = this.calculateScaling();
         const { xKey, yKey, xName, yName } = this.properties;
 
         this.processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
@@ -357,7 +358,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 nodeData: [],
                 labelData: [],
                 pointData: [],
-                scales: super.calculateScaling(),
+                scales,
                 visible: this.visible,
             };
 

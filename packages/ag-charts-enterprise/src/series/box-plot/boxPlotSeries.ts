@@ -232,7 +232,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             });
         });
 
-        return [{ itemId: xKey, nodeData, labelData: [], scales: super.calculateScaling(), visible: this.visible }];
+        return [{ itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible }];
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

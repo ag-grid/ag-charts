@@ -201,7 +201,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 itemId: yKey,
                 nodeData,
                 labelData: nodeData,
-                scales: super.calculateScaling(),
+                scales: this.calculateScaling(),
                 visible: this.visible,
             },
         ];

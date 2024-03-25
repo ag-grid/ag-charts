@@ -188,7 +188,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             itemId: valueKey,
             nodeData: [],
             labelData: [],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
         for (const { datum, values } of processedData.data) {

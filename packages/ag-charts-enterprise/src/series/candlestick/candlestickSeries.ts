@@ -272,7 +272,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             });
         });
 
-        return [{ itemId: xKey, nodeData, labelData: [], scales: super.calculateScaling(), visible: this.visible }];
+        return [{ itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible }];
     }
 
     private getSeriesItemType(isRising: boolean): AgCandlestickSeriesItemType {

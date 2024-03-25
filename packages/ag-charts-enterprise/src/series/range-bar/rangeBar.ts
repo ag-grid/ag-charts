@@ -238,6 +238,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`).index;
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
 
+        const scales = this.calculateScaling();
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             values.forEach((value, contextIndex) => {
@@ -245,7 +246,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     itemId,
                     nodeData: [],
                     labelData: [],
-                    scales: super.calculateScaling(),
+                    scales,
                     visible: this.visible,
                 };
 

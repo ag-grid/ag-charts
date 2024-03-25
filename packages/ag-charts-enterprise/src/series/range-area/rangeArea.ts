@@ -207,7 +207,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             nodeData: markerData,
             fillData,
             strokeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
 
