@@ -6,25 +6,19 @@ export function setupMockConsole() {
     };
 
     beforeEach(() => {
-        console.warn = jest.fn();
-        console.error = jest.fn();
+        console.warn = jest.fn().mockImplementation((...args: any[]) => {
+            originalConsole.warn(...args);
+        });
+        console.error = jest.fn().mockImplementation((...args: any[]) => {
+            originalConsole.error(...args);
+        });
     });
 
     afterEach(() => {
-        const handleMock = (key: 'warn' | 'error') => {
-            const mock = console[key] as jest.Mock;
-            const calls = [...mock.mock.calls];
-            mock.mockClear();
-
-            for (let i = 0; i < calls.length; i++) {
-                originalConsole[key](...calls[i]);
-            }
-
-            expect(calls).toHaveLength(0);
-        };
-
-        handleMock('warn');
-        handleMock('error');
+        expect(console.warn).not.toHaveBeenCalled();
+        expect(console.error).not.toHaveBeenCalled();
+        (console.warn as jest.Mock).mockClear();
+        (console.error as jest.Mock).mockClear();
     });
 }
 
