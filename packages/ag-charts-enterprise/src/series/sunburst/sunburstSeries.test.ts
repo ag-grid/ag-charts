@@ -309,7 +309,7 @@ describe('SunburstSeries', () => {
             getNodePoint: (item) => {
                 const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = item;
                 const r = (innerRadius + outerRadius) / 2;
-                const theta = (startAngle + endAngle) / 2 - Math.PI / 2;
+                const theta = (startAngle + endAngle) / 2;
                 return [centerX + r * Math.cos(theta), centerY + r * Math.sin(theta)];
             },
             getDatumValues: (item, series) => {
