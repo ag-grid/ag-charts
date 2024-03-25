@@ -8,43 +8,35 @@ export interface BBoxProvider {
     getCachedBBox(): BBoxLike;
 }
 
-interface BBoxElem<V> {
-    value: V;
-    getter: BBoxProvider;
-}
-
-function nodeContainsPoint<V>(elem: BBoxElem<V>, x: number, y: number): boolean {
-    return elem.getter.getCachedBBox().containsPoint(x, y);
-}
-
-function nodeArea<V>(elem: BBoxElem<V>): number {
-    const { width, height } = elem.getter.getCachedBBox();
-    return width * height;
-}
-
 export class BBoxSet<V> {
-    private elems: BBoxElem<V>[] = [];
+    private map: Map<V, BBoxProvider[]> = new Map<V, BBoxProvider[]>();
 
     add(value: V, getters: BBoxProvider[]): void {
-        getters.forEach((getter) => this.elems.push({ value, getter }));
+        this.map.set(value, getters);
     }
 
     find(x: number, y: number): V[] {
         // Sort matches by area.
         // This ensure that we prioritise smaller regions are contained inside larger regions.
-        return this.elems
-            .filter((elem) => nodeContainsPoint(elem, x, y))
-            .sort((a, b) => nodeArea(a) - nodeArea(b))
-            .map((node) => node.value);
+        const matches: [V, number][] = [];
+        for (const [value, bboxProviders] of this.map.entries()) {
+            for (const provider of bboxProviders) {
+                const bbox = provider.getCachedBBox();
+                if (bbox.containsPoint(x, y)) {
+                    matches.push([value, bbox.width * bbox.height]);
+                }
+            }
+        }
+        return matches.sort((a, b) => a[1] - b[1]).map((m) => m[0]);
     }
 
-    *[Symbol.iterator](): IterableIterator<V> {
-        for (const { value } of Object.values(this.elems)) {
-            yield value;
+    *keys(): IterableIterator<V> {
+        for (const key of this.map.keys()) {
+            yield key;
         }
     }
 
     clear() {
-        this.elems.length = 0;
+        this.map.clear();
     }
 }

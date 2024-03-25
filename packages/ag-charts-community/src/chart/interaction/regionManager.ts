@@ -41,7 +41,7 @@ export class RegionManager {
         this.destroyFns.forEach((fn) => fn());
 
         this.currentRegion = undefined;
-        for (const region of this.regions) {
+        for (const region of this.regions.keys()) {
             region.listeners.destroy();
         }
         this.regions.clear();
@@ -62,7 +62,7 @@ export class RegionManager {
     }
 
     private findByName(name: RegionName): Region | undefined {
-        for (const region of this.regions) {
+        for (const region of this.regions.keys()) {
             if (region.name === name) {
                 return region;
             }
