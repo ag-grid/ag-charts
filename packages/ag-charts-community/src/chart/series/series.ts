@@ -550,7 +550,7 @@ export abstract class Series<
     abstract processData(dataController: DataController): Promise<void>;
 
     // Using processed data, create data that backs visible nodes.
-    abstract createNodeData(): Promise<TContext[]>;
+    abstract createNodeData(): Promise<TContext | undefined>;
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {

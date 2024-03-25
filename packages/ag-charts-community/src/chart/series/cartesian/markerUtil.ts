@@ -15,8 +15,8 @@ type NodeWithOpacity = Node & { opacity: number };
 export function markerFadeInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    markerSelections: Selection<NodeWithOpacity, T>[],
-    status?: NodeUpdateState
+    status?: NodeUpdateState,
+    ...markerSelections: Selection<NodeWithOpacity, T>[]
 ) {
     const params = { phase: status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing' };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
@@ -26,7 +26,7 @@ export function markerFadeInAnimation<T>(
 export function markerScaleInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    markerSelections: Selection<Node, T>[]
+    ...markerSelections: Selection<Node, T>[]
 ) {
     staticFromToMotion(
         id,
@@ -43,7 +43,7 @@ export function markerScaleInAnimation<T>(
 export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
     { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
-    markerSelections: Selection<Node, T>[]
+    ...markerSelections: Selection<Node, T>[]
 ) {
     const seriesWidth: number = nodeDataDependencies.seriesRectWidth;
     const fromFn = (_: Node, datum: T) => {

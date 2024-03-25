@@ -197,7 +197,7 @@ export class AreaSeries extends CartesianSeries<
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!xAxis || !yAxis || !data || !dataModel || !this.properties.isValid()) {
-            return [];
+            return;
         }
 
         const {
@@ -395,7 +395,7 @@ export class AreaSeries extends CartesianSeries<
             strokePoints[0] = createMovePoint(strokePoints[0]);
         }
 
-        return [context];
+        return context;
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -452,54 +452,52 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override async updatePaths(opts: { contextData: AreaSeriesNodeDataContext; paths: Path[] }) {
-        this.updateAreaPaths([opts.paths], [opts.contextData]);
+        this.updateAreaPaths(opts.paths, opts.contextData);
     }
 
-    private updateAreaPaths(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
+    private updateAreaPaths(paths: Path[], contextData: AreaSeriesNodeDataContext) {
         this.updateFillPath(paths, contextData);
         this.updateStrokePath(paths, contextData);
     }
 
-    private updateFillPath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
-        contextData.forEach(({ fillData }, contextDataIndex) => {
-            const [fill] = paths[contextDataIndex];
-            const { path: fillPath } = fill;
-            fillPath.clear({ trackChanges: true });
+    private updateFillPath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
+        const { fillData } = contextData;
+        const [fill] = paths;
+        const { path: fillPath } = fill;
+        fillPath.clear({ trackChanges: true });
 
-            let lastPoint: { x: number; y: number; moveTo?: boolean } | undefined;
-            for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints!))) {
-                if (point.moveTo) {
-                    fillPath.moveTo(point.x, point.y);
-                } else if (lastPoint?.y !== point.y) {
-                    if (lastPoint) {
-                        fillPath.lineTo(lastPoint.x, lastPoint.y);
-                    }
-                    fillPath.lineTo(point.x, point.y);
+        let lastPoint: { x: number; y: number; moveTo?: boolean } | undefined;
+        for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints!))) {
+            if (point.moveTo) {
+                fillPath.moveTo(point.x, point.y);
+            } else if (lastPoint?.y !== point.y) {
+                if (lastPoint) {
+                    fillPath.lineTo(lastPoint.x, lastPoint.y);
                 }
-                lastPoint = point;
+                fillPath.lineTo(point.x, point.y);
             }
-            if (lastPoint) {
-                fillPath.lineTo(lastPoint.x, lastPoint.y);
-            }
-            fillPath.closePath();
-            fill.checkPathDirty();
-        });
+            lastPoint = point;
+        }
+        if (lastPoint) {
+            fillPath.lineTo(lastPoint.x, lastPoint.y);
+        }
+        fillPath.closePath();
+        fill.checkPathDirty();
     }
 
-    private updateStrokePath(paths: Path[][], contextData: AreaSeriesNodeDataContext[]) {
-        contextData.forEach(({ strokeData }, contextDataIndex) => {
-            const [, stroke] = paths[contextDataIndex];
-            const { path: strokePath } = stroke;
-            strokePath.clear({ trackChanges: true });
-            for (const { point } of strokeData.points) {
-                if (point.moveTo) {
-                    strokePath.moveTo(point.x, point.y);
-                } else {
-                    strokePath.lineTo(point.x, point.y);
-                }
+    private updateStrokePath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
+        const { strokeData } = contextData;
+        const [, stroke] = paths;
+        const { path: strokePath } = stroke;
+        strokePath.clear({ trackChanges: true });
+        for (const { point } of strokeData.points) {
+            if (point.moveTo) {
+                strokePath.moveTo(point.x, point.y);
+            } else {
+                strokePath.lineTo(point.x, point.y);
             }
-            stroke.checkPathDirty();
-        });
+        }
+        stroke.checkPathDirty();
     }
 
     protected override async updateMarkerSelection(opts: {
@@ -656,14 +654,14 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
-        const { markerSelections, labelSelections, contextData, paths } = animationData;
+        const { markerSelection, labelSelection, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateAreaPaths(paths, contextData);
-        pathSwipeInAnimation(this, animationManager, paths.flat());
-        resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        pathSwipeInAnimation(this, animationManager, ...paths);
+        resetMotion([markerSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     protected override animateReadyResize(animationData: AreaAnimationData): void {
@@ -675,8 +673,8 @@ export class AreaSeries extends CartesianSeries<
 
     override animateWaitingUpdateReady(animationData: AreaAnimationData) {
         const { animationManager } = this.ctx;
-        const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
-        const [[fill, stroke] = []] = paths;
+        const { markerSelection, labelSelection, contextData, paths, previousContextData } = animationData;
+        const [fill, stroke] = paths;
 
         // Handling initially hidden series case gracefully.
         if (fill == null && stroke == null) return;
@@ -692,20 +690,18 @@ export class AreaSeries extends CartesianSeries<
             update();
         };
 
-        if (contextData.length === 0 || previousContextData?.length === 0) {
+        if (contextData == null || previousContextData == null) {
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, markerSelections, 'added');
-            pathFadeInAnimation(this, 'fill_path_properties', animationManager, [fill]);
-            pathFadeInAnimation(this, 'stroke', animationManager, [stroke], 'trailing');
-            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+            markerFadeInAnimation(this, animationManager, 'added', markerSelection);
+            pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
+            pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
             return;
         }
 
-        const [newData] = contextData;
-        const [oldData] = previousContextData ?? [];
-        const fns = prepareAreaPathAnimation(newData, oldData, this.processedData?.reduced?.diff);
+        const fns = prepareAreaPathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
             // Un-animatable diff in data, skip all animations.
             skip();
@@ -714,13 +710,13 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, markerSelections);
+        markerFadeInAnimation(this, animationManager, undefined, markerSelection);
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
 
         this.updateStrokePath(paths, contextData);
-        pathFadeInAnimation(this, 'stroke', animationManager, [stroke], 'trailing');
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     protected isLabelEnabled() {

@@ -104,7 +104,7 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     nodeCount: number
 ) {
     const series = deproxy(ctx.chart).series[seriesIdx] as CartesianSeries<any, any, any>;
-    const { nodeData } = series.contextNodeData[0];
+    const { nodeData = [] } = series.contextNodeData ?? {};
 
     if (nodeCount < nodeData.length) {
         expect(nodeData.length).toBeGreaterThanOrEqual(nodeCount);

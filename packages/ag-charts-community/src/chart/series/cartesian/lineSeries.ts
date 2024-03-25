@@ -127,7 +127,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!processedData || !dataModel || !xAxis || !yAxis) {
-            return [];
+            return;
         }
 
         const { xKey, yKey, xName, yName, marker, label, connectMissingData } = this.properties;
@@ -196,15 +196,13 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             }
         }
 
-        return [
-            {
-                itemId: yKey,
-                nodeData,
-                labelData: nodeData,
-                scales: super.calculateScaling(),
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: yKey,
+            nodeData,
+            labelData: nodeData,
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -400,37 +398,36 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
         paths: Path[];
     }) {
-        this.updateLinePaths([opts.paths], [opts.contextData]);
+        this.updateLinePaths(opts.paths, opts.contextData);
     }
 
-    private updateLinePaths(paths: Path[][], contextData: CartesianSeriesNodeDataContext<LineNodeDatum>[]) {
-        contextData.forEach(({ nodeData }, contextDataIndex) => {
-            const [lineNode] = paths[contextDataIndex];
+    private updateLinePaths(paths: Path[], contextData: CartesianSeriesNodeDataContext<LineNodeDatum>) {
+        const { nodeData } = contextData;
+        const [lineNode] = paths;
 
-            const { path: linePath } = lineNode;
+        const { path: linePath } = lineNode;
 
-            linePath.clear({ trackChanges: true });
-            for (const data of nodeData) {
-                if (data.point.moveTo) {
-                    linePath.moveTo(data.point.x, data.point.y);
-                } else {
-                    linePath.lineTo(data.point.x, data.point.y);
-                }
+        linePath.clear({ trackChanges: true });
+        for (const data of nodeData) {
+            if (data.point.moveTo) {
+                linePath.moveTo(data.point.x, data.point.y);
+            } else {
+                linePath.lineTo(data.point.x, data.point.y);
             }
-            lineNode.checkPathDirty();
-        });
+        }
+        lineNode.checkPathDirty();
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
-        const { markerSelections, labelSelections, annotationSelections, contextData, paths } = animationData;
+        const { markerSelection, labelSelection, annotationSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateLinePaths(paths, contextData);
-        pathSwipeInAnimation(this, animationManager, paths.flat());
-        resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
+        pathSwipeInAnimation(this, animationManager, ...paths);
+        resetMotion([markerSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
     }
 
     protected override animateReadyResize(animationData: LineAnimationData): void {
@@ -442,8 +439,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
     protected override animateWaitingUpdateReady(animationData: LineAnimationData) {
         const { animationManager } = this.ctx;
-        const { markerSelections, labelSelections, annotationSelections, contextData, paths, previousContextData } =
-            animationData;
+        const {
+            markerSelection: markerSelections,
+            labelSelection: labelSelections,
+            annotationSelections,
+            contextData,
+            paths,
+            previousContextData,
+        } = animationData;
         const [path] = paths;
 
         super.resetAllAnimation(animationData);
@@ -456,21 +459,18 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             update();
         };
 
-        if (contextData.length === 0 || previousContextData?.length === 0) {
+        if (contextData == null || previousContextData == null) {
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, markerSelections, 'added');
-            pathFadeInAnimation(this, 'path_properties', animationManager, path ?? []);
+            markerFadeInAnimation(this, animationManager, 'added', markerSelections);
+            pathFadeInAnimation(this, 'path_properties', animationManager, 'add', path);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-            seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
             return;
         }
 
-        const [newData] = contextData;
-        const [oldData] = previousContextData ?? [];
-
-        const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
+        const fns = prepareLinePathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
             skip();
             return;
@@ -478,12 +478,12 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, markerSelections);
-        fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
-        pathMotion(this.id, 'path_update', animationManager, path, fns.path);
+        markerFadeInAnimation(this, animationManager, undefined, markerSelections);
+        fromToMotion(this.id, 'path_properties', animationManager, [path], fns.pathProperties);
+        pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
         if (fns.hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-            seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
         }
     }
 

@@ -187,7 +187,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected async maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = await this.createNodeData();
+        const { nodeData = [] } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -201,7 +201,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { processedData, dataModel } = this;
 
         if (!processedData || !dataModel || !this.properties.isValid()) {
-            return [];
+            return;
         }
 
         const angleAxis = this.axes[ChartAxisDirection.X];
@@ -210,7 +210,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const radiusScale = radiusAxis?.scale;
 
         if (!angleScale || !radiusScale) {
-            return [];
+            return;
         }
 
         const angleStartIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-start`).index;
@@ -305,7 +305,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             };
         });
 
-        return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
+        return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
 
     async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
@@ -440,7 +440,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateClearingUpdateEmpty() {
@@ -450,7 +450,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
 
-        seriesLabelFadeOutAnimation(this, 'labels', animationManager, [this.labelSelection]);
+        seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {

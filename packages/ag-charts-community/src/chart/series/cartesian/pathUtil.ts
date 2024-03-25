@@ -145,7 +145,7 @@ export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<
 export function pathSwipeInAnimation(
     { id, visible, nodeDataDependencies }: { id: string; visible: boolean } & NodeDataDependant,
     animationManager: AnimationManager,
-    paths: Path[]
+    ...paths: Path[]
 ) {
     const { seriesRectWidth: width, seriesRectHeight: height } = nodeDataDependencies;
     staticFromToMotion(
@@ -167,8 +167,8 @@ export function pathFadeInAnimation<T>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
-    selection: Selection<Path, T>[] | Path[],
-    phase: 'add' | 'trailing' = 'add'
+    phase: 'add' | 'trailing' = 'add',
+    ...selection: Selection<Path, T>[] | Path[]
 ) {
     staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase });
 }
@@ -177,7 +177,7 @@ export function pathFadeOutAnimation<T>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
-    selection: Selection<Path, T>[] | Path[]
+    ...selection: Selection<Path, T>[] | Path[]
 ) {
     staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, { phase: 'remove' });
 }

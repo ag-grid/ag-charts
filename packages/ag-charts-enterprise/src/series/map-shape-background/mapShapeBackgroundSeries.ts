@@ -56,7 +56,7 @@ export class MapShapeBackgroundSeries
         () => this.nodeFactory()
     );
 
-    private contextNodeData: MapShapeBackgroundNodeDataContext[] = [];
+    private contextNodeData?: MapShapeBackgroundNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -96,10 +96,10 @@ export class MapShapeBackgroundSeries
         }
     }
 
-    override async createNodeData(): Promise<MapShapeBackgroundNodeDataContext[]> {
+    override async createNodeData() {
         const { id: seriesId, topology, scale } = this;
 
-        if (topology == null) return [];
+        if (topology == null) return;
 
         const nodeData: MapShapeBackgroundNodeDatum[] = [];
         const labelData: never[] = [];
@@ -118,13 +118,11 @@ export class MapShapeBackgroundSeries
             });
         });
 
-        return [
-            {
-                itemId: seriesId,
-                nodeData,
-                labelData,
-            },
-        ];
+        return {
+            itemId: seriesId,
+            nodeData,
+            labelData,
+        };
     }
 
     async updateSelections(): Promise<void> {
@@ -141,7 +139,7 @@ export class MapShapeBackgroundSeries
 
         this.contentGroup.visible = this.visible;
 
-        const { nodeData } = this.contextNodeData[0];
+        const { nodeData = [] } = this.contextNodeData ?? {};
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection });

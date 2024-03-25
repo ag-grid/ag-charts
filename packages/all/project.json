@@ -97,13 +97,13 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build", "lint", "format-check"],
       "inputs": [],
-      "cache": true,
+      "cache": false,
       "options": {
         "parallel": false,
         "commands": ["nx run-many -t test --parallel 1", "nx run-many -t validate-examples"]
       }
     },
-    "clean": { "command": "rimraf dist/ 'packages/*/dist/'" },
+    "clean": { "cache": false, "command": "rimraf dist/ 'packages/*/dist/'" },
     "generate-docs-example": {
       "executor": "nx:run-commands",
       "options": {

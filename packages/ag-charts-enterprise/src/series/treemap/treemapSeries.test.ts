@@ -200,7 +200,7 @@ describe('TreemapSeries', () => {
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
             );
-            expect(onNodeClick).toBeCalledTimes(nodeCount);
+            expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
         };
 
         it(`should render tooltip correctly`, async () => {
@@ -286,7 +286,7 @@ describe('TreemapSeries', () => {
         };
 
         const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData[0].nodeData,
+            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
             getHighlightNode: (_, series) => series.highlightNode.children[0],

@@ -40,7 +40,6 @@ import {
 } from './barUtil';
 import {
     type CartesianAnimationData,
-    type CartesianSeriesNodeDataContext,
     type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
@@ -61,6 +60,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly xValue: string | number;
     readonly yValue: string | number;
+    readonly valueIndex: number;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -223,7 +223,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yAxis = this.getValueAxis();
 
         if (!(dataModel && xAxis && yAxis && this.properties.isValid())) {
-            return [];
+            return;
         }
 
         const xScale = xAxis.scale;
@@ -241,19 +241,18 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
         const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const contexts: Array<CartesianSeriesNodeDataContext<BarNodeDatum>> = [];
+
+        const context = {
+            itemId: yKey,
+            nodeData: [] as BarNodeDatum[],
+            labelData: [] as BarNodeDatum[],
+            scales: super.calculateScaling(),
+            visible: this.visible || animationEnabled,
+        };
 
         const { groupScale, processedData } = this;
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
-            values.forEach((value, contextIndex) => {
-                contexts[contextIndex] ??= {
-                    itemId: yKey,
-                    nodeData: [],
-                    labelData: [],
-                    scales: super.calculateScaling(),
-                    visible: this.visible || animationEnabled,
-                };
-
+            values.forEach((value, valueIndex) => {
                 const xValue = keys[xIndex];
                 const x = xScale.convert(xValue);
 
@@ -306,7 +305,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const labelText = this.getLabelText(
                     this.properties.label,
                     {
-                        datum: seriesDatum[contextIndex],
+                        datum: seriesDatum[valueIndex],
                         value: yRawValue,
                         xKey,
                         yKey,
@@ -337,7 +336,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const nodeData: BarNodeDatum = {
                     series: this,
                     itemId: yKey,
-                    datum: seriesDatum[contextIndex],
+                    datum: seriesDatum[valueIndex],
+                    valueIndex,
                     cumulativeValue: currY,
                     xValue,
                     yValue: yRawValue,
@@ -364,12 +364,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     clipBBox,
                     label: labelDatum,
                 };
-                contexts[contextIndex].nodeData.push(nodeData);
-                contexts[contextIndex].labelData.push(nodeData);
+                context.nodeData.push(nodeData);
+                context.labelData.push(nodeData);
             });
         });
 
-        return contexts;
+        return context;
     }
 
     protected nodeFactory() {
@@ -385,7 +385,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             (rect) => {
                 rect.tag = BarSeriesNodeTag.Bar;
             },
-            (datum) => createDatumId(datum.xValue)
+            (datum) => createDatumId(datum.xValue, datum.valueIndex)
         );
     }
 
@@ -550,37 +550,37 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelections, labelSelections, annotationSelections, previousContextData } = data;
+        const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const dataDiff = this.processedData?.reduced?.diff;
-        const mode = previousContextData?.length === 0 ? 'fade' : 'normal';
+        const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
         fromToMotion(
             this.id,
             'nodes',
             this.ctx.animationManager,
-            datumSelections,
+            [datumSelection],
             fns,
-            (_, datum) => createDatumId(datum.xValue),
+            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
             dataDiff
         );
 
         const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
-            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
     }
 

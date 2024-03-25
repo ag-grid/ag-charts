@@ -350,7 +350,7 @@ export class TreemapSeries<
     }
 
     async createNodeData() {
-        return [];
+        return undefined;
     }
 
     async updateSelections() {
