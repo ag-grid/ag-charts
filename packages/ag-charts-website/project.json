@@ -92,7 +92,7 @@
         "{projectRoot}/tools/expected-thumbnails/**/*.png",
         "{projectRoot}/tools/compare-gallery-thumbnails.js"
       ],
-      "outputs": [],
+      "outputs": ["{projectRoot}/tools/expected-thumbnails/"],
       "cache": true,
       "options": {
         "commands": [
