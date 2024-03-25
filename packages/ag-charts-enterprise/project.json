@@ -175,19 +175,19 @@
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
         "commands": [
-          "node ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*'"
+          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*'"
         ]
       },
       "configurations": {
         "options": {
           "commands": [
-            "node ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' --watch"
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' --watch"
           ]
         },
         "update": {
           "options": {
             "commands": [
-              "node ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' -u"
+              "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' -u"
             ]
           }
         }

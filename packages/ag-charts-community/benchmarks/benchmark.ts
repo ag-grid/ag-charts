@@ -32,18 +32,37 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 }
 
 export function benchmark(name: string, ctx: BenchmarkContext, callback: () => Promise<void>, timeoutMs = 10000) {
+    const isGcEnabled = 'gc' in global;
+    if (!isGcEnabled) {
+        global.console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
+    }
+    function getMemoryUsage(): NodeJS.MemoryUsage | null {
+        if (!global.gc) return null;
+        global.gc();
+        return process.memoryUsage();
+    }
+
     it(
         name,
         async () => {
+            const memoryUsageBefore = getMemoryUsage();
             const start = performance.now();
             await callback();
             const duration = performance.now() - start;
+            const memoryUsageAfter = getMemoryUsage();
 
             const { currentTestName, testPath } = expect.getState();
             if (testPath == null || currentTestName == null) {
                 throw new Error('Unable to resolve current test name.');
             }
-            recordTiming(testPath, currentTestName, duration);
+
+            recordTiming(testPath, currentTestName, {
+                timeMs: duration,
+                memory:
+                    memoryUsageBefore && memoryUsageAfter
+                        ? { before: memoryUsageBefore, after: memoryUsageAfter }
+                        : undefined,
+            });
 
             const newImageData = extractImageData(ctx.canvasCtx);
             expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
