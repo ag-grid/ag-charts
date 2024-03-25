@@ -13,7 +13,7 @@ export class Path2D {
     // and any allocation can trigger a GC cycle during animation, so we attempt
     // to minimize the number of allocations.
 
-    private xy?: [number, number];
+    private anchored: boolean = false;
     private previousCommands: Command[] = [];
     private previousParams: number[] = [];
     private previousClosedPath: boolean = false;
@@ -21,13 +21,11 @@ export class Path2D {
     params: number[] = [];
 
     isDirty() {
-        if (this._closedPath !== this.previousClosedPath) {
-            return true;
-        }
-        if (this.previousCommands.length !== this.commands.length) {
-            return true;
-        }
-        if (this.previousParams.length !== this.params.length) {
+        if (
+            this._closedPath !== this.previousClosedPath ||
+            this.previousCommands.length !== this.commands.length ||
+            this.previousParams.length !== this.params.length
+        ) {
             return true;
         }
 
@@ -78,23 +76,16 @@ export class Path2D {
     }
 
     moveTo(x: number, y: number) {
-        if (this.xy) {
-            this.xy[0] = x;
-            this.xy[1] = y;
-        } else {
-            this.xy = [x, y];
-        }
+        this.anchored = true;
 
         this.commands.push(Command.Move);
         this.params.push(x, y);
     }
 
     lineTo(x: number, y: number) {
-        if (this.xy) {
+        if (this.anchored) {
             this.commands.push(Command.Line);
             this.params.push(x, y);
-            this.xy[0] = x;
-            this.xy[1] = y;
         } else {
             this.moveTo(x, y);
         }
@@ -128,30 +119,18 @@ export class Path2D {
     }
 
     arc(x: number, y: number, r: number, sAngle: number, eAngle: number, antiClockwise = false) {
-        const endX = x + r * Math.cos(eAngle);
-        const endY = y + r * Math.sin(eAngle);
-
-        if (this.xy) {
-            this.xy[0] = endX;
-            this.xy[1] = endY;
-        } else {
-            this.xy = [endX, endY];
-        }
+        this.anchored = true;
 
         this.commands.push(Command.Arc);
         this.params.push(x, y, r, sAngle, eAngle, antiClockwise ? 1 : 0);
     }
 
     cubicCurveTo(cx1: number, cy1: number, cx2: number, cy2: number, x: number, y: number) {
-        if (!this.xy) {
+        if (!this.anchored) {
             this.moveTo(cx1, cy1);
         }
         this.commands.push(Command.Curve);
         this.params.push(cx1, cy1, cx2, cy2, x, y);
-        if (this.xy) {
-            this.xy[0] = x;
-            this.xy[1] = y;
-        }
     }
 
     private _closedPath: boolean = false;
@@ -160,8 +139,8 @@ export class Path2D {
     }
 
     closePath() {
-        if (this.xy) {
-            this.xy = undefined;
+        if (this.anchored) {
+            this.anchored = false;
             this.commands.push(Command.ClosePath);
             this._closedPath = true;
         }
@@ -178,7 +157,7 @@ export class Path2D {
             this.commands.length = 0;
             this.params.length = 0;
         }
-        this.xy = undefined;
+        this.anchored = false;
         this._closedPath = false;
     }
 
