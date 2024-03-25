@@ -6,10 +6,13 @@ const path = require('path');
 const child_process = require('child_process');
 const prettier = require('prettier');
 
-const currentBranch = child_process.execSync(`git branch --show-current`).toString().split('\n')[0];
+const args = process.argv.slice(2);
+
+const currentBranch = args[0] ?? child_process.execSync(`git branch --show-current`).toString().split('\n')[0];
+const reportsPathPrefix = args[1] ?? '';
 
 function readReports() {
-    const rootDir = path.resolve(process.cwd(), process.argv[2] ?? `${process.cwd()}/reports`);
+    const rootDir = path.resolve(process.cwd(), path.join(reportsPathPrefix, 'reports'));
 
     console.info(`Checking ${rootDir} for reports...`);
     const files = glob.sync('**/benchmarks/*.test.json', {

@@ -2,7 +2,11 @@ import { afterEach, beforeEach } from '@jest/globals';
 
 import { flushTimings, loadBuiltExampleOptions, logTimings, recordTiming, setupMockConsole } from 'ag-charts-test';
 
-import { CartesianSeries, CartesianSeriesNodeDatum } from '../src/chart/series/cartesian/cartesianSeries';
+import {
+    CartesianSeries,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from '../src/chart/series/cartesian/cartesianSeries';
 import { AgChartProxy, IMAGE_SNAPSHOT_DEFAULTS, deproxy, prepareTestOptions } from '../src/chart/test/utils';
 import { AgCharts } from '../src/main';
 import { AgChartInstance, AgChartOptions } from '../src/options/agChartOptions';
@@ -119,7 +123,7 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     nodeCount: number
 ) {
     const series = deproxy(ctx.chart).series[seriesIdx] as CartesianSeries<any, any, any>;
-    const { nodeData = [] } = series.contextNodeData ?? {};
+    const { nodeData = [] } = getSeriesNodeData(series) ?? {};
 
     if (nodeCount < nodeData.length) {
         expect(nodeData.length).toBeGreaterThanOrEqual(nodeCount);
@@ -127,8 +131,8 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
 
     const results: Point[] = [];
     const addResult = (idx: number) => {
-        const node: CartesianSeriesNodeDatum = nodeData.at(Math.floor(idx));
-        const { midPoint } = node;
+        const node = nodeData.at(Math.floor(idx));
+        const midPoint = node?.midPoint;
         if (!midPoint) throw new Error('No node midPoint found.');
 
         const point = series.contentGroup.inverseTransformPoint(midPoint.x, midPoint.y);
@@ -147,4 +151,16 @@ function getBitmapMemoryUsage(dimensions: { width: number; height: number }, bit
     const numPixels = width * height;
     const bytesPerPixel = bitsPerPixel / 8;
     return numPixels * bytesPerPixel;
+}
+
+function getSeriesNodeData(
+    series: CartesianSeries<any, any, any, any, CartesianSeriesNodeDataContext<CartesianSeriesNodeDatum, any>>
+): CartesianSeriesNodeDataContext<CartesianSeriesNodeDatum, any> | null {
+    if (!series.contextNodeData) return null;
+    // HACK: support running the benchmark script against old versions of the library.
+    // Previous versions of the library used to support multiple `contextNodeData` per series, so take the first item.
+    if (Array.isArray(series.contextNodeData)) {
+        return (series.contextNodeData as Array<CartesianSeriesNodeDataContext<any, any>>)[0];
+    }
+    return series.contextNodeData;
 }
