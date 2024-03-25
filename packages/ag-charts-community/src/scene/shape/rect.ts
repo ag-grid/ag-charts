@@ -340,8 +340,8 @@ export class Rect extends Path {
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
 
-        path.clear({ trackChanges: true });
-        borderPath.clear({ trackChanges: true });
+        path.clear(true);
+        borderPath.clear(true);
 
         if (crisp) {
             if (w <= pixelSize) {
@@ -404,7 +404,7 @@ export class Rect extends Path {
             } else {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new Path2D();
-                this.borderClipPath.clear({ trackChanges: true });
+                this.borderClipPath.clear(true);
                 this.borderClipPath.rect(x, y, w, h);
                 borderPath.rect(x, y, w, h);
             }

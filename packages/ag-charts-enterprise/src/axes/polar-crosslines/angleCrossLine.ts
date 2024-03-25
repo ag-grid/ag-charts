@@ -68,7 +68,7 @@ export class AngleCrossLine extends PolarCrossLine {
         const y = axisOuterRadius * Math.sin(angle);
         const x0 = axisInnerRadius * Math.cos(angle);
         const y0 = axisInnerRadius * Math.sin(angle);
-        line.path.clear({ trackChanges: true });
+        line.path.clear(true);
         line.path.moveTo(x0, y0);
         line.path.lineTo(x, y);
 
@@ -96,7 +96,7 @@ export class AngleCrossLine extends PolarCrossLine {
         this.setSectorNodeProps(polygon);
 
         const { path } = polygon;
-        path.clear({ trackChanges: true });
+        path.clear(true);
         angles.forEach((angle, index) => {
             const x = axisOuterRadius * Math.cos(angle);
             const y = axisOuterRadius * Math.sin(angle);

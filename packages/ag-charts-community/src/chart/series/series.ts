@@ -767,7 +767,7 @@ export abstract class Series<
 
         // Only for custom marker shapes
         if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {
-            markerNode.path.clear({ trackChanges: true });
+            markerNode.path.clear(true);
             markerNode.updatePath();
             markerNode.checkPathDirty();
         }
