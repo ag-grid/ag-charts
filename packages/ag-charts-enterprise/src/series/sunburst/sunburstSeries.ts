@@ -250,11 +250,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.centerY = 0;
             sector.innerRadius = depth * radiusScale;
             sector.outerRadius = (depth + 1) * radiusScale;
-            sector.angleOffset = angleOffset;
-            sector.startAngle = angleDatum.start;
-            sector.endAngle = angleDatum.end;
+            sector.startAngle = angleDatum.start + angleOffset;
+            sector.endAngle = angleDatum.end + angleOffset;
             sector.inset = baseInset + strokeWidth * 0.5;
             sector.cornerRadius = cornerRadius;
+            sector.scaleCornerRadiiIndependently = true;
         };
 
         this.groupSelection.selectByClass(Sector).forEach((sector) => {
