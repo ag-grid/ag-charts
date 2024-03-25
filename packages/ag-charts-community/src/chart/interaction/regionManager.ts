@@ -1,13 +1,18 @@
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
+import { mapIterable } from '../../util/array';
 import { Listeners } from '../../util/listeners';
+import { clamp } from '../../util/number';
 import type {
     PointerInteractionEvent as InteractionEvent,
     InteractionManager,
     PointerInteractionTypes as InteractionTypes,
 } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
+import { KeyNavEvent, KeyNavManager } from './keyNavManager';
 
 export type RegionName = 'legend' | 'navigator' | 'pagination' | 'root' | 'series' | 'toolbar';
+
+const REGION_TAB_ORDERING: RegionName[] = ['series', 'legend'];
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
@@ -19,11 +24,15 @@ interface BBoxProvider {
 
 type Region = {
     name: RegionName;
-    bboxproviders: BBoxProvider[]
+    bboxproviders: BBoxProvider[];
     listeners: RegionListeners;
 };
 
 export class RegionManager {
+    private currentTabIndex = 0;
+    private readonly keyNavManager: KeyNavManager;
+    private readonly focusIndicator: HTMLDivElement;
+
     private currentRegion?: Region;
     private isDragging = false;
     private leftCanvas = false;
@@ -32,12 +41,26 @@ export class RegionManager {
     private regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
 
-    constructor(private readonly interactionManager: InteractionManager) {
+    constructor(
+        private readonly interactionManager: InteractionManager,
+        container: HTMLElement | undefined
+    ) {
+        this.keyNavManager = new KeyNavManager(interactionManager);
         this.destroyFns.push(
             ...INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.eventHandler, InteractionState.All)
-            )
+            ),
+            this.keyNavManager.addListener('tab', this.onTab.bind(this))
         );
+
+        this.focusIndicator = document.createElement('div');
+        this.focusIndicator.id = 'focusIndicator';
+        this.focusIndicator.style.position = 'absolute';
+        this.focusIndicator.style.border = '2px solid red';
+        this.focusIndicator.style.display = 'none';
+        this.focusIndicator.style.pointerEvents = 'none';
+        this.focusIndicator.style.userSelect = 'none';
+        container?.appendChild(this.focusIndicator);
     }
 
     public destroy() {
@@ -48,11 +71,12 @@ export class RegionManager {
             region.listeners.destroy();
         }
         this.regions.clear();
+        this.keyNavManager.destroy();
     }
 
     private pushRegion(name: RegionName, bboxproviders: BBoxProvider[]): Region {
         const region = { name, listeners: new RegionListeners(), bboxproviders };
-        this.regions.set(name, region );
+        this.regions.set(name, region);
         return region;
     }
 
@@ -186,5 +210,44 @@ export class RegionManager {
     private pickRegion(x: number, y: number): Region | undefined {
         const matchingRegions = this.find(x, y);
         return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
+    }
+
+    private getTabRegion(tabIndex: number): Region | undefined {
+        if (tabIndex >= 0 && tabIndex < REGION_TAB_ORDERING.length) {
+            return this.regions.get(REGION_TAB_ORDERING[tabIndex]);
+        }
+        return undefined;
+    }
+
+    private getTabRegionBounds(region: Region): BBox {
+        return BBox.merge(mapIterable(region.bboxproviders, (p) => p.getCachedBBox()));
+    }
+
+    private onTab(event: KeyNavEvent<'tab'>) {
+        const newTabIndex = this.currentTabIndex + event.delta;
+        this.currentTabIndex = clamp(0, newTabIndex, REGION_TAB_ORDERING.length - 1);
+
+        const newRegion = this.getTabRegion(newTabIndex);
+        if (newRegion !== undefined) {
+            event.interactionEvent.sourceEvent.preventDefault();
+        }
+        this.updateFocusIndicator(newRegion);
+    }
+
+    private updateFocusIndicator(newRegion: Region | undefined) {
+        if (newRegion === undefined) {
+            this.focusIndicator.style.display = 'none';
+        } else {
+            const bounds = this.getTabRegionBounds(newRegion);
+            this.focusIndicator.style.display = 'block';
+            this.focusIndicator.style.width = `${bounds.width}px`;
+            this.focusIndicator.style.height = `${bounds.height}px`;
+            this.focusIndicator.style.transform = `translate(${bounds.x}px, ${bounds.y}px)`
+
+            // TODO(olegat) HACK:
+            const container = this.focusIndicator.parentNode;
+            container?.removeChild(this.focusIndicator);
+            container?.appendChild(this.focusIndicator);
+        }
     }
 }
