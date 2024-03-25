@@ -245,11 +245,9 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         this.computeTransformMatrix();
         const matrix = Matrix.flyweight(this.matrix);
 
-        let parent = this.parent;
-        while (parent) {
+        for (const parent of this.ancestors()) {
             parent.computeTransformMatrix();
             matrix.preMultiplySelf(parent.matrix);
-            parent = parent.parent;
         }
 
         return matrix;
@@ -369,10 +367,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
             // a leaf node, but not a container leaf
             return this;
         }
-    }
-
-    findNodes(predicate: (node: Node) => boolean): Node[] {
-        return this.children.flatMap((child) => child.findNodes(predicate));
     }
 
     private cachedBBox?: BBox;
