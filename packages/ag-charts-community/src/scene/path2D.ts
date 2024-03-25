@@ -13,12 +13,12 @@ export class Path2D {
     // and any allocation can trigger a GC cycle during animation, so we attempt
     // to minimize the number of allocations.
 
-    private anchored: boolean = false;
+    private pathOpen: boolean = false;
     private previousCommands: Command[] = [];
     private previousParams: number[] = [];
     private previousClosedPath: boolean = false;
-    commands: Command[] = [];
-    params: number[] = [];
+    private commands: Command[] = [];
+    private params: number[] = [];
 
     isDirty() {
         if (
@@ -76,14 +76,13 @@ export class Path2D {
     }
 
     moveTo(x: number, y: number) {
-        this.anchored = true;
-
+        this.pathOpen = true;
         this.commands.push(Command.Move);
         this.params.push(x, y);
     }
 
     lineTo(x: number, y: number) {
-        if (this.anchored) {
+        if (this.pathOpen) {
             this.commands.push(Command.Line);
             this.params.push(x, y);
         } else {
@@ -119,14 +118,13 @@ export class Path2D {
     }
 
     arc(x: number, y: number, r: number, sAngle: number, eAngle: number, antiClockwise = false) {
-        this.anchored = true;
-
+        this.pathOpen = true;
         this.commands.push(Command.Arc);
         this.params.push(x, y, r, sAngle, eAngle, antiClockwise ? 1 : 0);
     }
 
     cubicCurveTo(cx1: number, cy1: number, cx2: number, cy2: number, x: number, y: number) {
-        if (!this.anchored) {
+        if (!this.pathOpen) {
             this.moveTo(cx1, cy1);
         }
         this.commands.push(Command.Curve);
@@ -139,8 +137,8 @@ export class Path2D {
     }
 
     closePath() {
-        if (this.anchored) {
-            this.anchored = false;
+        if (this.pathOpen) {
+            this.pathOpen = false;
             this.commands.push(Command.ClosePath);
             this._closedPath = true;
         }
@@ -157,7 +155,7 @@ export class Path2D {
             this.commands.length = 0;
             this.params.length = 0;
         }
-        this.anchored = false;
+        this.pathOpen = false;
         this._closedPath = false;
     }
 
