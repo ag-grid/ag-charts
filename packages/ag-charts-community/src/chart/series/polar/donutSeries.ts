@@ -266,7 +266,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     async maybeRefreshNodeData() {
         if (!this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = await this.createNodeData();
+        const { nodeData = [] } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -297,10 +297,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             this.zerosumOuterRing.visible = true;
             this.zerosumInnerRing.visible = true;
 
-            return [{ itemId: seriesId, nodeData: [], labelData: [] }];
+            return { itemId: seriesId, nodeData: [], labelData: [] };
         }
 
-        if (!processedData || !dataModel || processedData.type !== 'ungrouped') return [];
+        if (!processedData || !dataModel || processedData.type !== 'ungrouped') return;
 
         const { angleIdx, radiusIdx, calloutLabelIdx, sectorLabelIdx, legendItemIdx } =
             this.getProcessedDataIndexes(dataModel);
@@ -359,7 +359,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.zerosumInnerRing.visible =
             sum === 0 && innerRadiusRatio != null && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
 
-        return [{ itemId: seriesId, nodeData, labelData: nodeData }];
+        return { itemId: seriesId, nodeData, labelData: nodeData };
     }
 
     private getLabels(
@@ -1390,9 +1390,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
-        seriesLabelFadeInAnimation(this, 'callout', animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'sector', animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'inner', animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'inner', animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1428,9 +1428,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
-        seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1448,9 +1448,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
-        seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
+        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }

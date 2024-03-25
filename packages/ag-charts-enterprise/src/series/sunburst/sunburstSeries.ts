@@ -250,9 +250,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.centerY = 0;
             sector.innerRadius = depth * radiusScale;
             sector.outerRadius = (depth + 1) * radiusScale;
-            sector.angleOffset = angleOffset;
-            sector.startAngle = angleDatum.start;
-            sector.endAngle = angleDatum.end;
+            sector.startAngle = angleDatum.start + angleOffset;
+            sector.endAngle = angleDatum.end + angleOffset;
             sector.inset = baseInset + strokeWidth * 0.5;
             sector.cornerRadius = cornerRadius;
         };
@@ -561,7 +560,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     override async createNodeData() {
-        return [];
+        return undefined;
     }
 
     protected override animateEmptyUpdateReady({

@@ -352,9 +352,18 @@ export function diff(
 }
 
 type KeyType = string | number | object;
-export function createDatumId(keys: KeyType | KeyType[]) {
+export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number)[]) {
+    let result;
     if (isArray(keys)) {
-        return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
+        result = keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
+    } else {
+        result = transformIntegratedCategoryValue(keys);
     }
-    return transformIntegratedCategoryValue(keys);
+
+    const primitiveType = typeof result === 'string' || typeof result === 'number' || result instanceof Date;
+    if (primitiveType && extraKeys.length > 0) {
+        result += `___${extraKeys.join('___')}`;
+    }
+
+    return result;
 }

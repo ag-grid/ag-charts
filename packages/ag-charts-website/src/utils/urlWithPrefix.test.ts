@@ -19,6 +19,6 @@ describe('urlWithPrefix', () => {
     test('warns for invalid links', () => {
         const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
         urlWithPrefix({ url: '../unhandled-link-type', framework: 'javascript', siteBaseUrl: '' });
-        expect(spy).toBeCalled();
+        expect(spy).toHaveBeenCalled();
     });
 });

@@ -6,8 +6,8 @@ export function setupMockConsole() {
     });
 
     afterEach(() => {
-        expect(console.warn).not.toBeCalled();
-        expect(console.error).not.toBeCalled();
+        expect(console.warn).not.toHaveBeenCalled();
+        expect(console.error).not.toHaveBeenCalled();
         (console.warn as jest.Mock).mockClear();
         (console.error as jest.Mock).mockClear();
     });
@@ -16,9 +16,9 @@ export function setupMockConsole() {
 export function expectWarnings(callArgs: any[][]) {
     try {
         for (let i = 0; i < callArgs.length; i++) {
-            expect(console.warn).nthCalledWith(i + 1, ...callArgs[i]);
+            expect(console.warn).toHaveBeenNthCalledWith(i + 1, ...callArgs[i]);
         }
-        expect(console.warn).toBeCalledTimes(callArgs.length);
+        expect(console.warn).toHaveBeenCalledTimes(callArgs.length);
     } finally {
         (console.warn as jest.Mock).mockClear();
     }

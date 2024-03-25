@@ -45,8 +45,6 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
             node.endAngle = datum.endAngle;
         }
 
-        node.cornerRadius = this.properties.cornerRadius;
-
         // TODO: Enable once the options contract has been revisited
         // const appliedHighlightStyle = highlight ? this.highlightStyle.item : undefined;
 

@@ -153,8 +153,7 @@ describe('HistogramSeries', () => {
             const series = chart.series.find((v: any) => v.type === 'scatter');
             if (series == null) fail('No series found');
 
-            const nodeDataArray: SeriesNodeDataContext<any, any>[] = series['contextNodeData'];
-            const context = nodeDataArray[0];
+            const context: SeriesNodeDataContext<any, any> = series['contextNodeData'];
             const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
 
             const { x, y } = series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);

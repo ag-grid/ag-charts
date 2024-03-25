@@ -162,7 +162,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
         const yAxis = this.getValueAxis();
 
         if (!(dataModel && visible && xAxis && yAxis)) {
-            return [];
+            return;
         }
 
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
@@ -272,7 +272,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             });
         });
 
-        return [{ itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible }];
+        return { itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible };
     }
 
     private getSeriesItemType(isRising: boolean): AgCandlestickSeriesItemType {
@@ -358,12 +358,12 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override animateEmptyUpdateReady({
-        datumSelections,
+        datumSelection,
     }: _ModuleSupport.CartesianAnimationData<CandlestickGroup, CandlestickNodeDatum>) {
         const isVertical = this.isVertical();
         const { from, to } = prepareCandlestickFromTo(isVertical);
-        motion.resetMotion(datumSelections, resetCandlestickSelectionsScalingStartFn(isVertical));
-        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, from, to, {
+        motion.resetMotion([datumSelection], resetCandlestickSelectionsScalingStartFn(isVertical));
+        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
             phase: 'initial',
         });
     }

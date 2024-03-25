@@ -231,8 +231,7 @@ describe('CartesianChart', () => {
             );
             if (seriesImpl == null) fail('No seriesImpl found');
 
-            const nodeDataArray: SeriesNodeDataContext<any, any>[] = seriesImpl['contextNodeData'];
-            const nodeData = nodeDataArray.find((n) => n.itemId === yKey);
+            const nodeData: SeriesNodeDataContext<any, any> = seriesImpl['contextNodeData']!;
 
             const highlightManager = (chart as any).highlightManager;
 

@@ -96,7 +96,7 @@ describe('MapLineSeries', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as MapLineSeries;
-            const node = seriesImpl['contextNodeData'][0].nodeData[i];
+            const node = seriesImpl['contextNodeData'].nodeData[i];
 
             const highlightManager = (chart as any).highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
@@ -217,7 +217,7 @@ describe('MapLineSeries', () => {
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
             );
-            expect(onNodeClick).toBeCalledTimes(nodeCount);
+            expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
         };
 
         it(`should render tooltip correctly`, async () => {
@@ -293,7 +293,7 @@ describe('MapLineSeries', () => {
                 data: SIMPLIFIED_EXAMPLE.data,
                 topology: SIMPLIFIED_EXAMPLE.topology,
             },
-            getNodeData: (series) => series.contextNodeData[0].nodeData,
+            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getNodePoint: (item) => {
                 const { x, y } = item.series.datumMidPoint(item);
                 return [x, y];

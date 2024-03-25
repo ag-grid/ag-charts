@@ -45,13 +45,13 @@ describe('BulletSeries', () => {
     describe('rendering', () => {
         const getTooltipHtml = (): string => {
             const series = (chart as any)['series'][0];
-            const datum = (chart as any)['series'][0].contextNodeData[0].nodeData[0];
+            const datum = (chart as any)['series'][0].contextNodeData?.nodeData[0];
             return series.getTooltipHtml(datum);
         };
 
         const hoverOnBullet = async () => {
             const series = chart['series'][0];
-            const item = series['contextNodeData'][0].nodeData[0];
+            const item = series['contextNodeData'].nodeData[0];
             const { x, y } = series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
             await hoverAction(x, y)(chart);
         };

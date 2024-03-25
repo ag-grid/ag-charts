@@ -151,7 +151,7 @@ describe('LineSeries', () => {
                 });
                 if (warnings.length === 0) {
                     // eslint-disable-next-line no-console
-                    expect(console.warn).not.toBeCalled();
+                    expect(console.warn).not.toHaveBeenCalled();
                 }
             }
         );
