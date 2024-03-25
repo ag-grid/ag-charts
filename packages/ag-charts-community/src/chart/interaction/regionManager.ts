@@ -1,7 +1,5 @@
-import type { BBoxProvider } from '../../util/bboxset';
-import { BBoxSet } from '../../util/bboxset';
+import type { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
-import { Logger } from '../../util/logger';
 import type {
     PointerInteractionEvent as InteractionEvent,
     InteractionManager,
@@ -15,8 +13,13 @@ type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
 class RegionListeners extends Listeners<InteractionTypes, RegionHandler<InteractionEvent<InteractionTypes>>> {}
 
+interface BBoxProvider {
+    getCachedBBox(): BBox;
+}
+
 type Region = {
     name: RegionName;
+    bboxproviders: BBoxProvider[]
     listeners: RegionListeners;
 };
 
@@ -26,7 +29,7 @@ export class RegionManager {
     private leftCanvas = false;
 
     private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
-    private regions: BBoxSet<Region> = new BBoxSet();
+    private regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(private readonly interactionManager: InteractionManager) {
@@ -41,15 +44,15 @@ export class RegionManager {
         this.destroyFns.forEach((fn) => fn());
 
         this.currentRegion = undefined;
-        for (const region of this.regions.keys()) {
+        for (const region of this.regions.values()) {
             region.listeners.destroy();
         }
         this.regions.clear();
     }
 
     private pushRegion(name: RegionName, bboxproviders: BBoxProvider[]): Region {
-        const region = { name, listeners: new RegionListeners() };
-        this.regions.add(region, bboxproviders);
+        const region = { name, listeners: new RegionListeners(), bboxproviders };
+        this.regions.set(name, region );
         return region;
     }
 
@@ -58,16 +61,23 @@ export class RegionManager {
     }
 
     public getRegion(name: RegionName) {
-        return this.makeObserver(this.findByName(name));
+        return this.makeObserver(this.regions.get(name));
     }
 
-    private findByName(name: RegionName): Region | undefined {
-        for (const region of this.regions.keys()) {
-            if (region.name === name) {
-                return region;
+    private find(x: number, y: number): Region[] {
+        // Sort matches by area.
+        // This ensure that we prioritise smaller regions are contained inside larger regions.
+        type Area = number;
+        const matches: [Region, Area][] = [];
+        for (const [_name, region] of this.regions.entries()) {
+            for (const provider of region.bboxproviders) {
+                const bbox = provider.getCachedBBox();
+                if (bbox.containsPoint(x, y)) {
+                    matches.push([region, bbox.width * bbox.height]);
+                }
             }
         }
-        Logger.errorOnce(`unable '${name}' region found`);
+        return matches.sort((a, b) => a[1] - b[1]).map((m) => m[0]);
     }
 
     // This method return a wrapper object that matches the interface of InteractionManager.addListener.
@@ -174,7 +184,7 @@ export class RegionManager {
     }
 
     private pickRegion(x: number, y: number): Region | undefined {
-        const matchingRegions = this.regions.find(x, y);
+        const matchingRegions = this.find(x, y);
         return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
     }
 }
