@@ -254,7 +254,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.endAngle = angleDatum.end + angleOffset;
             sector.inset = baseInset + strokeWidth * 0.5;
             sector.cornerRadius = cornerRadius;
-            sector.scaleCornerRadiiIndependently = true;
         };
 
         this.groupSelection.selectByClass(Sector).forEach((sector) => {

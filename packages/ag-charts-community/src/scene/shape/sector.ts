@@ -146,9 +146,6 @@ export class Sector extends Path {
     @ScenePathChangeDetection()
     endInnerCornerRadius: number = 0;
 
-    @ScenePathChangeDetection()
-    scaleCornerRadiiIndependently: boolean = false;
-
     set inset(value: number) {
         this.concentricEdgeInset = value;
         this.radialEdgeInset = value;
@@ -229,16 +226,7 @@ export class Sector extends Path {
     }
 
     override updatePath(): void {
-        const {
-            path,
-            startAngle,
-            endAngle,
-            clipStartAngle,
-            clipEndAngle,
-            concentricEdgeInset,
-            radialEdgeInset,
-            scaleCornerRadiiIndependently,
-        } = this;
+        const { path, startAngle, endAngle, clipStartAngle, clipEndAngle, concentricEdgeInset, radialEdgeInset } = this;
         let { startOuterCornerRadius, endOuterCornerRadius, startInnerCornerRadius, endInnerCornerRadius } = this;
         const sweep = startAngle <= endAngle ? endAngle - startAngle : Math.PI * 2 - (startAngle - endAngle);
         const innerRadius = Math.max(Math.min(this.innerRadius, this.outerRadius) + concentricEdgeInset, 0);
@@ -278,48 +266,57 @@ export class Sector extends Path {
 
         const innerAngleExceeded = innerRadius <= concentricEdgeInset || sweep < 2 * innerAngleOffset;
 
+        // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
+        // First, scale everything down so every corner radius individually fits within the sector's radial range
+        const radialLength = outerRadius - innerRadius;
+        const maxRadialLength = Math.max(
+            startOuterCornerRadius,
+            startInnerCornerRadius,
+            endOuterCornerRadius,
+            endInnerCornerRadius
+        );
+        const initialScalingFactor = Math.min(radialLength / maxRadialLength, 1);
+        startOuterCornerRadius *= initialScalingFactor;
+        endOuterCornerRadius *= initialScalingFactor;
+        startInnerCornerRadius *= initialScalingFactor;
+        endInnerCornerRadius *= initialScalingFactor;
+
+        // Then scale the both outer corner radii so they both fit within the sector's sweep when placed together
         const outerScalingFactor = radiiScalingFactor(
             outerRadius,
             sweep - 2 * outerAngleOffset,
             -startOuterCornerRadius,
             -endOuterCornerRadius
         );
+        startOuterCornerRadius *= outerScalingFactor;
+        endOuterCornerRadius *= outerScalingFactor;
 
-        let innerScalingFactor = 1;
         if (!innerAngleExceeded && innerRadius > 0) {
-            innerScalingFactor = radiiScalingFactor(
+            // ... then the inner corner radii
+            const innerScalingFactor = radiiScalingFactor(
                 innerRadius,
                 sweep - 2 * innerAngleOffset,
                 startInnerCornerRadius,
                 endInnerCornerRadius
             );
+            startInnerCornerRadius *= innerScalingFactor;
+            endInnerCornerRadius *= innerScalingFactor;
         } else {
             startInnerCornerRadius = 0;
             endInnerCornerRadius = 0;
         }
 
-        if (scaleCornerRadiiIndependently) {
-            startOuterCornerRadius *= outerScalingFactor;
-            endOuterCornerRadius *= outerScalingFactor;
-            startInnerCornerRadius *= innerScalingFactor;
-            endInnerCornerRadius *= innerScalingFactor;
-        }
-
-        const radialLength = outerRadius - innerRadius;
-        const maxRadialRadiusLength = Math.max(
+        // Finally, scale the corner radii so they fit with in the sector's radial range when placed together
+        const maxCombinedRadialLength = Math.max(
             startOuterCornerRadius + startInnerCornerRadius,
             endOuterCornerRadius + endInnerCornerRadius
         );
-        const edgesScalingFactor = Math.min(radialLength / maxRadialRadiusLength, 1);
+        const edgesScalingFactor = Math.min(radialLength / maxCombinedRadialLength, 1);
 
-        const scalingFactor = scaleCornerRadiiIndependently
-            ? edgesScalingFactor
-            : Math.min(outerScalingFactor, innerScalingFactor, edgesScalingFactor);
-
-        startOuterCornerRadius *= scalingFactor;
-        endOuterCornerRadius *= scalingFactor;
-        startInnerCornerRadius *= scalingFactor;
-        endInnerCornerRadius *= scalingFactor;
+        startOuterCornerRadius *= edgesScalingFactor;
+        endOuterCornerRadius *= edgesScalingFactor;
+        startInnerCornerRadius *= edgesScalingFactor;
+        endInnerCornerRadius *= edgesScalingFactor;
 
         let startOuterCornerRadiusAngleSweep = 0;
         let endOuterCornerRadiusAngleSweep = 0;

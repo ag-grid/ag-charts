@@ -168,9 +168,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     protected override nodeFactory(): Sector {
-        const sector = new Sector();
-        sector.scaleCornerRadiiIndependently = true;
-        return sector;
+        return new Sector();
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
