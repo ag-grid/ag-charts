@@ -1,4 +1,3 @@
-import type { BBoxProvider } from '../util/bboxset';
 import { createId } from '../util/id';
 import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
@@ -44,7 +43,7 @@ export type ChildNodeCounts = {
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node extends ChangeDetectable implements BBoxProvider {
+export abstract class Node extends ChangeDetectable {
     static _nextSerialNumber = 0;
 
     /** Unique number to allow creation order to be easily determined. */
