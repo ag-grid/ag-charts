@@ -360,7 +360,8 @@ export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string |
         result = transformIntegratedCategoryValue(keys);
     }
 
-    if (extraKeys.length > 0) {
+    const primitiveType = typeof result === 'string' || typeof result === 'number' || result instanceof Date;
+    if (primitiveType && extraKeys.length > 0) {
         result += `___${extraKeys.join('___')}`;
     }
 
