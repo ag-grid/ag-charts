@@ -5,8 +5,7 @@ import type { Point } from '../../../scene/point';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Logger } from '../../../util/logger';
 import type { SeriesNodePickMatch } from '../series';
-// TODO(olegat) is this import needed?
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { SeriesNodeDatum } from '../seriesTypes';
 
 export type QuadtreeCompatibleNode = Node & DistantObject & { readonly midPoint: { x: number; y: number } };
 
@@ -16,7 +15,7 @@ export function* childrenIter<TNode extends Node = Node>(parent: Node): Iterable
     }
 }
 
-export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TDatum extends CartesianSeriesNodeDatum>(
+export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TDatum extends SeriesNodeDatum>(
     quadtree: QuadtreeNearest<TDatum>,
     hitTesters: Iterable<TNode>
 ) {
@@ -30,12 +29,12 @@ export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TD
     }
 }
 
-type SeriesWithQuadtreeNearest<TDatum extends CartesianSeriesNodeDatum> = {
+type SeriesWithQuadtreeNearest<TDatum extends SeriesNodeDatum> = {
     readonly contentGroup: Group;
     getQuadTree(): QuadtreeNearest<TDatum>;
 };
 
-export function findQuadtreeMatch<TDatum extends CartesianSeriesNodeDatum>(
+export function findQuadtreeMatch<TDatum extends SeriesNodeDatum>(
     series: SeriesWithQuadtreeNearest<TDatum>,
     point: Point
 ): SeriesNodePickMatch | undefined {
