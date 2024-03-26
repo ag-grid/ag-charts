@@ -10,7 +10,6 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
 
     identifier: 'donut',
     instanceConstructor: DonutSeries,
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: pieTheme,
     paletteFactory: piePaletteFactory,
 };

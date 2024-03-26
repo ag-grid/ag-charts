@@ -26,7 +26,6 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             position: POSITION.LEFT,
         },
     ],
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
