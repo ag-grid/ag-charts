@@ -84,7 +84,7 @@ export class DataController {
         const needsValueExtraction = this.hasMultipleDataSources(valid);
         for (const { opts, data, resolves, rejects, ids } of merged) {
             try {
-                const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
+                const dataModel = new DataModel<any>(opts, this.mode);
                 const processedData = dataModel.processData(data, valid);
 
                 if (this.debug.check()) {

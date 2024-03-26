@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { DataController } from './dataController';
 import type { DataModelOptions } from './dataModel';
 
-describe.skip('DataController', () => {
+describe('DataController', () => {
     let controller: DataController;
     let data: Record<string, number>[];
 
@@ -139,7 +139,6 @@ describe.skip('DataController', () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
-                    scopes: ['test1'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
@@ -147,7 +146,6 @@ describe.skip('DataController', () => {
                     validation,
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp1-key',
                     property: 'valueProp1',
                     type: 'value',
@@ -155,7 +153,6 @@ describe.skip('DataController', () => {
                     validation,
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp2-key',
                     property: 'valueProp2',
                     type: 'value',
@@ -168,7 +165,6 @@ describe.skip('DataController', () => {
         const promise2 = controller.request('test2', data, {
             props: [
                 {
-                    scopes: ['test2'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
@@ -176,7 +172,6 @@ describe.skip('DataController', () => {
                     validation,
                 },
                 {
-                    scopes: ['test2'],
                     id: 'valueProp1-key',
                     property: 'valueProp2',
                     type: 'value',
@@ -184,7 +179,6 @@ describe.skip('DataController', () => {
                     validation,
                 },
                 {
-                    scopes: ['test2'],
                     id: 'valueProp2-key',
                     property: 'valueProp1',
                     type: 'value',
@@ -249,7 +243,6 @@ describe.skip('DataController', () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
-                    scopes: ['test1'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
@@ -257,7 +250,6 @@ describe.skip('DataController', () => {
                     validation,
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp1-key',
                     property: 'valueProp1',
                     type: 'value',
@@ -286,10 +278,9 @@ describe.skip('DataController', () => {
                 { keyProp1: '2022', valueProp1: 60 },
             ];
 
-            const def: DataModelOptions<'keyProp1' | 'valueProp1', any> = {
+            const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1', 'test2'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
@@ -297,7 +288,6 @@ describe.skip('DataController', () => {
                         validation,
                     },
                     {
-                        scopes: ['test1', 'test2'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
@@ -305,10 +295,26 @@ describe.skip('DataController', () => {
                         validation,
                     },
                 ],
-            };
+            });
 
-            const promise1 = controller.request('test1', data1, def);
-            const promise2 = controller.request('test2', data2, def);
+            const promise2 = controller.request('test2', data2, {
+                props: [
+                    {
+                        id: 'keyProp1-key',
+                        property: 'keyProp1',
+                        type: 'key',
+                        valueType: 'category',
+                        validation,
+                    },
+                    {
+                        id: 'valueProp1-key',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'range',
+                        validation,
+                    },
+                ],
+            });
 
             await controller.execute();
             const results = await Promise.all([promise1, promise2]);
@@ -336,7 +342,6 @@ describe.skip('DataController', () => {
             const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
@@ -344,7 +349,6 @@ describe.skip('DataController', () => {
                         validation,
                     },
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
@@ -357,7 +361,6 @@ describe.skip('DataController', () => {
             const promise2 = controller.request('test2', data2, {
                 props: [
                     {
-                        scopes: ['test2'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
@@ -365,7 +368,6 @@ describe.skip('DataController', () => {
                         validation,
                     },
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
@@ -392,7 +394,6 @@ describe.skip('DataController', () => {
             const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key1',
                         property: 'valueProp1',
                         type: 'value',
@@ -400,7 +401,6 @@ describe.skip('DataController', () => {
                         validation,
                     },
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key2',
                         property: 'valueProp1',
                         type: 'value',
@@ -415,7 +415,6 @@ describe.skip('DataController', () => {
             const promise2 = controller.request('test2', data2, {
                 props: [
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key1',
                         property: 'valueProp1',
                         type: 'value',
@@ -423,7 +422,6 @@ describe.skip('DataController', () => {
                         validation,
                     },
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key2',
                         property: 'valueProp1',
                         type: 'value',
@@ -464,14 +462,12 @@ describe.skip('DataController', () => {
                 groupByKeys: true,
                 props: [
                     {
-                        scopes: ['test1'],
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
                         validation,
                     },
                     {
-                        scopes: ['test1'],
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',

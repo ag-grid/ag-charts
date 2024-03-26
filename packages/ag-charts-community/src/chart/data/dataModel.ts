@@ -260,24 +260,22 @@ export class DataModel<
     private readonly debug = Debug.create(true, 'data-model');
     private readonly scopeCache: Map<string, Map<string, PropertyDefinition<any> & InternalDefinition>> = new Map();
 
-    private readonly opts: DataModelOptions<K, Grouped>;
-    private readonly keys: InternalDatumPropertyDefinition<K>[];
-    private readonly values: InternalDatumPropertyDefinition<K>[];
-    private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition)[];
-    private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition)[];
-    private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition)[];
-    private readonly reducers: (ReducerOutputPropertyDefinition & InternalDefinition)[];
-    private readonly processors: (ProcessorOutputPropertyDefinition & InternalDefinition)[];
-    private readonly mode: ChartMode;
+    private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
+    private readonly values: InternalDatumPropertyDefinition<K>[] = [];
+    private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition)[] = [];
+    private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition)[] = [];
+    private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition)[] = [];
+    private readonly reducers: (ReducerOutputPropertyDefinition & InternalDefinition)[] = [];
+    private readonly processors: (ProcessorOutputPropertyDefinition & InternalDefinition)[] = [];
 
-    public constructor(opts: DataModelOptions<K, Grouped>) {
-        const { props, mode = 'standalone' } = opts;
-        this.mode = mode;
-
+    public constructor(
+        private readonly opts: DataModelOptions<K, Grouped>,
+        private readonly mode: ChartMode = 'standalone'
+    ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.
         let keys = true;
-        for (const next of props) {
+        for (const next of opts.props) {
             if (next.type === 'key' && !keys) {
                 throw new Error('AG Charts - internal config error: keys must come before values.');
             }
@@ -285,15 +283,6 @@ export class DataModel<
                 keys = false;
             }
         }
-
-        this.opts = opts;
-        this.keys = [];
-        this.values = [];
-        this.aggregates = [];
-        this.groupProcessors = [];
-        this.propertyProcessors = [];
-        this.reducers = [];
-        this.processors = [];
 
         const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
             for (const matchGroupId of matchGroupIds) {
@@ -305,7 +294,7 @@ export class DataModel<
             }
         };
 
-        for (const def of props) {
+        for (const def of opts.props) {
             switch (def.type) {
                 case 'key':
                     this.keys.push({ ...def, index: this.keys.length, missing: new Map() });
@@ -506,7 +495,7 @@ export class DataModel<
 
         const result = this.values.findIndex((def) => {
             const validDefScopes =
-                def.idsMap == null || (noScopesToMatch && !def.idsMap?.size) || hasIntersection(scopes, def.idsMap);
+                def.scopes == null || (noScopesToMatch && !def.scopes.size) || hasIntersection(scopes, def.scopes);
 
             return validDefScopes && (def.property === propId || def.id === propId || hasMatchingScopeId(def));
         });
@@ -523,14 +512,12 @@ export class DataModel<
     }
 
     private extractData(data: D[], sources?: { id: string; data: D[] }[]): UngroupedData<D> {
-        const { keys: keyDefs, values: valueDefs } = this;
-
         const { dataDomain, processValue, scopes, allScopesHaveSameDefs } = this.initDataDomainProcessor();
-
+        const sourcesById = new Map(sources?.map((s) => [s.id, s]));
+        const { keys: keyDefs, values: valueDefs } = this;
         const resultData = new Array(data.length);
 
         let partialValidDataCount = 0;
-
         let resultDataIdx = 0;
 
         for (const [datumIdx, datum] of data.entries()) {
@@ -552,24 +539,19 @@ export class DataModel<
             const values = valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
             let value;
 
-            const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
-            for (const source of sources ?? []) {
-                sourcesById[source.id] = source;
-            }
-
             for (const [valueDefIdx, def] of valueDefs.entries()) {
                 for (const scope of def.scopes ?? scopes) {
-                    const source = sourcesById[scope];
+                    const source = sourcesById.get(scope);
                     const valueDatum = source?.data[datumIdx] ?? datum;
 
                     value = processValue(def, valueDatum, value, scope);
 
                     if (value === INVALID_VALUE || !values) continue;
 
-                    if (source !== undefined && def.includeProperty !== false) {
+                    if (source != null && def.includeProperty !== false) {
                         const property = def.includeProperty && def.id != null ? def.id : def.property;
-                        sourceDatums[source.id] ??= {};
-                        sourceDatums[source.id][property] = value;
+                        sourceDatums[scope] ??= {};
+                        sourceDatums[scope][property] = value;
                     }
 
                     values[valueDefIdx] = value;
@@ -587,11 +569,7 @@ export class DataModel<
             if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
             if (validScopes?.size === 0) continue;
 
-            const result: UngroupedDataItem<D, any> = {
-                datum: { ...datum, ...sourceDatums },
-                keys: keys!,
-                values,
-            };
+            const result: UngroupedDataItem<D, any> = { datum: { ...datum, ...sourceDatums }, keys, values };
 
             if (!allScopesHaveSameDefs && validScopes && validScopes.size < scopes.size) {
                 partialValidDataCount++;
