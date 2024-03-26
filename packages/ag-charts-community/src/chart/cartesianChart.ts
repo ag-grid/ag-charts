@@ -72,6 +72,11 @@ export class CartesianChart extends Chart {
 
         this.hoverRect = seriesPaddedRect;
 
+        const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
+        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
             chart: { width: this.scene.width, height: this.scene.height },
