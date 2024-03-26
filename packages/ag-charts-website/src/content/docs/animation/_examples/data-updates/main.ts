@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
@@ -10,64 +10,6 @@ let length = 8;
 let seed = 1234;
 
 let interval: any;
-
-const options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
-    animation: {
-        enabled: true,
-    },
-    data: getGeneratedData(),
-    series: [
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'one',
-            yName: 'One',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'two',
-            yName: 'Two',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'three',
-            yName: 'Three',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'four',
-            yName: 'Four',
-            stacked: true,
-        },
-        {
-            type: 'bar',
-            xKey: 'year',
-            yKey: 'five',
-            yName: 'Five',
-            stacked: true,
-        },
-    ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'category',
-            position: 'bottom',
-            label: {
-                autoRotate: false,
-            },
-        },
-    ],
-};
 
 const barOptions: AgCartesianChartOptions = {
     series: [
@@ -122,7 +64,7 @@ const barOptions: AgCartesianChartOptions = {
     ],
 };
 
-const lineOptions: AgChartOptions = {
+const lineOptions: AgCartesianChartOptions = {
     series: [
         {
             type: 'line',
@@ -171,7 +113,7 @@ const lineOptions: AgChartOptions = {
     ],
 };
 
-const areaOptions: AgChartOptions = {
+const areaOptions: AgCartesianChartOptions = {
     series: [
         {
             type: 'area',
@@ -225,7 +167,7 @@ const areaOptions: AgChartOptions = {
     ],
 };
 
-const donutOptions: AgChartOptions = {
+const donutOptions: AgPolarChartOptions = {
     series: [
         {
             type: 'pie',
@@ -251,6 +193,15 @@ const donutOptions: AgChartOptions = {
     ],
 };
 
+let options: AgCartesianChartOptions | AgPolarChartOptions = {
+    container: document.getElementById('myChart'),
+    animation: {
+        enabled: true,
+    },
+    data: getGeneratedData(),
+    ...barOptions,
+};
+
 // Create chart
 const chart = AgCharts.create(options);
 
@@ -268,7 +219,11 @@ function changeSeriesBar() {
     length = 8;
     seed = 1234;
 
-    AgCharts.updateDelta(chart, { ...barOptions, data: getGeneratedData() });
+    options.series = barOptions.series;
+    options.axes = barOptions.axes;
+    options.data = getGeneratedData();
+
+    AgCharts.update(chart, options);
 }
 
 function changeSeriesLine() {
@@ -277,7 +232,11 @@ function changeSeriesLine() {
     length = 30;
     seed = 1234;
 
-    AgCharts.updateDelta(chart, { ...lineOptions, data: getGeneratedData() });
+    options.series = lineOptions.series;
+    options.axes = lineOptions.axes;
+    options.data = getGeneratedData();
+
+    AgCharts.update(chart, options);
 }
 
 function changeSeriesArea() {
@@ -286,7 +245,11 @@ function changeSeriesArea() {
     length = 30;
     seed = 1234;
 
-    AgCharts.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
+    options.series = areaOptions.series;
+    options.axes = areaOptions.axes;
+    options.data = getGeneratedData();
+
+    AgCharts.update(chart, options);
 }
 
 function changeSeriesDonut() {
@@ -295,7 +258,11 @@ function changeSeriesDonut() {
     length = 6;
     seed = 1234;
 
-    AgCharts.updateDelta(chart, { ...donutOptions, data: getGeneratedData() });
+    options.series = donutOptions.series;
+    options.axes = donutOptions.axes;
+    options.data = getGeneratedData();
+
+    AgCharts.update(chart, options);
 }
 
 function toggleTickingUpdates() {
@@ -325,10 +292,12 @@ function toggleTickingUpdates() {
 
     if (!interval) {
         offset++;
-        AgCharts.updateDelta(chart, { data: getGeneratedData() });
+        options.data = getGeneratedData();
+        AgCharts.update(chart, options);
         interval = setInterval(() => {
             offset++;
-            AgCharts.updateDelta(chart, { data: getGeneratedData() });
+            options.data = getGeneratedData();
+            AgCharts.update(chart, options);
         }, 2000);
     } else {
         clearInterval(interval);
@@ -339,23 +308,27 @@ function toggleTickingUpdates() {
 function add() {
     offset++;
     length++;
-    AgCharts.updateDelta(chart, { data: getGeneratedData() });
+    options.data = getGeneratedData();
+    AgCharts.update(chart, options);
 }
 
 function remove() {
     length = Math.max(0, length - 1);
-    AgCharts.updateDelta(chart, { data: getGeneratedData() });
+    options.data = getGeneratedData();
+    AgCharts.update(chart, options);
 }
 
 function update() {
     seed = Math.floor(random() * 1000);
-    AgCharts.updateDelta(chart, { data: getGeneratedData() });
+    options.data = getGeneratedData();
+    AgCharts.update(chart, options);
 }
 
 function addRemoveUpdate() {
     offset++;
     seed = Math.floor(random() * 1000);
-    AgCharts.updateDelta(chart, { data: getGeneratedData() });
+    options.data = getGeneratedData();
+    AgCharts.update(chart, options);
 }
 
 function getGeneratedData() {
