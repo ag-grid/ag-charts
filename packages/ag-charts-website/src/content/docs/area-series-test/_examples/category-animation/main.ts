@@ -104,13 +104,11 @@ function reorder() {
 }
 
 function rapidUpdate() {
-    AgCharts.updateDelta(chart, {
-        data: [...data, { quarter: 'week 12', iphone: 78 }],
-    });
+    options.data = [...data, { quarter: 'week 12', iphone: 78 }];
+    AgCharts.update(chart, options);
 
     (chart as any).chart.waitForUpdate().then(() => {
-        AgCharts.updateDelta(chart, {
-            data: [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
-        });
+        options.data = [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }];
+        AgCharts.update(chart, options);
     });
 }

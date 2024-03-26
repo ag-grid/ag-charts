@@ -27,5 +27,5 @@ function toggleConnectMissingData() {
         ...series,
         connectMissingData: !series.connectMissingData,
     }));
-    AgCharts.updateDelta(chart, options);
+    AgCharts.update(chart, options);
 }

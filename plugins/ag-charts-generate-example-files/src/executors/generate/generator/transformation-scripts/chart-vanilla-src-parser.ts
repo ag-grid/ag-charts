@@ -33,15 +33,6 @@ import {
 
 const chartVariableName = 'chart';
 const optionsVariableName = 'options';
-const REMOVE_ME = [
-    optionsVariableName,
-    'chartOptions1',
-    'chartOptions2',
-    'chartOptions3',
-    'chartOptions4',
-    'chartOptions5',
-];
-const PROPERTIES = REMOVE_ME;
 
 function tsGenerateWithOptionReferences(node, srcFile) {
     return tsGenerate(node, srcFile).replace(new RegExp(`AgCharts\\.update\\(chart, options\\);?`, 'g'), '');
