@@ -10,22 +10,20 @@ export function getData() {
                     canvasCount: 95,
                     canvasBytes: 182400000,
                 },
-                'integrated charts large scale benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 5046.263957999996,
-                        memoryUsage: 373780840,
-                        heapUsed: 193300840,
-                        canvasCount: 94,
-                        canvasBytes: 180480000,
-                    },
-                'integrated charts large scale benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 9955.955917,
-                        memoryUsage: 399326944,
-                        heapUsed: 218846944,
-                        canvasCount: 94,
-                        canvasBytes: 180480000,
-                    },
+                'integrated charts large scale benchmark after load 1x legend toggle': {
+                    timeMs: 5046.263957999996,
+                    memoryUsage: 373780840,
+                    heapUsed: 193300840,
+                    canvasCount: 94,
+                    canvasBytes: 180480000,
+                },
+                'integrated charts large scale benchmark after load 4x legend toggle': {
+                    timeMs: 9955.955917,
+                    memoryUsage: 399326944,
+                    heapUsed: 218846944,
+                    canvasCount: 94,
+                    canvasBytes: 180480000,
+                },
                 'large-dataset benchmark initial load': {
                     timeMs: 11638.458666,
                     memoryUsage: 457108296,
@@ -61,22 +59,20 @@ export function getData() {
                     canvasCount: 98,
                     canvasBytes: 188160000,
                 },
-                'large-scale multi-series benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 2378.330084000001,
-                        memoryUsage: 367667360,
-                        heapUsed: 181427360,
-                        canvasCount: 97,
-                        canvasBytes: 186240000,
-                    },
-                'large-scale multi-series benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 4509.900417000012,
-                        memoryUsage: 366130488,
-                        heapUsed: 179890488,
-                        canvasCount: 97,
-                        canvasBytes: 186240000,
-                    },
+                'large-scale multi-series benchmark after load 1x legend toggle': {
+                    timeMs: 2378.330084000001,
+                    memoryUsage: 367667360,
+                    heapUsed: 181427360,
+                    canvasCount: 97,
+                    canvasBytes: 186240000,
+                },
+                'large-scale multi-series benchmark after load 4x legend toggle': {
+                    timeMs: 4509.900417000012,
+                    memoryUsage: 366130488,
+                    heapUsed: 179890488,
+                    canvasCount: 97,
+                    canvasBytes: 186240000,
+                },
                 'multi-series benchmark initial load': {
                     timeMs: 299.14762500000006,
                     memoryUsage: 349979896,
@@ -124,22 +120,20 @@ export function getData() {
                     canvasCount: 95,
                     canvasBytes: 182400000,
                 },
-                'integrated charts large scale benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 3938.4565830000065,
-                        memoryUsage: 429345168,
-                        heapUsed: 248865168,
-                        canvasCount: 94,
-                        canvasBytes: 180480000,
-                    },
-                'integrated charts large scale benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 7728.3658330000035,
-                        memoryUsage: 430195624,
-                        heapUsed: 249715624,
-                        canvasCount: 94,
-                        canvasBytes: 180480000,
-                    },
+                'integrated charts large scale benchmark after load 1x legend toggle': {
+                    timeMs: 3938.4565830000065,
+                    memoryUsage: 429345168,
+                    heapUsed: 248865168,
+                    canvasCount: 94,
+                    canvasBytes: 180480000,
+                },
+                'integrated charts large scale benchmark after load 4x legend toggle': {
+                    timeMs: 7728.3658330000035,
+                    memoryUsage: 430195624,
+                    heapUsed: 249715624,
+                    canvasCount: 94,
+                    canvasBytes: 180480000,
+                },
                 'large-dataset benchmark initial load': {
                     timeMs: 14498.520292,
                     memoryUsage: 562694520,
@@ -175,22 +169,20 @@ export function getData() {
                     canvasCount: 98,
                     canvasBytes: 188160000,
                 },
-                'large-scale multi-series benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 4776.443750000006,
-                        memoryUsage: 878710528,
-                        heapUsed: 692470528,
-                        canvasCount: 97,
-                        canvasBytes: 186240000,
-                    },
-                'large-scale multi-series benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 9373.128457999992,
-                        memoryUsage: 879201808,
-                        heapUsed: 692961808,
-                        canvasCount: 97,
-                        canvasBytes: 186240000,
-                    },
+                'large-scale multi-series benchmark after load 1x legend toggle': {
+                    timeMs: 4776.443750000006,
+                    memoryUsage: 878710528,
+                    heapUsed: 692470528,
+                    canvasCount: 97,
+                    canvasBytes: 186240000,
+                },
+                'large-scale multi-series benchmark after load 4x legend toggle': {
+                    timeMs: 9373.128457999992,
+                    memoryUsage: 879201808,
+                    heapUsed: 692961808,
+                    canvasCount: 97,
+                    canvasBytes: 186240000,
+                },
                 'multi-series benchmark initial load': {
                     timeMs: 355.01479199999994,
                     memoryUsage: 361376496,
@@ -238,22 +230,20 @@ export function getData() {
                     canvasCount: null,
                     canvasBytes: null,
                 },
-                'integrated charts large scale benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 3993.6704580000005,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
-                'integrated charts large scale benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 7827.721082999997,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
+                'integrated charts large scale benchmark after load 1x legend toggle': {
+                    timeMs: 3993.6704580000005,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
+                'integrated charts large scale benchmark after load 4x legend toggle': {
+                    timeMs: 7827.721082999997,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
                 'large-dataset benchmark initial load': {
                     timeMs: 5717.776209,
                     memoryUsage: null,
@@ -289,22 +279,20 @@ export function getData() {
                     canvasCount: null,
                     canvasBytes: null,
                 },
-                'large-scale multi-series benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 4915.352249999996,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
-                'large-scale multi-series benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 9965.012042000002,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
+                'large-scale multi-series benchmark after load 1x legend toggle': {
+                    timeMs: 4915.352249999996,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
+                'large-scale multi-series benchmark after load 4x legend toggle': {
+                    timeMs: 9965.012042000002,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
                 'multi-series benchmark initial load': {
                     timeMs: 301.0687919999982,
                     memoryUsage: null,
@@ -352,22 +340,20 @@ export function getData() {
                     canvasCount: null,
                     canvasBytes: null,
                 },
-                'integrated charts large scale benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 803.2157499999958,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
-                'integrated charts large scale benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 1521.2451250000013,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
+                'integrated charts large scale benchmark after load 1x legend toggle': {
+                    timeMs: 803.2157499999958,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
+                'integrated charts large scale benchmark after load 4x legend toggle': {
+                    timeMs: 1521.2451250000013,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
                 'large-dataset benchmark initial load': {
                     timeMs: 6129.582125,
                     memoryUsage: null,
@@ -403,22 +389,20 @@ export function getData() {
                     canvasCount: null,
                     canvasBytes: null,
                 },
-                'large-scale multi-series benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 1051.3568749999977,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
-                'large-scale multi-series benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 1905.2287090000027,
-                        memoryUsage: null,
-                        heapUsed: null,
-                        canvasCount: null,
-                        canvasBytes: null,
-                    },
+                'large-scale multi-series benchmark after load 1x legend toggle': {
+                    timeMs: 1051.3568749999977,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
+                'large-scale multi-series benchmark after load 4x legend toggle': {
+                    timeMs: 1905.2287090000027,
+                    memoryUsage: null,
+                    heapUsed: null,
+                    canvasCount: null,
+                    canvasBytes: null,
+                },
                 'multi-series benchmark initial load': {
                     timeMs: 233.93770799999766,
                     memoryUsage: null,
@@ -466,22 +450,20 @@ export function getData() {
                     canvasCount: 36,
                     canvasBytes: 69120000,
                 },
-                'integrated charts large scale benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 661.5836659999986,
-                        memoryUsage: 246144640,
-                        heapUsed: 178944640,
-                        canvasCount: 35,
-                        canvasBytes: 67200000,
-                    },
-                'integrated charts large scale benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 1264.3652500000026,
-                        memoryUsage: 246701296,
-                        heapUsed: 179501296,
-                        canvasCount: 35,
-                        canvasBytes: 67200000,
-                    },
+                'integrated charts large scale benchmark after load 1x legend toggle': {
+                    timeMs: 661.5836659999986,
+                    memoryUsage: 246144640,
+                    heapUsed: 178944640,
+                    canvasCount: 35,
+                    canvasBytes: 67200000,
+                },
+                'integrated charts large scale benchmark after load 4x legend toggle': {
+                    timeMs: 1264.3652500000026,
+                    memoryUsage: 246701296,
+                    heapUsed: 179501296,
+                    canvasCount: 35,
+                    canvasBytes: 67200000,
+                },
                 'large-dataset benchmark initial load': {
                     timeMs: 5453.005459,
                     memoryUsage: 785691376,
@@ -517,22 +499,20 @@ export function getData() {
                     canvasCount: 37,
                     canvasBytes: 71040000,
                 },
-                'large-scale multi-series benchmark after load 1x legend toggle':
-                    {
-                        timeMs: 831.1107909999992,
-                        memoryUsage: 269655440,
-                        heapUsed: 200535440,
-                        canvasCount: 36,
-                        canvasBytes: 69120000,
-                    },
-                'large-scale multi-series benchmark after load 4x legend toggle':
-                    {
-                        timeMs: 1542.155749999998,
-                        memoryUsage: 256729096,
-                        heapUsed: 187609096,
-                        canvasCount: 36,
-                        canvasBytes: 69120000,
-                    },
+                'large-scale multi-series benchmark after load 1x legend toggle': {
+                    timeMs: 831.1107909999992,
+                    memoryUsage: 269655440,
+                    heapUsed: 200535440,
+                    canvasCount: 36,
+                    canvasBytes: 69120000,
+                },
+                'large-scale multi-series benchmark after load 4x legend toggle': {
+                    timeMs: 1542.155749999998,
+                    memoryUsage: 256729096,
+                    heapUsed: 187609096,
+                    canvasCount: 36,
+                    canvasBytes: 69120000,
+                },
                 'multi-series benchmark initial load': {
                     timeMs: 266.9074169999999,
                     memoryUsage: 237263848,
