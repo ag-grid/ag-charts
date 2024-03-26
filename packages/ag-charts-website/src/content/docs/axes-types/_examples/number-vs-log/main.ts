@@ -31,7 +31,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function useNumberAxis() {
+function setNumberAxis() {
     options.axes = [
         {
             type: 'category',
@@ -49,7 +49,7 @@ function useNumberAxis() {
     AgCharts.update(chart, options);
 }
 
-function useLogAxis() {
+function setLogAxis() {
     options.axes = [
         {
             type: 'category',
@@ -67,7 +67,7 @@ function useLogAxis() {
     AgCharts.update(chart, options);
 }
 
-function useBaseTwoLogAxis() {
+function setBaseTwoLogAxis() {
     options.axes = [
         {
             type: 'category',
@@ -86,7 +86,7 @@ function useBaseTwoLogAxis() {
     AgCharts.update(chart, options);
 }
 
-function useLogAxisWithFewerTicks() {
+function setLogAxisWithFewerTicks() {
     options.axes = [
         {
             type: 'category',

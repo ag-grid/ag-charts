@@ -27,16 +27,16 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function nearest() {
-    if (options.tooltip) options.tooltip.range = 'nearest';
+    options.tooltip = { range: 'nearest' };
     AgCharts.update(chart, options);
 }
 
 function exact() {
-    if (options.tooltip) options.tooltip.range = 'exact';
+    options.tooltip = { range: 'exact' };
     AgCharts.update(chart, options);
 }
 
 function distance() {
-    if (options.tooltip) options.tooltip.range = 10;
+    options.tooltip = { range: 10 };
     AgCharts.update(chart, options);
 }

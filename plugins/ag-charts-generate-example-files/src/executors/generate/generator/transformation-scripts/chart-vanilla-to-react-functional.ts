@@ -6,7 +6,7 @@ import { toTitleCase } from './string-utils';
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const clone = {...options};',
+        'const clone = structuredClone(options);',
         'setOptions(clone);',
         'clone'
     );
