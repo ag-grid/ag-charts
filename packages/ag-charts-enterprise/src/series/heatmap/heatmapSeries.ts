@@ -101,14 +101,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, yKey, isContinuousY, { id: 'yValue' }),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
+                valueProperty(xKey, isContinuousX, { id: 'xValue' }),
+                valueProperty(yKey, isContinuousY, { id: 'yValue' }),
+                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 
         if (this.isColorScaleValid()) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             this.colorScale.domain = processedData.domain.values[colorKeyIdx];
             this.colorScale.range = colorRange;
             this.colorScale.update();
@@ -126,7 +126,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return false;
         }
 
-        const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+        const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
         const dataCount = processedData.data.length;
         const missCount = getMissCount(this, processedData.defs.values[colorDataIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
@@ -176,9 +176,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             label,
         } = this.properties;
 
-        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
+        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -484,9 +484,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 seriesId: this.id,
                 colorName: this.properties.colorName,
                 colorDomain:
-                    this.processedData!.domain.values[
-                        this.dataModel.resolveProcessedDataIndexById(this, 'colorValue').index
-                    ],
+                    this.processedData!.domain.values[this.dataModel.resolveProcessedDataIndexById(this, 'colorValue')],
                 colorRange: this.properties.colorRange,
             },
         ];

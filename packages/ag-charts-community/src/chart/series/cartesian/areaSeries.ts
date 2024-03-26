@@ -21,11 +21,18 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { animationValidation, diff, normaliseGroupTo } from '../../data/processors';
+import {
+    animationValidation,
+    diff,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    normaliseGroupTo,
+    valueProperty,
+} from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
@@ -105,8 +112,8 @@ export class AreaSeries extends CartesianSeries<
 
         const extraProps = [];
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(this, [ids[0], ids[1], ids[4]], normalizedTo, 'range'));
-            extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo));
+            extraProps.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo));
         }
 
         // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
@@ -117,7 +124,7 @@ export class AreaSeries extends CartesianSeries<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
@@ -129,29 +136,29 @@ export class AreaSeries extends CartesianSeries<
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValueRaw`, ...common }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window', 'current', {
+                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                valueProperty(yKey, isContinuousY, { id: `yValueRaw`, ...common }),
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'current', {
                     id: `yValueEnd`,
                     ...common,
                     groupId: ids[0],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window-trailing', 'current', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'current', {
                     id: `yValueStart`,
                     ...common,
                     groupId: ids[1],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window', 'last', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'last', {
                     id: `yValuePreviousEnd`,
                     ...common,
                     groupId: ids[2],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window-trailing', 'last', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'last', {
                     id: `yValuePreviousStart`,
                     ...common,
                     groupId: ids[3],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
                     id: `yValueCumulative`,
                     ...common,
                     groupId: ids[4],

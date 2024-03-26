@@ -101,9 +101,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yKey, totals } = this.properties;
         const { data = [] } = this;
 
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const positiveNumber = (v: any) => {
             return isContinuous(v) && Number(v) >= 0;
@@ -149,37 +147,37 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                accumulativeValueProperty(this, yKey, true, {
+                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrent`,
                 }),
-                accumulativeValueProperty(this, yKey, true, {
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     missingValue: 0,
                     id: `yCurrentTotal`,
                 }),
-                accumulativeValueProperty(this, yKey, true, {
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrentPositive`,
                     validation: positiveNumber,
                 }),
-                accumulativeValueProperty(this, yKey, true, {
+                accumulativeValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrentNegative`,
                     validation: negativeNumber,
                 }),
-                trailingAccumulatedValueProperty(this, yKey, true, {
+                trailingAccumulatedValueProperty(yKey, true, {
                     ...propertyDefinition,
                     id: `yPrevious`,
                 }),
-                valueProperty(this, yKey, true, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty(this, 'totalType', false, {
+                valueProperty(yKey, true, { id: `yRaw` }), // Raw value pass-through.
+                valueProperty('totalType', false, {
                     id: `totalTypeValue`,
                     missingValue: undefined,
                     validation: totalTypeValue,
@@ -187,7 +185,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.smallestDataInterval = {
@@ -234,7 +231,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             return fixNumericExtent([d0, d1], categoryAxis);
         } else {
-            const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
+            const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
             const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
             return fixNumericExtent(fixedYExtent);
@@ -274,15 +271,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             visible: this.visible,
         };
 
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`).index;
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
+        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`);
 
         const pointData: WaterfallNodePointDatum[] = [];
 
-        const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
-        const yPrevIndex = dataModel.resolveProcessedDataIndexById(this, 'yPrevious').index;
-        const yCurrTotalIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentTotal').index;
+        const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
+        const yPrevIndex = dataModel.resolveProcessedDataIndexById(this, 'yPrevious');
+        const yCurrTotalIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentTotal');
 
         function getValues(
             isTotal: boolean,
@@ -470,9 +467,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         seriesItemTypes.clear();
 
-        const yPositiveIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentPositive').index;
-        const yNegativeIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentNegative').index;
-        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
+        const yPositiveIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentPositive');
+        const yNegativeIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentNegative');
+        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`);
 
         const positiveDomain = processedData.domain.values[yPositiveIndex] ?? [];
         const negativeDomain = processedData.domain.values[yNegativeIndex] ?? [];

@@ -123,46 +123,43 @@ export abstract class RadialColumnSeriesBase<
     protected abstract getStackId(): string;
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        const { angleKey, radiusKey, normalizedTo, visible } = this.properties;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+
+        if (!this.properties.isValid() || !(visible || animationEnabled)) return;
 
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
-        const { angleKey, radiusKey, normalizedTo, visible } = this.properties;
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(
-                normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo), 'range')
-            );
+            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
         }
 
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
 
-        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
+        await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, true, {
+                keyProperty(angleKey, false, { id: 'angleValue' }),
+                valueProperty(radiusKey, true, {
                     id: 'radiusValue-raw',
                     invalidValue: null,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'normal', 'current', {
+                ...groupAccumulativeValueProperty(radiusKey, true, 'normal', 'current', {
                     id: `radiusValue-end`,
                     invalidValue: null,
                     groupId: stackGroupId,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'trailing', 'current', {
+                ...groupAccumulativeValueProperty(radiusKey, true, 'trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
@@ -170,7 +167,6 @@ export abstract class RadialColumnSeriesBase<
                 }),
                 ...extraProps,
             ],
-            dataVisible: visible || animationEnabled,
         });
 
         this.animationState.transition('updateData');
@@ -223,9 +219,9 @@ export abstract class RadialColumnSeriesBase<
             return;
         }
 
-        const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`).index;
-        const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`).index;
-        const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`).index;
+        const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`);
+        const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`);
+        const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`);
 
         let groupPaddingInner = 0;
         let groupPaddingOuter = 0;

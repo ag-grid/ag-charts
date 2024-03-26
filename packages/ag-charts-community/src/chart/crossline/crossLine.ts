@@ -44,8 +44,8 @@ export const validateCrossLineValues = (
 
     const [start, end] = range ?? [value, undefined];
     const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-    const validStart = checkDatum(start, isContinuous) != null && !isNaN(scale.convert(start));
-    const validEnd = checkDatum(end, isContinuous) != null && !isNaN(scale.convert(end));
+    const validStart = checkDatum(start, isContinuous) && !isNaN(scale.convert(start));
+    const validEnd = checkDatum(end, isContinuous) && !isNaN(scale.convert(end));
 
     if ((lineCrossLine && validStart) || (rangeCrossLine && validStart && validEnd)) {
         return true;

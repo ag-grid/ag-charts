@@ -11,13 +11,22 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import ticks, { tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
+import {
+    SORT_DOMAIN_GROUPS,
+    area,
+    createDatumId,
+    diff,
+    groupAverage,
+    groupCount,
+    groupSum,
+    keyProperty,
+    valueProperty,
+} from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { Series, SeriesNodePickMatch, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { Series, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
 import {
@@ -123,28 +132,30 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     override async processData(dataController: DataController) {
+        if (!this.visible) return;
+
         const { xKey, yKey, areaPlot, aggregation } = this.properties;
 
-        const props: PropertyDefinition<any>[] = [keyProperty(this, xKey, true), SORT_DOMAIN_GROUPS];
+        const props: PropertyDefinition<any>[] = [keyProperty(xKey, true), SORT_DOMAIN_GROUPS];
         if (yKey) {
-            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount(this, 'groupAgg');
+            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg');
 
             if (aggregation === 'count') {
                 // Nothing to do.
             } else if (aggregation === 'sum') {
-                aggProp = groupSum(this, 'groupAgg');
+                aggProp = groupSum('groupAgg');
             } else if (aggregation === 'mean') {
-                aggProp = groupAverage(this, 'groupAgg');
+                aggProp = groupAverage('groupAgg');
             }
             if (areaPlot) {
-                aggProp = area(this, 'groupAgg', aggProp);
+                aggProp = area('groupAgg', aggProp);
             }
-            props.push(valueProperty(this, yKey, true, { invalidValue: undefined }), aggProp);
+            props.push(valueProperty(yKey, true, { invalidValue: undefined }), aggProp);
         } else {
-            let aggProp = groupCount(this, 'groupAgg');
+            let aggProp = groupCount('groupAgg');
 
             if (areaPlot) {
-                aggProp = area(this, 'groupAgg', aggProp);
+                aggProp = area('groupAgg', aggProp);
             }
             props.push(aggProp);
         }
@@ -185,11 +196,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             props.push(diff(this.processedData, false));
         }
 
-        await this.requestDataModel<any>(dataController, this.data ?? [], {
-            props,
-            dataVisible: this.visible,
-            groupByFn,
-        });
+        await this.requestDataModel<any>(dataController, this.data, { props, groupByFn });
 
         this.animationState.transition('updateData');
     }
@@ -197,15 +204,17 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.calculatedBins.length) return [];
+        if (!processedData || !dataModel || !this.calculatedBins.length) {
+            return [];
+        }
 
-        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
-        const xDomainMin = this.calculatedBins?.[0][0];
-        const xDomainMax = this.calculatedBins?.[(this.calculatedBins?.length ?? 0) - 1][1];
         if (direction === ChartAxisDirection.X) {
+            const xDomainMin = this.calculatedBins?.[0][0];
+            const xDomainMax = this.calculatedBins?.[(this.calculatedBins?.length ?? 0) - 1][1];
             return fixNumericExtent([xDomainMin, xDomainMax]);
         }
 
+        const yDomain = dataModel.getDomain(this, 'groupAgg', 'aggregate', processedData);
         return fixNumericExtent(yDomain);
     }
 

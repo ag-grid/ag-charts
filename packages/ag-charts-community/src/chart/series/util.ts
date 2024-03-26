@@ -7,7 +7,7 @@ export function convertValuesToScaleByDefs<T extends string>({
     xAxis,
     yAxis,
 }: {
-    defs: [string, ProcessedDataDef[]][];
+    defs: [string, ProcessedDataDef][];
     values: Record<T, unknown>;
     xAxis: ChartAxis | undefined;
     yAxis: ChartAxis | undefined;
@@ -16,7 +16,7 @@ export function convertValuesToScaleByDefs<T extends string>({
         throw new Error('Axes must be defined');
     }
     const result: Record<string, number> = {};
-    for (const [searchId, [{ def }]] of defs) {
+    for (const [searchId, { def }] of defs) {
         if (Object.hasOwn(values, searchId)) {
             const { scale } = def.type === 'key' ? xAxis : yAxis;
             result[searchId] = Math.round(scale.convert((values as any)[searchId]));

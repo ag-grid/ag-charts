@@ -7,6 +7,8 @@ describe('DataController', () => {
     let controller: DataController;
     let data: Record<string, number>[];
 
+    const validation = () => true;
+
     beforeEach(() => {
         controller = new DataController('standalone');
         data = [];
@@ -20,11 +22,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key' as const,
                     valueType: 'category' as const,
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value' as const,
                     valueType: 'range' as const,
+                    validation,
                 },
             ],
         };
@@ -47,11 +51,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -63,11 +69,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -88,11 +96,13 @@ describe('DataController', () => {
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -104,11 +114,13 @@ describe('DataController', () => {
                     property: 'keyProp2',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -127,25 +139,25 @@ describe('DataController', () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
-                    scopes: ['test1'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp1-key',
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp2-key',
                     property: 'valueProp2',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -153,25 +165,25 @@ describe('DataController', () => {
         const promise2 = controller.request('test2', data, {
             props: [
                 {
-                    scopes: ['test2'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
-                    scopes: ['test2'],
                     id: 'valueProp1-key',
                     property: 'valueProp2',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
                 {
-                    scopes: ['test2'],
                     id: 'valueProp2-key',
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -231,18 +243,18 @@ describe('DataController', () => {
         const promise1 = controller.request('test1', data, {
             props: [
                 {
-                    scopes: ['test1'],
                     id: 'keyProp1-key',
                     property: 'keyProp1',
                     type: 'key',
                     valueType: 'category',
+                    validation,
                 },
                 {
-                    scopes: ['test1'],
                     id: 'valueProp1-key',
                     property: 'valueProp1',
                     type: 'value',
                     valueType: 'range',
+                    validation,
                 },
             ],
         });
@@ -266,27 +278,43 @@ describe('DataController', () => {
                 { keyProp1: '2022', valueProp1: 60 },
             ];
 
-            const def: DataModelOptions<'keyProp1' | 'valueProp1', any> = {
+            const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1', 'test2'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
-                        scopes: ['test1', 'test2'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',
+                        validation,
                     },
                 ],
-            };
+            });
 
-            const promise1 = controller.request('test1', data1, def);
-            const promise2 = controller.request('test2', data2, def);
+            const promise2 = controller.request('test2', data2, {
+                props: [
+                    {
+                        id: 'keyProp1-key',
+                        property: 'keyProp1',
+                        type: 'key',
+                        valueType: 'category',
+                        validation,
+                    },
+                    {
+                        id: 'valueProp1-key',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'range',
+                        validation,
+                    },
+                ],
+            });
 
             await controller.execute();
             const results = await Promise.all([promise1, promise2]);
@@ -314,18 +342,18 @@ describe('DataController', () => {
             const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',
+                        validation,
                     },
                 ],
             });
@@ -333,18 +361,18 @@ describe('DataController', () => {
             const promise2 = controller.request('test2', data2, {
                 props: [
                     {
-                        scopes: ['test2'],
                         id: 'keyProp1-key',
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',
+                        validation,
                     },
                 ],
             });
@@ -366,20 +394,20 @@ describe('DataController', () => {
             const promise1 = controller.request('test1', data1, {
                 props: [
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key1',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
+                        validation,
                     },
                     {
-                        scopes: ['test1'],
                         id: 'valueProp1-key2',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
                         includeProperty: false,
                         processor: () => (value) => `key2 ${value}`,
+                        validation,
                     },
                 ],
             });
@@ -387,20 +415,20 @@ describe('DataController', () => {
             const promise2 = controller.request('test2', data2, {
                 props: [
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key1',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
+                        validation,
                     },
                     {
-                        scopes: ['test2'],
                         id: 'valueProp1-key2',
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'category',
                         includeProperty: false,
                         processor: () => (value) => `key2 ${value}`,
+                        validation,
                     },
                 ],
             });
@@ -434,20 +462,19 @@ describe('DataController', () => {
                 groupByKeys: true,
                 props: [
                     {
-                        scopes: ['test1'],
                         property: 'keyProp1',
                         type: 'key',
                         valueType: 'category',
+                        validation,
                     },
                     {
-                        scopes: ['test1'],
                         property: 'valueProp1',
                         type: 'value',
                         valueType: 'range',
                         groupId: 'valueProp1',
-                        useScopedValues: false,
                         id: undefined,
                         processor: () => (next: number, total?: number) => next + (total ?? 0),
+                        validation,
                     },
                 ],
             };

@@ -22,15 +22,15 @@ import {
     animationValidation,
     createDatumId,
     diff,
+    groupAccumulativeValueProperty,
+    keyProperty,
     normaliseGroupTo,
+    valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import {
     SeriesNodePickMatch,
     SeriesNodePickMode,
-    groupAccumulativeValueProperty,
-    keyProperty,
-    valueProperty,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -124,7 +124,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const { xKey, yKey, normalizedTo } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -137,24 +136,23 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
-        const normaliseTo = normalizedToAbs && isFinite(normalizedToAbs) ? normalizedToAbs : undefined;
         const extraProps = [];
-        if (normaliseTo) {
-            extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
+        if (isFiniteNumber(normalizedTo)) {
+            extraProps.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo)));
         }
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
+                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
                     rangeId: `yValue-range`,
                     invalidValue: null,
@@ -163,7 +161,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     separateNegative: true,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'trailing', 'current', {
                     id: `yValue-start`,
                     invalidValue: null,
                     missingValue: 0,
@@ -204,7 +202,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 return keys;
             }
 
-            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             const isReversed = categoryAxis?.isReversed();
 
@@ -243,11 +241,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
 
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
-        const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
-        const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
-        const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`);
+        const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`);
+        const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`);
+        const yRangeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-range`);
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const context = {

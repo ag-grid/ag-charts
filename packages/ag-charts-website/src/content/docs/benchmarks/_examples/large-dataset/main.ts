@@ -1,5 +1,5 @@
 /* @ag-options-extract */
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community/src/main';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getLargeScaleData } from './data';
 

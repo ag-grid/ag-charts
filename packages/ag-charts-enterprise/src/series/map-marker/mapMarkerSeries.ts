@@ -195,8 +195,8 @@ export class MapMarkerSeries
             props: [
                 ...(idKey != null
                     ? [
-                          valueProperty(this, idKey, false, { id: 'idValue', includeProperty: false }),
-                          valueProperty(this, idKey, false, {
+                          valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
+                          valueProperty(idKey, false, {
                               id: 'featureValue',
                               includeProperty: false,
                               processor: () => (datum) => featureById.get(datum),
@@ -205,20 +205,19 @@ export class MapMarkerSeries
                     : []),
                 ...(hasLatLon
                     ? [
-                          valueProperty(this, latitudeKey, false, { id: 'latValue' }),
-                          valueProperty(this, longitudeKey, false, { id: 'lonValue' }),
+                          valueProperty(latitudeKey, false, { id: 'latValue' }),
+                          valueProperty(longitudeKey, false, { id: 'lonValue' }),
                       ]
                     : []),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
-                ...(sizeKey ? [valueProperty(this, sizeKey, true, { id: 'sizeValue' })] : []),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
+                ...(sizeKey ? [valueProperty(sizeKey, true, { id: 'sizeValue' })] : []),
+                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 
-        const featureIdx =
-            idKey != null ? dataModel.resolveProcessedDataIndexById(this, `featureValue`).index : undefined;
-        const latIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `latValue`).index : undefined;
-        const lonIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `lonValue`).index : undefined;
+        const featureIdx = idKey != null ? dataModel.resolveProcessedDataIndexById(this, `featureValue`) : undefined;
+        const latIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `latValue`) : undefined;
+        const lonIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `lonValue`) : undefined;
         this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
                 const feature: _ModuleSupport.Feature | undefined = featureIdx != null ? values[featureIdx] : undefined;
@@ -237,13 +236,13 @@ export class MapMarkerSeries
         );
 
         if (sizeKey != null) {
-            const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
+            const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
             const processedSize = processedData.domain.values[sizeIdx] ?? [];
             sizeScale.domain = sizeDomain ?? processedSize;
         }
 
         if (colorRange != null && this.isColorScaleValid()) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             colorScale.domain = processedData.domain.values[colorKeyIdx];
             colorScale.range = colorRange;
             colorScale.update();
@@ -263,7 +262,7 @@ export class MapMarkerSeries
             return false;
         }
 
-        const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+        const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
         const dataCount = processedData.data.length;
         const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
@@ -334,16 +333,13 @@ export class MapMarkerSeries
 
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
-        const idIdx = idKey != null ? dataModel.resolveProcessedDataIndexById(this, `idValue`).index : undefined;
-        const featureIdx =
-            idKey != null ? dataModel.resolveProcessedDataIndexById(this, `featureValue`).index : undefined;
-        const latIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `latValue`).index : undefined;
-        const lonIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `lonValue`).index : undefined;
-        const labelIdx =
-            labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
-        const sizeIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : undefined;
-        const colorIdx =
-            colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
+        const idIdx = idKey != null ? dataModel.resolveProcessedDataIndexById(this, `idValue`) : undefined;
+        const featureIdx = idKey != null ? dataModel.resolveProcessedDataIndexById(this, `featureValue`) : undefined;
+        const latIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `latValue`) : undefined;
+        const lonIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `lonValue`) : undefined;
+        const labelIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : undefined;
+        const sizeIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
+        const colorIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : undefined;
 
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
@@ -710,7 +706,7 @@ export class MapMarkerSeries
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue').index];
+                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue')];
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
