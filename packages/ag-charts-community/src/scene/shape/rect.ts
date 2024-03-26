@@ -425,7 +425,7 @@ export class Rect extends Path implements DistantObject {
                 const point = this.transformPoint(hitX, hitY);
                 return this.getCachedBBox().containsPoint(point.x, point.y);
             };
-            this.distanceSquared = (x: number, y: number) => this.getCachedBBox().distanceSquared(x, y);
+            this.distanceSquared = (hitX: number, hitY: number) => this.getCachedBBox().distanceSquared(hitX, hitY);
         } else {
             this.hittester = super.isPointInPath;
             this.distanceCalculator = super.distanceSquared;
