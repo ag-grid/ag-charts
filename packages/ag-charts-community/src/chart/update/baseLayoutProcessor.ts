@@ -3,7 +3,7 @@ import type { BBox } from '../../scene/bbox';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
+import type { LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
@@ -15,7 +15,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e)),
             this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
             this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect))
         );
@@ -23,15 +22,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
     destroy() {
         this.destroyFns.forEach((cb) => cb());
-    }
-
-    private layoutComplete({ clipSeries, series: { paddedRect } }: LayoutCompleteEvent): void {
-        const { seriesArea, seriesRoot } = this.chartLike;
-        if (seriesArea.clip || clipSeries) {
-            seriesRoot.setClipRectInGroupCoordinateSpace(paddedRect);
-        } else {
-            seriesRoot.setClipRectInGroupCoordinateSpace();
-        }
     }
 
     private positionPadding(shrinkRect: BBox) {

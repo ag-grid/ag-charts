@@ -6,6 +6,7 @@ import type { AgBaseChartListeners } from './eventOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
+import type { AgRangeButtonsOptions } from './rangeButtonsOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
 import type { AgZoomOptions } from './zoomOptions';
@@ -175,7 +176,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
     /** Configuration for the range buttons. */
-    // rangeButtons?: AgRangeButtonsOptions;
+    rangeButtons?: AgRangeButtonsOptions;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** A map of event names to event listeners. */

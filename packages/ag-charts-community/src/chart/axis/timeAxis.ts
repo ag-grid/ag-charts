@@ -16,8 +16,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
 
-    private datumFormat = '%m/%d/%y, %H:%M:%S';
-
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
 
@@ -70,15 +68,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
             // For time axis labels to look nice, even if date format wasn't set.
             this.labelFormatter = this.scale.tickFormat({ ticks });
         }
-    }
-
-    override formatDatum(datum: Date): string {
-        const formatter =
-            this.labelFormatter ??
-            this.scale.tickFormat({
-                specifier: this.datumFormat,
-            });
-        return this.moduleCtx.callbackCache.call(formatter, datum) ?? String(datum);
     }
 
     override calculatePadding(_min: number, _max: number, reverse: boolean): [number, number] {

@@ -1,23 +1,33 @@
 /* @ag-options-extract */
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgCartesianSeriesTooltipRendererParams,
+    AgCharts,
+    AgLineSeriesOptions,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
-const initialLoadKeys: (keyof ReturnType<typeof getData>[number]['results'])[] = [
+type Suite = ReturnType<typeof getData>[number];
+type SuiteResults = Suite['results'];
+type TestName = keyof SuiteResults;
+type TestResult = SuiteResults[TestName];
+
+const initialLoadKeys: TestName[] = [
     'integrated charts large scale benchmark initial load',
     'large-dataset benchmark initial load',
     'large-scale multi-series benchmark initial load',
     'multi-series benchmark initial load',
 ];
 
-const seriesToggleKeys: (keyof ReturnType<typeof getData>[number]['results'])[] = [
+const seriesToggleKeys: TestName[] = [
     'integrated charts large scale benchmark after load 4x legend toggle',
     'large-dataset benchmark after load 1x legend toggle',
     'large-scale multi-series benchmark after load 4x legend toggle',
     'multi-series benchmark after load 10x legend toggle',
 ];
 
-const seriesHighlightKeys: (keyof ReturnType<typeof getData>[number]['results'])[] = [
+const seriesHighlightKeys: TestName[] = [
     'large-dataset benchmark after load 4x datum highlight',
     'multi-series benchmark after load 15x datum highlight',
 ];
@@ -30,12 +40,9 @@ const chartOptions1: AgCartesianChartOptions = {
         text: 'Initial Load Cases',
         fontSize: 18,
     },
-    series: initialLoadKeys.map((key) => ({
-        type: 'bar' as const,
-        xKey: 'name',
-        yKey: `results['${key}']`,
-        yName: key.replace(' initial load', '').replace(' benchmark', ''),
-    })),
+    ...generatePerformanceChartOptions(initialLoadKeys, (key) =>
+        key.replace(' initial load', '').replace(' benchmark', '')
+    ),
 };
 
 AgCharts.create(chartOptions1);
@@ -48,14 +55,9 @@ const chartOptions2: AgCartesianChartOptions = {
         text: 'Legend Toggle',
         fontSize: 18,
     },
-    series: [
-        ...seriesToggleKeys.map((key) => ({
-            type: 'bar' as const,
-            xKey: 'name',
-            yKey: `results['${key}']`,
-            yName: key.replace(' legend toggle', '').replace(' benchmark after load', ''),
-        })),
-    ],
+    ...generatePerformanceChartOptions(seriesToggleKeys, (key) =>
+        key.replace(' legend toggle', '').replace(' benchmark after load', '')
+    ),
 };
 
 AgCharts.create(chartOptions2);
@@ -68,14 +70,84 @@ const chartOptions3: AgCartesianChartOptions = {
         text: 'Datum Highlight',
         fontSize: 18,
     },
-    series: [
-        ...seriesHighlightKeys.map((key) => ({
-            type: 'bar' as const,
-            xKey: 'name',
-            yKey: `results['${key}']`,
-            yName: key.replace(' datum highlight', '').replace(' benchmark after load', ''),
-        })),
-    ],
+    ...generatePerformanceChartOptions(seriesHighlightKeys, (key) =>
+        key.replace(' datum highlight', '').replace(' benchmark after load', '')
+    ),
 };
 
 AgCharts.create(chartOptions3);
+
+function generatePerformanceChartOptions(
+    keys: TestName[],
+    yName: (key: TestName) => string
+): {
+    axes: AgCartesianChartOptions['axes'];
+    series: AgLineSeriesOptions[];
+} {
+    return {
+        axes: [
+            {
+                type: 'category',
+            },
+            {
+                type: 'number',
+                position: 'left',
+                keys: keys.map((key) => `results['${key}'].timeMs`),
+                label: {
+                    formatter: (params) =>
+                        params.value == null ? params.value : formatMillis(Number(params.value), 0),
+                },
+            },
+            {
+                type: 'number',
+                position: 'right',
+                keys: keys.map((key) => `results['${key}'].memoryUsage`),
+                label: {
+                    formatter: (params) => (params.value == null ? params.value : formatBytes(Number(params.value))),
+                },
+            },
+        ],
+        series: keys.flatMap((key) => {
+            return [
+                {
+                    type: 'line' as const,
+                    xKey: 'name',
+                    yKey: `results['${key}'].timeMs`,
+                    yName: `${yName(key)} (time)`,
+                    tooltip: {
+                        enabled: true,
+                        renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => ({
+                            content: formatMillis(datum.results[key].timeMs, 2),
+                        }),
+                    },
+                },
+                {
+                    type: 'line' as const,
+                    xKey: 'name',
+                    yKey: `results['${key}'].memoryUsage`,
+                    yName: `${yName(key)} (heap usage)`,
+                    strokeOpacity: 0.5,
+                    lineDash: [4, 4],
+                    tooltip: {
+                        enabled: true,
+                        renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
+                            const memoryUsage = datum.results[key].memoryUsage;
+                            return {
+                                content: memoryUsage ? formatBytes(memoryUsage) : undefined,
+                            };
+                        },
+                    },
+                },
+            ];
+        }),
+    };
+}
+
+function formatMillis(ms: number, precision: number): string {
+    return `${ms.toFixed(precision)}ms`;
+}
+
+function formatBytes(bytes: number): string {
+    const kb = bytes / 1024;
+    return kb < 1024 ? `${kb.toFixed(2)}KB` : `${(kb / 1024).toFixed(2)}MB`;
+}

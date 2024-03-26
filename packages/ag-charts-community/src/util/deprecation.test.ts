@@ -47,19 +47,19 @@ describe('deprecation module', () => {
         describe('property deprecation', () => {
             it('should warn if deprecated property is assigned a value', () => {
                 test.deprecatedProp = 999;
-                expect(console.warn).toBeCalled();
+                expect(console.warn).toHaveBeenCalled();
                 expect(test.deprecatedProp).toBe(999);
             });
 
             it('should not warn if deprecated property is assigned a default value', () => {
                 test.deprecatedProp = 7;
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.deprecatedProp).toBe(7);
             });
 
             it('should not warn if un-deprecated property is assigned', () => {
                 test.usualProp = 999;
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.usualProp).toBe(999);
             });
         });
@@ -67,7 +67,7 @@ describe('deprecation module', () => {
         describe('property deprecation by rename', () => {
             it('should warn if deprecated renamed property is assigned a value', () => {
                 test.beforeRename = 999;
-                expect(console.warn).toBeCalled();
+                expect(console.warn).toHaveBeenCalled();
                 expect(test.beforeRename).toBe(999);
             });
 
@@ -79,19 +79,19 @@ describe('deprecation module', () => {
 
             it('should not warn if renamed deprecated property value was not changed', () => {
                 test.beforeRename = 7;
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.beforeRename).toBe(7);
             });
 
             it('should not warn if renamed property is assigned', () => {
                 test.afterRename = 999;
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.afterRename).toBe(999);
             });
 
             it('should warn if nested renamed property was accessed', () => {
                 test.nestedBeforeRename.prop = 999;
-                expect(console.warn).toBeCalled();
+                expect(console.warn).toHaveBeenCalled();
                 expect(test.nestedAfterRename.prop).toBe(999);
                 expect(test.nestedBeforeRename.prop).toBe(999);
             });
@@ -101,13 +101,13 @@ describe('deprecation module', () => {
             it('should show the deprecation warning once', () => {
                 test.deprecatedProp = 999;
                 test.deprecatedProp = -100;
-                expect(console.warn).toBeCalledTimes(1);
+                expect(console.warn).toHaveBeenCalledTimes(1);
             });
 
             it('should show the deprecation by rename warning once', () => {
                 test.beforeRename = 999;
                 test.beforeRename = -100;
-                expect(console.warn).toBeCalledTimes(1);
+                expect(console.warn).toHaveBeenCalledTimes(1);
             });
         });
     });

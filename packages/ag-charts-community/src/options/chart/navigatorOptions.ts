@@ -2,6 +2,7 @@ import type { AgAreaSeriesOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesOptions } from '../series/cartesian/bubbleOptions';
+import type { AgCandlestickSeriesOptions } from '../series/cartesian/candlestickOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgHeatmapSeriesOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
@@ -115,8 +116,8 @@ export interface AgRangeBarMiniChartSeriesOptions
     extends Omit<AgRangeBarSeriesOptions, CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName'> {}
 export interface AgRangeAreaMiniChartSeriesOptions
     extends Omit<AgRangeAreaSeriesOptions, CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName'> {}
-// export interface AgCandlestickMiniChartSeriesOptions
-//     extends Omit<AgCandlestickSeriesOptions, CommonIgnoredProperties> {}
+export interface AgCandlestickMiniChartSeriesOptions
+    extends Omit<AgCandlestickSeriesOptions, CommonIgnoredProperties> {}
 
 export type AgMiniChartSeriesOptions =
     | AgLineMiniChartSeriesOptions
@@ -129,8 +130,8 @@ export type AgMiniChartSeriesOptions =
     | AgHeatmapMiniChartSeriesOptions
     | AgWaterfallMiniChartSeriesOptions
     | AgRangeBarMiniChartSeriesOptions
-    | AgRangeAreaMiniChartSeriesOptions;
-// | AgCandlestickMiniChartSeriesOptions;
+    | AgRangeAreaMiniChartSeriesOptions
+    | AgCandlestickMiniChartSeriesOptions;
 
 type IgnoredMiniChartSeries = 'bullet';
 type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;

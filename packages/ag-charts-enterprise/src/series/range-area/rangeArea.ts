@@ -21,6 +21,7 @@ const {
     animationValidation,
     diff,
     updateClipPath,
+    isFiniteNumber,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent } = _Util;
@@ -164,7 +165,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!(data && visible && xAxis && yAxis && dataModel)) {
-            return [];
+            return;
         }
 
         const xScale = xAxis.scale;
@@ -308,7 +309,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
         strokeHighPoints.push(...strokeLowPoints);
 
-        return [context];
+        return context;
     }
 
     private createLabelData({
@@ -340,8 +341,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 ? -1
                 : 1;
 
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
         return {
             x: point.x,
             y: point.y + padding * direction,
@@ -351,7 +350,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             text: this.getLabelText(
                 label,
                 { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                (v) => yAxis?.formatDatum(v) ?? String(v)
+                (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
@@ -407,45 +406,43 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override async updatePaths(opts: { contextData: RangeAreaContext; paths: _Scene.Path[] }) {
-        this.updateAreaPaths([opts.paths], [opts.contextData]);
+        this.updateAreaPaths(opts.paths, opts.contextData);
     }
 
-    private updateAreaPaths(paths: _Scene.Path[][], contextData: RangeAreaContext[]) {
+    private updateAreaPaths(paths: _Scene.Path[], contextData: RangeAreaContext) {
         this.updateFillPath(paths, contextData);
         this.updateStrokePath(paths, contextData);
     }
 
-    private updateFillPath(paths: _Scene.Path[][], contextData: RangeAreaContext[]) {
-        contextData.forEach(({ fillData }, contextDataIndex) => {
-            const [fill] = paths[contextDataIndex];
-            const { path: fillPath } = fill;
-            fillPath.clear({ trackChanges: true });
-            for (const { point } of fillData.points) {
-                if (point.moveTo) {
-                    fillPath.moveTo(point.x, point.y);
-                } else {
-                    fillPath.lineTo(point.x, point.y);
-                }
+    private updateFillPath(paths: _Scene.Path[], contextData: RangeAreaContext) {
+        const { fillData } = contextData;
+        const [fill] = paths;
+        const { path: fillPath } = fill;
+        fillPath.clear({ trackChanges: true });
+        for (const { point } of fillData.points) {
+            if (point.moveTo) {
+                fillPath.moveTo(point.x, point.y);
+            } else {
+                fillPath.lineTo(point.x, point.y);
             }
-            fillPath.closePath();
-            fill.checkPathDirty();
-        });
+        }
+        fillPath.closePath();
+        fill.checkPathDirty();
     }
 
-    private updateStrokePath(paths: _Scene.Path[][], contextData: RangeAreaContext[]) {
-        contextData.forEach(({ strokeData }, contextDataIndex) => {
-            const [, stroke] = paths[contextDataIndex];
-            const { path: strokePath } = stroke;
-            strokePath.clear({ trackChanges: true });
-            for (const { point } of strokeData.points) {
-                if (point.moveTo) {
-                    strokePath.moveTo(point.x, point.y);
-                } else {
-                    strokePath.lineTo(point.x, point.y);
-                }
+    private updateStrokePath(paths: _Scene.Path[], contextData: RangeAreaContext) {
+        const { strokeData } = contextData;
+        const [, stroke] = paths;
+        const { path: strokePath } = stroke;
+        strokePath.clear({ trackChanges: true });
+        for (const { point } of strokeData.points) {
+            if (point.moveTo) {
+                strokePath.moveTo(point.x, point.y);
+            } else {
+                strokePath.lineTo(point.x, point.y);
             }
-            stroke.checkPathDirty();
-        });
+        }
+        stroke.checkPathDirty();
     }
 
     protected override async updateMarkerSelection(opts: {
@@ -620,14 +617,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             RangeAreaContext
         >
     ) {
-        const { markerSelections, labelSelections, contextData, paths } = animationData;
+        const { markerSelection, labelSelection, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateAreaPaths(paths, contextData);
-        pathSwipeInAnimation(this, animationManager, paths.flat());
-        resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+        pathSwipeInAnimation(this, animationManager, ...paths);
+        resetMotion([markerSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     protected override animateReadyResize(

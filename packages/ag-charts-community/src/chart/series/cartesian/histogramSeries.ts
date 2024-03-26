@@ -2,9 +2,11 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
 import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
 import ticks, { tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
@@ -24,7 +26,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { Series, SeriesNodePickMode } from '../series';
+import { Series, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
 import {
@@ -34,6 +36,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
+import { addHitTestersToQuadtree, childrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 enum HistogramSeriesNodeTag {
     Bin,
@@ -227,7 +230,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!this.visible || !xAxis || !yAxis || !processedData || processedData.type !== 'grouped') {
-            return [];
+            return;
         }
 
         const { scale: xScale } = xAxis;
@@ -278,7 +281,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                             yKey,
                             xName,
                             yName,
-                        }) ?? yAxis.formatDatum(total),
+                        }) ?? String(total),
                     fontStyle: labelFontStyle,
                     fontWeight: labelFontWeight,
                     fontSize: labelFontSize,
@@ -325,16 +328,14 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             });
         });
 
-        return [
-            {
-                itemId: this.properties.yKey ?? this.id,
-                nodeData,
-                labelData: nodeData,
-                scales: super.calculateScaling(),
-                animationValid: true,
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: this.properties.yKey ?? this.id,
+            nodeData,
+            labelData: nodeData,
+            scales: super.calculateScaling(),
+            animationValid: true,
+            visible: this.visible,
+        };
     }
 
     protected override nodeFactory() {
@@ -445,6 +446,14 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         });
     }
 
+    protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, childrenIter<Rect>(this.contentGroup.children[0]));
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
+    }
+
     getTooltipHtml(nodeDatum: HistogramNodeDatum): string {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -517,11 +526,11 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection }: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
-        fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
+        fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
@@ -532,13 +541,13 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             this.id,
             'datums',
             this.ctx.animationManager,
-            data.datumSelections,
+            [data.datumSelection],
             fns,
             (_, datum) => createDatumId(datum.domain),
             dataDiff
         );
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelection);
     }
 
     protected isLabelEnabled() {

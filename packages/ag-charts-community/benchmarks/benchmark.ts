@@ -2,7 +2,11 @@ import { afterEach, beforeEach } from '@jest/globals';
 
 import { flushTimings, loadBuiltExampleOptions, logTimings, recordTiming, setupMockConsole } from 'ag-charts-test';
 
-import { CartesianSeries, CartesianSeriesNodeDatum } from '../src/chart/series/cartesian/cartesianSeries';
+import {
+    CartesianSeries,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from '../src/chart/series/cartesian/cartesianSeries';
 import { AgChartProxy, IMAGE_SNAPSHOT_DEFAULTS, deproxy, prepareTestOptions } from '../src/chart/test/utils';
 import { AgCharts } from '../src/main';
 import { AgChartInstance, AgChartOptions } from '../src/options/agChartOptions';
@@ -32,18 +36,52 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 }
 
 export function benchmark(name: string, ctx: BenchmarkContext, callback: () => Promise<void>, timeoutMs = 10000) {
+    const isGcEnabled = 'gc' in global;
+    if (!isGcEnabled) {
+        global.console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
+    }
+    function getMemoryUsage(): NodeJS.MemoryUsage | null {
+        if (!global.gc) return null;
+        global.gc();
+        return process.memoryUsage();
+    }
+
     it(
         name,
         async () => {
+            const memoryUsageBefore = getMemoryUsage();
             const start = performance.now();
             await callback();
             const duration = performance.now() - start;
+            const memoryUsageAfter = getMemoryUsage();
+            const canvasInstances = memoryUsageBefore && memoryUsageAfter && ctx.canvasCtx.getActiveCanvasInstances();
 
             const { currentTestName, testPath } = expect.getState();
             if (testPath == null || currentTestName == null) {
                 throw new Error('Unable to resolve current test name.');
             }
-            recordTiming(testPath, currentTestName, duration);
+
+            recordTiming(testPath, currentTestName, {
+                timeMs: duration,
+                memory:
+                    memoryUsageBefore && memoryUsageAfter
+                        ? {
+                              before: memoryUsageBefore,
+                              after: memoryUsageAfter,
+                              nativeAllocations: canvasInstances
+                                  ? {
+                                        canvas: {
+                                            count: canvasInstances.length,
+                                            bytes: canvasInstances.reduce(
+                                                (totalBytes, canvas) => totalBytes + getBitmapMemoryUsage(canvas),
+                                                0
+                                            ),
+                                        },
+                                    }
+                                  : undefined,
+                          }
+                        : undefined,
+            });
 
             const newImageData = extractImageData(ctx.canvasCtx);
             expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
@@ -85,7 +123,7 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     nodeCount: number
 ) {
     const series = deproxy(ctx.chart).series[seriesIdx] as CartesianSeries<any, any, any>;
-    const { nodeData } = series.contextNodeData[0];
+    const { nodeData = [] } = getSeriesNodeData(series) ?? {};
 
     if (nodeCount < nodeData.length) {
         expect(nodeData.length).toBeGreaterThanOrEqual(nodeCount);
@@ -93,8 +131,8 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
 
     const results: Point[] = [];
     const addResult = (idx: number) => {
-        const node: CartesianSeriesNodeDatum = nodeData.at(Math.floor(idx));
-        const { midPoint } = node;
+        const node = nodeData.at(Math.floor(idx));
+        const midPoint = node?.midPoint;
         if (!midPoint) throw new Error('No node midPoint found.');
 
         const point = series.contentGroup.inverseTransformPoint(midPoint.x, midPoint.y);
@@ -106,4 +144,23 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     }
 
     ctx.nodePositions.push(results);
+}
+
+function getBitmapMemoryUsage(dimensions: { width: number; height: number }, bitsPerPixel: number = 32): number {
+    const { width, height } = dimensions;
+    const numPixels = width * height;
+    const bytesPerPixel = bitsPerPixel / 8;
+    return numPixels * bytesPerPixel;
+}
+
+function getSeriesNodeData(
+    series: CartesianSeries<any, any, any, any, CartesianSeriesNodeDataContext<CartesianSeriesNodeDatum, any>>
+): CartesianSeriesNodeDataContext<CartesianSeriesNodeDatum, any> | null {
+    if (!series.contextNodeData) return null;
+    // HACK: support running the benchmark script against old versions of the library.
+    // Previous versions of the library used to support multiple `contextNodeData` per series, so take the first item.
+    if (Array.isArray(series.contextNodeData)) {
+        return (series.contextNodeData as Array<CartesianSeriesNodeDataContext<any, any>>)[0];
+    }
+    return series.contextNodeData;
 }

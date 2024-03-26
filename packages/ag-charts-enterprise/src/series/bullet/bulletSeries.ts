@@ -26,7 +26,7 @@ interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly height: number;
     readonly cumulativeValue: number;
     readonly opacity: number;
-    readonly cornerRadiusBbox?: _Scene.BBox;
+    readonly clipBBox?: _Scene.BBox;
     readonly target?: {
         readonly value: number;
         readonly x1: number;
@@ -173,8 +173,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-        if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
-        if (widthRatio === undefined || lengthRatio === undefined) return [];
+        if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return;
+        if (widthRatio === undefined || lengthRatio === undefined) return;
 
         const multiplier = xScale.bandwidth ?? NaN;
         const maxValue = this.getMaxValue();
@@ -257,7 +257,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             return result;
         });
 
-        return [context];
+        return context;
     }
 
     private getColorRanges(): BulletColorRange[] {
@@ -387,16 +387,16 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady(data: BulletAnimationData) {
-        const { datumSelections, annotationSelections } = data;
+        const { datumSelection, annotationSelections } = data;
 
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BulletAnimationData) {
-        const { datumSelections, annotationSelections } = data;
+        const { datumSelection, annotationSelections } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -407,7 +407,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             this.id,
             'nodes',
             this.ctx.animationManager,
-            datumSelections,
+            [datumSelection],
             fns,
             (_, datum) => createDatumId(datum.xValue),
             dataDiff
@@ -415,7 +415,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
-            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
     }
 }

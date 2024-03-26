@@ -174,18 +174,16 @@ export function collapsedStartingBarPosition(
             }
         }
 
-        let cornerRadiusBbox: BBox | undefined;
-        if (datum.cornerRadiusBbox == null) {
-            cornerRadiusBbox = undefined;
+        let clipBBox: BBox | undefined;
+        if (datum.clipBBox == null) {
+            clipBBox = undefined;
         } else if (isDatumNegative(datum)) {
-            cornerRadiusBbox = isVertical
-                ? new BBox(x, y - height, width, height)
-                : new BBox(x - width, y, width, height);
+            clipBBox = isVertical ? new BBox(x, y - height, width, height) : new BBox(x - width, y, width, height);
         } else {
-            cornerRadiusBbox = new BBox(x, y, width, height);
+            clipBBox = new BBox(x, y, width, height);
         }
 
-        return { x, y, width, height, cornerRadiusBbox, opacity };
+        return { x, y, width, height, clipBBox, opacity };
     };
 
     return { isVertical, calculate, mode };
@@ -203,7 +201,7 @@ export function midpointStartingBarPosition(
                 y: isVertical ? datum.y + datum.height / 2 : datum.y,
                 width: isVertical ? datum.width : 0,
                 height: isVertical ? 0 : datum.height,
-                cornerRadiusBbox: datum.cornerRadiusBbox,
+                clipBBox: datum.clipBBox,
                 opacity: datum.opacity,
             };
         },
@@ -216,7 +214,7 @@ type AnimatableBarDatum = {
     y: number;
     height: number;
     width: number;
-    cornerRadiusBbox?: BBox;
+    clipBBox?: BBox;
     opacity?: number;
 };
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
@@ -242,7 +240,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
-                cornerRadiusBbox: rect.cornerRadiusBbox,
+                clipBBox: rect.clipBBox,
                 opacity: rect.opacity,
             };
         }
@@ -263,7 +261,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
                 y: datum.y,
                 width: datum.width,
                 height: datum.height,
-                cornerRadiusBbox: datum.cornerRadiusBbox,
+                clipBBox: datum.clipBBox,
                 opacity: datum.opacity,
             };
         }
@@ -293,9 +291,6 @@ function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection,
     return { startingX, startingY };
 }
 
-export function resetBarSelectionsFn(
-    _node: Rect,
-    { x, y, width, height, cornerRadiusBbox, opacity }: AnimatableBarDatum
-) {
-    return { x, y, width, height, cornerRadiusBbox, opacity };
+export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBox, opacity }: AnimatableBarDatum) {
+    return { x, y, width, height, clipBBox, opacity };
 }

@@ -65,6 +65,9 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     @Validate(RATIO)
     strokeOpacity: number = 1;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     @Validate(NUMBER, { optional: true })
     sectorSpacing?: number;
 

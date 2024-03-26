@@ -38,12 +38,12 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             label: {
                 autoRotate: false,
-                formatter: ({ value }: any) => dateFormat(value, 'd-m'),
+                formatter: ({ value }) => dateFormat(value, 'd-m'),
             },
             crosshair: {
                 enabled: true,
                 label: {
-                    renderer: ({ value }: any) => {
+                    renderer: ({ value }) => {
                         return { text: dateFormat(value, 'd-m') };
                     },
                 },
@@ -73,10 +73,10 @@ const options: AgCartesianChartOptions = {
                 },
             ],
             label: {
-                formatter: ({ value }: any) => dateFormat(value, 'm-y'),
+                formatter: ({ value }) => dateFormat(value, 'm-y'),
             },
         },
     },
-} as unknown as AgCartesianChartOptions;
+};
 
 AgCharts.create(options);

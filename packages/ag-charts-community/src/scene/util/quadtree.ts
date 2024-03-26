@@ -1,9 +1,9 @@
 import { BBox } from '../bbox';
 import { DistantObject, NearestResult, nearestSquared } from '../nearest';
 
-type QuadtreeNearest<V> = NearestResult<QuadtreeElem<HitTesterNearest, V>>;
+type QuadtreeNearestResult<V> = NearestResult<QuadtreeElem<HitTesterNearest, V>>;
 
-type HitTesterExact = DistantObject & {
+type HitTesterExact = {
     getCachedBBox(): BBox;
     containsPoint(x: number, y: number): boolean;
 };
@@ -12,59 +12,73 @@ type HitTesterNearest = DistantObject & {
     readonly midPoint: { x: number; y: number };
 };
 
-class QuadtreeElem<H extends DistantObject, V> {
-    constructor(
-        public hitTester: H,
-        public value: V
-    ) {}
+type HitTester = HitTesterExact | HitTesterNearest;
 
-    distanceSquared(x: number, y: number) {
-        return this.hitTester.distanceSquared(x, y);
-    }
-}
+type QuadtreeElem<H extends HitTester, V> = {
+    hitTester: H;
+    value: V;
+};
 
-export class Quadtree<V> {
-    private readonly exact: QuadtreeNode_Exact<V>;
-    private readonly nearest: QuadtreeNode_Nearest<V>;
+export class QuadtreeExact<V> {
+    private readonly exact: QuadtreeNodeExact<V>;
 
     constructor(capacity: number, maxdepth: number, boundary?: BBox) {
-        this.exact = new QuadtreeNode_Exact<V>(capacity, maxdepth, boundary);
-        this.nearest = new QuadtreeNode_Nearest<V>(capacity, maxdepth, boundary);
+        this.exact = new QuadtreeNodeExact<V>(capacity, maxdepth, boundary);
     }
 
     clear(boundary: BBox) {
         this.exact.clear(boundary);
-        this.nearest.clear(boundary);
     }
 
-    addValue(hitTester: HitTesterExact & HitTesterNearest, value: V): void {
-        const elem = new QuadtreeElem(hitTester, value);
-        this.exact.addElem(elem);
-        this.nearest.addElem(elem);
+    add(hitTester: HitTesterExact, value: V): void {
+        this.exact.addElem({ hitTester, value });
     }
 
-    findExact(x: number, y: number): Iterable<QuadtreeElem<HitTesterExact, V>> {
+    find(x: number, y: number): Iterable<QuadtreeElem<HitTesterExact, V>> {
         const foundValues: QuadtreeElem<HitTesterExact, V>[] = [];
         this.exact.find(x, y, foundValues);
         return foundValues;
     }
+}
 
-    findNearest(x: number, y: number): QuadtreeNearest<V> {
+export class QuadtreeNearest<V> {
+    private readonly root: QuadtreeNodeNearest<V>;
+
+    constructor(capacity: number, maxdepth: number, boundary?: BBox) {
+        this.root = new QuadtreeNodeNearest<V>(capacity, maxdepth, boundary);
+    }
+
+    clear(boundary: BBox) {
+        this.root.clear(boundary);
+    }
+
+    addValue(hitTester: HitTesterNearest, value: V): void {
+        const elem = {
+            hitTester,
+            value,
+            distanceSquared: (x: number, y: number): number => {
+                return hitTester.distanceSquared(x, y);
+            },
+        };
+        this.root.addElem(elem);
+    }
+
+    find(x: number, y: number): QuadtreeNearestResult<V> {
         const arg = { best: { nearest: undefined, distanceSquared: Infinity } };
-        this.nearest.find(x, y, arg);
+        this.root.find(x, y, arg);
         return arg.best;
     }
 }
 
-class QuadtreeSubdivisions<H extends DistantObject, V, FindArg> {
+class QuadtreeSubdivisions<E extends QuadtreeElem<HitTester, unknown>, FindArg> {
     constructor(
-        private readonly nw: QuadtreeNode<H, V, FindArg>,
-        private readonly ne: QuadtreeNode<H, V, FindArg>,
-        private readonly sw: QuadtreeNode<H, V, FindArg>,
-        private readonly se: QuadtreeNode<H, V, FindArg>
+        private readonly nw: QuadtreeNode<E, FindArg>,
+        private readonly ne: QuadtreeNode<E, FindArg>,
+        private readonly sw: QuadtreeNode<E, FindArg>,
+        private readonly se: QuadtreeNode<E, FindArg>
     ) {}
 
-    addElem(elem: QuadtreeElem<H, V>) {
+    addElem(elem: E) {
         this.nw.addElem(elem);
         this.ne.addElem(elem);
         this.sw.addElem(elem);
@@ -79,11 +93,11 @@ class QuadtreeSubdivisions<H extends DistantObject, V, FindArg> {
     }
 }
 
-abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
+abstract class QuadtreeNode<E extends QuadtreeElem<HitTester, unknown>, FindArg> {
     protected boundary: BBox;
-    protected readonly elems: Array<QuadtreeElem<H, V>>;
+    protected readonly elems: Array<E>;
 
-    private subdivisions?: QuadtreeSubdivisions<H, V, FindArg>;
+    private subdivisions?: QuadtreeSubdivisions<E, FindArg>;
 
     constructor(
         private readonly capacity: number,
@@ -101,7 +115,7 @@ abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
         this.subdivisions = undefined;
     }
 
-    addElem(e: QuadtreeElem<H, V>) {
+    addElem(e: E) {
         if (this.addCondition(e)) {
             if (this.subdivisions === undefined) {
                 if (this.maxdepth === 0 || this.elems.length < this.capacity) {
@@ -115,7 +129,7 @@ abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
         }
     }
 
-    protected abstract addCondition(e: QuadtreeElem<H, V>): boolean;
+    protected abstract addCondition(e: E): boolean;
 
     find(x: number, y: number, arg: FindArg): void {
         if (this.findCondition(x, y, arg)) {
@@ -130,7 +144,7 @@ abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
     protected abstract findCondition(x: number, y: number, arg: FindArg): boolean;
     protected abstract findAction(x: number, y: number, arg: FindArg): void;
 
-    private subdivide(newElem: QuadtreeElem<H, V>): void {
+    private subdivide(newElem: E): void {
         this.subdivisions = this.makeSubdivisions();
 
         for (const e of this.elems) {
@@ -140,7 +154,7 @@ abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
         this.elems.length = 0;
     }
 
-    private makeSubdivisions(): QuadtreeSubdivisions<H, V, FindArg> {
+    private makeSubdivisions(): QuadtreeSubdivisions<E, FindArg> {
         const { x, y, width, height } = this.boundary;
         const { capacity } = this;
         const depth = this.maxdepth - 1;
@@ -151,7 +165,7 @@ abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
         const swBoundary = new BBox(x, y + halfHeight, halfWidth, halfHeight);
         const seBoundary = new BBox(x + halfWidth, y + halfHeight, halfWidth, halfHeight);
 
-        return new QuadtreeSubdivisions<H, V, FindArg>(
+        return new QuadtreeSubdivisions<E, FindArg>(
             this.child(capacity, depth, nwBoundary),
             this.child(capacity, depth, neBoundary),
             this.child(capacity, depth, swBoundary),
@@ -159,14 +173,17 @@ abstract class QuadtreeNode<H extends DistantObject, V, FindArg> {
         );
     }
 
-    protected abstract child(capacity: number, depth: number, childBoundary: BBox): QuadtreeNode<H, V, FindArg>;
+    protected abstract child(capacity: number, depth: number, childBoundary: BBox): QuadtreeNode<E, FindArg>;
 }
 
 type FindArgExact<V> = QuadtreeElem<HitTesterExact, V>[];
-type FindArgNearest<V> = { best: QuadtreeNearest<V> };
+type FindArgNearest<V> = { best: QuadtreeNearestResult<V> };
 
-class QuadtreeNode_Exact<V> extends QuadtreeNode<HitTesterExact, V, FindArgExact<V>> {
-    override addCondition(e: QuadtreeElem<HitTesterExact, V>): boolean {
+type ElemExact<V> = QuadtreeElem<HitTesterExact, V>;
+type ElemNearest<V> = QuadtreeElem<HitTesterNearest, V> & DistantObject;
+
+class QuadtreeNodeExact<V> extends QuadtreeNode<ElemExact<V>, FindArgExact<V>> {
+    override addCondition(e: ElemExact<V>): boolean {
         return this.boundary.collidesBBox(e.hitTester.getCachedBBox());
     }
     override findCondition(x: number, y: number, _foundElems: FindArgExact<V>): boolean {
@@ -180,12 +197,12 @@ class QuadtreeNode_Exact<V> extends QuadtreeNode<HitTesterExact, V, FindArgExact
         }
     }
     override child(capacity: number, depth: number, boundary: BBox) {
-        return new QuadtreeNode_Exact<V>(capacity, depth, boundary);
+        return new QuadtreeNodeExact<V>(capacity, depth, boundary);
     }
 }
 
-class QuadtreeNode_Nearest<V> extends QuadtreeNode<HitTesterNearest, V, FindArgNearest<V>> {
-    override addCondition(e: QuadtreeElem<HitTesterNearest, V>): boolean {
+class QuadtreeNodeNearest<V> extends QuadtreeNode<ElemNearest<V>, FindArgNearest<V>> {
+    override addCondition(e: ElemNearest<V>): boolean {
         const { x, y } = e.hitTester.midPoint;
         return this.boundary.containsPoint(x, y);
     }
@@ -200,6 +217,6 @@ class QuadtreeNode_Nearest<V> extends QuadtreeNode<HitTesterNearest, V, FindArgN
         }
     }
     override child(capacity: number, depth: number, boundary: BBox) {
-        return new QuadtreeNode_Nearest<V>(capacity, depth, boundary);
+        return new QuadtreeNodeNearest<V>(capacity, depth, boundary);
     }
 }

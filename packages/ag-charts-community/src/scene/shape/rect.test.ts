@@ -26,15 +26,15 @@ describe('Rect', () => {
             fill: 'cyan',
             strokeWidth: 1,
         };
-        const CORNER_RADIUS_BBOX_CASES = [
-            new BBox(0, 0, 60, 60),
-            new BBox(-10, 0, 60, 60),
-            new BBox(-10, -10, 60, 60),
-            new BBox(0, -10, 60, 60),
-            new BBox(-5, 0, 60, 60),
-            new BBox(-10, -5, 60, 60),
-            new BBox(-5, -10, 60, 60),
-            new BBox(0, -5, 60, 60),
+        const CLIP_BBOX_CASES = [
+            { x: 0, y: 0, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
+            { x: -10, y: 0, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
+            { x: -10, y: -10, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
+            { x: 0, y: -10, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
+            { x: -5, y: 0, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
+            { x: -10, y: -5, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
+            { x: -5, y: -10, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
+            { x: 0, y: -5, width: 60, height: 60, clipBBox: new BBox(0, 0, 50, 50) },
         ];
         const CORNER_RADIUS_BBOX_TC_PARAMS = {
             stroke: 'green',
@@ -72,16 +72,16 @@ describe('Rect', () => {
                 cornerRadius,
                 ...CORNER_RADIUS_TC_PARAMS,
             })),
-            CORNER_RADIUS_BBOX_CASES.map((cornerRadiusBbox) => ({ cornerRadiusBbox, ...CORNER_RADIUS_BBOX_TC_PARAMS })),
+            CLIP_BBOX_CASES.map((params) => ({ ...CORNER_RADIUS_BBOX_TC_PARAMS, ...params })),
             [
-                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 100, 40) },
-                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(-90, 0, 100, 40) },
-                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 40, 100) },
-                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, -90, 40, 100) },
-                { width: 10, height: 40, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 100, 40) },
-                { width: 10, height: 40, cornerRadius: 100, cornerRadiusBbox: new BBox(-90, 0, 100, 40) },
-                { width: 40, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 40, 100) },
-                { width: 40, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, -90, 40, 100) },
+                { x: 0, y: 0, width: 100, height: 40, cornerRadius: 100, clipBBox: new BBox(0, 0, 10, 10) },
+                { x: -90, y: 0, width: 100, height: 40, cornerRadius: 100, clipBBox: new BBox(0, 0, 10, 10) },
+                { x: 0, y: 0, width: 40, height: 100, cornerRadius: 100, clipBBox: new BBox(0, 0, 10, 10) },
+                { x: 0, y: -90, width: 40, height: 100, cornerRadius: 100, clipBBox: new BBox(0, 0, 10, 10) },
+                { x: 0, y: 0, width: 100, height: 40, cornerRadius: 100, clipBBox: new BBox(0, 0, 10, 40) },
+                { x: -90, y: 0, width: 100, height: 40, cornerRadius: 100, clipBBox: new BBox(0, 0, 10, 40) },
+                { x: 0, y: 0, width: 40, height: 100, cornerRadius: 100, clipBBox: new BBox(0, 0, 40, 10) },
+                { x: 0, y: -90, width: 40, height: 100, cornerRadius: 100, clipBBox: new BBox(0, 0, 40, 10) },
             ],
             [],
             [
@@ -181,12 +181,12 @@ describe('Rect', () => {
                     const rect = Object.assign(new Rect(), { ...DEFAULTS }, testCase);
 
                     // Position Rect.
-                    rect.x = currX;
-                    rect.y = currY;
+                    rect.x = (rect.x ?? 0) + currX;
+                    rect.y = (rect.y ?? 0) + currY;
 
-                    if (rect.cornerRadiusBbox != null) {
-                        rect.cornerRadiusBbox.x += currX;
-                        rect.cornerRadiusBbox.y += currY;
+                    if (rect.clipBBox != null) {
+                        rect.clipBBox.x += currX;
+                        rect.clipBBox.y += currY;
                     }
 
                     // Render.
@@ -201,8 +201,8 @@ describe('Rect', () => {
                     ctx.restore();
 
                     // Prepare for next case.
-                    currX += rect.width + GAP;
-                    rowHeight = Math.max(rect.height, rowHeight);
+                    currX += (rect.clipBBox?.width ?? rect.width) + GAP;
+                    rowHeight = Math.max(rect.clipBBox?.height ?? rect.height, rowHeight);
                 }
             }
 

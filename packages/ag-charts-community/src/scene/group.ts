@@ -42,6 +42,7 @@ export class Group extends Node {
             readonly zIndexSubOrder?: ZIndexSubOrder;
             readonly isVirtual?: boolean;
             readonly name?: string;
+            readonly nonEmptyChildDerivedZIndex?: boolean;
         }
     ) {
         super({ isVirtual: opts?.isVirtual });
@@ -156,7 +157,21 @@ export class Group extends Node {
             this.initialiseLayer();
         }
 
+        if (this.opts?.nonEmptyChildDerivedZIndex && counts.nonGroups > 0) {
+            this.deriveZIndexFromChildren();
+        }
+
         return counts;
+    }
+
+    deriveZIndexFromChildren() {
+        const children = this.children.filter((c) => c._childNodeCounts.nonGroups > 0);
+
+        this.sortChildren(children);
+
+        const lastChild = children.at(-1);
+        this.zIndex = lastChild?.zIndex ?? -Infinity;
+        this.zIndexSubOrder = lastChild?.zIndexSubOrder;
     }
 
     override render(renderCtx: RenderContext) {

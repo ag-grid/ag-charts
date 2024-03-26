@@ -22,7 +22,7 @@ const {
     DeprecatedAndRenamedTo,
 } = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
-const { createId, Logger } = _Util;
+const { createId } = _Util;
 
 class GradientBar {
     @Validate(POSITIVE_NUMBER)
@@ -52,17 +52,6 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
 
     override calculateDomain() {
         this.setDomain(this.colorDomain);
-    }
-
-    override formatDatum(datum: number): string {
-        if (typeof datum === 'number') {
-            return datum.toFixed(2);
-        } else {
-            Logger.warnOnce(
-                'data contains Date objects which are being plotted against a number axis, please only use a number axis for numbers.'
-            );
-            return String(datum);
-        }
     }
 
     protected override createTick() {

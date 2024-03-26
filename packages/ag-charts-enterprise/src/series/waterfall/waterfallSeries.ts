@@ -25,6 +25,7 @@ const {
     animationValidation,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
+    isFiniteNumber,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
@@ -52,7 +53,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly stroke: string;
     readonly strokeWidth: number;
     readonly opacity: number;
-    readonly cornerRadiusBbox?: _Scene.BBox;
+    readonly clipBBox?: _Scene.BBox;
 }
 
 interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -244,7 +245,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const valueAxis = this.getValueAxis();
 
         if (!(data && visible && categoryAxis && valueAxis && dataModel)) {
-            return [];
+            return;
         }
 
         const xScale = categoryAxis.scale;
@@ -258,15 +259,21 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
 
         if (this.processedData?.type !== 'ungrouped') {
-            return [];
+            return;
         }
 
-        const contexts: WaterfallContext[] = [];
+        const context: WaterfallContext = {
+            itemId: this.properties.yKey,
+            nodeData: [],
+            labelData: [],
+            pointData: [],
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
 
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`);
-        const contextIndexMap = new Map<AgWaterfallSeriesItemType, number>();
 
         const pointData: WaterfallNodePointDatum[] = [];
 
@@ -342,21 +349,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const bottomY = isPositive ? trailY : currY;
             const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
 
-            const itemId = seriesItemType;
-            let contextIndex = contextIndexMap.get(itemId);
-            if (contextIndex === undefined) {
-                contextIndex = contexts.length;
-                contextIndexMap.set(itemId, contextIndex);
-            }
-            contexts[contextIndex] ??= {
-                itemId,
-                nodeData: [],
-                labelData: [],
-                pointData: [],
-                scales: super.calculateScaling(),
-                visible: this.visible,
-            };
-
             const rect = {
                 x: barAlongX ? Math.min(y, bottomY) : x,
                 y: barAlongX ? x : Math.min(y, bottomY),
@@ -412,7 +404,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const labelText = this.getLabelText(
                 label,
                 {
-                    itemId: itemId === 'subtotal' ? 'total' : itemId,
+                    itemId: seriesItemType === 'subtotal' ? 'total' : seriesItemType,
                     value,
                     datum,
                     xKey,
@@ -420,13 +412,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     xName,
                     yName,
                 },
-                (v) => valueAxis.formatDatum(v)
+                (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
             );
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,
                 series: this,
-                itemId,
+                itemId: seriesItemType,
                 datum,
                 cumulativeValue: cumulativeValue ?? 0,
                 xValue: xDatum,
@@ -454,16 +446,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 },
             };
 
-            contexts[contextIndex].nodeData.push(nodeDatum);
-            contexts[contextIndex].labelData.push(nodeDatum);
+            context.nodeData.push(nodeDatum);
+            context.labelData.push(nodeDatum);
         });
 
         const connectorLinesEnabled = this.properties.line.enabled;
-        if (contexts.length > 0 && yCurrIndex !== undefined && connectorLinesEnabled) {
-            contexts[0].pointData = pointData;
+        if (yCurrIndex !== undefined && connectorLinesEnabled) {
+            context.pointData = pointData;
         }
 
-        return contexts;
+        return context;
     }
 
     private updateSeriesItemTypes() {
@@ -709,24 +701,21 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         // Legend item toggling is unsupported.
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection, contextData, paths }: WaterfallAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
 
-        contextData.forEach(({ pointData }, contextDataIndex) => {
-            if (contextDataIndex !== 0 || !pointData) {
-                return;
-            }
+        const { pointData } = contextData;
+        if (!pointData) return;
 
-            const [lineNode] = paths[contextDataIndex];
-            if (this.isVertical()) {
-                this.animateConnectorLinesVertical(lineNode, pointData);
-            } else {
-                this.animateConnectorLinesHorizontal(lineNode, pointData);
-            }
-        });
+        const [lineNode] = paths;
+        if (this.isVertical()) {
+            this.animateConnectorLinesVertical(lineNode, pointData);
+        } else {
+            this.animateConnectorLinesHorizontal(lineNode, pointData);
+        }
     }
 
     protected animateConnectorLinesHorizontal(lineNode: _Scene.Path, pointData: WaterfallNodePointDatum[]) {
@@ -839,28 +828,22 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         paths: _Scene.Path[];
         seriesIdx: number;
     }): Promise<void> {
-        this.resetConnectorLinesPath({ contextData: [opts.contextData], paths: [opts.paths] });
+        this.resetConnectorLinesPath({ contextData: opts.contextData, paths: opts.paths });
     }
 
-    resetConnectorLinesPath({
-        contextData,
-        paths,
-    }: {
-        contextData: Array<WaterfallContext>;
-        paths: Array<Array<_Scene.Path>>;
-    }) {
+    resetConnectorLinesPath({ contextData, paths }: { contextData: WaterfallContext; paths: Array<_Scene.Path> }) {
         if (paths.length === 0) {
             return;
         }
 
-        const [lineNode] = paths[0];
+        const [lineNode] = paths;
 
         this.updateLineNode(lineNode);
 
         const { path: linePath } = lineNode;
         linePath.clear({ trackChanges: true });
 
-        const { pointData } = contextData[0];
+        const { pointData } = contextData;
         if (!pointData) {
             return;
         }

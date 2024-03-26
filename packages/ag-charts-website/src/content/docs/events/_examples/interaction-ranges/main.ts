@@ -51,31 +51,28 @@ let options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function exact() {
-    if (!options.series) return;
-
-    for (let i = 0; i < options.series.length; i++) {
-        options.series[i].nodeClickRange = 'exact';
-    }
+    options.series = options.series?.map((series) => ({
+        ...series,
+        nodeClickRange: 'exact',
+    }));
 
     AgCharts.update(chart, options);
 }
 
 function nearest() {
-    if (!options.series) return;
-
-    for (let i = 0; i < options.series.length; i++) {
-        options.series[i].nodeClickRange = 'nearest';
-    }
+    options.series = options.series?.map((series) => ({
+        ...series,
+        nodeClickRange: 'nearest',
+    }));
 
     AgCharts.update(chart, options);
 }
 
 function distance() {
-    if (!options.series) return;
-
-    for (let i = 0; i < options.series.length; i++) {
-        options.series[i].nodeClickRange = 10;
-    }
+    options.series = options.series?.map((series) => ({
+        ...series,
+        nodeClickRange: 10,
+    }));
 
     AgCharts.update(chart, options);
 }

@@ -1,5 +1,5 @@
+import type { AgCandlestickSeriesItemOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
-import type { AgCandlestickSeriesItemOptions } from 'ag-charts-community/src/options/next';
 
 import type { CandlestickNodeDatum } from './candlestickTypes';
 

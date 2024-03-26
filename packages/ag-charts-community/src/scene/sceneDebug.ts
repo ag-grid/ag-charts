@@ -29,16 +29,11 @@ export function debugStats(
     const { layersRendered = 0, layersSkipped = 0, nodesRendered = 0, nodesSkipped = 0 } = renderCtxStats ?? {};
 
     const end = performance.now();
-    const start = debugSplitTimes['start'];
-    debugSplitTimes['end'] = performance.now();
+    const { start, ...durations } = debugSplitTimes;
 
-    let lastSplit = 0;
-    const splits = Object.entries(debugSplitTimes)
-        .filter(([n]) => n !== 'end')
-        .map(([n, t], i) => {
-            const result = i > 0 ? time(n, lastSplit, t) : null;
-            lastSplit = t;
-            return result;
+    const splits = Object.entries(durations)
+        .map(([n, t]) => {
+            return time(n, t);
         })
         .filter((v) => v != null)
         .join(' + ');
@@ -209,8 +204,9 @@ function pct(rendered: number, skipped: number) {
     return `${rendered} / ${total} (${Math.round((100 * rendered) / total)}%)`;
 }
 
-function time(name: string, start: number, end: number) {
-    return `${name}: ${Math.round((end - start) * 100) / 100}ms`;
+function time(name: string, start: number, end?: number) {
+    const duration = end != null ? end - start : start;
+    return `${name}: ${Math.round(duration * 100) / 100}ms`;
 }
 
 function accumulate<T>(iterator: Iterable<T>, mapper: (item: T) => number) {

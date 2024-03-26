@@ -265,7 +265,6 @@ export abstract class Series<
 
         const {
             moduleCtx,
-            useLabelLayer = false,
             pickModes = [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST],
             directionKeys = {},
             directionNames = {},
@@ -281,7 +280,6 @@ export abstract class Series<
         this.contentGroup = this.rootGroup.appendChild(
             new Group({
                 name: `${this.internalId}-content`,
-                layer: !contentGroupVirtual,
                 isVirtual: contentGroupVirtual,
                 zIndex: Layers.SERIES_LAYER_ZINDEX,
                 zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
@@ -290,7 +288,6 @@ export abstract class Series<
 
         this.highlightGroup = new Group({
             name: `${this.internalId}-highlight`,
-            layer: !contentGroupVirtual,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
@@ -303,14 +300,12 @@ export abstract class Series<
         this.labelGroup = this.rootGroup.appendChild(
             new Group({
                 name: `${this.internalId}-series-labels`,
-                layer: useLabelLayer,
                 zIndex: Layers.SERIES_LABEL_ZINDEX,
             })
         );
 
         this.annotationGroup = new Group({
             name: `${this.id}-annotation`,
-            layer: !contentGroupVirtual,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
@@ -423,7 +418,7 @@ export abstract class Series<
     abstract processData(dataController: DataController): Promise<void>;
 
     // Using processed data, create data that backs visible nodes.
-    abstract createNodeData(): Promise<TContext[]>;
+    abstract createNodeData(): Promise<TContext | undefined>;
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {

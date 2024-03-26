@@ -198,7 +198,7 @@ describe('SunburstSeries', () => {
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
             );
-            expect(onNodeClick).toBeCalledTimes(nodeCount);
+            expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
         };
 
         it(`should render tooltip correctly`, async () => {
@@ -284,7 +284,7 @@ describe('SunburstSeries', () => {
         };
 
         const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData[0].nodeData,
+            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
             getHighlightNode: (_, series) => series.highlightNode.children[0],
@@ -309,7 +309,7 @@ describe('SunburstSeries', () => {
             getNodePoint: (item) => {
                 const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = item;
                 const r = (innerRadius + outerRadius) / 2;
-                const theta = (startAngle + endAngle) / 2 - Math.PI / 2;
+                const theta = (startAngle + endAngle) / 2;
                 return [centerX + r * Math.cos(theta), centerY + r * Math.sin(theta)];
             },
             getDatumValues: (item, series) => {

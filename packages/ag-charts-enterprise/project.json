@@ -169,19 +169,27 @@
       ]
     },
     "benchmark": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/reports/packages/ag-charts-enterprise/benchmarks"],
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": ["jsOutputs"],
+      "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
-        "jestConfig": "packages/ag-charts-enterprise/jest.config.ts",
-        "testPathPattern": [".*/benchmarks/.*"],
-        "passWithNoTests": false
+        "commands": [
+          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*'"
+        ]
       },
       "configurations": {
-        "watch": {
-          "watch": true
+        "options": {
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' --watch"
+          ]
         },
         "update": {
-          "updateSnapshot": true
+          "options": {
+            "commands": [
+              "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' -u"
+            ]
+          }
         }
       },
       "dependsOn": [

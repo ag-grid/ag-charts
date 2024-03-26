@@ -3,7 +3,6 @@ import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
-import { Logger } from '../../util/logger';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { AND, GREATER_THAN, LESS_THAN, MAX_SPACING, NUMBER_OR_NAN, Validate } from '../../util/validation';
 import { AxisTick } from './axisTick';
@@ -37,19 +36,6 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     @Validate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
-
-    override formatDatum(datum: any): string {
-        if (typeof datum === 'number') {
-            const formatter = this.labelFormatter ?? ((v) => v.toFixed(2));
-
-            return this.moduleCtx.callbackCache.call(formatter, datum);
-        } else if (datum instanceof Date) {
-            Logger.warnOnce(
-                'data contains Date objects which are being plotted against a number axis, please only use a number axis for numbers.'
-            );
-        }
-        return String(datum);
-    }
 
     protected override createTick() {
         return new NumberAxisTick();

@@ -1,13 +1,8 @@
-import {
-    type AgNightingaleSeriesOptions,
-    type AgRadialSeriesFormat,
-    _ModuleSupport,
-    _Scene,
-} from 'ag-charts-community';
+import { type AgRadialSeriesFormat, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
-import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
+import { NightingaleSeriesProperties } from './nightingaleSeriesProperties';
 import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
 const { Sector } = _Scene;
@@ -16,7 +11,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
 
-    override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions>();
+    override properties = new NightingaleSeriesProperties();
 
     // TODO: Enable once the options contract has been revisited
     // @Validate(POSITIVE_NUMBER)

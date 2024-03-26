@@ -108,7 +108,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!(dataModel && processedData && visible && xAxis && yAxis)) {
-            return [];
+            return;
         }
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -129,20 +129,16 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const labelText = this.getLabelText(
-                label,
-                {
-                    value: labelKey ? values[labelDataIdx] : yDatum,
-                    datum,
-                    xKey,
-                    yKey,
-                    labelKey,
-                    xName,
-                    yName,
-                    labelName,
-                },
-                (value) => yAxis.formatDatum(value)
-            );
+            const labelText = this.getLabelText(label, {
+                value: labelKey ? values[labelDataIdx] : yDatum,
+                datum,
+                xKey,
+                yKey,
+                labelKey,
+                xName,
+                yName,
+                labelName,
+            });
 
             const size = Text.getTextSize(labelText, font);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
@@ -165,15 +161,13 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             });
         }
 
-        return [
-            {
-                itemId: yKey,
-                nodeData,
-                labelData: nodeData,
-                scales: super.calculateScaling(),
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: yKey,
+            nodeData,
+            labelData: nodeData,
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -181,7 +175,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override getLabelData(): PointLabelDatum[] {
-        return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
+        return this.contextNodeData?.labelData ?? [];
     }
 
     protected override markerFactory() {
@@ -337,10 +331,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override animateEmptyUpdateReady(data: ScatterAnimationData) {
-        const { markerSelections, labelSelections, annotationSelections } = data;
-        markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        const { markerSelection, labelSelection, annotationSelections } = data;
+        markerScaleInAnimation(this, this.ctx.animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     protected isLabelEnabled() {

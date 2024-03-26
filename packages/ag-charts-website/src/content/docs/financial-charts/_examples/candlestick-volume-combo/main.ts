@@ -60,7 +60,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'date',
             yKey: 'volume',
             showInLegend: false,
-            formatter: ({ datum }: any) => {
+            formatter: ({ datum }) => {
                 var fill = datum.open < datum.close ? '#92D2CC' : '#F7A9A7';
                 return { fill: fill };
             },
@@ -120,18 +120,18 @@ const options: AgCartesianChartOptions = {
             label: {
                 enabled: true,
                 autoRotate: false,
-                formatter: ({ value }: any) => dateFormat(value, 'd-m'),
+                formatter: ({ value }) => dateFormat(value, 'd-m'),
             },
             crosshair: {
                 enabled: true,
                 label: {
-                    renderer: ({ value }: any) => {
+                    renderer: ({ value }) => {
                         return { text: dateFormat(value, 'd-m') };
                     },
                 },
             },
         },
     ],
-} as unknown as AgCartesianChartOptions;
+};
 
 AgCharts.create(options);

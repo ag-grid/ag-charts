@@ -5,6 +5,7 @@ import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
@@ -34,13 +35,13 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
-import type { SeriesNodeEventTypes } from '../series';
+import { SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
-import { preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
+import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<PieNodeDatum, TEvent> {
@@ -138,6 +139,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
         });
@@ -269,7 +271,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     async maybeRefreshNodeData() {
         if (!this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = await this.createNodeData();
+        const { nodeData = [] } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -294,7 +296,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const { id: seriesId, processedData, dataModel, angleScale } = this;
         const { rotation } = this.properties;
 
-        if (!processedData || !dataModel || processedData.type !== 'ungrouped') return [];
+        if (!processedData || !dataModel || processedData.type !== 'ungrouped') return;
 
         const { angleIdx, radiusIdx, calloutLabelIdx, sectorLabelIdx, legendItemIdx } =
             this.getProcessedDataIndexes(dataModel);
@@ -353,7 +355,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const { innerRadiusRatio = 1 } = this.properties;
         this.zerosumInnerRing.visible = sum === 0 && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
 
-        return [{ itemId: seriesId, nodeData, labelData: nodeData }];
+        return { itemId: seriesId, nodeData, labelData: nodeData };
     }
 
     private getLabels(
@@ -717,6 +719,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             sector.lineDash = this.properties.lineDash;
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
+            sector.cornerRadius = this.properties.cornerRadius;
             // @todo(AG-10275) Remove sectorSpacing null case
             sector.inset =
                 this.properties.sectorSpacing != null
@@ -1240,6 +1243,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
     }
 
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return pickByMatchingAngle(this, point);
+    }
+
     getTooltipHtml(nodeDatum: PieNodeDatum): string {
         if (!this.properties.isValid()) {
             return '';
@@ -1392,9 +1399,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
-        seriesLabelFadeInAnimation(this, 'callout', animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'sector', animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'inner', animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'inner', animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1430,9 +1437,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
-        seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1450,9 +1457,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
-        seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
-        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
-        seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
+        seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
+        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }

@@ -152,14 +152,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!(data && dataModel && visible && xAxis && yAxis)) {
-            return [];
+            return;
         }
 
         if (xAxis.type !== 'category' || yAxis.type !== 'category') {
             Logger.warnOnce(
                 `Heatmap series expected axes to have "category" type, but received "${xAxis.type}" and "${yAxis.type}" instead.`
             );
-            return [];
+            return;
         }
 
         const {
@@ -208,20 +208,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const labelText =
                 colorValue == null
                     ? undefined
-                    : this.getLabelText(
-                          label,
-                          {
-                              value: colorValue,
-                              datum,
-                              colorKey,
-                              colorName,
-                              xKey,
-                              yKey,
-                              xName,
-                              yName,
-                          },
-                          (value) => yAxis.formatDatum(value)
-                      );
+                    : this.getLabelText(label, {
+                          value: colorValue,
+                          datum,
+                          colorKey,
+                          colorName,
+                          xKey,
+                          yKey,
+                          xName,
+                          yName,
+                      });
 
             const labels = formatLabels(
                 labelText,
@@ -276,15 +272,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             }
         }
 
-        return [
-            {
-                itemId: this.properties.yKey ?? this.id,
-                nodeData,
-                labelData,
-                scales: super.calculateScaling(),
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: this.properties.yKey ?? this.id,
+            nodeData,
+            labelData,
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
     }
 
     protected override nodeFactory() {

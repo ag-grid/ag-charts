@@ -147,6 +147,9 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
 

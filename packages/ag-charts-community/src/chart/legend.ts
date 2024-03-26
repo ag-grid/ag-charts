@@ -548,7 +548,7 @@ export class Legend extends BaseProperties {
             return bbox.width === paginationBBox.width && bbox.height === paginationBBox.height;
         };
 
-        const forceResult = this.maxWidth !== undefined || this.maxHeight !== undefined;
+        const forceResult = this.maxWidth !== undefined && this.maxHeight !== undefined;
 
         do {
             if (count++ > 10) {

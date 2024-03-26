@@ -193,10 +193,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private getNodeData(): ErrorBarNodeDatum[] | undefined {
-        const { contextNodeData } = this.cartesianSeries;
-        if (contextNodeData.length > 0) {
-            return contextNodeData[0].nodeData;
-        }
+        return this.cartesianSeries.contextNodeData?.nodeData;
     }
 
     private createNodeData() {

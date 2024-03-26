@@ -12,10 +12,11 @@ const {
     markerFadeInAnimation,
     resetMarkerFn,
     animationValidation,
+    isFiniteNumber,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
-const { extent, isNumberEqual, sanitizeHtml } = _Util;
+const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
 export interface RadarPathPoint {
     x: number;
@@ -146,7 +147,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     async maybeRefreshNodeData() {
         const didCircleChange = this.didCircleChange();
         if (!didCircleChange && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = await this.createNodeData();
+        const { nodeData = [] } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -155,7 +156,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { processedData, dataModel } = this;
 
         if (!processedData || !dataModel || !this.properties.isValid()) {
-            return [];
+            return;
         }
 
         const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
@@ -163,14 +164,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const radiusScale = this.axes[ChartAxisDirection.Y]?.scale;
 
         if (!angleScale || !radiusScale) {
-            return [];
+            return;
         }
 
         const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`);
         const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`);
         const axisInnerRadius = this.getAxisInnerRadius();
-
-        const radiusAxis = this.axes[ChartAxisDirection.Y];
 
         const nodeData = processedData.data.map((group): RadarNodeDatum => {
             const { datum, values } = group;
@@ -192,7 +191,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 const labelText = this.getLabelText(
                     label,
                     { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                    (value) => radiusAxis?.formatDatum(value) ?? String(value)
+                    (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
                 );
 
                 if (labelText) {
@@ -231,7 +230,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             };
         });
 
-        return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
+        return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
 
     async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
@@ -358,15 +357,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return '';
         }
 
-        const { id: seriesId, axes } = this;
+        const { id: seriesId } = this;
         const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
         const { datum, angleValue, radiusValue } = nodeDatum;
 
-        const radiusAxis = axes[ChartAxisDirection.Y];
-        const angleAxis = axes[ChartAxisDirection.X];
-
-        const formattedAngleValue = angleAxis?.formatDatum(angleValue) ?? String(angleValue);
-        const formattedRadiusValue = radiusAxis?.formatDatum(radiusValue) ?? String(radiusValue);
+        const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
+        const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
 
@@ -627,8 +623,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             onStop: () => this.animatePaths(1),
         });
 
-        markerFadeInAnimation(this, animationManager, [itemSelection], 'added');
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, [labelSelection]);
+        markerFadeInAnimation(this, animationManager, 'added', itemSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     override animateWaitingUpdateReady(data: _ModuleSupport.PolarAnimationData) {

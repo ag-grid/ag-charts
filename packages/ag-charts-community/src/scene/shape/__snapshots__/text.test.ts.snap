@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Text text measurements should measure multiline text size currently 1`] = `
+{
+  "height": 42.66666666666667,
+  "left": 0,
+  "top": 48,
+  "width": 64,
+}
+`;
+
+exports[`Text text measurements should measure multiline text size currently 2`] = `
+{
+  "height": 85.33333333333334,
+  "left": 90.66666666666666,
+  "top": 48,
+  "width": 181.33333333333331,
+}
+`;
+
+exports[`Text text measurements should measure text currently 1`] = `
+{
+  "actualBoundingBoxAscent": 24,
+  "actualBoundingBoxDescent": -5.333333333333333,
+  "actualBoundingBoxLeft": 0,
+  "actualBoundingBoxRight": 130.66666666666666,
+  "alphabeticBaseline": 5.333333333333336,
+  "emHeightAscent": 24,
+  "emHeightDescent": 0,
+  "fontBoundingBoxAscent": 24,
+  "fontBoundingBoxDescent": 0,
+  "width": 130.66666666666666,
+}
+`;
+
+exports[`Text text measurements should measure text currently 2`] = `
+{
+  "actualBoundingBoxAscent": 24,
+  "actualBoundingBoxDescent": 13.333333333333334,
+  "actualBoundingBoxLeft": 178.66666666666666,
+  "actualBoundingBoxRight": 178.66666666666666,
+  "alphabeticBaseline": -13.333333333333329,
+  "emHeightAscent": 24,
+  "emHeightDescent": 24,
+  "fontBoundingBoxAscent": 24,
+  "fontBoundingBoxDescent": 24,
+  "width": 357.3333333333333,
+}
+`;
+
+exports[`Text text measurements should measure text size currently 1`] = `
+{
+  "height": 18.666666666666668,
+  "width": 130.66666666666666,
+}
+`;
+
+exports[`Text text measurements should measure text size currently 2`] = `
+{
+  "height": 37.333333333333336,
+  "width": 357.3333333333333,
+}
+`;
