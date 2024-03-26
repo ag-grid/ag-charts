@@ -15,7 +15,7 @@ export class ZoomSelector {
     }
 
     update(
-        event: _ModuleSupport.InteractionEvent<'drag' | 'hover'>,
+        event: _ModuleSupport.PointerInteractionEvent<'drag' | 'hover'>,
         minRatioX: number,
         minRatioY: number,
         isScalingX: boolean,

@@ -13,7 +13,7 @@ import {
 
 export class ZoomScroller {
     update(
-        event: _ModuleSupport.InteractionEvent<'wheel'>,
+        event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
         step: number,
         anchorPointX: AgZoomAnchorPoint,
         anchorPointY: AgZoomAnchorPoint,

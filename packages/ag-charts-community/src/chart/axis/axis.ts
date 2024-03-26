@@ -44,7 +44,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { InteractionEvent } from '../interaction/interactionManager';
+import type { PointerInteractionEvent as InteractionEvent } from '../interaction/interactionManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';

@@ -17,7 +17,7 @@ import {
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
-import type { InteractionEvent } from '../interaction/interactionManager';
+import type { PointerInteractionEvent as InteractionEvent } from '../interaction/interactionManager';
 import type { RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
