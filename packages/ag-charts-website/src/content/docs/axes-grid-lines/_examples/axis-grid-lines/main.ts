@@ -52,7 +52,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function useGridStyle1() {
+function setGridStyle1() {
     var gridStyle = [
         {
             stroke: 'gray',
@@ -68,7 +68,7 @@ function useGridStyle1() {
     AgCharts.update(chart, options);
 }
 
-function useGridStyle2() {
+function setGridStyle2() {
     var xGridStyle = [
         {
             stroke: 'red',
@@ -86,7 +86,7 @@ function useGridStyle2() {
     AgCharts.update(chart, options);
 }
 
-function useDefaultGridStyle() {
+function setDefaultGridStyle() {
     var gridStyle = [
         {
             stroke: 'rgba(219, 219, 219, 1)',

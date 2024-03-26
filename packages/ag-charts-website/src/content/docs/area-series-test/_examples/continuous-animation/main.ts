@@ -90,8 +90,9 @@ function actionRemoveSeries() {
 }
 
 function actionRemovePoints() {
-    options.data = [...(options.data ?? [])];
-    options.data.splice(options.data.length / 2 - 5, 10);
+    const data = [...(options.data ?? [])];
+    data.splice(data.length / 2 - 5, 10);
+    options.data = data;
     AgCharts.update(chart, options);
 }
 
@@ -114,33 +115,37 @@ function actionRemoveHalf() {
 }
 
 function actionAddPoints() {
-    options.data = [...(options.data ?? [])];
-    const { length } = options.data;
+    const data = [...(options.data ?? [])];
+    const { length } = data;
     for (const idx of [length / 4, length / 2, (length * 3) / 4]) {
         const dataIdx = Math.floor(idx);
-        const [datum, nextDatum] = options.data.slice(dataIdx, dataIdx + 2);
+        const [datum, nextDatum] = data.slice(dataIdx, dataIdx + 2);
 
         const date = new Date((datum.date.getTime() + nextDatum.date.getTime()) / 2);
-        options.data.splice(dataIdx + 1, 0, genDataPoint({ ...datum, date }, 0));
+        data.splice(dataIdx + 1, 0, genDataPoint({ ...datum, date }, 0));
     }
+    options.data = data;
     AgCharts.update(chart, options);
 }
 
 function actionAddPointsBefore() {
-    options.data = [...(options.data ?? [])];
+    const data = [...(options.data ?? [])];
 
-    const ref = options.data[0];
-    options.data.splice(0, 0, genDataPoint(ref, -14), genDataPoint(ref, -7));
+    const ref = data[0];
+    data.splice(0, 0, genDataPoint(ref, -14), genDataPoint(ref, -7));
+    options.data = data;
     AgCharts.update(chart, options);
 }
 
 function actionAddPointsAfter(count = 2) {
-    options.data = [...(options.data ?? [])];
+    const data = [...(options.data ?? [])];
 
-    const [ref] = options.data.slice(-1);
+    const [ref] = data.slice(-1);
     for (let idx = 0; idx < count; idx++) {
-        options.data.push(genDataPoint(ref, (idx + 1) * 7));
+        data.push(genDataPoint(ref, (idx + 1) * 7));
     }
+
+    options.data = data;
     AgCharts.update(chart, options);
 }
 

@@ -21,22 +21,34 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function fixTooltipToTopRight() {
-    options.tooltip!.position!.type = 'top-right';
-    options.tooltip!.position!.xOffset = -20;
-    options.tooltip!.position!.yOffset = 0;
+    options.tooltip = {
+        position: {
+            type: 'top-right',
+            xOffset: -20,
+            yOffset: 0,
+        },
+    };
     AgCharts.update(chart, options);
 }
 
 function fixTooltipToPointer() {
-    options.tooltip!.position!.type = 'pointer';
-    options.tooltip!.position!.xOffset = 80;
-    options.tooltip!.position!.yOffset = 80;
+    options.tooltip = {
+        position: {
+            type: 'pointer',
+            xOffset: 80,
+            yOffset: 8,
+        },
+    };
     AgCharts.update(chart, options);
 }
 
 function reset() {
-    options.tooltip!.position!.type = 'node';
-    options.tooltip!.position!.xOffset = 0;
-    options.tooltip!.position!.yOffset = 0;
+    options.tooltip = {
+        position: {
+            type: 'node',
+            xOffset: 0,
+            yOffset: 0,
+        },
+    };
     AgCharts.update(chart, options);
 }
