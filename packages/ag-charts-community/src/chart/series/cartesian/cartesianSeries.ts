@@ -530,10 +530,8 @@ export abstract class CartesianSeries<
     }
 
     protected *datumNodesIter(): Iterable<TNode> {
-        for (const subGroup of this.subGroups) {
-            for (const { node } of subGroup.datumSelection) {
-                yield node;
-            }
+        for (const { node } of this.datumSelection) {
+            yield node;
         }
     }
 
