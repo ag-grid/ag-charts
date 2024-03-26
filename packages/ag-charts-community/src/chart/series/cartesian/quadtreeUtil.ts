@@ -29,14 +29,12 @@ export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TD
 ) {
     for (const node of hitTesters) {
         const datum: TDatum | undefined = node.datum;
-        if (datum !== undefined) {
-            quadtree.addValue(node, datum);
-        } else {
+        if (datum === undefined) {
             Logger.error('undefined datum');
+        } else {
+            quadtree.addValue(node, datum);
         }
     }
-
-    return;
 }
 
 type SeriesWithQuadtreeNearest<TDatum extends CartesianSeriesNodeDatum> = {

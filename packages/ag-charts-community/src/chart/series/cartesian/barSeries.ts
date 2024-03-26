@@ -1,5 +1,3 @@
-import type { QuadtreeNearest } from 'packages/ag-charts-community/src/scene/util/quadtree';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
@@ -11,6 +9,7 @@ import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
