@@ -2,9 +2,11 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
 import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
 import ticks, { tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
@@ -15,7 +17,7 @@ import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from 
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { Series, SeriesNodePickMatch, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
 import {
@@ -25,6 +27,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
+import { addHitTestersToQuadtree, childrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 enum HistogramSeriesNodeTag {
     Bin,
@@ -432,6 +435,14 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 text.visible = false;
             }
         });
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, childrenIter<Rect>(this.contentGroup.children[0]));
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 
     getTooltipHtml(nodeDatum: HistogramNodeDatum): string {

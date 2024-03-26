@@ -12,6 +12,7 @@ import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
@@ -196,6 +197,8 @@ export abstract class CartesianSeries<
     private readonly opts: CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
+    protected quadtree?: QuadtreeNearest<TDatum>;
+
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
 
     protected constructor({
@@ -360,6 +363,7 @@ export abstract class CartesianSeries<
 
             this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
 
+            this.markQuadtreeDirty();
             this._contextNodeData = await this.createNodeData();
             const animationValid = this.isProcessedDataAnimatable();
             if (this._contextNodeData) {
@@ -519,6 +523,24 @@ export abstract class CartesianSeries<
         });
 
         return highlightItems;
+    }
+
+    protected markQuadtreeDirty() {
+        this.quadtree = undefined;
+    }
+
+    public getQuadTree(): QuadtreeNearest<TDatum> {
+        if (this.quadtree === undefined) {
+            const { width, height } = this.ctx.scene.canvas;
+            const canvasRect = new BBox(0, 0, width, height);
+            this.quadtree = new QuadtreeNearest<TDatum>(100, 10, canvasRect);
+            this.initQuadTree(this.quadtree);
+        }
+        return this.quadtree;
+    }
+
+    protected initQuadTree(_quadtree: QuadtreeNearest<TDatum>) {
+        // Override point for subclasses
     }
 
     protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {

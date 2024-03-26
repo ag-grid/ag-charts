@@ -5,6 +5,7 @@ import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
@@ -26,13 +27,13 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
-import type { SeriesNodeEventTypes } from '../series';
+import { SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
-import { preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
+import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<PieNodeDatum, TEvent> {
@@ -130,6 +131,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
         });
@@ -1235,6 +1237,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         } else if (sectorLabelKey && sectorLabelKey !== angleKey && sectorLabel?.text !== undefined) {
             return sectorLabel.text;
         }
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return pickByMatchingAngle(this, point);
     }
 
     getTooltipHtml(nodeDatum: PieNodeDatum): string {
