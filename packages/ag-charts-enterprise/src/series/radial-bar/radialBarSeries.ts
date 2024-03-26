@@ -154,12 +154,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                     rangeId: `angleValue-range`,
                     invalidValue: null,
                     groupId: stackGroupId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...groupAccumulativeValueProperty(this, angleKey, true, 'trailing', 'current', {
                     id: `angleValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...extraProps,
@@ -261,20 +263,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
             const radiusDatum = keys[0];
             const angleDatum = values[angleRawIndex];
+            const isPositive = angleDatum >= 0 && !Object.is(angleDatum, -0);
             const angleStartDatum = values[angleStartIndex];
             const angleEndDatum = values[angleEndIndex];
-            const angleRange = aggValues?.[angleRangeIndex][1] ?? 0;
+            const angleRange = aggValues?.[angleRangeIndex][isPositive ? 1 : 0] ?? 0;
 
             let startAngle = angleScale.convert(angleStartDatum, { clampMode: 'clamped' });
             let endAngle = angleScale.convert(angleEndDatum, { clampMode: 'clamped' });
 
-            let rangeStartAngle = angleAxisReversed ? angleScale.range[1] : angleScale.range[0];
+            let rangeStartAngle = angleScale.convert(0, { clampMode: 'clamped' });
             let rangeEndAngle = angleScale.convert(angleRange, { clampMode: 'clamped' });
 
-            if (angleAxisReversed) {
+            if (!isPositive || angleAxisReversed) {
                 [rangeStartAngle, rangeEndAngle] = [rangeEndAngle, rangeStartAngle];
                 [startAngle, endAngle] = [endAngle, startAngle];
             }
+
+            console.log(angleRange, [startAngle, endAngle], [rangeStartAngle, rangeEndAngle]);
 
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
             const innerRadius = dataRadius + groupScale.convert(String(groupIndex));
