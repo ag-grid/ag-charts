@@ -1,8 +1,17 @@
 /* eslint-disable no-console */
 export function setupMockConsole() {
+    const originalConsole = {
+        warn: console.warn,
+        error: console.error,
+    };
+
     beforeEach(() => {
-        console.warn = jest.fn();
-        console.error = jest.fn();
+        console.warn = jest.fn().mockImplementation((...args: any[]) => {
+            originalConsole.warn(...args);
+        });
+        console.error = jest.fn().mockImplementation((...args: any[]) => {
+            originalConsole.error(...args);
+        });
     });
 
     afterEach(() => {

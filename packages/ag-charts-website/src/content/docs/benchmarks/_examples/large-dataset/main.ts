@@ -50,14 +50,15 @@ const options: AgCartesianChartOptions = {
             marker: { enabled: true },
             visible: visibleCount >= 2,
         },
-        {
-            type: 'area',
-            xKey: 'time',
-            yKey: 'value',
-            yName: 'Area',
-            marker: { enabled: true },
-            visible: visibleCount >= 3,
-        },
+        // Disabled to allow retrospective execution for b9.1.1
+        // {
+        //     type: 'area',
+        //     xKey: 'time',
+        //     yKey: 'value',
+        //     yName: 'Area',
+        //     marker: { enabled: true },
+        //     visible: visibleCount >= 3,
+        // },
         {
             type: 'bar',
             xKey: 'time',

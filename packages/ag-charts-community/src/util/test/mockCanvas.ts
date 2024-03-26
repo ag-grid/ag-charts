@@ -40,7 +40,10 @@ export function extractImageData({
     return sourceCanvas?.toBuffer('image/png', CANVAS_TO_BUFFER_DEFAULTS);
 }
 
-export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): { nodeCanvas: Canvas } {
+export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): {
+    nodeCanvas: Canvas;
+    getActiveCanvasInstances: () => Canvas[];
+} {
     const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(CANVAS_WIDTH, CANVAS_HEIGHT, document);
 
     beforeEach(() => {
@@ -53,7 +56,7 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
         mockCanvas.teardown(mockCtx);
     });
 
-    return mockCtx?.ctx;
+    return mockCtx.ctx;
 }
 
 export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writeDiff = true } = {}) {

@@ -1,7 +1,9 @@
 import {
+    AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
     AgCharts,
+    AgPolarChartOptions,
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
 
@@ -15,12 +17,7 @@ const tooltip = {
     }),
 };
 
-const options: AgChartOptions = {
-    container: document.getElementById('myChart'),
-    data: getData(),
-    animation: {
-        enabled: true,
-    },
+const barOptions: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
@@ -80,7 +77,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const lineOptions: AgChartOptions = {
+const lineOptions: AgCartesianChartOptions = {
     series: [
         {
             type: 'line',
@@ -135,7 +132,7 @@ const lineOptions: AgChartOptions = {
     ],
 };
 
-const areaOptions: AgChartOptions = {
+const areaOptions: AgCartesianChartOptions = {
     series: [
         {
             type: 'area',
@@ -195,7 +192,7 @@ const areaOptions: AgChartOptions = {
     ],
 };
 
-const donutOptions: AgChartOptions = {
+const donutOptions: AgPolarChartOptions = {
     series: [
         {
             type: 'pie',
@@ -221,20 +218,37 @@ const donutOptions: AgChartOptions = {
     ],
 };
 
+let options: AgCartesianChartOptions | AgPolarChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    animation: {
+        enabled: true,
+    },
+    ...barOptions,
+};
+
 const chart = AgCharts.create(options);
 
 function changeSeriesBar() {
-    AgCharts.updateDelta(chart, options);
+    options.series = barOptions.series;
+    options.axes = barOptions.axes;
+    AgCharts.update(chart, options);
 }
 
 function changeSeriesLine() {
-    AgCharts.updateDelta(chart, lineOptions);
+    options.series = lineOptions.series;
+    options.axes = lineOptions.axes;
+    AgCharts.update(chart, options);
 }
 
 function changeSeriesArea() {
-    AgCharts.updateDelta(chart, areaOptions);
+    options.series = areaOptions.series;
+    options.axes = areaOptions.axes;
+    AgCharts.update(chart, options);
 }
 
 function changeSeriesDonut() {
-    AgCharts.updateDelta(chart, donutOptions);
+    options.series = donutOptions.series;
+    options.axes = donutOptions.axes;
+    AgCharts.update(chart, options);
 }

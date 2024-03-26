@@ -2,7 +2,11 @@ import { afterEach, beforeEach } from '@jest/globals';
 
 import { flushTimings, loadBuiltExampleOptions, logTimings, recordTiming, setupMockConsole } from 'ag-charts-test';
 
-import { CartesianSeries, CartesianSeriesNodeDatum } from '../src/chart/series/cartesian/cartesianSeries';
+import {
+    CartesianSeries,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from '../src/chart/series/cartesian/cartesianSeries';
 import { AgChartProxy, IMAGE_SNAPSHOT_DEFAULTS, deproxy, prepareTestOptions } from '../src/chart/test/utils';
 import { AgCharts } from '../src/main';
 import { AgChartInstance, AgChartOptions } from '../src/options/agChartOptions';
@@ -50,6 +54,7 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
             await callback();
             const duration = performance.now() - start;
             const memoryUsageAfter = getMemoryUsage();
+            const canvasInstances = memoryUsageBefore && memoryUsageAfter && ctx.canvasCtx.getActiveCanvasInstances();
 
             const { currentTestName, testPath } = expect.getState();
             if (testPath == null || currentTestName == null) {
@@ -60,7 +65,21 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
                 timeMs: duration,
                 memory:
                     memoryUsageBefore && memoryUsageAfter
-                        ? { before: memoryUsageBefore, after: memoryUsageAfter }
+                        ? {
+                              before: memoryUsageBefore,
+                              after: memoryUsageAfter,
+                              nativeAllocations: canvasInstances
+                                  ? {
+                                        canvas: {
+                                            count: canvasInstances.length,
+                                            bytes: canvasInstances.reduce(
+                                                (totalBytes, canvas) => totalBytes + getBitmapMemoryUsage(canvas),
+                                                0
+                                            ),
+                                        },
+                                    }
+                                  : undefined,
+                          }
                         : undefined,
             });
 
@@ -104,7 +123,7 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     nodeCount: number
 ) {
     const series = deproxy(ctx.chart).series[seriesIdx] as CartesianSeries<any, any, any>;
-    const { nodeData = [] } = series.contextNodeData ?? {};
+    const { nodeData = [] } = getSeriesNodeData(series) ?? {};
 
     if (nodeCount < nodeData.length) {
         expect(nodeData.length).toBeGreaterThanOrEqual(nodeCount);
@@ -112,8 +131,8 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
 
     const results: Point[] = [];
     const addResult = (idx: number) => {
-        const node: CartesianSeriesNodeDatum = nodeData.at(Math.floor(idx));
-        const { midPoint } = node;
+        const node = nodeData.at(Math.floor(idx));
+        const midPoint = node?.midPoint;
         if (!midPoint) throw new Error('No node midPoint found.');
 
         const point = series.contentGroup.inverseTransformPoint(midPoint.x, midPoint.y);
@@ -125,4 +144,23 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     }
 
     ctx.nodePositions.push(results);
+}
+
+function getBitmapMemoryUsage(dimensions: { width: number; height: number }, bitsPerPixel: number = 32): number {
+    const { width, height } = dimensions;
+    const numPixels = width * height;
+    const bytesPerPixel = bitsPerPixel / 8;
+    return numPixels * bytesPerPixel;
+}
+
+function getSeriesNodeData(
+    series: CartesianSeries<any, any, any, any, CartesianSeriesNodeDataContext<CartesianSeriesNodeDatum, any>>
+): CartesianSeriesNodeDataContext<CartesianSeriesNodeDatum, any> | null {
+    if (!series.contextNodeData) return null;
+    // HACK: support running the benchmark script against old versions of the library.
+    // Previous versions of the library used to support multiple `contextNodeData` per series, so take the first item.
+    if (Array.isArray(series.contextNodeData)) {
+        return (series.contextNodeData as Array<CartesianSeriesNodeDataContext<any, any>>)[0];
+    }
+    return series.contextNodeData;
 }
