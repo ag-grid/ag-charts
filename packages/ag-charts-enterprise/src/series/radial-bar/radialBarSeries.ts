@@ -279,8 +279,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 [startAngle, endAngle] = [endAngle, startAngle];
             }
 
-            console.log(angleRange, [startAngle, endAngle], [rangeStartAngle, rangeEndAngle]);
-
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
             const innerRadius = dataRadius + groupScale.convert(String(groupIndex));
             const outerRadius = innerRadius + barWidth;
