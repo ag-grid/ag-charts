@@ -49,7 +49,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,

@@ -120,7 +120,7 @@ export abstract class HierarchySeries<
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             contentGroupVirtual: false,
         });
 

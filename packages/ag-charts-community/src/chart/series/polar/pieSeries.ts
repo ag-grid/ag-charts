@@ -131,7 +131,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
         });
