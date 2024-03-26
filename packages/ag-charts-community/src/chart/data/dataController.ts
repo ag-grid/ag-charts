@@ -233,22 +233,23 @@ export class DataController {
                 result.opts ??= { ...opts, props: [] };
 
                 for (const prop of props) {
-                    prop.scopes ??= new Set([id]);
-                    DataController.createIdsMap(id, prop);
+                    const clone = { ...prop };
+                    clone.scopes ??= new Set([id]);
+                    DataController.createIdsMap(id, clone);
 
                     const match = result.opts.props.find(
-                        (existing: any) => existing.type === prop.type && DataController.deepEqual(existing, prop)
+                        (existing: any) => existing.type === clone.type && DataController.deepEqual(existing, clone)
                     );
 
                     if (!match) {
-                        result.opts.props.push(prop);
+                        result.opts.props.push(clone);
                         continue;
                     }
 
                     match.scopes.add(id);
 
-                    if ((match.type === 'key' || match.type === 'value') && prop.idsMap?.size) {
-                        DataController.mergeIdsMap(prop.idsMap, match.idsMap);
+                    if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
+                        DataController.mergeIdsMap(clone.idsMap, match.idsMap);
                     }
                 }
 

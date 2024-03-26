@@ -214,7 +214,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             return fixNumericExtent([xDomainMin, xDomainMax]);
         }
 
-        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
+        const yDomain = dataModel.getDomain(this, 'groupAgg', 'aggregate', processedData);
         return fixNumericExtent(yDomain);
     }
 

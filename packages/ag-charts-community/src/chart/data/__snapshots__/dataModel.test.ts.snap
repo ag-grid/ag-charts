@@ -4,18 +4,17 @@ exports[`DataModel empty data set processing should generated the expected resul
 {
   "data": [],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -24,60 +23,52 @@ exports[`DataModel empty data set processing should generated the expected resul
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "ie",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "chrome",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "firefox",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "safari",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -282,12 +273,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "curb-weight",
-        "scope": "test",
+        "scopes": Set {
+          "test",
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -296,15 +288,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         "groupId": "weight",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "curb-weight",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -561,18 +551,17 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "engine-size",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -581,15 +570,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         "groupId": "mpg",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "highway-mpg",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -792,14 +779,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "engine-size",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -865,12 +851,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
 {
   "data": [
     {
-      "aggValues": [
-        [
-          0,
-          6.1,
-        ],
-      ],
       "datum": [
         {
           "regular": 3.2,
@@ -890,12 +870,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          7.9,
-        ],
-      ],
       "datum": [
         {
           "regular": 4.2,
@@ -915,12 +889,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          6.7,
-        ],
-      ],
       "datum": [
         {
           "regular": 3.4,
@@ -940,12 +908,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          6.8,
-        ],
-      ],
       "datum": [
         {
           "regular": 3.6,
@@ -965,12 +927,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          5.9,
-        ],
-      ],
       "datum": [
         {
           "regular": 3.2,
@@ -990,12 +946,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          5.6,
-        ],
-      ],
       "datum": [
         {
           "regular": 2.9,
@@ -1015,12 +965,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          2.6,
-        ],
-      ],
       "datum": [
         {
           "regular": 1.5,
@@ -1041,18 +985,17 @@ exports[`DataModel grouped processing - grouped example should generated the exp
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -1061,41 +1004,31 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "total",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "regular",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
   },
   "domain": {
-    "aggValues": [
-      [
-        0,
-        7.9,
-      ],
-    ],
     "groups": [
       [
         "Whole economy",
@@ -1154,12 +1087,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 {
   "data": [
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.6,
@@ -1178,22 +1105,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          29.946524064171125,
-          50.26737967914438,
-          8.556149732620321,
-          6.4171122994652405,
-          3.7433155080213907,
-          1.0695187165775402,
+          59.57446808510638,
+          100,
+          17.02127659574468,
+          12.76595744680851,
+          7.446808510638298,
+          2.127659574468085,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.6,
@@ -1212,22 +1133,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          31.46067415730337,
-          49.438202247191015,
-          8.988764044943819,
-          6.741573033707865,
-          2.8089887640449436,
-          0.5617977528089887,
+          63.63636363636363,
+          100,
+          18.18181818181818,
+          13.636363636363635,
+          5.681818181818182,
+          1.1363636363636362,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.6,
@@ -1246,22 +1161,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          30.167597765363126,
-          50.27932960893854,
-          8.938547486033519,
-          6.703910614525139,
-          3.3519553072625694,
-          0.5586592178770949,
+          60,
+          100,
+          17.77777777777778,
+          13.333333333333334,
+          6.666666666666667,
+          1.1111111111111112,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.3,
@@ -1280,22 +1189,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          38.56209150326798,
-          41.1764705882353,
-          8.49673202614379,
-          7.843137254901961,
-          3.2679738562091507,
-          0.6535947712418301,
+          93.65079365079366,
+          100,
+          20.634920634920636,
+          19.047619047619047,
+          7.936507936507937,
+          1.5873015873015874,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.3,
@@ -1314,22 +1217,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          42.10526315789474,
-          33.83458646616542,
-          9.774436090225565,
-          9.022556390977444,
-          3.759398496240602,
-          1.5037593984962407,
+          100,
+          80.35714285714286,
+          23.214285714285715,
+          21.42857142857143,
+          8.928571428571429,
+          3.5714285714285716,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.3,
@@ -1348,22 +1245,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          46.03174603174603,
-          30.158730158730158,
-          10.317460317460318,
-          9.523809523809524,
-          3.174603174603175,
-          0.7936507936507937,
+          100,
+          65.51724137931035,
+          22.413793103448278,
+          20.689655172413794,
+          6.8965517241379315,
+          1.7241379310344829,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.3,
@@ -1382,22 +1273,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          44.44444444444444,
-          30.952380952380953,
-          10.317460317460318,
-          9.523809523809524,
-          3.174603174603175,
-          1.5873015873015874,
+          100,
+          69.64285714285715,
+          23.214285714285715,
+          21.42857142857143,
+          7.142857142857143,
+          3.5714285714285716,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.3,
@@ -1416,22 +1301,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          46.456692913385815,
-          29.13385826771653,
-          10.236220472440943,
-          10.236220472440943,
-          3.1496062992125977,
-          0.7874015748031494,
+          100,
+          62.711864406779654,
+          22.033898305084744,
+          22.033898305084744,
+          6.779661016949152,
+          1.694915254237288,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.3,
@@ -1450,22 +1329,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          44.27480916030535,
-          31.297709923664122,
-          9.923664122137406,
-          9.160305343511451,
-          4.580152671755726,
-          0.7633587786259544,
+          100,
+          70.68965517241378,
+          22.413793103448278,
+          20.689655172413794,
+          10.344827586206897,
+          1.7241379310344829,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.6,
@@ -1484,22 +1357,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          37.41496598639456,
-          40.13605442176871,
-          10.884353741496598,
-          6.802721088435375,
-          4.081632653061225,
-          0.6802721088435374,
+          93.22033898305084,
+          100,
+          27.11864406779661,
+          16.94915254237288,
+          10.169491525423728,
+          1.694915254237288,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.6,
@@ -1518,22 +1385,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          35.54216867469879,
-          43.97590361445783,
-          9.638554216867469,
-          6.024096385542168,
-          4.216867469879518,
-          0.6024096385542168,
+          80.82191780821918,
+          100,
+          21.91780821917808,
+          13.698630136986301,
+          9.589041095890412,
+          1.36986301369863,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "bioenergyWaste": 1.6,
@@ -1552,29 +1413,28 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          33.33333333333333,
-          47.126436781609186,
-          9.195402298850574,
-          6.32183908045977,
-          3.4482758620689653,
-          0.5747126436781609,
+          70.73170731707317,
+          100,
+          19.512195121951223,
+          13.414634146341466,
+          7.317073170731708,
+          1.2195121951219514,
         ],
       ],
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "month",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -1583,101 +1443,83 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "petroleum",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "naturalGas",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "bioenergyWaste",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "nuclear",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 4,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "windSolarHydro",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 5,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "imported",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
   },
   "domain": {
-    "aggValues": [
-      [
-        0,
-        100,
-      ],
-    ],
     "groups": [
       [
         "Jan",
@@ -1734,28 +1576,28 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     ],
     "values": [
       [
-        29.946524064171125,
-        46.456692913385815,
+        59.57446808510638,
+        100,
       ],
       [
-        29.13385826771653,
-        50.27932960893854,
+        62.711864406779654,
+        100,
       ],
       [
-        8.49673202614379,
-        10.884353741496598,
+        17.02127659574468,
+        27.11864406779661,
       ],
       [
-        6.024096385542168,
-        10.236220472440943,
+        12.76595744680851,
+        22.033898305084744,
       ],
       [
-        2.8089887640449436,
-        4.580152671755726,
+        5.681818181818182,
+        10.344827586206897,
       ],
       [
-        0.5586592178770949,
-        1.5873015873015874,
+        1.1111111111111112,
+        3.5714285714285716,
       ],
     ],
   },
@@ -1772,12 +1614,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 {
   "data": [
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "asian": 7317,
@@ -1795,22 +1631,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          59.712524678576585,
-          9.755862666730872,
-          17.616892184716136,
-          9.00948620407377,
-          0.6837771464342467,
-          3.221457119468387,
+          100,
+          16.338050885044957,
+          29.502842627313417,
+          15.088101286238459,
+          1.1451151163259545,
+          5.394943752268054,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "asian": 527391,
@@ -1828,22 +1658,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          74.28693389376268,
-          6.388321614734185,
-          11.273090029365255,
-          5.531346949908065,
-          0.4882951522320629,
-          2.03201235999776,
+          100,
+          8.599522526895628,
+          15.17506435988708,
+          7.445921725371535,
+          0.6573096056573974,
+          2.7353563453079506,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "asian": 377168,
@@ -1861,22 +1685,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          74.49944393701765,
-          5.587263359806844,
-          11.53308567100458,
-          6.056912595216422,
-          0.4072087289504093,
-          1.9160857080040963,
+          100,
+          7.49973833969869,
+          15.480767454794336,
+          8.13014470327722,
+          0.5465929776531842,
+          2.571946321671835,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "asian": 12328,
@@ -1894,22 +1712,16 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          74.84837848647854,
-          6.0615954746181915,
-          10.062934151776604,
-          6.9758140218269675,
-          0.3297716902431658,
-          1.7215061750565264,
+          100,
+          8.098499389286337,
+          13.444425056709125,
+          9.319926714360495,
+          0.4405862851160356,
+          2.2999912755191065,
         ],
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          100,
-        ],
-      ],
       "datum": [
         {
           "asian": 605,
@@ -1927,29 +1739,28 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "validScopes": undefined,
       "values": [
         [
-          78.45841011628646,
-          9.201245472453454,
-          3.844443032344157,
-          7.015314227616446,
-          0.02541780517252335,
-          1.455169346126962,
+          100,
+          11.727545152668664,
+          4.899975702599821,
+          8.941443265570584,
+          0.03239653357090791,
+          1.854701546934478,
         ],
       ],
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -1958,101 +1769,83 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "white",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "mixed",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "asian",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "black",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 4,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "chinese",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 5,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "other",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
   },
   "domain": {
-    "aggValues": [
-      [
-        0,
-        100,
-      ],
-    ],
     "groups": [
       [
         "Nursery",
@@ -2081,28 +1874,28 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     ],
     "values": [
       [
-        59.712524678576585,
-        78.45841011628646,
+        100,
+        100,
       ],
       [
-        5.587263359806844,
-        9.755862666730872,
+        7.49973833969869,
+        16.338050885044957,
       ],
       [
-        3.844443032344157,
-        17.616892184716136,
+        4.899975702599821,
+        29.502842627313417,
       ],
       [
-        5.531346949908065,
-        9.00948620407377,
+        7.445921725371535,
+        15.088101286238459,
       ],
       [
-        0.02541780517252335,
-        0.6837771464342467,
+        0.03239653357090791,
+        1.1451151163259545,
       ],
       [
-        1.455169346126962,
-        3.221457119468387,
+        1.854701546934478,
+        5.394943752268054,
       ],
     ],
   },
@@ -2119,12 +1912,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
 {
   "data": [
     {
-      "aggValues": [
-        [
-          0,
-          6002,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 388,
@@ -2148,12 +1935,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          4433,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 422,
@@ -2177,12 +1958,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          3972,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 19,
@@ -2206,12 +1981,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          3584,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 919,
@@ -2235,12 +2004,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          2298,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 295,
@@ -2264,12 +2027,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          2108,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 228,
@@ -2293,12 +2050,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          928,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 100,
@@ -2322,12 +2073,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
     {
-      "aggValues": [
-        [
-          0,
-          408,
-        ],
-      ],
       "datum": [
         {
           "housingAssociation": 68,
@@ -2352,18 +2097,17 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -2372,71 +2116,57 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "ownerOccupied",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "privateRented",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "localAuthority",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "housingAssociation",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
   },
   "domain": {
-    "aggValues": [
-      [
-        0,
-        6002,
-      ],
-    ],
     "groups": [
       [
         "Semi-detached house",
@@ -2740,18 +2470,17 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -2760,64 +2489,56 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "ownerOccupied",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "privateRented",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "localAuthority",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "housingAssociation",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -3084,18 +2805,17 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -3104,64 +2824,56 @@ exports[`DataModel grouped processing - stacked with accumulation example should
         "groupId": "ownerOccupied",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "ownerOccupied",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "privateRented",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "privateRented",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "localAuthority",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "localAuthority",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": "housingAssociation",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "housingAssociation",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -3246,13 +2958,9 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2009",
       ],
-      "validScopes": Set {
-        "series-b",
-        "series-c",
-      },
       "values": [
-        null,
         ,
+        "illegal value",
         26.85,
         2.79,
       ],
@@ -3268,7 +2976,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "2010",
       ],
       "values": [
-        54.39,
+        ,
         null,
         31.15,
         4.22,
@@ -3285,10 +2993,27 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "2011",
       ],
       "values": [
-        44.03,
+        ,
         15.01,
         null,
         5.94,
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 25.99,
+        "firefox": 22.69,
+        "ie": "illegal value",
+        "year": "2012",
+      },
+      "keys": [
+        "2012",
+      ],
+      "values": [
+        ,
+        25.99,
+        22.69,
+        null,
       ],
     },
     {
@@ -3301,14 +3026,11 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2013",
       ],
-      "validScopes": Set {
-        "series-a",
-      },
       "values": [
-        null,
+        ,
         31.71,
-        ,
-        ,
+        undefined,
+        undefined,
       ],
     },
     {
@@ -3322,7 +3044,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "2014",
       ],
       "values": [
-        17.75,
+        ,
         null,
         14.77,
         12.63,
@@ -3338,15 +3060,11 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2015",
       ],
-      "validScopes": Set {
-        "series-a",
-        "series-b",
-      },
       "values": [
-        -13.3,
+        ,
         42.27,
         null,
-        ,
+        "illegal value",
       ],
     },
     {
@@ -3360,7 +3078,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "2016",
       ],
       "values": [
-        -8.94,
+        ,
         47.79,
         8.97,
         null,
@@ -3377,7 +3095,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "2017",
       ],
       "values": [
-        null,
+        ,
         51.76,
         6.75,
         14.54,
@@ -3393,14 +3111,10 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "keys": [
         "2018",
       ],
-      "validScopes": Set {
-        "series-a",
-        "series-c",
-      },
       "values": [
-        3.2,
-        null,
         ,
+        null,
+        "illegal value",
         14.44,
       ],
     },
@@ -3415,7 +3129,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "2019",
       ],
       "values": [
-        2.7,
+        ,
         61.72,
         null,
         15.23,
@@ -3427,14 +3141,13 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -3443,14 +3156,11 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "ie",
-        "scopes": undefined,
+        "scopes": Set {},
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3458,16 +3168,13 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "chrome",
-        "scopes": [
+        "scopes": Set {
           "series-a",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3475,16 +3182,13 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "firefox",
-        "scopes": [
+        "scopes": Set {
           "series-b",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3492,16 +3196,13 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "safari",
-        "scopes": [
+        "scopes": Set {
           "series-c",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3524,10 +3225,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       ],
     ],
     "values": [
-      [
-        -13.3,
-        54.39,
-      ],
+      [],
       [
         null,
         61.72,
@@ -3545,7 +3243,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   "input": {
     "count": 11,
   },
-  "partialValidDataCount": 4,
+  "partialValidDataCount": 0,
   "time": Any<Number>,
   "type": "ungrouped",
 }
@@ -3566,7 +3264,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
       ],
       "values": [
         null,
-        NaN,
+        "illegal value",
         26.85,
         2.79,
       ],
@@ -3616,7 +3314,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "2012",
       ],
       "values": [
-        NaN,
+        "illegal value",
         25.99,
         22.69,
         null,
@@ -3635,8 +3333,8 @@ exports[`DataModel missing and invalid data processing should generated the expe
       "values": [
         null,
         31.71,
-        NaN,
-        NaN,
+        undefined,
+        undefined,
       ],
     },
     {
@@ -3670,7 +3368,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
         -13.3,
         42.27,
         null,
-        NaN,
+        "illegal value",
       ],
     },
     {
@@ -3720,7 +3418,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
       "values": [
         3.2,
         null,
-        NaN,
+        "illegal value",
         14.44,
       ],
     },
@@ -3743,18 +3441,17 @@ exports[`DataModel missing and invalid data processing should generated the expe
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -3764,16 +3461,13 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 0,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "ie",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3782,16 +3476,13 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 1,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "chrome",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3800,16 +3491,13 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 2,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "firefox",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3818,16 +3506,13 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 3,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "safari",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
         "validation": [Function],
         "valueType": "range",
       },
@@ -3904,22 +3589,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2009",
       ],
       "values": [
-        {
-          "test1": 64.97,
-          "test2": 64.97,
-        },
-        {
-          "test1": 1.37,
-          "test2": 1.37,
-        },
-        {
-          "test1": 26.85,
-          "test2": 53.7,
-        },
-        {
-          "test1": 2.79,
-          "test2": 2.79,
-        },
+        64.97,
+        1.37,
+        53.7,
+        2.79,
       ],
     },
     {
@@ -3946,22 +3619,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2010",
       ],
       "values": [
-        {
-          "test1": 54.39,
-          "test2": 54.39,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": 31.15,
-          "test2": 62.3,
-        },
-        {
-          "test1": 4.22,
-          "test2": 4.22,
-        },
+        54.39,
+        undefined,
+        62.3,
+        4.22,
       ],
     },
     {
@@ -3988,22 +3649,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2011",
       ],
       "values": [
-        {
-          "test1": 44.03,
-          "test2": 44.03,
-        },
-        {
-          "test1": 15.01,
-          "test2": 15.01,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": 5.94,
-          "test2": 5.94,
-        },
+        44.03,
+        15.01,
+        undefined,
+        5.94,
       ],
     },
     {
@@ -4030,22 +3679,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2012",
       ],
       "values": [
-        {
-          "test1": 34.27,
-          "test2": 34.27,
-        },
-        {
-          "test1": 25.99,
-          "test2": 25.99,
-        },
-        {
-          "test1": 22.69,
-          "test2": 45.38,
-        },
-        {
-          "test1": 8.09,
-          "test2": 8.09,
-        },
+        34.27,
+        25.99,
+        45.38,
+        8.09,
       ],
     },
     {
@@ -4072,22 +3709,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2013",
       ],
       "values": [
-        {
-          "test1": 26.55,
-          "test2": 26.55,
-        },
-        {
-          "test1": 31.71,
-          "test2": 31.71,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
+        26.55,
+        31.71,
+        undefined,
+        undefined,
       ],
     },
     {
@@ -4114,22 +3739,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2014",
       ],
       "values": [
-        {
-          "test1": 17.75,
-          "test2": 17.75,
-        },
-        {
-          "test1": 35.85,
-          "test2": 35.85,
-        },
-        {
-          "test1": 14.77,
-          "test2": 29.54,
-        },
-        {
-          "test1": 12.63,
-          "test2": 12.63,
-        },
+        17.75,
+        35.85,
+        29.54,
+        12.63,
       ],
     },
     {
@@ -4156,22 +3769,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2015",
       ],
       "values": [
-        {
-          "test1": -13.3,
-          "test2": -13.3,
-        },
-        {
-          "test1": 42.27,
-          "test2": 42.27,
-        },
-        {
-          "test1": 11.82,
-          "test2": 23.64,
-        },
-        {
-          "test1": 13.79,
-          "test2": 13.79,
-        },
+        -13.3,
+        42.27,
+        23.64,
+        13.79,
       ],
     },
     {
@@ -4198,22 +3799,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2016",
       ],
       "values": [
-        {
-          "test1": -8.94,
-          "test2": -8.94,
-        },
-        {
-          "test1": 47.79,
-          "test2": 47.79,
-        },
-        {
-          "test1": 8.97,
-          "test2": 17.94,
-        },
-        {
-          "test1": 12.9,
-          "test2": 12.9,
-        },
+        -8.94,
+        47.79,
+        17.94,
+        12.9,
       ],
     },
     {
@@ -4240,22 +3829,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2017",
       ],
       "values": [
-        {
-          "test1": -4.77,
-          "test2": -4.77,
-        },
-        {
-          "test1": 51.76,
-          "test2": 51.76,
-        },
-        {
-          "test1": 6.75,
-          "test2": 13.5,
-        },
-        {
-          "test1": 14.54,
-          "test2": 14.54,
-        },
+        -4.77,
+        51.76,
+        13.5,
+        14.54,
       ],
     },
     {
@@ -4282,22 +3859,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2018",
       ],
       "values": [
-        {
-          "test1": 3.2,
-          "test2": 3.2,
-        },
-        {
-          "test1": 56.31,
-          "test2": 56.31,
-        },
-        {
-          "test1": 5.66,
-          "test2": 11.32,
-        },
-        {
-          "test1": 14.44,
-          "test2": 14.44,
-        },
+        3.2,
+        56.31,
+        11.32,
+        14.44,
       ],
     },
     {
@@ -4324,40 +3889,26 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2019",
       ],
       "values": [
-        {
-          "test1": 2.7,
-          "test2": 2.7,
-        },
-        {
-          "test1": 61.72,
-          "test2": 61.72,
-        },
-        {
-          "test1": 4.66,
-          "test2": 9.32,
-        },
-        {
-          "test1": 15.23,
-          "test2": 15.23,
-        },
+        2.7,
+        61.72,
+        9.32,
+        15.23,
       ],
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
-        "scopes": [
+        "scopes": Set {
           "test1",
           "test2",
-        ],
+        },
         "type": "key",
-        "useScopedValues": true,
+        "validation": [Function],
         "valueType": "category",
       },
     ],
@@ -4366,64 +3917,56 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "ie",
-        "scopes": [
+        "scopes": Set {
           "test1",
           "test2",
-        ],
+        },
         "type": "value",
-        "useScopedValues": true,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "chrome",
-        "scopes": [
+        "scopes": Set {
           "test1",
           "test2",
-        ],
+        },
         "type": "value",
-        "useScopedValues": true,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "firefox",
-        "scopes": [
+        "scopes": Set {
           "test1",
           "test2",
-        ],
+        },
         "type": "value",
-        "useScopedValues": true,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "safari",
-        "scopes": [
+        "scopes": Set {
           "test1",
           "test2",
-        ],
+        },
         "type": "value",
-        "useScopedValues": true,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -4537,36 +4080,32 @@ exports[`DataModel repeated property processing should generated the expected re
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [],
     "values": [
       {
         "groupId": "angleGroup",
         "id": "angle",
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "share",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "id": "radius",
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "share",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
         "validation": [Function],
         "valueType": "range",
@@ -4617,7 +4156,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       "keys": [],
       "values": [
-        0.1352271965379232,
+        0.021522076769469715,
         "Buddhist",
         97000,
       ],
@@ -4629,7 +4168,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       "keys": [],
       "values": [
-        0.7709344297471291,
+        0.12269802529398713,
         "Hindu",
         456000,
       ],
@@ -4641,7 +4180,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       "keys": [],
       "values": [
-        1.0051423577715735,
+        0.15997337475038828,
         "Jewish",
         168000,
       ],
@@ -4653,7 +4192,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       "keys": [],
       "values": [
-        2.698967551519787,
+        0.42955402706900375,
         "Muslim",
         1215000,
       ],
@@ -4665,7 +4204,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       "keys": [],
       "values": [
-        2.8704412131091117,
+        0.45684490792101173,
         "Sikh",
         123000,
       ],
@@ -4677,7 +4216,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       "keys": [],
       "values": [
-        3.1130137099915722,
+        0.4954515198579987,
         "Other",
         174000,
       ],
@@ -4689,57 +4228,52 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       "keys": [],
       "values": [
-        6.283185307179586,
+        1,
         "None",
         2274000,
       ],
     },
   ],
   "defs": {
-    "allScopesHaveSameDefs": true,
+    "allScopesHaveSameDefs": false,
     "keys": [],
     "values": [
       {
         "groupId": "population",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "population",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "religion",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
+        "validation": [Function],
         "valueType": "category",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "population",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -4749,7 +4283,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
     "values": [
       [
         0,
-        6.283185307179586,
+        1,
       ],
       [
         "Christian",
@@ -5513,12 +5047,13 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "date",
-        "scope": "test",
+        "scopes": Set {
+          "test",
+        },
         "type": "key",
+        "validation": [Function],
         "valueType": "range",
       },
     ],
@@ -5527,30 +5062,26 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "petrol",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
       {
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "diesel",
-        "scopes": [
+        "scopes": Set {
           "test",
-        ],
+        },
         "type": "value",
-        "useScopedValues": false,
+        "validation": [Function],
         "valueType": "range",
       },
     ],
