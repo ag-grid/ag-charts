@@ -32,6 +32,7 @@ import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
+import { AnnotationManager } from './annotation/annotationManager';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -255,6 +256,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     public readonly zoomManager = new ZoomManager();
 
     protected readonly animationManager: AnimationManager;
+    protected readonly annotationManager: AnnotationManager;
     protected readonly chartEventManager: ChartEventManager;
     protected readonly contextMenuRegistry: ContextMenuRegistry;
     protected readonly cursorManager: CursorManager;
@@ -321,6 +323,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
+        this.annotationManager = new AnnotationManager(this.annotationRoot);
         this.chartEventManager = new ChartEventManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
@@ -400,6 +403,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return {
             scene: this.scene,
             animationManager: this.animationManager,
+            annotationManager: this.annotationManager,
             chartEventManager: this.chartEventManager,
             contextMenuRegistry: this.contextMenuRegistry,
             cursorManager: this.cursorManager,

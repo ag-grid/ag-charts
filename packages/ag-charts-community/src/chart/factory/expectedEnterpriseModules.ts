@@ -11,6 +11,7 @@ type EnterpriseModuleStub = {
 
 export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
+    { type: 'root', optionsKey: 'annotations', chartTypes: ['cartesian'] },
     {
         type: 'root',
         optionsKey: 'background',
