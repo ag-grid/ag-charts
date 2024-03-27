@@ -6,7 +6,7 @@ import { toTitleCase } from './string-utils';
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const clone = structuredClone(options);',
+        'const clone = deepClone(options);',
         'setOptions(clone);',
         'clone'
     );
@@ -19,13 +19,14 @@ function getImports(componentFilenames: string[], bindings: any): string[] {
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
         `import { createRoot } from 'react-dom/client';`,
+        `import { AgChartsReact } from 'ag-charts-react';`,
     ];
-
-    imports.push(`import { AgChartsReact } from 'ag-charts-react';`);
 
     if (bindings.imports.length > 0) {
         addBindingImports(bindings.imports, imports, false, true);
     }
+
+    imports.push(`import deepClone from 'deepclone';`);
 
     if (componentFilenames) {
         imports.push(...componentFilenames.map(getImport));
