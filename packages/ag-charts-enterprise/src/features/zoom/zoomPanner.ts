@@ -16,7 +16,7 @@ interface ZoomCoordHistory {
     t: number;
 }
 
-const maxZoomCoords = 32;
+const maxZoomCoords = 16;
 
 export class ZoomPanner {
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
@@ -87,8 +87,11 @@ export class ZoomPanner {
         if (deltaT > 0) {
             const xVelocity = deltaX / deltaT;
             const yVelocity = deltaY / deltaT;
+            const velocity = Math.hypot(xVelocity, yVelocity);
+            const angle = Math.atan2(yVelocity, xVelocity);
+            const t0 = performance.now();
             this.inertiaHandle = requestAnimationFrame((t) => {
-                this.animateInertia(t, t, xVelocity, yVelocity);
+                this.animateInertia(t, t, t0, velocity, angle);
             });
         }
     }
@@ -103,22 +106,27 @@ export class ZoomPanner {
         this.zoomCoordsHistoryIndex += 1;
     }
 
-    private animateInertia(t: number, prevT: number, xVelocity: number, yVelocity: number) {
-        const deltaT = t - prevT;
+    private animateInertia(t: number, prevT: number, t0: number, velocity: number, angle: number) {
+        const decelerationRate = 0.998;
+        const friction = 1 - decelerationRate;
 
-        xVelocity *= 0.9;
-        yVelocity *= 0.9;
+        const maxT = velocity / (2 * friction);
+
+        const s0t = Math.min(prevT - t0, maxT);
+        const s0 = velocity * s0t - friction * s0t ** 2;
+        const s1t = Math.min(t - t0, maxT);
+        const s1 = velocity * s1t - friction * s1t ** 2;
 
         this.onUpdate?.({
             type: 'update',
-            deltaX: -xVelocity * deltaT,
-            deltaY: -yVelocity * deltaT,
+            deltaX: -Math.cos(angle) * (s1 - s0),
+            deltaY: -Math.sin(angle) * (s1 - s0),
         });
 
-        if (Math.abs(xVelocity) < 1e-5 || Math.abs(yVelocity) < 1e-5) return;
+        if (t - t0 >= maxT) return;
 
         this.inertiaHandle = requestAnimationFrame((nextT) => {
-            this.animateInertia(nextT, t, xVelocity, yVelocity);
+            this.animateInertia(nextT, t, t0, velocity, angle);
         });
     }
 
