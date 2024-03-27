@@ -2,7 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { UNIT } from './zoomUtils';
 
-const { ActionOnSet } = _ModuleSupport;
+const { AND, GREATER_THAN, LESS_THAN, RATIO, ActionOnSet, Validate } = _ModuleSupport;
 
 export class ZoomRatio {
     @ActionOnSet<ZoomRatio>({
@@ -11,6 +11,7 @@ export class ZoomRatio {
             this.onChange?.(this.getRatioWithValues(start, this.end));
         },
     })
+    @Validate(AND(RATIO, LESS_THAN('end')), { optional: true })
     public start?: number;
 
     @ActionOnSet<ZoomRatio>({
@@ -19,6 +20,7 @@ export class ZoomRatio {
             this.onChange?.(this.getRatioWithValues(this.start, end));
         },
     })
+    @Validate(AND(RATIO, GREATER_THAN('start')), { optional: true })
     public end?: number;
 
     private initialStart?: number;

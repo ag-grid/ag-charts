@@ -654,7 +654,7 @@ export function addBindingImports(
         }
     });
 
-    [...new Set(namespacedImports)].forEach((ni) => imports.push(ni));
+    imports.push(...new Set(namespacedImports));
 
     let hasEnterpriseModules = false;
     Object.entries(workingImports).forEach(([k, v]: [string, { namedImport: string; imports: string[] }]) => {
@@ -663,7 +663,7 @@ export function addBindingImports(
         if (convertToPackage && k.includes('ag-grid')) {
             // Remove module related imports
             unique = unique.filter((i) => !i.includes('Module') || i == 'AgGridModule');
-            hasEnterpriseModules = hasEnterpriseModules || k.includes('enterprise');
+            hasEnterpriseModules ||= k.includes('enterprise');
         }
         if (unique.length > 0 || v.namedImport) {
             const namedImport = v.namedImport ? v.namedImport : '';

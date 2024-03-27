@@ -221,7 +221,7 @@ export function pairCategoryData(
             addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
             newIndex++;
-        } else if (diff !== undefined && diff.removed.indexOf(String(bXValue)) >= 0) {
+        } else if (diff?.removed.has(String(bXValue))) {
             resultPoint = {
                 change: 'out',
                 moveTo: before.point.moveTo ?? false,
@@ -229,7 +229,7 @@ export function pairCategoryData(
             };
             addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
-        } else if (diff !== undefined && diff.added.indexOf(String(aXValue)) >= 0) {
+        } else if (diff?.added.has(String(aXValue))) {
             resultPoint = {
                 change: 'in',
                 moveTo: after.point.moveTo ?? false,
@@ -272,13 +272,10 @@ export function pairCategoryData(
 
     backfillPathPointData(result, backfillSplitMode);
 
-    if (multiDatum) {
-        return { result, resultMap: resultMapMulti };
-    }
-    return { result, resultMap: resultMapSingle };
+    return { result, resultMap: multiDatum ? resultMapMulti : resultMapSingle };
 }
 
-export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike) {
+export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike, pairData: PathPoint[]) {
     let status: NodeUpdateState = 'updated';
 
     const visible = (data: LineContextLike) => {
@@ -289,6 +286,15 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
         status = 'added';
     } else if (visible(oldData) && !visible(newData)) {
         status = 'removed';
+    } else {
+        // Verify some points are actually moving.
+        for (let i = 0; i < pairData.length; i++) {
+            if (pairData[i].change !== 'move') break;
+            if (pairData[i].from?.x !== pairData[i].to?.x) break;
+            if (pairData[i].from?.y !== pairData[i].to?.y) break;
+
+            if (i === pairData.length - 1) return 'no-op';
+        }
     }
     return status;
 }
@@ -336,7 +342,7 @@ export function prepareLinePathAnimationFns(
     visibleToggleMode: 'fade' | 'none',
     render: (pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) => void
 ) {
-    const status = determinePathStatus(newData, oldData);
+    const status = determinePathStatus(newData, oldData, pairData);
     const removePhaseFn = (ratio: number, path: Path) => {
         render(pairData, { move: 0, out: ratio }, path);
     };
@@ -378,7 +384,7 @@ export function prepareLinePathAnimation(
         return;
     }
 
-    const hasMotion: boolean = (diff?.changed ?? true) || scalesChanged(newData, oldData) || status !== 'updated';
+    const hasMotion = (diff?.changed ?? true) || scalesChanged(newData, oldData) || status !== 'updated';
     const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap, status);
     return { ...pathFns, marker, hasMotion };

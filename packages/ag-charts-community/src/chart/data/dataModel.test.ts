@@ -4,7 +4,7 @@ import { isFiniteNumber } from '../../util/type-guards';
 import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
-import { expectWarning, expectWarnings, setupMockConsole } from '../test/mockConsole';
+import { expectWarning, expectWarnings, setupMockConsole } from '../test/utils';
 import {
     accumulatedValue,
     area as actualArea,
@@ -1081,7 +1081,7 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data);
 
                 expect(result?.data.length).toEqual(3);
-                expect(result?.data[0].validScopes).toEqual(['scope-2']);
+                expect(result?.data[0].validScopes).toEqual(new Set(['scope-2']));
                 expect(result?.data[1].validScopes).toBeUndefined();
                 expect(result?.data[2].validScopes).toBeUndefined();
                 expectWarning('AG Charts - invalid value of type [string] ignored:', '[illegal value]');

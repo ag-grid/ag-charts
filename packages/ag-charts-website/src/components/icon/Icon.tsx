@@ -23,9 +23,13 @@ import RadialColumn from '@images/inline-svgs/radial-column.svg?react';
 import ReplayDemoIcon from '@images/inline-svgs/replay-demo-icon.svg?react';
 import RowsIcon from '@images/inline-svgs/rows.svg?react';
 import StackBlitzIcon from '@images/inline-svgs/stack-blitz.svg?react';
+import StackOverflowMonochromeIcon from '@images/inline-svgs/stack-overflow-monochrome.svg?react';
+import StackOverflowIcon from '@images/inline-svgs/stack-overflow.svg?react';
 import TakeControlIcon from '@images/inline-svgs/take-control-icon.svg?react';
 import TickIcon from '@images/inline-svgs/tick.svg?react';
 import XLogoIcon from '@images/inline-svgs/x-logo.svg?react';
+import ZendeskMonochromeIcon from '@images/inline-svgs/zendesk-monochrome.svg?react';
+import ZendeskIcon from '@images/inline-svgs/zendesk.svg?react';
 import classNames from 'classnames';
 
 // Uses IBM Carbon Design System icons as a base
@@ -37,6 +41,12 @@ const SOCIALS_ICON_MAP = {
     xLogo: XLogoIcon,
     youtube: CarbonIcon.LogoYoutube,
     linkedin: CarbonIcon.LogoLinkedin,
+    email: CarbonIcon.Email,
+    blog: CarbonIcon.Blog,
+    stackoverflow: StackOverflowIcon,
+    stackoverflowMonochrome: StackOverflowMonochromeIcon,
+    zendesk: ZendeskIcon,
+    zendeskMonochrome: ZendeskMonochromeIcon,
 };
 
 const DOCS_CATEGORIES_ICON_MAP = {
@@ -108,6 +118,8 @@ const CHARTS_ICON_MAP = {
     chartsFunnel: CarbonIcon.Filter,
     chartsPyramid: CarbonIcon.UpToTop,
     chartsBullet: CarbonIcon.ChartBullet,
+    chartsMap: CarbonIcon.Plan,
+    chartsCandlestick: CarbonIcon.ChartCandlestick,
 };
 
 export const ICON_MAP = {
@@ -125,6 +137,7 @@ export const ICON_MAP = {
     arrowLeft: CarbonIcon.ArrowLeft,
     return: CarbonIcon.Return,
     link: CarbonIcon.Link,
+    mapPin: CarbonIcon.LocationFilled,
     chevronUp: BoldChevronUp,
     chevronRight: BoldChevronRight,
     chevronDown: BoldChevronDown,
@@ -151,10 +164,12 @@ export const ICON_MAP = {
     zoomArea: CarbonIcon.ZoomArea,
     colorPalette: CarbonIcon.ColorPalette,
     newTab: NewTabIcon,
+    sort: CarbonIcon.ChevronSort,
     escape: EscapeIcon,
     pageResult: PageResult,
     codeResult: CodeResult,
     headingResult: HeadingResult,
+    listBoxes: CarbonIcon.List,
     ...SOCIALS_ICON_MAP,
     ...DOCS_CATEGORIES_ICON_MAP,
     ...HOMEPAGE_FEATURES_ICON_MAP,

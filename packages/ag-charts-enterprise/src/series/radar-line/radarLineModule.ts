@@ -11,16 +11,14 @@ export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
 
     identifier: 'radar-line',
     instanceConstructor: RadarLineSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
-            },
-            {
-                type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+        },
+        {
+            type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
+        },
+    ],
     themeTemplate: RADAR_LINE_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {

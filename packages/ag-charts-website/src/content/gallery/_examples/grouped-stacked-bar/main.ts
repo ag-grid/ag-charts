@@ -11,6 +11,17 @@ const options: AgChartOptions = {
         text: 'Interactions of Dolphins With Marked Mirrors',
     },
     data: getData(),
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    strokeWidth: 2,
+                    stroke: 'transparent',
+                    cornerRadius: 6,
+                },
+            },
+        },
+    },
     series: [
         {
             type: 'bar',
@@ -23,8 +34,6 @@ const options: AgChartOptions = {
                 yLowerKey: 'interactionDurationTMLower',
                 yUpperKey: 'interactionDurationTMUpper',
             },
-            strokeWidth: 2,
-            stroke: 'transparent',
         },
         {
             type: 'bar',
@@ -37,8 +46,6 @@ const options: AgChartOptions = {
                 yLowerKey: 'interactionDurationYMLower',
                 yUpperKey: 'interactionDurationYMUpper',
             },
-            strokeWidth: 2,
-            stroke: 'transparent',
         },
         {
             type: 'bar',
@@ -47,8 +54,6 @@ const options: AgChartOptions = {
             yName: 'Number of Looks - Transparent Mirror',
             legendItemName: 'Number of Looks - Transparent Mirror',
             stackGroup: 'NOL',
-            strokeWidth: 2,
-            stroke: 'transparent',
         },
         {
             type: 'bar',
@@ -57,8 +62,6 @@ const options: AgChartOptions = {
             yName: 'Number of Looks - Yellow Mirror',
             legendItemName: 'Number of Looks - Yellow Mirror',
             stackGroup: 'NOL',
-            strokeWidth: 2,
-            stroke: 'transparent',
         },
     ],
     axes: [

@@ -11,18 +11,16 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
 
     identifier: 'box-plot',
     instanceConstructor: BoxPlotSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                position: _Theme.POSITION.LEFT,
-            },
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: _Theme.POSITION.BOTTOM,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+            position: _Theme.POSITION.LEFT,
+        },
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: _Theme.POSITION.BOTTOM,
+        },
+    ],
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 

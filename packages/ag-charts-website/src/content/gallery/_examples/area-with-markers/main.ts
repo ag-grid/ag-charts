@@ -98,9 +98,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             crosshair: {
-                label: {
-                    format: `$s`,
-                },
+                enabled: false,
             },
         },
     ],

@@ -17,6 +17,8 @@ export class HierarchyChart extends Chart {
         const {
             seriesArea: { padding },
             seriesRoot,
+            annotationRoot,
+            highlightRoot,
         } = this;
 
         const fullSeriesRect = shrinkRect.clone();
@@ -29,8 +31,11 @@ export class HierarchyChart extends Chart {
         this.animationRect = shrinkRect;
         this.hoverRect = shrinkRect;
 
-        seriesRoot.translationX = Math.floor(shrinkRect.x);
-        seriesRoot.translationY = Math.floor(shrinkRect.y);
+        for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+            group.translationX = Math.floor(shrinkRect.x);
+            group.translationY = Math.floor(shrinkRect.y);
+        }
+
         await Promise.all(
             this.series.map(async (series) => {
                 await series.update({ seriesRect: shrinkRect }); // this has to happen after the `updateAxes` call

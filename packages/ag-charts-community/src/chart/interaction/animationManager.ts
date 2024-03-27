@@ -14,6 +14,11 @@ interface AnimationEvent {
     deltaMs: number;
 }
 
+function validAnimationDuration(testee?: number) {
+    if (testee == null) return true;
+    return !isNaN(testee) && testee >= 0 && testee <= 2;
+}
+
 /**
  * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
  * preventing duplicate animations and handling their lifecycle.
@@ -21,7 +26,7 @@ interface AnimationEvent {
 export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
     public defaultDuration = 1000;
 
-    private batch = new AnimationBatch();
+    private batch = new AnimationBatch(this.defaultDuration * 1.5);
 
     private readonly debug = Debug.create(true, 'animation');
     private readonly rafAvailable = typeof requestAnimationFrame !== 'undefined';
@@ -53,10 +58,19 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         const id = opts.id ?? Math.random().toString();
 
-        const skip = this.isSkipped();
+        const skip = this.isSkipped() || opts.phase === 'none';
         if (skip) {
             this.debug('AnimationManager - skipping animation');
         }
+
+        const { delay, duration } = opts;
+        if (!validAnimationDuration(delay)) {
+            throw new Error(`Animation delay of ${delay} is unsupported (${id})`);
+        }
+        if (!validAnimationDuration(duration)) {
+            throw new Error(`Animation duration of ${duration} is unsupported (${id})`);
+        }
+
         const animation = new Animation({
             ...opts,
             id,
@@ -243,7 +257,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.reset();
         this.batch.stop();
         this.batch.destroy();
-        this.batch = new AnimationBatch();
+        this.batch = new AnimationBatch(this.defaultDuration * 1.5);
         if (skipAnimations === true) {
             this.batch.skip();
         }

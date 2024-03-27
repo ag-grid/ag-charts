@@ -13,7 +13,7 @@ import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
-import { chartTypes } from './chartTypes';
+import { chartTypes, publicChartTypes } from './chartTypes';
 
 export type SeriesOptions =
     | AgCartesianSeriesOptions
@@ -23,7 +23,7 @@ export type SeriesOptions =
 
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
-    seriesDefaults?: object;
+    defaultAxes?: object[];
     paletteFactory?: SeriesPaletteFactory;
     solo?: boolean;
     groupable?: boolean;
@@ -41,7 +41,7 @@ export class SeriesRegistry {
         {
             chartTypes: [chartType],
             instanceConstructor,
-            seriesDefaults,
+            defaultAxes,
             themeTemplate,
             enterpriseThemeTemplate,
             paletteFactory,
@@ -50,12 +50,13 @@ export class SeriesRegistry {
             groupable,
             stackedByDefault,
             swapDefaultAxesCondition,
-        }: SeriesModule<any>
+            hidden,
+        }: SeriesModule<any, any>
     ) {
         this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
         this.seriesMap.set(seriesType, {
             instanceConstructor,
-            seriesDefaults,
+            defaultAxes,
             paletteFactory,
             solo,
             stackable,
@@ -64,6 +65,9 @@ export class SeriesRegistry {
             swapDefaultAxesCondition,
         });
         chartTypes.set(seriesType, chartType);
+        if (!hidden) {
+            publicChartTypes.set(seriesType, chartType);
+        }
     }
 
     create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {
@@ -74,8 +78,9 @@ export class SeriesRegistry {
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    cloneDefaults(seriesType: SeriesType) {
-        return deepClone(this.seriesMap.get(seriesType)?.seriesDefaults ?? {});
+    cloneDefaultAxes(seriesType: SeriesType) {
+        const defaultAxes = this.seriesMap.get(seriesType)?.defaultAxes;
+        return defaultAxes ? { axes: deepClone(defaultAxes) } : null;
     }
 
     setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}, enterpriseThemeTemplate = {}) {

@@ -58,13 +58,21 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
         }
     }
     if (usedOptions.length) {
+        let enterprisePackageName = 'ag-charts-enterprise';
+        let enterpriseReferenceUrl = 'https://charts.ag-grid.com/javascript/installation/';
+
+        if ((options as any).mode === 'integrated') {
+            enterprisePackageName = "ag-grid-charts-enterprise' or 'ag-grid-enterprise/charts-enterprise";
+            enterpriseReferenceUrl = 'https://www.ag-grid.com/javascript-data-grid/integrated-charts-installation/';
+        }
+
         Logger.warnOnce(
             [
-                `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded:\n`,
+                `unable to use these enterprise features as '${enterprisePackageName}' has not been loaded:`,
                 '',
                 ...usedOptions,
                 '',
-                'See: https://charts.ag-grid.com/javascript/installation/',
+                `See: ${enterpriseReferenceUrl}`,
             ].join('\n')
         );
     }

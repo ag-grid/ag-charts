@@ -9,8 +9,10 @@ interface Module<I extends ModuleInstance = ModuleInstance, C = ModuleContext> e
 export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = ModuleContext> {
     protected moduleMap = new Map<string, { module: M; moduleInstance: I }>();
 
-    get modules() {
-        return Array.from(this.moduleMap.values(), (m) => m.moduleInstance);
+    *modules() {
+        for (const m of this.moduleMap.values()) {
+            yield m.moduleInstance;
+        }
     }
 
     addModule(module: M, moduleFactory: (module: M) => I) {

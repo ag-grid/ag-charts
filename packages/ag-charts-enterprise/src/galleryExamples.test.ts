@@ -80,7 +80,7 @@ describe('Gallery Examples', () => {
         });
 
         afterEach(() => {
-            expect(console.warn).not.toBeCalled();
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {

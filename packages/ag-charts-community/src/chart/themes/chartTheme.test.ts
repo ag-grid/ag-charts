@@ -14,8 +14,7 @@ import type { AreaSeries } from '../series/cartesian/areaSeries';
 import type { BarSeries } from '../series/cartesian/barSeries';
 import type { LineSeries } from '../series/cartesian/lineSeries';
 import type { PieSeries } from '../series/polar/pieSeries';
-import { setupMockConsole } from '../test/mockConsole';
-import { deproxy, waitForChartStability } from '../test/utils';
+import { deproxy, setupMockConsole, waitForChartStability } from '../test/utils';
 import { ChartTheme } from './chartTheme';
 
 const data = [

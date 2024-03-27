@@ -37,7 +37,7 @@ const watermarkStyles = `
 `;
 
 export function injectWatermark(parentElement: HTMLElement, text: string) {
-    injectStyle(watermarkStyles);
+    injectStyle(watermarkStyles, 'watermark');
     const element = createElement('div');
     const textElement = createElement('span');
     textElement.innerText = text;

@@ -15,8 +15,8 @@ type NodeWithOpacity = Node & { opacity: number };
 export function markerFadeInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    markerSelections: Selection<NodeWithOpacity, T>[],
-    status?: NodeUpdateState
+    status?: NodeUpdateState,
+    ...markerSelections: Selection<NodeWithOpacity, T>[]
 ) {
     const params = { phase: status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing' };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
@@ -26,7 +26,7 @@ export function markerFadeInAnimation<T>(
 export function markerScaleInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    markerSelections: Selection<Node, T>[]
+    ...markerSelections: Selection<Node, T>[]
 ) {
     staticFromToMotion(
         id,
@@ -43,7 +43,7 @@ export function markerScaleInAnimation<T>(
 export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
     { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
-    markerSelections: Selection<Node, T>[]
+    ...markerSelections: Selection<Node, T>[]
 ) {
     const seriesWidth: number = nodeDataDependencies.seriesRectWidth;
     const fromFn = (_: Node, datum: T) => {
@@ -53,7 +53,10 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         //
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
-        const delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
+        let delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
+        if (isNaN(delay)) {
+            delay = 0;
+        }
         return { scalingX: 0, scalingY: 0, delay, duration: QUICK_TRANSITION, phase: 'initial' as const };
     };
     const toFn = () => {

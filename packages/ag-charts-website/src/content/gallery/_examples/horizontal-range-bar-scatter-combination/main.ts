@@ -27,6 +27,7 @@ const options: AgChartOptions = {
             yLowName: 'Lowest Cost',
             yHighName: 'Highest Cost',
             yName: 'Production Cost Range',
+            cornerRadius: 2,
         },
         {
             type: 'range-bar',
@@ -38,6 +39,7 @@ const options: AgChartOptions = {
             yLowName: 'Lowest Price',
             yHighName: 'Highest Price',
             yName: 'Retail Price Range',
+            cornerRadius: 2,
         },
         {
             type: 'bubble',
@@ -68,6 +70,12 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `${value}%`,
             },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Math.round(value)}%</div>`,
+                },
+            },
         },
         {
             type: 'number',
@@ -80,6 +88,19 @@ const options: AgChartOptions = {
                         currency: 'USD',
                         maximumFractionDigits: 0,
                     })}`,
+            },
+            crosshair: {
+                snap: true,
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Number(
+                            value
+                        ).toLocaleString('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            maximumFractionDigits: 0,
+                        })}</div>`,
+                },
             },
         },
     ],

@@ -16,18 +16,16 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
 
     identifier: 'histogram',
     instanceConstructor: HistogramSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: CARTESIAN_AXIS_TYPE.NUMBER,
-                position: POSITION.BOTTOM,
-            },
-            {
-                type: CARTESIAN_AXIS_TYPE.NUMBER,
-                position: POSITION.LEFT,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.BOTTOM,
+        },
+        {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.LEFT,
+        },
+    ],
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,

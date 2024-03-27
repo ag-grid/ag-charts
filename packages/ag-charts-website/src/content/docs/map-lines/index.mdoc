@@ -1,67 +1,127 @@
 ---
-title: 'Map Lines'
+title: 'Routes and Connections'
+enterprise: true
 ---
 
-The Map Series allows you to visualise geographic lines, such as roads or flight paths.
+The Map Line Series visualises geographic lines, such as roads or flight paths, with the ability to vary width and colour to represent data values.
 
-## Map Lines
-
-A Map Series takes data and a topology in GeoJSON format, with the data referencing items in the topology.
+## Simple Map Lines
 
 {% chartExampleRunner title="Lines" name="lines" type="generated" /%}
 
-To create a Map Series, use the `map` series type.
+To create a Map Line Series, use the `map-line` series type and provide data and [topology](./map-topology/). These can be provided in either the chart or series objects.
+
+{% note %}
+A Map Line Series should be combined with a [Map Shape Background Series](./map-shapes/#background-shapes).
+{% /note %}
 
 ```js
 data: data,
 topology: topology,
 series: [
     {
-        type: 'map',
-        topologyProperty: 'name',
-        idKey: 'name',
+        type: "map-shape-background",
+        topology: backgroundTopology,
+    },
+    {
+        type: "map-line",
+        idKey: "name",
     },
 ],
 ```
 
 In this configuration:
 
--   `topologyProperty` defines the property key to match against in the topology GeoJSON
--   `idKey` defines the property key in the data that will be matched against the property value in the topology
+-   Both the `topology` and `data` for the `map-line` series are provided on the chart level.
+-   `idKey` defines the property key in the data that will be matched against the property value in the topology.
+    See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
+-   The `map-shape-background` series has its topology defined on the series level.
+-   The `map-shape-background` series is rendered behind the `map-line` series due to their order in the series array.
 
-{% note %}
-Topology features that did not match an item in the data will not be rendered.
-{% /note %}
+## Colour Scale
 
-## Background
+{% chartExampleRunner title="Heatmap" name="heatmap" type="generated" /%}
 
-The background property will underlay a geographic shape to provide more context.
-
-{% chartExampleRunner title="Background" name="background" type="generated" /%}
+To colour the lines based on the magnitude of the data, use `colorKey`.
 
 ```js
 series: [
     {
-        type: 'map',
-        topologyProperty: 'name',
+        type: 'map-line',
         idKey: 'name',
-        background: {
-            topology: backgroundTopology,
-            topologyProperty: 'name',
-            idKey: 'name',
-        }
+        colorKey: 'dailyVehicles',
+        colorName: 'Daily Vehicles'
     },
 ],
 ```
 
-In this configuration, the background properties function in the same way as their series counterparts.
+In this configuration:
+
+-   `colorKey` is set to 'dailyVehicles', which supplies numerical values for the colour scale.
+-   `colorName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
+
+{% note %}
+See [Colour Range](./heatmap-series/#colour-range) and [Gradient Legend](./heatmap-series/#gradient-legend) for more details about customising these features.
+{% /note %}
+
+## Proportional Line Width
+
+{% chartExampleRunner title="Stroke Width" name="stroke-width" type="generated" /%}
+
+To vary the width of the line to denote the magnitude of the data values use `sizeKey`, `strokeWidth` and `maxStrokeWidth`.
+
+```js
+series: [
+    {
+        type: 'map-line',
+        idKey: 'name',
+        sizeKey: 'dailyVehicles',
+        sizeName: 'Daily Vehicles',
+        strokeWidth: 1,
+        maxStrokeWidth: 3,
+    },
+],
+```
+
+In this configuration:
+
+-   `sizeKey` is set to 'dailyVehicles', which supplies numerical values for the size scale.
+-   `sizeName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
+-   `strokeWidth` is used for the smallest value in the size scale.
+-   `maxStrokeWidth` is used for the largest value in the size scale.
+
+## Background Lines
+
+The Map Line Background series displays all the lines of a topology without requiring any data.
+
+This can be useful to provide context for other series.
+
+{% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'map-line-background',
+        topology: backgroundTopology,
+    },
+    // ...
+],
+```
+
+{% note %}
+As this is a background series rather than a data series, many normal series behaviours are disabled - including interactivity and appearing in the legend.
+{% /note %}
 
 ## API Reference
 
 {% tabs %}
 
-{% tabItem id="AgMapSeriesOptions" label="Map" %}
-{% apiReference id="AgMapSeriesOptions" /%}
+{% tabItem id="AgMapLineSeriesOptions" label="Map Line" %}
+{% apiReference id="AgMapLineSeriesOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgMapLineBackgroundOptions" label="Map Line Background" %}
+{% apiReference id="AgMapLineBackgroundOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

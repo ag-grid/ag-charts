@@ -22,7 +22,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
 
     // placeholder for enterprise module
     @Validate(OBJECT, { optional: true })
-    image?: TImage = undefined;
+    image?: TImage;
 
     constructor(ctx: ModuleContext) {
         super();

@@ -17,6 +17,9 @@ const options: AgChartOptions = {
         yName: continent,
         yLowKey: 'lowTemperature',
         yHighKey: 'highTemperature',
+        yLowName: 'Lowest',
+        yHighName: 'Highest',
+        cornerRadius: 2,
     })),
     axes: [
         {
@@ -43,6 +46,13 @@ const options: AgChartOptions = {
             label: {
                 padding: 15,
                 formatter: ({ value }) => `${value} ℃`,
+            },
+            crosshair: {
+                snap: true,
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Math.round(value)} ℃</div>`,
+                },
             },
             crossLines: [
                 {

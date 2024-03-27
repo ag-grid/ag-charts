@@ -117,5 +117,8 @@ export default defineMarkdocConfig({
                 header: { type: Boolean },
             },
         },
+        oneTrustCookies: {
+            render: component('./src/components/OneTrustCookiesDetails.astro'),
+        },
     },
 });

@@ -12,22 +12,16 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
 
     identifier: 'range-area',
     instanceConstructor: RangeAreaSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                position: _Theme.POSITION.LEFT,
-                crosshair: {
-                    enabled: true,
-                    snap: false,
-                },
-            },
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: _Theme.POSITION.BOTTOM,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+            position: _Theme.POSITION.LEFT,
+        },
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: _Theme.POSITION.BOTTOM,
+        },
+    ],
     themeTemplate: RANGE_AREA_SERIES_THEME,
 
     paletteFactory: (params) => {

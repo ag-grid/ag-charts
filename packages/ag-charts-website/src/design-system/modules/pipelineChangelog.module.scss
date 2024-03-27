@@ -6,7 +6,11 @@
     margin-bottom: calc($spacing-size-12 * 2.5);
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        width: var(--layout-width-9-12);
+        width: calc(var(--layout-width-9-12));
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        width: calc(var(--layout-width-9-12) + $spacing-size-16);
     }
 
     :global(.ag-filter-icon) {

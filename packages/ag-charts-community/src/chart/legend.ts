@@ -39,8 +39,7 @@ import { gridLayout } from './gridLayout';
 import { InteractionEvent, InteractionState } from './interaction/interactionManager';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
-import type { Marker } from './marker/marker';
-import { getMarker } from './marker/util';
+import { MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { toTooltipHtml } from './tooltip/tooltip';
@@ -74,7 +73,7 @@ class LegendMarker extends BaseProperties {
      * regardless of the type that comes from the `data`.
      */
     @ObserveChanges<LegendMarker>((target) => target.parent?.onMarkerShapeChange())
-    shape?: string | (new () => Marker);
+    shape?: string | MarkerConstructor;
 
     @Validate(POSITIVE_NUMBER)
     size = 15;
@@ -549,7 +548,7 @@ export class Legend extends BaseProperties {
             return bbox.width === paginationBBox.width && bbox.height === paginationBBox.height;
         };
 
-        const forceResult = this.maxWidth !== undefined || this.maxHeight !== undefined;
+        const forceResult = this.maxWidth !== undefined && this.maxHeight !== undefined;
 
         do {
             if (count++ > 10) {
@@ -872,7 +871,7 @@ export class Legend extends BaseProperties {
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, lastPointerEvent: event, showArrow: false, addCustomClass: false },
+                { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.getItemLabel(datum) })
             );
         } else {
@@ -974,9 +973,6 @@ export class Legend extends BaseProperties {
             const legendPositionedBBox = legendBBox.clone();
             legendPositionedBBox.x += this.group.translationX;
             legendPositionedBBox.y += this.group.translationY;
-            this.ctx.tooltipManager.updateExclusiveRect(this.id, legendPositionedBBox);
-        } else {
-            this.ctx.tooltipManager.updateExclusiveRect(this.id);
         }
 
         return { shrinkRect: newShrinkRect };

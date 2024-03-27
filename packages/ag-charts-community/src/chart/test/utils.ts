@@ -26,6 +26,7 @@ import type { PointerOffsets } from '../interaction/interactionManager';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
+export * from '../../util/test/mockConsole';
 
 export interface TestCase {
     options: AgChartOptions;
@@ -46,7 +47,7 @@ export interface PolarTestCase extends TestCase {
     options: AgPolarChartOptions;
 }
 
-const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0.001);
+const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
 export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
@@ -93,8 +94,8 @@ function isChartInstance(chartOrProxy: AgChartInstance): chartOrProxy is Chart {
     return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || (chartOrProxy as Chart).className != null;
 }
 
-export function deproxy(chartOrProxy: AgChartProxy | Chart): Chart {
-    return isChartInstance(chartOrProxy) ? chartOrProxy : (chartOrProxy.chart as Chart);
+export function deproxy(chartOrProxy: AgChartInstance | AgChartProxy | Chart): Chart {
+    return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
 }
 
 export function repeat<T>(value: T, count: number): T[] {
@@ -130,14 +131,14 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
     const timeoutMs = 5000;
     const chart = deproxy(chartOrProxy);
     const chartAny = chart as any; // to access private properties
-    await chart.waitForUpdate(timeoutMs);
+    await chart.waitForUpdate(timeoutMs, true);
     if (chart.autoSize === true && !chartAny._lastAutoSize) {
         // Bypass wait for SizeObservable callback - it's never going to be invoked.
         const width = chart.width ?? chart.scene.canvas.width;
         const height = chart.height ?? chart.scene.canvas.height;
         chartAny._lastAutoSize = [width, height];
         chartAny.resize(width, height);
-        await chart.waitForUpdate(timeoutMs);
+        await chart.waitForUpdate(timeoutMs, true);
     }
 
     if (activeAnimateCb) {
@@ -145,7 +146,7 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
         if (animationAdvanceMs > 0) {
             await activeAnimateCb(animationAdvanceMs, 1);
         }
-        await chart.waitForUpdate(timeoutMs);
+        await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
         throw new Error(`animationAdvancedMs is non-zero, but no animation mocks are present.`);
     }
@@ -237,7 +238,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 }
 
 export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
-    const { seriesTypes = ['map'] } = params ?? {};
+    const { seriesTypes = ['map-shape'] } = params ?? {};
 
     return async (chartOrProxy: Chart | AgChartProxy) => {
         const chart = deproxy(chartOrProxy);
@@ -251,7 +252,7 @@ const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
-export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy | AgChartInstance) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;

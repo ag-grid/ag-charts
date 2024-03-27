@@ -7,6 +7,10 @@ Use full-screen views for benchmark figures to avoid interference from the hosti
 tests.
 {% /warning %}
 
+# Automated Benchmark Summary
+
+{% chartExampleRunner title="Automated Benchmark Summary" name="summary" type="generated" /%}
+
 # Multi-Series Test
 
 Exercise:
@@ -15,6 +19,15 @@ Exercise:
 -   Series toggle redraw time.
 
 {% chartExampleRunner title="Multi-Series" name="multi-series" type="generated" /%}
+
+# Multi-Chart Test
+
+Exercise:
+
+-   Initial load time.
+-   Series toggle redraw time.
+
+{% chartExampleRunner title="Multi-Chart" name="multi-chart" type="generated" /%}
 
 # Large Multi-Series Scale Test
 

@@ -166,12 +166,12 @@ describe('ErrorBars', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
         const series = chart['series'][0] as any;
-        const item = series['contextNodeData'][0].nodeData[itemIndex];
+        const item = series['contextNodeData'].nodeData[itemIndex];
         return series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
     };
 

@@ -34,7 +34,7 @@ export const Snippet = (props) => {
 };
 
 const extractOptions = (props) => {
-    const asBoolean = (prop) => ['true', '{true}', ''].includes(prop && prop.toLowerCase());
+    const asBoolean = (prop) => ['true', '{true}', ''].includes(prop?.toLowerCase());
 
     return {
         suppressFrameworkContext: asBoolean(props['suppressframeworkcontext']),

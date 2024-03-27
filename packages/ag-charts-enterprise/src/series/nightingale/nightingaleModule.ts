@@ -12,16 +12,14 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
 
     identifier: 'nightingale',
     instanceConstructor: NightingaleSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
-            },
-            {
-                type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+        },
+        {
+            type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
+        },
+    ],
     themeTemplate: NIGHTINGALE_SERIES_THEME,
     paletteFactory({ takeColors, userPalette }) {
         const {

@@ -35,6 +35,14 @@ export function* iterate<T extends Iterable<any>[]>(
     }
 }
 
+export function* iterateReverseArray<T extends any[]>(
+    array: T
+): Generator<T[number] extends Iterable<infer U> ? U : never, void, undefined> {
+    for (let j = array.length - 1; j >= 0; j--) {
+        yield array[j];
+    }
+}
+
 export function debounce<T extends (...args: Parameters<T>) => void>(
     callback: T,
     waitMs = 0,

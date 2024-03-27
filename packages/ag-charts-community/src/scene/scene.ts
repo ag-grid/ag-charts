@@ -100,13 +100,14 @@ export class Scene {
 
     async render(opts?: { debugSplitTimes: Record<string, number>; extraDebugStats: Record<string, number> }) {
         const { debugSplitTimes = { start: performance.now() }, extraDebugStats } = opts ?? {};
-        const {
-            canvas,
-            canvas: { context: ctx },
-            root,
-            pendingSize,
-        } = this;
+        const { canvas, canvas: { context: ctx } = {}, root, pendingSize } = this;
 
+        if (!ctx) {
+            // Scene.destroy() has dereferenced the HdpiCanvas instance, just abort silently.
+            return;
+        }
+
+        const renderStartTime = performance.now();
         if (pendingSize) {
             this.layersManager.resize(...pendingSize);
             this.pendingSize = undefined;
@@ -161,15 +162,17 @@ export class Scene {
             });
 
             if (root.visible) {
+                root.preRender();
                 ctx.save();
                 root.render(renderCtx);
                 ctx.restore();
             }
         }
 
-        debugSplitTimes['✍️'] = performance.now();
+        debugSplitTimes['✍️'] = performance.now() - renderStartTime;
 
         if (this.layersManager.size && canvasCleared) {
+            const layerRenderStart = performance.now();
             ctx.save();
             ctx.resetTransform();
             this.layersManager.forEach((layer) => {
@@ -180,7 +183,7 @@ export class Scene {
             });
             ctx.restore();
 
-            debugSplitTimes['⛙'] = performance.now();
+            debugSplitTimes['⛙'] = performance.now() - layerRenderStart;
         }
 
         // Check for save/restore depth of zero!

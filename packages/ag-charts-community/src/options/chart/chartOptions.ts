@@ -43,8 +43,8 @@ export interface AgSeriesAreaOptions {
 export interface AgChartOverlayOptions {
     /** Text to render in the overlay. */
     text?: string;
-    /** A function for generating HTML string for overlay content. */
-    renderer?: () => string;
+    /** A function for generating HTML element or string for overlay content. */
+    renderer?: () => HTMLElement | string;
 }
 
 export interface AgChartOverlaysOptions {

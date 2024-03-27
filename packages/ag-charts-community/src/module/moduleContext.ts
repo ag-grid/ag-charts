@@ -1,3 +1,4 @@
+import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
@@ -20,8 +21,6 @@ import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
 export interface ModuleContext {
-    document: Document;
-    window: Window;
     scene: Scene;
 
     callbackCache: CallbackCache;
@@ -53,13 +52,14 @@ export interface ModuleContextWithParent<P> extends ModuleContext {
 export interface AxisContext {
     axisId: string;
     continuous: boolean;
-    direction: 'x' | 'y';
+    direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
     keys(): string[];
+    seriesKeyProperties(): string[];
     scaleBandwidth(): number;
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
-    scaleValueFormatter(specifier: string): ((x: any) => string) | undefined;
+    scaleValueFormatter(specifier?: string): ((x: any) => string) | undefined;
 }
 
 export interface SeriesContext extends ModuleContext {

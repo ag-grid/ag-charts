@@ -1,36 +1,61 @@
 ---
-title: 'Map Shapes'
+title: 'Geographic Areas'
+enterprise: true
 ---
 
-The Map Series allows you to visualise geographic boundaries, such as countries.
+The Map Shape Series visualises data representing geographic areas such as countries, using colours to denote distinct series or the magnitude of the values.
 
 ## Simple Map Shapes
 
-A Map Series takes data and a topology in GeoJSON format, with the data referencing items in the topology.
-
 {% chartExampleRunner title="Multiple Series" name="multiple-series" type="generated" /%}
 
-To create a Map Series, use the `map` series type.
+To create a Map Shape Series, use the `map-shape` series type and provide data and [topology](./map-topology/). These can be provided in either the chart or series objects.
 
 ```js
-data: data,
 topology: topology,
 series: [
     {
-        type: 'map',
-        topologyProperty: 'name',
+        type: 'map-shape',
+        data: pacific,
         idKey: 'name',
+        title: 'Pacific'
+    },
+    // ...
+],
+legend: {
+    enabled: true,
+}
+```
+
+In this example:
+
+-   The `topology` is provided once on the chart level, and the `data` is provided in each series.
+-   `idKey` defines the property key in the data that will be matched against the property value in the topology.
+    See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
+-   `title` provides a name for the series, and is used in the [Legend](./legend/) and [Tooltips](./tooltips/).
+
+## Colour Scale
+
+{% chartExampleRunner title="Heatmap" name="heatmap" type="generated" /%}
+
+To colour the shapes based on the magnitude of the data, use `colorKey`.
+
+```js
+series: [
+    {
+        type: 'map-shape',
+        idKey: 'name',
+        colorKey: 'gdp',
     },
 ],
 ```
 
 In this configuration:
 
--   `topologyProperty` defines the property key to match against in the topology GeoJSON
--   `idKey` defines the property key in the data that will be matched against the property value in the topology
+-   `colorKey` is set to 'gdp', which supplies numerical values for the colour scale.
 
 {% note %}
-Topology features that did not match an item in the data will not be rendered.
+See [Colour Range](./heatmap-series/#colour-range) and [Gradient Legend](./heatmap-series/#gradient-legend) for more details about customising these features.
 {% /note %}
 
 ## Labels
@@ -40,9 +65,9 @@ Topology features that did not match an item in the data will not be rendered.
 ```js
 series: [
     {
-        type: 'map',
+        type: 'map-shape',
         idKey: 'name',
-        labelKey: 'code'
+        labelKey: 'code',
     },
 ],
 ```
@@ -51,32 +76,42 @@ In this configuration:
 
 -   `labelKey` defines the variable used for the labels.
 
-## Heatmap Series
+{% note %}
+See [Label options](#reference-AgMapShapeSeriesOptions-label) for options for handling long labels.
+{% /note %}
 
-A heat map will colour items in the topology to denote the magnitude of the data values.
+## Background Shapes
 
-{% chartExampleRunner title="Heatmap Series" name="heatmap-series" type="generated" /%}
+The Map Shape Background series displays all the shapes of a topology without requiring any data.
+
+This can be useful to show disabled Map Shape Series when toggled off in the legend, or to provide context to [Map Line Series](./map-lines/) and [Map Marker Series](./map-markers/).
+
+{% chartExampleRunner title="Backgrounds" name="backgrounds" type="generated" /%}
 
 ```js
+topology,
 series: [
     {
-        type: 'map',
-        idKey: 'name',
-        sizeKey: 'gdp'
+        type: 'map-shape-background',
     },
+    // ...
 ],
 ```
 
-In this configuration:
-
--   `colorKey` is set to 'gdp', which supplies numerical values for the Colour Scale.
+{% note %}
+As this is a background series rather than a data series, many normal series behaviours are disabled - including interactivity and appearing in the legend.
+{% /note %}
 
 ## API Reference
 
 {% tabs %}
 
-{% tabItem id="AgMapSeriesOptions" label="Map" %}
-{% apiReference id="AgMapSeriesOptions" /%}
+{% tabItem id="AgMapShapeSeriesOptions" label="Map Shape" %}
+{% apiReference id="AgMapShapeSeriesOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgMapShapeBackgroundOptions" label="Map Shape Background" %}
+{% apiReference id="AgMapShapeBackgroundOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

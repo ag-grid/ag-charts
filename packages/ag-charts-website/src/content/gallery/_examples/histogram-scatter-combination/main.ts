@@ -22,6 +22,7 @@ const options: AgChartOptions = {
             aggregation: 'mean',
             strokeWidth: 2,
             strokeOpacity: 0,
+            cornerRadius: 6,
         },
         {
             type: 'scatter',
@@ -52,6 +53,9 @@ const options: AgChartOptions = {
                 enabled: true,
                 text: 'Engine Size',
             },
+            crosshair: {
+                enabled: false,
+            },
         },
         {
             position: 'left',
@@ -66,6 +70,9 @@ const options: AgChartOptions = {
                 ],
             },
             label: {
+                enabled: false,
+            },
+            crosshair: {
                 enabled: false,
             },
         },

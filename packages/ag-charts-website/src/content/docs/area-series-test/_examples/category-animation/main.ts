@@ -76,41 +76,43 @@ function actionAddStartWeek() {
 }
 
 function actionAddWeek12and13() {
-    options.data = [
+    const data = [
         ...(options.data ?? []),
         { quarter: 'week 12', week: 12, iphone: 78 },
         { quarter: 'week 13', week: 13, iphone: 138 },
     ];
-    options.data.sort((a: any, b: any) => a.week - b.week);
+    data.sort((a: any, b: any) => a.week - b.week);
+    options.data = data;
+
     AgCharts.update(chart, options);
 }
 
 function actionAddWeek7and8() {
-    options.data = [
+    const data = [
         ...(options.data ?? []),
         { quarter: 'week 7', week: 7, iphone: 142 },
         { quarter: 'week 8', week: 8, iphone: 87 },
     ];
-    options.data.sort((a: any, b: any) => a.week - b.week);
+    data.sort((a: any, b: any) => a.week - b.week);
+    options.data = data;
+
     AgCharts.update(chart, options);
 }
 
 function reorder() {
-    options.data = [...(options.data ?? [])];
-    options.data?.forEach((d) => (d.random = Math.random()));
-    options.data?.sort((a, b) => a.random - b.random);
+    const data = (options.data ?? []).map((d) => ({ ...d, random: Math.random() }));
+    data.sort((a, b) => a.random - b.random);
+    options.data = data;
 
     AgCharts.update(chart, options);
 }
 
 function rapidUpdate() {
-    AgCharts.updateDelta(chart, {
-        data: [...data, { quarter: 'week 12', iphone: 78 }],
-    });
+    options.data = [...data, { quarter: 'week 12', iphone: 78 }];
+    AgCharts.update(chart, options);
 
     (chart as any).chart.waitForUpdate().then(() => {
-        AgCharts.updateDelta(chart, {
-            data: [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
-        });
+        options.data = [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }];
+        AgCharts.update(chart, options);
     });
 }

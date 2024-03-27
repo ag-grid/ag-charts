@@ -8,7 +8,7 @@ const options: AgCartesianChartOptions = {
         enabled: true,
         rangeX: {
             start: new Date('2024-01-01'),
-            end: new Date('2024-12-30'),
+            end: new Date('2024-12-30 23:59:59'),
         },
     },
     tooltip: {
@@ -55,7 +55,7 @@ function changeRangeWeek() {
 function changeRangeMonth() {
     options.zoom!.rangeX = {
         start: new Date('2024-12-01'),
-        end: undefined,
+        end: new Date('2024-12-30 23:59:59'),
     };
     AgCharts.update(chart, options);
 }
@@ -63,12 +63,15 @@ function changeRangeMonth() {
 function changeRangeAugust() {
     options.zoom!.rangeX = {
         start: new Date('2024-08-01'),
-        end: new Date('2024-08-30'),
+        end: new Date('2024-08-30 23:59:59'),
     };
     AgCharts.update(chart, options);
 }
 
 function changeRangeAll() {
-    options.zoom!.rangeX = undefined;
+    options.zoom!.rangeX = {
+        start: new Date('2024-01-01'),
+        end: new Date('2024-12-30 23:59:59'),
+    };
     AgCharts.update(chart, options);
 }

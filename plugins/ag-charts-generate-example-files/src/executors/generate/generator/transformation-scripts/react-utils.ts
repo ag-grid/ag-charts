@@ -1,6 +1,6 @@
 import * as JSON5 from 'json5';
 
-import { getFunctionName, recognizedDomEvents } from './parser-utils';
+import { recognizedDomEvents } from './parser-utils';
 
 const toTitleCase = (value: string) => value[0].toUpperCase() + value.slice(1);
 const toCamelCase = (value: string) => value.replace(/(?:-)(\w)/g, (_, c: string) => (c ? c.toUpperCase() : ''));
@@ -109,15 +109,9 @@ export const getValueType = (value: string) => {
     return type;
 };
 
-export const convertFunctionToConstCallback = (code: string, callbackDependencies: {}) => {
-    const functionName = getFunctionName(code);
-    return `${code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $1 = useCallback(($2) =>')}, [${
-        callbackDependencies[functionName] || ''
-    }])`;
+export const convertFunctionToCallback = (code: string) => {
+    return code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $1 = ($2) =>');
 };
-export const convertFunctionToConstCallbackTs = (code: string, callbackDependencies: {}) => {
-    const functionName = getFunctionName(code); //:(\s+[^\{]*)
-    return `${code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)(:?\s+[^{]*)/, 'const $1 = useCallback(($2) $3 =>')}, [${
-        callbackDependencies[functionName] || ''
-    }])`;
+export const convertFunctionToCallbackTs = (code: string) => {
+    return code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)(:?\s+[^{]*)/, 'const $1 = ($2) $3 =>');
 };

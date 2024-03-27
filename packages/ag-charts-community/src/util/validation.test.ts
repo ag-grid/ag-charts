@@ -49,7 +49,7 @@ describe('validation module', () => {
             it('should set TestValidate.num to undefined without warning', () => {
                 test.num = undefined;
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
             });
 
             it('should not set TestValidate.num to null with warning', () => {
@@ -76,7 +76,7 @@ describe('validation module', () => {
             it('should set TestValidate.num to a valid value without warning', () => {
                 test.num = 3;
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.num).toBe(3);
             });
         });
@@ -85,7 +85,7 @@ describe('validation module', () => {
             it('should set TestValidate.str to undefined without warning', () => {
                 test.str = undefined;
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
             });
 
             it('should not set TestValidate.str to null with warning', () => {
@@ -98,7 +98,7 @@ describe('validation module', () => {
             it('should set TestValidate.str to a valid value without warning', () => {
                 test.str = 'hello world!';
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.str).toBe('hello world!');
             });
         });
@@ -107,7 +107,7 @@ describe('validation module', () => {
             it('should set TestValidate.date to undefined without warning', () => {
                 test.date = undefined;
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
             });
 
             it('should not set TestValidate.date to null with warning', () => {
@@ -121,7 +121,7 @@ describe('validation module', () => {
                 const date = new Date();
                 test.date = date;
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.date).toBe(date);
             });
         });
@@ -130,7 +130,7 @@ describe('validation module', () => {
             it('should set TestValidate.array to undefined without warning', () => {
                 test.array = undefined;
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
             });
 
             it('should not set TestValidate.array to null with warning', () => {
@@ -144,7 +144,7 @@ describe('validation module', () => {
                 test.array = [];
                 test.array = [1, 2, 3];
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.array).toStrictEqual([1, 2, 3]);
             });
 
@@ -187,7 +187,7 @@ describe('validation module', () => {
                 test.colour = 'rgb(0, 0, 0)';
                 test.colour = 'rgba(0, 0, 0, 0)';
 
-                expect(console.warn).not.toBeCalled();
+                expect(console.warn).not.toHaveBeenCalled();
                 expect(test.colour).toBe('rgba(0, 0, 0, 0)');
             });
         });

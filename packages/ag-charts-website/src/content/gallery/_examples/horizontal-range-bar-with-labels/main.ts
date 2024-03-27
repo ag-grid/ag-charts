@@ -59,6 +59,7 @@ const options: AgChartOptions = {
             formatter: ({ datum, yHighKey, yLowKey }) => ({
                 fillOpacity: (datum[yHighKey] - datum[yLowKey]) / 100000,
             }),
+            cornerRadius: 4,
             strokeWidth: 1,
             lineDash: [3, 5],
             tooltip,
@@ -83,6 +84,7 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => Number(value).toLocaleString('en-GB', numberFormatOptions),
             },
             crosshair: {
+                snap: true,
                 label: {
                     format: `s`,
                 },

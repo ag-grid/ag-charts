@@ -151,7 +151,7 @@ describe('LineSeries', () => {
                 });
                 if (warnings.length === 0) {
                     // eslint-disable-next-line no-console
-                    expect(console.warn).not.toBeCalled();
+                    expect(console.warn).not.toHaveBeenCalled();
                 }
             }
         );
@@ -445,6 +445,92 @@ describe('LineSeries', () => {
                     await compare();
                 });
             }
+        });
+    });
+
+    describe('data per series', () => {
+        it('with category keys should render as expected', async () => {
+            const options: AgChartOptions = {
+                series: [
+                    {
+                        data: [
+                            { key: '2020', value: 300 },
+                            { key: '2021', value: 200 },
+                            { key: '2022', value: 350 },
+                            { key: '2023', value: 400 },
+                        ],
+                        type: 'line',
+                        xKey: 'key',
+                        yKey: 'value',
+                    },
+                    {
+                        data: [
+                            { key: '2022', value: 100 },
+                            { key: '2023', value: 130 },
+                            { key: '2024', value: 160 },
+                            { key: '2025', value: 200 },
+                        ],
+                        type: 'line',
+                        xKey: 'key',
+                        yKey: 'value',
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options) as Chart;
+
+            // TODO: replace with `compare()` with 0 percent threshold
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot({
+                failureThreshold: 0,
+                failureThresholdType: 'percent',
+            });
+        });
+
+        it('with continuous keys should render as expected', async () => {
+            const options: AgChartOptions = {
+                series: [
+                    {
+                        data: [
+                            { key: new Date('2020'), value: 300 },
+                            { key: new Date('2021'), value: 200 },
+                            { key: new Date('2022'), value: 350 },
+                            { key: new Date('2023'), value: 400 },
+                        ],
+                        type: 'line',
+                        xKey: 'key',
+                        yKey: 'value',
+                    },
+                    {
+                        data: [
+                            { key: new Date('2022'), value: 100 },
+                            { key: new Date('2023'), value: 130 },
+                            { key: new Date('2024'), value: 160 },
+                            { key: new Date('2025'), value: 200 },
+                        ],
+                        type: 'line',
+                        xKey: 'key',
+                        yKey: 'value',
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options) as Chart;
+
+            // TODO: replace with `compare()` with 0 percent threshold
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot({
+                failureThreshold: 0,
+                failureThresholdType: 'percent',
+            });
         });
     });
 });

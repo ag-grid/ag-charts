@@ -1,13 +1,13 @@
 import { Alert } from '@components/alert/Alert';
-// @ts-ignore
+// @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
-// @ts-ignore
+// @ts-expect-error
 import DetailCellRenderer from '@components/grid/DetailCellRendererComponent';
-// @ts-ignore
+// @ts-expect-error
 import { Grid } from '@components/grid/Grid';
-// @ts-ignore
+// @ts-expect-error
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
-// @ts-ignore
+// @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import { Icon } from '@components/icon/Icon';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
@@ -37,15 +37,15 @@ const gridToChartVersion = (gridVersion: string) => {
     return `${chartMajorVersion}.${versionParts[1]}.${versionParts[2]}`;
 };
 
-// @ts-ignore
+// @ts-expect-error
 export const Changelog = () => {
     const extractFixVersionParameter = (location: any) => {
         const fixVersionParam = new URLSearchParams(location.search).get('fixVersion');
-        return location && location.search && fixVersionParam ? fixVersionParam : undefined;
+        return location?.search && fixVersionParam ? fixVersionParam : undefined;
     };
 
     const extractFilterTerm = useCallback(
-        (location: any) => (location && location.search ? new URLSearchParams(location.search).get('searchQuery') : ''),
+        (location: any) => (location?.search ? new URLSearchParams(location.search).get('searchQuery') : ''),
         []
     );
 

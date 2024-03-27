@@ -1,15 +1,12 @@
-import type { ProcessedOutputDiff } from '../chart/data/dataModel';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import type { Interpolating } from '../util/interpolating';
-import { zipObject } from '../util/zip';
-import { deconstructSelectionsOrNodes } from './animation';
 import type { AnimationPhase, AnimationValue } from './animation';
+import { deconstructSelectionsOrNodes } from './animation';
 import * as easing from './easing';
 
-export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated';
-export const NODE_UPDATE_PHASES: NodeUpdateState[] = ['removed', 'updated', 'added'];
+export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'no-op';
 
 export type FromToMotionPropFnContext<T> = {
     last: boolean;
@@ -44,9 +41,14 @@ export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, Animati
     updated: 'update',
     removed: 'remove',
     unknown: 'initial',
+    'no-op': 'none',
 };
 
-export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
+export interface FromToDiff {
+    changed: boolean;
+    added: Set<string> | Map<string, any>;
+    removed: Set<string> | Map<string, any>;
+}
 
 export interface FromToFns<
     N extends Node,
@@ -88,13 +90,6 @@ export function fromToMotion<
     const { fromFn, toFn, intermediateFn } = fns;
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
 
-    // Dynamic case with varying add/update/remove behavior.
-    const ids = { added: {}, removed: {} };
-    if (getDatumId && diff) {
-        ids.added = zipObject(diff.added, true);
-        ids.removed = zipObject(diff.removed, true);
-    }
-
     const processNodes = (liveNodes: N[], subNodes: N[]) => {
         let prevFromProps: T | undefined;
         let liveNodeIndex = 0;
@@ -118,7 +113,7 @@ export function fromToMotion<
             if (!isLive) {
                 status = 'removed';
             } else if (getDatumId && diff) {
-                status = calculateStatus(node, node.datum, getDatumId, ids);
+                status = calculateStatus(node, node.datum, getDatumId, diff);
             }
 
             const { phase, start, finish, delay, duration, ...from } = fromFn(node, node.datum, status, ctx);
@@ -266,14 +261,11 @@ function calculateStatus<N extends Node, D>(
     node: N,
     datum: D,
     getDatumId: (node: N, datum: D) => string,
-    ids: {
-        added: Record<string, true>;
-        removed: Record<string, true>;
-    }
+    diff: FromToDiff
 ): NodeUpdateState {
     const id = getDatumId(node, datum);
 
-    if (ids.added[id]) {
+    if (diff.added.has(id)) {
         return 'added';
     }
 

@@ -8,6 +8,7 @@ import { resetMotion } from '../../motion/resetMotion';
 import { StateMachine } from '../../motion/states';
 import type {
     AgAxisCaptionFormatterParams,
+    AgAxisLabelFormatterParams,
     CssColor,
     FontFamily,
     FontSize,
@@ -16,6 +17,7 @@ import type {
 } from '../../options/agChartOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
@@ -24,9 +26,8 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import type { TextSizeProperties } from '../../scene/shape/text';
-import { Text, measureText, splitText } from '../../scene/shape/text';
-import type { PointLabelDatum } from '../../scene/util/labelPlacement';
+import { Text, TextMeasurer, type TextSizeProperties } from '../../scene/shape/text';
+import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
@@ -35,7 +36,7 @@ import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
+import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -53,7 +54,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
 import { AxisTick } from './axisTick';
-import type { AxisTitle } from './axisTitle';
+import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
     prepareAxisAnimationContext,
@@ -392,8 +393,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
-    @Validate(predicateWithMessage((title) => typeof title == 'object', 'Title object'), { optional: true })
-    public title?: AxisTitle = undefined;
+    @Validate(OBJECT, { optional: true })
+    title = new AxisTitle();
     protected _titleCaption = new Caption();
 
     private setTickInterval(interval?: TickInterval<S>) {
@@ -402,7 +403,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private setTickCount(count?: TickCount<S> | number, minTickCount?: number, maxTickCount?: number) {
         const { scale } = this;
-        if (!(count && ContinuousScale.is(scale))) {
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
+        if (!(count && continuous)) {
             return;
         }
 
@@ -564,7 +566,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private setTitleProps(caption: Caption, params: { spacing: number }) {
         const { title } = this;
-        if (!title) {
+        if (!title.enabled) {
             caption.enabled = false;
             return;
         }
@@ -796,7 +798,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             maxSpacing: tick.maxSpacing ?? NaN,
         });
 
-        const continuous = ContinuousScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
@@ -843,10 +845,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 const rotated = configuredRotation !== 0 || autoRotation !== 0;
                 const labelRotation = initialRotation + autoRotation;
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-                labelOverlap = this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, {
-                    ...textProps,
-                    textAlign,
-                });
+                labelOverlap = this.label.avoidCollisions
+                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, {
+                          ...textProps,
+                          textAlign,
+                      })
+                    : false;
             }
         }
 
@@ -867,7 +871,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         secondaryAxis: boolean;
     }): TickStrategy[] {
         const { scale, label, tick } = this;
-        const continuous = ContinuousScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
         const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
         const autoRotate = label.autoRotate === true && label.rotation === undefined;
@@ -931,7 +935,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             maxSpacing: tick.maxSpacing ?? NaN,
         });
 
-        const continuous = ContinuousScale.is(scale);
+        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
@@ -981,7 +985,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ): boolean {
         Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
-        const labelData: PointLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
+        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
         const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
 
         return axisLabelsOverlap(labelData, labelSpacing);
@@ -992,25 +996,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelX: number,
         textProps: TextSizeProperties,
         labelMatrix: Matrix
-    ): PointLabelDatum[] {
-        const labelData: PointLabelDatum[] = [];
-        for (const tickDatum of tickData) {
-            const { tickLabel, translationY } = tickDatum;
-            if (tickLabel === '' || tickLabel == undefined) {
-                // skip user hidden ticks
-                continue;
-            }
+    ): PlacedLabelDatum[] {
+        const labelData: PlacedLabelDatum[] = [];
+        const measurer = new TextMeasurer(textProps);
 
-            const lines = splitText(tickLabel);
+        for (const { tickLabel, translationY } of tickData) {
+            if (tickLabel === '' || tickLabel == null) continue;
 
-            const { width, height } = measureText(lines, labelX, translationY, textProps);
-
+            const { width, height } = measurer.size(tickLabel);
             const bbox = new BBox(labelX, translationY, width, height);
-
             const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
 
             labelData.push(labelDatum);
         }
+
         return labelData;
     }
 
@@ -1040,13 +1039,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 if (ContinuousScale.is(scale)) {
-                    const scaleDomain = scale.getDomain();
-                    const start = scale.fromDomain(scaleDomain[0]);
-                    const stop = scale.fromDomain(scaleDomain[1]);
-
-                    const d0 = Math.min(start, stop);
-                    const d1 = Math.max(start, stop);
-
+                    const [d0, d1] = findMinMax(scale.getDomain().map(Number));
                     rawTicks = this.tick.values!.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
                 } else {
                     rawTicks = this.tick.values!;
@@ -1104,7 +1097,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 tickIdCounts.set(tickId, 1);
             }
 
-            ticks.push({ tick: rawTick, tickId, tickLabel, translationY });
+            ticks.push({ tick: rawTick, tickId, tickLabel, translationY: Math.floor(translationY) });
 
             if (tickLabel === '' || tickLabel == undefined) {
                 continue;
@@ -1131,7 +1124,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const { minRect } = this;
+        const {
+            minRect,
+            label: { avoidCollisions },
+        } = this;
+
+        if (!avoidCollisions) {
+            return {
+                minTickCount: ContinuousScale.defaultMaxTickCount,
+                maxTickCount: ContinuousScale.defaultMaxTickCount,
+                defaultTickCount: ContinuousScale.defaultMaxTickCount,
+            };
+        }
 
         const rangeWithBleed = this.calculateRangeWithBleed();
         const defaultMinSpacing = Math.max(
@@ -1394,6 +1398,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting (nice rounded) tick values.
     formatTick(datum: any, index: number): string {
+        return this.datumFormatter(index)(datum);
+    }
+
+    // For formatting arbitrary values between the ticks.
+    formatDatum(datum: any): string {
+        return this.datumFormatter()(datum);
+    }
+
+    datumFormatter(index: number = 0): (datum: any) => string {
         const {
             label,
             labelFormatter,
@@ -1402,25 +1415,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         } = this;
 
         if (label.formatter) {
-            const value = fractionDigits > 0 ? datum : String(datum);
-            return (
-                callbackCache.call(label.formatter, {
-                    value,
+            return (datum) =>
+                callbackCache.call(label.formatter as (params: AgAxisLabelFormatterParams) => string, {
+                    value: fractionDigits > 0 ? datum : String(datum),
                     index,
                     fractionDigits,
                     formatter: labelFormatter,
-                }) ?? value
-            );
+                }) ?? datum;
         } else if (labelFormatter) {
-            return callbackCache.call(labelFormatter, datum) ?? String(datum);
+            return (datum) => callbackCache.call(labelFormatter, datum) ?? String(datum);
         }
         // The axis is using a logScale or the`datum` is an integer, a string or an object
-        return String(datum);
-    }
-
-    // For formatting arbitrary values between the ticks.
-    formatDatum(datum: any): string {
-        return this.formatTick(datum, 0);
+        return (datum) => String(datum);
     }
 
     maxThickness: number = Infinity;
@@ -1500,7 +1506,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             direction: this.direction,
             continuous: ContinuousScale.is(this.scale),
             keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),
-            scaleValueFormatter: (specifier: string) => this.scale.tickFormat?.({ specifier }),
+            seriesKeyProperties: () =>
+                this.boundSeries.reduce((keys, series) => {
+                    const seriesKeys = series.getKeyProperties(this.direction);
+
+                    seriesKeys.forEach((key) => {
+                        if (keys.indexOf(key) < 0) {
+                            keys.push(key);
+                        }
+                    });
+
+                    return keys;
+                }, [] as string[]),
+            scaleValueFormatter: (specifier?: string) =>
+                specifier ? this.scale.tickFormat?.({ specifier }) : this.datumFormatter(),
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),
             scaleInvert: (val) => this.scale.invert?.(val),
@@ -1575,11 +1594,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
         }
 
-        return {
-            changed: added.size > 0 || removed.size > 0,
-            added: Array.from(added.values()),
-            removed: Array.from(removed.values()),
-        };
+        return { changed: added.size > 0 || removed.size > 0, added, removed };
     }
 
     isReversed() {

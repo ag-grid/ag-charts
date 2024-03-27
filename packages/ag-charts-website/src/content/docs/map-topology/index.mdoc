@@ -1,0 +1,99 @@
+---
+title: 'Map Topology'
+enterprise: true
+---
+
+All AG Charts Map Series use the GeoJSON format for their topology data.
+
+[GeoJSON](https://geojson.org) is an industry-standard specification for representing geographic shapes, lines, and points.
+
+{% warning %}
+AG Charts does not provide any topology files. It is up to the user to source and license these files, which are widely available online.
+{% /warning %}
+
+## GeoJSON Features
+
+A GeoJSON file contains a list of features. Each feature contains a description of geographic data (geometry) along with associated properties.
+
+### Geometry types
+
+There are seven geometry types used, as listed in the table below.
+
+| Geometry Type                   | Usage                                                                    | Series to Use                                                            |
+| ------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `Polygon`, `MultiPolygon`       | Geographic areas - the border of the United Kingdom and all its islands. | [Map Shape Series](./map-shapes/) or [Map Marker Series](./map-markers/) |
+| `LineString`, `MultiLineString` | Routes and connections - flight paths, roads, or rivers.                 | [Map Line Series](./map-lines/)                                          |
+| `Point`, `MultiPoint`           | Markers and points of interest - city centres, building locations.       | [Map Marker Series](./map-markers/)                                      |
+| `GeometryCollection`            | A collection of one or more feature types. Uncommon to encounter.        | Choose the series type for the feature types you wish to render.         |
+
+### Properties
+
+The properties of a feature are represented as a JSON object. While there is no standard for which properties are included, they typically contain the name of the feature in the property called `name`.
+
+```json
+"properties": {
+    "name": "United Kingdom",
+    "code": "GB"
+}
+```
+
+## Connecting Data to Topology
+
+When using a Map Series which requires topology, both the `topology` and the `data` must be provided in the chart or series options.
+
+```js
+series: [
+{
+    type: 'map-shape',
+    topology: {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [...],
+                },
+                properties: {
+                    name: 'United Kingdom',
+                    code: 'GB'
+                }
+            }
+        ],
+        // ...
+    },
+    data: [
+        { country: 'United Kingdom', population: 67330000 },
+        { country: 'France', population: 67500000 },
+        // ...
+    ],
+    idKey: 'country',
+    topologyIdKey: 'name' //default value
+}
+```
+
+-   Each item in the data must contain a field that refers to the associated geometry for that data item. In the above example this is the `country` field.
+-   The series definition must contain an `idKey` which refers to this field.
+-   The series definition can contain an optional `topologyIdKey` to match to the relevant field in the GeoJSON `properties`. If not provided, this will default to `name`.
+-   In this example, the first data item which has the value of `United Kingdom` will match to the topology feature with the matching `properties.name` value.
+
+{% note %}
+Data items should always have a matching topology feature, and will log a warning to the console if they don't.
+Topology features that don't correspond to a data item are not rendered, and are ignored without a warning.
+{% /note %}
+
+## Topology for Background Series
+
+The [Map Shape Background](./map-shapes/#background-shapes) and [Map Line Background](./map-lines/#background-lines) series do not use any data. These series will render every relevant feature found in the provided topology.
+
+## Useful Resources
+
+-   [Map Shaper](https://mapshaper.org) - can simplify maps to reduce their filesize, convert other formats to GeoJSON, and has a command line to manipulate geographic data.
+-   [GeoJSON.io](https://geojson.io/) - draw shapes on a map and export GeoJSON.
+-   [GeoJSON Lint](https://geojsonlint.com) - validates GeoJSON.
+
+{% warning %}
+The links above are examples only.
+Their listing is not a recommendation and does not imply endorsement by AG Grid Ltd, nor discrimination against similar brands, products or services not mentioned.
+The decision of which products or resources to use in combination with AG Charts is entirely the choice of the user and at their own risk.
+{% /warning %}

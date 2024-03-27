@@ -5,7 +5,6 @@ import { MapMarkerSeries } from './mapMarkerSeries';
 const {
     EXTENDS_SERIES_DEFAULTS,
     DEFAULT_LABEL_COLOUR,
-    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     singleSeriesPaletteFactory,
 } = _Theme;
@@ -18,26 +17,13 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
 
     identifier: 'map-marker',
     instanceConstructor: MapMarkerSeries,
-    seriesDefaults: {},
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
-            background: {
-                strokeWidth: 0,
-                fillOpacity: 0.2,
-            },
+            maxSize: 30,
+            fillOpacity: 0.5,
             label: {
                 color: DEFAULT_LABEL_COLOUR,
-            },
-            marker: {
-                __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-                maxSize: 30,
-                fillOpacity: 0.5,
-            },
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
             },
         },
         legend: {
@@ -46,8 +32,10 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
         gradientLegend: {
             enabled: false,
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
-    // @ts-expect-error When the types are properly exposed, this error should disappear
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
         const { fill, stroke } = singleSeriesPaletteFactory(opts);
@@ -55,9 +43,9 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
         const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
+            fill,
+            stroke,
             colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
-            background: { fill, stroke },
-            marker: { fill, stroke },
         };
     },
 };

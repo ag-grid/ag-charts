@@ -1,6 +1,6 @@
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
-import { hasRegisteredEnterpriseModules } from '../module/module';
+import { moduleRegistry } from '../module/module';
 import { ChartOptions } from '../module/optionsModule';
 import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
@@ -276,7 +276,8 @@ class AgChartsInternal {
     }
 
     private static async prepareResizedChart({ chart }: AgChartInstanceProxy, opts: DownloadOptions = {}) {
-        const { width = chart.width, height = chart.height } = opts;
+        const width: number = opts.width ?? chart.width ?? chart.scene.canvas.width;
+        const height: number = opts.height ?? chart.height ?? chart.scene.canvas.height;
 
         const options: ChartExtendedOptions = mergeDefaults(
             {
@@ -287,7 +288,7 @@ class AgChartsInternal {
                 height,
             },
             // Disable enterprise features that may interfere with image generation.
-            hasRegisteredEnterpriseModules() && { animation: { enabled: false } },
+            moduleRegistry.hasEnterpriseModules() && { animation: { enabled: false } },
             chart.userOptions
         );
 

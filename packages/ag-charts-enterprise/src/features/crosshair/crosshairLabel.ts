@@ -1,7 +1,8 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
+const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createElement, injectStyle } =
+    _ModuleSupport;
 const { BBox } = _Scene;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
@@ -38,12 +39,27 @@ export interface LabelMeta {
     y: number;
 }
 
+export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties {
+    @Validate(BOOLEAN)
+    enabled: boolean = true;
+
+    @Validate(STRING, { optional: true })
+    className?: string;
+
+    @Validate(NUMBER)
+    xOffset: number = 0;
+
+    @Validate(NUMBER)
+    yOffset: number = 0;
+
+    @Validate(STRING, { optional: true })
+    format?: string = undefined;
+
+    @Validate(FUNCTION, { optional: true })
+    renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
+}
+
 export class CrosshairLabel extends BaseProperties {
-    private static labelDocuments: Document[] = [];
-
-    private readonly element: HTMLElement;
-    private readonly labelRoot: HTMLElement;
-
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
@@ -60,7 +76,7 @@ export class CrosshairLabel extends BaseProperties {
             }
         },
     })
-    override className?: string;
+    className?: string;
 
     @Validate(NUMBER)
     xOffset: number = 0;
@@ -69,25 +85,21 @@ export class CrosshairLabel extends BaseProperties {
     yOffset: number = 0;
 
     @Validate(STRING, { optional: true })
-    format?: string = undefined;
+    format?: string;
 
     @Validate(FUNCTION, { optional: true })
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
 
-    constructor(document: Document, container: HTMLElement) {
+    private readonly element: HTMLElement;
+
+    constructor(private readonly labelRoot: HTMLElement) {
         super();
 
-        this.element = container.appendChild(document.createElement('div'));
+        this.element = createElement('div');
         this.element.classList.add(DEFAULT_LABEL_CLASS);
-        this.labelRoot = container;
+        labelRoot.appendChild(this.element);
 
-        if (CrosshairLabel.labelDocuments.indexOf(document) < 0) {
-            const styleElement = document.createElement('style');
-            styleElement.innerHTML = defaultLabelCss;
-            // Make sure the default label style goes before other styles so it can be overridden.
-            document.head.insertBefore(styleElement, document.head.querySelector('style'));
-            CrosshairLabel.labelDocuments.push(document);
-        }
+        injectStyle(defaultLabelCss, 'crosshairLabel');
     }
 
     show(meta: LabelMeta) {

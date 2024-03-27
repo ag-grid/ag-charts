@@ -1,5 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+import { backgroundTopology } from './backgroundTopology';
 import { data } from './data';
 import { topology } from './topology';
 
@@ -12,7 +13,11 @@ const options: AgChartOptions = {
     topology,
     series: [
         {
-            type: 'map',
+            type: 'map-shape-background',
+            topology: backgroundTopology,
+        },
+        {
+            type: 'map-marker',
             idKey: 'name',
         },
     ],

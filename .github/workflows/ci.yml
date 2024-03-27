@@ -113,7 +113,12 @@ jobs:
             - name: yarn install
               if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
+              run: |
+                  (yarn check --integrity && yarn postinstall) || yarn install --ci
+                  if [[ ! -f node_modules/canvas/build/Release/canvas.node ]] ; then
+                    echo "canvas.node binary not found, cannot proceed."
+                    exit 1
+                  fi
             - name: yarn postinstall
               if: steps.cache.outputs.cache-hit == 'true'
               run: yarn postinstall
@@ -165,7 +170,7 @@ jobs:
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: |
                   # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude "all,ag-charts-website,tag:supports:batch"
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
                   # Batched builds.
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 
@@ -241,7 +246,7 @@ jobs:
             - name: yarn install
               if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
+              run: (yarn check --integrity && yarn postinstall) || yarn install --ci
             - name: yarn postinstall
               if: steps.cache.outputs.cache-hit == 'true'
               run: yarn postinstall

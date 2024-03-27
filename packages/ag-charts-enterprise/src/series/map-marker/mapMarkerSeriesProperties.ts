@@ -1,14 +1,13 @@
-import type { FeatureCollection } from 'geojson';
-
 import type {
     AgMapMarkerSeriesFormatterParams,
     AgMapMarkerSeriesLabelFormatterParams,
     AgMapMarkerSeriesOptions,
-    AgMapMarkerSeriesOptionsKeys,
     AgMapMarkerSeriesStyle,
     AgMapMarkerSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
+import { GEOJSON_OBJECT } from '../map-util/validation';
 
 const {
     AND,
@@ -16,98 +15,84 @@ const {
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
-    LINE_DASH,
     NUMBER_ARRAY,
     OBJECT,
-    PLAIN_OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    MARKER_SHAPE,
     Validate,
-    BaseProperties,
     SeriesProperties,
     SeriesTooltip,
 } = _ModuleSupport;
-const { Label, SceneChangeDetection } = _Scene;
+const { Label, Circle } = _Scene;
+const { Logger } = _Util;
 
 export interface MapMarkerNodeLabelDatum extends _Util.PointLabelDatum {}
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
-    readonly label: MapMarkerNodeLabelDatum | undefined;
+    readonly index: number;
     readonly fill: string | undefined;
-    readonly lonValue: number;
-    readonly latValue: number;
+    readonly idValue: string | undefined;
+    readonly lonValue: number | undefined;
+    readonly latValue: number | undefined;
+    readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
     readonly point: Readonly<_Scene.SizedPoint>;
 }
 
-class MapMarkerSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapMarkerSeriesOptionsKeys, MapMarkerNodeDatum> {
-    /**
-     * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
-     * determine the size of the marker. All values will be mapped to a marker size within the
-     * `[size, maxSize]` range, where the largest values will correspond to the `maxSize` and the
-     * lowest to the `size`.
-     */
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    @SceneChangeDetection()
-    maxSize: number | undefined;
-
-    @Validate(NUMBER_ARRAY, { optional: true })
-    @SceneChangeDetection()
-    domain?: [number, number];
-}
-
-class MapMarkerSeriesBackground extends BaseProperties {
-    @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
-
-    @Validate(STRING, { optional: true })
-    id: string | undefined = undefined;
-
+class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {
     @Validate(STRING)
-    topologyProperty: string = 'name';
-
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity: number = 1;
-
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
-
-    @Validate(RATIO)
-    strokeOpacity: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 0;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
+    placement: _Util.LabelPlacement = 'bottom';
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
-    @Validate(OBJECT)
-    readonly background = new MapMarkerSeriesBackground();
+    override isValid(): boolean {
+        const superIsValid = super.isValid();
+
+        const hasTopology = this.idKey != null;
+        const hasLatLon = this.latitudeKey != null && this.longitudeKey != null;
+        if (!hasTopology && !hasLatLon) {
+            Logger.warnOnce(
+                'Either both [topology] and [idKey] or both [latitudeKey] and [longitudeKey] must be set to render a map marker series.'
+            );
+
+            return false;
+        }
+
+        return superIsValid;
+    }
+
+    @Validate(GEOJSON_OBJECT, { optional: true })
+    topology: _ModuleSupport.FeatureCollection | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    title?: string;
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;
 
-    @Validate(STRING)
-    latKey: string = '';
-
     @Validate(STRING, { optional: true })
-    latName: string | undefined = undefined;
+    idKey: string | undefined = undefined;
 
     @Validate(STRING)
-    lonKey: string = '';
+    topologyIdKey: string = 'name';
 
     @Validate(STRING, { optional: true })
-    lonName: string | undefined = undefined;
+    idName: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    latitudeKey: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    latitudeName: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    longitudeKey: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    longitudeName: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
@@ -130,15 +115,40 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 
+    /** One of the predefined marker names, or a marker constructor function (for user-defined markers). */
+    @Validate(MARKER_SHAPE)
+    shape: _Scene.MarkerShape = Circle;
+
+    @Validate(POSITIVE_NUMBER)
+    size: number = 6;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    maxSize: number | undefined;
+
+    @Validate(NUMBER_ARRAY, { optional: true })
+    sizeDomain?: [number, number];
+
+    @Validate(COLOR_STRING, { optional: true })
+    fill?: string;
+
+    @Validate(RATIO)
+    fillOpacity: number = 1;
+
+    @Validate(COLOR_STRING, { optional: true })
+    stroke?: string;
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 1;
+
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
+
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgMapMarkerSeriesFormatterParams<any>) => AgMapMarkerSeriesStyle;
 
     @Validate(OBJECT)
-    readonly marker = new MapMarkerSeriesMarker();
+    readonly label = new MapMarkerSeriesLabel();
 
     @Validate(OBJECT)
-    readonly label = new Label<AgMapMarkerSeriesLabelFormatterParams>();
-
-    @Validate(OBJECT)
-    override tooltip = new SeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();
+    readonly tooltip = new SeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();
 }

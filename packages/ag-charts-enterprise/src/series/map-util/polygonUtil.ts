@@ -1,13 +1,15 @@
-import type { Position } from 'geojson';
-
 import type { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from './bboxUtil';
-import { lineSegmentDistanceSquared } from './lineStringUtil';
+import {
+    lineSegmentDistanceToPointSquared,
+    lineSegmentDistanceToRectSquared,
+    lineSegmentIntersectsRect,
+} from './lineStringUtil';
 import { type List, insertManySorted } from './linkedList';
 
 export function polygonBbox(
-    polygon: Position[],
+    polygon: _ModuleSupport.Position[],
     into: _ModuleSupport.LonLatBBox | undefined
 ): _ModuleSupport.LonLatBBox | undefined {
     polygon.forEach((coordinates) => {
@@ -18,7 +20,7 @@ export function polygonBbox(
     return into;
 }
 
-export function polygonCentroid(polygon: Position[]): Position | undefined {
+export function polygonCentroid(polygon: _ModuleSupport.Position[]): _ModuleSupport.Position | undefined {
     if (polygon.length === 0) return;
 
     let x = 0;
@@ -40,105 +42,136 @@ export function polygonCentroid(polygon: Position[]): Position | undefined {
     return [x / k, y / k];
 }
 
-function cellValue(distanceToPolygon: number, distanceToCentroid: number, centroidDistance: number) {
-    return distanceToPolygon - 0.5 * Math.max(distanceToCentroid - centroidDistance, 0);
+function cellValue(distanceToPolygon: number, distanceToCentroid: number, centroidDistanceToPolygon: number) {
+    const centroidDrift = Math.max(distanceToCentroid - centroidDistanceToPolygon, 0);
+    return Math.max(distanceToPolygon - 0.25 * centroidDrift, 0);
 }
 
-export function inaccessibilityPole(
-    polygons: Position[][],
+interface LabelPlacement {
+    maxValue: number;
+    x: number;
+    y: number;
+    stride: number;
+}
+
+export function preferredLabelCenter(
+    polygons: _ModuleSupport.Position[][],
+    size: { width: number; height: number },
     precision: number
-): { x: number; y: number; distance: number } | undefined {
+): _ModuleSupport.Position | undefined {
     const bbox = polygonBbox(polygons[0], undefined);
     if (bbox == null) return;
 
-    const centroid = polygonCentroid(polygons[0])!;
-    const centroidDistance = -polygonDistance(polygons, centroid[0], centroid[1]);
-    let [bestX, bestY] = centroid;
-    let bestDistance = centroidDistance;
-    let bestValue = cellValue(bestDistance, 0, centroidDistance);
+    const boundingXCenter = (bbox.lon0 + bbox.lon1) / 2;
+    const boundingYCenter = (bbox.lat0 + bbox.lat1) / 2;
+    const boundingWidth = Math.abs(bbox.lon1 - bbox.lon0);
+    const boundingHeight = Math.abs(bbox.lon1 - bbox.lon0);
 
+    if (boundingWidth < size.width || boundingHeight < size.height) return;
+
+    const centroid = polygonCentroid(polygons[0])!;
+    const [cx, cy] = centroid;
+    const centroidDistanceToPolygon = -polygonRectDistance(polygons, centroid, { width: 0, height: 0 });
+    let bestValue = 0;
+    let bestCenter: _ModuleSupport.Position | undefined;
+
+    const createLabelPlacement = (x: number, y: number, stride: number): LabelPlacement => {
+        const center: _ModuleSupport.Position = [x, y];
+        const distanceToPolygon = -polygonRectDistance(polygons, center, size);
+        const distanceToCentroid = Math.hypot(cx - x, cy - y);
+
+        const maxDistanceToPolygon = distanceToPolygon + stride * Math.SQRT2;
+        const maxXTowardsCentroid = Math.min(Math.max(cx, x - stride / 2), x + stride / 2);
+        const maxYTowardsCentroid = Math.min(Math.max(cy, y - stride / 2), y + stride / 2);
+        const minDistanceToCentroid = Math.hypot(cx - maxXTowardsCentroid, cy - maxYTowardsCentroid);
+
+        const value = cellValue(distanceToPolygon, distanceToCentroid, centroidDistanceToPolygon);
+        const maxValue = cellValue(maxDistanceToPolygon, minDistanceToCentroid, centroidDistanceToPolygon);
+
+        if (distanceToPolygon > 0 && value > bestValue) {
+            bestValue = value;
+            bestCenter = center;
+        }
+
+        return { maxValue, x, y, stride };
+    };
+
+    const initialStride = Math.min(boundingWidth, boundingHeight) / 2;
     let queue: List<LabelPlacement> = {
-        value: new LabelPlacement(
-            polygons,
-            centroid,
-            centroidDistance,
-            (bbox.lon0 + bbox.lon1) / 2,
-            (bbox.lat0 + bbox.lat1) / 2,
-            Math.abs(bbox.lon1 - bbox.lon0),
-            Math.abs(bbox.lat1 - bbox.lat0)
-        ),
+        value: createLabelPlacement(boundingXCenter, boundingYCenter, initialStride),
         next: null,
     };
 
     while (queue != null) {
-        const { distance, value, maxValue, x, y, width, height } = queue.value;
+        const { maxValue, x, y, stride } = queue.value;
         queue = queue.next;
-
-        if (value > bestValue) {
-            bestValue = value;
-            bestDistance = distance;
-            bestX = x;
-            bestY = y;
-        }
 
         if (maxValue - bestValue <= precision) {
             continue;
         }
 
-        let newLabelPlacements: LabelPlacement[];
-        if (width > height) {
-            newLabelPlacements = [
-                new LabelPlacement(polygons, centroid, centroidDistance, x - width / 2, y, width / 2, height),
-                new LabelPlacement(polygons, centroid, centroidDistance, x + width / 2, y, width / 2, height),
-            ];
-        } else {
-            newLabelPlacements = [
-                new LabelPlacement(polygons, centroid, centroidDistance, x, y - height / 2, width, height / 2),
-                new LabelPlacement(polygons, centroid, centroidDistance, x, y + height / 2, width, height / 2),
-            ];
-        }
+        const nextStride = stride / 2;
+        const newLabelPlacements = [
+            createLabelPlacement(x - nextStride, y - nextStride, nextStride),
+            createLabelPlacement(x + nextStride, y - nextStride, nextStride),
+            createLabelPlacement(x - nextStride, y + nextStride, nextStride),
+            createLabelPlacement(x + nextStride, y + nextStride, nextStride),
+        ];
 
         newLabelPlacements.sort(labelPlacementCmp);
 
         queue = insertManySorted(queue, newLabelPlacements, labelPlacementCmp);
     }
 
-    return { x: bestX, y: bestY, distance: bestDistance };
+    return bestCenter;
 }
 
 const labelPlacementCmp = (a: LabelPlacement, b: LabelPlacement) => a.maxValue - b.maxValue;
 
-class LabelPlacement {
-    distance: number;
-    value: number;
-    maxValue: number;
+/** Distance from a point to a polygon. Negative if inside the polygon. */
+export function polygonRectDistance(
+    polygons: _ModuleSupport.Position[][],
+    center: _ModuleSupport.Position,
+    size: { width: number; height: number }
+) {
+    let inside = false;
+    let minDistanceSquared = Infinity;
 
-    constructor(
-        polygons: Position[][],
-        centroid: Position,
-        centroidDistance: number,
-        public x: number,
-        public y: number,
-        public width: number,
-        public height: number
-    ) {
-        const [cx, cy] = centroid;
-        const distanceToPolygon = -polygonDistance(polygons, x, y);
-        const distanceToCentroid = Math.hypot(cx - x, cy - y);
+    const [cx, cy] = center;
+    const halfWidth = size.width / 2;
+    const halfHeight = size.height / 2;
 
-        const maxDistanceToPolygon = distanceToPolygon + Math.hypot(width / 2, height / 2);
-        const maxXTowardsCentroid = Math.min(Math.max(cx, x - width / 2), x + width / 2);
-        const maxYTowardsCentroid = Math.min(Math.max(cy, y - height / 2), y + height / 2);
-        const minDistanceToCentroid = Math.hypot(cx - maxXTowardsCentroid, cy - maxYTowardsCentroid);
+    for (const polygon of polygons) {
+        let p0 = polygon[polygon.length - 1];
+        let [x0, y0] = p0;
 
-        this.distance = distanceToPolygon;
-        this.value = cellValue(distanceToPolygon, distanceToCentroid, centroidDistance);
-        this.maxValue = cellValue(maxDistanceToPolygon, minDistanceToCentroid, centroidDistance);
+        for (const p1 of polygon) {
+            const [x1, y1] = p1;
+
+            const rx0 = cx - halfWidth;
+            const rx1 = cx + halfWidth;
+            const ry0 = cy - halfHeight;
+            const ry1 = cy + halfHeight;
+
+            if (lineSegmentIntersectsRect(p0, p1, rx0, ry0, rx1, ry1)) return 0;
+
+            const distanceSquared = lineSegmentDistanceToRectSquared(p0, p1, rx0, ry0, rx1, ry1);
+
+            if (y1 > cy !== y0 > cy && cx < ((x0 - x1) * (cy - y1)) / (y0 - y1) + x1) {
+                inside = !inside;
+            }
+
+            minDistanceSquared = Math.min(minDistanceSquared, distanceSquared);
+            p0 = p1;
+            x0 = x1;
+            y0 = y1;
+        }
     }
+
+    return (inside ? -1 : 1) * Math.sqrt(minDistanceSquared);
 }
 
-/** Distance from a point to a polygon. Negative if inside the polygon. */
-export function polygonDistance(polygons: Position[][], x: number, y: number) {
+export function polygonDistance(polygons: _ModuleSupport.Position[][], x: number, y: number) {
     let inside = false;
     let minDistanceSquared = Infinity;
 
@@ -153,7 +186,7 @@ export function polygonDistance(polygons: Position[][], x: number, y: number) {
                 inside = !inside;
             }
 
-            minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceSquared(p0, p1, x, y));
+            minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceToPointSquared(p0, p1, x, y));
             p0 = p1;
             x0 = x1;
             y0 = y1;

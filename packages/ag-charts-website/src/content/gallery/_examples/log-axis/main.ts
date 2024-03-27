@@ -48,7 +48,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function useNumberAxis() {
+function setNumberAxis() {
     options.subtitle = {
         text: 'linear scale',
     };
@@ -66,7 +66,7 @@ function useNumberAxis() {
     AgCharts.update(chart, options);
 }
 
-function useLogAxis() {
+function setLogAxis() {
     options.subtitle = {
         text: 'log scale',
     };

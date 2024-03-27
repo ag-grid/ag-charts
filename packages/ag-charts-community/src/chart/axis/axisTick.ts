@@ -1,6 +1,8 @@
+import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { TimeScale } from '../../scale/timeScale';
 import { Default } from '../../util/default';
+import { BaseProperties } from '../../util/properties';
 import { TimeInterval } from '../../util/time/interval';
 import { isFiniteNumber } from '../../util/type-guards';
 import {
@@ -13,7 +15,7 @@ import {
     predicateWithMessage,
 } from '../../util/validation';
 
-export type TickInterval<S> = S extends TimeScale ? number | TimeInterval : number;
+export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
 
 export type TickCount<S> = S extends TimeScale ? number | TimeInterval : number;
 
@@ -22,7 +24,7 @@ const TICK_INTERVAL = predicateWithMessage(
     `a non-zero positive Number value or, for a time axis, a Time Interval such as 'agCharts.time.month'`
 );
 
-export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> {
+export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
 

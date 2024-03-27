@@ -32,6 +32,7 @@
       "options": {
         "outputPath": "packages/ag-charts-community/dist/types",
         "main": "packages/ag-charts-community/src/main.ts",
+        "additionalEntryPoints": ["packages/ag-charts-community/src/options/next.ts"],
         "tsConfig": "packages/ag-charts-community/tsconfig.types.json",
         "compiler": "tsc"
       },
@@ -188,24 +189,31 @@
       ]
     },
     "benchmark": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/reports/packages/ag-charts-community/benchmarks"],
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": ["jsOutputs"],
+      "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
-        "jestConfig": "packages/ag-charts-community/jest.config.ts",
-        "testPathPattern": [".*/benchmarks/.*"],
-        "passWithNoTests": false
+        "commands": [
+          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*'"
+        ]
       },
       "configurations": {
-        "watch": {
-          "watch": true
+        "options": {
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' --watch"
+          ]
         },
         "update": {
-          "updateSnapshot": true
+          "options": {
+            "commands": [
+              "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' -u"
+            ]
+          }
         }
       },
       "dependsOn": [
         "build",
-        "ag-charts-community-examples:build",
         "ag-charts-website-src_content_docs_benchmarks__examples_integrated-large-scale_main.ts:generate-example",
         "ag-charts-website-src_content_docs_benchmarks__examples_large-dataset_main.ts:generate-example",
         "ag-charts-website-src_content_docs_benchmarks__examples_large-scale-multi-series_main.ts:generate-example",
@@ -245,5 +253,5 @@
     }
   },
   "implicitDependencies": ["ag-charts-test"],
-  "tags": []
+  "tags": ["no-batching"]
 }

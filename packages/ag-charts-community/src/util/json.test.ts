@@ -406,7 +406,7 @@ describe('json module', () => {
     });
 
     describe('#jsonApply', () => {
-        let json: any = {
+        const json: any = {
             str: 'test-string',
             num: 123,
             date: FIXED_DATE,
@@ -428,23 +428,9 @@ describe('json module', () => {
             expect(target.recurse?.array).toEqual(json.recurse.array);
         });
 
-        it('should be able to instantiate a new object graph', () => {
-            const target = new TestApply();
-            jsonApply(target, json, { constructors: { recurse: TestApply } });
-            expect(target.str).toEqual(json.str);
-            expect(target.num).toEqual(json.num);
-            expect(target.date).toEqual(json.date);
-            expect(target.array).toEqual(json.array);
-            expect(target.recurse).toBeInstanceOf(TestApply);
-            expect(target.recurse?.str).toEqual(json.recurse.str);
-            expect(target.recurse?.num).toEqual(json.recurse.num);
-            expect(target.recurse?.date).toEqual(json.recurse.date);
-            expect(target.recurse?.array).toEqual(json.recurse.array);
-        });
-
         it('should skip specified properties', () => {
             const target = new TestApply();
-            jsonApply(target, json, { skip: ['recurse.str', 'str'], constructors: { recurse: TestApply } });
+            jsonApply(target, json, { skip: ['recurse.str', 'str'] });
             expect(target.str).toEqual(undefined);
             expect(target.recurse?.str).toEqual(undefined);
         });
@@ -467,92 +453,6 @@ describe('json module', () => {
             expect(console.warn).toBeCalledWith(
                 "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]"
             );
-        });
-
-        it('should allow application of property type overrides', () => {
-            const target = new TestApply({ recurse: new TestApply({ str: 'string' }) });
-            json = { recurse: { str: () => 'test' } };
-            const opts = {
-                path: 'series[0]',
-                allowedTypes: { 'series[].recurse.str': ['function' as const] },
-                constructors: { recurse: TestApply },
-            };
-
-            jsonApply(target, json as any, opts);
-            expect(target.recurse?.str).toEqual(json.recurse.str);
-        });
-
-        it('should instantiate complex types by path', () => {
-            const testString = 'hello!';
-            const target = new TestApply({});
-            json = { recurse: { str: () => 'test', recurse: { recurse: { str: testString } } } };
-            const opts = {
-                path: 'series[0]',
-                allowedTypes: { 'series[].recurse.str': ['function' as const] },
-                constructors: {
-                    'series[].recurse': TestApply,
-                    'series[].recurse.recurse': TestApply,
-                    'series[].recurse.recurse.recurse': TestApply,
-                },
-            };
-
-            jsonApply(target, json as any, opts);
-            expect(target.recurse?.recurse?.recurse?.str).toEqual(testString);
-            expect(target.recurse).toBeInstanceOf(TestApply);
-            expect(target.recurse?.recurse).toBeInstanceOf(TestApply);
-            expect(target.recurse?.recurse?.recurse).toBeInstanceOf(TestApply);
-        });
-
-        it('should populate _declarationOrder for array types', () => {
-            const testString1 = 'hello!';
-            const testString2 = 'world!';
-            const target = new TestApply({});
-            json = {
-                recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }],
-            };
-
-            const opts = {
-                path: 'series[0]',
-                allowedTypes: { 'series[].recurse.str': ['function' as const] },
-                constructors: {
-                    'series[].recurseArray[]': TestApply,
-                    'series[].recurseArray[].recurse': TestApply,
-                },
-            };
-
-            jsonApply(target, json as any, opts);
-            expect(target.recurseArray?.[0]).toBeInstanceOf(TestApply);
-            expect(target.recurseArray?.[0]._declarationOrder).toEqual(0);
-            expect(target.recurseArray?.[1]).toBeInstanceOf(TestApply);
-            expect(target.recurseArray?.[1]._declarationOrder).toEqual(1);
-            expect(target.recurseArray?.[0].recurse?._declarationOrder).toBeUndefined();
-            expect(target.recurseArray?.[1].recurse?._declarationOrder).toBeUndefined();
-        });
-
-        it('should instantiate complex types by path with nested arrays', () => {
-            const testString1 = 'hello!';
-            const testString2 = 'world!';
-            const target = new TestApply({});
-            json = {
-                recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }],
-            };
-
-            const opts = {
-                path: 'series[0]',
-                allowedTypes: { 'series[].recurse.str': ['function' as const] },
-                constructors: {
-                    'series[].recurseArray[]': TestApply,
-                    'series[].recurseArray[].recurse': TestApply,
-                },
-            };
-
-            jsonApply(target, json as any, opts);
-            expect(target.recurseArray?.[0].recurse?.str).toEqual(testString1);
-            expect(target.recurseArray?.[1].recurse?.str).toEqual(testString2);
-            expect(target.recurseArray?.[0]).toBeInstanceOf(TestApply);
-            expect(target.recurseArray?.[0].recurse).toBeInstanceOf(TestApply);
-            expect(target.recurseArray?.[1]).toBeInstanceOf(TestApply);
-            expect(target.recurseArray?.[1].recurse).toBeInstanceOf(TestApply);
         });
     });
 });

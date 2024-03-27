@@ -33,6 +33,7 @@ const menuItemBase = {
     cssClass: z.string().optional(),
     frameworks: z.array(z.enum(FRAMEWORKS as any)).optional(),
     isEnterprise: z.boolean().optional(),
+    feature: z.boolean().optional(),
 };
 
 const level3MenuItem = z.object({
@@ -60,6 +61,12 @@ const menu = defineCollection({
             items: z.array(level1MenuItem),
         }),
         main: z.object({
+            items: z.array(level1MenuItem),
+        }),
+        maps: z.object({
+            items: z.array(level1MenuItem),
+        }),
+        financialCharts: z.object({
             items: z.array(level1MenuItem),
         }),
         charts: z.object({

@@ -1,6 +1,5 @@
-import type { Position } from 'geojson';
-
 import type { Scale } from '../../../scale/scale';
+import type { Position } from './geojson';
 
 type XY = [x: number, y: number];
 
@@ -9,9 +8,17 @@ const lonX = (lon: number) => lon * radsInDeg;
 const latY = (lat: number) => -Math.log(Math.tan(Math.PI * 0.25 + lat * radsInDeg * 0.5));
 
 export class MercatorScale implements Scale<Position, XY> {
-    private scale: number;
-    private originX: number;
-    private originY: number;
+    scale: number;
+    originX: number;
+    originY: number;
+
+    static fixedScale(scale = 1) {
+        const out = Object.create(MercatorScale.prototype);
+        out.scale = scale;
+        out.originX = 0;
+        out.originY = 0;
+        return out;
+    }
 
     constructor(
         public readonly domain: Position[],

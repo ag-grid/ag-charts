@@ -29,6 +29,7 @@ export interface AreaPathPoint {
 
 export type AreaPathDatum = {
     readonly points: AreaPathPoint[];
+    readonly phantomPoints?: AreaPathPoint[];
     readonly itemId: string;
 };
 
@@ -51,7 +52,7 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
         readonly fontFamily: string;
         readonly textAlign: CanvasTextAlign;
         readonly textBaseline: CanvasTextBaseline;
-        readonly fill: string;
+        readonly fill?: string;
     };
 }
 
@@ -63,8 +64,8 @@ export interface AreaSeriesNodeDataContext
 }
 
 function splitFillPoints(context: AreaSeriesNodeDataContext) {
-    const { points } = context.fillData;
-    return { top: points.slice(0, points.length / 2), bottom: points.slice(points.length / 2).reverse() };
+    const { points, phantomPoints } = context.fillData;
+    return { top: points, bottom: phantomPoints! };
 }
 
 function prepPoints(key: 'top' | 'bottom', ctx: AreaSeriesNodeDataContext, points: ReturnType<typeof splitFillPoints>) {
@@ -156,5 +157,5 @@ export function prepareAreaPathAnimation(
     const fadeMode = stackVisible ? 'none' : 'fade';
     const fill = prepareLinePathAnimationFns(newData, oldData, pairData, fadeMode, renderPartialPath);
     const marker = prepareMarkerAnimation(markerPairMap, status);
-    return { fill, marker };
+    return { status: fill.status, fill, marker };
 }

@@ -45,13 +45,18 @@ jobs:
                   cache: 'yarn'
             - name: yarn install
               id: yarn_install
-              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
+              run: |
+                  (yarn check --integrity && yarn postinstall) || yarn install --ci
+                  if [[ ! -f node_modules/canvas/build/Release/canvas.node ]] ; then
+                    echo "canvas.node binary not found, cannot proceed."
+                    exit 1
+                  fi
 
             - name: nx build
               id: build
               run: |
                   # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
-                  yarn nx run-many -t build --parallel=3  --exclude "all,ag-charts-website,tag:supports:batch"
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
                   # Batched builds.
                   yarn nx run-many -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 

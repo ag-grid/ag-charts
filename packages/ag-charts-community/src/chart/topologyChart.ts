@@ -9,7 +9,13 @@ import { MercatorScale } from './series/topology/mercatorScale';
 import type { TopologySeries } from './series/topologySeries';
 
 function isTopologySeries(series: Series<any, any>): series is TopologySeries {
-    return series.type === 'map' || series.type === 'map-marker';
+    return (
+        series.type === 'map-shape' ||
+        series.type === 'map-line' ||
+        series.type === 'map-marker' ||
+        series.type === 'map-shape-background' ||
+        series.type === 'map-line-background'
+    );
 }
 
 export class TopologyChart extends Chart {
@@ -39,6 +45,8 @@ export class TopologyChart extends Chart {
         const {
             seriesArea: { padding },
             seriesRoot,
+            annotationRoot,
+            highlightRoot,
         } = this;
 
         const fullSeriesRect = shrinkRect.clone();
@@ -54,6 +62,7 @@ export class TopologyChart extends Chart {
         const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
 
         const combinedBbox: LonLatBBox | undefined = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
+            if (!series.visible) return combined;
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
             if (combined == null) return bbox;
@@ -84,8 +93,10 @@ export class TopologyChart extends Chart {
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
         if (this.firstSeriesTranslation) {
-            seriesRoot.translationX = Math.floor(shrinkRect.x);
-            seriesRoot.translationY = Math.floor(shrinkRect.y);
+            for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+                group.translationX = Math.floor(shrinkRect.x);
+                group.translationY = Math.floor(shrinkRect.y);
+            }
             seriesRoot.setClipRectInGroupCoordinateSpace(
                 new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
             );

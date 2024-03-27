@@ -24,9 +24,8 @@ function random(n: any) {
 
 function randomColor() {
     const color = `rgb(${random(255)}, ${random(255)}, ${random(255)})`;
-    AgCharts.updateDelta(chart, {
-        background: {
-            fill: color,
-        },
-    });
+    options.background = {
+        fill: color,
+    };
+    AgCharts.update(chart, options);
 }

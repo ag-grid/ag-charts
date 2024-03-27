@@ -9,7 +9,7 @@ export type Module<M extends ModuleInstance = ModuleInstance> =
     | AxisModule
     | AxisOptionModule
     | LegendModule
-    | SeriesModule<any>
+    | SeriesModule<any, any>
     | SeriesOptionModule;
 
 export abstract class BaseModuleInstance {
@@ -22,30 +22,41 @@ export abstract class BaseModuleInstance {
     }
 }
 
-export const REGISTERED_MODULES: Module[] = [];
-export function registerModule(module: Module) {
-    const otherModule = REGISTERED_MODULES.find((other) => {
-        return (
-            module.type === other.type &&
-            module.optionsKey === other.optionsKey &&
-            module.identifier === other.identifier
-        );
-    });
+class ModuleRegistry {
+    readonly modules: Module[] = [];
 
-    if (otherModule) {
-        if (module.packageType === 'enterprise' && otherModule.packageType === 'community') {
-            // Replace the community module with an enterprise version
-            const index = REGISTERED_MODULES.indexOf(otherModule);
-            REGISTERED_MODULES.splice(index, 1, module);
-        } else {
-            // Skip if the module is already registered
+    register(...modules: Module[]) {
+        for (const module of modules) {
+            const otherModule = this.modules.find(
+                (other) =>
+                    module.type === other.type &&
+                    module.optionsKey === other.optionsKey &&
+                    module.identifier === other.identifier
+            );
+
+            if (otherModule) {
+                if (module.packageType === 'enterprise' && otherModule.packageType === 'community') {
+                    // Replace the community module with an enterprise version
+                    const index = this.modules.indexOf(otherModule);
+                    this.modules.splice(index, 1, module);
+                }
+            } else {
+                this.modules.push(module);
+            }
         }
-    } else {
-        // Simply register the module
-        REGISTERED_MODULES.push(module);
+    }
+
+    hasEnterpriseModules() {
+        return this.modules.some((m) => m.packageType === 'enterprise');
+    }
+
+    *byType<T extends Module>(...types: Module['type'][]): Generator<T> {
+        for (const module of this.modules) {
+            if (types.includes(module.type)) {
+                yield module as T;
+            }
+        }
     }
 }
 
-export function hasRegisteredEnterpriseModules() {
-    return REGISTERED_MODULES.some((m) => m.packageType === 'enterprise');
-}
+export const moduleRegistry = new ModuleRegistry();

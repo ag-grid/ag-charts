@@ -5,6 +5,7 @@ import type {
     FontWeight,
     TextWrap,
 } from '../../options/agChartOptions';
+import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -18,7 +19,7 @@ import {
 } from '../../util/validation';
 import { Caption } from '../caption';
 
-export class AxisTitle implements AgAxisCaptionOptions {
+export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     @Validate(BOOLEAN)
     enabled: boolean = false;
 

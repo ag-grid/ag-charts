@@ -69,7 +69,6 @@ export interface ChartAxisLabel extends FontOptions {
     enabled: boolean;
     format?: string;
     formatter?: (params: AgAxisLabelFormatterParams) => string;
-    getFont(): string;
     getSideFlag(): ChartAxisLabelFlipFlag;
     maxHeight?: number;
     maxWidth?: number;
@@ -78,4 +77,5 @@ export interface ChartAxisLabel extends FontOptions {
     padding: number;
     parallel: boolean;
     rotation?: number;
+    set(props: object): void;
 }

@@ -125,9 +125,13 @@ function normalisePropertyFnBuilder({
     const normalise = (val: number, start: number, span: number) => {
         const result = normaliseTo[0] + ((val - start) / span) * normaliseSpan;
 
-        if (span === 0) return zeroDomain;
-        if (result >= normaliseTo[1]) return normaliseTo[1];
-        if (result < normaliseTo[0]) return normaliseTo[0];
+        if (span === 0) {
+            return zeroDomain;
+        } else if (result >= normaliseTo[1]) {
+            return normaliseTo[1];
+        } else if (result < normaliseTo[0]) {
+            return normaliseTo[0];
+        }
         return result;
     };
 
@@ -167,10 +171,7 @@ export function normalisePropertyTo(
     };
 }
 
-export function animationValidation(
-    scope: ScopeProvider,
-    valueKeyIds: string[] = []
-): ProcessorOutputPropertyDefinition {
+export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
     return {
         type: 'processor',
         scopes: [scope.id],
@@ -183,8 +184,8 @@ export function animationValidation(
 
             const valueKeys: [number, DatumPropertyDefinition<unknown>][] = [];
             for (let k = 0; k < values.length; k++) {
-                if (!values[k].scopes?.some((s) => s === scope.id)) continue;
-                if (!valueKeyIds.some((v) => values[k].id === v)) continue;
+                if (!values[k].scopes?.includes(scope.id)) continue;
+                if (!valueKeyIds?.includes(values[k].id as string)) continue;
 
                 valueKeys.push([k, values[k]]);
             }
@@ -255,9 +256,13 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
                         continue;
                     }
 
-                    if (mode === 'normal') acc += sumValue;
+                    if (mode === 'normal') {
+                        acc += sumValue;
+                    }
                     values[valueIdx] = acc;
-                    if (mode === 'trailing') acc += sumValue;
+                    if (mode === 'trailing') {
+                        acc += sumValue;
+                    }
                 }
 
                 firstRow = false;
@@ -291,96 +296,74 @@ export function accumulateGroup(
 
 export function diff(
     previousData: ProcessedData<any>,
-    updateMovedDatums: boolean = true
+    updateMovedData: boolean = true
 ): ProcessorOutputPropertyDefinition<'diff'> {
     return {
         type: 'processor',
         property: 'diff',
         calculate: (processedData) => {
-            const result = {
-                changed: false,
-                moved: [] as any[],
-                added: [] as any[],
-                updated: [] as any[],
-                removed: [] as any[],
-                addedIndices: [] as number[],
-                updatedIndices: [] as number[],
-                removedIndices: [] as number[],
-            };
-
             const moved = new Map<string, any>();
             const added = new Map<string, any>();
             const updated = new Map<string, any>();
             const removed = new Map<string, any>();
-            const addedIndices = new Map<string, number>();
-            const updatedIndices = new Map<string, number>();
-            const removedIndices = new Map<string, number>();
 
-            for (let i = 0; i < Math.max(previousData.data.length, processedData.data.length); i++) {
+            const length = Math.max(previousData.data.length, processedData.data.length);
+
+            for (let i = 0; i < length; i++) {
                 const prev = previousData.data[i];
                 const datum = processedData.data[i];
 
                 const prevId = prev ? createDatumId(prev.keys) : '';
                 const datumId = datum ? createDatumId(datum.keys) : '';
 
-                if (prevId === datumId) {
+                if (datum && prev && prevId === datumId) {
                     if (!arraysEqual(prev.values, datum.values)) {
                         updated.set(datumId, datum);
-                        updatedIndices.set(datumId, i);
                     }
                     continue;
                 }
 
                 if (removed.has(datumId)) {
-                    if (updateMovedDatums || !arraysEqual(removed.get(datumId).values, datum.values)) {
+                    if (updateMovedData || !arraysEqual(removed.get(datumId).values, datum.values)) {
                         updated.set(datumId, datum);
-                        updatedIndices.set(datumId, i);
-
                         moved.set(datumId, datum);
                     }
                     removed.delete(datumId);
-                    removedIndices.delete(datumId);
                 } else if (datum) {
                     added.set(datumId, datum);
-                    addedIndices.set(datumId, i);
                 }
 
                 if (added.has(prevId)) {
-                    if (updateMovedDatums || !arraysEqual(added.get(prevId).values, prev.values)) {
+                    if (updateMovedData || !arraysEqual(added.get(prevId).values, prev.values)) {
                         updated.set(prevId, prev);
-                        updatedIndices.set(prevId, i);
-
                         moved.set(prevId, prev);
                     }
                     added.delete(prevId);
-                    addedIndices.delete(prevId);
                 } else if (prev) {
                     updated.delete(prevId);
-                    updatedIndices.delete(prevId);
                     removed.set(prevId, prev);
-                    removedIndices.set(prevId, i);
                 }
             }
 
-            result.added = Array.from(added.keys());
-            result.updated = Array.from(updated.keys());
-            result.removed = Array.from(removed.keys());
-            result.moved = Array.from(moved.keys());
-            result.addedIndices = Array.from(addedIndices.values());
-            result.updatedIndices = Array.from(updatedIndices.values());
-            result.removedIndices = Array.from(removedIndices.values());
-
-            result.changed = result.added.length > 0 || result.updated.length > 0 || result.removed.length > 0;
-
-            return result;
+            const changed = added.size > 0 || updated.size > 0 || removed.size > 0;
+            return { changed, added, updated, removed, moved };
         },
     };
 }
 
 type KeyType = string | number | object;
-export function createDatumId(keys: KeyType | KeyType[]) {
+export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number)[]) {
+    let result;
     if (isArray(keys)) {
-        return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
+        result = keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
+    } else {
+        result = transformIntegratedCategoryValue(keys);
     }
-    return transformIntegratedCategoryValue(keys);
+
+    const primitiveType = typeof result === 'string' || typeof result === 'number' || result instanceof Date;
+    if (primitiveType && extraKeys.length > 0) {
+        result += `___${extraKeys.join('___')}`;
+    }
+
+    return result;
 }

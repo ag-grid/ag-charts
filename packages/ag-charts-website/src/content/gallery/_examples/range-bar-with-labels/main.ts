@@ -43,6 +43,7 @@ const options: AgCartesianChartOptions = {
             yLowName: 'Low',
             yHighKey: 'high',
             yHighName: 'High',
+            cornerRadius: 5,
             formatter: ({ datum, yHighKey }) => {
                 return {
                     fillOpacity: getOpacity(datum[yHighKey], yHighKey, 0.4, 1),
@@ -77,8 +78,10 @@ const options: AgCartesianChartOptions = {
                 ],
             },
             crosshair: {
+                snap: true,
                 label: {
-                    format: `s`,
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Number(Math.round(value)).toLocaleString()}</div>`,
                 },
             },
         },

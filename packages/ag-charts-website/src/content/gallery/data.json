@@ -198,11 +198,6 @@
                         "name": "multiple-bubble-series"
                     },
                     {
-                        "title": "Bubble With Large Data",
-                        "description": "",
-                        "name": "bubble-with-large-data"
-                    },
-                    {
                         "title": "Bubble With Categories",
                         "description": "",
                         "name": "bubble-with-categories"
@@ -210,12 +205,14 @@
                     {
                         "title": "Bubble With Custom Markers",
                         "description": "",
-                        "name": "bubble-with-custom-markers"
+                        "name": "bubble-with-custom-markers",
+                        "hidden": true
                     },
                     {
                         "title": "Bubble With Labels",
                         "description": "",
-                        "name": "bubble-with-labels"
+                        "name": "bubble-with-labels",
+                        "hidden": true
                     }
                 ]
             }
@@ -266,6 +263,47 @@
                         "title": "Multiple Donuts",
                         "description": "",
                         "name": "multiple-donuts"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Map",
+                "seriesName": "maps",
+                "seriesLink": "./maps/",
+                "icon": "chartsMap",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Map With Multiple Shape Series",
+                        "description": "",
+                        "name": "multiple-map-shape-series"
+                    },
+                    {
+                        "title": "Multiple Map Series",
+                        "description": "",
+                        "name": "multiple-map-series"
+                    },
+                    {
+                        "title": "Map with Heatmap",
+                        "description": "",
+                        "name": "map-heatmap-series"
+                    },
+                    {
+                        "title": "Map With Shapes and Lines",
+                        "description": "",
+                        "name": "map-shapes-lines"
+                    },
+                    {
+                        "title": "Map with Lines and Markers",
+                        "description": "",
+                        "name": "map-lines-markers"
+                    },
+                    {
+                        "title": "Map Kitchen Sink",
+                        "description": "Almost every mapping feature in one map",
+                        "name": "map-kitchen-sink"
                     }
                 ]
             }
@@ -406,26 +444,6 @@
                         "title": "Horizontal Box Plot",
                         "description": "",
                         "name": "horizontal-box-plot"
-                    }
-                ]
-            }
-        ],
-        [
-            {
-                "title": "Bullet Chart",
-                "seriesName": "bullet-chart",
-                "icon": "chartsBullet",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Simple Bullet",
-                        "description": "",
-                        "name": "simple-bullet"
-                    },
-                    {
-                        "title": "Horizontal Bullet",
-                        "description": "",
-                        "name": "horizontal-bullet"
                     }
                 ]
             }
@@ -620,6 +638,26 @@
                         "title": "Calendar Heatmap",
                         "description": "",
                         "name": "calendar-heatmap"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Bullet Chart",
+                "seriesName": "bullet-chart",
+                "icon": "chartsBullet",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Bullet",
+                        "description": "",
+                        "name": "simple-bullet"
+                    },
+                    {
+                        "title": "Horizontal Bullet",
+                        "description": "",
+                        "name": "horizontal-bullet"
                     }
                 ]
             }

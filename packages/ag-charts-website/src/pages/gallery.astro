@@ -15,7 +15,7 @@ const { series } = galleryData;
 const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
 ---
 
-<Layout title="AG Charts Gallery">
+<Layout title="AG Charts Gallery" showSearchBar={true}>
     <div class="gallery-outer layout-grid text-sm">
         <div class="menu">
             <ul class="list-style-none">
@@ -51,15 +51,17 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
                             <div class="gallery-list">
                                 {series.map(({ title, seriesName, examples }) => (
                                     <>
-                                        {examples.map(({ title, name }: GalleryExample, i) => (
-                                            <GalleryExampleLink
-                                                client:visible
-                                                label={title}
-                                                exampleName={name}
-                                                id={i === 0 ? seriesName : null}
-                                                enableDprScaling={enableDprScaling}
-                                            />
-                                        ))}
+                                        {examples
+                                            .filter(({ hidden }) => !hidden)
+                                            .map(({ title, name }: GalleryExample, i) => (
+                                                <GalleryExampleLink
+                                                    client:visible
+                                                    label={title}
+                                                    exampleName={name}
+                                                    id={i === 0 ? seriesName : null}
+                                                    enableDprScaling={enableDprScaling}
+                                                />
+                                            ))}
                                     </>
                                 ))}
                             </div>
@@ -135,7 +137,7 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
             position: fixed;
             height: var(--layout-site-header-height);
             width: 100%;
-            top: 90px;
+            top: 120px;
             left: 0;
             padding-top: 0;
             padding-left: var(--layout-gap);
@@ -229,7 +231,7 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
 
     .content {
         flex: 1;
-        padding-top: 100px;
+        padding-top: 140px;
         padding-bottom: $spacing-size-24;
 
         > div {
@@ -242,9 +244,6 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding-top: $spacing-size-4;
             padding-bottom: $spacing-size-56;
-        }
-
-        @media screen and (min-width: $breakpoint-gallery-large) {
         }
     }
 

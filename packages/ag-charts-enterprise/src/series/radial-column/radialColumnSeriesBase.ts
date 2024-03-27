@@ -18,6 +18,7 @@ const {
     seriesLabelFadeOutAnimation,
     valueProperty,
     animationValidation,
+    isFiniteNumber,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -196,7 +197,7 @@ export abstract class RadialColumnSeriesBase<
     async maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = await this.createNodeData();
+        const { nodeData = [] } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -210,7 +211,7 @@ export abstract class RadialColumnSeriesBase<
         const { processedData, dataModel, groupScale } = this;
 
         if (!processedData || !dataModel || !this.properties.isValid()) {
-            return [];
+            return;
         }
 
         const angleAxis = this.axes[ChartAxisDirection.X];
@@ -219,7 +220,7 @@ export abstract class RadialColumnSeriesBase<
         const radiusScale = radiusAxis?.scale;
 
         if (!angleScale || !radiusScale) {
-            return [];
+            return;
         }
 
         const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`).index;
@@ -258,7 +259,7 @@ export abstract class RadialColumnSeriesBase<
             const labelText = this.getLabelText(
                 label,
                 { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
             );
 
             if (labelText) {
@@ -321,7 +322,7 @@ export abstract class RadialColumnSeriesBase<
             };
         });
 
-        return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
+        return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
 
     protected getColumnWidth(_startAngle: number, _endAngle: number) {
@@ -439,7 +440,7 @@ export abstract class RadialColumnSeriesBase<
 
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateClearingUpdateEmpty() {
@@ -449,7 +450,7 @@ export abstract class RadialColumnSeriesBase<
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
 
-        seriesLabelFadeOutAnimation(this, 'labels', animationManager, [this.labelSelection]);
+        seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): string {

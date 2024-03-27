@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-enterprise",
-  "version": "9.1.1-beta.20240306",
+  "version": "9.2.0-beta.20240324",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -49,14 +49,13 @@
   "homepage": "https://charts.ag-grid.com/",
   "devDependencies": {
     "@babel/types": "7.12.7",
-    "@types/geojson": "^7946.0.14",
     "@types/jest": "^27.4.1",
     "@types/jest-image-snapshot": "^5.1.0",
     "@types/pixelmatch": "^5.2.4",
     "@types/pngjs": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-community": "9.1.1-beta.20240306",
+    "ag-charts-community": "9.2.0-beta.20240324",
     "canvas": "^2.10.2",
     "eslint": "^8.56.0",
     "glob": "8.0.3",
@@ -76,7 +75,7 @@
     "@jest/globals": "29.6.1"
   },
   "dependencies": {
-    "ag-charts-community": "9.1.1-beta.20240306"
+    "ag-charts-community": "9.2.0-beta.20240324"
   },
   "publishConfig": {
     "access": "public"

@@ -6,9 +6,9 @@ import { mockCanvasText } from './mock-canvas-text';
 export class MockContext {
     document: Document;
     realCreateElement: Document['createElement'];
-    ctx: { nodeCanvas: Canvas };
+    ctx: { nodeCanvas: Canvas; getActiveCanvasInstances: () => Canvas[] };
     canvasStack: Canvas[];
-    canvases: Canvas[];
+    canvases: WeakRef<Canvas>[] = [];
 
     constructor(
         width = 1,
@@ -21,9 +21,22 @@ export class MockContext {
         const nodeCanvas = createCanvas(width, height);
 
         this.realCreateElement = realCreateElement;
-        this.ctx = { nodeCanvas };
+        this.ctx = {
+            nodeCanvas,
+            getActiveCanvasInstances: this.getActiveCanvasInstances.bind(this),
+        };
         this.canvasStack = [nodeCanvas];
-        this.canvases = [nodeCanvas];
+        this.registerCanvasInstance(nodeCanvas);
+    }
+
+    registerCanvasInstance(canvas: Canvas) {
+        this.canvases.push(new WeakRef(canvas));
+    }
+
+    getActiveCanvasInstances() {
+        const instances = this.canvases.map((ref) => ref.deref());
+        this.canvases = this.canvases.filter((ref, index) => instances[index] != null);
+        return instances.filter((value): value is NonNullable<typeof value> => value != null);
     }
 
     destroy() {
@@ -72,7 +85,7 @@ export function setup(opts: {
             if (!nextCanvas) {
                 nextCanvas = createCanvas(width, height);
             }
-            mockCtx.canvases.push(nextCanvas);
+            mockCtx.registerCanvasInstance(nextCanvas);
 
             mockedElement.getContext = (type: any) => {
                 const context2d = nextCanvas.getContext(type, { alpha: true });

@@ -1,5 +1,5 @@
 import { axisRegistry } from '../chart/factory/axisRegistry';
-import { chartTypes } from '../chart/factory/chartTypes';
+import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { type SeriesOptions, seriesRegistry } from '../chart/factory/seriesRegistry';
@@ -15,7 +15,7 @@ import {
 } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgCartesianChartOptions, AgChartOptions } from '../options/chart/chartBuilderOptions';
+import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
 import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesianOptions';
 import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
@@ -67,10 +67,12 @@ enum GroupingType {
     GROUP = 'group',
 }
 
+const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
+
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
-    seriesDefaults: T;
+    defaultAxes: T;
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
 
@@ -83,13 +85,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.userOptions = options;
         this.activeTheme = getChartTheme(options.theme);
-        this.seriesDefaults = this.getOptionsDefaults(options);
+        this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
         const { axes: axesThemes = {}, series: _, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
 
         this.processedOptions = deepClone(
-            mergeDefaults(this.userOptions, themeDefaults, this.seriesDefaults),
+            mergeDefaults(this.userOptions, themeDefaults, this.defaultAxes),
             cloneOptions
         ) as T;
 
@@ -126,15 +128,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return deepClone(this.activeTheme?.config[seriesType] ?? {});
     }
 
-    protected getOptionsDefaults(options: T) {
+    protected getDefaultAxes(options: T) {
         const optionsType = this.optionsType(options);
-        const seriesDefaults = seriesRegistry.cloneDefaults(optionsType) as T;
+        const axesDefaults = seriesRegistry.cloneDefaultAxes(optionsType) as T;
 
         if (seriesRegistry.isDefaultAxisSwapNeeded(options)) {
-            this.swapAxesPosition(seriesDefaults);
+            this.swapAxesPosition(axesDefaults);
         }
 
-        return seriesDefaults;
+        return axesDefaults;
     }
 
     protected optionsType(options: Partial<T>) {
@@ -174,7 +176,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!('axes' in options)) return;
         options.axes = options.axes!.map((axis: any) => {
             const { crossLines: crossLinesTheme, ...axisTheme } = mergeDefaults(
-                (this.seriesDefaults as AgCartesianChartOptions).axes?.find(({ type }) => type === axis.type),
                 axesThemes[axis.type]?.[axis.position],
                 axesThemes[axis.type]
             );
@@ -199,21 +200,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected processSeriesOptions(options: T) {
         const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
+        const userPalette = Boolean(isObject(options.theme) && options.theme.palette);
         const paletteOptions = {
             colourIndex: 0,
-            userPalette: Boolean(isObject(options.theme) && options.theme.palette),
+            userPalette,
         };
 
         const processedSeries = options.series!.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
+            // Don't advance series index for background series
+            const seriesPaletteOptions = !unthemedSeries.has(series.type)
+                ? paletteOptions
+                : { colourIndex: 0, userPalette };
+            const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
                 defaultTooltipPosition,
                 seriesTheme,
-                this.getSeriesPalette(series.type, paletteOptions)
+                palette
             );
 
             if (seriesOptions.innerLabels) {
@@ -241,7 +248,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
-                undefined,
                 seriesTheme,
                 this.getSeriesPalette(series.type, paletteOptions)
             );
@@ -381,7 +387,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } else if (isAgHierarchyChartOptions(options)) {
             return 'treemap';
         } else if (isAgTopologyChartOptions(options)) {
-            return 'map';
+            return 'map-shape';
         }
         throw new Error('Invalid chart options type detected.');
     }
@@ -425,8 +431,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {
                     delete options.axes;
-                    const expectedTypes = Array.from(axisRegistry.keys()).join(', ');
-                    Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}, ignoring.`);
+                    const expectedTypes = Array.from(axisRegistry.publicKeys()).join(', ');
+                    Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}`);
                 }
             }
         }
@@ -438,7 +444,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (type == null || isSeriesOptionType(type) || isEnterpriseSeriesType(type)) {
                 return true;
             }
-            Logger.warnOnce(`unknown series type: ${type}; expected one of: ${chartTypes.seriesTypes.join(', ')}`);
+            Logger.warnOnce(
+                `unknown series type: ${type}; expected one of: ${publicChartTypes.seriesTypes.join(', ')}`
+            );
         }) as T['series'];
     }
 

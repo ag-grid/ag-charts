@@ -57,7 +57,6 @@
 .menuInner {
     flex-basis: auto;
     flex-direction: column;
-    max-width: $spacing-size-64 + $spacing-size-4;
     padding-bottom: $spacing-size-16;
 
     li {
@@ -76,13 +75,14 @@
     }
 
     h5 {
-        padding-left: 6px;
+        padding-left: $spacing-size-2;
         font-weight: var(--text-bold);
         color: var(--color-fg-secondary);
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         display: block;
+        max-width: $spacing-size-64 + $spacing-size-4 + 5;
         padding-top: 0;
     }
 }
@@ -175,6 +175,7 @@ button.sectionHeader {
         --color-icon: var(--color-enterprise-icon);
 
         position: relative;
+        top: 1px;
         margin-left: 4px;
         color: transparent;
 
@@ -183,6 +184,12 @@ button.sectionHeader {
             left: 0;
             transform: translate(-0.05em, 0.075em);
         }
+    }
+
+    .newTabIcon {
+        --icon-size: 1.25em;
+
+        margin-left: $spacing-size-2;
     }
 }
 
@@ -273,6 +280,6 @@ button.sectionHeader {
     }
 
     &.activeItemParent {
-        color: var(--color-text-primary);
+        color: var(--color-util-gray-400);
     }
 }

@@ -22,8 +22,7 @@ const Search = () => {
     // done inside effect as window won't be available for SSR.
     useEffect(() => {
         const isMacLike =
-            typeof window !== 'undefined' &&
-            typeof window.navigator !== 'undefined' &&
+            typeof window?.navigator !== 'undefined' &&
             (/(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ||
                 /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgentData?.platform));
         setMac(isMacLike);
@@ -76,7 +75,7 @@ const Search = () => {
                 aria-label={`Open search with Enter or Space, or use the shortcut ${isMac ? `⌘ K` : `Ctrl K`} while anywhere else in the page.`}
             >
                 <Icon name="search" svgClasses={styles.searchIcon} />
-                <span className={styles.placeholder}>Search...</span>
+                <span className={styles.placeholder}>Search</span>
                 <span className={styles.kbdShortcut}>{isMac ? `⌘ K` : `Ctrl K`}</span>
             </div>
 

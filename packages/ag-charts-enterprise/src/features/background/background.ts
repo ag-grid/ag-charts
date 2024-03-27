@@ -5,8 +5,6 @@ import { BackgroundImage } from './backgroundImage';
 const { ActionOnSet, OBJECT, Validate } = _ModuleSupport;
 
 export class Background extends _ModuleSupport.Background<BackgroundImage> {
-    protected updateService: _ModuleSupport.UpdateService;
-
     @Validate(OBJECT, { optional: true })
     @ActionOnSet<Background>({
         newValue(image: BackgroundImage) {
@@ -18,13 +16,10 @@ export class Background extends _ModuleSupport.Background<BackgroundImage> {
             image.onLoad = undefined;
         },
     })
-    override image: BackgroundImage;
+    override image = new BackgroundImage();
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super(ctx);
-
-        this.image = new BackgroundImage(ctx);
-        this.updateService = ctx.updateService;
     }
 
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -36,6 +31,6 @@ export class Background extends _ModuleSupport.Background<BackgroundImage> {
     }
 
     protected onImageLoad() {
-        this.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 }

@@ -11,7 +11,6 @@ import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
-import { setupMockConsole } from './test/mockConsole';
 import {
     clickAction,
     createChart,
@@ -19,6 +18,7 @@ import {
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from './test/utils';
 
@@ -158,7 +158,7 @@ describe('Chart', () => {
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
             );
-            expect(onNodeClick).toBeCalledTimes(nodeCount);
+            expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
         };
 
         const checkMouseUpOnlyClick = async (
@@ -174,7 +174,7 @@ describe('Chart', () => {
             });
 
             // Check click handler
-            expect(onNodeClick).toBeCalledTimes(0);
+            expect(onNodeClick).toHaveBeenCalledTimes(0);
         };
 
         it(`should render tooltip correctly`, async () => {
@@ -247,7 +247,7 @@ describe('Chart', () => {
     };
 
     const cartesianTestParams = {
-        getNodeData: (series) => series.contextNodeData[0].nodeData,
+        getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
         getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
         getHighlightNode: (_, series) => series.highlightNode.children[0],

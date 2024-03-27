@@ -10,7 +10,6 @@ import type {
 import type { Chart } from '../chart';
 import type { ChartAxis } from '../chartAxis';
 import * as axesExamples from '../test/examples-axes';
-import { setupMockConsole } from '../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -18,6 +17,7 @@ import {
     extractImageData,
     reverseAxes,
     setupMockCanvas,
+    setupMockConsole,
 } from '../test/utils';
 
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {

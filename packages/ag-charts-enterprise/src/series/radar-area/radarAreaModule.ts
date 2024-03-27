@@ -13,16 +13,14 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
 
     identifier: 'radar-area',
     instanceConstructor: RadarAreaSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
-            },
-            {
-                type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+        },
+        {
+            type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
+        },
+    ],
     themeTemplate: RADAR_AREA_SERIES_THEME,
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);

@@ -34,7 +34,7 @@ jobs:
                   java-version: '17'
             - name: yarn install
               id: yarn_install
-              run: yarn install --ci --prefer-offline
+              run: yarn install --ci
 
             - name: Run Scan
               run: |

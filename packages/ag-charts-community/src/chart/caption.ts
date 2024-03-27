@@ -25,13 +25,13 @@ export class Caption extends BaseProperties implements CaptionLike {
     static readonly LARGE_PADDING = 20;
 
     readonly id = createId(this);
-    readonly node = new Text().setProperties({
+    readonly node = new Text({ zIndex: 1 }).setProperties({
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
     });
 
     @Validate(BOOLEAN)
-    enabled = false;
+    enabled: boolean = false;
 
     @Validate(STRING, { optional: true })
     @ProxyPropertyOnWrite('node')
@@ -97,9 +97,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     handleMouseMove(moduleCtx: ModuleContext, event: InteractionEvent<'hover'>) {
-        if (!this.enabled) {
-            return;
-        }
+        if (!this.enabled) return;
 
         const { offsetX, offsetY } = event;
         const bbox = this.node.computeBBox();
@@ -116,7 +114,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         } else {
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, lastPointerEvent: event, showArrow: false, addCustomClass: false },
+                { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.text })
             );
         }

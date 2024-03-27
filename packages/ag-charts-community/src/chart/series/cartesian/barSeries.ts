@@ -9,6 +9,7 @@ import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
@@ -24,7 +25,13 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import {
+    SeriesNodePickMatch,
+    SeriesNodePickMode,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
@@ -40,12 +47,12 @@ import {
 } from './barUtil';
 import {
     type CartesianAnimationData,
-    type CartesianSeriesNodeDataContext,
     type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
+import { addHitTestersToQuadtree, childrenOfChildrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -55,12 +62,13 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly fontFamily: string;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
-    readonly fill: string;
+    readonly fill?: string;
 }
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly xValue: string | number;
     readonly yValue: string | number;
+    readonly valueIndex: number;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -73,7 +81,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly topRightCornerRadius: boolean;
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
-    readonly cornerRadiusBbox: BBox | undefined;
+    readonly clipBBox: BBox | undefined;
     readonly label?: BarNodeLabelDatum;
 }
 
@@ -105,16 +113,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 label: resetLabelFn,
             },
         });
-    }
-
-    protected override resolveKeyDirection(direction: ChartAxisDirection) {
-        if (this.getBarDirection() === ChartAxisDirection.X) {
-            if (direction === ChartAxisDirection.X) {
-                return ChartAxisDirection.Y;
-            }
-            return ChartAxisDirection.X;
-        }
-        return direction;
     }
 
     override async processData(dataController: DataController) {
@@ -233,7 +231,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yAxis = this.getValueAxis();
 
         if (!(dataModel && xAxis && yAxis && this.properties.isValid())) {
-            return [];
+            return;
         }
 
         const xScale = xAxis.scale;
@@ -251,19 +249,18 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
         const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const contexts: Array<CartesianSeriesNodeDataContext<BarNodeDatum>> = [];
+
+        const context = {
+            itemId: yKey,
+            nodeData: [] as BarNodeDatum[],
+            labelData: [] as BarNodeDatum[],
+            scales: super.calculateScaling(),
+            visible: this.visible || animationEnabled,
+        };
 
         const { groupScale, processedData } = this;
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
-            values.forEach((value, contextIndex) => {
-                contexts[contextIndex] ??= {
-                    itemId: yKey,
-                    nodeData: [],
-                    labelData: [],
-                    scales: super.calculateScaling(),
-                    visible: this.visible || animationEnabled,
-                };
-
+            values.forEach((value, valueIndex) => {
                 const xValue = keys[xIndex];
                 const x = xScale.convert(xValue);
 
@@ -286,19 +283,22 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
                 const bboxHeight = yScale.convert(yRange);
                 const bboxBottom = yScale.convert(0);
-                const cornerRadiusBbox = new BBox(
-                    barAlongX ? Math.min(bboxBottom, bboxHeight) : barX,
-                    barAlongX ? barX : Math.min(bboxBottom, bboxHeight),
-                    barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth,
-                    barAlongX ? barWidth : Math.abs(bboxBottom - bboxHeight)
-                );
 
                 const rect = {
                     x: barAlongX ? Math.min(y, bottomY) : barX,
                     y: barAlongX ? barX : Math.min(y, bottomY),
                     width: barAlongX ? Math.abs(bottomY - y) : barWidth,
                     height: barAlongX ? barWidth : Math.abs(bottomY - y),
-                    cornerRadiusBbox,
+                };
+
+                const clipBBox = new BBox(rect.x, rect.y, rect.width, rect.height);
+
+                const barRect = {
+                    x: barAlongX ? Math.min(bboxBottom, bboxHeight) : barX,
+                    y: barAlongX ? barX : Math.min(bboxBottom, bboxHeight),
+                    width: barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth,
+                    height: barAlongX ? barWidth : Math.abs(bboxBottom - bboxHeight),
+                    clipBBox,
                 };
 
                 const {
@@ -313,7 +313,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const labelText = this.getLabelText(
                     this.properties.label,
                     {
-                        datum: seriesDatum[contextIndex],
+                        datum: seriesDatum[valueIndex],
                         value: yRawValue,
                         xKey,
                         yKey,
@@ -321,7 +321,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         yName,
                         legendItemName,
                     },
-                    (v) => (isFiniteNumber(v) ? v.toFixed(2) : '')
+                    (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
                 );
                 const labelDatum = labelText
                     ? {
@@ -344,7 +344,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const nodeData: BarNodeDatum = {
                     series: this,
                     itemId: yKey,
-                    datum: seriesDatum[contextIndex],
+                    datum: seriesDatum[valueIndex],
+                    valueIndex,
                     cumulativeValue: currY,
                     xValue,
                     yValue: yRawValue,
@@ -354,10 +355,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         lengthRatioMultiplier: lengthRatioMultiplier,
                         lengthMax: lengthRatioMultiplier,
                     },
-                    x: rect.x,
-                    y: rect.y,
-                    width: rect.width,
-                    height: rect.height,
+                    x: barRect.x,
+                    y: barRect.y,
+                    width: barRect.width,
+                    height: barRect.height,
                     midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
                     fill,
                     stroke,
@@ -368,15 +369,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     topRightCornerRadius: isUpward,
                     bottomRightCornerRadius: barAlongX === isUpward,
                     bottomLeftCornerRadius: !isUpward,
-                    cornerRadiusBbox,
+                    clipBBox,
                     label: labelDatum,
                 };
-                contexts[contextIndex].nodeData.push(nodeData);
-                contexts[contextIndex].labelData.push(nodeData);
+                context.nodeData.push(nodeData);
+                context.labelData.push(nodeData);
             });
         });
 
-        return contexts;
+        return context;
     }
 
     protected nodeFactory() {
@@ -392,7 +393,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             (rect) => {
                 rect.tag = BarSeriesNodeTag.Bar;
             },
-            (datum) => createDatumId(datum.xValue)
+            (datum) => createDatumId(datum.xValue, datum.valueIndex)
         );
     }
 
@@ -439,7 +440,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 bottomRightCornerRadius: datum.bottomRightCornerRadius,
                 bottomLeftCornerRadius: datum.bottomLeftCornerRadius,
             };
-            const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
+            const visible = categoryAlongX
+                ? (datum.clipBBox?.width ?? datum.width) > 0
+                : (datum.clipBBox?.height ?? datum.height) > 0;
 
             const config = getRectConfig({
                 datum,
@@ -473,6 +476,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum.label);
         });
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<BarNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, childrenOfChildrenIter<Rect>(this.contentGroup));
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 
     getTooltipHtml(nodeDatum: BarNodeDatum): string {
@@ -555,37 +566,37 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelections, labelSelections, annotationSelections, previousContextData } = data;
+        const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const dataDiff = this.processedData?.reduced?.diff;
-        const mode = previousContextData?.length === 0 ? 'fade' : 'normal';
+        const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
         fromToMotion(
             this.id,
             'nodes',
             this.ctx.animationManager,
-            datumSelections,
+            [datumSelection],
             fns,
-            (_, datum) => createDatumId(datum.xValue),
+            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
             dataDiff
         );
 
         const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
-            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
     }
 

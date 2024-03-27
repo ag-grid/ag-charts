@@ -38,6 +38,21 @@ describe('BandScale', () => {
         expect(scale.bandwidth).toBe(100);
     });
 
+    test('date band scale', () => {
+        const scale = new BandScale();
+
+        scale.domain = [new Date('2020'), new Date('2021'), new Date('2022'), new Date('2023'), new Date('2024')];
+        scale.range = [0, 500];
+
+        expect(scale.convert(new Date('2020'))).toBe(0);
+        expect(scale.convert(new Date('2021'))).toBe(100);
+        expect(scale.convert(new Date('2022'))).toBe(200);
+        expect(scale.convert(new Date('2023'))).toBe(300);
+        expect(scale.convert(new Date('2024'))).toBe(400);
+
+        expect(scale.bandwidth).toBe(100);
+    });
+
     test('inner padding', () => {
         const scale = new BandScale();
 

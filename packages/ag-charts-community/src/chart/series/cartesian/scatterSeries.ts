@@ -103,12 +103,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     async createNodeData() {
         const { axes, dataModel, processedData, colorScale } = this;
         const { xKey, yKey, labelKey, colorKey, xName, yName, labelName, marker, label, visible } = this.properties;
+        const { placement } = label;
+        const markerShape = getMarker(marker.shape);
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!(dataModel && processedData && visible && xAxis && yAxis)) {
-            return [];
+            return;
         }
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
@@ -156,18 +158,18 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 midPoint: { x, y },
                 fill,
                 label: { text: labelText, ...size },
+                marker: markerShape,
+                placement,
             });
         }
 
-        return [
-            {
-                itemId: yKey,
-                nodeData,
-                labelData: nodeData,
-                scales: super.calculateScaling(),
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: yKey,
+            nodeData,
+            labelData: nodeData,
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -175,7 +177,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override getLabelData(): PointLabelDatum[] {
-        return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
+        return this.contextNodeData?.labelData ?? [];
     }
 
     protected override markerFactory() {
@@ -224,6 +226,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             placedLabels.map(({ datum, x, y }) => ({
                 ...(datum as ScatterNodeDatum),
                 point: { x, y, size: datum.point.size },
+                placement: 'top',
             })),
             (text) => {
                 text.pointerEvents = PointerEvents.None;
@@ -330,10 +333,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override animateEmptyUpdateReady(data: ScatterAnimationData) {
-        const { markerSelections, labelSelections, annotationSelections } = data;
-        markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        const { markerSelection, labelSelection, annotationSelections } = data;
+        markerScaleInAnimation(this, this.ctx.animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     protected isLabelEnabled() {

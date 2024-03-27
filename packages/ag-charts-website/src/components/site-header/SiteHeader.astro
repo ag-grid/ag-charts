@@ -52,14 +52,12 @@ const dropdownItems = [
     {
         title: 'AG Grid',
         description: 'Best JavaScript Grid in the World',
-        icon: 'icon',
-        link: 'https://ag-grid.com',
+        url: 'https://ag-grid.com',
     },
     {
         title: 'AG Charts',
         description: 'Best JavaScript Charts in the World',
-        icon: 'icon',
-        link: 'https://charts.ag-grid.com',
+        url: 'https://charts.ag-grid.com',
     },
 ];
 ---
@@ -70,27 +68,29 @@ const dropdownItems = [
 
         <ProductDropdown client:load items={dropdownItems} children={null} />
 
-        <div class={gridStyles.docsNavBtnSearchContainer}>
-            {
-                showDocsNav && (
-                    <button
-                        id="top-bar-docs-button"
-                        class:list={[gridStyles.mobileNavButton, 'button-secondary']}
-                        type="button"
-                        data-toggle="collapse"
-                        data-target="#side-nav"
-                        aria-controls="side-nav"
-                        aria-expanded="false"
-                        aria-label="Toggle docs page navigation"
-                    >
-                        <span>Docs</span>
-                        <Icon name="collapseCategories" />
-                    </button>
-                )
-            }
+        {
+            (showDocsNav || showSearchBar) && (
+                <div class={gridStyles.docsNavBtnSearchContainer}>
+                    {showDocsNav && (
+                        <button
+                            id="top-bar-docs-button"
+                            class:list={[gridStyles.mobileNavButton, 'button-secondary']}
+                            type="button"
+                            data-toggle="collapse"
+                            data-target="#side-nav"
+                            aria-controls="side-nav"
+                            aria-expanded="false"
+                            aria-label="Toggle docs page navigation"
+                        >
+                            <span>Docs</span>
+                            <Icon name="collapseCategories" />
+                        </button>
+                    )}
 
-            {showSearchBar && framework && <Search client:load />}
-        </div>
+                    {showSearchBar && framework && <Search client:load />}
+                </div>
+            )
+        }
 
         <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:load>
             <li class:list={[gridStyles.navItem, gridStyles.buttonItem, 'darkModeItem']}>

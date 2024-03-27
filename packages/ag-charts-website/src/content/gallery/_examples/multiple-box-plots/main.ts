@@ -1,6 +1,58 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgBoxPlotSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+const tooltip = (label: string) => ({
+    renderer: (params: AgBoxPlotSeriesTooltipRendererParams) => {
+        const {
+            datum,
+            xKey,
+            xName,
+            minKey,
+            minName,
+            q1Key,
+            q1Name,
+            medianKey,
+            medianName,
+            q3Key,
+            q3Name,
+            maxKey,
+            maxName,
+        } = params;
+        const values = [
+            `${xName}: ${datum[xKey]}`,
+            `${minName}: ${datum[minKey]}`,
+            `${q1Name}: ${datum[q1Key]}`,
+            `${medianName}: ${datum[medianKey]}`,
+            `${q3Name}: ${datum[q3Key]}`,
+            `${maxName}: ${datum[maxKey]}`,
+        ];
+        return `<div class="ag-chart-tooltip-title">${label}</div><div class="ag-chart-tooltip-content">${values.join('<br>')}</div>`;
+    },
+});
+
+const shared = {
+    xKey: 'countryOfArrival',
+    xName: 'Country Of Arrival',
+    minKey: 'min',
+    minName: 'Min',
+    q1Key: 'q1',
+    q1Name: 'Q1',
+    medianKey: 'median',
+    medianName: 'Median',
+    q3Key: 'q3',
+    q3Name: 'Q3',
+    maxKey: 'max',
+    maxName: 'Max',
+    cornerRadius: 8,
+    strokeOpacity: 0,
+    whisker: {
+        strokeOpacity: 1,
+    },
+    cap: {
+        lengthRatio: 0,
+    },
+};
 
 const data = getData();
 const options: AgChartOptions = {
@@ -16,42 +68,18 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            data: data['Jan - Mar 2023'],
             type: 'box-plot',
-            xKey: 'countryOfArrival',
-            xName: 'Country Of Arrival',
+            data: data['Jan - Mar 2023'],
             yName: 'Jan - Mar 2023',
-            minKey: 'min',
-            q1Key: 'q1',
-            medianKey: 'median',
-            q3Key: 'q3',
-            maxKey: 'max',
-            strokeOpacity: 0,
-            whisker: {
-                strokeOpacity: 1,
-            },
-            cap: {
-                lengthRatio: 0,
-            },
+            tooltip: tooltip('Jan - Mar 2023'),
+            ...shared,
         },
         {
-            data: data['April - June 2023'],
             type: 'box-plot',
-            xKey: 'countryOfArrival',
-            xName: 'Country Of Arrival',
+            data: data['April - June 2023'],
             yName: 'April - June 2023',
-            minKey: 'min',
-            q1Key: 'q1',
-            medianKey: 'median',
-            q3Key: 'q3',
-            maxKey: 'max',
-            strokeOpacity: 0,
-            whisker: {
-                strokeOpacity: 1,
-            },
-            cap: {
-                lengthRatio: 0,
-            },
+            tooltip: tooltip('April - June 2023'),
+            ...shared,
         },
     ],
     axes: [

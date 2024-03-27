@@ -3,7 +3,7 @@ import type { BBox } from '../../scene/bbox';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
+import type { LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
@@ -15,7 +15,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e)),
             this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
             this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect))
         );
@@ -23,15 +22,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
     destroy() {
         this.destroyFns.forEach((cb) => cb());
-    }
-
-    private layoutComplete({ clipSeries, series: { paddedRect } }: LayoutCompleteEvent): void {
-        const { seriesArea, seriesRoot } = this.chartLike;
-        if (seriesArea.clip || clipSeries) {
-            seriesRoot.setClipRectInGroupCoordinateSpace(paddedRect);
-        } else {
-            seriesRoot.setClipRectInGroupCoordinateSpace();
-        }
     }
 
     private positionPadding(shrinkRect: BBox) {
@@ -96,28 +86,21 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             newShrinkRect.shrink(bboxHeight, 'bottom');
         };
 
-        if (subtitle) {
-            subtitle.node.visible = subtitle.enabled ?? false;
+        title.node.visible = title.enabled;
+        subtitle.node.visible = subtitle.enabled;
+        footnote.node.visible = footnote.enabled;
+
+        if (title.enabled) {
+            const { spacing = subtitle.enabled ? Caption.SMALL_PADDING : Caption.LARGE_PADDING } = title;
+            positionTopAndShrinkBBox(title, spacing);
         }
 
-        if (title) {
-            title.node.visible = title.enabled;
-            if (title.node.visible) {
-                const defaultTitleSpacing = subtitle?.node.visible ? Caption.SMALL_PADDING : Caption.LARGE_PADDING;
-                const spacing = title.spacing ?? defaultTitleSpacing;
-                positionTopAndShrinkBBox(title, spacing);
-            }
-        }
-
-        if (subtitle?.node.visible) {
+        if (subtitle.enabled) {
             positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
         }
 
-        if (footnote) {
-            footnote.node.visible = footnote.enabled;
-            if (footnote.node.visible) {
-                positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
-            }
+        if (footnote.enabled) {
+            positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
         }
 
         return { shrinkRect: newShrinkRect };

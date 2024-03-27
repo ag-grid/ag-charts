@@ -7,13 +7,13 @@ import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';
 import * as examples from './test/examples';
-import { setupMockConsole } from './test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from './test/utils';
 
@@ -231,8 +231,7 @@ describe('CartesianChart', () => {
             );
             if (seriesImpl == null) fail('No seriesImpl found');
 
-            const nodeDataArray: SeriesNodeDataContext<any, any>[] = seriesImpl['contextNodeData'];
-            const nodeData = nodeDataArray.find((n) => n.itemId === yKey);
+            const nodeData: SeriesNodeDataContext<any, any> = seriesImpl['contextNodeData']!;
 
             const highlightManager = (chart as any).highlightManager;
 

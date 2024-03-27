@@ -1,5 +1,5 @@
 import { Logger } from '../util/logger';
-import type { TimeInterval } from '../util/time/interval';
+import { findMinMax } from '../util/number';
 import { Invalidating } from './invalidating';
 import type { Scale, ScaleConvertParams } from './scale';
 
@@ -11,7 +11,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return value instanceof ContinuousScale;
     }
 
-    private invalid = true;
+    protected invalid = true;
 
     @Invalidating
     domain: D[];
@@ -57,15 +57,6 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return rangeDistance / Math.max(1, bands);
     }
 
-    fromDomain(d: D): number {
-        if (typeof d === 'number') {
-            return d;
-        } else if (d instanceof Date) {
-            return d.getTime();
-        }
-        return NaN;
-    }
-
     abstract toDomain(d: number): D;
 
     getDomain() {
@@ -96,11 +87,10 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         x = this.transform(x);
 
         if (clampMode === 'clamped') {
-            const start = Math.min(this.fromDomain(d0), this.fromDomain(d1));
-            const stop = Math.max(this.fromDomain(d0), this.fromDomain(d1));
-            if (this.fromDomain(x) < start) {
+            const [start, stop] = findMinMax(domain.map(Number));
+            if (Number(x) < start) {
                 return r0;
-            } else if (this.fromDomain(x) > stop) {
+            } else if (Number(x) > stop) {
                 return r1;
             }
         }
@@ -113,9 +103,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
             return r1;
         }
 
-        return (
-            r0 + ((this.fromDomain(x) - this.fromDomain(d0)) / (this.fromDomain(d1) - this.fromDomain(d0))) * (r1 - r0)
-        );
+        return r0 + ((Number(x) - Number(d0)) / (Number(d1) - Number(d0))) * (r1 - r0);
     }
 
     invert(x: number) {
@@ -137,11 +125,9 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         } else if (x > rMax) {
             return isReversed ? d0 : d1;
         } else if (r0 === r1) {
-            d = this.toDomain((this.fromDomain(d0) + this.fromDomain(d1)) / 2);
+            d = this.toDomain((Number(d0) + Number(d1)) / 2);
         } else {
-            d = this.toDomain(
-                this.fromDomain(d0) + ((x - r0) / (r1 - r0)) * (this.fromDomain(d1) - this.fromDomain(d0))
-            );
+            d = this.toDomain(Number(d0) + ((x - r0) / (r1 - r0)) * (Number(d1) - Number(d0)));
         }
 
         return this.transformInvert(d);
@@ -162,33 +148,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     }
 
     protected getPixelRange() {
-        const range = this.range.slice().sort((a, b) => a - b);
-        return range[1] - range[0];
-    }
-
-    protected isDenseInterval({
-        start,
-        stop,
-        interval,
-        count,
-    }: {
-        start: number;
-        stop: number;
-        interval: number | TimeInterval;
-        count?: number;
-    }): boolean {
-        const domain = stop - start;
-
-        const availableRange = this.getPixelRange();
-        const step = typeof interval === 'number' ? interval : 1;
-        count ??= domain / step;
-        if (count >= availableRange) {
-            Logger.warn(
-                `the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration`
-            );
-            return true;
-        }
-
-        return false;
+        const [a, b] = this.range;
+        return Math.abs(b - a);
     }
 }

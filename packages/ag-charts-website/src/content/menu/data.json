@@ -14,6 +14,10 @@
                 "path": "/options"
             },
             {
+                "title": "Community",
+                "path": "/community"
+            },
+            {
                 "title": "Pricing",
                 "path": "/license-pricing"
             },
@@ -53,6 +57,7 @@
         "items": [
             {
                 "title": "Getting Started",
+                "feature": false,
                 "items": [
                     {
                         "title": "Quick Start",
@@ -199,7 +204,12 @@
             },
             {
                 "title": "Migration",
+                "feature": false,
                 "items": [
+                    {
+                        "title": "Upgrade to AG Charts 9.2",
+                        "path": "upgrade-to-ag-charts-9-2"
+                    },
                     {
                         "title": "Upgrade to AG Charts 9.1",
                         "path": "upgrade-to-ag-charts-9-1"
@@ -209,30 +219,58 @@
                         "path": "upgrade-to-ag-charts-9"
                     }
                 ]
-            },
-            {
-                "title": "Financial Charts",
-                "items": [
-                    {
-                        "title": "Examples",
-                        "path": "financial-charts"
-                    }
-                ]
-            },
+            }
+        ]
+    },
+    "maps": {
+        "items": [
             {
                 "title": "Maps",
                 "items": [
                     {
-                        "title": "Shapes",
-                        "path": "map-shapes"
+                        "title": "Overview",
+                        "path": "maps",
+                        "isEnterprise": true
                     },
                     {
-                        "title": "Lines",
-                        "path": "map-lines"
+                        "title": "Geographic Areas",
+                        "path": "map-shapes",
+                        "isEnterprise": true
                     },
                     {
-                        "title": "Markers",
-                        "path": "map-markers"
+                        "title": "Routes and Connections",
+                        "path": "map-lines",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Markers and Points of Interest",
+                        "path": "map-markers",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Map Topology",
+                        "path": "map-topology",
+                        "isEnterprise": true
+                    }
+                ]
+            }
+        ]
+    },
+    "financialCharts": {
+        "items": [
+            {
+                "title": "Financial Charts",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "financial-charts",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Candlestick",
+                        "icon": "chartsCandlestick",
+                        "path": "candlestick-series",
+                        "isEnterprise": true
                     }
                 ]
             }

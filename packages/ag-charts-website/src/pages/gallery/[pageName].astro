@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 ---
 
-<Layout title={`AG Charts Gallery: ${page.title}`}>
+<Layout title={`AG Charts Gallery: ${page.title}`} showSearchBar={true}>
     <div class="gallery-page-container layout-max-width-small text-base">
         <h1>
             <span>
@@ -31,7 +31,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
                 }
             </span>
 
-            <GallerySeriesLink client:only series={page.seriesTitle} />
+            <GallerySeriesLink client:only series={page.seriesTitle} link={page.seriesLink} />
         </h1>
 
         <GalleryExampleRunner title={page.name} name={page.slug} />

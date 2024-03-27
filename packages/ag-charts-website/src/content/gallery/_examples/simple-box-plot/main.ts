@@ -21,16 +21,50 @@ const options: AgChartOptions = {
             xName: 'Country Of Arrival',
             yName: 'Monthly Arrivals',
             minKey: 'min',
+            minName: 'Min',
             q1Key: 'q1',
+            q1Name: 'Q1',
             medianKey: 'median',
+            medianName: 'Median',
             q3Key: 'q3',
+            q3Name: 'Q3',
             maxKey: 'max',
+            maxName: 'Max',
+            cornerRadius: 8,
             strokeOpacity: 0,
             whisker: {
                 strokeOpacity: 0.9,
             },
             cap: {
                 lengthRatio: 0.8,
+            },
+            tooltip: {
+                renderer: (params) => {
+                    const {
+                        datum,
+                        xKey,
+                        xName,
+                        minKey,
+                        minName,
+                        q1Key,
+                        q1Name,
+                        medianKey,
+                        medianName,
+                        q3Key,
+                        q3Name,
+                        maxKey,
+                        maxName,
+                    } = params;
+                    const values = [
+                        `${xName}: ${datum[xKey]}`,
+                        `${minName}: ${datum[minKey]}`,
+                        `${q1Name}: ${datum[q1Key]}`,
+                        `${medianName}: ${datum[medianKey]}`,
+                        `${q3Name}: ${datum[q3Key]}`,
+                        `${maxName}: ${datum[maxKey]}`,
+                    ];
+                    return `<div class="ag-chart-tooltip-title">Monthly Arrivals</div><div class="ag-chart-tooltip-content">${values.join('<br>')}</div>`;
+                },
             },
         },
     ],

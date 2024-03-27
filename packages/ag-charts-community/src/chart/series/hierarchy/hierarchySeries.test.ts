@@ -1,5 +1,4 @@
 import type { BBox } from '../../../scene/bbox';
-import type { ChartAxisDirection } from '../../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
 import type { SeriesTooltip } from '../seriesTooltip';
@@ -13,11 +12,11 @@ class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<any> {
 class ExampleHierarchySeries extends HierarchySeries<any, any> {
     override properties = new ExampleHierarchySeriesProperties();
 
-    override getSeriesDomain(_direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(): number[] {
         throw new Error('Method not implemented.');
     }
 
-    override createNodeData(): Promise<SeriesNodeDataContext<any, any>[]> {
+    override createNodeData(): Promise<SeriesNodeDataContext<any, any>> {
         throw new Error('Method not implemented.');
     }
 
@@ -38,7 +37,7 @@ describe('HierarchySeries', () => {
     it('creates a hierarchy', async () => {
         const series = new ExampleHierarchySeries(null!);
         series.properties.sizeKey = 'size';
-        series.data = [
+        series.setChartData([
             { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
             {
                 size: 5,
@@ -48,7 +47,7 @@ describe('HierarchySeries', () => {
                     { size: 3, children: [{ size: 7 }] },
                 ],
             },
-        ];
+        ]);
         await series.processData();
 
         series.rootNode.walk((node: any) => {
@@ -63,7 +62,7 @@ describe('HierarchySeries', () => {
 
     it('handles an empty dataset', async () => {
         const series = new ExampleHierarchySeries(null!);
-        series.data = [];
+        series.setChartData([]);
         await series.processData();
 
         // @ts-expect-error - Remove circular dependencies because if this test fails, Jest won't be able to print any errors
@@ -84,7 +83,7 @@ describe('HierarchySeries', () => {
 
     it('walks tree in pre-order', async () => {
         const series = new ExampleHierarchySeries(null!);
-        series.data = [
+        series.setChartData([
             {
                 order: 1,
                 children: [{ order: 2 }, { order: 3 }, { order: 4 }],
@@ -97,7 +96,7 @@ describe('HierarchySeries', () => {
                     { order: 11, children: [{ order: 12 }] },
                 ],
             },
-        ];
+        ]);
         await series.processData();
 
         let index = 0;
@@ -115,7 +114,7 @@ describe('HierarchySeries', () => {
 
     it('checks for subtree inclusion', async () => {
         const series = new ExampleHierarchySeries(null!);
-        series.data = [
+        series.setChartData([
             {
                 order: 1,
                 children: [{ order: 2 }, { order: 3 }, { order: 4 }],
@@ -128,7 +127,7 @@ describe('HierarchySeries', () => {
                     { order: 11, children: [{ order: 12 }] },
                 ],
             },
-        ];
+        ]);
         await series.processData();
 
         const nodes = Array.from(series.rootNode);

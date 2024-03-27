@@ -12,18 +12,16 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
 
     identifier: 'heatmap',
     instanceConstructor: HeatmapSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: _Theme.POSITION.LEFT,
-            },
-            {
-                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                position: _Theme.POSITION.BOTTOM,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: _Theme.POSITION.LEFT,
+        },
+        {
+            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: _Theme.POSITION.BOTTOM,
+        },
+    ],
     themeTemplate: HEATMAP_SERIES_THEME,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
         const { properties } = themeTemplateParameters;

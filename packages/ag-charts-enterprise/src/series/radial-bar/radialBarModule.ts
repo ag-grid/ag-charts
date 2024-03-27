@@ -11,16 +11,14 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
 
     identifier: 'radial-bar',
     instanceConstructor: RadialBarSeries,
-    seriesDefaults: {
-        axes: [
-            {
-                type: _Theme.POLAR_AXIS_TYPE.ANGLE_NUMBER,
-            },
-            {
-                type: _Theme.POLAR_AXIS_TYPE.RADIUS_CATEGORY,
-            },
-        ],
-    },
+    defaultAxes: [
+        {
+            type: _Theme.POLAR_AXIS_TYPE.ANGLE_NUMBER,
+        },
+        {
+            type: _Theme.POLAR_AXIS_TYPE.RADIUS_CATEGORY,
+        },
+    ],
     themeTemplate: RADIAL_BAR_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {

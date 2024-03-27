@@ -24,6 +24,7 @@ export interface GalleryExample {
      * Example identifier
      */
     name: string;
+    hidden?: boolean;
 }
 export interface GalleryExampleChartType {
     title: string;
@@ -49,6 +50,7 @@ export interface MenuItem {
     icon?: IconName;
     frameworks?: Framework[];
     isEnterprise?: boolean;
+    feature?: boolean;
     items?: MenuItem[];
 }
 

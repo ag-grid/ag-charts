@@ -1,32 +1,25 @@
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { addBindingImports, convertFunctionToProperty } from './parser-utils';
-import { convertFunctionToConstCallback, convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
+import { convertFunctionToCallback, convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const clone = {...options};',
+        'const clone = structuredClone(options);',
         'setOptions(clone);',
         'clone'
     );
 }
 
-function getImports(componentFilenames: string[], bindings): string[] {
-    const useCallback = bindings.externalEventHandlers?.length + bindings.instanceMethods?.length > 0;
-
+function getImports(componentFilenames: string[], bindings: any): string[] {
     const reactImports = ['Fragment', 'useState'];
-    if (useCallback) reactImports.push('useCallback');
     if (bindings.usesChartApi) reactImports.push('useRef');
 
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
         `import { createRoot } from 'react-dom/client';`,
     ];
-
-    if (bindings.chartSettings.enterprise) {
-        imports.push(`import 'ag-charts-enterprise';`);
-    }
 
     imports.push(`import { AgChartsReact } from 'ag-charts-react';`);
 
@@ -104,11 +97,9 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
         const template = getTemplate(bindings, componentAttributes);
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(convertFunctionToConstCallback(handler.body, bindings.callbackDependencies))
+            processFunction(convertFunctionToCallback(handler.body))
         );
-        const instanceMethods = bindings.instanceMethods.map((m) =>
-            processFunction(convertFunctionToConstCallback(m, bindings.callbackDependencies))
-        );
+        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToCallback(m)));
 
         indexFile = `
             ${imports.join(`

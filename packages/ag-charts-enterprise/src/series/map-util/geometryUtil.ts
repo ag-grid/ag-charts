@@ -1,13 +1,11 @@
-import type { Geometry, Position } from 'geojson';
-
 import type { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from './bboxUtil';
-import { lineStringCenter } from './lineStringUtil';
-import { inaccessibilityPole, polygonBbox } from './polygonUtil';
+import { lineStringLength } from './lineStringUtil';
+import { polygonBbox } from './polygonUtil';
 
 export function geometryBbox(
-    geometry: Geometry,
+    geometry: _ModuleSupport.Geometry,
     into: _ModuleSupport.LonLatBBox | undefined
 ): _ModuleSupport.LonLatBBox | undefined {
     if (geometry.bbox != null) {
@@ -58,96 +56,122 @@ export function geometryBbox(
     return into;
 }
 
-function pointsCenter(points: Position[]): Position | undefined {
-    if (points.length === 0) return;
-
-    let totalX = 0;
-    let totalY = 0;
-    for (const [x, y] of points) {
-        totalX += x;
-        totalY += y;
-    }
-
-    return [totalX / points.length, totalY / points.length];
-}
-
-function positionToUnknownDistance(
-    position: Position | undefined
-): { x: number; y: number; distance: number } | undefined {
-    if (position == null) return;
-    const [x, y] = position;
-    return { x, y, distance: Infinity };
-}
-
-export function geometryCenter(
-    geometry: Geometry,
-    precision: number
-): { x: number; y: number; distance: number } | undefined {
+export function largestPolygon(geometry: _ModuleSupport.Geometry): _ModuleSupport.Position[][] | undefined {
     switch (geometry.type) {
         case 'GeometryCollection': {
-            const points: Position[] = [];
-            for (const g of geometry.geometries) {
-                const point = geometryCenter(g, precision);
-                if (point != null) {
-                    const { x, y } = point;
-                    points.push([x, y]);
-                }
-            }
-            return positionToUnknownDistance(pointsCenter(points));
-        }
-        case 'MultiPolygon': {
-            let largestSize: number | undefined;
-            let largestPolygon: Position[][] | undefined;
-            geometry.coordinates.map((polygon) => {
+            let maxArea: number | undefined;
+            let maxPolygon: _ModuleSupport.Position[][] | undefined;
+            geometry.geometries.map((g) => {
+                const polygon = largestPolygon(g);
+                if (polygon == null) return;
+
                 const bbox = polygonBbox(polygon[0], undefined);
                 if (bbox == null) return;
 
-                const size = Math.abs(bbox.lat1 - bbox.lat0) * Math.abs(bbox.lon1 - bbox.lon0);
-                if (largestSize == null || size > largestSize) {
-                    largestSize = size;
-                    largestPolygon = polygon;
+                const area = Math.abs(bbox.lat1 - bbox.lat0) * Math.abs(bbox.lon1 - bbox.lon0);
+                if (maxArea == null || area > maxArea) {
+                    maxArea = area;
+                    maxPolygon = polygon;
                 }
             });
-            return largestPolygon != null ? inaccessibilityPole(largestPolygon, precision) : undefined;
+            return maxPolygon;
         }
-        case 'Polygon':
-            return inaccessibilityPole(geometry.coordinates, precision);
-        case 'MultiLineString': {
-            const points: Position[] = [];
-            for (const c of geometry.coordinates) {
-                const center = lineStringCenter(c);
-                if (center != null) {
-                    points.push(center.point);
-                }
-            }
-            return positionToUnknownDistance(pointsCenter(points));
-        }
-        case 'LineString':
-            return positionToUnknownDistance(lineStringCenter(geometry.coordinates)?.point);
-        case 'MultiPoint':
-            return positionToUnknownDistance(pointsCenter(geometry.coordinates));
-        case 'Point':
-            return positionToUnknownDistance(geometry.coordinates);
-    }
-}
+        case 'MultiPolygon': {
+            let maxArea: number | undefined;
+            let maxPolygon: _ModuleSupport.Position[][] | undefined;
+            geometry.coordinates.forEach((polygon) => {
+                const bbox = polygonBbox(polygon[0], undefined);
+                if (bbox == null) return;
 
-export function markerCenters(geometry: Geometry): Position[] {
-    switch (geometry.type) {
-        case 'GeometryCollection':
-            return geometry.geometries.flatMap(markerCenters);
-        case 'MultiPolygon':
+                const area = Math.abs(bbox.lat1 - bbox.lat0) * Math.abs(bbox.lon1 - bbox.lon0);
+                if (maxArea == null || area > maxArea) {
+                    maxArea = area;
+                    maxPolygon = polygon;
+                }
+            });
+            return maxPolygon;
+        }
         case 'Polygon':
+            return geometry.coordinates;
         case 'MultiLineString':
         case 'LineString':
-            return [];
         case 'MultiPoint':
-            return geometry.coordinates;
         case 'Point':
-            return [geometry.coordinates];
+            return;
     }
 }
 
-export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.MercatorScale): Geometry {
+export function largestLineString(geometry: _ModuleSupport.Geometry): _ModuleSupport.Position[] | undefined {
+    switch (geometry.type) {
+        case 'GeometryCollection': {
+            let maxLength: number | undefined;
+            let maxLineString: _ModuleSupport.Position[] | undefined;
+            geometry.geometries.map((g) => {
+                const lineString = largestLineString(g);
+                if (lineString == null) return;
+
+                const length = lineStringLength(lineString);
+                if (length == null) return;
+
+                if (maxLength == null || length > maxLength) {
+                    maxLength = length;
+                    maxLineString = lineString;
+                }
+            });
+            return maxLineString;
+        }
+        case 'MultiLineString': {
+            let maxLength = 0;
+            let maxLineString: _ModuleSupport.Position[] | undefined;
+            geometry.coordinates.forEach((lineString) => {
+                const length = lineStringLength(lineString);
+
+                if (length > maxLength) {
+                    maxLength = length;
+                    maxLineString = lineString;
+                }
+            });
+            return maxLineString;
+        }
+        case 'LineString':
+            return geometry.coordinates;
+        case 'MultiPolygon':
+        case 'Polygon':
+        case 'MultiPoint':
+        case 'Point':
+            return;
+    }
+}
+
+export enum GeometryType {
+    Any = 0b111,
+    Polygon = 0b001,
+    LineString = 0b010,
+    Point = 0b100,
+}
+
+export function containsType(geometry: _ModuleSupport.Geometry | null, type: GeometryType): boolean {
+    if (geometry == null) return false;
+
+    switch (geometry.type) {
+        case 'GeometryCollection':
+            return geometry.geometries.some((g) => containsType(g, type));
+        case 'MultiPolygon':
+        case 'Polygon':
+            return (type & GeometryType.Polygon) !== 0;
+        case 'MultiLineString':
+        case 'LineString':
+            return (type & GeometryType.LineString) !== 0;
+        case 'MultiPoint':
+        case 'Point':
+            return (type & GeometryType.Point) !== 0;
+    }
+}
+
+export function projectGeometry(
+    geometry: _ModuleSupport.Geometry,
+    scale: _ModuleSupport.MercatorScale
+): _ModuleSupport.Geometry {
     switch (geometry.type) {
         case 'GeometryCollection':
             return {
@@ -187,14 +211,23 @@ export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.Mercat
     }
 }
 
-function projectMultiPolygon(polygons: Position[][][], scale: _ModuleSupport.MercatorScale): Position[][][] {
-    return polygons.map((polygon) => projectPolygon(polygon, scale));
+function projectMultiPolygon(
+    multiPolygon: _ModuleSupport.Position[][][],
+    scale: _ModuleSupport.MercatorScale
+): _ModuleSupport.Position[][][] {
+    return multiPolygon.map((polygon) => projectPolygon(polygon, scale));
 }
 
-function projectPolygon(polygon: Position[][], scale: _ModuleSupport.MercatorScale): Position[][] {
+function projectPolygon(
+    polygon: _ModuleSupport.Position[][],
+    scale: _ModuleSupport.MercatorScale
+): _ModuleSupport.Position[][] {
     return polygon.map((lineString) => projectLineString(lineString, scale));
 }
 
-function projectLineString(lineString: Position[], scale: _ModuleSupport.MercatorScale): Position[] {
+function projectLineString(
+    lineString: _ModuleSupport.Position[],
+    scale: _ModuleSupport.MercatorScale
+): _ModuleSupport.Position[] {
     return lineString.map((lonLat) => scale.convert(lonLat));
 }

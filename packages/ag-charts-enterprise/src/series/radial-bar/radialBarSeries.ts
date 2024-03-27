@@ -19,6 +19,7 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     animationValidation,
+    isFiniteNumber,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -53,6 +54,8 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly outerRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
+    readonly clipStartAngle: number;
+    readonly clipEndAngle: number;
     readonly index: number;
 }
 
@@ -148,14 +151,17 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 }),
                 ...groupAccumulativeValueProperty(this, angleKey, true, 'normal', 'current', {
                     id: `angleValue-end`,
+                    rangeId: `angleValue-range`,
                     invalidValue: null,
                     groupId: stackGroupId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...groupAccumulativeValueProperty(this, angleKey, true, 'trailing', 'current', {
                     id: `angleValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...extraProps,
@@ -183,7 +189,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected async maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const [{ nodeData = [] } = {}] = await this.createNodeData();
+        const { nodeData = [] } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -197,7 +203,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { processedData, dataModel } = this;
 
         if (!processedData || !dataModel || !this.properties.isValid()) {
-            return [];
+            return;
         }
 
         const angleAxis = this.axes[ChartAxisDirection.X];
@@ -206,11 +212,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const radiusScale = radiusAxis?.scale;
 
         if (!angleScale || !radiusScale) {
-            return [];
+            return;
         }
 
         const angleStartIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-start`).index;
         const angleEndIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-end`).index;
+        const angleRangeIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-range`).index;
         const angleRawIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-raw`).index;
 
         let groupPaddingInner = 0;
@@ -226,7 +233,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const barWidth = groupScale.bandwidth >= 1 ? groupScale.bandwidth : groupScale.rawBandwidth;
 
-        const radiusAxisReversed = this.axes[ChartAxisDirection.Y]?.isReversed();
+        const angleAxisReversed = angleAxis.isReversed();
+        const radiusAxisReversed = radiusAxis.isReversed();
 
         const axisInnerRadius = radiusAxisReversed ? this.radius : this.getAxisInnerRadius();
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
@@ -243,7 +251,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const labelText = this.getLabelText(
                 label,
                 { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
             );
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
@@ -251,21 +259,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         };
 
         const nodeData = processedData.data.map((group, index): RadialBarNodeDatum => {
-            const { datum, keys, values } = group;
+            const { datum, keys, values, aggValues } = group;
 
             const radiusDatum = keys[0];
             const angleDatum = values[angleRawIndex];
+            const isPositive = angleDatum >= 0 && !Object.is(angleDatum, -0);
             const angleStartDatum = values[angleStartIndex];
             const angleEndDatum = values[angleEndIndex];
+            const angleRange = aggValues?.[angleRangeIndex][isPositive ? 1 : 0] ?? 0;
 
-            let startAngle = Math.max(angleScale.convert(angleStartDatum), angleScale.range[0]);
-            let endAngle = Math.min(angleScale.convert(angleEndDatum), angleScale.range[1]);
+            let startAngle = angleScale.convert(angleStartDatum, { clampMode: 'clamped' });
+            let endAngle = angleScale.convert(angleEndDatum, { clampMode: 'clamped' });
 
-            if (startAngle > endAngle) {
-                [startAngle, endAngle] = [endAngle, startAngle];
-            }
+            let rangeStartAngle = angleScale.convert(0, { clampMode: 'clamped' });
+            let rangeEndAngle = angleScale.convert(angleRange, { clampMode: 'clamped' });
 
-            if (angleDatum < 0) {
+            if (!isPositive || angleAxisReversed) {
+                [rangeStartAngle, rangeEndAngle] = [rangeEndAngle, rangeStartAngle];
                 [startAngle, endAngle] = [endAngle, startAngle];
             }
 
@@ -290,13 +300,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 radiusValue: radiusDatum,
                 innerRadius,
                 outerRadius,
-                startAngle,
-                endAngle,
+                startAngle: rangeStartAngle,
+                endAngle: rangeEndAngle,
+                clipStartAngle: startAngle,
+                clipEndAngle: endAngle,
                 index,
             };
         });
 
-        return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
+        return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
 
     async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
@@ -336,12 +348,16 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             selectionData = this.nodeData;
         }
 
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        const angleAxisReversed = angleAxis?.isReversed() ?? false;
+
         const highlightedStyle = highlight ? this.properties.highlightStyle.item : undefined;
         const fill = highlightedStyle?.fill ?? this.properties.fill;
         const fillOpacity = highlightedStyle?.fillOpacity ?? this.properties.fillOpacity;
         const stroke = highlightedStyle?.stroke ?? this.properties.stroke;
         const strokeOpacity = this.properties.strokeOpacity;
         const strokeWidth = highlightedStyle?.strokeWidth ?? this.properties.strokeWidth;
+        const cornerRadius = this.properties.cornerRadius;
 
         const idFn = (datum: RadialBarNodeDatum) => datum.radiusValue;
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
@@ -366,10 +382,16 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             node.lineDash = this.properties.lineDash;
             node.lineJoin = 'round';
             node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
+            node.startInnerCornerRadius = angleAxisReversed ? cornerRadius : 0;
+            node.startOuterCornerRadius = angleAxisReversed ? cornerRadius : 0;
+            node.endInnerCornerRadius = angleAxisReversed ? 0 : cornerRadius;
+            node.endOuterCornerRadius = angleAxisReversed ? 0 : cornerRadius;
 
             if (highlight) {
                 node.startAngle = datum.startAngle;
                 node.endAngle = datum.endAngle;
+                node.clipStartAngle = datum.clipStartAngle;
+                node.clipEndAngle = datum.clipEndAngle;
                 node.innerRadius = datum.innerRadius;
                 node.outerRadius = datum.outerRadius;
             }
@@ -421,7 +443,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     override animateClearingUpdateEmpty() {
@@ -431,7 +453,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
 
-        seriesLabelFadeOutAnimation(this, 'labels', animationManager, [this.labelSelection]);
+        seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): string {

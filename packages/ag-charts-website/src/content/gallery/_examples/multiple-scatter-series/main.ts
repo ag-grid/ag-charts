@@ -55,6 +55,12 @@ const options: AgChartOptions = {
             title: {
                 text: 'National Income',
             },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Math.round(value / 1000)}K</div>`,
+                },
+            },
         },
         {
             position: 'left',

@@ -2,84 +2,57 @@
 title: 'Series Highlighting'
 ---
 
-In data-rich charts with multiple overlapping series it might be difficult to tell one series from another
-when hovering a series data point or a legend item. To make the hovered series stand out, we
-can highlight it, while dimming other chart series at the same time.
+Highlighting the hovered data item or series allows for easier differentiation, especially in charts with many series and data points.
 
 {% chartExampleRunner title="Overlapping Series" name="lines" type="generated" /%}
 
-## Customising Series Highlighting
+In the above example:
 
-By default, only item highlighting is activated. Series highlighting, as shown in the sample above, can be activated by modifying the default `highlightStyle`.
+-   The hovered item - in this case the marker - is highlighted.
+-   The series containing the hovered item is also highlighted.
+-   All other series are dimmed.
 
-Each chart series has a `highlightStyle` config with the following default values:
+By default, only item highlighting is activated. The above example has custom configuration applied, as detailed below.
+
+## Customisation
+
+{% chartExampleRunner title="Column Series with Custom Highlight Style" name="basic-column" type="generated" /%}
 
 ```js
 highlightStyle: {
     // Attributes that apply to individual items within a single series.
-    // For example, a line series marker nearest to the mouse cursor,
-    // or a bar segment under a cursor.
-    item: {
-        fill: 'yellow',
-        stroke: undefined,
-        strokeWidth: undefined,
-    },
-    // Attributes that apply to the whole series containing the highlighted item.
-    series: {
-        dimOpacity: 1, // series opacity when dimmed (while some other series is hovered)
-        strokeWidth: undefined,
-    },
-},
-```
-
-The highlighted series item can be a bar segment, a pie or doughnut sector,
-or a marker in series with markers such as line, area, scatter and bubble series.
-
-In order to activate series highlighting, replace the default highlight style shown above with the custom one shown below:
-
-```js
-highlightStyle: {
     item: {
       fill: 'red',
       stroke: 'maroon',
       strokeWidth: 4,
     },
+    // Attributes that apply to the entire series containing the highlighted item.
     series: {
-        dimOpacity: 0.2,
-        strokeWidth: 2,
-    },
-},
+        dimOpacity: 0.2, // series opacity when dimmed (while another series is hovered)
+        strokeWidth: 2
+    }
+}
 ```
 
-This custom `highlightStyle` is applied to the bar series in the example below. Note the following:
+In this configuration, the highlight style of the hovered item is customised, and both the series highlighting and series dimming options are enabled.
 
--   When a series item (bar segment) is hovered, it gets highlighted using the style in the `highlightStyle.item` configuration.
-    Also, the segments belonging to all other stack levels are dimmed, and only segments
-    from the stack level that the highlighted segment belongs to remain unaffected.
--   At the same time the segments from the highlighted stack level (subseries) get the `strokeWidth` of `2`,
-    while the currently hovered segment gets a `strokeWidth` of `4`.
--   When a legend item (representing a stack level) is hovered, the rest of the stack levels in the series are dimmed,
-    but this time with no column segment item highlighted because none is hovered.
+Note the following when a bar segment is hovered:
 
-{% chartExampleRunner title="Column Series with Custom Highlight Style" name="basic-column" type="generated" /%}
+-   The hovered item is highlighted using the `highlightStyle.item` configuration. This changes the `fill` to `red`, and the `stroke` to `maroon` with a `strokeWidth` of `4`.
+-   The other segments from the highlighted series are highlighted using the `highlightStyle.series.strokeWidth` configuration and have a `strokeWidth` of `2`.
+-   All segments belonging to the other series are dimmed with an applied opacity of `0.2`.
+-   When a legend item is hovered, the hovered series shows the `strokeWidth` of `2`, and the other series are dimmed. No individual item is highlighted as none are hovered.
 
-## Series Highlighting with Multiple Series
+In the above example we provided the same `highlightStyle` for all of the series, but the style can be unique to each series.
 
-Let's take a look at the pie chart configuration now, which is going to be slightly different. Note the following:
+For simplicity, we provided the `highlightStyle` once within a chart [Theme](./themes/), rather than repeating it on each series.
 
--   We are using the same data set for the pie chart example as for the bar chart example, but because the pie series are not stacked,
-    we need 4 different pie series - one for each quarter - to render the whole data set.
--   If the series are missing the `title` config, we will have legend items that are indistinguishable from those of other series,
-    because each series legend items will be: `Coffee`, `Tea`, `Milk`. This is why in order to make legend items unique we use the name of the quarter
-    in the series `title` config.
--   Since we have multiple pie series, we have to modify the `highlightStyle` of every single series;
-    in this example we are using the same `highlightStyle` for all 4 of them, but they could also be unique.
+## API Reference
 
-{% chartExampleRunner title="Pie Series with Custom Highlight Style" name="basic-pie" type="generated" /%}
+{% tabs %}
 
-## Series Highlighting via Chart Themes
+{% tabItem id="AgSeriesHighlightStyle" label="Highlight Style" %}
+{% apiReference id="AgSeriesHighlightStyle" /%}
+{% /tabItem %}
 
-The example above provides a separate `highlightStyle` for each pie series config.
-The `highlightStyle` can be provided once within a chart [Theme](./themes/) and be used by all pie series, as illustrated by the example below:
-
-{% chartExampleRunner title="Pie Series with Custom Highlight Style Theme" name="basic-pie-theme" type="generated" /%}
+{% /tabs %}

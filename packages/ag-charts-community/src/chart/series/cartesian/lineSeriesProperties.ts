@@ -34,7 +34,7 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
         readonly fontFamily: string;
         readonly textAlign: CanvasTextAlign;
         readonly textBaseline: CanvasTextBaseline;
-        readonly fill: string;
+        readonly fill?: string;
     };
 }
 

@@ -21,6 +21,7 @@ const options: AgChartOptions = {
             type: 'bar',
             xKey: 'year',
             yKey: 'visitors',
+            cornerRadius: 15,
             label: {
                 formatter: ({ value }) => formatNumber(value),
             },
@@ -47,6 +48,12 @@ const options: AgChartOptions = {
             },
             label: {
                 formatter: ({ value }) => formatNumber(value),
+            },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) =>
+                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatNumber(value)}</div>`,
+                },
             },
         },
     ],

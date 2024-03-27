@@ -161,7 +161,12 @@ function findActiveTopLevelMenuItem({
     activeMenuItemPath: string;
 }) {
     const isTopLevelPath = createIsTopLevelPath(activeMenuItemPath);
-    return menuData.main.items.find(isTopLevelPath) || menuData.charts.items.find(isTopLevelPath);
+    return (
+        menuData.main.items.find(isTopLevelPath) ||
+        menuData.financialCharts.items.find(isTopLevelPath) ||
+        menuData.maps.items.find(isTopLevelPath) ||
+        menuData.charts.items.find(isTopLevelPath)
+    );
 }
 
 function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuData; activeMenuItemPath: string }) {
@@ -175,10 +180,14 @@ function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuDa
         return childMenuItem ? childMenuItem : foundMenuItem;
     };
 
-    return (
-        menuData.main.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined) ||
-        menuData.charts.items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined)
-    );
+    for (const key of ['main', 'maps', 'charts', 'financialCharts'] as const) {
+        const result = menuData[key].items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined);
+        if (result) {
+            return result;
+        }
+    }
+
+    return undefined;
 }
 
 function MainPagesNavigation({
@@ -225,24 +234,28 @@ function MainPagesNavigation({
     );
 }
 
-function SeriesPagesNavigation({
+function MenuGroupPagesNavigation({
     menuData,
     framework,
     activeMenuItem,
     activeTopLevelMenuItem,
+    menuGroupKey,
+    className,
 }: {
     menuData: MenuData;
     framework: Framework;
     activeMenuItem?: MenuItem;
     activeTopLevelMenuItem?: MenuItem;
+    menuGroupKey: keyof MenuData;
+    className: CSSModuleClasses[string];
 }) {
-    const [topLevelSeriesItem] = menuData.charts.items;
+    const [topLevelSeriesItem] = menuData[menuGroupKey].items;
     const chartsMenuItems = topLevelSeriesItem.items;
 
     return (
         <ul
             className={classnames(
-                styles.seriesTypesNav,
+                className,
                 styles.menuInner,
                 gridStyles.menuInner,
                 gridStyles.menuGroup,
@@ -250,7 +263,7 @@ function SeriesPagesNavigation({
             )}
         >
             <hr />
-            <h5>Series</h5>
+            <h5>{topLevelSeriesItem.title}</h5>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
                 const isActive = menuItem === activeTopLevelMenuItem;
@@ -317,11 +330,29 @@ export function PagesNavigation({
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
                     setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
                 />
-                <SeriesPagesNavigation
+                <MenuGroupPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
+                    menuGroupKey="maps"
+                    className={styles.menuGroupTypesNav}
+                />
+                <MenuGroupPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeTopLevelMenuItem={activeTopLevelMenuItem}
+                    menuGroupKey="financialCharts"
+                    className={styles.menuGroupTypesNav}
+                />
+                <MenuGroupPagesNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    activeMenuItem={activeMenuItem}
+                    activeTopLevelMenuItem={activeTopLevelMenuItem}
+                    menuGroupKey="charts"
+                    className={styles.seriesTypesNav}
                 />
             </aside>
         </Collapsible>

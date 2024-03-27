@@ -199,10 +199,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private getNodeData(): ErrorBarNodeDatum[] | undefined {
-        const { contextNodeData } = this.cartesianSeries;
-        if (contextNodeData.length > 0) {
-            return contextNodeData[0].nodeData;
-        }
+        return this.cartesianSeries.contextNodeData?.nodeData;
     }
 
     private createNodeData() {
@@ -312,11 +309,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     pickNodeNearest(point: Point): PickNodeDatumResult {
-        return this.groupNode.nearestSquared(point);
+        return this.groupNode.nearestSquared(point.x, point.y);
     }
 
     pickNodeMainAxisFirst(point: Point): PickNodeDatumResult {
-        return this.groupNode.nearestSquared(point);
+        return this.groupNode.nearestSquared(point.x, point.y);
     }
 
     getTooltipParams() {

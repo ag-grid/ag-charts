@@ -124,12 +124,14 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const { axes, dataModel, processedData, colorScale, sizeScale } = this;
         const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, label, colorKey, marker, visible } =
             this.properties;
+        const markerShape = getMarker(marker.shape);
+        const { placement } = label;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!(dataModel && processedData && visible && xAxis && yAxis)) {
-            return [];
+            return;
         }
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
@@ -183,18 +185,18 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 midPoint: { x, y },
                 fill,
                 label: { text: labelText, ...size },
+                marker: markerShape,
+                placement,
             });
         }
 
-        return [
-            {
-                itemId: yKey,
-                nodeData,
-                labelData: nodeData,
-                scales: super.calculateScaling(),
-                visible: this.visible,
-            },
-        ];
+        return {
+            itemId: yKey,
+            nodeData,
+            labelData: nodeData,
+            scales: super.calculateScaling(),
+            visible: this.visible,
+        };
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -202,7 +204,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override getLabelData(): PointLabelDatum[] {
-        return this.contextNodeData?.reduce<PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
+        return this.contextNodeData?.labelData ?? [];
     }
 
     protected override markerFactory() {
@@ -374,9 +376,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         ];
     }
 
-    override animateEmptyUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
-        markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+    override animateEmptyUpdateReady({ markerSelection, labelSelection }: BubbleAnimationData) {
+        markerScaleInAnimation(this, this.ctx.animationManager, markerSelection);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     protected isLabelEnabled() {

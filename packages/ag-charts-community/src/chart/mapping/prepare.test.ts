@@ -5,7 +5,7 @@ import type { AgCartesianChartOptions, AgChartOptions, AgLineSeriesOptions } fro
 import { registerInbuiltModules } from '../factory/registerInbuiltModules';
 import { setupModules } from '../factory/setupModules';
 import * as examples from '../test/examples';
-import { setupMockConsole } from '../test/mockConsole';
+import { setupMockConsole } from '../test/utils';
 import { ChartTheme } from '../themes/chartTheme';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {

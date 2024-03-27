@@ -38,7 +38,7 @@ export class CartesianChart extends Chart {
 
     override async performLayout() {
         const shrinkRect = await super.performLayout();
-        const { firstSeriesTranslation, seriesRoot } = this;
+        const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
 
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
         this.seriesRoot.visible = visibility.series;
@@ -48,8 +48,10 @@ export class CartesianChart extends Chart {
         const { x, y } = seriesRect;
         if (firstSeriesTranslation) {
             // For initial rendering, don't animate.
-            seriesRoot.translationX = Math.floor(x);
-            seriesRoot.translationY = Math.floor(y);
+            for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+                group.translationX = Math.floor(x);
+                group.translationY = Math.floor(y);
+            }
             this.firstSeriesTranslation = false;
         } else {
             // Animate seriesRect movements - typically caused by axis size changes.
@@ -58,7 +60,7 @@ export class CartesianChart extends Chart {
                 this.id,
                 'seriesRect',
                 this.animationManager,
-                [this.seriesRoot],
+                [seriesRoot, highlightRoot, annotationRoot],
                 { translationX, translationY },
                 { translationX: Math.floor(x), translationY: Math.floor(y) },
                 { phase: 'update' }
@@ -69,6 +71,11 @@ export class CartesianChart extends Chart {
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
 
         this.hoverRect = seriesPaddedRect;
+
+        const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
+        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
 
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
@@ -398,29 +405,27 @@ export class CartesianChart extends Chart {
         let { clipSeries } = opts;
         const { position = 'left', direction } = axis;
 
-        const axisLeftRightRange = (targetAxis: ChartAxis) => {
-            if (targetAxis instanceof CategoryAxis || targetAxis instanceof GroupedCategoryAxis) {
-                return [0, seriesRect.height];
-            }
-            return [seriesRect.height, 0];
-        };
+        const isCategory = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+        const isLeftRight = position === 'left' || position === 'right';
 
         const axisOffset = newAxisWidths[position] ?? 0;
-        switch (position) {
-            case 'top':
-            case 'bottom':
-                axis.range = [0, seriesRect.width];
-                axis.gridLength = seriesRect.height;
-                break;
-            case 'right':
-            case 'left':
-                axis.range = axisLeftRightRange(axis);
-                axis.gridLength = seriesRect.width;
-                break;
-        }
 
         const { min, max } = this.zoomManager.getAxisZoom(axis.id);
-        axis.visibleRange = [min, max];
+
+        if (isLeftRight) {
+            if (isCategory) {
+                axis.range = [0, seriesRect.height];
+                axis.visibleRange = [1 - max, 1 - min];
+            } else {
+                axis.range = [seriesRect.height, 0];
+                axis.visibleRange = [min, max];
+            }
+            axis.gridLength = seriesRect.width;
+        } else {
+            axis.range = [0, seriesRect.width];
+            axis.visibleRange = [min, max];
+            axis.gridLength = seriesRect.height;
+        }
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const isVertical = direction === ChartAxisDirection.Y;

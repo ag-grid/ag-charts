@@ -244,6 +244,16 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     ) {}
 }
 
+export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
+    moduleCtx: ModuleContext;
+    useLabelLayer?: boolean;
+    pickModes?: SeriesNodePickMode[];
+    contentGroupVirtual?: boolean;
+    directionKeys?: SeriesDirectionKeysMapping<TProps>;
+    directionNames?: SeriesDirectionKeysMapping<TProps>;
+    canHaveAxes?: boolean;
+};
+
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
         TProps extends SeriesProperties<any>,
@@ -324,12 +334,7 @@ export abstract class Series<
     protected _data?: any[];
     protected _chartData?: any[];
 
-    set data(input: any[] | undefined) {
-        this._data = input;
-        this.onDataChange();
-    }
-
-    get data() {
+    protected get data() {
         return this._data ?? this._chartData;
     }
 
@@ -342,8 +347,21 @@ export abstract class Series<
         return this.properties.visible;
     }
 
+    get hasData() {
+        return this.data != null && this.data.length > 0;
+    }
+
+    get tooltipEnabled() {
+        return this.properties.tooltip?.enabled ?? false;
+    }
+
     protected onDataChange() {
         this.nodeDataRefresh = true;
+    }
+
+    setOptionsData(input: unknown[]) {
+        this._data = input;
+        this.onDataChange();
     }
 
     setChartData(input: unknown[]) {
@@ -374,20 +392,11 @@ export abstract class Series<
 
     protected readonly ctx: ModuleContext;
 
-    constructor(seriesOpts: {
-        moduleCtx: ModuleContext;
-        useLabelLayer?: boolean;
-        pickModes?: SeriesNodePickMode[];
-        contentGroupVirtual?: boolean;
-        directionKeys?: SeriesDirectionKeysMapping<TProps>;
-        directionNames?: SeriesDirectionKeysMapping<TProps>;
-        canHaveAxes?: boolean;
-    }) {
+    constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
         const {
             moduleCtx,
-            useLabelLayer = false,
             pickModes = [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST],
             directionKeys = {},
             directionNames = {},
@@ -403,7 +412,6 @@ export abstract class Series<
         this.contentGroup = this.rootGroup.appendChild(
             new Group({
                 name: `${this.internalId}-content`,
-                layer: !contentGroupVirtual,
                 isVirtual: contentGroupVirtual,
                 zIndex: Layers.SERIES_LAYER_ZINDEX,
                 zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
@@ -412,7 +420,6 @@ export abstract class Series<
 
         this.highlightGroup = new Group({
             name: `${this.internalId}-highlight`,
-            layer: !contentGroupVirtual,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
@@ -425,14 +432,12 @@ export abstract class Series<
         this.labelGroup = this.rootGroup.appendChild(
             new Group({
                 name: `${this.internalId}-series-labels`,
-                layer: useLabelLayer,
                 zIndex: Layers.SERIES_LABEL_ZINDEX,
             })
         );
 
         this.annotationGroup = new Group({
             name: `${this.id}-annotation`,
-            layer: !contentGroupVirtual,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
@@ -518,6 +523,10 @@ export abstract class Series<
         return this.getDirectionValues(direction, this.directionKeys);
     }
 
+    getKeyProperties(direction: ChartAxisDirection): (keyof TProps & string)[] {
+        return this.directionKeys[this.resolveKeyDirection(direction)] ?? [];
+    }
+
     getNames(direction: ChartAxisDirection): (string | undefined)[] {
         return this.getDirectionValues(direction, this.directionNames);
     }
@@ -541,7 +550,7 @@ export abstract class Series<
     abstract processData(dataController: DataController): Promise<void>;
 
     // Using processed data, create data that backs visible nodes.
-    abstract createNodeData(): Promise<TContext[]>;
+    abstract createNodeData(): Promise<TContext | undefined>;
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {

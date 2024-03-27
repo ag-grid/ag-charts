@@ -1,4 +1,5 @@
 import { BBox } from '../bbox';
+import type { DistantObject } from '../nearest';
 import { Path2D } from '../path2D';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
@@ -75,7 +76,7 @@ const insetCornerRadiusRect = (
     width: number,
     height: number,
     cornerRadii: CornerRadii,
-    cornerRadiusBbox: BBox | undefined
+    clipBBox: BBox | undefined
 ) => {
     let {
         topLeft: topLeftCornerRadius,
@@ -93,10 +94,14 @@ const insetCornerRadiusRect = (
         bottomLeftCornerRadius + bottomRightCornerRadius
     );
     if (maxVerticalCornerRadius <= 0 && maxHorizontalCornerRadius <= 0) {
-        path.rect(x, y, width, height);
+        if (clipBBox == null) {
+            path.rect(x, y, width, height);
+        } else {
+            path.rect(clipBBox.x, clipBBox.y, clipBBox.width, clipBBox.height);
+        }
         return;
     } else if (
-        cornerRadiusBbox == null &&
+        clipBBox == null &&
         topLeftCornerRadius === topRightCornerRadius &&
         topLeftCornerRadius === bottomRightCornerRadius &&
         topLeftCornerRadius === bottomLeftCornerRadius
@@ -115,27 +120,20 @@ const insetCornerRadiusRect = (
         height = Math.abs(height);
     }
 
-    if (cornerRadiusBbox != null) {
-        const x0 = Math.max(x, cornerRadiusBbox.x);
-        const x1 = Math.min(x + width, cornerRadiusBbox.x + cornerRadiusBbox.width);
-        const y0 = Math.max(y, cornerRadiusBbox.y);
-        const y1 = Math.min(y + height, cornerRadiusBbox.y + cornerRadiusBbox.height);
-
-        x = x0;
-        y = y0;
-        width = x1 - x0;
-        height = y1 - y0;
-    }
-
     if (width <= 0 || height <= 0) return;
 
-    cornerRadiusBbox ??= new BBox(x, y, width, height);
+    if (clipBBox == null) {
+        clipBBox = new BBox(x, y, width, height);
+    } else {
+        const x0 = Math.max(x, clipBBox.x);
+        const x1 = Math.min(x + width, clipBBox.x + clipBBox.width);
+        const y0 = Math.max(y, clipBBox.y);
+        const y1 = Math.min(y + height, clipBBox.y + clipBBox.height);
 
-    const borderScale = Math.max(
-        maxVerticalCornerRadius / cornerRadiusBbox.height,
-        maxHorizontalCornerRadius / cornerRadiusBbox.width,
-        1
-    );
+        clipBBox = new BBox(x0, y0, x1 - x0, y1 - y0);
+    }
+
+    const borderScale = Math.max(maxVerticalCornerRadius / height, maxHorizontalCornerRadius / width, 1);
 
     if (borderScale > 1) {
         topLeftCornerRadius /= borderScale;
@@ -156,85 +154,85 @@ const insetCornerRadiusRect = (
 
     if (drawTopLeftCorner) {
         const nodes = cornerEdges(
-            height,
-            width,
-            Math.max(cornerRadiusBbox.x + topLeftCornerRadius - x, 0),
-            Math.max(cornerRadiusBbox.y + topLeftCornerRadius - y, 0),
+            clipBBox.height,
+            clipBBox.width,
+            Math.max(x + topLeftCornerRadius - clipBBox.x, 0),
+            Math.max(y + topLeftCornerRadius - clipBBox.y, 0),
             topLeftCornerRadius
         );
 
         if (nodes.leadingClipped) drawBottomLeftCorner = false;
         if (nodes.trailingClipped) drawTopRightCorner = false;
 
-        const x0 = Math.max(x + nodes.leading1, x);
-        const y0 = Math.max(y + nodes.leading0, y);
-        const x1 = Math.max(x + nodes.trailing1, x);
-        const y1 = Math.max(y + nodes.trailing0, y);
-        const cx = cornerRadiusBbox.x + topLeftCornerRadius;
-        const cy = cornerRadiusBbox.y + topLeftCornerRadius;
+        const x0 = Math.max(clipBBox.x + nodes.leading1, clipBBox.x);
+        const y0 = Math.max(clipBBox.y + nodes.leading0, clipBBox.y);
+        const x1 = Math.max(clipBBox.x + nodes.trailing1, clipBBox.x);
+        const y1 = Math.max(clipBBox.y + nodes.trailing0, clipBBox.y);
+        const cx = x + topLeftCornerRadius;
+        const cy = y + topLeftCornerRadius;
         topLeftCorner = { x0, y0, x1, y1, cx, cy };
     }
 
     if (drawTopRightCorner) {
         const nodes = cornerEdges(
-            width,
-            height,
-            Math.max(cornerRadiusBbox.y + topRightCornerRadius - y, 0),
-            Math.max(x + width - (cornerRadiusBbox.x + cornerRadiusBbox.width - topRightCornerRadius), 0),
+            clipBBox.width,
+            clipBBox.height,
+            Math.max(y + topRightCornerRadius - clipBBox.y, 0),
+            Math.max(clipBBox.x + clipBBox.width - (x + width - topRightCornerRadius), 0),
             topRightCornerRadius
         );
 
         if (nodes.leadingClipped) drawTopLeftCorner = false;
         if (nodes.trailingClipped) drawBottomRightCorner = false;
 
-        const x0 = Math.min(x + width - nodes.leading0, x + width);
-        const y0 = Math.max(y + nodes.leading1, y);
-        const x1 = Math.min(x + width - nodes.trailing0, x + width);
-        const y1 = Math.max(y + nodes.trailing1, y);
-        const cx = cornerRadiusBbox.x + cornerRadiusBbox.width - topRightCornerRadius;
-        const cy = cornerRadiusBbox.y + topRightCornerRadius;
+        const x0 = Math.min(clipBBox.x + clipBBox.width - nodes.leading0, clipBBox.x + clipBBox.width);
+        const y0 = Math.max(clipBBox.y + nodes.leading1, clipBBox.y);
+        const x1 = Math.min(clipBBox.x + clipBBox.width - nodes.trailing0, clipBBox.x + clipBBox.width);
+        const y1 = Math.max(clipBBox.y + nodes.trailing1, clipBBox.y);
+        const cx = x + width - topRightCornerRadius;
+        const cy = y + topRightCornerRadius;
         topRightCorner = { x0, y0, x1, y1, cx, cy };
     }
 
     if (drawBottomRightCorner) {
         const nodes = cornerEdges(
-            height,
-            width,
-            Math.max(x + width - (cornerRadiusBbox.x + cornerRadiusBbox.width - bottomRightCornerRadius), 0),
-            Math.max(y + height - (cornerRadiusBbox.y + cornerRadiusBbox.height - bottomRightCornerRadius), 0),
+            clipBBox.height,
+            clipBBox.width,
+            Math.max(clipBBox.x + clipBBox.width - (x + width - bottomRightCornerRadius), 0),
+            Math.max(clipBBox.y + clipBBox.height - (y + height - bottomRightCornerRadius), 0),
             bottomRightCornerRadius
         );
 
         if (nodes.leadingClipped) drawTopRightCorner = false;
         if (nodes.trailingClipped) drawBottomLeftCorner = false;
 
-        const x0 = Math.min(x + width - nodes.leading1, x + width);
-        const y0 = Math.min(y + height - nodes.leading0, y + height);
-        const x1 = Math.min(x + width - nodes.trailing1, x + width);
-        const y1 = Math.min(y + height - nodes.trailing0, y + height);
-        const cx = cornerRadiusBbox.x + cornerRadiusBbox.width - bottomRightCornerRadius;
-        const cy = cornerRadiusBbox.y + cornerRadiusBbox.height - bottomRightCornerRadius;
+        const x0 = Math.min(clipBBox.x + clipBBox.width - nodes.leading1, clipBBox.x + clipBBox.width);
+        const y0 = Math.min(clipBBox.y + clipBBox.height - nodes.leading0, clipBBox.y + clipBBox.height);
+        const x1 = Math.min(clipBBox.x + clipBBox.width - nodes.trailing1, clipBBox.x + clipBBox.width);
+        const y1 = Math.min(clipBBox.y + clipBBox.height - nodes.trailing0, clipBBox.y + clipBBox.height);
+        const cx = x + width - bottomRightCornerRadius;
+        const cy = y + height - bottomRightCornerRadius;
         bottomRightCorner = { x0, y0, x1, y1, cx, cy };
     }
 
     if (drawBottomLeftCorner) {
         const nodes = cornerEdges(
-            width,
-            height,
-            Math.max(y + height - (cornerRadiusBbox.y + cornerRadiusBbox.height - bottomLeftCornerRadius), 0),
-            Math.max(cornerRadiusBbox.x + bottomLeftCornerRadius - x, 0),
+            clipBBox.width,
+            clipBBox.height,
+            Math.max(clipBBox.y + clipBBox.height - (y + height - bottomLeftCornerRadius), 0),
+            Math.max(x + bottomLeftCornerRadius - clipBBox.x, 0),
             bottomLeftCornerRadius
         );
 
         if (nodes.leadingClipped) drawBottomRightCorner = false;
         if (nodes.trailingClipped) drawTopLeftCorner = false;
 
-        const x0 = Math.max(x + nodes.leading0, x);
-        const y0 = Math.min(y + height - nodes.leading1, y + height);
-        const x1 = Math.max(x + nodes.trailing0, x);
-        const y1 = Math.min(y + height - nodes.trailing1, y + height);
-        const cx = cornerRadiusBbox.x + bottomLeftCornerRadius;
-        const cy = cornerRadiusBbox.y + cornerRadiusBbox.height - bottomLeftCornerRadius;
+        const x0 = Math.max(clipBBox.x + nodes.leading0, clipBBox.x);
+        const y0 = Math.min(clipBBox.y + clipBBox.height - nodes.leading1, clipBBox.y + clipBBox.height);
+        const x1 = Math.max(clipBBox.x + nodes.trailing0, clipBBox.x);
+        const y1 = Math.min(clipBBox.y + clipBBox.height - nodes.trailing1, clipBBox.y + clipBBox.height);
+        const cx = x + bottomLeftCornerRadius;
+        const cy = y + height - bottomLeftCornerRadius;
         bottomLeftCorner = { x0, y0, x1, y1, cx, cy };
     }
 
@@ -258,7 +256,7 @@ const insetCornerRadiusRect = (
     path.closePath();
 };
 
-export class Rect extends Path {
+export class Rect extends Path implements DistantObject {
     static override readonly className: string = 'Rect';
 
     readonly borderPath = new Path2D();
@@ -295,7 +293,7 @@ export class Rect extends Path {
     }
 
     @ScenePathChangeDetection()
-    cornerRadiusBbox?: BBox = undefined;
+    clipBBox?: BBox = undefined;
 
     /**
      * If `true`, the rect is aligned to the pixel grid for crisp looking lines.
@@ -338,7 +336,7 @@ export class Rect extends Path {
             bottomRightCornerRadius: bottomRight,
             bottomLeftCornerRadius: bottomLeft,
         } = this;
-        let { x, y, width: w, height: h, strokeWidth, cornerRadiusBbox } = this;
+        let { x, y, width: w, height: h, strokeWidth, clipBBox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
@@ -358,13 +356,13 @@ export class Rect extends Path {
             x = this.align(x);
             y = this.align(y);
 
-            cornerRadiusBbox =
-                cornerRadiusBbox != null
+            clipBBox =
+                clipBBox != null
                     ? new BBox(
-                          this.align(cornerRadiusBbox.x),
-                          this.align(cornerRadiusBbox.y),
-                          this.align(cornerRadiusBbox.x, cornerRadiusBbox.width),
-                          this.align(cornerRadiusBbox.y, cornerRadiusBbox.height)
+                          this.align(clipBBox.x),
+                          this.align(clipBBox.y),
+                          this.align(clipBBox.x, clipBBox.width),
+                          this.align(clipBBox.y, clipBBox.height)
                       )
                     : undefined;
         }
@@ -391,7 +389,7 @@ export class Rect extends Path {
                 w -= strokeWidth;
                 h -= strokeWidth;
 
-                const adjustedCornerRadiusBbox = cornerRadiusBbox?.clone().shrink(halfStrokeWidth);
+                const adjustedClipBBox = clipBBox?.clone().shrink(halfStrokeWidth);
 
                 const cornerRadii: CornerRadii = {
                     topLeft: topLeft > 0 ? topLeft - strokeWidth : 0,
@@ -402,8 +400,8 @@ export class Rect extends Path {
 
                 // Clipping not needed in this case; fill to center of stroke.
                 this.borderClipPath = undefined;
-                insetCornerRadiusRect(path, x, y, w, h, cornerRadii, adjustedCornerRadiusBbox);
-                insetCornerRadiusRect(borderPath, x, y, w, h, cornerRadii, adjustedCornerRadiusBbox);
+                insetCornerRadiusRect(path, x, y, w, h, cornerRadii, adjustedClipBBox);
+                insetCornerRadiusRect(borderPath, x, y, w, h, cornerRadii, adjustedClipBBox);
             } else {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new Path2D();
@@ -416,7 +414,7 @@ export class Rect extends Path {
             // No borderPath needed, and thus no clipPath needed either. Fill to full extent of
             // Rect.
             this.borderClipPath = undefined;
-            insetCornerRadiusRect(path, x, y, w, h, cornerRadii, cornerRadiusBbox);
+            insetCornerRadiusRect(path, x, y, w, h, cornerRadii, clipBBox);
         }
 
         // Path.isPointInPath is expensive, so just use a BBox if the corners aren't rounded.
@@ -435,12 +433,20 @@ export class Rect extends Path {
     }
 
     override computeBBox(): BBox {
-        const { x, y, width, height } = this;
-        return new BBox(x, y, width, height);
+        const { x, y, width, height, clipBBox } = this;
+        return clipBBox?.clone() ?? new BBox(x, y, width, height);
     }
 
     override isPointInPath(x: number, y: number): boolean {
         return this.hittester(x, y);
+    }
+
+    get midPoint(): { x: number; y: number } {
+        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+    }
+
+    distanceSquared(x: number, y: number): number {
+        return this.getCachedBBox().distanceSquared(x, y);
     }
 
     protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {

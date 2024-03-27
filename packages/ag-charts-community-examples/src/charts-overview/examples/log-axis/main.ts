@@ -1,8 +1,56 @@
-import type { AgCartesianChartOptions} from "ag-charts-community";
+import type { AgCartesianAxisOptions, AgCartesianChartOptions} from "ag-charts-community";
 import { AgCharts } from "ag-charts-community"
 import { getData } from "./data"
 
 const formatter = new Intl.NumberFormat()
+
+const logAxes: AgCartesianAxisOptions[] = [
+  {
+    type: "log",
+    position: "left",
+    title: {
+      text: "Population",
+    },
+    label: {
+      format: ",.0f",
+      fontSize: 10,
+    },
+  },
+  {
+    type: "number",
+    position: "bottom",
+    title: {
+      text: "Year",
+    },
+    label: {
+      fontSize: 10,
+    },
+  },
+]
+
+const linearAxes: AgCartesianAxisOptions[] = [
+  {
+    type: "number",
+    position: "left",
+    title: {
+      text: "Population",
+    },
+    label: {
+      format: ",.0f",
+      fontSize: 10,
+    },
+  },
+  {
+    type: "number",
+    position: "bottom",
+    title: {
+      text: "Year",
+    },
+    label: {
+      fontSize: 10,
+    },
+  },
+]
 
 const options: AgCartesianChartOptions = {
   container: document.getElementById("myChart"),
@@ -25,65 +73,23 @@ const options: AgCartesianChartOptions = {
       },
     },
   ],
-  axes: [
-    {
-      type: "log",
-      position: "left",
-      title: {
-        text: "Population",
-      },
-      label: {
-        format: ",.0f",
-        fontSize: 10,
-      },
-    },
-    {
-      type: "number",
-      position: "bottom",
-      title: {
-        text: "Year",
-      },
-      label: {
-        fontSize: 10,
-      },
-    },
-  ],
+  axes: logAxes
 }
 
 const chart = AgCharts.create(options)
 
-function useNumberAxis() {
+function setNumberAxis() {
   options.subtitle = {
     text: "linear scale",
   }
-  options.axes![0] = {
-    type: "number",
-    position: "left",
-    title: {
-      text: "Population",
-    },
-    label: {
-      format: ",.0f",
-      fontSize: 10,
-    },
-  }
+  options.axes = linearAxes
   AgCharts.update(chart, options)
 }
 
-function useLogAxis() {
+function setLogAxis() {
   options.subtitle = {
     text: "log scale",
   }
-  options.axes![0] = {
-    type: "log",
-    position: "left",
-    title: {
-      text: "Population",
-    },
-    label: {
-      format: ",.0f",
-      fontSize: 10,
-    },
-  }
+  options.axes = logAxes
   AgCharts.update(chart, options)
 }
