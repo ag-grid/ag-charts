@@ -13,12 +13,13 @@ const sources = [
     'range-bar-with-labels',
 ];
 
+const multiplier = 4;
 const targetDimensions = {
-    width: 800,
-    height: 600,
+    width: 600 * multiplier,
+    height: 375 * multiplier,
 };
 const background = { r: 0, g: 0, b: 0, alpha: 0 };
-const padding = 5;
+const padding = 3 * multiplier;
 
 const columns = 3;
 const rows = 3;
@@ -28,7 +29,7 @@ const sourceHeight = Math.floor(targetDimensions.height / rows);
 async function compose(suffix = '', outputPath) {
     const sourceObjects = sources.map((s) => {
         return sharp(`./dist/generated-thumbnails/ag-charts-website/gallery/_examples/${s}/ag-default${suffix}.png`)
-            .resize(sourceWidth - padding * 2, sourceHeight - padding * 2)
+            .resize(sourceWidth - padding * 2, sourceHeight - padding * 2, { fit: 'contain', background })
             .toBuffer();
     });
 
