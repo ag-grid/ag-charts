@@ -6,7 +6,7 @@ import { toTitleCase } from './string-utils';
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const clone = structuredClone(options);',
+        'const clone = deepClone(options);',
         'setOptions(clone);',
         'clone'
     );
@@ -27,12 +27,14 @@ function getImports(componentFilenames: string[], bindings): string[] {
         imports.push(chartImport);
     }
 
-    if (componentFilenames) {
-        imports.push(...componentFilenames.map(getImport));
-    }
-
     if (bindings.chartSettings.enterprise) {
         imports.push(`import 'ag-charts-enterprise';`);
+    }
+
+    imports.push(`import deepClone from 'deepclone';`);
+
+    if (componentFilenames) {
+        imports.push(...componentFilenames.map(getImport));
     }
 
     return imports;
