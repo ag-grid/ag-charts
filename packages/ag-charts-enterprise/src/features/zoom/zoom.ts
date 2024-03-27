@@ -144,7 +144,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private enableSecondaryAxis = false;
 
     @ProxyProperty('panner.decelerationRate')
-    decelerationRate: number = 1;
+    decelerationRate: number = 0;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();

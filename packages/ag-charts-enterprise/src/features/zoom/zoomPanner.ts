@@ -21,7 +21,7 @@ const maxZoomCoords = 16;
 
 export class ZoomPanner {
     @Validate(RATIO)
-    decelerationRate: number = 1;
+    decelerationRate: number = 0;
 
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
 
@@ -88,7 +88,7 @@ export class ZoomPanner {
         this.zoomCoordsHistoryIndex = 0;
         this.coordsHistory.length = 0;
 
-        if (deltaT > 0 && this.decelerationRate < 1) {
+        if (deltaT > 0 && this.decelerationRate > 0) {
             const xVelocity = deltaX / deltaT;
             const yVelocity = deltaY / deltaT;
             const velocity = Math.hypot(xVelocity, yVelocity);
@@ -111,14 +111,13 @@ export class ZoomPanner {
     }
 
     private animateInertia(t: number, prevT: number, t0: number, velocity: number, angle: number) {
-        const friction = 1 - this.decelerationRate;
+        const { decelerationRate } = this;
 
-        const maxT = velocity / (2 * friction);
+        // Displacement at t = infinity
+        const maxS = -velocity / Math.log(decelerationRate);
 
-        const s0t = Math.min(prevT - t0, maxT);
-        const s0 = velocity * s0t - friction * s0t ** 2;
-        const s1t = Math.min(t - t0, maxT);
-        const s1 = velocity * s1t - friction * s1t ** 2;
+        const s0 = (velocity * (decelerationRate ** (prevT - t0) - 1)) / Math.log(decelerationRate);
+        const s1 = (velocity * (decelerationRate ** (t - t0) - 1)) / Math.log(decelerationRate);
 
         this.onUpdate?.({
             type: 'update',
@@ -126,7 +125,8 @@ export class ZoomPanner {
             deltaY: -Math.sin(angle) * (s1 - s0),
         });
 
-        if (t - t0 >= maxT) return;
+        // If we won't advance more than one pixel, stop inertial panning
+        if (s1 >= maxS - 1) return;
 
         this.inertiaHandle = requestAnimationFrame((nextT) => {
             this.animateInertia(nextT, t, t0, velocity, angle);
