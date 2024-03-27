@@ -21,7 +21,9 @@ const maxZoomCoords = 16;
 
 export class ZoomPanner {
     @Validate(RATIO)
-    deceleration: number = 1;
+    deceleration: number = 0.01;
+
+    private animationManager: _ModuleSupport.AnimationManager;
 
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
 
@@ -31,7 +33,11 @@ export class ZoomPanner {
     private zoomCoordsHistoryIndex = 0;
     private coordsHistory: ZoomCoordHistory[] = [];
 
-    private inertiaHandle: number | undefined;
+    private animation: _ModuleSupport.Animation<number> | undefined;
+
+    constructor(ctx: _ModuleSupport.ModuleContext) {
+        this.animationManager = ctx.animationManager;
+    }
 
     addListener(_type: 'update', fn: (e: ZoomPanUpdate) => void) {
         this.onUpdate = fn;
@@ -41,10 +47,8 @@ export class ZoomPanner {
     }
 
     stopInteractions() {
-        if (this.inertiaHandle != null) {
-            cancelAnimationFrame(this.inertiaHandle);
-            this.inertiaHandle = undefined;
-        }
+        this.animation?.stop();
+        this.animation = undefined;
     }
 
     update(event: _ModuleSupport.InteractionEvent<'drag'>) {
@@ -88,16 +92,46 @@ export class ZoomPanner {
         this.zoomCoordsHistoryIndex = 0;
         this.coordsHistory.length = 0;
 
-        if (deltaT > 0 && this.deceleration < 1) {
-            const xVelocity = deltaX / deltaT;
-            const yVelocity = deltaY / deltaT;
-            const velocity = Math.hypot(xVelocity, yVelocity);
-            const angle = Math.atan2(yVelocity, xVelocity);
-            const t0 = performance.now();
-            this.inertiaHandle = requestAnimationFrame((t) => {
-                this.animateInertia(t, t, t0, velocity, angle);
-            });
-        }
+        if (deltaT <= 0 || this.deceleration >= 1) return;
+
+        const xVelocity = deltaX / deltaT;
+        const yVelocity = deltaY / deltaT;
+        const velocity = Math.hypot(xVelocity, yVelocity);
+        const angle = Math.atan2(yVelocity, xVelocity);
+
+        const friction = 1 - this.deceleration;
+        // Displacement at t = infinity
+        const maxS = -velocity / Math.log(friction);
+        const maxObservableS = maxS - 1;
+        const maxT = Math.log((maxObservableS * Math.log(friction)) / velocity + 1) / Math.log(friction);
+
+        let s0 = 0;
+        this.animation = this.animationManager.animate({
+            id: 'momentum-panning',
+            groupId: 'zoom',
+            phase: 'update',
+            from: 0,
+            to: maxT,
+            // TODO: Set duration to maxT
+            collapsable: false,
+            onUpdate: (t) => {
+                console.log('t', t);
+
+                const s1 = (velocity * (friction ** t - 1)) / Math.log(friction);
+
+                this.onUpdate?.({
+                    type: 'update',
+                    deltaX: -Math.cos(angle) * (s1 - s0),
+                    deltaY: -Math.sin(angle) * (s1 - s0),
+                });
+
+                s0 = s1;
+            },
+            onStop() {
+                console.log('STOP');
+            },
+        });
+        this.animation?.play();
     }
 
     private recordCurrentZoomCoords() {
@@ -108,29 +142,6 @@ export class ZoomPanner {
 
         coordsHistory[zoomCoordsHistoryIndex % maxZoomCoords] = { x, y, t };
         this.zoomCoordsHistoryIndex += 1;
-    }
-
-    private animateInertia(t: number, prevT: number, t0: number, velocity: number, angle: number) {
-        const friction = 1 - this.deceleration;
-
-        // Displacement at t = infinity
-        const maxS = -velocity / Math.log(friction);
-
-        const s0 = (velocity * (friction ** (prevT - t0) - 1)) / Math.log(friction);
-        const s1 = (velocity * (friction ** (t - t0) - 1)) / Math.log(friction);
-
-        this.onUpdate?.({
-            type: 'update',
-            deltaX: -Math.cos(angle) * (s1 - s0),
-            deltaY: -Math.sin(angle) * (s1 - s0),
-        });
-
-        // If we won't advance more than one pixel, stop inertial panning
-        if (s1 >= maxS - 1) return;
-
-        this.inertiaHandle = requestAnimationFrame((nextT) => {
-            this.animateInertia(nextT, t, t0, velocity, angle);
-        });
     }
 
     private updateCoords(x: number, y: number) {
