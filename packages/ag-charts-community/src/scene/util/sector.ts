@@ -1,4 +1,4 @@
-import { normalizeAngle180, normalizeAngle360 } from '../../util/angle';
+import { angleBetween, normalizeAngle180, normalizeAngle360 } from '../../util/angle';
 import type { BBox } from '../bbox';
 import { arcIntersections, segmentIntersection } from '../intersection';
 
@@ -121,8 +121,14 @@ export function radiiScalingFactor(r: number, sweep: number, a: number, b: numbe
     return start;
 }
 
+const delta = 1e-6;
 export function clockwiseAngle(angle: number, relativeToStartAngle: number) {
-    return normalizeAngle360(angle - relativeToStartAngle) + relativeToStartAngle;
+    if (angleBetween(angle, relativeToStartAngle) < delta) {
+        // Handle floating point errors
+        return relativeToStartAngle;
+    } else {
+        return normalizeAngle360(angle - relativeToStartAngle) + relativeToStartAngle;
+    }
 }
 
 export function clockwiseAngles(startAngle: number, endAngle: number, relativeToStartAngle = 0) {
