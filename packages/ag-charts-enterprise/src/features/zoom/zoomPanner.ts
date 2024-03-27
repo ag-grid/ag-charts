@@ -4,6 +4,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
 import { constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
 
+const { RATIO, Validate } = _ModuleSupport;
 export interface ZoomPanUpdate {
     type: 'update';
     deltaX: number;
@@ -19,6 +20,9 @@ interface ZoomCoordHistory {
 const maxZoomCoords = 16;
 
 export class ZoomPanner {
+    @Validate(RATIO)
+    decelerationRate: number = 1;
+
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
 
     private coords?: ZoomCoords;
@@ -84,7 +88,7 @@ export class ZoomPanner {
         this.zoomCoordsHistoryIndex = 0;
         this.coordsHistory.length = 0;
 
-        if (deltaT > 0) {
+        if (deltaT > 0 && this.decelerationRate < 1) {
             const xVelocity = deltaX / deltaT;
             const yVelocity = deltaY / deltaT;
             const velocity = Math.hypot(xVelocity, yVelocity);
@@ -107,8 +111,7 @@ export class ZoomPanner {
     }
 
     private animateInertia(t: number, prevT: number, t0: number, velocity: number, angle: number) {
-        const decelerationRate = 0.998;
-        const friction = 1 - decelerationRate;
+        const friction = 1 - this.decelerationRate;
 
         const maxT = velocity / (2 * friction);
 
