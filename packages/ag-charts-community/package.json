@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-community",
-  "version": "9.2.0-beta.20240319.1659",
+  "version": "9.2.1-beta.20240327",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -57,7 +57,7 @@
     "@types/ws": "8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-test": "9.2.0-beta.20240319.1659",
+    "ag-charts-test": "9.2.1-beta.20240327",
     "canvas": "^2.10.2",
     "jest": "^29.5.0",
     "jest-canvas-mock": "^2.4.0",
