@@ -8,7 +8,7 @@ enum Command {
     ClosePath,
 }
 
-export class Path2D {
+export class InternalPath2D {
     // The methods of this class will likely be called many times per animation frame,
     // and any allocation can trigger a GC cycle during animation, so we attempt
     // to minimize the number of allocations.
