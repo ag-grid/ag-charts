@@ -21,7 +21,7 @@ const maxZoomCoords = 16;
 
 export class ZoomPanner {
     @Validate(RATIO)
-    decelerationRate: number = 0;
+    deceleration: number = 1;
 
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
 
@@ -88,7 +88,7 @@ export class ZoomPanner {
         this.zoomCoordsHistoryIndex = 0;
         this.coordsHistory.length = 0;
 
-        if (deltaT > 0 && this.decelerationRate > 0) {
+        if (deltaT > 0 && this.deceleration < 1) {
             const xVelocity = deltaX / deltaT;
             const yVelocity = deltaY / deltaT;
             const velocity = Math.hypot(xVelocity, yVelocity);
@@ -111,13 +111,13 @@ export class ZoomPanner {
     }
 
     private animateInertia(t: number, prevT: number, t0: number, velocity: number, angle: number) {
-        const { decelerationRate } = this;
+        const friction = 1 - this.deceleration;
 
         // Displacement at t = infinity
-        const maxS = -velocity / Math.log(decelerationRate);
+        const maxS = -velocity / Math.log(friction);
 
-        const s0 = (velocity * (decelerationRate ** (prevT - t0) - 1)) / Math.log(decelerationRate);
-        const s1 = (velocity * (decelerationRate ** (t - t0) - 1)) / Math.log(decelerationRate);
+        const s0 = (velocity * (friction ** (prevT - t0) - 1)) / Math.log(friction);
+        const s1 = (velocity * (friction ** (t - t0) - 1)) / Math.log(friction);
 
         this.onUpdate?.({
             type: 'update',
