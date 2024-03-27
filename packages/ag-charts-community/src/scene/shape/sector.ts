@@ -148,7 +148,7 @@ export class Sector extends Path {
         a0: number,
         a1: number,
         outerArc: Arc,
-        innerArc: Arc,
+        innerArc: Arc | undefined,
         start: boolean,
         inner: boolean
     ): Arc | undefined {
@@ -213,7 +213,7 @@ export class Sector extends Path {
                 const theta = clockwiseAngle(Math.atan2(y, x), startAngle);
 
                 if (start) {
-                    innerArc.clipStart(theta);
+                    innerArc?.clipStart(theta);
                 } else {
                     outerArc.clipEnd(theta);
                 }
@@ -225,7 +225,7 @@ export class Sector extends Path {
                 if (start) {
                     outerArc.clipStart(theta);
                 } else {
-                    innerArc.clipEnd(theta);
+                    innerArc?.clipEnd(theta);
                 }
             }
         }
@@ -235,9 +235,9 @@ export class Sector extends Path {
         const theta = clockwiseAngle(Math.atan2(y, x), startAngle);
         const radialArc = inner ? innerArc : outerArc;
         if (start) {
-            radialArc.clipStart(theta);
+            radialArc?.clipStart(theta);
         } else {
-            radialArc.clipEnd(theta);
+            radialArc?.clipEnd(theta);
         }
 
         return arc;
@@ -282,6 +282,7 @@ export class Sector extends Path {
         const outerAngleExceeded = sweepAngle < 2 * outerAngleOffset;
         if (outerAngleExceeded) return;
 
+        const hasInnerSweep = (clipSector?.innerRadius ?? innerRadius) > concentricEdgeInset;
         const innerAngleExceeded = innerRadius < concentricEdgeInset || sweepAngle < 2 * innerAngleOffset;
 
         // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
@@ -309,7 +310,7 @@ export class Sector extends Path {
         startOuterCornerRadius *= outerScalingFactor;
         endOuterCornerRadius *= outerScalingFactor;
 
-        if (!innerAngleExceeded && innerRadius > 0) {
+        if (!innerAngleExceeded && hasInnerSweep) {
             // ... then the inner corner radii
             const innerScalingFactor = radiiScalingFactor(
                 innerRadius,
@@ -359,26 +360,26 @@ export class Sector extends Path {
         );
         const endInnerCornerRadiusAngleSweep = Math.asin(endInnerCornerRadius / (innerRadius + endInnerCornerRadius));
 
+        const outerArcRadius = clipSector?.outerRadius ?? outerRadius;
+        const outerArcRadiusOffset = this.getAngleOffset(outerArcRadius);
         const outerArc = new Arc(
             0,
             0,
-            clipSector?.outerRadius ?? outerRadius,
-            startAngle + outerAngleOffset,
-            endAngle - outerAngleOffset
+            outerArcRadius,
+            startAngle + outerArcRadiusOffset,
+            endAngle - outerArcRadiusOffset
         );
-        const innerArc = new Arc(
-            0,
-            0,
-            clipSector?.innerRadius ?? innerRadius,
-            startAngle + innerAngleOffset,
-            endAngle - innerAngleOffset
-        );
+        const innerArcRadius = clipSector?.innerRadius ?? innerRadius;
+        const innerArcRadiusOffset = this.getAngleOffset(innerArcRadius);
+        const innerArc = hasInnerSweep
+            ? new Arc(0, 0, innerArcRadius, startAngle + innerArcRadiusOffset, endAngle - innerArcRadiusOffset)
+            : undefined;
 
         if (clipSector != null) {
             outerArc.clipStart(clipSector.startAngle);
             outerArc.clipEnd(clipSector.endAngle);
-            innerArc.clipStart(clipSector.startAngle);
-            innerArc.clipEnd(clipSector.endAngle);
+            innerArc?.clipStart(clipSector.startAngle);
+            innerArc?.clipEnd(clipSector.endAngle);
         }
 
         const startOuterArc = this.arc(
@@ -447,12 +448,17 @@ export class Sector extends Path {
             }
             const midAngle = startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
-        } else if (startInnerArc == null) {
+        } else if (startInnerArc != null) {
+            const { x, y } = startInnerArc.pointAt(startInnerArc.a1);
+            path.moveTo(centerX + x, centerY + y);
+        } else if (innerArc != null) {
             const { x, y } = innerArc.pointAt(innerArc.a0);
             path.moveTo(centerX + x, centerY + y);
         } else {
-            const { x, y } = startInnerArc.pointAt(startInnerArc.a1);
-            path.moveTo(centerX + x, centerY + y);
+            const midAngle = startAngle + sweepAngle / 2;
+            const cx = innerRadius * Math.cos(midAngle);
+            const cy = innerRadius * Math.sin(midAngle);
+            path.lineTo(centerX + cx, centerY + cy);
         }
 
         if (startOuterArc?.isValid() === true) {
@@ -470,15 +476,13 @@ export class Sector extends Path {
             path.arc(centerX + cx, centerY + cy, r, a0, a1);
         }
 
-        if (innerAngleExceeded) {
-            // Ignore - completed by closePath
-        } else if (innerArc.r > 0) {
+        if (!innerAngleExceeded) {
             if (endInnerArc?.isValid() === true) {
                 const { cx, cy, r, a0, a1 } = endInnerArc;
                 path.arc(centerX + cx, centerY + cy, r, a0, a1);
             }
 
-            if (innerArc.isValid()) {
+            if (innerArc?.isValid() === true) {
                 const { r, a0, a1 } = innerArc;
                 path.arc(centerX, centerY, r, a1, a0, true);
             }
@@ -487,8 +491,6 @@ export class Sector extends Path {
                 const { cx, cy, r, a0, a1 } = startInnerArc;
                 path.arc(centerX + cx, centerY + cy, r, a0, a1);
             }
-        } else {
-            path.lineTo(centerX, centerY);
         }
 
         path.closePath();
