@@ -25,7 +25,7 @@ const options: AgChartOptions = {
             tooltip: {
                 renderer: ({ datum, title }) => ({
                     title,
-                    content: `GDP: ${numberFormatter.format(datum?.gdp)}`,
+                    content: `GDP: ${numberFormatter.format(datum.gdp)}`,
                 }),
             },
         },
