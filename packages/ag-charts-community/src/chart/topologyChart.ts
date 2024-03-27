@@ -107,8 +107,8 @@ export class TopologyChart extends Chart {
             const yZoom = this.zoomManager.getAxisZoom(this.yAxis.id);
             const xSpan = (x1 - x0) / (xZoom.max - xZoom.min);
             const xStart = x0 - xSpan * xZoom.min;
-            const ySpan = (y1 - y0) / (yZoom.max - yZoom.min);
-            const yStart = y0 - ySpan * yZoom.min;
+            const ySpan = (y1 - y0) / (1 - yZoom.min - (1 - yZoom.max));
+            const yStart = y0 - ySpan * (1 - yZoom.max);
 
             scale = new MercatorScale(domain, [
                 [xStart, yStart],

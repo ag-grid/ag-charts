@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
+import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
 
 const {
@@ -19,6 +20,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     identifier: 'map-shape',
     instanceConstructor: MapShapeSeries,
     themeTemplate: {
+        ...MAP_THEME_DEFAULTS,
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             fillOpacity: 1,
@@ -31,15 +33,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },
-        },
-        legend: {
-            enabled: false,
-        },
-        gradientLegend: {
-            enabled: false,
-        },
-        tooltip: {
-            range: 'exact',
         },
     },
     paletteFactory: (opts) => {

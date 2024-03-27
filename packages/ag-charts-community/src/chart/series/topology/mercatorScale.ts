@@ -8,8 +8,11 @@ const radsInDeg = Math.PI / 180;
 const lonX = (lon: number) => lon * radsInDeg;
 const latY = (lat: number) => -Math.log(Math.tan(Math.PI * 0.25 + lat * radsInDeg * 0.5));
 
+const xLon = (x: number) => x / radsInDeg;
+const yLat = (y: number) => (Math.atan(Math.exp(-y)) - Math.PI * 0.25) / (radsInDeg * 0.5);
+
 export class MercatorScale implements Scale<Position, XY> {
-    private bounds: BBox;
+    readonly bounds: BBox;
 
     static bounds(domain: Position[]): BBox {
         const [[lon0, lat0], [lon1, lat1]] = domain;
@@ -23,15 +26,16 @@ export class MercatorScale implements Scale<Position, XY> {
     }
 
     static fixedScale() {
-        const domain: Position[] = [
-            [-180, 90],
-            [180, -90],
-        ];
-        const { x, y, width, height } = MercatorScale.bounds(domain);
-        return new MercatorScale(domain, [
-            [x, y],
-            [x + width, y + height],
-        ]);
+        return new MercatorScale(
+            [
+                [xLon(0), yLat(0)],
+                [xLon(1), yLat(1)],
+            ],
+            [
+                [0, 0],
+                [1, 1],
+            ]
+        );
     }
 
     constructor(
@@ -42,11 +46,17 @@ export class MercatorScale implements Scale<Position, XY> {
     }
 
     convert([lon, lat]: Position): XY {
-        const x = lonX(lon);
-        const y = latY(lat);
         const [[x0, y0], [x1, y1]] = this.range;
         const xScale = (x1 - x0) / this.bounds.width;
         const yScale = (y1 - y0) / this.bounds.height;
-        return [(x - this.bounds.x) * xScale + x0, (y - this.bounds.y) * yScale + y0];
+        return [(lonX(lon) - this.bounds.x) * xScale + x0, (latY(lat) - this.bounds.y) * yScale + y0];
+    }
+
+    invert([x, y]: XY): Position {
+        const [[x0, y0], [x1, y1]] = this.range;
+        const xScale = (x1 - x0) / this.bounds.width;
+        const yScale = (y1 - y0) / this.bounds.height;
+
+        return [xLon((x - x0) / xScale + this.bounds.x), yLat((y - y0) / yScale + this.bounds.y)];
     }
 }
