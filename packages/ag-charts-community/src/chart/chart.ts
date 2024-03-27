@@ -389,7 +389,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
             this.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
-                this.series.map((s) => (s as any).animationState.transition('updateData'));
+                this.series.map((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -728,19 +728,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     readonly element: HTMLElement;
 
     @ActionOnSet<Chart>({
-        changeValue(newValue, oldValue = []) {
-            for (const axis of oldValue) {
-                if (newValue.includes(axis)) continue;
-                axis.detachAxis(this.axisGroup, this.axisGridGroup);
-                axis.destroy();
-            }
-
-            for (const axis of newValue) {
-                if (oldValue?.includes(axis)) continue;
-                axis.attachAxis(this.axisGroup, this.axisGridGroup);
-            }
-
-            this.zoomManager.updateAxes(newValue);
+        changeValue(newValue, oldValue) {
+            this.onAxisChange(newValue, oldValue);
         },
     })
     axes: ChartAxis[] = [];
@@ -752,7 +741,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
     })
     series: Series<any, any>[] = [];
 
-    private onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {
+    protected onAxisChange(newValue: ChartAxis[], oldValue: ChartAxis[] = []) {
+        for (const axis of oldValue) {
+            if (newValue.includes(axis)) continue;
+            axis.detachAxis(this.axisGroup, this.axisGridGroup);
+            axis.destroy();
+        }
+
+        for (const axis of newValue) {
+            if (oldValue?.includes(axis)) continue;
+            axis.attachAxis(this.axisGroup, this.axisGridGroup);
+        }
+    }
+
+    protected onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
         this.destroySeries(seriesToDestroy);
         this.seriesLayerManager?.setSeriesCount(newValue.length);

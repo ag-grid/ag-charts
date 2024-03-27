@@ -1,4 +1,5 @@
 import type { Scale } from '../../../scale/scale';
+import { BBox } from '../../../scene/bbox';
 import type { Position } from './geojson';
 
 type XY = [x: number, y: number];
@@ -8,45 +9,44 @@ const lonX = (lon: number) => lon * radsInDeg;
 const latY = (lat: number) => -Math.log(Math.tan(Math.PI * 0.25 + lat * radsInDeg * 0.5));
 
 export class MercatorScale implements Scale<Position, XY> {
-    scale: number;
-    originX: number;
-    originY: number;
+    private bounds: BBox;
 
-    static fixedScale(scale = 1) {
-        const out = Object.create(MercatorScale.prototype);
-        out.scale = scale;
-        out.originX = 0;
-        out.originY = 0;
-        return out;
+    static bounds(domain: Position[]): BBox {
+        const [[lon0, lat0], [lon1, lat1]] = domain;
+
+        const x0 = lonX(lon0);
+        const y0 = latY(lat0);
+        const x1 = lonX(lon1);
+        const y1 = latY(lat1);
+
+        return new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+    }
+
+    static fixedScale() {
+        const domain: Position[] = [
+            [-180, 90],
+            [180, -90],
+        ];
+        const { x, y, width, height } = MercatorScale.bounds(domain);
+        return new MercatorScale(domain, [
+            [x, y],
+            [x + width, y + height],
+        ]);
     }
 
     constructor(
         public readonly domain: Position[],
         public readonly range: XY[]
     ) {
-        const [[lon0, lat0], [lon1, lat1]] = domain;
-        const [[x, y], [x1, y1]] = range;
-        const width = x1 - x;
-        const height = y1 - y;
-
-        const viewBoxRawWidth = Math.abs(lonX(lon1) - lonX(lon0));
-        const viewBoxRawHeight = Math.abs(latY(lat1) - latY(lat0));
-
-        const scale = Math.min(width / viewBoxRawWidth, height / viewBoxRawHeight);
-
-        const viewBoxWidth = viewBoxRawWidth * scale;
-        const viewBoxHeight = viewBoxRawHeight * scale;
-
-        const viewBoxOriginX = viewBoxWidth - Math.max(lonX(lon0), lonX(lon1)) * scale;
-        const viewBoxOriginY = viewBoxHeight - Math.max(latY(lat0), latY(lat1)) * scale;
-
-        this.scale = scale;
-        this.originX = -(x + viewBoxOriginX + (width - viewBoxWidth) / 2);
-        this.originY = -(y + viewBoxOriginY + (height - viewBoxHeight) / 2);
+        this.bounds = MercatorScale.bounds(domain);
     }
 
     convert([lon, lat]: Position): XY {
-        const { scale, originX, originY } = this;
-        return [lonX(lon) * scale - originX, latY(lat) * scale - originY];
+        const x = lonX(lon);
+        const y = latY(lat);
+        const [[x0, y0], [x1, y1]] = this.range;
+        const xScale = (x1 - x0) / this.bounds.width;
+        const yScale = (y1 - y0) / this.bounds.height;
+        return [(x - this.bounds.x) * xScale + x0, (y - this.bounds.y) * yScale + y0];
     }
 }

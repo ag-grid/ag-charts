@@ -340,7 +340,8 @@ export class MapShapeSeries
 
             const labelDatum =
                 labelLayout != null && scale != null
-                    ? this.getLabelDatum(labelLayout, scale.scale / fixedScale.scale, scale.originX, scale.originY)
+                    ? // FIXME ? this.getLabelDatum(labelLayout, scale.scale / fixedScale.scale, scale.originX, scale.originY)
+                      this.getLabelDatum(labelLayout, 1, 0, 0)
                     : undefined;
             if (labelDatum != null) {
                 labelData.push(labelDatum);
