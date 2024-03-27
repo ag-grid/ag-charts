@@ -37,6 +37,7 @@ export { Triangle } from './chart/marker/triangle';
 export { Tooltip, toTooltipHtml } from './chart/tooltip/tooltip';
 export type { TooltipMeta } from './chart/tooltip/tooltip';
 export { BBox } from './scene/bbox';
+export { SectorBox } from './scene/sectorBox';
 export type { DistantObject, NearestResult } from './scene/nearest';
 export { nearestSquared, nearestSquaredInContainer } from './scene/nearest';
 export { HdpiCanvas } from './scene/canvas/hdpiCanvas';
