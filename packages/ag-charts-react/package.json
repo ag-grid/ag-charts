@@ -6,6 +6,12 @@
   "module": "./dist/package/index.esm.mjs",
   "type": "module",
   "types": "./dist/types/src/index.d.ts",
+  "exports": {
+    "import": "./dist/package/index.esm.mjs",
+    "require": "./dist/package/index.cjs.js",
+    "types": "./dist/types/src/index.d.ts",
+    "default": "./dist/package/index.cjs.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
