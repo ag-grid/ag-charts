@@ -13,7 +13,7 @@ import type {
 
 export type AgCandlestickSeriesItemType = 'up' | 'down';
 
-interface CandlestickUniqueOptions {
+export interface AgCandlestickSeriesBaseOptions {
     /** The key to use to retrieve open values from the data. */
     openKey: string;
     /** The key to use to retrieve close values from the data. */
@@ -34,11 +34,10 @@ interface CandlestickUniqueOptions {
 
 export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
-export type AgCandlestickSeriesFormatterParams<TDatum> = AgSeriesFormatterParams<TDatum> &
+export type AgCandlestickSeriesBaseFormatterParams<TDatum> = AgSeriesFormatterParams<TDatum> &
     Readonly<
-        CandlestickUniqueOptions &
+        AgCandlestickSeriesBaseOptions &
             Omit<AxisOptions, 'yKey'> &
-            FillOptions &
             StrokeOptions & {
                 /** Identifier showing whether the data element is rising (`up`) or falling (`down`). */
                 itemId: AgCandlestickSeriesItemType;
@@ -46,8 +45,12 @@ export type AgCandlestickSeriesFormatterParams<TDatum> = AgSeriesFormatterParams
             }
     >;
 
+export interface AgCandlestickSeriesFormatterParams<TDatum>
+    extends AgCandlestickSeriesBaseFormatterParams<TDatum>,
+        Readonly<FillOptions> {}
+
 export interface AgCandlestickSeriesTooltipRendererParams
-    extends CandlestickUniqueOptions,
+    extends AgCandlestickSeriesBaseOptions,
         Omit<AgCartesianSeriesTooltipRendererParams, 'yKey'> {
     fill?: CssColor;
 }
@@ -65,7 +68,7 @@ export interface AgCandlestickSeriesItem {
 }
 
 export interface AgCandlestickSeriesStyles {
-    /** Configuration used for the waterfall series item types. */
+    /** Configuration used for the series items. */
     item?: AgCandlestickSeriesItem;
 }
 
@@ -75,13 +78,13 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgCandlestickSeriesFormatterParams<TDatum>) => AgCandlestickSeriesStyles;
+    formatter?: (params: AgCandlestickSeriesFormatterParams<TDatum>) => AgCandlestickSeriesItemOptions;
 }
 
 export interface AgCandlestickSeriesOptions<TDatum = any>
     extends AgCandlestickSeriesThemeableOptions<TDatum>,
         Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
-        CandlestickUniqueOptions,
+        AgCandlestickSeriesBaseOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the Candlestick Series. */
     type: 'candlestick';
