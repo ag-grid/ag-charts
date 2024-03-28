@@ -4,7 +4,7 @@
   "type": "commonjs",
   "private": true,
   "dependencies": {
-    "ag-charts-community": "9.2.1-beta.20240327",
+    "ag-charts-community": "9.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tslib": "^2.3.0"
