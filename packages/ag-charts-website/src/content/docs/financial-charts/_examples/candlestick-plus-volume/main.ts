@@ -79,7 +79,7 @@ const candlestickOptions: AgCartesianChartOptions = {
     ],
 };
 
-const ohlcChart = AgCharts.create(candlestickOptions);
+AgCharts.create(candlestickOptions);
 
 const volumeOptions: AgCartesianChartOptions = {
     ...commonOptions,
@@ -148,4 +148,4 @@ const volumeOptions: AgCartesianChartOptions = {
     },
 };
 
-const volumeChart = AgCharts.create(volumeOptions);
+AgCharts.create(volumeOptions);
