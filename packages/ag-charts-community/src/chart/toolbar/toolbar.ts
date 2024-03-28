@@ -1,11 +1,18 @@
+import { Group } from '../../integrated-charts-scene';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { InteractionEvent } from '../interaction/interactionManager';
-import type { ToolbarEvent } from '../interaction/toolbarManager';
+import type { ToolbarButtonUpdatedEvent } from '../interaction/toolbarManager';
 import { ToolbarButton } from './scenes/toolbarButton';
 import { ToolbarContainer } from './scenes/toolbarContainer';
+
+interface ButtonConfig {
+    id: string;
+    groupId: string;
+    value: any;
+}
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     public enabled = true;
@@ -14,9 +21,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private height = 30;
     private margin = 10;
 
-    private activeButton?: string;
-    private buttonNodes = new Map<string, string>();
-    private buttonOffsetX = 0;
+    private buttonGroups = new Map<string, Group>();
+
+    private activeButton: ButtonConfig | undefined = undefined;
+    private buttons = new Map<ToolbarButton, ButtonConfig>();
     private buttonSpacingX = 10;
 
     private container = new ToolbarContainer();
@@ -32,9 +40,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             toolbarRegion.addListener('hover', this.onHover.bind(this)),
             toolbarRegion.addListener('leave', this.onHover.bind(this)),
             toolbarRegion.addListener('click', this.onClick.bind(this)),
-            ctx.toolbarManager.addListener('visibility', this.onVisibility.bind(this)),
-            ctx.toolbarManager.addListener('button-added', this.onButtonAdded.bind(this)),
-            ctx.toolbarManager.addListener('button-removed', this.onButtonRemoved.bind(this))
+            ctx.toolbarManager.addListener('button-group-updated', this.onButtonGroupUpdated.bind(this))
         );
     }
 
@@ -64,9 +70,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         if (!this.container.visible) return;
 
-        for (const button of this.container.children) {
+        for (const [button, config] of this.buttons) {
             if (button.containsPoint(offsetX, offsetY)) {
-                this.activeButton = this.buttonNodes.get(button.id);
+                this.activeButton = config;
                 break;
             }
         }
@@ -80,34 +86,50 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private onClick() {
         if (!this.container.visible || this.activeButton == null) return;
-        this.ctx.toolbarManager.pressButton(this.activeButton);
+        const { id, groupId, value } = this.activeButton;
+        this.ctx.toolbarManager.pressButton(id, groupId, value);
     }
 
-    private onVisibility({ visible }: ToolbarEvent<'visibility'>) {
-        this.container.visible = visible;
-    }
+    private onButtonGroupUpdated({ id: groupId, buttons }: ToolbarButtonUpdatedEvent) {
+        const existingGroup = this.buttonGroups.get(groupId);
+        if (existingGroup != null) {
+            this.buttons.forEach((config, button) => {
+                if (config.groupId === groupId) {
+                    this.buttons.delete(button);
+                }
+            });
+            this.container.removeChild(existingGroup);
+        }
 
-    private onButtonAdded({ id, options }: ToolbarEvent<'button-added'>) {
-        const button = new ToolbarButton({
-            label: options.label,
-            width: 32,
-            height: 20,
+        const buttonGroup = new Group();
+
+        let buttonOffsetX = 0;
+        buttons.forEach(({ id, label, value }) => {
+            const button = new ToolbarButton({
+                label,
+                minWidth: 32,
+                height: 20,
+                padding: 6,
+            });
+
+            button.translationX = buttonOffsetX;
+            buttonOffsetX += button.computeBBox().width + this.buttonSpacingX;
+
+            this.buttons.set(button, { id, groupId, value });
+
+            buttonGroup.append(button);
         });
 
-        button.translationX = this.buttonOffsetX;
-        this.buttonOffsetX += button.computeBBox().width + this.buttonSpacingX;
+        this.buttonGroups.set(groupId, buttonGroup);
+        this.container.appendChild(buttonGroup);
 
-        this.buttonNodes.set(button.id, id);
+        let buttonGroupOffsetX = 0;
+        this.container.children.forEach((group) => {
+            group.translationX = buttonGroupOffsetX;
+            buttonGroupOffsetX += (group.computeBBox()?.width ?? 0) + this.buttonSpacingX;
+        });
 
-        this.container.append(button);
-    }
-
-    private onButtonRemoved({ id }: ToolbarEvent<'button-removed'>) {
-        const child = this.container.children.find((c) => this.buttonNodes.get(c.id) === id);
-        if (child) {
-            this.buttonOffsetX -= child.getCachedBBox().width + this.buttonSpacingX;
-            this.container.removeChild(child);
-        }
+        this.container.visible = this.buttons.size > 0;
     }
 
     private layoutNodes(x: number, y: number, _width: number, _height: number) {

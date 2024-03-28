@@ -11,6 +11,7 @@ export * from './chart/labelOptions';
 export * from './chart/legendOptions';
 export * from './chart/navigatorOptions';
 export * from './chart/polarAxisOptions';
+export * from './chart/rangeButtonsOptions';
 export * from './chart/tooltipOptions';
 export * from './chart/themeOptions';
 export * from './chart/types';

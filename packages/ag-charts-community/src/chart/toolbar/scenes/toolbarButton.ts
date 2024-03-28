@@ -6,7 +6,7 @@ export class ToolbarButton extends Group {
     private button = new Rect();
     private label = new Text();
 
-    constructor(opts: { label: string; width: number; height: number }) {
+    constructor(opts: { label: string; minWidth: number; height: number; padding: number }) {
         super({ name: 'ToolbarButton' });
 
         const { button, label } = this;
@@ -16,11 +16,14 @@ export class ToolbarButton extends Group {
         label.textBaseline = 'middle';
         label.fontSize = 12;
 
-        button.width = opts.width;
-        button.height = opts.height;
+        const width = Math.max(label.computeBBox().width + opts.padding, opts.minWidth);
+        const height = opts.height;
 
-        label.x = opts.width / 2;
-        label.y = opts.height / 2;
+        button.width = width;
+        button.height = height;
+
+        label.x = width / 2;
+        label.y = height / 2;
 
         button.fill = '#eee';
 

@@ -1,7 +1,6 @@
-import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
+import type { AgRangeButtonsButton, AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import { RANGES } from '../range-buttons/rangeTypes';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanUpdate, ZoomPanner } from './zoomPanner';
@@ -61,9 +60,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         newValue(newValue) {
             if (newValue) {
                 this.registerContextMenuActions();
-                this.addToolbarButtons();
-            } else if (this.enabled) {
-                this.removeToolbarButtons();
             }
         },
     })
@@ -200,20 +196,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         this.toggleContextMenuActions(zoom);
-    }
-
-    private addToolbarButtons() {
-        for (const [range] of RANGES.entries()) {
-            this.toolbarManager.addButton(range, {
-                label: range,
-            });
-        }
-    }
-
-    private removeToolbarButtons() {
-        for (const [range] of RANGES.entries()) {
-            this.toolbarManager.removeButton(range);
-        }
     }
 
     private toggleContextMenuActions(zoom: DefinedZoomState) {
@@ -485,17 +467,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onToolbarButtonPress(event: _ModuleSupport.ToolbarEvent<'button-pressed'>) {
-        if (!RANGES.has(event.id)) return;
+    private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressEvent) {
+        if (event.groupId !== 'range') return;
 
-        const time = RANGES.get(event.id);
-
-        if (typeof time === 'function') {
-            this.rangeX.extendWith(time);
-        } else if (time == null) {
-            this.rangeX.extendAll();
-        } else {
+        const time = event.value as AgRangeButtonsButton['duration'];
+        if (typeof time === 'number') {
             this.rangeX.extendToEnd(time);
+            return;
+        }
+
+        switch (time) {
+            case 'year-to-date':
+                this.rangeX.extendWith((end) => new Date(`${new Date(end).getFullYear()}-01-01`).getTime());
+                break;
+            case 'all':
+                this.rangeX.extendAll();
+                break;
         }
     }
 
