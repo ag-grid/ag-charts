@@ -26,8 +26,6 @@ export interface MapShapeNodeDataContext
 
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
-console.log(fixedScale);
-
 interface LabelLayout {
     geometry: _ModuleSupport.Geometry;
     labelText: string;
@@ -279,7 +277,7 @@ export class MapShapeSeries
         if (text === Text.ellipsis) return;
 
         // Only shift horizontally if necessary
-        const x = width > maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
+        const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
 
         const position = this.scale!.convert(fixedScale.invert([x, y]));
 
