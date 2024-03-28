@@ -18,14 +18,20 @@ const fail = (msg, usage) => {
 
 // Parse argv.
 let argv = process.argv.slice(2);
-const flags = new Set(argv.filter((v) => v.startsWith('-')));
+const flags = new Map(argv.filter((v) => v.startsWith('-')).map((v) => v.split('=')));
 
 const update = flags.has('-u');
-const ci = flags.has('-ci');
+const ci = flags.has('--ci');
+const shard = flags.get('--shard');
 
 argv = argv.filter((v) => !v.startsWith('-'));
 if (argv.length !== 2) {
     fail('Wrong number of arguments', true);
+}
+
+if (shard && shard.split('/')[0] !== '1') {
+    console.log(`Sharding detected, skipping execution for shard ${shard}`);
+    process.exit(0);
 }
 
 const inputDir = argv.shift();
