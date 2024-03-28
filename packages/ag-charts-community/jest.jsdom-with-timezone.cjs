@@ -12,6 +12,8 @@ module.exports = class TimezoneAwareJSDOMEnvironment extends TestEnvironment {
         timezoneMock.register(tz);
 
         super(config, context);
+
+        Object.assign(this.dom.window, { innerWidth: 1024, innerHeight: 768 });
     }
 
     async teardown() {
