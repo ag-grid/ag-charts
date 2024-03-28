@@ -128,7 +128,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
-    private readonly panner = new ZoomPanner();
+    private readonly panner: ZoomPanner;
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();
@@ -144,7 +144,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private enableSecondaryAxis = false;
 
     @ProxyProperty('panner.deceleration')
-    deceleration: number = 1;
+    deceleration!: number;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -157,6 +157,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
         this.toolbarManager = ctx.toolbarManager;
+
+        this.panner = new ZoomPanner(ctx);
 
         // Add selection zoom method and attach selection rect to root scene
         const selectionRect = new ZoomRect();
