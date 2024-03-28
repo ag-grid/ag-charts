@@ -10,6 +10,7 @@ import type {
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
+import { getDocument } from '../../util/dom';
 import {
     CANVAS_HEIGHT,
     CANVAS_TO_BUFFER_DEFAULTS,
@@ -57,7 +58,7 @@ export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function prepareTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
+export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument().body) {
     options.autoSize = false;
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;

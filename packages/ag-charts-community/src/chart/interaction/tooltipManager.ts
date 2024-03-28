@@ -227,7 +227,7 @@ export class TooltipManager {
         };
 
         // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
-        // Using datum.yBar.upperPoint renders the tooltip higher up.
+        // Using datum.yBar.upperPoint renders the tooltip higher up..
         const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? datum.series.datumMidPoint?.(datum);
 
         if (tooltip.position.type === 'node' && refPoint) {
