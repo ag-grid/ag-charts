@@ -1,296 +1,118 @@
-import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
-
-enum Command {
-    Move,
-    Line,
-    Arc,
-    Curve,
-    ClosePath,
-}
+import { createElement } from '../util/dom';
 
 export class InternalPath2D {
-    // The methods of this class will likely be called many times per animation frame,
-    // and any allocation can trigger a GC cycle during animation, so we attempt
-    // to minimize the number of allocations.
+    private static ctx: CanvasRenderingContext2D | null = null;
 
-    private pathOpen: boolean = false;
-    private previousCommands: Command[] = [];
-    private previousParams: number[] = [];
-    private previousClosedPath: boolean = false;
-    private commands: Command[] = [];
-    private params: number[] = [];
+    private openedPath: boolean = false;
+    public closedPath: boolean = false;
 
+    private path = '';
+    private prev = '';
+
+    // if made obsolete, we can remove all string manipulation and use Path2D methods directly
     isDirty() {
-        if (
-            this._closedPath !== this.previousClosedPath ||
-            this.previousCommands.length !== this.commands.length ||
-            this.previousParams.length !== this.params.length
-        ) {
-            return true;
-        }
-
-        for (let i = 0; i < this.commands.length; i++) {
-            if (this.commands[i] !== this.previousCommands[i]) {
-                return true;
-            }
-        }
-
-        for (let i = 0; i < this.params.length; i++) {
-            if (this.params[i] !== this.previousParams[i]) {
-                return true;
-            }
-        }
-
-        return false;
+        return this.path !== this.prev;
     }
 
     getPath2D() {
-        const { commands, params } = this;
-        const path = new Path2D();
-        let j = 0;
-
-        for (const command of commands) {
-            switch (command) {
-                case Command.Move:
-                    path.moveTo(params[j++], params[j++]);
-                    break;
-                case Command.Line:
-                    path.lineTo(params[j++], params[j++]);
-                    break;
-                case Command.Curve:
-                    path.bezierCurveTo(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++]);
-                    break;
-                case Command.Arc:
-                    path.arc(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++] === 1);
-                    break;
-                case Command.ClosePath:
-                    path.closePath();
-                    break;
-            }
-        }
-
-        return path;
-    }
-
-    newPath2D() {
-        const commands = this.commands;
-        const params = this.params;
-        let j = 0;
-        let path = '';
-
-        for (const command of commands) {
-            switch (command) {
-                case Command.Move:
-                    path += `M ${params[j++]},${params[j++]}`;
-                    break;
-                case Command.Line:
-                    path += `L ${params[j++]},${params[j++]}`;
-                    break;
-                case Command.Curve:
-                    path += `C ${params[j++]},${params[j++]} ${params[j++]},${params[j++]} ${params[j++]},${params[j++]}`;
-                    break;
-                case Command.Arc:
-                    const x = params[j++];
-                    const y = params[j++];
-                    const radius = params[j++];
-                    const startAngle = params[j++];
-                    const endAngle = params[j++];
-                    const sweepFlag = params[j++] === 1 ? '0' : '1';
-                    const largeArcFlag = (endAngle - startAngle) % (2 * Math.PI) > Math.PI ? '1' : '0';
-
-                    // Calculate start and end points for the arc
-                    const startX = x + radius * Math.cos(startAngle);
-                    const startY = y + radius * Math.sin(startAngle);
-                    const endX = x + radius * Math.cos(endAngle);
-                    const endY = y + radius * Math.sin(endAngle);
-
-                    path += `L ${startX},${startY} A ${radius},${radius} 0 ${largeArcFlag},${sweepFlag} ${endX},${endY}`;
-                    break;
-                case Command.ClosePath:
-                    path += `Z`;
-                    break;
-            }
-        }
-        return new Path2D(path);
+        return new Path2D(this.path);
     }
 
     moveTo(x: number, y: number) {
-        this.pathOpen = true;
-        this.commands.push(Command.Move);
-        this.params.push(x, y);
+        this.path += `M${x},${y}`;
+        this.openedPath = true;
     }
 
     lineTo(x: number, y: number) {
-        if (this.pathOpen) {
-            this.commands.push(Command.Line);
-            this.params.push(x, y);
+        if (this.openedPath) {
+            this.path += `L${x},${y}`;
         } else {
             this.moveTo(x, y);
         }
     }
 
     rect(x: number, y: number, width: number, height: number) {
-        this.moveTo(x, y);
-        this.lineTo(x + width, y);
-        this.lineTo(x + width, y + height);
-        this.lineTo(x, y + height);
-        this.closePath();
+        this.path += `M${x},${y}H${x + width}V${y + height}H${x}Z`;
+        this.openedPath = false;
+        this.closedPath = true;
     }
 
     roundRect(x: number, y: number, width: number, height: number, radii: number) {
         // Newer API - so support is limited
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/roundRect
         radii = Math.min(radii, width / 2, height / 2);
-        this.moveTo(x, y + radii);
-        this.arc(x + radii, y + radii, radii, Math.PI, (3 * Math.PI) / 2);
-        this.lineTo(x + radii, y);
-        this.lineTo(x + width - radii, y);
-        this.arc(x + width - radii, y + radii, radii, (3 * Math.PI) / 2, 2 * Math.PI);
-        this.lineTo(x + width, y + radii);
-        this.lineTo(x + width, y + height - radii);
-        this.arc(x + width - radii, y + height - radii, radii, 0, Math.PI / 2);
-        this.lineTo(x + width - radii, y + height);
-        this.lineTo(x + radii, y + height);
-        this.arc(x + +radii, y + height - radii, radii, Math.PI / 2, Math.PI);
-        this.lineTo(x, y + height - radii);
-        this.closePath();
+        this.path += `M${x},${y + radii}A${radii},${radii} 0 0 1 ${x + radii},${y}`;
+        this.path += `L${x + width - radii},${y}A${radii},${radii} 0 0 1 ${x + width},${y + radii}`;
+        this.path += `L${x + width},${y + height - radii}A${radii},${radii} 0 0 1 ${x + width - radii},${y + height}`;
+        this.path += `L${x + radii},${y + height}A${radii},${radii} 0 0 1 ${x},${y + height - radii}`;
+        this.path += `L${x},${y + radii}Z`;
+        this.openedPath = false;
+        this.closedPath = true;
     }
 
-    arc(x: number, y: number, r: number, sAngle: number, eAngle: number, antiClockwise = false) {
-        this.pathOpen = true;
-        this.commands.push(Command.Arc);
-        this.params.push(x, y, r, sAngle, eAngle, antiClockwise ? 1 : 0);
+    arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterClockwise?: boolean) {
+        if (startAngle === endAngle) return;
+
+        const TAU = Math.PI * 2;
+
+        startAngle %= TAU;
+        endAngle %= TAU;
+
+        const startX = x + radius * Math.cos(startAngle);
+        const startY = y + radius * Math.sin(startAngle);
+
+        this.lineTo(startX, startY);
+
+        if (startAngle === endAngle) {
+            const sweepFlag = counterClockwise ? 1 : 0;
+
+            // draw a circle as two relative arcs
+            this.path += `a${radius},${radius} 0 1,${sweepFlag} ${radius * -2},0`;
+            this.path += `a${radius},${radius} 0 1,${sweepFlag} ${radius * 2},0`;
+        } else {
+            const endX = x + radius * Math.cos(endAngle);
+            const endY = y + radius * Math.sin(endAngle);
+            const sweepFlag = counterClockwise ? 0 : 1;
+
+            let diff = endAngle - startAngle;
+
+            if (diff < 0) {
+                diff += TAU;
+            }
+
+            // @ts-ignore
+            const largeArcFlag = counterClockwise ^ (diff > Math.PI);
+
+            this.path += `A${radius},${radius} 0 ${largeArcFlag},${sweepFlag} ${endX},${endY}`;
+        }
     }
 
     cubicCurveTo(cx1: number, cy1: number, cx2: number, cy2: number, x: number, y: number) {
-        if (!this.pathOpen) {
+        if (!this.openedPath) {
             this.moveTo(cx1, cy1);
         }
-        this.commands.push(Command.Curve);
-        this.params.push(cx1, cy1, cx2, cy2, x, y);
-    }
-
-    private _closedPath: boolean = false;
-    get closedPath(): boolean {
-        return this._closedPath;
+        this.path += `C${cx1},${cy1} ${cx2},${cy2} ${x},${y}`;
     }
 
     closePath() {
-        if (this.pathOpen) {
-            this.pathOpen = false;
-            this.commands.push(Command.ClosePath);
-            this._closedPath = true;
+        if (this.openedPath) {
+            this.openedPath = false;
+            this.closedPath = true;
+            this.path += 'Z';
         }
     }
 
     clear(trackChanges?: boolean) {
         if (trackChanges) {
-            this.previousCommands = this.commands;
-            this.previousParams = this.params;
-            this.previousClosedPath = this._closedPath;
-            this.commands = [];
-            this.params = [];
-        } else {
-            this.commands.length = 0;
-            this.params.length = 0;
+            this.prev = this.path;
         }
-        this.pathOpen = false;
-        this._closedPath = false;
+        this.openedPath = false;
+        this.closedPath = false;
+        this.path = '';
     }
 
     isPointInPath(x: number, y: number): boolean {
-        const commands = this.commands;
-        const params = this.params;
-        const cn = commands.length;
-        // Hit testing using ray casting method, where the ray's origin is some point
-        // outside the path. In this case, an offscreen point that is remote enough, so that
-        // even if the path itself is large and is partially offscreen, the ray's origin
-        // will likely be outside the path anyway. To test if the given point is inside the
-        // path or not, we cast a ray from the origin to the given point and check the number
-        // of intersections of this segment with the path. If the number of intersections is
-        // even, then the ray both entered and exited the path an equal number of times,
-        // therefore the point is outside the path, and inside the path, if the number of
-        // intersections is odd. Since the path is compound, we check if the ray segment
-        // intersects with each of the path's segments, which can be either a line segment
-        // (one or no intersection points) or a Bézier curve segment (up to 3 intersection
-        // points).
-        const ox = -10000;
-        const oy = -10000;
-        // the starting point of the  current path
-        let sx: number = NaN;
-        let sy: number = NaN;
-        // the previous point of the current path
-        let px = 0;
-        let py = 0;
-        let intersectionCount = 0;
-
-        for (let ci = 0, pi = 0; ci < cn; ci++) {
-            switch (commands[ci]) {
-                case Command.Move:
-                    intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
-                    px = params[pi++];
-                    sx = px;
-                    py = params[pi++];
-                    sy = py;
-                    break;
-                case Command.Line:
-                    intersectionCount += segmentIntersection(px, py, params[pi++], params[pi++], ox, oy, x, y);
-                    px = params[pi - 2];
-                    py = params[pi - 1];
-                    break;
-                case Command.Curve:
-                    intersectionCount += cubicSegmentIntersections(
-                        px,
-                        py,
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        ox,
-                        oy,
-                        x,
-                        y
-                    );
-                    px = params[pi - 2];
-                    py = params[pi - 1];
-                    break;
-                case Command.Arc:
-                    const cx = params[pi++];
-                    const cy = params[pi++];
-                    const r = params[pi++];
-                    const startAngle = params[pi++];
-                    const endAngle = params[pi++];
-                    const counterClockwise = Boolean(params[pi++]);
-                    intersectionCount += arcIntersections(
-                        cx,
-                        cy,
-                        r,
-                        startAngle,
-                        endAngle,
-                        counterClockwise,
-                        ox,
-                        oy,
-                        x,
-                        y
-                    );
-                    if (!isNaN(sx)) {
-                        // AG-10199 the arc() command draws a connector line between previous position and the starting
-                        // position of the arc. So we need to check if there's an intersection with this connector line.
-                        const startX = cx + Math.cos(startAngle) * r;
-                        const startY = cy + Math.sin(startAngle) * r;
-                        intersectionCount += segmentIntersection(px, py, startX, startY, ox, oy, x, y);
-                    }
-                    px = cx + Math.cos(endAngle) * r;
-                    py = cy + Math.sin(endAngle) * r;
-                    break;
-                case Command.ClosePath:
-                    intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
-                    break;
-            }
-        }
-
-        return intersectionCount % 2 === 1;
+        InternalPath2D.ctx ??= createElement('canvas').getContext('2d');
+        return InternalPath2D.ctx!.isPointInPath(this.getPath2D(), x, y);
     }
 }
