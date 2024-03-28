@@ -191,6 +191,7 @@ const donutOptions: AgPolarChartOptions = {
             showInLegend: false,
         },
     ],
+    axes: [],
 };
 
 let options: AgCartesianChartOptions | AgPolarChartOptions = {

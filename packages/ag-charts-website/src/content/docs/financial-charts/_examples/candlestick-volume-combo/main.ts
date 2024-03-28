@@ -90,15 +90,9 @@ const options: AgCartesianChartOptions = {
     axes: [
         {
             type: 'number',
-            position: 'left',
-            keys: ['volume'],
-            max: 1000000000,
-            label: { enabled: false },
-            crosshair: { enabled: false },
-        },
-        {
-            type: 'number',
             position: 'right',
+            keys: ['open', 'close', 'high', 'low'],
+            max: 210,
             tick: {
                 size: 0,
                 maxSpacing: 50,
@@ -113,6 +107,14 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
                 snap: false,
             },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            keys: ['volume'],
+            max: 1000000000,
+            label: { enabled: false },
+            crosshair: { enabled: false },
         },
         {
             type: 'category',
@@ -132,6 +134,33 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
+    annotations: {
+        enableInteractions: false,
+        initial: [
+            {
+                type: 'parallel-channel',
+                top: {
+                    // TODO: `new Date()` should not be needed once this chart uses the `OrdinalTimeAxis`
+                    start: { x: new Date(1672756200000), y: 130.28 + 6 },
+                    end: { x: new Date(1689773400000), y: 195.1 + 6 },
+                },
+                bottom: {
+                    start: { x: new Date(1672756200000), y: 130.28 - 6 },
+                    end: { x: new Date(1689773400000), y: 195.1 - 6 },
+                },
+            },
+            {
+                type: 'line',
+                start: { x: new Date(1701959400000), y: 193.63 },
+                end: { x: new Date(1707489000000), y: 188.85 },
+            },
+            {
+                type: 'line',
+                start: { x: new Date(1691155800000), y: 185.52 },
+                end: { x: new Date(1698413400000), y: 166.91 },
+            },
+        ],
+    },
 };
 
 AgCharts.create(options);
