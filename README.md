@@ -34,7 +34,7 @@ Here are some of the features that make AG Charts stand out:
         <th colspan="2">
             Supported Chart Types
         </th>
-        <th colspan="1">
+        <th colspan="2">
             Advanced Features
         </th>
     </thead>
@@ -59,13 +59,22 @@ Here are some of the features that make AG Charts stand out:
                 <br/>
             </td>
             <td>
-                Cross-lines<br/>
-                Secondary Axes<br/>
-                Theming<br/>
                 Animation*<br/>
-                Multi-chart Synchronisation*<br/>
-                Cross-hairs*<br/>
-                Error-bars*<br/>
+                Annotations*<br/>
+                Chart Synchronization*<br/>
+                Context Menu*<br/>
+                Crosshairs*<br/>
+                Cross Lines<br/>
+                Error Bars<br/>
+            </td>
+            <td>
+                Theming<br/>
+                Zoom*<br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
             </td>
         </tr>
     </tbody>
