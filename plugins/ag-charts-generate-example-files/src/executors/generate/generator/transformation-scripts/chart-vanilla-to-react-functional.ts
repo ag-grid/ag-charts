@@ -111,7 +111,7 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
             root.render(<ChartExample />);
             `;
     } else {
-        const components: string[] = [];
+        const components = new Map<string, string>();
         indexFile = `
             ${imports.join(`
             `)}
@@ -145,17 +145,25 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
                 return ${getAgChartTag(bindings, componentAttributes)};
             }`;
 
-            components.push(`<${componentName} />`);
+            components.set(id, `<${componentName} />`);
         });
+
+        let wrapper = convertFunctionalTemplate(bindings.template);
+        Object.entries(bindings.placeholders).forEach(([id, template]: [string, string]) => {
+            wrapper = wrapper.replace(template, components.get(id)!);
+        });
+
+        if (!bindings.template.includes('</')) {
+            wrapper = `<Fragment>
+                ${wrapper}
+            </Fragment>`;
+        }
 
         indexFile = `${indexFile}
 
         const root = createRoot(document.getElementById('root'));
         root.render(
-            <Fragment>
-                ${components.join(`
-                `)}
-            </Fragment>
+            ${wrapper}
         );
         `;
     }

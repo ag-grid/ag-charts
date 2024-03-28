@@ -1,8 +1,18 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { RATIO, Validate } from '../../util/validation';
+import { Default } from '../../util/default';
+import { MIN_SPACING, RATIO, Validate } from '../../util/validation';
+import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
+
+export class CategoryAxisTick<
+    S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
+> extends AxisTick<S> {
+    @Validate(MIN_SPACING)
+    @Default(NaN)
+    override minSpacing: number = NaN;
+}
 
 export class CategoryAxis<
     S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
@@ -35,6 +45,10 @@ export class CategoryAxis<
     }
     get paddingOuter(): number {
         return this.scale.paddingOuter;
+    }
+
+    protected override createTick(): AxisTick<S, any, any> {
+        return new CategoryAxisTick();
     }
 
     override normaliseDataDomain(d: (string | object)[]) {

@@ -13,6 +13,16 @@ export type AnimatableNightingaleDatum = {
     clipSector: _Scene.SectorBox;
 };
 
+export function getRadii(datum: RadialColumnNodeDatum) {
+    const { negative, innerRadius, outerRadius, stackInnerRadius, stackOuterRadius } = datum;
+    return {
+        innerRadius: negative ? stackOuterRadius : stackInnerRadius,
+        outerRadius: negative ? stackInnerRadius : stackOuterRadius,
+        clipInnerRadius: negative ? outerRadius : innerRadius,
+        clipOuterRadius: negative ? innerRadius : outerRadius,
+    };
+}
+
 export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
     const angles = createAngleMotionCalculator();
 
@@ -48,10 +58,12 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
             outerRadius = axisZeroRadius;
             clipSector = new SectorBox(startAngle, endAngle, innerRadius, outerRadius);
         } else {
-            const clipInnerRadius = isNaN(datum.innerRadius) ? axisZeroRadius : datum.innerRadius;
-            const clipOuterRadius = isNaN(datum.outerRadius) ? axisZeroRadius : datum.outerRadius;
-            innerRadius = axisZeroRadius;
-            outerRadius = isNaN(datum.stackOuterRadius) ? axisZeroRadius : datum.stackOuterRadius;
+            let clipInnerRadius: number, clipOuterRadius: number;
+            ({ innerRadius, outerRadius, clipInnerRadius, clipOuterRadius } = getRadii(datum));
+            if (isNaN(innerRadius)) innerRadius = axisZeroRadius;
+            if (isNaN(outerRadius)) outerRadius = axisZeroRadius;
+            if (isNaN(clipInnerRadius)) clipInnerRadius = axisZeroRadius;
+            if (isNaN(clipOuterRadius)) clipOuterRadius = axisZeroRadius;
             clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
         return { innerRadius, outerRadius, startAngle, endAngle, clipSector };
@@ -65,11 +77,12 @@ export function resetNightingaleSelectionFn(
     {
         innerRadius: clipInnerRadius,
         outerRadius: clipOuterRadius,
+        stackInnerRadius: innerRadius,
         stackOuterRadius: outerRadius,
         startAngle,
         endAngle,
     }: RadialColumnNodeDatum
 ) {
     const clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
-    return { innerRadius: 0, outerRadius, startAngle, endAngle, clipSector };
+    return { innerRadius, outerRadius, startAngle, endAngle, clipSector };
 }

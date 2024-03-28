@@ -191,8 +191,16 @@ export function arcRadialLineIntersectionAngle(
         p1y = y1;
     }
 
-    const a0 = clockwiseAngle(Math.atan2(p0y - cy, p0x - cx), startAngle);
-    const a1 = clockwiseAngle(Math.atan2(p1y - cy, p1x - cx), startAngle);
+    // We're checking the intersection on a whole line rather than just
+    // a line segment starting at the origin going off to infinity.
+    // We need to add a check that the intersection was on the correct side of the line
+    const normalisedX = cosA;
+    const normalisedY = sinA;
+    const p0DotNormalized = p0x * normalisedX + p0y * normalisedY;
+    const p1DotNormalized = p1x * normalisedX + p1y * normalisedY;
+
+    const a0 = p0DotNormalized > 0 ? clockwiseAngle(Math.atan2(p0y - cy, p0x - cx), startAngle) : NaN;
+    const a1 = p1DotNormalized > 0 ? clockwiseAngle(Math.atan2(p1y - cy, p1x - cx), startAngle) : NaN;
 
     if (a0 >= startAngle && a0 <= endAngle) {
         return a0;

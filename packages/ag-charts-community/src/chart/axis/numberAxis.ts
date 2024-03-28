@@ -4,11 +4,15 @@ import type { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
-import { AND, GREATER_THAN, LESS_THAN, MAX_SPACING, NUMBER_OR_NAN, Validate } from '../../util/validation';
+import { AND, GREATER_THAN, LESS_THAN, MAX_SPACING, MIN_SPACING, NUMBER_OR_NAN, Validate } from '../../util/validation';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
 class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
+    @Validate(MIN_SPACING)
+    @Default(NaN)
+    override minSpacing: number = NaN;
+
     @Validate(MAX_SPACING)
     @Default(NaN)
     override maxSpacing: number = NaN;

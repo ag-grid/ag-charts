@@ -22,7 +22,7 @@ export interface ZoomPanStartEvent {
     type: 'zoom-pan-start';
 }
 
-type ChartAxisLike = {
+export type ChartAxisLike = {
     id: string;
     direction: ChartAxisDirection;
     visibleRange: [number, number];

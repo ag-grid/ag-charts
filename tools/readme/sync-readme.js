@@ -52,7 +52,7 @@ function updateContent(target) {
 for (const target of targets) {
     console.log(`Syncing to ${target}...`);
     prettier
-        .format(updateContent(target), { filepath: './README.md', tabWidth: 2 })
+        .format(updateContent(target), { filepath: './README.md', tabWidth: 4 })
         .then((result) => fs.writeFileSync(target, result))
         .catch((error) => {
             console.error(error);

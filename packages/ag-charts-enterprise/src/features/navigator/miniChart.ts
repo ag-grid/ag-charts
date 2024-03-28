@@ -244,7 +244,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.seriesRoot.inverseTransformBBox(new BBox(0, -padding.top, width, height))
         );
 
-        const axisLeftRightRange = (axis: _ModuleSupport.ChartAxis) => {
+        const axisLeftRightRange = (axis: _ModuleSupport.ChartAxis): [number, number] => {
             if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
                 return [0, seriesRect.height];
             }

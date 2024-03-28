@@ -53,7 +53,7 @@ import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
-import { AxisTick } from './axisTick';
+import type { AxisTick } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
@@ -325,7 +325,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected refreshScale() {
-        this.range = this.scale.range.slice();
+        this.range = this.scale.range.slice() as [number, number];
         this.crossLines?.forEach(this.initCrossLine, this);
     }
 
@@ -357,8 +357,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         axisNode.removeChild(this.crossLineGroup);
     }
 
-    range: number[] = [0, 1];
-    visibleRange: number[] = [0, 1];
+    range: [number, number] = [0, 1];
+    visibleRange: [number, number] = [0, 1];
 
     /**
      * Checks if a point or an object is in range.
@@ -452,9 +452,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.gridLineGroupSelection.clear();
     }
 
-    protected createTick(): AxisTick<S> {
-        return new AxisTick();
-    }
+    protected abstract createTick(): AxisTick<S>;
 
     protected createLabel(): ChartAxisLabel {
         return new AxisLabel();
