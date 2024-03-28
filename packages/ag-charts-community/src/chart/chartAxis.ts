@@ -45,7 +45,7 @@ export interface ChartAxis {
     maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;
-    range: number[];
+    range: [number, number];
     rotation: number;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
@@ -56,7 +56,7 @@ export interface ChartAxis {
     update(primaryTickCount?: number, animated?: boolean): number | undefined;
     updateScale(): void;
     updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
-    visibleRange: number[];
+    visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
 }

@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
+import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
 
 const { DEFAULT_BACKGROUND_COLOUR, DEFAULT_HIERARCHY_FILLS } = _Theme;
@@ -13,18 +14,10 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     identifier: 'map-shape-background',
     instanceConstructor: MapShapeBackgroundSeries,
     themeTemplate: {
+        ...MAP_THEME_DEFAULTS,
         series: {
             stroke: DEFAULT_BACKGROUND_COLOUR,
             strokeWidth: 1,
-        },
-        legend: {
-            enabled: false,
-        },
-        gradientLegend: {
-            enabled: false,
-        },
-        tooltip: {
-            range: 'exact',
         },
     },
     paletteFactory: ({ themeTemplateParameters }) => {

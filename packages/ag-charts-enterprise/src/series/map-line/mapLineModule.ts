@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
+import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineSeries } from './mapLineSeries';
 
 const {
@@ -19,6 +20,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     identifier: 'map-line',
     instanceConstructor: MapLineSeries,
     themeTemplate: {
+        ...MAP_THEME_DEFAULTS,
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             strokeWidth: 1,
@@ -33,15 +35,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
-        },
-        legend: {
-            enabled: false,
-        },
-        gradientLegend: {
-            enabled: false,
-        },
-        tooltip: {
-            range: 'exact',
         },
     },
     paletteFactory: (opts) => {
