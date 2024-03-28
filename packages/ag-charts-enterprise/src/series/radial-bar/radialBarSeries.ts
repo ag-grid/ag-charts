@@ -23,7 +23,7 @@ const {
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
-const { Sector, motion } = _Scene;
+const { Sector, SectorBox, motion } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
 class RadialBarSeriesNodeEvent<
@@ -54,8 +54,8 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly outerRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
-    readonly clipStartAngle: number;
-    readonly clipEndAngle: number;
+    readonly clipSector: _Scene.SectorBox;
+    readonly reversed: boolean;
     readonly index: number;
 }
 
@@ -267,6 +267,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const angleStartDatum = values[angleStartIndex];
             const angleEndDatum = values[angleEndIndex];
             const angleRange = aggValues?.[angleRangeIndex][isPositive ? 1 : 0] ?? 0;
+            const reversed = isPositive === angleAxisReversed;
 
             let startAngle = angleScale.convert(angleStartDatum, { clampMode: 'clamped' });
             let endAngle = angleScale.convert(angleEndDatum, { clampMode: 'clamped' });
@@ -274,7 +275,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             let rangeStartAngle = angleScale.convert(0, { clampMode: 'clamped' });
             let rangeEndAngle = angleScale.convert(angleRange, { clampMode: 'clamped' });
 
-            if (!isPositive || angleAxisReversed) {
+            if (reversed) {
                 [rangeStartAngle, rangeEndAngle] = [rangeEndAngle, rangeStartAngle];
                 [startAngle, endAngle] = [endAngle, startAngle];
             }
@@ -290,6 +291,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 ? getLabelNodeDatum(datum, angleDatum, x, y)
                 : undefined;
 
+            const clipSector = new SectorBox(startAngle, endAngle, innerRadius, outerRadius);
+
             return {
                 series: this,
                 datum,
@@ -302,8 +305,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 outerRadius,
                 startAngle: rangeStartAngle,
                 endAngle: rangeEndAngle,
-                clipStartAngle: startAngle,
-                clipEndAngle: endAngle,
+                clipSector,
+                reversed,
                 index,
             };
         });
@@ -348,9 +351,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             selectionData = this.nodeData;
         }
 
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        const angleAxisReversed = angleAxis?.isReversed() ?? false;
-
         const highlightedStyle = highlight ? this.properties.highlightStyle.item : undefined;
         const fill = highlightedStyle?.fill ?? this.properties.fill;
         const fillOpacity = highlightedStyle?.fillOpacity ?? this.properties.fillOpacity;
@@ -382,16 +382,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             node.lineDash = this.properties.lineDash;
             node.lineJoin = 'round';
             node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
-            node.startInnerCornerRadius = angleAxisReversed ? cornerRadius : 0;
-            node.startOuterCornerRadius = angleAxisReversed ? cornerRadius : 0;
-            node.endInnerCornerRadius = angleAxisReversed ? 0 : cornerRadius;
-            node.endOuterCornerRadius = angleAxisReversed ? 0 : cornerRadius;
+            node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
+            node.startOuterCornerRadius = datum.reversed ? cornerRadius : 0;
+            node.endInnerCornerRadius = datum.reversed ? 0 : cornerRadius;
+            node.endOuterCornerRadius = datum.reversed ? 0 : cornerRadius;
 
             if (highlight) {
                 node.startAngle = datum.startAngle;
                 node.endAngle = datum.endAngle;
-                node.clipStartAngle = datum.clipStartAngle;
-                node.clipEndAngle = datum.clipEndAngle;
+                node.clipSector = datum.clipSector;
                 node.innerRadius = datum.innerRadius;
                 node.outerRadius = datum.outerRadius;
             }

@@ -6,6 +6,7 @@ import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 import { RadiusCategoryAxisModule } from './axes/radius-category/main';
 import { RadiusNumberAxisModule } from './axes/radius-number/main';
 import { AnimationModule } from './features/animation/main';
+import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
@@ -43,6 +44,7 @@ export function setupEnterpriseModules() {
         AngleCategoryAxisModule,
         AngleNumberAxisModule,
         AnimationModule,
+        AnnotationsModule,
         BackgroundModule,
         BoxPlotModule,
         CandlestickModule,

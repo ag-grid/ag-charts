@@ -7,6 +7,10 @@ import type { Scale } from './scale';
  * Maps a discrete domain to a continuous numeric range.
  */
 export class BandScale<D, I = number> implements Scale<D, number, I> {
+    static is(value: any): value is BandScale<any, any> {
+        return value instanceof BandScale;
+    }
+
     readonly type: string = 'band';
 
     protected invalid = true;
@@ -98,6 +102,24 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         this.refresh();
         const index = this.ordinalRange.findIndex((p) => p === position);
         return this.domain[index];
+    }
+
+    invertNearest(position: number) {
+        this.refresh();
+        let nearest = -1;
+        let minDistance = Infinity;
+
+        const index = this.ordinalRange.findIndex((p, i) => {
+            if (p === position) return true;
+            const distance = Math.abs(position - p);
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearest = i;
+            }
+            return false;
+        });
+
+        return this.domain[index] ?? this.domain[nearest];
     }
 
     private _bandwidth: number = 1;

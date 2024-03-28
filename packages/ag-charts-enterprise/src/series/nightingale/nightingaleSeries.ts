@@ -5,7 +5,7 @@ import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase'
 import { NightingaleSeriesProperties } from './nightingaleSeriesProperties';
 import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { Sector } = _Scene;
+const { Sector, SectorBox } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static readonly className = 'NightingaleSeries';
@@ -38,11 +38,13 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     ) {
         node.centerX = 0;
         node.centerY = 0;
+        node.cornerRadius = this.properties.cornerRadius;
         if (highlight) {
-            node.innerRadius = datum.innerRadius;
-            node.outerRadius = datum.outerRadius;
+            node.innerRadius = 0;
+            node.outerRadius = datum.stackOuterRadius;
             node.startAngle = datum.startAngle;
             node.endAngle = datum.endAngle;
+            node.clipSector = new SectorBox(datum.startAngle, datum.endAngle, datum.innerRadius, datum.outerRadius);
         }
 
         // TODO: Enable once the options contract has been revisited

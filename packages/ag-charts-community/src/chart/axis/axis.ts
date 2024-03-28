@@ -1485,6 +1485,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             tickSize: this.getTickSize(),
             direction: this.direction,
             domain: this.dataDomain.domain,
+            scale: this.scale,
             ...this.layout,
         };
     }
