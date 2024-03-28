@@ -50,7 +50,7 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
         } else {
             const clipInnerRadius = isNaN(datum.innerRadius) ? axisZeroRadius : datum.innerRadius;
             const clipOuterRadius = isNaN(datum.outerRadius) ? axisZeroRadius : datum.outerRadius;
-            innerRadius = axisZeroRadius;
+            innerRadius = isNaN(datum.stackInnerRadius) ? axisZeroRadius : datum.stackInnerRadius;
             outerRadius = isNaN(datum.stackOuterRadius) ? axisZeroRadius : datum.stackOuterRadius;
             clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
@@ -65,11 +65,12 @@ export function resetNightingaleSelectionFn(
     {
         innerRadius: clipInnerRadius,
         outerRadius: clipOuterRadius,
+        stackInnerRadius: innerRadius,
         stackOuterRadius: outerRadius,
         startAngle,
         endAngle,
     }: RadialColumnNodeDatum
 ) {
     const clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
-    return { innerRadius: 0, outerRadius, startAngle, endAngle, clipSector };
+    return { innerRadius, outerRadius, startAngle, endAngle, clipSector };
 }

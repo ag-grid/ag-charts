@@ -37,7 +37,7 @@ class Arc {
     }
 
     clipStart(a: number | undefined) {
-        if (a == null || a < this.a0) return;
+        if (a == null || !this.isValid() || a < this.a0) return;
         this.a0 = a;
         if (this.a0 >= this.a1) {
             this.a0 = NaN;
@@ -46,7 +46,7 @@ class Arc {
     }
 
     clipEnd(a: number | undefined) {
-        if (a == null || a > this.a1) return;
+        if (a == null || !this.isValid() || a > this.a1) return;
         this.a1 = a;
         if (this.a0 >= this.a1) {
             this.a0 = NaN;
@@ -171,10 +171,11 @@ export class Sector extends Path {
         const cy = radius * Math.sin(angle);
 
         if (clipSector != null) {
-            if (start && !(angle >= clipSector.startAngle && angle <= endAngle)) return;
-            if (!start && !(angle >= startAngle && angle <= clipSector.endAngle)) return;
-            if (inner && !(radius >= clipSector.innerRadius)) return;
-            if (!inner && !(radius <= clipSector.outerRadius)) return;
+            const delta = 1e-6;
+            if (!start && !(angle >= startAngle - delta && angle <= clipSector.endAngle - delta)) return;
+            if (start && !(angle >= clipSector.startAngle + delta && angle <= endAngle - delta)) return;
+            if (inner && !(radius >= clipSector.innerRadius - delta)) return;
+            if (!inner && !(radius <= clipSector.outerRadius + delta)) return;
         }
 
         const arc = new Arc(cx, cy, r, a0, a1);
@@ -228,6 +229,20 @@ export class Sector extends Path {
                     innerArc?.clipEnd(theta);
                 }
             }
+        }
+
+        if (clipSector != null) {
+            // Inner arcs especially can have their radius inside the clip sector
+            // but never actually clip
+            // an example of this config is:-
+            // cornerRadius = 100
+            // startAngle = clipSector.startAngle = Math.PI * 1.75
+            // endAngle = clipSector.endAngle = Math.PI * 1.75
+            // outerRadius = clipSector.outerRadius = 200
+            // innerRadius = 100
+            // clipSector.innerRadius = 150
+            const { x, y } = arc.pointAt((arc.a0 + arc.a1) / 2);
+            if (!isPointInSector(x, y, clipSector)) return;
         }
 
         // Clip inner/outer arc to fit within arc
@@ -448,10 +463,10 @@ export class Sector extends Path {
             }
             const midAngle = startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
-        } else if (startInnerArc != null) {
+        } else if (startInnerArc?.isValid() === true) {
             const { x, y } = startInnerArc.pointAt(startInnerArc.a1);
             path.moveTo(centerX + x, centerY + y);
-        } else if (innerArc != null) {
+        } else if (innerArc?.isValid() === true) {
             const { x, y } = innerArc.pointAt(innerArc.a0);
             path.moveTo(centerX + x, centerY + y);
         } else {

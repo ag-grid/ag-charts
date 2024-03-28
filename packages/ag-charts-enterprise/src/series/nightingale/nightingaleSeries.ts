@@ -38,9 +38,12 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     ) {
         node.centerX = 0;
         node.centerY = 0;
-        node.cornerRadius = this.properties.cornerRadius;
+        node.startOuterCornerRadius = !datum.negative ? this.properties.cornerRadius : 0;
+        node.endOuterCornerRadius = !datum.negative ? this.properties.cornerRadius : 0;
+        node.startInnerCornerRadius = datum.negative ? this.properties.cornerRadius : 0;
+        node.endInnerCornerRadius = datum.negative ? this.properties.cornerRadius : 0;
         if (highlight) {
-            node.innerRadius = 0;
+            node.innerRadius = datum.stackInnerRadius;
             node.outerRadius = datum.stackOuterRadius;
             node.startAngle = datum.startAngle;
             node.endAngle = datum.endAngle;

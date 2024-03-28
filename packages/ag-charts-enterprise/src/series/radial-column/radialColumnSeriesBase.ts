@@ -54,8 +54,10 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly label?: RadialColumnLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
+    readonly negative: boolean;
     readonly innerRadius: number;
     readonly outerRadius: number;
+    readonly stackInnerRadius: number;
     readonly stackOuterRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
@@ -162,12 +164,14 @@ export abstract class RadialColumnSeriesBase<
                     rangeId: `radiusValue-range`,
                     invalidValue: null,
                     groupId: stackGroupId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...groupAccumulativeValueProperty(this, radiusKey, true, 'trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...extraProps,
@@ -279,6 +283,7 @@ export abstract class RadialColumnSeriesBase<
             const innerRadiusDatum = values[radiusStartIndex];
             const outerRadiusDatum = values[radiusEndIndex];
             const radiusRange = aggValues?.[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
+            const negative = isPositive === radiusAxisReversed;
 
             let startAngle: number;
             let endAngle: number;
@@ -292,11 +297,17 @@ export abstract class RadialColumnSeriesBase<
             }
             const angle = startAngle + groupScale.bandwidth / 2;
 
-            const innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);
-            const outerRadius = axisTotalRadius - radiusScale.convert(outerRadiusDatum);
+            let innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);
+            let outerRadius = axisTotalRadius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
 
-            const stackOuterRadius = axisTotalRadius - radiusScale.convert(radiusRange);
+            let stackInnerRadius = axisTotalRadius - radiusScale.convert(0);
+            let stackOuterRadius = axisTotalRadius - radiusScale.convert(radiusRange);
+
+            if (negative) {
+                [innerRadius, outerRadius] = [outerRadius, innerRadius];
+                [stackInnerRadius, stackOuterRadius] = [stackOuterRadius, stackInnerRadius];
+            }
 
             const x = Math.cos(angle) * midRadius;
             const y = Math.sin(angle) * midRadius;
@@ -315,8 +326,10 @@ export abstract class RadialColumnSeriesBase<
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
+                negative,
                 innerRadius,
                 outerRadius,
+                stackInnerRadius,
                 stackOuterRadius,
                 startAngle,
                 endAngle,
