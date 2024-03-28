@@ -6,7 +6,7 @@
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ag-charts-community  | [![npm](https://img.shields.io/npm/dm/ag-charts-community)](https://www.npmjs.com/package/ag-charts-community) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) <br> |
 | ag-charts-enterprise |    [![npm](https://img.shields.io/npm/dm/ag-charts-enterprise)](https://www.npmjs.com/package/ag-charts-enterprise) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) |
-| ag-charts-angular | [![npm](https://img.shields.io/npm/dm/ag-charts-angular.svg)](https://www.npmjs.com/package/ag-charts-angular) <br> [![npm](https://img.shields.io/npm/dt/ag-charts-angular.svg)](https://www.npmjs.com/package/ag-charts-angular) |
+| ag-charts-angular    |                                                                          [![npm](https://img.shields.io/npm/dm/ag-charts-angular.svg)](https://www.npmjs.com/package/ag-charts-angular) <br> [![npm](https://img.shields.io/npm/dt/ag-charts-angular.svg)](https://www.npmjs.com/package/ag-charts-angular) |
 
 AG Charts Angular
 
@@ -22,13 +22,13 @@ It delivers [outstanding performance](https://charts.ag-grid.com/?utm_source=ag-
 
 Here are some of the features that make AG Charts stand out:
 
--   Modern, lightweight and performant.
--   Framework agnostic:
-    -   thin reactive wrappers for your chosen framework: React, Angular, Vue;
-    -   or use our plain Javascript API with 1st-class Typescript support.
--   Zero dependencies.
--   Simple & clean declarative configuration.
--   Comprehensive interactive documentation.
+- Modern, lightweight and performant.
+- Framework agnostic:
+  - thin reactive wrappers for your chosen framework: React, Angular, Vue;
+  - or use our plain Javascript API with 1st-class Typescript support.
+- Zero dependencies.
+- Simple & clean declarative configuration.
+- Comprehensive interactive documentation.
 
 <table>
     <thead>

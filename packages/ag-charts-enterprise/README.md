@@ -21,13 +21,13 @@ It delivers [outstanding performance](https://charts.ag-grid.com/?utm_source=ag-
 
 Here are some of the features that make AG Charts stand out:
 
--   Modern, lightweight and performant.
--   Framework agnostic:
-    -   thin reactive wrappers for your chosen framework: React, Angular, Vue;
-    -   or use our plain Javascript API with 1st-class Typescript support.
--   Zero dependencies.
--   Simple & clean declarative configuration.
--   Comprehensive interactive documentation.
+- Modern, lightweight and performant.
+- Framework agnostic:
+  - thin reactive wrappers for your chosen framework: React, Angular, Vue;
+  - or use our plain Javascript API with 1st-class Typescript support.
+- Zero dependencies.
+- Simple & clean declarative configuration.
+- Comprehensive interactive documentation.
 
 <table>
     <thead>
