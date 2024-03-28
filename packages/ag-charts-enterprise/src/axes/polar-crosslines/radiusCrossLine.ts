@@ -110,7 +110,7 @@ export class RadiusCrossLine extends PolarCrossLine {
 
         const padding = this.getPadding();
 
-        polygon.path.clear({ trackChanges: true });
+        polygon.path.clear(true);
         this.drawPolygon(outerRadius - padding, gridAngles, polygon);
 
         const reversedAngles = gridAngles.slice().reverse();

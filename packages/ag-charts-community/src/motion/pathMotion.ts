@@ -36,14 +36,14 @@ export function pathMotion(
             onUpdate(ratio, preInit) {
                 if (preInit && phase !== 'removed') return;
 
-                path.path.clear({ trackChanges: true });
+                path.path.clear(true);
                 updateFn(ratio, path);
                 path.checkPathDirty();
             },
             onStop() {
                 if (phase !== 'added') return;
 
-                path.path.clear({ trackChanges: true });
+                path.path.clear(true);
                 updateFn(1, path);
                 path.checkPathDirty();
             },

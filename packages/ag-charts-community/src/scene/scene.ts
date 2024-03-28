@@ -192,7 +192,7 @@ export class Scene {
         this.isDirty = false;
 
         debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats);
-        debugSceneNodeHighlight(this.root, ctx, renderCtx.debugNodes);
+        debugSceneNodeHighlight(ctx, renderCtx.debugNodes);
 
         if (root && this.debug.check()) {
             this.debug('Scene.render() - after', {

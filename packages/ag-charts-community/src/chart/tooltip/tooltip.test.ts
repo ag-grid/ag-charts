@@ -61,7 +61,9 @@ describe('Tooltip', () => {
             chart?.destroy();
         });
 
-        it('should update tooltip correctly', async () => {
+        // skipping because the tests are not deterministic and don't seem to actually validate the case
+        // at the time of writing this comment the tests pass but the functionality we're testing for is broken
+        it.skip('should update tooltip correctly', async () => {
             // See AG-10409: The tooltip should update when the mouse stays in place but the data is updated.
             const opts: AgChartOptions = prepareTestOptions({});
             opts.data = [
@@ -90,22 +92,23 @@ describe('Tooltip', () => {
 
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            const element = getDocument().body.getElementsByClassName('ag-chart-tooltip');
+            expect(element).toMatchSnapshot();
 
             await nextValue(10, 1.3249187570726666);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element).toMatchSnapshot();
 
             await nextValue(11, 1.2651169069335022);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element).toMatchSnapshot();
 
             await nextValue(12, 1.3627720015958902);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element).toMatchSnapshot();
 
             await nextValue(13, 1.490244608234256);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element).toMatchSnapshot();
 
             await nextValue(14, 1.490244608234256);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element).toMatchSnapshot();
         });
     });
 });

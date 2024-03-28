@@ -571,7 +571,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     protected animateSinglePath(pathNode: _Scene.Path, points: RadarPathPoint[], ratio: number) {
         const { path } = pathNode;
 
-        path.clear({ trackChanges: true });
+        path.clear(true);
 
         const axisInnerRadius = this.getAxisInnerRadius();
         const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -652,7 +652,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             lineNode.lineDash = this.properties.lineDash;
             lineNode.lineDashOffset = this.properties.lineDashOffset;
 
-            linePath.clear({ trackChanges: true });
+            linePath.clear(true);
 
             linePoints.forEach(({ x, y, moveTo }) => {
                 if (moveTo) {

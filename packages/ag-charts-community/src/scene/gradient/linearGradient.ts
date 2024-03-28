@@ -10,7 +10,7 @@ export class LinearGradient extends Gradient {
         super(stops);
     }
 
-    createGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | string {
+    createGradient(ctx: CanvasFillStrokeStyles, bbox: BBox): CanvasGradient | string {
         // Gradient 0° angle starts at top according to CSS spec
         const angleOffset = 90;
         const { stops, angle } = this;

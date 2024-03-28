@@ -245,11 +245,9 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         this.computeTransformMatrix();
         const matrix = Matrix.flyweight(this.matrix);
 
-        let parent = this.parent;
-        while (parent) {
+        for (const parent of this.ancestors()) {
             parent.computeTransformMatrix();
             matrix.preMultiplySelf(parent.matrix);
-            parent = parent.parent;
         }
 
         return matrix;
@@ -371,10 +369,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         }
     }
 
-    findNodes(predicate: (node: Node) => boolean): Node[] {
-        return this.children.flatMap((child) => child.findNodes(predicate));
-    }
-
     private cachedBBox?: BBox;
 
     getCachedBBox(): BBox {
@@ -458,18 +452,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         if (stats) {
             stats.nodesRendered++;
         }
-    }
-
-    clearBBox(ctx: CanvasRenderingContext2D) {
-        const bbox = this.computeBBox();
-        if (bbox == null) {
-            return;
-        }
-
-        const { x, y, width, height } = bbox;
-        const topLeft = this.transformPoint(x, y);
-        const bottomRight = this.transformPoint(x + width, y + height);
-        ctx.clearRect(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
     }
 
     override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {

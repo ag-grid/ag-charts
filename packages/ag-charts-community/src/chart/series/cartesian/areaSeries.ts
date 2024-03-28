@@ -271,7 +271,7 @@ export class AreaSeries extends CartesianSeries<
             strokeData: { itemId, points: [] },
             labelData,
             nodeData: markerData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
         };
@@ -464,7 +464,7 @@ export class AreaSeries extends CartesianSeries<
         const { fillData } = contextData;
         const [fill] = paths;
         const { path: fillPath } = fill;
-        fillPath.clear({ trackChanges: true });
+        fillPath.clear(true);
 
         let lastPoint: { x: number; y: number; moveTo?: boolean } | undefined;
         for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints!))) {
@@ -489,7 +489,7 @@ export class AreaSeries extends CartesianSeries<
         const { strokeData } = contextData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
-        strokePath.clear({ trackChanges: true });
+        strokePath.clear(true);
         for (const { point } of strokeData.points) {
             if (point.moveTo) {
                 strokePath.moveTo(point.x, point.y);

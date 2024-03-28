@@ -1,6 +1,6 @@
 import { BBox } from '../bbox';
+import { InternalPath2D } from '../internalPath2D';
 import type { DistantObject } from '../nearest';
-import { Path2D } from '../path2D';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
 
@@ -39,14 +39,14 @@ const cornerEdges = (
     if (leading0 > leadingEdge) {
         leadingClipped = true;
         leading0 = leadingEdge;
-        leading1 = leadingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (trailingInset - leadingEdge) ** 2));
+        leading1 = leadingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (trailingInset - leadingEdge) ** 2, 0));
     } else if (leading0 < epsilon) {
         leading0 = 0;
     }
 
     if (trailing1 > trailingEdge) {
         trailingClipped = true;
-        trailing0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (leadingInset - trailingEdge) ** 2));
+        trailing0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (leadingInset - trailingEdge) ** 2, 0));
         trailing1 = trailingEdge;
     } else if (trailing1 < epsilon) {
         trailing1 = 0;
@@ -55,7 +55,7 @@ const cornerEdges = (
     return { leading0, leading1, trailing0, trailing1, leadingClipped, trailingClipped };
 };
 
-const drawCorner = (path: Path2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadius: number, move: boolean) => {
+const drawCorner = (path: InternalPath2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadius: number, move: boolean) => {
     if (move) {
         path.moveTo(x0, y0);
     }
@@ -70,7 +70,7 @@ const drawCorner = (path: Path2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadi
 };
 
 const insetCornerRadiusRect = (
-    path: Path2D,
+    path: InternalPath2D,
     x: number,
     y: number,
     width: number,
@@ -259,7 +259,7 @@ const insetCornerRadiusRect = (
 export class Rect extends Path implements DistantObject {
     static override readonly className: string = 'Rect';
 
-    readonly borderPath = new Path2D();
+    readonly borderPath = new InternalPath2D();
 
     @ScenePathChangeDetection()
     x: number = 0;
@@ -303,7 +303,7 @@ export class Rect extends Path implements DistantObject {
     @ScenePathChangeDetection()
     crisp: boolean = false;
 
-    private borderClipPath?: Path2D;
+    private borderClipPath?: InternalPath2D;
 
     private lastUpdatePathStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
@@ -341,8 +341,8 @@ export class Rect extends Path implements DistantObject {
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
 
-        path.clear({ trackChanges: true });
-        borderPath.clear({ trackChanges: true });
+        path.clear(true);
+        borderPath.clear(true);
 
         if (crisp) {
             if (w <= pixelSize) {
@@ -404,8 +404,8 @@ export class Rect extends Path implements DistantObject {
                 insetCornerRadiusRect(borderPath, x, y, w, h, cornerRadii, adjustedClipBBox);
             } else {
                 // Skip the fill and just render the stroke.
-                this.borderClipPath = this.borderClipPath ?? new Path2D();
-                this.borderClipPath.clear({ trackChanges: true });
+                this.borderClipPath = this.borderClipPath ?? new InternalPath2D();
+                this.borderClipPath.clear(true);
                 this.borderClipPath.rect(x, y, w, h);
                 borderPath.rect(x, y, w, h);
             }
@@ -458,22 +458,18 @@ export class Rect extends Path implements DistantObject {
     protected override renderStroke(ctx: CanvasRenderingContext2D) {
         const { stroke, effectiveStrokeWidth, borderPath, borderClipPath, opacity, microPixelEffectOpacity } = this;
 
-        const borderActive = !!stroke && !!effectiveStrokeWidth;
-        if (borderActive) {
+        if (stroke && effectiveStrokeWidth) {
             const { strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin } = this;
             if (borderClipPath) {
                 // strokeWidth is larger than width or height, so use clipping to render correctly.
                 // This is the simplest way to achieve the correct rendering due to nuances with ~0
                 // width/height lines in Canvas operations.
-                borderClipPath.draw(ctx);
-                ctx.clip();
+                ctx.clip(borderClipPath.getPath2D());
             }
 
-            borderPath.draw(ctx);
-
             const { globalAlpha } = ctx;
-            ctx.strokeStyle = stroke!;
-            ctx.globalAlpha = globalAlpha * opacity * strokeOpacity * microPixelEffectOpacity;
+            ctx.strokeStyle = stroke;
+            ctx.globalAlpha *= opacity * strokeOpacity * microPixelEffectOpacity;
 
             ctx.lineWidth = effectiveStrokeWidth;
             if (lineDash) {
@@ -489,7 +485,7 @@ export class Rect extends Path implements DistantObject {
                 ctx.lineJoin = lineJoin;
             }
 
-            ctx.stroke();
+            ctx.stroke(borderPath.getPath2D());
             ctx.globalAlpha = globalAlpha;
         }
     }

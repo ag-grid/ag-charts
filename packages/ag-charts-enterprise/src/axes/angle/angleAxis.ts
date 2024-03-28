@@ -115,7 +115,7 @@ export abstract class AngleAxis<
         const node = this.radiusLine;
         const { path } = node;
 
-        path.clear({ trackChanges: true });
+        path.clear(true);
 
         const { points, closePath } = this.getAxisLinePoints();
 
