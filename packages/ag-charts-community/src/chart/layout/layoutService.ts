@@ -1,3 +1,4 @@
+import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { type Listener, Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
@@ -18,6 +19,7 @@ export interface AxisLayout {
     };
     direction: ChartAxisDirection;
     domain: any[];
+    scale: Scale<any, any>;
 }
 
 export interface LayoutCompleteEvent {

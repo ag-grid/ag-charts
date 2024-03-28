@@ -1,3 +1,4 @@
+import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
@@ -32,6 +33,7 @@ export interface ModuleContext {
     updateService: UpdateService;
 
     animationManager: AnimationManager;
+    annotationManager: AnnotationManager;
     chartEventManager: ChartEventManager;
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;

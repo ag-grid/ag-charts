@@ -9,7 +9,7 @@ import { TimeScale } from './timeScale';
 export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override readonly type = 'ordinal-time';
 
-    static is(value: any): value is OrdinalTimeScale {
+    static override is(value: any): value is OrdinalTimeScale {
         return value instanceof OrdinalTimeScale;
     }
 
@@ -146,5 +146,9 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     override invert(y: number): Date {
         return new Date(super.invert(y));
+    }
+
+    override invertNearest(y: number): Date {
+        return new Date(super.invertNearest(y));
     }
 }
