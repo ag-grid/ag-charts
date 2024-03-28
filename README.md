@@ -29,37 +29,39 @@ Here are some of the features that make AG Charts stand out:
 -   Simple & clean declarative configuration.
 -   Comprehensive interactive documentation.
 
-<div style="display: grid; grid-auto-rows: minmax(0, 1fr); grid-auto-columns: minmax(0, 1fr)">
-    <div style="grid-area: 1 / 1">
-        <h3>Supported Chart Types</h3>
-        Line, Bar & Area<br/>
-        Scatter & Bubble  <br/>
-        Pie & Donut<br/>
-        Histogram<br/>
-        Map*<br/>
-        Candlestick & OHLC*<br/>
-        Box Plot*<br/>
-    </div>
-    <div style="grid-area: 1 / 2">
-        <h3>&nbsp;</h3>
-        Heatmap*<br/>
-        Nightingale*<br/>
-        Range (Bar, Area)*<br/>
-        Radar (Area, Line, Bar, Column)*<br/>
-        Sunburst & Treemap*<br/>
-        Bullet*<br/>
-    </div>
-    <div style="grid-area: 1 / 3">
-        <h3>Advanced Features</h3>
-        Cross-lines<br/>
-        Secondary Axes<br/>
-        Theming<br/>
-        Animation*<br/>
-        Multi-chart Synchronisation*<br/>
-        Cross-hairs*<br/>
-        Error-bars*<br/>
-    </div>
-</div>
+<table>
+    <tr>
+        <td>
+            <h3>Supported Chart Types</h3>
+            Line, Bar & Area<br/>
+            Scatter & Bubble  <br/>
+            Pie & Donut<br/>
+            Histogram<br/>
+            Map*<br/>
+            Candlestick & OHLC*<br/>
+            Box Plot*<br/>
+        </td>
+        <td>
+            <h3>&nbsp;</h3>
+            Heatmap*<br/>
+            Nightingale*<br/>
+            Range (Bar, Area)*<br/>
+            Radar (Area, Line, Bar, Column)*<br/>
+            Sunburst & Treemap*<br/>
+            Bullet*<br/>
+        </td>
+        <td>
+            <h3>Advanced Features</h3>
+            Cross-lines<br/>
+            Secondary Axes<br/>
+            Theming<br/>
+            Animation*<br/>
+            Multi-chart Synchronisation*<br/>
+            Cross-hairs*<br/>
+            Error-bars*<br/>
+        </td>
+    </tr>
+</table>
 <br/>
 
 \* These are available in the [Enterprise version](https://charts.ag-grid.com/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
