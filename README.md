@@ -30,41 +30,52 @@ Here are some of the features that make AG Charts stand out:
 -   Comprehensive interactive documentation.
 
 <table>
-    <tr>
-        <td>
-            <h3>Supported Chart Types</h3>
-            Line, Bar & Area<br/>
-            Scatter & Bubble  <br/>
-            Pie & Donut<br/>
-            Histogram<br/>
-            Map*<br/>
-            Candlestick & OHLC*<br/>
-            Box Plot*<br/>
+    <thead>
+        <th colspan="2">
+            Supported Chart Types
+        </th>
+        <th colspan="1">
+            Advanced Features
+        </th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                Line, Bar & Area<br/>
+                Scatter & Bubble  <br/>
+                Pie & Donut<br/>
+                Histogram<br/>
+                Map*<br/>
+                Candlestick & OHLC*<br/>
+                Box Plot*<br/>
+            </td>
+            <td>
+                Heatmap*<br/>
+                Nightingale*<br/>
+                Range (Bar, Area)*<br/>
+                Radar (Area, Line, Bar, Column)*<br/>
+                Sunburst & Treemap*<br/>
+                Bullet*<br/>
+                <br/>
+            </td>
+            <td>
+                Cross-lines<br/>
+                Secondary Axes<br/>
+                Theming<br/>
+                Animation*<br/>
+                Multi-chart Synchronisation*<br/>
+                Cross-hairs*<br/>
+                Error-bars*<br/>
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <td colspan="3">
+            * These are available in the [Enterprise version](https://charts.ag-grid.com/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
         </td>
-        <td>
-            <h3>&nbsp;</h3>
-            Heatmap*<br/>
-            Nightingale*<br/>
-            Range (Bar, Area)*<br/>
-            Radar (Area, Line, Bar, Column)*<br/>
-            Sunburst & Treemap*<br/>
-            Bullet*<br/>
-        </td>
-        <td>
-            <h3>Advanced Features</h3>
-            Cross-lines<br/>
-            Secondary Axes<br/>
-            Theming<br/>
-            Animation*<br/>
-            Multi-chart Synchronisation*<br/>
-            Cross-hairs*<br/>
-            Error-bars*<br/>
-        </td>
-    </tr>
+    </tfoot>
 </table>
 <br/>
-
-\* These are available in the [Enterprise version](https://charts.ag-grid.com/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
 
 Check out the [developer documentation](https://charts.ag-grid.com/javascript/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features or visit [our official docs](https://charts.ag-grid.com/gallery/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for tutorials and feature demos.
 
