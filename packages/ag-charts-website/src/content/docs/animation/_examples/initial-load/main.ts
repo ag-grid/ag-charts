@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
-    AgChartOptions,
     AgCharts,
     AgPolarChartOptions,
     AgTooltipRendererResult,
@@ -216,6 +215,7 @@ const donutOptions: AgPolarChartOptions = {
             showInLegend: false,
         },
     ],
+    axes: [],
 };
 
 let options: AgCartesianChartOptions | AgPolarChartOptions = {
