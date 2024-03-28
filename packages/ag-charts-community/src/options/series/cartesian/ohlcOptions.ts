@@ -4,9 +4,9 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../se
 import type {
     AgCandlestickSeriesBaseFormatterParams,
     AgCandlestickSeriesBaseOptions,
+    AgCandlestickSeriesBaseTooltipRendererParams,
     AgCandlestickSeriesItemType,
-    AgCandlestickSeriesTooltipRendererParams,
-} from './candleStickOptions';
+} from './candlestickBaseOptions';
 import type { AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgOhlcSeriesItemType = AgCandlestickSeriesItemType;
@@ -17,7 +17,7 @@ export interface AgOhlcSeriesFormatterParams<TDatum>
     extends AgCandlestickSeriesBaseFormatterParams<TDatum>,
         Readonly<StrokeOptions> {}
 
-export interface AgOhlcSeriesTooltipRendererParams extends Omit<AgCandlestickSeriesTooltipRendererParams, 'fill'> {
+export interface AgOhlcSeriesTooltipRendererParams extends AgCandlestickSeriesBaseTooltipRendererParams {
     stroke?: CssColor;
 }
 
