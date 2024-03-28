@@ -458,22 +458,18 @@ export class Rect extends Path implements DistantObject {
     protected override renderStroke(ctx: CanvasRenderingContext2D) {
         const { stroke, effectiveStrokeWidth, borderPath, borderClipPath, opacity, microPixelEffectOpacity } = this;
 
-        const borderActive = !!stroke && !!effectiveStrokeWidth;
-        if (borderActive) {
+        if (stroke && effectiveStrokeWidth) {
             const { strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin } = this;
             if (borderClipPath) {
                 // strokeWidth is larger than width or height, so use clipping to render correctly.
                 // This is the simplest way to achieve the correct rendering due to nuances with ~0
                 // width/height lines in Canvas operations.
-                borderClipPath.draw(ctx);
-                ctx.clip();
+                ctx.clip(borderClipPath.getPath2D());
             }
 
-            borderPath.draw(ctx);
-
             const { globalAlpha } = ctx;
-            ctx.strokeStyle = stroke!;
-            ctx.globalAlpha = globalAlpha * opacity * strokeOpacity * microPixelEffectOpacity;
+            ctx.strokeStyle = stroke;
+            ctx.globalAlpha *= opacity * strokeOpacity * microPixelEffectOpacity;
 
             ctx.lineWidth = effectiveStrokeWidth;
             if (lineDash) {
@@ -489,7 +485,7 @@ export class Rect extends Path implements DistantObject {
                 ctx.lineJoin = lineJoin;
             }
 
-            ctx.stroke();
+            ctx.stroke(borderPath.getPath2D());
             ctx.globalAlpha = globalAlpha;
         }
     }

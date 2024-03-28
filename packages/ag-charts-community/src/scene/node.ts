@@ -454,18 +454,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         }
     }
 
-    clearBBox(ctx: CanvasRenderingContext2D) {
-        const bbox = this.computeBBox();
-        if (bbox == null) {
-            return;
-        }
-
-        const { x, y, width, height } = bbox;
-        const topLeft = this.transformPoint(x, y);
-        const bottomRight = this.transformPoint(x + width, y + height);
-        ctx.clearRect(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-    }
-
     override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
         if (this._dirty > type || (this._dirty === type && type === parentType)) {
             return;

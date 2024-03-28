@@ -44,35 +44,74 @@ export class InternalPath2D {
         return false;
     }
 
-    draw(ctx: CanvasDrawPath & CanvasPath) {
-        const commands = this.commands;
-        const params = this.params;
+    getPath2D() {
+        const { commands, params } = this;
+        const path = new Path2D();
         let j = 0;
 
-        ctx.beginPath();
         for (const command of commands) {
             switch (command) {
                 case Command.Move:
-                    ctx.moveTo(params[j++], params[j++]);
+                    path.moveTo(params[j++], params[j++]);
                     break;
                 case Command.Line:
-                    ctx.lineTo(params[j++], params[j++]);
+                    path.lineTo(params[j++], params[j++]);
                     break;
                 case Command.Curve:
-                    ctx.bezierCurveTo(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++]);
+                    path.bezierCurveTo(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++]);
                     break;
                 case Command.Arc:
-                    ctx.arc(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++] === 1);
+                    path.arc(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++] === 1);
                     break;
                 case Command.ClosePath:
-                    ctx.closePath();
+                    path.closePath();
                     break;
             }
         }
 
-        if (commands.length === 0) {
-            ctx.closePath();
+        return path;
+    }
+
+    newPath2D() {
+        const commands = this.commands;
+        const params = this.params;
+        let j = 0;
+        let path = '';
+
+        for (const command of commands) {
+            switch (command) {
+                case Command.Move:
+                    path += `M ${params[j++]},${params[j++]}`;
+                    break;
+                case Command.Line:
+                    path += `L ${params[j++]},${params[j++]}`;
+                    break;
+                case Command.Curve:
+                    path += `C ${params[j++]},${params[j++]} ${params[j++]},${params[j++]} ${params[j++]},${params[j++]}`;
+                    break;
+                case Command.Arc:
+                    const x = params[j++];
+                    const y = params[j++];
+                    const radius = params[j++];
+                    const startAngle = params[j++];
+                    const endAngle = params[j++];
+                    const sweepFlag = params[j++] === 1 ? '0' : '1';
+                    const largeArcFlag = (endAngle - startAngle) % (2 * Math.PI) > Math.PI ? '1' : '0';
+
+                    // Calculate start and end points for the arc
+                    const startX = x + radius * Math.cos(startAngle);
+                    const startY = y + radius * Math.sin(startAngle);
+                    const endX = x + radius * Math.cos(endAngle);
+                    const endY = y + radius * Math.sin(endAngle);
+
+                    path += `L ${startX},${startY} A ${radius},${radius} 0 ${largeArcFlag},${sweepFlag} ${endX},${endY}`;
+                    break;
+                case Command.ClosePath:
+                    path += `Z`;
+                    break;
+            }
         }
+        return new Path2D(path);
     }
 
     moveTo(x: number, y: number) {

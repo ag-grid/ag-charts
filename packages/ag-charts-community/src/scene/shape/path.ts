@@ -111,8 +111,7 @@ export class Path extends Shape {
 
             if (this.clipMode === 'normal') {
                 // Bound the shape rendered to the clipping path.
-                this._clipPath?.draw(ctx);
-                ctx.clip();
+                ctx.clip(this._clipPath?.getPath2D());
             }
 
             if (this._clipX > 0 && this._clipY > 0) {
@@ -121,8 +120,7 @@ export class Path extends Shape {
 
             if (this.clipMode === 'punch-out') {
                 // Bound the shape rendered to the clipping path.
-                this._clipPath?.draw(ctx);
-                ctx.clip();
+                ctx.clip(this._clipPath?.getPath2D());
                 // Fallback values, but practically these should never be used.
                 const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
                 ctx.clearRect(x, y, width, height);
@@ -138,7 +136,6 @@ export class Path extends Shape {
     }
 
     protected drawPath(ctx: any) {
-        this.path.draw(ctx);
-        this.fillStroke(ctx);
+        this.fillStroke(ctx, this.path.getPath2D());
     }
 }
