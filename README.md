@@ -41,35 +41,35 @@ Here are some of the features that make AG Charts stand out:
     <tbody>
         <tr>
             <td>
-                Line, Bar & Area<br/>
-                Scatter & Bubble  <br/>
-                Pie & Donut<br/>
-                Histogram<br/>
-                Map*<br/>
-                Candlestick & OHLC*<br/>
-                Box Plot*<br/>
+                <a href="https://charts.ag-grid.com/javascript/line-series/">Line</a>, <a href="https://charts.ag-grid.com/javascript/bar-series/">Bar</a> & <a href="https://charts.ag-grid.com/javascript/area-series/">Area</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/scatter-series/">Scatter</a> & <a href="https://charts.ag-grid.com/javascript/bubble-series/">Bubble</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/pie-series/">Pie</a> & <a href="https://charts.ag-grid.com/javascript/donut-series/">Donut</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/histogram-series/">Histogram</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/maps/">Map</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/candlestick-series/">Candlestick</a> & <a href="https://charts.ag-grid.com/javascript/ohlc-series/">OHLC</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/box-plot-series/">Box Plot</a>*<br/>
             </td>
             <td>
-                Heatmap*<br/>
-                Nightingale*<br/>
-                Range (Bar, Area)*<br/>
-                Radar (Area, Line, Bar, Column)*<br/>
-                Sunburst & Treemap*<br/>
-                Bullet*<br/>
-                <br/>
+                <a href="https://charts.ag-grid.com/javascript/heatmap-series/">Heatmap</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/nightingale-series/">Nightingale</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/range-bar-series/">Range Bar</a>* & <a href="https://charts.ag-grid.com/javascript/range-area-series/">Range Area</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/radar-area-series/">Radar Area</a>* & <a href="https://charts.ag-grid.com/javascript/radar-line-series/">Radar Line</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/radar-area-series/">Radial Area</a>* & <a href="https://charts.ag-grid.com/javascript/radar-line-series/">Radial Line</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/sunburst-series/">Sunburst*</a> & <a href="https://charts.ag-grid.com/javascript/treemap-series/">Treemap</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/bullet-series/">Bullet</a>*<br/>
             </td>
             <td>
-                Animation*<br/>
-                Annotations*<br/>
-                Chart Synchronization*<br/>
-                Context Menu*<br/>
-                Crosshairs*<br/>
-                Cross Lines<br/>
-                Error Bars<br/>
+                <a href="https://charts.ag-grid.com/javascript/animation/">Animation</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/annotations/">Annotations</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/sync/">Synchronized Charts</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/context-menu/">Context Menu</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/axes-crosshairs/">Crosshairs</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/axes-cross-lines/">Cross Lines </a><br/>
+                <a href="https://charts.ag-grid.com/javascript/error-bars/">Error Bars</a>*<br/>
             </td>
             <td>
-                Theming<br/>
-                Zoom*<br/>
+                <a href="https://charts.ag-grid.com/javascript/themes/">Theming</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/zoom/">Zoom</a>*<br/>
                 <br/>
                 <br/>
                 <br/>
