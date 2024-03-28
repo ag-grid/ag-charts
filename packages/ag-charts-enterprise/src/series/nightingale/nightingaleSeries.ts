@@ -3,7 +3,7 @@ import { type AgRadialSeriesFormat, _ModuleSupport, _Scene } from 'ag-charts-com
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import { NightingaleSeriesProperties } from './nightingaleSeriesProperties';
-import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
+import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
 const { Sector, SectorBox } = _Scene;
 
@@ -36,18 +36,21 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         highlight: boolean,
         _format: AgRadialSeriesFormat | undefined
     ) {
+        const { negative } = datum;
         node.centerX = 0;
         node.centerY = 0;
-        node.startOuterCornerRadius = !datum.negative ? this.properties.cornerRadius : 0;
-        node.endOuterCornerRadius = !datum.negative ? this.properties.cornerRadius : 0;
-        node.startInnerCornerRadius = datum.negative ? this.properties.cornerRadius : 0;
-        node.endInnerCornerRadius = datum.negative ? this.properties.cornerRadius : 0;
+        node.startOuterCornerRadius = !negative ? this.properties.cornerRadius : 0;
+        node.endOuterCornerRadius = !negative ? this.properties.cornerRadius : 0;
+        node.startInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
+        node.endInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
         if (highlight) {
-            node.innerRadius = datum.stackInnerRadius;
-            node.outerRadius = datum.stackOuterRadius;
-            node.startAngle = datum.startAngle;
-            node.endAngle = datum.endAngle;
-            node.clipSector = new SectorBox(datum.startAngle, datum.endAngle, datum.innerRadius, datum.outerRadius);
+            const { startAngle, endAngle } = datum;
+            const { innerRadius, outerRadius, clipInnerRadius, clipOuterRadius } = getRadii(datum);
+            node.innerRadius = innerRadius;
+            node.outerRadius = outerRadius;
+            node.startAngle = startAngle;
+            node.endAngle = endAngle;
+            node.clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
 
         // TODO: Enable once the options contract has been revisited

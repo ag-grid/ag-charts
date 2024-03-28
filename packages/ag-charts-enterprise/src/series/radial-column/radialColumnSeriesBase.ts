@@ -297,17 +297,12 @@ export abstract class RadialColumnSeriesBase<
             }
             const angle = startAngle + groupScale.bandwidth / 2;
 
-            let innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);
-            let outerRadius = axisTotalRadius - radiusScale.convert(outerRadiusDatum);
+            const innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);
+            const outerRadius = axisTotalRadius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
 
-            let stackInnerRadius = axisTotalRadius - radiusScale.convert(0);
-            let stackOuterRadius = axisTotalRadius - radiusScale.convert(radiusRange);
-
-            if (negative) {
-                [innerRadius, outerRadius] = [outerRadius, innerRadius];
-                [stackInnerRadius, stackOuterRadius] = [stackOuterRadius, stackInnerRadius];
-            }
+            const stackInnerRadius = axisTotalRadius - radiusScale.convert(0);
+            const stackOuterRadius = axisTotalRadius - radiusScale.convert(radiusRange);
 
             const x = Math.cos(angle) * midRadius;
             const y = Math.sin(angle) * midRadius;
