@@ -10,7 +10,7 @@ export class LinearAngleScale extends LinearScale {
     private niceTickStep = 0;
 
     override ticks() {
-        if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d))) {
+        if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d)) || this.arcLength <= 0) {
             return [];
         }
         this.refresh();

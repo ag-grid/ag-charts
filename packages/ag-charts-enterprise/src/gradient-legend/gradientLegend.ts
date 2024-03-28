@@ -17,6 +17,7 @@ const {
     Validate,
     Default,
     MIN_SPACING,
+    MAX_SPACING,
     POSITIVE_NUMBER,
     ProxyProperty,
     DeprecatedAndRenamedTo,
@@ -37,6 +38,10 @@ class GradientLegendAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale,
     override size = 0;
 
     @Validate(MIN_SPACING)
+    @Default(NaN)
+    override minSpacing: number = NaN;
+
+    @Validate(MAX_SPACING)
     @Default(NaN)
     override maxSpacing: number = NaN;
 }
