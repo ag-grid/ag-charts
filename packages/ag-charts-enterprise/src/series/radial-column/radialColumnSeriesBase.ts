@@ -19,6 +19,7 @@ const {
     valueProperty,
     animationValidation,
     isFiniteNumber,
+    SeriesNodePickMode,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -93,6 +94,7 @@ export abstract class RadialColumnSeriesBase<
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 ...animationResetFns,
                 label: resetLabelFn,
@@ -500,6 +502,10 @@ export abstract class RadialColumnSeriesBase<
             { title, backgroundColor: fill, content },
             { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
         );
+    }
+
+    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

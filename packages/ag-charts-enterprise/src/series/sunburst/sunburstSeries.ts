@@ -563,6 +563,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return undefined;
     }
 
+    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        return this.pickNodeNearestDistantObject(point, this.groupSelection.selectByClass(Sector));
+    }
+
     protected override animateEmptyUpdateReady({
         datumSelections,
     }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, _ModuleSupport.SeriesNodeDatum>) {

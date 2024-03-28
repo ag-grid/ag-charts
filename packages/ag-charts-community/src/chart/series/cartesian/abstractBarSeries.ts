@@ -1,15 +1,18 @@
 import type { Direction } from '../../../options/chart/types';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Node } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { DIRECTION, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
+import { QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
     @Validate(DIRECTION)
@@ -17,7 +20,7 @@ export abstract class AbstractBarSeriesProperties<T extends object> extends Cart
 }
 
 export abstract class AbstractBarSeries<
-    TNode extends Node,
+    TNode extends QuadtreeCompatibleNode,
     TProps extends AbstractBarSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
@@ -111,5 +114,13 @@ export abstract class AbstractBarSeries<
             return ChartAxisDirection.X;
         }
         return direction;
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<TDatum>) {
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 }

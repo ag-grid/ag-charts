@@ -318,6 +318,7 @@ export class Rect extends Path implements DistantObject {
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
     private hittester = super.isPointInPath;
+    private distanceCalculator = super.distanceSquared;
 
     /**
      * When the rectangle's width or height is less than a pixel
@@ -417,14 +418,17 @@ export class Rect extends Path implements DistantObject {
             insetCornerRadiusRect(path, x, y, w, h, cornerRadii, clipBBox);
         }
 
-        // Path.isPointInPath is expensive, so just use a BBox if the corners aren't rounded.
+        // Path's isPointInPath and distanceSquared are expensive computations,
+        // so just use a BBox if the corners aren't rounded.
         if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
             this.hittester = (hitX: number, hitY: number) => {
                 const point = this.transformPoint(hitX, hitY);
                 return this.getCachedBBox().containsPoint(point.x, point.y);
             };
+            this.distanceSquared = (hitX: number, hitY: number) => this.getCachedBBox().distanceSquared(hitX, hitY);
         } else {
             this.hittester = super.isPointInPath;
+            this.distanceCalculator = super.distanceSquared;
         }
 
         this.effectiveStrokeWidth = strokeWidth;
@@ -445,8 +449,8 @@ export class Rect extends Path implements DistantObject {
         return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
     }
 
-    distanceSquared(x: number, y: number): number {
-        return this.getCachedBBox().distanceSquared(x, y);
+    override distanceSquared(x: number, y: number): number {
+        return this.distanceCalculator(x, y);
     }
 
     protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {

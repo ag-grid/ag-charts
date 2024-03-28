@@ -10,6 +10,8 @@ import type {
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
+import { DistantObject, nearestSquared } from '../../scene/nearest';
+import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { createId } from '../../util/id';
@@ -672,6 +674,14 @@ export abstract class Series<
         // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeClosestDatum() not implemented');
+    }
+
+    protected pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
+        const match = nearestSquared(point.x, point.y, items);
+        if (match.nearest !== undefined) {
+            return { datum: match.nearest.datum, distance: Math.sqrt(match.distanceSquared) };
+        }
+        return undefined;
     }
 
     protected pickNodeMainAxisFirst(_point: Point, _requireCategoryAxis: boolean): SeriesNodePickMatch | undefined {
