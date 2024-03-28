@@ -96,4 +96,10 @@ export interface AgZoomOptions {
      * Default: `0.1`
      */
     scrollingStep?: Ratio;
+    /**
+     * When set to a value less than 1, dragging and releasing will continue to pan in the direction of the drag and gradually slowing down.
+     * Typical values are between 0.01 for a short pan duration, and 0.002 for a long pan duration.
+     * Default: `1`
+     */
+    deceleration?: Ratio;
 }
