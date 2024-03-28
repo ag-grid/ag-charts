@@ -71,6 +71,7 @@ Here are some of the features that make AG Charts stand out:
     </tbody>
 </table>
 <br/>
+
 \* These are available in the [Enterprise version](https://charts.ag-grid.com/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
 
 Check out the [developer documentation](https://charts.ag-grid.com/javascript/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features or visit [our official docs](https://charts.ag-grid.com/gallery/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for tutorials and feature demos.
