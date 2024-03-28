@@ -28,6 +28,7 @@ import { MapMarkerModule } from './series/map-marker/main';
 import { MapShapeBackgroundModule } from './series/map-shape-background/main';
 import { MapShapeModule } from './series/map-shape/main';
 import { NightingaleModule } from './series/nightingale/main';
+import { OhlcModule } from './series/ohlc/main';
 import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
 import { RadialBarModule } from './series/radial-bar/main';
@@ -46,6 +47,7 @@ export function setupEnterpriseModules() {
         BackgroundModule,
         BoxPlotModule,
         CandlestickModule,
+        OhlcModule,
         BulletModule,
         ContextMenuModule,
         CrosshairModule,

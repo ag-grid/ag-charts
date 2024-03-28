@@ -7,6 +7,7 @@ import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeri
 import type { AgHeatmapSeriesOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesOptions } from '../series/cartesian/lineOptions';
+import type { AgOhlcSeriesOptions } from '../series/cartesian/ohlcOptions';
 import type { AgRangeAreaSeriesOptions } from '../series/cartesian/rangeAreaOptions';
 import type { AgRangeBarSeriesOptions } from '../series/cartesian/rangeBarOptions';
 import type { AgScatterSeriesOptions } from '../series/cartesian/scatterOptions';
@@ -119,6 +120,8 @@ export interface AgRangeAreaMiniChartSeriesOptions
 export interface AgCandlestickMiniChartSeriesOptions
     extends Omit<AgCandlestickSeriesOptions, CommonIgnoredProperties> {}
 
+export interface AgOhlcMiniChartSeriesOptions extends Omit<AgOhlcSeriesOptions, CommonIgnoredProperties> {}
+
 export type AgMiniChartSeriesOptions =
     | AgLineMiniChartSeriesOptions
     | AgScatterMiniChartSeriesOptions
@@ -131,7 +134,8 @@ export type AgMiniChartSeriesOptions =
     | AgWaterfallMiniChartSeriesOptions
     | AgRangeBarMiniChartSeriesOptions
     | AgRangeAreaMiniChartSeriesOptions
-    | AgCandlestickMiniChartSeriesOptions;
+    | AgCandlestickMiniChartSeriesOptions
+    | AgOhlcMiniChartSeriesOptions;
 
 type IgnoredMiniChartSeries = 'bullet';
 type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;
