@@ -1,19 +1,10 @@
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { TimeScale } from '../../scale/timeScale';
-import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
 import { TimeInterval } from '../../util/time/interval';
 import { isFiniteNumber } from '../../util/type-guards';
-import {
-    ARRAY,
-    BOOLEAN,
-    COLOR_STRING,
-    MIN_SPACING,
-    POSITIVE_NUMBER,
-    Validate,
-    predicateWithMessage,
-} from '../../util/validation';
+import { ARRAY, BOOLEAN, COLOR_STRING, POSITIVE_NUMBER, Validate, predicateWithMessage } from '../../util/validation';
 
 export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
 
@@ -24,7 +15,7 @@ const TICK_INTERVAL = predicateWithMessage(
     `a non-zero positive Number value or, for a time axis, a Time Interval such as 'agCharts.time.month'`
 );
 
-export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> extends BaseProperties {
+export abstract class AxisTick<S extends Scale<D, number, I>, D = any, I = any> extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
 
@@ -53,9 +44,7 @@ export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> extends B
     @Validate(ARRAY, { optional: true })
     values?: any[] = undefined;
 
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    minSpacing: number = NaN;
+    abstract minSpacing: number;
 
     // Maybe initialised and validated in subclasses - DO NOT ASSIGN A VALUE HERE.
     maxSpacing?: number;

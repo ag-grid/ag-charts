@@ -4,10 +4,14 @@ import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { LinearAngleScale } from './linearAngleScale';
 
-const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, MIN_SPACING, Validate } = _ModuleSupport;
+const { AND, Default, GREATER_THAN, LESS_THAN, OR, POSITIVE_NUMBER, NAN, NUMBER_OR_NAN, MIN_SPACING, Validate } =
+    _ModuleSupport;
 const { angleBetween, isNumberEqual, normalisedExtentWithMetadata } = _Util;
 
 class AngleNumberAxisTick extends _ModuleSupport.AxisTick<LinearAngleScale, number> {
+    @Validate(OR(POSITIVE_NUMBER, NAN))
+    override minSpacing: number = NaN;
+
     @Validate(MIN_SPACING)
     @Default(NaN)
     override maxSpacing: number = NaN;
