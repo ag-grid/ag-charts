@@ -7,6 +7,7 @@ import type { AgCandlestickSeriesOptions } from './candlestickOptions';
 import type { AgHeatmapSeriesOptions } from './heatmapOptions';
 import type { AgHistogramSeriesOptions } from './histogramOptions';
 import type { AgLineSeriesOptions } from './lineOptions';
+import type { AgOhlcSeriesOptions } from './ohlcOptions';
 import type { AgRangeAreaSeriesOptions } from './rangeAreaOptions';
 import type { AgRangeBarSeriesOptions } from './rangeBarOptions';
 import type { AgScatterSeriesOptions } from './scatterOptions';
@@ -20,6 +21,7 @@ export type AgCartesianSeriesOptions =
     | AgBarSeriesOptions
     | AgBoxPlotSeriesOptions
     | AgCandlestickSeriesOptions
+    | AgOhlcSeriesOptions
     | AgHistogramSeriesOptions
     | AgHeatmapSeriesOptions
     | AgWaterfallSeriesOptions

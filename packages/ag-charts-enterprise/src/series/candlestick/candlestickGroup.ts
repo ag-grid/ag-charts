@@ -9,9 +9,11 @@ export enum GroupTags {
     Wick,
 }
 
-export type ActiveCandlestickGroupStyles = AgCandlestickSeriesItemOptions;
+export abstract class CandlestickBaseGroup<TNodeDatum, TStyles> extends _Scene.Group {
+    abstract updateDatumStyles(datum: TNodeDatum, activeStyles: TStyles): void;
+}
 
-export class CandlestickGroup extends _Scene.Group {
+export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum, AgCandlestickSeriesItemOptions> {
     constructor() {
         super();
         this.append([
@@ -21,10 +23,7 @@ export class CandlestickGroup extends _Scene.Group {
         ]);
     }
 
-    updateDatumStyles(
-        datum: CandlestickNodeDatum,
-        activeStyles: _ModuleSupport.DeepRequired<ActiveCandlestickGroupStyles>
-    ) {
+    updateDatumStyles(datum: CandlestickNodeDatum, activeStyles: AgCandlestickSeriesItemOptions) {
         const {
             bandwidth,
             scaledValues: { xValue: axisValue },
@@ -39,9 +38,11 @@ export class CandlestickGroup extends _Scene.Group {
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            wick: wickStyles,
+            wick: wickStyles = {},
             cornerRadius,
         } = activeStyles;
+
+        wickStyles.strokeWidth ??= 1;
 
         const selection = _Scene.Selection.select(this, _Scene.Rect);
         const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Rect);

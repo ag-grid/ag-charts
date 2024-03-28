@@ -1,7 +1,7 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { CandlestickGroup } from './candlestickGroup';
-import type { CandlestickNodeDatum } from './candlestickTypes';
+import type { CandlestickBaseGroup } from './candlestickGroup';
+import type { CandlestickNodeBaseDatum } from './candlestickTypes';
 
 export function prepareCandlestickFromTo(isVertical: boolean) {
     const from = isVertical ? { scalingX: 1, scalingY: 0 } : { scalingX: 0, scalingY: 1 };
@@ -12,7 +12,10 @@ export function prepareCandlestickFromTo(isVertical: boolean) {
 
 export function resetCandlestickSelectionsScalingStartFn(
     isVertical: boolean
-): (node: CandlestickGroup, datum: CandlestickNodeDatum) => { scalingCenterY: number } | { scalingCenterX: number } {
+): (
+    node: CandlestickBaseGroup<any, any>,
+    datum: CandlestickNodeBaseDatum
+) => { scalingCenterY: number } | { scalingCenterX: number } {
     return (_node, datum) => {
         if (isVertical) {
             const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
