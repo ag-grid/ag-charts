@@ -9,6 +9,8 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import type { CandlestickNodeDatum } from './candlestickTypes';
+
 const {
     BaseProperties,
     AbstractBarSeriesProperties,
@@ -144,7 +146,7 @@ export class CandlestickSeriesProperties extends CandlestickSeriesBaseProperties
     AgCandlestickSeriesOptions,
     AgCandlestickSeriesItemOptions,
     CandlestickSeriesItems,
-    AgCandlestickSeriesFormatterParams<unknown>
+    AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>
 > {
     constructor() {
         super(new CandlestickSeriesItems());

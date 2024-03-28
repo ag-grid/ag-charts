@@ -1,5 +1,5 @@
-import type { CssColor } from '../../agChartOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type {
     AgCandlestickSeriesBaseFormatterParams,
