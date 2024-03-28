@@ -7,6 +7,8 @@
 | ag-charts-community  | [![npm](https://img.shields.io/npm/dm/ag-charts-community)](https://www.npmjs.com/package/ag-charts-community) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) <br> |
 | ag-charts-enterprise |    [![npm](https://img.shields.io/npm/dm/ag-charts-enterprise)](https://www.npmjs.com/package/ag-charts-enterprise) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) |
 
+<!-- package stats -->
+
 # AG Charts
 
 AG Charts is a fully-featured and highly customizable JavaScript charting library. The professional choice for developers building enterprise applications.
@@ -41,35 +43,35 @@ Here are some of the features that make AG Charts stand out:
     <tbody>
         <tr>
             <td>
-                <a href="https://charts.ag-grid.com/javascript/line-series/">Line</a>, <a href="https://charts.ag-grid.com/javascript/bar-series/">Bar</a> & <a href="https://charts.ag-grid.com/javascript/area-series/">Area</a><br/>
-                <a href="https://charts.ag-grid.com/javascript/scatter-series/">Scatter</a> & <a href="https://charts.ag-grid.com/javascript/bubble-series/">Bubble</a><br/>
-                <a href="https://charts.ag-grid.com/javascript/pie-series/">Pie</a> & <a href="https://charts.ag-grid.com/javascript/donut-series/">Donut</a><br/>
-                <a href="https://charts.ag-grid.com/javascript/histogram-series/">Histogram</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/maps/">Map</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/candlestick-series/">Candlestick</a> & <a href="https://charts.ag-grid.com/javascript/ohlc-series/">OHLC</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/box-plot-series/">Box Plot</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/line-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Line</a>, <a href="https://charts.ag-grid.com/javascript/bar-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Bar</a> & <a href="https://charts.ag-grid.com/javascript/area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Area</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/scatter-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Scatter</a> & <a href="https://charts.ag-grid.com/javascript/bubble-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Bubble</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/pie-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Pie</a> & <a href="https://charts.ag-grid.com/javascript/donut-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Donut</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/histogram-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Histogram</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/maps/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Map</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/candlestick-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Candlestick</a> & <a href="https://charts.ag-grid.com/javascript/ohlc-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">OHLC</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/box-plot-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Box Plot</a>*<br/>
             </td>
             <td>
-                <a href="https://charts.ag-grid.com/javascript/heatmap-series/">Heatmap</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/nightingale-series/">Nightingale</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/range-bar-series/">Range Bar</a>* & <a href="https://charts.ag-grid.com/javascript/range-area-series/">Range Area</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/radar-area-series/">Radar Area</a>* & <a href="https://charts.ag-grid.com/javascript/radar-line-series/">Radar Line</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/radar-area-series/">Radial Area</a>* & <a href="https://charts.ag-grid.com/javascript/radar-line-series/">Radial Line</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/sunburst-series/">Sunburst*</a> & <a href="https://charts.ag-grid.com/javascript/treemap-series/">Treemap</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/bullet-series/">Bullet</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/heatmap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Heatmap</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/nightingale-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Nightingale</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/range-bar-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Range Bar</a>* & <a href="https://charts.ag-grid.com/javascript/range-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Range Area</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/radar-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radar Area</a>* & <a href="https://charts.ag-grid.com/javascript/radar-line-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radar Line</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/radar-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radial Area</a>* & <a href="https://charts.ag-grid.com/javascript/radar-line-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radial Line</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/sunburst-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Sunburst*</a> & <a href="https://charts.ag-grid.com/javascript/treemap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Treemap</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/bullet-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Bullet</a>*<br/>
             </td>
             <td>
-                <a href="https://charts.ag-grid.com/javascript/animation/">Animation</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/annotations/">Annotations</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/sync/">Synchronized Charts</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/context-menu/">Context Menu</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/axes-crosshairs/">Crosshairs</a>*<br/>
-                <a href="https://charts.ag-grid.com/javascript/axes-cross-lines/">Cross Lines </a><br/>
-                <a href="https://charts.ag-grid.com/javascript/error-bars/">Error Bars</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Animation</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/annotations/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Annotations</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Synchronized Charts</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Context Menu</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/axes-crosshairs/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Crosshairs</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/axes-cross-lines/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Cross Lines </a><br/>
+                <a href="https://charts.ag-grid.com/javascript/error-bars/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Error Bars</a>*<br/>
             </td>
             <td>
-                <a href="https://charts.ag-grid.com/javascript/themes/">Theming</a><br/>
-                <a href="https://charts.ag-grid.com/javascript/zoom/">Zoom</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/themes/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Theming</a><br/>
+                <a href="https://charts.ag-grid.com/javascript/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Zoom</a>*<br/>
                 <br/>
                 <br/>
                 <br/>
@@ -87,9 +89,13 @@ Check out the [developer documentation](https://charts.ag-grid.com/javascript/?u
 
 ## Getting started
 
+<!-- START Getting started -->
+
 Get started with [React](https://charts.ag-grid.com/react/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) / [Angular](https://charts.ag-grid.com/angular/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) / [Vue](https://charts.ag-grid.com/vue/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) / [Javascript](https://charts.ag-grid.com/javascript/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
 
 Installation for [React](https://charts.ag-grid.com/react/installation/) / [Angular](https://charts.ag-grid.com/angular/installation/) / [Vue](https://charts.ag-grid.com/vue/installation/) / [Javascript](https://charts.ag-grid.com/javascript/installation/).
+
+<!-- END Getting started -->
 
 ## Issue Reporting
 
