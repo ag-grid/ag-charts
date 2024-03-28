@@ -13,7 +13,7 @@ export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
 export interface AgCandlestickSeriesFormatterParams<TDatum>
     extends AgCandlestickSeriesBaseFormatterParams<TDatum>,
-        Readonly<FillOptions> {}
+        FillOptions {}
 
 export interface AgCandlestickSeriesTooltipRendererParams extends AgCandlestickSeriesBaseTooltipRendererParams {
     fill?: CssColor;
