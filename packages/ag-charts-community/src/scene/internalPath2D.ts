@@ -41,10 +41,10 @@ export class InternalPath2D {
         // Newer API - so support is limited
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/roundRect
         radii = Math.min(radii, width / 2, height / 2);
-        this.path += `M${x},${y + radii}A${radii},${radii} 0 0 1 ${x + radii},${y}`;
-        this.path += `L${x + width - radii},${y}A${radii},${radii} 0 0 1 ${x + width},${y + radii}`;
-        this.path += `L${x + width},${y + height - radii}A${radii},${radii} 0 0 1 ${x + width - radii},${y + height}`;
-        this.path += `L${x + radii},${y + height}A${radii},${radii} 0 0 1 ${x},${y + height - radii}`;
+        this.path += `M${x},${y + radii}A${radii},${radii} 0 0,1 ${x + radii},${y}`;
+        this.path += `L${x + width - radii},${y}A${radii},${radii} 0 0,1 ${x + width},${y + radii}`;
+        this.path += `L${x + width},${y + height - radii}A${radii},${radii} 0 0,1 ${x + width - radii},${y + height}`;
+        this.path += `L${x + radii},${y + height}A${radii},${radii} 0 0,1 ${x},${y + height - radii}`;
         this.path += `L${x},${y + radii}Z`;
         this.openedPath = false;
         this.closedPath = true;
@@ -80,7 +80,7 @@ export class InternalPath2D {
                 diff += TAU;
             }
 
-            // @ts-ignore
+            // @ts-expect-error
             const largeArcFlag = counterClockwise ^ (diff > Math.PI);
 
             this.path += `A${radius},${radius} 0 ${largeArcFlag},${sweepFlag} ${endX},${endY}`;

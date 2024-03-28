@@ -5,7 +5,7 @@ import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
 
 import { toMatchImage } from './src/chart/test/utils';
 
-// @ts-ignore
+// @ts-expect-error
 global.Path2D = Path2D;
 
 applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
