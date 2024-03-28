@@ -13,9 +13,7 @@ export type AgOhlcSeriesItemType = AgCandlestickSeriesItemType;
 
 export interface AgOhlcSeriesBaseOptions extends AgCandlestickSeriesBaseOptions {}
 
-export interface AgOhlcSeriesFormatterParams<TDatum>
-    extends AgCandlestickSeriesBaseFormatterParams<TDatum>,
-        Readonly<StrokeOptions> {}
+export interface AgOhlcSeriesFormatterParams<TDatum> extends AgCandlestickSeriesBaseFormatterParams<TDatum> {}
 
 export interface AgOhlcSeriesTooltipRendererParams extends AgCandlestickSeriesBaseTooltipRendererParams {
     stroke?: CssColor;
