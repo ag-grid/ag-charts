@@ -1,106 +1,106 @@
-import { AgChartsReact } from "ag-charts-react"
+import React, { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+
 import { time } from 'ag-charts-community';
-import React, { useCallback, useEffect, useRef, useState } from "react"
-import { createRoot } from "react-dom/client"
+import { AgChartsReact } from 'ag-charts-react';
 
 const ChartExample = () => {
-  const chartRef = useRef(null)
+  const chartRef = useRef(null);
   const [options, setOptions] = useState({
     autoSize: true,
     data: getData(),
     theme: {
       palette: {
-        fills: ["#ec4d3d", "#4facf2"],
-        strokes: ["#ec4d3d", "#4facf2"],
+        fills: ['#ec4d3d', '#4facf2'],
+        strokes: ['#ec4d3d', '#4facf2'],
       },
       overrides: { area: { series: { fillOpacity: 0.5 } } },
     },
     title: {
-      text: "Simulated CPU Usage",
+      text: 'Simulated CPU Usage',
       fontSize: 18,
     },
     series: [
-      {
-        type: "area",
-        xKey: "time",
-        yKey: "system",
-        stacked: true,
-        yName: "System",
-      },
-      {
-        type: "area",
-        xKey: "time",
-        yKey: "user",
-        stacked: true,
-        yName: "User",
-      },
+      { type: 'area', xKey: 'time', yKey: 'system', stacked: true, yName: 'System' },
+      { type: 'area', xKey: 'time', yKey: 'user', stacked: true, yName: 'User' },
     ],
     axes: [
       {
-        type: "time",
-        position: "bottom",
+        type: 'time',
+        position: 'bottom',
         nice: false,
         tick: {
           interval: time.second.every(5, { snapTo: 0 }),
         },
       },
       {
-        type: "number",
-        position: "left",
+        type: 'number',
+        position: 'left',
         title: {
-          text: "Load (%)",
+          text: 'Load (%)',
         },
         min: 0,
         max: 100,
       },
     ],
-  })
+  });
+
   useEffect(() => {
-    setInterval(updateData, refreshRateInMilliseconds);
-  }, [])
+    const updateData = () => {
+      setOptions((currentOptions) => {
+        const clone = { ...currentOptions };
 
-  const updateData = useCallback(() => {
-    const clone = { ...options }
+        const now = Date.now();
+        clone.data = getData();
 
-    clone.data = getData()
+        return clone;
+      });
+    };
 
-    setOptions(clone)
-  }, [Date, getData, options])
+    const interval = setInterval(updateData, refreshRateInMilliseconds);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
-  return <AgChartsReact ref={chartRef} options={options} />
-}
+  return <AgChartsReact ref={chartRef} options={options} />;
+};
 
-var systemLoad = 0
-var userLoad = 0
-var data = []
-var refreshRateInMilliseconds = 50
-var millisecondsOfData = 30 * 1000
+let systemLoad = 0;
+let userLoad = 0;
+const data = [];
+const refreshRateInMilliseconds = 50;
+const millisecondsOfData = 30 * 1000;
+
 function calculateRandomDelta(maxChange) {
-  return maxChange / 2 - Math.floor(Math.random() * Math.floor(maxChange + 1))
+  return maxChange / 2 - Math.floor(Math.random() * Math.floor(maxChange + 1));
 }
+
 function ensureBounds(load, max) {
   if (load > max) {
-    return max
+    return max;
   } else if (load < 0) {
-    return 0
+    return 0;
   }
-  return load
+  return load;
 }
+
 function calculateCpuUsage() {
-  systemLoad = ensureBounds(systemLoad + calculateRandomDelta(2), 30)
-  userLoad = ensureBounds(userLoad + calculateRandomDelta(4), 70)
+  systemLoad = ensureBounds(systemLoad + calculateRandomDelta(2), 30);
+  userLoad = ensureBounds(userLoad + calculateRandomDelta(4), 70);
 }
+
 function getData() {
-  var dataCount = millisecondsOfData / refreshRateInMilliseconds
-  data.shift()
-  var timeDelta = (dataCount - data.length - 1) * refreshRateInMilliseconds
-  var now = Date.now()
+  const dataCount = millisecondsOfData / refreshRateInMilliseconds;
+  data.shift();
+  let timeDelta = (dataCount - data.length - 1) * refreshRateInMilliseconds;
+  const now = Date.now();
   while (data.length < dataCount) {
-    calculateCpuUsage()
-    data.push({ time: now - timeDelta, system: systemLoad, user: userLoad })
-    timeDelta -= refreshRateInMilliseconds
+    calculateCpuUsage();
+    data.push({ time: now - timeDelta, system: systemLoad, user: userLoad });
+    timeDelta -= refreshRateInMilliseconds;
   }
-  return data
+  return data;
 }
 
 const root = createRoot(document.getElementById('root'));
