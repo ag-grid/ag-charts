@@ -14,8 +14,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             label: {
-                format: '$~s',
-                formatter: (params) => params.formatter!(params.value).replace('k', 'K').replace('G', 'B'),
+                format: '$#{0>6.2f}',
             },
         },
         {
@@ -30,32 +29,26 @@ const options: AgChartOptions = {
             },
         },
     ],
-    padding: {
-        top: 20,
-        right: 40,
-        bottom: 20,
-        left: 20,
-    },
     data: [
         {
             date: new Date('01 Jan 2019 00:00:00 GMT'),
-            temp: 2253707135,
+            temp: 82.0,
         },
         {
             date: new Date('01 Feb 2019 00:00:00 GMT'),
-            temp: 3159723083,
+            temp: 75.0,
         },
         {
             date: new Date('01 Mar 2019 00:00:00 GMT'),
-            temp: 2725102372,
+            temp: 62.0,
         },
         {
             date: new Date('01 Apr 2019 00:00:00 GMT'),
-            temp: 1725002378,
+            temp: 99.0,
         },
         {
             date: new Date('01 May 2019 00:00:00 GMT'),
-            temp: 4725823927,
+            temp: 82.0,
         },
     ],
 };
