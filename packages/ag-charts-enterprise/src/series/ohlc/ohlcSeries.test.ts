@@ -69,6 +69,23 @@ describe('OhlcSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
+    it(`should render a hlc chart if no openKey is configured`, async () => {
+        const options: AgChartOptions = {
+            ...OHLC_OPTIONS,
+            series: [
+                {
+                    type: 'ohlc',
+                    xKey: 'year',
+                    lowKey: 'low',
+                    closeKey: 'close',
+                    highKey: 'high',
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
     it(`should render a ohlc chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...OHLC_OPTIONS,

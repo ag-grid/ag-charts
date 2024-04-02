@@ -15,7 +15,9 @@ export interface AgCandlestickSeriesFormatterParams<TDatum>
     extends AgCandlestickSeriesBaseFormatterParams<TDatum>,
         FillOptions {}
 
-export interface AgCandlestickSeriesTooltipRendererParams extends AgCandlestickSeriesBaseTooltipRendererParams {
+export interface AgCandlestickSeriesTooltipRendererParams
+    extends AgCandlestickSeriesBaseTooltipRendererParams,
+        AgCandlestickSeriesBaseOptions {
     fill?: CssColor;
 }
 

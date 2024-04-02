@@ -34,5 +34,4 @@ export type AgCandlestickSeriesBaseFormatterParams<TDatum> = AgSeriesFormatterPa
     >;
 
 export interface AgCandlestickSeriesBaseTooltipRendererParams
-    extends AgCandlestickSeriesBaseOptions,
-        Omit<AgCartesianSeriesTooltipRendererParams, 'yKey'> {}
+    extends Omit<AgCartesianSeriesTooltipRendererParams, 'yKey'> {}
