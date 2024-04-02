@@ -111,11 +111,19 @@ export abstract class CandlestickSeriesBase<
         if (animationEnabled) {
             extraProps.push(animationValidation(this));
         }
+        if (openKey) {
+            extraProps.push(
+                valueProperty(this, openKey, true, {
+                    id: `openValue`,
+                    invalidValue: undefined,
+                    missingValue: undefined,
+                })
+            );
+        }
 
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                valueProperty(this, openKey, true, { id: `openValue` }),
                 valueProperty(this, closeKey, true, { id: `closeValue` }),
                 valueProperty(this, highKey, true, { id: `highValue` }),
                 valueProperty(this, lowKey, true, { id: `lowValue` }),
@@ -137,10 +145,12 @@ export abstract class CandlestickSeriesBase<
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
+        const { openKey } = this.properties;
+
         if (direction === this.getBarDirection()) {
             const lowValues = dataModel.getDomain(this, `lowValue`, 'value', processedData);
             const highValues = dataModel.getDomain(this, `highValue`, 'value', processedData);
-            const openValues = dataModel.getDomain(this, `openValue`, 'value', processedData);
+            const openValues = openKey ? dataModel.getDomain(this, `openValue`, 'value', processedData) : [];
             const closeValues = dataModel.getDomain(this, `closeValue`, 'value', processedData);
 
             return fixNumericExtent(
@@ -189,13 +199,11 @@ export abstract class CandlestickSeriesBase<
 
         const nodeData: CandlestickNodeBaseDatum[] = [];
 
-        const defs = dataModel.resolveProcessedDataDefsByIds(this, [
-            'xValue',
-            'openValue',
-            'closeValue',
-            'highValue',
-            'lowValue',
-        ]);
+        const ids = ['xValue', 'closeValue', 'highValue', 'lowValue'];
+        if (openKey) {
+            ids.push('openValue');
+        }
+        const defs = dataModel.resolveProcessedDataDefsByIds(this, ids);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const { groupScale, processedData } = this;
@@ -206,9 +214,12 @@ export abstract class CandlestickSeriesBase<
                 { keys, values }
             );
 
+            const hasOpenValue = openValue !== undefined;
             // compare unscaled values
-            const validLowValue = lowValue !== undefined && lowValue <= openValue && lowValue <= closeValue;
-            const validHighValue = highValue !== undefined && highValue >= openValue && highValue >= closeValue;
+            const validLowValue =
+                lowValue !== undefined && (!hasOpenValue || lowValue <= openValue) && lowValue <= closeValue;
+            const validHighValue =
+                highValue !== undefined && (!hasOpenValue || highValue >= openValue) && highValue >= closeValue;
 
             if (!validLowValue) {
                 Logger.warnOnce(
@@ -239,11 +250,15 @@ export abstract class CandlestickSeriesBase<
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
 
-            const isRising = closeValue > openValue;
+            const isRising = !hasOpenValue || closeValue > openValue;
             const itemId = this.getSeriesItemType(isRising);
 
-            const y = Math.min(scaledValues.openValue, scaledValues.closeValue);
-            const yBottom = Math.max(scaledValues.openValue, scaledValues.closeValue);
+            const [y1, y2] = hasOpenValue
+                ? [scaledValues.openValue, scaledValues.closeValue]
+                : [scaledValues.lowValue, scaledValues.highValue];
+
+            const y = Math.min(y1, y2);
+            const yBottom = Math.max(y1, y2);
             const height = yBottom - y;
 
             const midPoint = {
@@ -314,11 +329,15 @@ export abstract class CandlestickSeriesBase<
         const title = sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
-            [openKey, openName, yAxis],
             [highKey, highName, yAxis],
             [lowKey, lowName, yAxis],
             [closeKey, closeName, yAxis],
         ];
+
+        if (openKey) {
+            contentData.splice(1, 0, [openKey, openName, yAxis]);
+        }
+
         const content = contentData
             .map(([key, name, axis]) => sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`))
             .join('<br/>');
@@ -332,7 +351,7 @@ export abstract class CandlestickSeriesBase<
                 datum,
                 ...styles,
                 xKey,
-                openKey,
+                openKey: openKey ?? '',
                 closeKey,
                 highKey,
                 lowKey,
@@ -409,7 +428,7 @@ export abstract class CandlestickSeriesBase<
             id: seriesId,
             ctx: { callbackCache },
         } = this;
-        const { xKey, openKey, closeKey, highKey, lowKey, formatter } = this.properties;
+        const { xKey, openKey = '', closeKey, highKey, lowKey, formatter } = this.properties;
 
         if (formatter) {
             const formatStyles = callbackCache.call(

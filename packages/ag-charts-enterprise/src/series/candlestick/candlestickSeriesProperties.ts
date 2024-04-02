@@ -88,7 +88,7 @@ export interface CandlestickSeriesBaseItems<T> {
 }
 
 export class CandlestickSeriesBaseProperties<
-    T extends AgCandlestickSeriesBaseOptions,
+    T extends Omit<AgCandlestickSeriesBaseOptions, 'openKey'>,
     TItem extends AgCandlestickSeriesItemOptions,
     TItems extends CandlestickSeriesBaseItems<TItem>,
     TFormatterParams extends AgCandlestickSeriesBaseFormatterParams<unknown>,
@@ -96,8 +96,8 @@ export class CandlestickSeriesBaseProperties<
     @Validate(STRING)
     xKey!: string;
 
-    @Validate(STRING)
-    openKey!: string;
+    @Validate(STRING, { optional: true })
+    openKey?: string;
 
     @Validate(STRING)
     closeKey!: string;
@@ -148,6 +148,8 @@ export class CandlestickSeriesProperties extends CandlestickSeriesBaseProperties
     CandlestickSeriesItems,
     AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>
 > {
+    @Validate(STRING)
+    override openKey!: string;
     constructor() {
         super(new CandlestickSeriesItems());
     }
