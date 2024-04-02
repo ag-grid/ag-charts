@@ -1,8 +1,8 @@
-import { Group } from '../../integrated-charts-scene';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
+import { Group } from '../../scene/group';
 import type { InteractionEvent } from '../interaction/interactionManager';
 import type { ToolbarButtonUpdatedEvent } from '../interaction/toolbarManager';
 import { ToolbarButton } from './scenes/toolbarButton';
