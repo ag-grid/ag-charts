@@ -120,7 +120,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
-    private readonly toolbarManager: _ModuleSupport.ToolbarManager;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -152,7 +151,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
-        this.toolbarManager = ctx.toolbarManager;
 
         // Add selection zoom method and attach selection rect to root scene
         const selectionRect = new ZoomRect();
