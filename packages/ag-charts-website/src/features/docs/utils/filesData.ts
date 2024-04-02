@@ -1,3 +1,4 @@
+import { getIsDev } from '@utils/env';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -11,6 +12,13 @@ import {
     getContentRootFileUrl,
     getExampleRootFileUrl,
 } from '../../../utils/pages';
+
+interface PageImages {
+    imageSrc?: string;
+    darkModeImageSrc?: string;
+    gifStillImageSrc?: string;
+    gifDarkModeStillImageSrc?: string;
+}
 
 function ignoreUnderscoreFiles(page: DocsPage) {
     const pageFolders = page.slug.split('/');
@@ -91,4 +99,60 @@ export const getAllExamplesFileList = async () => {
     const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();
 
     return exampleFiles;
+};
+
+/**
+ * Get image on docs page
+ *
+ * If a `-dark` suffixed image in `imagePath` exists, return the dark mode
+ * image source.
+ *
+ * If the image is a gif, return the still image of the gif
+ */
+export const getPageImages = async ({
+    pageName,
+    imagePath,
+}: {
+    /**
+     * Page name within `/src/content/docs`
+     */
+    pageName: string;
+    /**
+     * Image path relative to `/src/content/docs/[pageName]`
+     */
+    imagePath: string;
+}): Promise<PageImages> => {
+    // NOTE: Relative to this file
+    const docsPath = '../../../content/docs/';
+    const fullImagePath = path.join(docsPath, pageName, imagePath);
+
+    // NOTE: Can't use variable in glob parameter. Need to use a string literal as it
+    // is compiled before runtime. Should be the same as `docsPath` variable
+    const images = import.meta.glob<{ default: ImageMetadata }>('../../../content/docs/**/*.{jpeg,jpg,png,gif,svg}');
+
+    if (!images[fullImagePath]) {
+        const errorMsg = `Page "${pageName}" image "${imagePath}" does not exist in glob: "${docsPath}**/*.{jpeg,jpg,png,gif,svg}" (fullImagePath = ${fullImagePath})`;
+        if (getIsDev()) {
+            console.error(errorMsg);
+
+            return {};
+        } else {
+            throw new Error(errorMsg);
+        }
+    }
+
+    const image = await images[fullImagePath]();
+    const imageSrc = image.default.src;
+
+    const splitName = fullImagePath.split('.');
+    const extension = splitName.at(-1);
+    const darkModeImagePath = imagePath.replace(`.${extension}`, `-dark.${extension}`);
+    const fullDarkModeImagePath = path.join(docsPath, pageName, darkModeImagePath);
+    const darkModeImage = images[fullDarkModeImagePath];
+    const darkModeImageSrc = darkModeImage ? (await darkModeImage()).default.src : undefined;
+
+    return {
+        imageSrc,
+        darkModeImageSrc,
+    };
 };
