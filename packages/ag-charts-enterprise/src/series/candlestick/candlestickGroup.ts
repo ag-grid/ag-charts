@@ -9,8 +9,25 @@ export enum GroupTags {
     Wick,
 }
 
-export abstract class CandlestickBaseGroup<TNodeDatum, TStyles> extends _Scene.Group {
+export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
+    extends _Scene.Group
+    implements _ModuleSupport.QuadtreeCompatibleNode
+{
     abstract updateDatumStyles(datum: TNodeDatum, activeStyles: TStyles): void;
+
+    distanceSquared(x: number, y: number): number {
+        const nodes = _Scene.Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, _Scene.Rect, _Scene.Line);
+        return _Scene.nearestSquared(x, y, nodes).distanceSquared;
+    }
+
+    get midPoint(): { x: number; y: number } {
+        const datum: { midPoint?: { readonly x: number; readonly y: number } } = this.datum;
+        if (datum.midPoint === undefined) {
+            _Util.Logger.error('CandlestickBaseGroup.datum.midPoint is undefined');
+            return { x: NaN, y: NaN };
+        }
+        return datum.midPoint;
+    }
 }
 
 export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum, AgCandlestickSeriesItemOptions> {
@@ -88,19 +105,5 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
             x: Math.floor(axisValue + bandwidth / 2),
         });
         wicks[1].setProperties(wickStyles);
-    }
-
-    distanceSquared(x: number, y: number): number {
-        const nodes = _Scene.Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, _Scene.Rect, _Scene.Line);
-        return _Scene.nearestSquared(x, y, nodes).distanceSquared;
-    }
-
-    get midPoint(): { x: number; y: number } {
-        const datum: { midPoint?: { readonly x: number; readonly y: number } } = this.datum;
-        if (datum.midPoint === undefined) {
-            _Util.Logger.error('BoxPlotGroup.datum.midPoint is undefined');
-            return { x: NaN, y: NaN };
-        }
-        return datum.midPoint;
     }
 }
