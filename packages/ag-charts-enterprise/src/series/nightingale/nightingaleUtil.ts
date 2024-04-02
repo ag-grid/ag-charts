@@ -72,17 +72,9 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
     return { toFn, fromFn };
 }
 
-export function resetNightingaleSelectionFn(
-    _sect: _Scene.Sector,
-    {
-        innerRadius: clipInnerRadius,
-        outerRadius: clipOuterRadius,
-        stackInnerRadius: innerRadius,
-        stackOuterRadius: outerRadius,
-        startAngle,
-        endAngle,
-    }: RadialColumnNodeDatum
-) {
+export function resetNightingaleSelectionFn(_sect: _Scene.Sector, datum: RadialColumnNodeDatum) {
+    const { startAngle, endAngle } = datum;
+    const { innerRadius, outerRadius, clipInnerRadius, clipOuterRadius } = getRadii(datum);
     const clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
     return { innerRadius, outerRadius, startAngle, endAngle, clipSector };
 }
