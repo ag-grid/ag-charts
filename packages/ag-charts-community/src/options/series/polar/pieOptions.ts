@@ -108,6 +108,8 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
      * Configuration for the area inside the series, only visible when rendering a donut chart by using innerRadiusOffset or innerRadiusRatio.
      */
     innerCircle?: AgDonutInnerCircle;
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
     /**
      * The spacing between pie sectors.
      *

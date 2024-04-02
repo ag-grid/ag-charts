@@ -1,3 +1,4 @@
+import type { PixelSize } from '../../chart/types';
 import type { AgBaseRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 
@@ -8,6 +9,8 @@ export interface AgNightingaleSeriesOptions<TDatum = any>
         AgBaseRadialColumnSeriesOptions<TDatum> {
     /** Configuration for Nightingale Series. */
     type: 'nightingale';
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
 }
 
 /**
