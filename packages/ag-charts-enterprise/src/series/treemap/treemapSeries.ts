@@ -391,8 +391,8 @@ export class TreemapSeries<
         }
 
         const isLeaf = children.length === 0;
-        const fill = (isLeaf ? tile.fill : group.fill) ?? node.fill;
-        const stroke = (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
+        const fill = this.getNodeFill(node);
+        const stroke = this.getNodeStroke(node);
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
         const result = this.ctx.callbackCache.call(formatter, {
