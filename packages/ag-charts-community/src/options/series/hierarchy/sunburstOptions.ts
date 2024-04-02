@@ -39,6 +39,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
     secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
     /** Spacing between the sectors. */
     sectorSpacing?: PixelSize;
     /** Minimum distance between text and the edges of the sectors. */

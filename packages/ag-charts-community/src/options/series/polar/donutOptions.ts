@@ -115,6 +115,8 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     innerLabels?: AgDonutInnerLabelThemeOptions;
     /** Configuration for the area inside the series. */
     innerCircle?: AgDonutInnerCircle;
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
     /**
      * The spacing between Donut sectors.
      *
