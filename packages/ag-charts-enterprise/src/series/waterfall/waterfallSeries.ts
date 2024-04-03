@@ -190,10 +190,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             dataVisible: this.visible,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.updateSeriesItemTypes();
 
@@ -259,7 +256,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
         const barWidth =
-            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
+            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth) ?? 10;
 
         if (this.processedData?.type !== 'ungrouped') {
             return;

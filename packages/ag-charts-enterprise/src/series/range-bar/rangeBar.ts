@@ -156,10 +156,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             groupByKeys: true,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.animationState.transition('updateData');
     }

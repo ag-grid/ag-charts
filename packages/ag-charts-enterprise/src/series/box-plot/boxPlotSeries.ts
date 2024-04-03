@@ -102,10 +102,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             dataVisible: this.visible,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.animationState.transition('updateData');
     }
@@ -131,7 +128,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const isReversed = categoryAxis?.isReversed();
 
         const keysExtent = extent(keys) ?? [NaN, NaN];
-        const scalePadding = smallestDataInterval && isFinite(smallestDataInterval.x) ? smallestDataInterval.x : 0;
+        const scalePadding = smallestDataInterval ?? 0;
 
         if (direction === ChartAxisDirection.Y) {
             const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
