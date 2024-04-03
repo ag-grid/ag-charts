@@ -407,7 +407,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const { path: linePath } = lineNode;
 
-        linePath.clear({ trackChanges: true });
+        linePath.clear(true);
         for (const data of nodeData) {
             if (data.point.moveTo) {
                 linePath.moveTo(data.point.x, data.point.y);

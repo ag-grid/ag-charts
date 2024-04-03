@@ -748,7 +748,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             ease: _ModuleSupport.Motion.easeOut,
             collapsable: false,
             onUpdate(pointX) {
-                linePath.clear({ trackChanges: true });
+                linePath.clear(true);
 
                 pointData.forEach((point, index) => {
                     const x = scale(pointX, startX, endX, startX, point.x);
@@ -797,7 +797,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             ease: _ModuleSupport.Motion.easeOut,
             collapsable: false,
             onUpdate(pointY) {
-                linePath.clear({ trackChanges: true });
+                linePath.clear(true);
 
                 pointData.forEach((point, index) => {
                     const y = scale(pointY, startY, endY, startY, point.y);
@@ -838,7 +838,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.updateLineNode(lineNode);
 
         const { path: linePath } = lineNode;
-        linePath.clear({ trackChanges: true });
+        linePath.clear(true);
 
         const { pointData } = contextData;
         if (!pointData) {
