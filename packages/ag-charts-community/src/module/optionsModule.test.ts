@@ -1,5 +1,4 @@
 import { describe } from '@jest/globals';
-import 'jest-canvas-mock';
 
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import type {
