@@ -57,6 +57,21 @@ export class ZoomRange {
         if (!changed) this.onChange?.(this.getRange());
     }
 
+    public updateWith(fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]) {
+        if (!this.domain) return;
+
+        let [start, end] = this.domain;
+        [start, end] = fn(start, end);
+
+        const changed = this.start !== start || this.end !== end;
+
+        this.end = end;
+        this.start = start;
+
+        // If neither start or end were changed, ensure we still call the `onChange` callback
+        if (!changed) this.onChange?.(this.getRange());
+    }
+
     public extendAll() {
         if (!this.domain) return;
 

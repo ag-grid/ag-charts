@@ -471,16 +471,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const time = event.value as AgRangeButtonsButton['duration'];
         if (typeof time === 'number') {
             this.rangeX.extendToEnd(time);
-            return;
-        }
-
-        switch (time) {
-            case 'year-to-date':
-                this.rangeX.extendWith((end) => new Date(`${new Date(end).getFullYear()}-01-01`).getTime());
-                break;
-            case 'all':
-                this.rangeX.extendAll();
-                break;
+        } else if (Array.isArray(time)) {
+            this.rangeX.updateWith(() => time);
+        } else if (typeof time === 'function') {
+            this.rangeX.updateWith(time);
         }
     }
 
