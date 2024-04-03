@@ -90,22 +90,22 @@ describe('Tooltip', () => {
 
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(10, 1.3249187570726666);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(11, 1.2651169069335022);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(12, 1.3627720015958902);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(13, 1.490244608234256);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
 
             await nextValue(14, 1.490244608234256);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
         });
     });
 });
