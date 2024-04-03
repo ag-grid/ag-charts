@@ -2,6 +2,7 @@ import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
 import { DOCS_TAB_ITEM_ID_PREFIX } from './src/constants';
+import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
     extends: [prism()],
@@ -31,15 +32,7 @@ export default defineMarkdocConfig({
         },
     },
     tags: {
-        /**
-         * External link that opens in a new tab
-         */
-        externalLink: {
-            render: component('./src/components/ExternalLink.astro'),
-            attributes: {
-                href: { type: String, required: true },
-            },
-        },
+        link,
         enterpriseIcon: {
             render: component('./src/components/icon/EnterpriseIcon.astro'),
         },
