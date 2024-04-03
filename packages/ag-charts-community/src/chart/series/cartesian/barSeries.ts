@@ -191,7 +191,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 return keys;
             }
 
-            const scalePadding = smallestDataInterval ?? 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             const isReversed = categoryAxis?.isReversed();
 

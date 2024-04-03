@@ -198,16 +198,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, smallestDataInterval } = this;
         if (!processedData || !dataModel) return [];
 
         const {
-            domain: {
-                keys: [keys],
-                values,
-            },
-            reduced: { [_ModuleSupport.SMALLEST_KEY_INTERVAL.property]: smallestX } = {},
-        } = processedData;
+            keys: [keys],
+            values,
+        } = processedData.domain;
 
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
 
@@ -216,7 +213,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 return keys;
             }
 
-            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
