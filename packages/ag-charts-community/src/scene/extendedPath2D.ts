@@ -15,88 +15,43 @@ export class ExtendedPath2D {
     // and any allocation can trigger a GC cycle during animation, so we attempt
     // to minimize the number of allocations.
 
-    private xy?: [number, number];
+    private path2d = new Path2D();
+
     private previousCommands: Command[] = [];
     private previousParams: number[] = [];
     private previousClosedPath: boolean = false;
     commands: Command[] = [];
     params: number[] = [];
 
+    openedPath: boolean = false;
+    closedPath: boolean = false;
+
     isDirty() {
-        if (this._closedPath !== this.previousClosedPath) {
-            return true;
-        }
-        if (this.previousCommands.length !== this.commands.length) {
-            return true;
-        }
-        if (this.previousParams.length !== this.params.length) {
-            return true;
-        }
-
-        for (let i = 0; i < this.commands.length; i++) {
-            if (this.commands[i] !== this.previousCommands[i]) {
-                return true;
-            }
-        }
-
-        for (let i = 0; i < this.params.length; i++) {
-            if (this.params[i] !== this.previousParams[i]) {
-                return true;
-            }
-        }
-
-        return false;
+        return (
+            this.closedPath !== this.previousClosedPath ||
+            this.previousCommands.length !== this.commands.length ||
+            this.previousParams.length !== this.params.length ||
+            this.previousCommands.toString() !== this.commands.toString() ||
+            this.previousParams.toString() !== this.params.toString()
+        );
     }
 
-    draw(ctx: CanvasDrawPath & CanvasPath) {
-        const commands = this.commands;
-        const params = this.params;
-        let j = 0;
-
-        ctx.beginPath();
-        for (const command of commands) {
-            switch (command) {
-                case Command.Move:
-                    ctx.moveTo(params[j++], params[j++]);
-                    break;
-                case Command.Line:
-                    ctx.lineTo(params[j++], params[j++]);
-                    break;
-                case Command.Curve:
-                    ctx.bezierCurveTo(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++]);
-                    break;
-                case Command.Arc:
-                    ctx.arc(params[j++], params[j++], params[j++], params[j++], params[j++], params[j++] === 1);
-                    break;
-                case Command.ClosePath:
-                    ctx.closePath();
-                    break;
-            }
-        }
-
-        if (commands.length === 0) {
-            ctx.closePath();
-        }
+    getPath2D() {
+        return this.path2d;
     }
 
     moveTo(x: number, y: number) {
-        if (this.xy) {
-            this.xy[0] = x;
-            this.xy[1] = y;
-        } else {
-            this.xy = [x, y];
-        }
-
+        this.openedPath = true;
+        this.path2d.moveTo(x, y);
         this.commands.push(Command.Move);
         this.params.push(x, y);
     }
 
     lineTo(x: number, y: number) {
-        if (this.xy) {
+        if (this.openedPath) {
+            this.path2d.lineTo(x, y);
             this.commands.push(Command.Line);
             this.params.push(x, y);
-            this.xy[0] = x;
-            this.xy[1] = y;
         } else {
             this.moveTo(x, y);
         }
@@ -129,43 +84,28 @@ export class ExtendedPath2D {
         this.closePath();
     }
 
-    arc(x: number, y: number, r: number, sAngle: number, eAngle: number, antiClockwise = false) {
-        const endX = x + r * Math.cos(eAngle);
-        const endY = y + r * Math.sin(eAngle);
-
-        if (this.xy) {
-            this.xy[0] = endX;
-            this.xy[1] = endY;
-        } else {
-            this.xy = [endX, endY];
-        }
-
+    arc(x: number, y: number, r: number, sAngle: number, eAngle: number, counterClockwise?: boolean) {
+        this.openedPath = true;
+        this.path2d.arc(x, y, r, sAngle, eAngle, counterClockwise);
         this.commands.push(Command.Arc);
-        this.params.push(x, y, r, sAngle, eAngle, antiClockwise ? 1 : 0);
+        this.params.push(x, y, r, sAngle, eAngle, counterClockwise ? 1 : 0);
     }
 
     cubicCurveTo(cx1: number, cy1: number, cx2: number, cy2: number, x: number, y: number) {
-        if (!this.xy) {
+        if (!this.openedPath) {
             this.moveTo(cx1, cy1);
         }
+        this.path2d.bezierCurveTo(cx1, cy1, cx2, cy2, x, y);
         this.commands.push(Command.Curve);
         this.params.push(cx1, cy1, cx2, cy2, x, y);
-        if (this.xy) {
-            this.xy[0] = x;
-            this.xy[1] = y;
-        }
-    }
-
-    private _closedPath: boolean = false;
-    get closedPath(): boolean {
-        return this._closedPath;
     }
 
     closePath() {
-        if (this.xy) {
-            this.xy = undefined;
+        if (this.openedPath) {
+            this.path2d.closePath();
             this.commands.push(Command.ClosePath);
-            this._closedPath = true;
+            this.openedPath = false;
+            this.closedPath = true;
         }
     }
 
@@ -173,15 +113,13 @@ export class ExtendedPath2D {
         if (trackChanges) {
             this.previousCommands = this.commands;
             this.previousParams = this.params;
-            this.previousClosedPath = this._closedPath;
-            this.commands = [];
-            this.params = [];
-        } else {
-            this.commands.length = 0;
-            this.params.length = 0;
+            this.previousClosedPath = this.closedPath;
         }
-        this.xy = undefined;
-        this._closedPath = false;
+        this.path2d = new Path2D();
+        this.openedPath = false;
+        this.closedPath = false;
+        this.commands = [];
+        this.params = [];
     }
 
     isPointInPath(x: number, y: number): boolean {

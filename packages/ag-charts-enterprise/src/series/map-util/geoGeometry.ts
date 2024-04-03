@@ -43,8 +43,7 @@ export class GeoGeometry extends Path {
     override drawPath(ctx: any) {
         super.drawPath(ctx);
 
-        this.strokePath.draw(ctx);
-        this.renderStroke(ctx);
+        this.renderStroke(ctx, this.strokePath.getPath2D());
     }
 
     override containsPoint(x: number, y: number): boolean {

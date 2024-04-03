@@ -455,31 +455,34 @@ export class Rect extends Path implements DistantObject {
 
     protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {
         const { fillOpacity, microPixelEffectOpacity, opacity } = this;
-        const { globalAlpha } = ctx;
-        ctx.globalAlpha = globalAlpha * opacity * fillOpacity * microPixelEffectOpacity;
+        ctx.globalAlpha *= opacity * fillOpacity * microPixelEffectOpacity;
     }
 
     protected override renderStroke(ctx: CanvasRenderingContext2D) {
-        const { stroke, effectiveStrokeWidth, borderPath, borderClipPath, opacity, microPixelEffectOpacity } = this;
+        const { stroke, effectiveStrokeWidth } = this;
 
-        const borderActive = !!stroke && !!effectiveStrokeWidth;
-        if (borderActive) {
-            const { strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin } = this;
+        if (stroke && effectiveStrokeWidth) {
+            const { globalAlpha } = ctx;
+            const {
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                lineCap,
+                lineJoin,
+                borderPath,
+                borderClipPath,
+                opacity,
+                microPixelEffectOpacity,
+            } = this;
+
             if (borderClipPath) {
-                // strokeWidth is larger than width or height, so use clipping to render correctly.
-                // This is the simplest way to achieve the correct rendering due to nuances with ~0
-                // width/height lines in Canvas operations.
-                borderClipPath.draw(ctx);
-                ctx.clip();
+                ctx.clip(borderClipPath.getPath2D());
             }
 
-            borderPath.draw(ctx);
-
-            const { globalAlpha } = ctx;
-            ctx.strokeStyle = stroke!;
-            ctx.globalAlpha = globalAlpha * opacity * strokeOpacity * microPixelEffectOpacity;
-
+            ctx.strokeStyle = stroke;
+            ctx.globalAlpha *= opacity * strokeOpacity * microPixelEffectOpacity;
             ctx.lineWidth = effectiveStrokeWidth;
+
             if (lineDash) {
                 ctx.setLineDash(lineDash);
             }
@@ -493,7 +496,7 @@ export class Rect extends Path implements DistantObject {
                 ctx.lineJoin = lineJoin;
             }
 
-            ctx.stroke();
+            ctx.stroke(borderPath.getPath2D());
             ctx.globalAlpha = globalAlpha;
         }
     }

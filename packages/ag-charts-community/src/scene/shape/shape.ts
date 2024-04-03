@@ -136,34 +136,29 @@ export abstract class Shape extends Node {
     @SceneChangeDetection({ redraw: RedrawType.MINOR, checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
-    protected fillStroke(ctx: CanvasContext) {
-        this.renderFill(ctx);
-        this.renderStroke(ctx);
+    protected fillStroke(ctx: CanvasContext, path?: Path2D) {
+        this.renderFill(ctx, path);
+        this.renderStroke(ctx, path);
     }
 
-    protected renderFill(ctx: CanvasContext) {
+    protected renderFill(ctx: CanvasContext, path?: Path2D) {
         if (this.fill) {
             const { globalAlpha } = ctx;
             this.applyFill(ctx);
             this.applyFillAlpha(ctx);
             this.applyShadow(ctx);
-            ctx.fill();
+            path ? ctx.fill(path) : ctx.fill();
             ctx.globalAlpha = globalAlpha;
         }
         ctx.shadowColor = 'rgba(0, 0, 0, 0)';
     }
 
     protected applyFill(ctx: CanvasContext) {
-        if (this.gradient) {
-            ctx.fillStyle = this.gradient.createGradient(ctx as any, this.computeBBox()!);
-        } else {
-            ctx.fillStyle = this.fill!;
-        }
+        ctx.fillStyle = this.gradient?.createGradient(ctx as any, this.computeBBox()!) ?? this.fill!;
     }
 
     protected applyFillAlpha(ctx: CanvasContext) {
-        const { globalAlpha } = ctx;
-        ctx.globalAlpha = globalAlpha * this.opacity * this.fillOpacity;
+        ctx.globalAlpha *= this.opacity * this.fillOpacity;
     }
 
     protected applyShadow(ctx: CanvasContext) {
@@ -180,11 +175,11 @@ export abstract class Shape extends Node {
         }
     }
 
-    protected renderStroke(ctx: CanvasContext) {
+    protected renderStroke(ctx: CanvasContext, path?: Path2D) {
         if (this.stroke && this.strokeWidth) {
             const { globalAlpha } = ctx;
             ctx.strokeStyle = this.stroke;
-            ctx.globalAlpha = globalAlpha * this.opacity * this.strokeOpacity;
+            ctx.globalAlpha *= this.opacity * this.strokeOpacity;
 
             ctx.lineWidth = this.strokeWidth;
             if (this.lineDash) {
@@ -200,7 +195,7 @@ export abstract class Shape extends Node {
                 ctx.lineJoin = this.lineJoin;
             }
 
-            ctx.stroke();
+            path ? ctx.stroke(path) : ctx.stroke();
             ctx.globalAlpha = globalAlpha;
         }
     }
