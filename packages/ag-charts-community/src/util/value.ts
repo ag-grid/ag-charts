@@ -4,14 +4,17 @@ import type { PlainObject } from './types';
 type StringObject = PlainObject & { toString: () => string };
 type NumberObject = PlainObject & { valueOf: () => number };
 
-export const isStringObject = (value: unknown): value is StringObject =>
-    !!value && Object.hasOwn(value, 'toString') && isString(value.toString());
+export function isStringObject(value: unknown): value is StringObject {
+    return value != null && Object.hasOwn(value, 'toString') && isString(value.toString());
+}
 
-const isNumberObject = (value: unknown): value is NumberObject =>
-    value != null && Object.hasOwn(value, 'valueOf') && isFiniteNumber(value.valueOf());
+export function isNumberObject(value: unknown): value is NumberObject {
+    return value != null && Object.hasOwn(value, 'valueOf') && isFiniteNumber(value.valueOf());
+}
 
-export const isContinuous = (value: unknown): value is number | Date | NumberObject =>
-    isFiniteNumber(value) || isValidDate(value) || isNumberObject(value);
+export function isContinuous(value: unknown): value is number | Date | NumberObject {
+    return isFiniteNumber(value) || isValidDate(value) || isNumberObject(value);
+}
 
 export function checkDatum<T>(value: T, isContinuousScale: boolean): boolean {
     return value != null && (!isContinuousScale || isContinuous(value));

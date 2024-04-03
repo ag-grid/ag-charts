@@ -21,7 +21,7 @@ type ErrorBoundCartesianSeries = Omit<
 
 function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBoundCartesianSeries {
     for (const supportedType of AgErrorBarSupportedSeriesTypes) {
-        if (supportedType == ctx.series.type) {
+        if (supportedType === ctx.series.type) {
             return ctx.series as ErrorBoundCartesianSeries;
         }
     }

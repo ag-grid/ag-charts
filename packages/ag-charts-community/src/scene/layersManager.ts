@@ -1,9 +1,6 @@
 import { type LiteralOrFn, ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
-import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-
-type Canvas = HdpiCanvas | HdpiOffscreenCanvas;
 
 export type ZIndexSubOrder = [LiteralOrFn<string | number>, LiteralOrFn<number>];
 
@@ -12,7 +9,7 @@ interface SceneLayer {
     name?: string;
     zIndex: number;
     zIndexSubOrder?: ZIndexSubOrder;
-    canvas: HdpiOffscreenCanvas | HdpiCanvas;
+    canvas: HdpiCanvas;
     getComputedOpacity: () => number;
     getVisibility: () => boolean;
 }
@@ -28,13 +25,13 @@ export class LayersManager {
 
     readonly debug = Debug.create(true, 'scene');
 
-    private readonly layersMap = new Map<Canvas, SceneLayer>();
+    private readonly layersMap = new Map<HdpiCanvas, SceneLayer>();
 
     private nextZIndex = 0;
     private nextLayerId = 0;
 
     constructor(
-        public readonly canvas: Canvas,
+        public readonly canvas: HdpiCanvas,
         public readonly markDirty: () => void
     ) {}
 
@@ -57,11 +54,10 @@ export class LayersManager {
         name?: string;
         getComputedOpacity: () => number;
         getVisibility: () => boolean;
-    }): HdpiCanvas | HdpiOffscreenCanvas | undefined {
+    }) {
         const { width, height, pixelRatio } = this.canvas;
         const { zIndex = this.nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
-        const CanvasConstructor = HdpiOffscreenCanvas.isSupported() ? HdpiOffscreenCanvas : HdpiCanvas;
-        const canvas = new CanvasConstructor({ width, height, pixelRatio });
+        const canvas = new HdpiCanvas({ width, height, pixelRatio });
 
         const newLayer: SceneLayer = {
             id: this.nextLayerId++,
@@ -84,7 +80,7 @@ export class LayersManager {
         return newLayer.canvas;
     }
 
-    removeLayer(canvas: HdpiCanvas | HdpiOffscreenCanvas) {
+    removeLayer(canvas: HdpiCanvas) {
         if (this.layersMap.has(canvas)) {
             this.layersMap.delete(canvas);
             canvas.destroy();
@@ -94,7 +90,7 @@ export class LayersManager {
         }
     }
 
-    moveLayer(canvas: HdpiCanvas | HdpiOffscreenCanvas, newZIndex: number, newZIndexSubOrder?: ZIndexSubOrder) {
+    moveLayer(canvas: HdpiCanvas, newZIndex: number, newZIndexSubOrder?: ZIndexSubOrder) {
         const layer = this.layersMap.get(canvas);
 
         if (layer) {

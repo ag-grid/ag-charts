@@ -169,7 +169,7 @@ export class Path2D {
         }
     }
 
-    clear({ trackChanges } = { trackChanges: false }) {
+    clear(trackChanges?: boolean) {
         if (trackChanges) {
             this.previousCommands = this.commands;
             this.previousParams = this.params;

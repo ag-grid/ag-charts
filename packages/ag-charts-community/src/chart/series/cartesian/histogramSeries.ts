@@ -323,7 +323,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             itemId: this.properties.yKey ?? this.id,
             nodeData,
             labelData: nodeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             animationValid: true,
             visible: this.visible,
         };

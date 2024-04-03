@@ -233,7 +233,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             itemId,
             nodeData: [],
             labelData: [],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
 

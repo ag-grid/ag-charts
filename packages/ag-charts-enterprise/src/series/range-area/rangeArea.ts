@@ -207,7 +207,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             nodeData: markerData,
             fillData,
             strokeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
 
@@ -421,7 +421,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { fillData } = contextData;
         const [fill] = paths;
         const { path: fillPath } = fill;
-        fillPath.clear({ trackChanges: true });
+        fillPath.clear(true);
         for (const { point } of fillData.points) {
             if (point.moveTo) {
                 fillPath.moveTo(point.x, point.y);
@@ -437,7 +437,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { strokeData } = contextData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
-        strokePath.clear({ trackChanges: true });
+        strokePath.clear(true);
         for (const { point } of strokeData.points) {
             if (point.moveTo) {
                 strokePath.moveTo(point.x, point.y);
