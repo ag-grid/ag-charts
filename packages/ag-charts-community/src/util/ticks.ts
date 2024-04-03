@@ -111,7 +111,7 @@ export function isDenseInterval({
     const step = typeof interval === 'number' ? interval : 1;
     count ??= domain / step;
     if (count >= availableRange) {
-        Logger.warn(
+        Logger.warnOnce(
             `the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration`
         );
         return true;

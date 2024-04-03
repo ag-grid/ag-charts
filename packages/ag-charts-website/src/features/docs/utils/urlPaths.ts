@@ -3,10 +3,14 @@ import type { Framework } from '@ag-grid-types';
 import { SITE_BASE_URL } from '@constants';
 import { pathJoin } from '@utils/pathJoin';
 
-import { DOCS_FRAMEWORK_PATH_INDEX } from '../constants';
+import { DOCS_FRAMEWORK_PATH_INDEX, DOCS_PAGE_NAME_PATH_INDEX } from '../constants';
 
 export function getFrameworkFromPath(path: string) {
     return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX];
+}
+
+export function getPageNameFromPath(path: string): string {
+    return path.split('/')[DOCS_PAGE_NAME_PATH_INDEX];
 }
 
 export const getExamplePageUrl = ({ framework, path }: { framework: Framework; path: string }) => {

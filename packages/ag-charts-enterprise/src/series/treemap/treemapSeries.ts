@@ -391,8 +391,8 @@ export class TreemapSeries<
         }
 
         const isLeaf = children.length === 0;
-        const fill = (isLeaf ? tile.fill : group.fill) ?? node.fill;
-        const stroke = (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
+        const fill = this.getNodeFill(node);
+        const stroke = this.getNodeStroke(node);
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
         const result = this.ctx.callbackCache.call(formatter, {
@@ -671,17 +671,10 @@ export class TreemapSeries<
     }
 
     protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const { x, y } = this.contentGroup.transformPoint(point.x, point.y);
-
         // We don't need to recurse on the tree because the root's nodes bounding-box contain all bounding boxes
         // of the descendants. Therefore the nearest node is always a child of the root. If there is an exact
         // match, then the pickNodeExactShape function will return a result, and this function wouldn't be called.
-        const { nearest, distanceSquared } = _Scene.nearestSquared(x, y, this.groupSelection.nodes());
-        if (nearest !== undefined) {
-            return { datum: nearest.datum, distance: Math.sqrt(distanceSquared) };
-        }
-
-        return undefined;
+        return this.pickNodeNearestDistantObject(point, this.groupSelection.nodes());
     }
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
