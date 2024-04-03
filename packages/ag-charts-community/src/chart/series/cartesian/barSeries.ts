@@ -241,7 +241,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             itemId: yKey,
             nodeData: [] as BarNodeDatum[],
             labelData: [] as BarNodeDatum[],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
         };
 

@@ -264,7 +264,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             nodeData: [],
             labelData: [],
             pointData: [],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
 
