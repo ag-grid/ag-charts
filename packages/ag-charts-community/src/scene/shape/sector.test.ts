@@ -160,6 +160,11 @@ describe('Sector', () => {
                     ...mixin,
                 })
             ),
+            // Regressions
+            [
+                // AG-11219
+                { innerRadius: 30, outerRadius: 30, startAngle: 0, endAngle: 1, stroke: 'black', strokeWidth: 1 },
+            ],
         ];
 
         it('should render as expected', () => {
