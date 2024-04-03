@@ -119,7 +119,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
         }
 
-        const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = processedData.domain.keys[index];
         if (def.type === 'key' && def.valueType === 'category') {
             return keys;
