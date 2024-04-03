@@ -274,18 +274,16 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     private getProcessedDataIndexes(dataModel: DataModel<any>) {
-        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`).index;
-        const radiusIdx = this.properties.radiusKey
-            ? dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index
-            : -1;
+        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`);
+        const radiusIdx = this.properties.radiusKey ? dataModel.resolveProcessedDataIndexById(this, `radiusValue`) : -1;
         const calloutLabelIdx = this.properties.calloutLabelKey
-            ? dataModel.resolveProcessedDataIndexById(this, `calloutLabelValue`).index
+            ? dataModel.resolveProcessedDataIndexById(this, `calloutLabelValue`)
             : -1;
         const sectorLabelIdx = this.properties.sectorLabelKey
-            ? dataModel.resolveProcessedDataIndexById(this, `sectorLabelValue`).index
+            ? dataModel.resolveProcessedDataIndexById(this, `sectorLabelValue`)
             : -1;
         const legendItemIdx = this.properties.legendItemKey
-            ? dataModel.resolveProcessedDataIndexById(this, `legendItemValue`).index
+            ? dataModel.resolveProcessedDataIndexById(this, `legendItemValue`)
             : -1;
 
         return { angleIdx, radiusIdx, calloutLabelIdx, sectorLabelIdx, legendItemIdx };
@@ -1376,7 +1374,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             return;
         }
 
-        const legendItemIdx = this.dataModel.resolveProcessedDataIndexById(this, `legendItemValue`).index;
+        const legendItemIdx = this.dataModel.resolveProcessedDataIndexById(this, `legendItemValue`);
         this.processedData?.data.forEach(({ values }, datumItemId) => {
             if (values[legendItemIdx] === legendItemName) {
                 this.toggleSeriesItem(datumItemId, enabled);

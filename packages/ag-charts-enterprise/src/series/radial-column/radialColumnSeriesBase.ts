@@ -231,10 +231,10 @@ export abstract class RadialColumnSeriesBase<
             return;
         }
 
-        const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`).index;
-        const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`).index;
-        const radiusRangeIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-range`).index;
-        const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`).index;
+        const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`);
+        const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`);
+        const radiusRangeIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-range`);
+        const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`);
 
         let groupPaddingInner = 0;
         let groupPaddingOuter = 0;

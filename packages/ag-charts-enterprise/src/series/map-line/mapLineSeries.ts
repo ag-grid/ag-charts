@@ -130,7 +130,7 @@ export class MapLineSeries
             ],
         });
 
-        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
+        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`);
         this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
                 const feature: _ModuleSupport.Feature | undefined = values[featureIdx];
@@ -142,13 +142,13 @@ export class MapLineSeries
         );
 
         if (sizeKey != null) {
-            const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
+            const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
             const processedSize = processedData.domain.values[sizeIdx] ?? [];
             sizeScale.domain = sizeDomain ?? processedSize;
         }
 
         if (colorRange != null && this.isColorScaleValid()) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             colorScale.domain = processedData.domain.values[colorKeyIdx];
             colorScale.range = colorRange;
             colorScale.update();
@@ -170,7 +170,7 @@ export class MapLineSeries
             return false;
         }
 
-        const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+        const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
         const dataCount = processedData.data.length;
         const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
@@ -227,13 +227,11 @@ export class MapLineSeries
 
         const colorScaleValid = this.isColorScaleValid();
 
-        const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`).index;
-        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
-        const labelIdx =
-            labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
-        const sizeIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : undefined;
-        const colorIdx =
-            colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
+        const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`);
+        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`);
+        const labelIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : undefined;
+        const sizeIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
+        const colorIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : undefined;
 
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
@@ -524,7 +522,7 @@ export class MapLineSeries
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue').index];
+                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue')];
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,

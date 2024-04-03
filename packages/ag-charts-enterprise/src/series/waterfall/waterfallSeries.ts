@@ -228,7 +228,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             return fixNumericExtent([d0, d1], categoryAxis);
         } else {
-            const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
+            const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
             const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
             return fixNumericExtent(fixedYExtent);
@@ -268,15 +268,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             visible: this.visible,
         };
 
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`).index;
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
+        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`);
 
         const pointData: WaterfallNodePointDatum[] = [];
 
-        const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
-        const yPrevIndex = dataModel.resolveProcessedDataIndexById(this, 'yPrevious').index;
-        const yCurrTotalIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentTotal').index;
+        const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
+        const yPrevIndex = dataModel.resolveProcessedDataIndexById(this, 'yPrevious');
+        const yCurrTotalIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentTotal');
 
         function getValues(
             isTotal: boolean,
@@ -464,9 +464,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         seriesItemTypes.clear();
 
-        const yPositiveIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentPositive').index;
-        const yNegativeIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentNegative').index;
-        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`).index;
+        const yPositiveIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentPositive');
+        const yNegativeIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentNegative');
+        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`);
 
         const positiveDomain = processedData.domain.values[yPositiveIndex] ?? [];
         const negativeDomain = processedData.domain.values[yNegativeIndex] ?? [];

@@ -194,9 +194,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
             return fixNumericExtent([d0, d1], categoryAxis);
         } else {
-            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
+            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];
-            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue').index;
+            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue');
             const yHighExtent = values[yHighIndex];
             const fixedYExtent = [
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
@@ -237,9 +237,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             visible: this.visible,
         };
 
-        const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`).index;
-        const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`).index;
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
+        const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`);
+        const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`);
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {

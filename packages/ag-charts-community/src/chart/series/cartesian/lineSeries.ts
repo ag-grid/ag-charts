@@ -138,8 +138,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const nodeData: LineNodeDatum[] = [];
         const size = marker.enabled ? marker.size : 0;
 
-        const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
+        const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
 
         let moveTo = true;
         let nextPoint: UngroupedDataItem<any, any> | undefined;

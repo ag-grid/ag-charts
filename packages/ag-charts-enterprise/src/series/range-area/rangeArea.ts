@@ -149,9 +149,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
             return fixNumericExtent(extent(keys), xAxis);
         } else {
-            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
+            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];
-            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue').index;
+            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue');
             const yHighExtent = values[yHighIndex];
             const fixedYExtent = [
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
