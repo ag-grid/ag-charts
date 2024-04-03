@@ -151,13 +151,12 @@ export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | un
 type GroupingFn<K> = (data: UngroupedDataItem<K, any[]>) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined> = {
-    readonly scopes?: string[];
-    readonly props: PropertyDefinition<K>[];
-    readonly groupByKeys?: Grouped;
-    readonly groupByData?: Grouped;
-    readonly groupByFn?: GroupByFn;
-    readonly dataVisible?: boolean;
-    readonly mode?: ChartMode;
+    scopes?: string[];
+    props: PropertyDefinition<K>[];
+    groupByKeys?: Grouped;
+    groupByData?: Grouped;
+    groupByFn?: GroupByFn;
+    dataVisible?: boolean;
 };
 
 export type PropertyDefinition<K> =
@@ -269,24 +268,22 @@ export class DataModel<
     private readonly scopeCache: Map<string, Map<string, Set<PropertyDefinition<any> & InternalDefinition>>> =
         new Map();
 
-    private readonly opts: DataModelOptions<K, Grouped>;
-    private readonly keys: InternalDatumPropertyDefinition<K>[];
-    private readonly values: InternalDatumPropertyDefinition<K>[];
-    private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition)[];
-    private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition)[];
-    private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition)[];
-    private readonly reducers: (ReducerOutputPropertyDefinition & InternalDefinition)[];
-    private readonly processors: (ProcessorOutputPropertyDefinition & InternalDefinition)[];
-    private readonly mode: ChartMode;
+    private readonly keys: InternalDatumPropertyDefinition<K>[] = [];
+    private readonly values: InternalDatumPropertyDefinition<K>[] = [];
+    private readonly aggregates: (AggregatePropertyDefinition<D, K> & InternalDefinition)[] = [];
+    private readonly groupProcessors: (GroupValueProcessorDefinition<D, K> & InternalDefinition)[] = [];
+    private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition)[] = [];
+    private readonly reducers: (ReducerOutputPropertyDefinition & InternalDefinition)[] = [];
+    private readonly processors: (ProcessorOutputPropertyDefinition & InternalDefinition)[] = [];
 
-    public constructor(opts: DataModelOptions<K, Grouped>) {
-        const { props, mode = 'standalone' } = opts;
-        this.mode = mode;
-
+    public constructor(
+        private readonly opts: DataModelOptions<K, Grouped>,
+        private readonly mode: ChartMode = 'standalone'
+    ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.
         let keys = true;
-        for (const next of props) {
+        for (const next of opts.props) {
             if (next.type === 'key' && !keys) {
                 throw new Error('AG Charts - internal config error: keys must come before values.');
             }
@@ -295,14 +292,7 @@ export class DataModel<
             }
         }
 
-        this.opts = { dataVisible: true, ...opts };
-        this.keys = [];
-        this.values = [];
-        this.aggregates = [];
-        this.groupProcessors = [];
-        this.propertyProcessors = [];
-        this.reducers = [];
-        this.processors = [];
+        this.opts.dataVisible ??= true;
 
         const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
             for (const matchGroupId of matchGroupIds) {
@@ -323,7 +313,7 @@ export class DataModel<
             }
         };
 
-        for (const def of props) {
+        for (const def of opts.props) {
             switch (def.type) {
                 case 'key':
                     this.keys.push({ ...def, index: this.keys.length, missing: defaultMissMap() });
