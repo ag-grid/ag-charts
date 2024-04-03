@@ -29,7 +29,6 @@ export interface UngroupedData<D> {
     reduced?: {
         diff?: ProcessedOutputDiff;
         smallestKeyInterval?: number;
-        aggValuesExtent?: [number, number];
         sortedGroupDomain?: any[][];
         animationValidation?: {
             uniqueKeys: boolean;
@@ -152,7 +151,6 @@ export type DataModelOptions<K, Grouped extends boolean | undefined> = {
     groupByKeys?: Grouped;
     groupByData?: Grouped;
     groupByFn?: GroupByFn;
-    dataVisible?: boolean;
 };
 
 export type PropertyDefinition<K> =
@@ -193,7 +191,6 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     missing?: MissMap;
     missingValue?: any;
     separateNegative?: boolean;
-    useScopedValues?: boolean;
     validation?: (value: any, datum: any) => boolean;
     processor?: () => ProcessorFn;
 };
@@ -284,8 +281,6 @@ export class DataModel<
                 keys = false;
             }
         }
-
-        this.opts.dataVisible ??= true;
 
         const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
             for (const matchGroupId of matchGroupIds) {
@@ -517,15 +512,11 @@ export class DataModel<
     }
 
     private extractData(data: D[], sources?: { id: string; data: D[] }[]): UngroupedData<D> {
-        const {
-            keys: keyDefs,
-            values: valueDefs,
-            opts: { dataVisible },
-        } = this;
+        const { keys: keyDefs, values: valueDefs } = this;
 
         const { dataDomain, processValue, scopes, allScopesHaveSameDefs } = this.initDataDomainProcessor();
 
-        const resultData = new Array(dataVisible ? data.length : 0);
+        const resultData = new Array(data.length);
         let resultDataIdx = 0;
         let partialValidDataCount = 0;
 
@@ -538,7 +529,7 @@ export class DataModel<
             const sourceDatums: Record<string, any> = {};
 
             const validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
-            const keys = dataVisible ? new Array(keyDefs.length) : undefined;
+            const keys = new Array(keyDefs.length);
             let keyIdx = 0;
             let key;
             for (const def of keyDefs) {
@@ -550,7 +541,7 @@ export class DataModel<
             }
             if (key === INVALID_VALUE) continue;
 
-            const values = dataVisible && valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
+            const values = valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
             let value;
 
             for (const [valueDefIdx, def] of valueDefs.entries()) {
@@ -568,12 +559,7 @@ export class DataModel<
                         sourceDatums[source.id][property] = value;
                     }
 
-                    if (def.useScopedValues) {
-                        values[valueDefIdx] ??= {};
-                        values[valueDefIdx][scope] = value;
-                    } else {
-                        values[valueDefIdx] = value;
-                    }
+                    values[valueDefIdx] = value;
                 }
 
                 if (value === INVALID_VALUE) {
@@ -588,20 +574,14 @@ export class DataModel<
             if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
             if (validScopes?.size === 0) continue;
 
-            if (dataVisible) {
-                const result: UngroupedDataItem<D, any> = {
-                    datum: { ...datum, ...sourceDatums },
-                    keys: keys!,
-                    values,
-                };
+            const result: UngroupedDataItem<D, any> = { datum: { ...datum, ...sourceDatums }, keys, values };
 
-                if (!allScopesHaveSameDefs && validScopes && validScopes.size < scopes.size) {
-                    partialValidDataCount++;
-                    result.validScopes = new Set(validScopes);
-                }
-
-                resultData[resultDataIdx++] = result;
+            if (!allScopesHaveSameDefs && validScopes && validScopes.size < scopes.size) {
+                partialValidDataCount++;
+                result.validScopes = new Set(validScopes);
             }
+
+            resultData[resultDataIdx++] = result;
         }
         resultData.length = resultDataIdx;
 

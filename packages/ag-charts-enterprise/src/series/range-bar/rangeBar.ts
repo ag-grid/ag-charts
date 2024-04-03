@@ -145,7 +145,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
-        const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
                 valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),

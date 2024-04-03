@@ -1723,12 +1723,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 12,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2062,12 +2056,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 5,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2446,12 +2434,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     "count": 8,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      6002,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2834,12 +2816,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     "count": 8,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      23.7745,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -3824,22 +3800,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2009",
       ],
       "values": [
-        {
-          "test1": 64.97,
-          "test2": 64.97,
-        },
-        {
-          "test1": 1.37,
-          "test2": 1.37,
-        },
-        {
-          "test1": 26.85,
-          "test2": 53.7,
-        },
-        {
-          "test1": 2.79,
-          "test2": 2.79,
-        },
+        64.97,
+        1.37,
+        53.7,
+        2.79,
       ],
     },
     {
@@ -3866,22 +3830,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2010",
       ],
       "values": [
-        {
-          "test1": 54.39,
-          "test2": 54.39,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": 31.15,
-          "test2": 62.3,
-        },
-        {
-          "test1": 4.22,
-          "test2": 4.22,
-        },
+        54.39,
+        undefined,
+        62.3,
+        4.22,
       ],
     },
     {
@@ -3908,22 +3860,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2011",
       ],
       "values": [
-        {
-          "test1": 44.03,
-          "test2": 44.03,
-        },
-        {
-          "test1": 15.01,
-          "test2": 15.01,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": 5.94,
-          "test2": 5.94,
-        },
+        44.03,
+        15.01,
+        undefined,
+        5.94,
       ],
     },
     {
@@ -3950,22 +3890,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2012",
       ],
       "values": [
-        {
-          "test1": 34.27,
-          "test2": 34.27,
-        },
-        {
-          "test1": 25.99,
-          "test2": 25.99,
-        },
-        {
-          "test1": 22.69,
-          "test2": 45.38,
-        },
-        {
-          "test1": 8.09,
-          "test2": 8.09,
-        },
+        34.27,
+        25.99,
+        45.38,
+        8.09,
       ],
     },
     {
@@ -3992,22 +3920,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2013",
       ],
       "values": [
-        {
-          "test1": 26.55,
-          "test2": 26.55,
-        },
-        {
-          "test1": 31.71,
-          "test2": 31.71,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
+        26.55,
+        31.71,
+        undefined,
+        undefined,
       ],
     },
     {
@@ -4034,22 +3950,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2014",
       ],
       "values": [
-        {
-          "test1": 17.75,
-          "test2": 17.75,
-        },
-        {
-          "test1": 35.85,
-          "test2": 35.85,
-        },
-        {
-          "test1": 14.77,
-          "test2": 29.54,
-        },
-        {
-          "test1": 12.63,
-          "test2": 12.63,
-        },
+        17.75,
+        35.85,
+        29.54,
+        12.63,
       ],
     },
     {
@@ -4076,22 +3980,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2015",
       ],
       "values": [
-        {
-          "test1": -13.3,
-          "test2": -13.3,
-        },
-        {
-          "test1": 42.27,
-          "test2": 42.27,
-        },
-        {
-          "test1": 11.82,
-          "test2": 23.64,
-        },
-        {
-          "test1": 13.79,
-          "test2": 13.79,
-        },
+        -13.3,
+        42.27,
+        23.64,
+        13.79,
       ],
     },
     {
@@ -4118,22 +4010,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2016",
       ],
       "values": [
-        {
-          "test1": -8.94,
-          "test2": -8.94,
-        },
-        {
-          "test1": 47.79,
-          "test2": 47.79,
-        },
-        {
-          "test1": 8.97,
-          "test2": 17.94,
-        },
-        {
-          "test1": 12.9,
-          "test2": 12.9,
-        },
+        -8.94,
+        47.79,
+        17.94,
+        12.9,
       ],
     },
     {
@@ -4160,22 +4040,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2017",
       ],
       "values": [
-        {
-          "test1": -4.77,
-          "test2": -4.77,
-        },
-        {
-          "test1": 51.76,
-          "test2": 51.76,
-        },
-        {
-          "test1": 6.75,
-          "test2": 13.5,
-        },
-        {
-          "test1": 14.54,
-          "test2": 14.54,
-        },
+        -4.77,
+        51.76,
+        13.5,
+        14.54,
       ],
     },
     {
@@ -4202,22 +4070,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2018",
       ],
       "values": [
-        {
-          "test1": 3.2,
-          "test2": 3.2,
-        },
-        {
-          "test1": 56.31,
-          "test2": 56.31,
-        },
-        {
-          "test1": 5.66,
-          "test2": 11.32,
-        },
-        {
-          "test1": 14.44,
-          "test2": 14.44,
-        },
+        3.2,
+        56.31,
+        11.32,
+        14.44,
       ],
     },
     {
@@ -4244,22 +4100,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2019",
       ],
       "values": [
-        {
-          "test1": 2.7,
-          "test2": 2.7,
-        },
-        {
-          "test1": 61.72,
-          "test2": 61.72,
-        },
-        {
-          "test1": 4.66,
-          "test2": 9.32,
-        },
-        {
-          "test1": 15.23,
-          "test2": 15.23,
-        },
+        2.7,
+        61.72,
+        9.32,
+        15.23,
       ],
     },
   ],
@@ -4275,7 +4119,6 @@ exports[`DataModel multiple data sources should generate the expected results 1`
           "test2",
         ],
         "type": "key",
-        "useScopedValues": true,
         "valueType": "category",
       },
     ],

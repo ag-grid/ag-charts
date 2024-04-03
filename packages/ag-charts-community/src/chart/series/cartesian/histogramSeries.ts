@@ -123,6 +123,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     override async processData(dataController: DataController) {
+        if (!this.visible) return;
+
         const { xKey, yKey, areaPlot, aggregation } = this.properties;
 
         const props: PropertyDefinition<any>[] = [keyProperty(xKey, true), SORT_DOMAIN_GROUPS];
@@ -185,11 +187,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             props.push(diff(this.processedData, false));
         }
 
-        await this.requestDataModel<any>(dataController, this.data ?? [], {
-            props,
-            dataVisible: this.visible,
-            groupByFn,
-        });
+        await this.requestDataModel<any>(dataController, this.data, { props, groupByFn });
 
         this.animationState.transition('updateData');
     }
