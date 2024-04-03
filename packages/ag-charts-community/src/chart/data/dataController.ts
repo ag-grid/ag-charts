@@ -233,8 +233,7 @@ export class DataController {
                 result.opts ??= { ...opts, props: [] };
 
                 for (const prop of props) {
-                    const clone = { ...prop };
-                    clone.scopes ??= new Set([id]);
+                    const clone = { ...prop, scopes: [id] };
                     DataController.createIdsMap(id, clone);
 
                     const match = result.opts.props.find(
@@ -246,7 +245,8 @@ export class DataController {
                         continue;
                     }
 
-                    match.scopes.add(id);
+                    match.scopes ??= [];
+                    match.scopes.push(...(clone.scopes ?? []));
 
                     if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
                         DataController.mergeIdsMap(clone.idsMap, match.idsMap);

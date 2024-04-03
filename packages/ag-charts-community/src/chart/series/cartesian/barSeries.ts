@@ -133,7 +133,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const extraProps = [];
         if (isFiniteNumber(normalizedTo)) {
-            extraProps.push(normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo)));
+            extraProps.push(
+                normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo), 'range')
+            );
         }
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
@@ -218,9 +220,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && xAxis && yAxis && this.properties.isValid())) {
-            return;
-        }
+        if (!dataModel || !xAxis || !yAxis || !this.properties.isValid()) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -260,9 +260,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
                 const barX = x + groupScale.convert(String(groupIndex));
 
-                if (isNaN(currY)) {
-                    return;
-                }
+                if (isNaN(currY)) return;
 
                 const y = yScale.convert(currY);
                 const bottomY = yScale.convert(prevY);

@@ -110,11 +110,11 @@ export abstract class CandlestickSeriesBase<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
         if (openKey) {
             extraProps.push(
-                valueProperty(this, openKey, true, {
+                valueProperty(openKey, true, {
                     id: `openValue`,
                     invalidValue: undefined,
                     missingValue: undefined,
@@ -124,10 +124,10 @@ export abstract class CandlestickSeriesBase<
 
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                valueProperty(this, closeKey, true, { id: `closeValue` }),
-                valueProperty(this, highKey, true, { id: `highValue` }),
-                valueProperty(this, lowKey, true, { id: `lowValue` }),
+                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
+                valueProperty(closeKey, true, { id: `closeValue` }),
+                valueProperty(highKey, true, { id: `highValue` }),
+                valueProperty(lowKey, true, { id: `lowValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -160,7 +160,7 @@ export abstract class CandlestickSeriesBase<
             );
         }
 
-        const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = processedData.domain.keys[index];
         if (def.type === 'key' && def.valueType === 'category') {
             return keys;

@@ -126,7 +126,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo)));
+            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo), 'range'));
         }
 
         if (animationEnabled) {

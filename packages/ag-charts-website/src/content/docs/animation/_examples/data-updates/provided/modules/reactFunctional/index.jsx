@@ -5,8 +5,6 @@ import { createRoot } from 'react-dom/client';
 import 'ag-charts-enterprise';
 import { AgChartsReact } from 'ag-charts-react';
 
-import { getData, random } from './data.js';
-
 // Series type data options
 let start = [120, 150, 130, 140, 80];
 let variance = 20;

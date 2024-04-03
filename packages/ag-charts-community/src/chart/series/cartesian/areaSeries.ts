@@ -112,8 +112,8 @@ export class AreaSeries extends CartesianSeries<
 
         const extraProps = [];
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo));
-            extraProps.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo));
+            extraProps.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
         }
 
         // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.

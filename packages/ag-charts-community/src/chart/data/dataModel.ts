@@ -147,11 +147,12 @@ export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | un
 type GroupingFn<K> = (data: UngroupedDataItem<K, any[]>) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined> = {
-    readonly props: PropertyDefinition<K>[];
-    readonly groupByKeys?: Grouped;
-    readonly groupByData?: Grouped;
-    readonly groupByFn?: GroupByFn;
-    readonly mode?: ChartMode;
+    scopes?: string[];
+    props: PropertyDefinition<K>[];
+    groupByKeys?: Grouped;
+    groupByData?: Grouped;
+    groupByFn?: GroupByFn;
+    dataVisible?: boolean;
 };
 
 export type PropertyDefinition<K> =
@@ -176,6 +177,8 @@ type PropertyIdentifiers = {
 };
 
 type PropertySelectors = {
+    /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
+    matchScopes?: string[];
     /** Optional group a property belongs to, for cross-scope combination. */
     matchGroupIds?: string[];
 };
@@ -280,6 +283,8 @@ export class DataModel<
                 keys = false;
             }
         }
+
+        this.opts.dataVisible ??= true;
 
         const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
             for (const matchGroupId of matchGroupIds) {
@@ -468,9 +473,9 @@ export class DataModel<
     private valueGroupIdxLookup({ matchGroupIds }: PropertySelectors) {
         const result: number[] = [];
         for (const [index, def] of this.values.entries()) {
-            if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) continue;
-
-            result.push(index);
+            if (!matchGroupIds || (def.groupId && matchGroupIds.includes(def.groupId))) {
+                result.push(index);
+            }
         }
         return result;
     }
@@ -516,6 +521,11 @@ export class DataModel<
 
         let partialValidDataCount = 0;
         let resultDataIdx = 0;
+
+        const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
+        for (const source of sources ?? []) {
+            sourcesById[source.id] = source;
+        }
 
         for (const [datumIdx, datum] of data.entries()) {
             const sourceDatums: Record<string, any> = {};

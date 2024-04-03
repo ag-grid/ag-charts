@@ -17,15 +17,21 @@ import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlaceme
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
+import { clamp } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
+import { isFiniteNumber } from '../../util/type-guards';
+import { isContinuous } from '../../util/value';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
+import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
+import type { DatumPropertyDefinition } from '../data/dataModel';
+import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
@@ -51,6 +57,90 @@ export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
 };
+
+function basicContinuousCheckDatumValidation(value: any) {
+    return value != null && isContinuous(value);
+}
+
+function basicDiscreteCheckDatumValidation(value: any) {
+    return value != null;
+}
+
+export function keyProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const result: DatumPropertyDefinition<K> = {
+        property: propName,
+        type: 'key',
+        valueType: continuous ? 'range' : 'category',
+        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        ...opts,
+    };
+    return result;
+}
+
+export function valueProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const result: DatumPropertyDefinition<K> = {
+        property: propName,
+        type: 'value',
+        valueType: continuous ? 'range' : 'category',
+        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        ...opts,
+    };
+    return result;
+}
+
+export function rangedValueProperty<K>(
+    propName: K,
+    opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
+): DatumPropertyDefinition<K> {
+    const { min = -Infinity, max = Infinity, ...defOpts } = opts;
+    return {
+        type: 'value',
+        property: propName,
+        valueType: 'range',
+        validation: basicContinuousCheckDatumValidation,
+        processor: () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum),
+        ...defOpts,
+    };
+}
+
+export function accumulativeValueProperty<K>(
+    propName: K,
+    continuous: boolean,
+    opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
+) {
+    const { onlyPositive, ...defOpts } = opts;
+    const result: DatumPropertyDefinition<K> = {
+        ...valueProperty(propName, continuous, defOpts),
+        processor: accumulatedValue(onlyPositive),
+    };
+    return result;
+}
+
+export function trailingAccumulatedValueProperty<K>(
+    propName: K,
+    continuous: boolean,
+    opts: Partial<DatumPropertyDefinition<K>> = {}
+) {
+    const result: DatumPropertyDefinition<K> = {
+        ...valueProperty(propName, continuous, opts),
+        processor: trailingAccumulatedValue(),
+    };
+    return result;
+}
+
+export function groupAccumulativeValueProperty<K>(
+    propName: K,
+    continuous: boolean,
+    mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
+    sum: 'current' | 'last' = 'current',
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
+) {
+    return [
+        valueProperty(propName, continuous, opts),
+        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
+        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
+    ];
+}
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 

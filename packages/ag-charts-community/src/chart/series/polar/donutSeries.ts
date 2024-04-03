@@ -219,7 +219,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     max: this.properties.radiusMax,
                 }),
                 valueProperty(radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
-                normalisePropertyToRatio(
+                normalisePropertyTo(
                     { id: 'radiusValue' },
                     1,
                     this.properties.radiusMin ?? 0,
@@ -248,7 +248,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 ...extraKeyProps,
                 accumulativeValueProperty(angleKey, true, { id: `angleValue`, onlyPositive: true }),
                 valueProperty(angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
-                normalisePropertyToRatio({ id: 'angleValue' }, 0, 0),
+                normalisePropertyTo({ id: 'angleValue' }, [0, 1], 0, 0),
                 ...extraProps,
             ],
         });

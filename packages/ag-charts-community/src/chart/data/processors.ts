@@ -142,9 +142,7 @@ export function normaliseGroupTo(
     };
 }
 
-// scoped
-// donut, pie
-export function normalisePropertyToRatio(
+export function normalisePropertyTo(
     property: PropertyId<any>,
     zeroDomain: number,
     rangeMin?: number,
@@ -157,8 +155,6 @@ export function normalisePropertyToRatio(
     };
 }
 
-// scoped
-// area, bar, line, donut, pie, box-plot, bullet, candlestick, radar, radial-bar, radial-column, range-area, range-bar, waterfall
 export function animationValidation(valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
     return {
         type: 'processor',
@@ -486,62 +482,7 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
     };
 }
 
-function normalisePropertyFnBuilder({
-    zeroDomain,
-    rangeMin,
-    rangeMax,
-}: {
-    zeroDomain: number;
-    rangeMin?: number;
-    rangeMax?: number;
-}) {
-    const normalise = (val: number, start: number, span: number) =>
-        span === 0 ? zeroDomain : clamp(0, (val - start) / span, 1);
-
-    return () => (pData: ProcessedData<any>, pIdx: number) => {
-        let [start, end] = pData.domain.values[pIdx];
-        if (rangeMin != null) start = rangeMin;
-        if (rangeMax != null) end = rangeMax;
-        const span = end - start;
-
-        pData.domain.values[pIdx] = [0, 1];
-
-        for (const group of pData.data) {
-            let groupValues = group.values;
-            if (pData.type === 'ungrouped') {
-                groupValues = [groupValues];
-            }
-            for (const values of groupValues) {
-                values[pIdx] = normalise(values[pIdx], start, span);
-            }
-        }
-    };
-}
-
-function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
-    const normalise = (value: number, extent: number) =>
-        clamp(-normaliseTo, (value * normaliseTo) / extent, normaliseTo);
-
-    return () => () => (values: any[], valueIndexes: number[]) => {
-        const valuesExtent = [0, 0];
-        for (const valueIdx of valueIndexes) {
-            const value = values[valueIdx];
-            const valIdx = value < 0 ? 0 : 1;
-            if (valIdx === 0) {
-                valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], value);
-            } else {
-                valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], value);
-            }
-        }
-
-        const extent = Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
-        for (const valueIdx of valueIndexes) {
-            values[valueIdx] = normalise(values[valueIdx], extent);
-        }
-    };
-}
-
-function accumulateGroup(
+export function accumulateGroup(
     matchGroupId: string,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
     sum: 'current' | 'last',
