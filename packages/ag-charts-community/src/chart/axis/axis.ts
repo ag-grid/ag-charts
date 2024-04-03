@@ -537,7 +537,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + label.padding + this.seriesAreaPadding);
-        const visible = text !== '' && text != undefined;
+        const visible = text !== '' && text != null;
         return {
             tickId: datum.tickId,
             translationY: datum.translationY,
@@ -1097,7 +1097,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
             ticks.push({ tick: rawTick, tickId, tickLabel, translationY: Math.floor(translationY) });
 
-            if (tickLabel === '' || tickLabel == undefined) {
+            if (tickLabel === '' || tickLabel == null) {
                 continue;
             }
             labelCount++;
@@ -1450,8 +1450,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
     }
 
-    calculatePadding(min: number, max: number, reverse: boolean): [number, number] {
-        const padding = Math.abs(reverse ? max : min) * 0.01;
+    calculatePadding(min: number, max: number): [number, number] {
+        const padding = Math.abs(this.reverse ? max : min) * 0.01;
         return [padding, padding];
     }
 

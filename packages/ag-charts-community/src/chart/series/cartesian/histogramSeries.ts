@@ -125,26 +125,26 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     override async processData(dataController: DataController) {
         const { xKey, yKey, areaPlot, aggregation } = this.properties;
 
-        const props: PropertyDefinition<any>[] = [keyProperty(this, xKey, true), SORT_DOMAIN_GROUPS];
+        const props: PropertyDefinition<any>[] = [keyProperty(xKey, true), SORT_DOMAIN_GROUPS];
         if (yKey) {
-            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount(this, 'groupAgg');
+            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg');
 
             if (aggregation === 'count') {
                 // Nothing to do.
             } else if (aggregation === 'sum') {
-                aggProp = groupSum(this, 'groupAgg');
+                aggProp = groupSum('groupAgg');
             } else if (aggregation === 'mean') {
-                aggProp = groupAverage(this, 'groupAgg');
+                aggProp = groupAverage('groupAgg');
             }
             if (areaPlot) {
-                aggProp = area(this, 'groupAgg', aggProp);
+                aggProp = area('groupAgg', aggProp);
             }
-            props.push(valueProperty(this, yKey, true, { invalidValue: undefined }), aggProp);
+            props.push(valueProperty(yKey, true, { invalidValue: undefined }), aggProp);
         } else {
-            let aggProp = groupCount(this, 'groupAgg');
+            let aggProp = groupCount('groupAgg');
 
             if (areaPlot) {
-                aggProp = area(this, 'groupAgg', aggProp);
+                aggProp = area('groupAgg', aggProp);
             }
             props.push(aggProp);
         }

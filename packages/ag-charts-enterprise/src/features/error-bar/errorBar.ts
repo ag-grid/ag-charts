@@ -21,7 +21,7 @@ type ErrorBoundCartesianSeries = Omit<
 
 function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBoundCartesianSeries {
     for (const supportedType of AgErrorBarSupportedSeriesTypes) {
-        if (supportedType == ctx.series.type) {
+        if (supportedType === ctx.series.type) {
             return ctx.series as ErrorBoundCartesianSeries;
         }
     }
@@ -87,25 +87,24 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private isStacked(): boolean {
         const stackCount = this.cartesianSeries.seriesGrouping?.stackCount;
-        return stackCount === undefined ? false : stackCount > 0;
+        return stackCount == null ? false : stackCount > 0;
     }
 
     private getUnstackPropertyDefinition(opts: PropertyDefinitionOpts) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
-        const { cartesianSeries } = this;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { isContinuousX, isContinuousY } = opts;
 
-        if (yLowerKey !== undefined && yUpperKey !== undefined) {
+        if (yLowerKey != null && yUpperKey != null) {
             props.push(
-                valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: yErrorsID }),
-                valueProperty(cartesianSeries, yUpperKey, isContinuousY, { id: yErrorsID })
+                valueProperty(yLowerKey, isContinuousY, { id: `${yErrorsID}-lower` }),
+                valueProperty(yUpperKey, isContinuousY, { id: `${yErrorsID}-upper` })
             );
         }
-        if (xLowerKey !== undefined && xUpperKey !== undefined) {
+        if (xLowerKey != null && xUpperKey != null) {
             props.push(
-                valueProperty(cartesianSeries, xLowerKey, isContinuousX, { id: xErrorsID }),
-                valueProperty(cartesianSeries, xUpperKey, isContinuousX, { id: xErrorsID })
+                valueProperty(xLowerKey, isContinuousX, { id: `${xErrorsID}-lower` }),
+                valueProperty(xUpperKey, isContinuousX, { id: `${xErrorsID}-upper` })
             );
         }
         return props;
@@ -125,7 +124,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             ...(cartesianSeries.visible ? {} : { forceValue: 0 }),
         };
         const makeErrorProperty = (key: string, continuous: boolean, id: string, type: 'lower' | 'upper') => {
-            return groupAccumulativeValueProperty(cartesianSeries, key, continuous, 'normal', 'current', {
+            return groupAccumulativeValueProperty(key, continuous, 'normal', 'current', {
                 id: `${id}-${type}`,
                 groupId: `errorGroup-${groupIndex}-${type}`,
                 ...groupOpts,
@@ -138,11 +137,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             );
         };
 
-        if (yLowerKey !== undefined && yUpperKey !== undefined) {
+        if (yLowerKey != null && yUpperKey != null) {
             pushErrorProperties(yLowerKey, yUpperKey, isContinuousY, yErrorsID);
         }
 
-        if (xLowerKey !== undefined && xUpperKey !== undefined) {
+        if (xLowerKey != null && xUpperKey != null) {
             pushErrorProperties(xLowerKey, xUpperKey, isContinuousX, xErrorsID);
         }
 
@@ -171,19 +170,14 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         if (hasAxisErrors) {
             const { dataModel, processedData, cartesianSeries: series } = this;
-            const axis = series.axes[direction];
-            const id = { x: xErrorsID, y: yErrorsID }[direction];
 
-            if (dataModel !== undefined && processedData !== undefined) {
-                if (this.isStacked()) {
-                    const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
-                    const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
-                    const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
-                    return fixNumericExtent(domain as any, axis);
-                } else {
-                    const domain = dataModel.getDomain(series, id, 'value', processedData);
-                    return fixNumericExtent(domain as any, axis);
-                }
+            if (dataModel != null && processedData != null) {
+                const axis = series.axes[direction];
+                const id = { x: xErrorsID, y: yErrorsID }[direction];
+                const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
+                const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
+                const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
+                return fixNumericExtent(domain, axis);
             }
         }
         return [];
@@ -213,7 +207,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         for (let i = 0; i < nodeData.length; i++) {
             const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(nodeData, i);
-            if (midPoint !== undefined) {
+            if (midPoint != null) {
                 let xBar, yBar;
                 if (isDefined(xLower) && isDefined(xUpper)) {
                     xBar = {
@@ -246,11 +240,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private static getDatumKey(datum: ErrorBarNodeDatum, key: string | undefined, offset: number): number | undefined {
         // Check if the user input datum has the error value for `key`:
-        if (key === undefined) {
+        if (key == null) {
             return;
         }
         const value: unknown = datum.datum[key];
-        if (value === undefined) {
+        if (value == null) {
             return;
         }
 
@@ -267,9 +261,9 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
         const datum = nodeData[datumIndex];
 
-        // In stacked bar series, we need to calculate the cumalative error values.
+        // In stacked bar series, we need to calculate the cumulative error values.
         // But generally, these offsets will both be 0.
-        const d = datum.cumulativeValue === undefined || !this.isStacked() ? 0 : datum.cumulativeValue - datum.yValue;
+        const d = datum.cumulativeValue == null || !this.isStacked() ? 0 : datum.cumulativeValue - datum.yValue;
         const [xOffset, yOffset] = this.cartesianSeries.shouldFlipXY() ? [d, 0] : [0, d];
 
         return {
@@ -288,7 +282,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private update() {
         const nodeData = this.getNodeData();
-        if (nodeData !== undefined) {
+        if (nodeData != null) {
             this.selection.update(nodeData);
             this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
         }
@@ -303,7 +297,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     pickNodeExact(point: Point): PickNodeDatumResult {
         const { x, y } = this.groupNode.transformPoint(point.x, point.y);
         const node = this.groupNode.pickNode(x, y);
-        if (node !== undefined) {
+        if (node != null) {
             return { datum: node.datum, distanceSquared: 0 };
         }
     }
@@ -361,7 +355,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         highlighted: boolean
     ) {
         const nodeData = this.getNodeData();
-        if (nodeData === undefined) return;
+        if (nodeData == null) return;
 
         // Search for the ErrorBarNode that matches this highlight change. This
         // isn't a good solution in terms of performance. However, it's assumed

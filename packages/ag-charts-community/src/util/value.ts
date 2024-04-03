@@ -2,23 +2,22 @@ import { isFiniteNumber, isString, isValidDate } from './type-guards';
 import type { PlainObject } from './types';
 
 type StringObject = PlainObject & { toString: () => string };
-type NumberObject = PlainObject & { valueOf: () => string };
+type NumberObject = PlainObject & { valueOf: () => number };
 
-export const isStringObject = (value: unknown): value is StringObject =>
-    !!value && Object.hasOwn(value, 'toString') && isString(value.toString());
+export function isStringObject(value: unknown): value is StringObject {
+    return value != null && Object.hasOwn(value, 'toString') && isString(value.toString());
+}
 
-const isNumberObject = (value: unknown): value is NumberObject =>
-    !!value && Object.hasOwn(value, 'valueOf') && isFiniteNumber(value.valueOf());
+export function isNumberObject(value: unknown): value is NumberObject {
+    return value != null && Object.hasOwn(value, 'valueOf') && isFiniteNumber(value.valueOf());
+}
 
-export const isContinuous = (value: unknown): value is number | Date | NumberObject =>
-    isFiniteNumber(value) || isNumberObject(value) || isValidDate(value);
+export function isContinuous(value: unknown): value is number | Date | NumberObject {
+    return isFiniteNumber(value) || isValidDate(value) || isNumberObject(value);
+}
 
-export function checkDatum<T>(value: T, isContinuousScale: boolean): T | string | undefined {
-    if (isContinuousScale && isContinuous(value)) {
-        return value;
-    } else if (!isContinuousScale) {
-        return isString(value) || isStringObject(value) ? value : String(value);
-    }
+export function checkDatum<T>(value: T, isContinuousScale: boolean): boolean {
+    return value != null && (!isContinuousScale || isContinuous(value));
 }
 
 /**

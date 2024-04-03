@@ -82,9 +82,9 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         }
     }
 
-    override calculatePadding(_min: number, _max: number, reverse: boolean): [number, number] {
+    override calculatePadding(): [number, number] {
         // numbers in domain correspond to Unix timestamps
         // automatically expand domain by 1 in forward direction
-        return reverse ? [1, 0] : [0, 1];
+        return this.reverse ? [1, 0] : [0, 1];
     }
 }

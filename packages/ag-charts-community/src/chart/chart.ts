@@ -314,9 +314,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.style.position = 'relative';
         element.style.userSelect = 'none';
 
-        const sizeMonitor = new SizeMonitor();
-        this.sizeMonitor = sizeMonitor;
-        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
+        this.sizeMonitor = new SizeMonitor();
+        this.sizeMonitor.observe(this.element, (size) => this.rawResize(size));
 
         const { overrideDevicePixelRatio } = options.specialOverrides;
         this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
@@ -864,23 +863,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private rawResize(size: { width: number; height: number }) {
-        let { width, height } = size;
+    private rawResize({ width, height }: { width: number; height: number }) {
+        if (!this.autoSize) return;
+
         width = Math.floor(width);
         height = Math.floor(height);
 
-        if (!this.autoSize) {
-            return;
-        }
-
-        if (width === 0 && height === 0) {
-            return;
-        }
+        if (width === 0 && height === 0) return;
 
         const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
-        if (autoWidth === width && authHeight === height) {
-            return;
-        }
+        if (autoWidth === width && authHeight === height) return;
 
         this._lastAutoSize = [width, height];
         this.resize(undefined, undefined, 'SizeMonitor');

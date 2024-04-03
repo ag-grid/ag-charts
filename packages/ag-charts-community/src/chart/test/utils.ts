@@ -58,7 +58,7 @@ export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument().body) {
+export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument('body')) {
     options.autoSize = false;
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;

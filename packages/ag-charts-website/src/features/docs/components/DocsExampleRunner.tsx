@@ -31,22 +31,6 @@ interface Props {
 // loaded on the client side
 const queryClient = new QueryClient();
 
-/**
- * Update the internal framework if it is different to the framework in the URL
- *
- * @param framework Framework from the URL
- */
-function useUpdateInternalFrameworkFromFramework(framework: Framework) {
-    const internalFramework = useStore($internalFramework);
-
-    useEffect(() => {
-        const frameworkFromInternalFramework = getFrameworkFromInternalFramework(internalFramework);
-        if (frameworkFromInternalFramework !== framework) {
-            updateInternalFrameworkBasedOnFramework(framework);
-        }
-    }, [internalFramework, framework]);
-}
-
 const queryOptions = {
     retry: false,
     refetchOnMount: false,
@@ -157,8 +141,6 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         setPackageJson(contents.packageJson);
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
     }, [contents, contentsIsLoading, contentsIsError, exampleFileHtml]);
-
-    useUpdateInternalFrameworkFromFramework(framework);
 
     const externalLinks = (
         <ExternalLinks

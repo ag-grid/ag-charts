@@ -112,14 +112,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
-                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
+                keyProperty(xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
+                valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
                 ...extraProps,
             ],
             dataVisible: this.visible,
@@ -149,9 +149,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
             return fixNumericExtent(extent(keys), xAxis);
         } else {
-            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
+            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];
-            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue').index;
+            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue');
             const yHighExtent = values[yHighIndex];
             const fixedYExtent = [
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],

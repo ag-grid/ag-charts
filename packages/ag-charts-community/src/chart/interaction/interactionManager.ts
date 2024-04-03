@@ -126,7 +126,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     public constructor(element: HTMLElement) {
         super();
 
-        this.rootElement = getDocument().body;
+        this.rootElement = getDocument('body');
         this.element = element;
 
         for (const type of EVENT_HANDLERS) {

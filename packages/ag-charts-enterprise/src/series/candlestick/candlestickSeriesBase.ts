@@ -25,6 +25,7 @@ const {
     ChartAxisDirection,
     convertValuesToScaleByDefs,
     mergeDefaults,
+    isFiniteNumber,
 } = _ModuleSupport;
 const { motion } = _Scene;
 
@@ -109,11 +110,11 @@ export abstract class CandlestickSeriesBase<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
         if (openKey) {
             extraProps.push(
-                valueProperty(this, openKey, true, {
+                valueProperty(openKey, true, {
                     id: `openValue`,
                     invalidValue: undefined,
                     missingValue: undefined,
@@ -123,20 +124,17 @@ export abstract class CandlestickSeriesBase<
 
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                valueProperty(this, closeKey, true, { id: `closeValue` }),
-                valueProperty(this, highKey, true, { id: `highValue` }),
-                valueProperty(this, lowKey, true, { id: `lowValue` }),
+                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
+                valueProperty(closeKey, true, { id: `closeValue` }),
+                valueProperty(highKey, true, { id: `highValue` }),
+                valueProperty(lowKey, true, { id: `lowValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
             dataVisible: this.visible,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.animationState.transition('updateData');
     }
@@ -162,7 +160,7 @@ export abstract class CandlestickSeriesBase<
             );
         }
 
-        const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = processedData.domain.keys[index];
         if (def.type === 'key' && def.valueType === 'category') {
             return keys;
@@ -172,7 +170,7 @@ export abstract class CandlestickSeriesBase<
         const isReversed = categoryAxis?.isReversed();
 
         const keysExtent = extent(keys) ?? [NaN, NaN];
-        const scalePadding = smallestDataInterval && isFinite(smallestDataInterval.x) ? smallestDataInterval.x : 0;
+        const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
 
         if (direction === ChartAxisDirection.Y) {
             const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
@@ -287,7 +285,7 @@ export abstract class CandlestickSeriesBase<
             });
         });
 
-        return { itemId: xKey, nodeData, labelData: [], scales: super.calculateScaling(), visible: this.visible };
+        return { itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible };
     }
 
     private getSeriesItemType(isRising: boolean): AgCandlestickSeriesItemType {

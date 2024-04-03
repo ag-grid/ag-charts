@@ -23,14 +23,14 @@ import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import { isFiniteNumber } from '../../util/type-guards';
-import { checkDatum } from '../../util/value';
+import { isContinuous } from '../../util/value';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
-import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
+import type { DatumPropertyDefinition } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
@@ -58,22 +58,16 @@ export type SeriesNodePickMatch = {
     distance: number;
 };
 
-function basicContinuousCheckDatumValidation(v: any) {
-    return checkDatum(v, true) != null;
+function basicContinuousCheckDatumValidation(value: any) {
+    return value != null && isContinuous(value);
 }
 
-function basicDiscreteCheckDatumValidation(v: any) {
-    return checkDatum(v, false) != null;
+function basicDiscreteCheckDatumValidation(value: any) {
+    return value != null;
 }
 
-export function keyProperty<K>(
-    scope: ScopeProvider,
-    propName: K,
-    continuous: boolean,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
-) {
+export function keyProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
-        scopes: [scope.id],
         property: propName,
         type: 'key',
         valueType: continuous ? 'range' : 'category',
@@ -83,14 +77,8 @@ export function keyProperty<K>(
     return result;
 }
 
-export function valueProperty<K>(
-    scope: ScopeProvider,
-    propName: K,
-    continuous: boolean,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
-) {
+export function valueProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
-        scopes: [scope.id],
         property: propName,
         type: 'value',
         valueType: continuous ? 'range' : 'category',
@@ -101,13 +89,11 @@ export function valueProperty<K>(
 }
 
 export function rangedValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
 ): DatumPropertyDefinition<K> {
     const { min = -Infinity, max = Infinity, ...defOpts } = opts;
     return {
-        scopes: [scope.id],
         type: 'value',
         property: propName,
         valueType: 'range',
@@ -117,60 +103,32 @@ export function rangedValueProperty<K>(
     };
 }
 
-export function trailingValueProperty<K>(
-    scope: ScopeProvider,
-    propName: K,
-    continuous: boolean,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
-) {
-    const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(scope, propName, continuous, opts),
-        processor: trailingValue(),
-    };
-    return result;
-}
-
-export function trailingValue(): DatumPropertyDefinition<any>['processor'] {
-    return () => {
-        let value = 0;
-
-        return (datum: any) => {
-            const oldValue = value;
-            value = datum;
-            return oldValue;
-        };
-    };
-}
-
 export function accumulativeValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     continuous: boolean,
     opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
 ) {
     const { onlyPositive, ...defOpts } = opts;
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(scope, propName, continuous, defOpts),
+        ...valueProperty(propName, continuous, defOpts),
         processor: accumulatedValue(onlyPositive),
     };
     return result;
 }
 
 export function trailingAccumulatedValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     continuous: boolean,
     opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(scope, propName, continuous, opts),
+        ...valueProperty(propName, continuous, opts),
         processor: trailingAccumulatedValue(),
     };
     return result;
 }
 
 export function groupAccumulativeValueProperty<K>(
-    scope: ScopeProvider,
     propName: K,
     continuous: boolean,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
@@ -178,9 +136,9 @@ export function groupAccumulativeValueProperty<K>(
     opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
 ) {
     return [
-        valueProperty(scope, propName, continuous, opts),
-        accumulateGroup(scope, opts.groupId, mode, sum, opts.separateNegative),
-        ...(opts.rangeId != null ? [range(scope, opts.rangeId, opts.groupId)] : []),
+        valueProperty(propName, continuous, opts),
+        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
+        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
     ];
 }
 
