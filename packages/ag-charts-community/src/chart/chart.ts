@@ -329,7 +329,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, interactiveContainer);
-        this.regionManager = new RegionManager(this.interactionManager, interactiveContainer);
+        this.regionManager = new RegionManager(this.interactionManager, element);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();

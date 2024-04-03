@@ -1,5 +1,6 @@
 import { BBox } from '../../scene/bbox';
 import { mapIterable } from '../../util/array';
+import { getDocument } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import { clamp } from '../../util/number';
 import type {
@@ -31,7 +32,7 @@ type Region = {
 export class RegionManager {
     private currentTabIndex = 0;
     private readonly keyNavManager: KeyNavManager;
-    private readonly focusIndicator: HTMLDivElement;
+    private readonly focusIndicator?: HTMLDivElement;
 
     private currentRegion?: Region;
     private isDragging = false;
@@ -53,14 +54,16 @@ export class RegionManager {
             this.keyNavManager.addListener('tab', this.onTab.bind(this))
         );
 
-        this.focusIndicator = document.createElement('div');
-        this.focusIndicator.id = 'focusIndicator';
-        this.focusIndicator.style.position = 'absolute';
-        this.focusIndicator.style.border = '2px solid red';
-        this.focusIndicator.style.display = 'none';
-        this.focusIndicator.style.pointerEvents = 'none';
-        this.focusIndicator.style.userSelect = 'none';
-        container?.appendChild(this.focusIndicator);
+        this.focusIndicator = getDocument()?.createElement('div');
+        if (this.focusIndicator !== undefined && container !== undefined) {
+            this.focusIndicator.className = 'ag-charts-focusindicator';
+            this.focusIndicator.style.position = 'absolute';
+            this.focusIndicator.style.border = '2px solid red';
+            this.focusIndicator.style.display = 'none';
+            this.focusIndicator.style.pointerEvents = 'none';
+            this.focusIndicator.style.userSelect = 'none';
+            container.appendChild(this.focusIndicator);
+        }
     }
 
     public destroy() {
@@ -235,6 +238,8 @@ export class RegionManager {
     }
 
     private updateFocusIndicator(newRegion: Region | undefined) {
+        if (this.focusIndicator === undefined) return;
+
         if (newRegion === undefined) {
             this.focusIndicator.style.display = 'none';
         } else {
@@ -242,12 +247,8 @@ export class RegionManager {
             this.focusIndicator.style.display = 'block';
             this.focusIndicator.style.width = `${bounds.width}px`;
             this.focusIndicator.style.height = `${bounds.height}px`;
-            this.focusIndicator.style.transform = `translate(${bounds.x}px, ${bounds.y}px)`
-
-            // TODO(olegat) HACK:
-            const container = this.focusIndicator.parentNode;
-            container?.removeChild(this.focusIndicator);
-            container?.appendChild(this.focusIndicator);
+            this.focusIndicator.style.left = `${bounds.x}px`;
+            this.focusIndicator.style.top = `${bounds.y}px`;
         }
     }
 }
