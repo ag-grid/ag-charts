@@ -17,7 +17,7 @@ import {
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
-import type { PointerInteractionEvent as InteractionEvent } from '../interaction/interactionManager';
+import type { PointerInteractionEvent } from '../interaction/interactionManager';
 import type { RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
@@ -314,7 +314,7 @@ export class Pagination extends BaseProperties {
         return !this.previousButtonDisabled && this.previousButton.containsPoint(offsetX, offsetY);
     }
 
-    private onPaginationClick(event: InteractionEvent<'click'>) {
+    private onPaginationClick(event: PointerInteractionEvent<'click'>) {
         const { offsetX, offsetY } = event;
 
         if (this.nextButtonContainsPoint(offsetX, offsetY)) {
@@ -328,7 +328,7 @@ export class Pagination extends BaseProperties {
         }
     }
 
-    private onPaginationMouseMove(event: InteractionEvent<'hover'>) {
+    private onPaginationMouseMove(event: PointerInteractionEvent<'hover'>) {
         const { offsetX, offsetY } = event;
 
         if (this.nextButtonContainsPoint(offsetX, offsetY)) {
