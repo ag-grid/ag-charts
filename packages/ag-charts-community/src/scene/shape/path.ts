@@ -1,7 +1,7 @@
+import { ExtendedPath2D } from '../extendedPath2D';
 import type { DistantObject } from '../nearest';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
-import { Path2D } from '../path2D';
 import { Shape } from './shape';
 
 export function ScenePathChangeDetection(opts?: {
@@ -22,11 +22,11 @@ export class Path extends Shape implements DistantObject {
      * using custom Path2D class. Think of it as a TypeScript version
      * of the native Path2D (with some differences) that works in all browsers.
      */
-    readonly path = new Path2D();
+    readonly path = new ExtendedPath2D();
 
     private _clipX: number = NaN;
     private _clipY: number = NaN;
-    private _clipPath?: Path2D;
+    private _clipPath?: ExtendedPath2D;
 
     @ScenePathChangeDetection()
     clipMode?: 'normal' | 'punch-out';
@@ -111,14 +111,13 @@ export class Path extends Shape implements DistantObject {
 
             // AG-10477 avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
             const margin = this.strokeWidth / 2;
-            this._clipPath ??= new Path2D();
+            this._clipPath ??= new ExtendedPath2D();
             this._clipPath.clear();
             this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
 
             if (this.clipMode === 'normal') {
                 // Bound the shape rendered to the clipping path.
-                this._clipPath?.draw(ctx);
-                ctx.clip();
+                ctx.clip(this._clipPath?.getPath2D());
             }
 
             if (this._clipX > 0 && this._clipY > 0) {
@@ -127,8 +126,7 @@ export class Path extends Shape implements DistantObject {
 
             if (this.clipMode === 'punch-out') {
                 // Bound the shape rendered to the clipping path.
-                this._clipPath?.draw(ctx);
-                ctx.clip();
+                ctx.clip(this._clipPath?.getPath2D());
                 // Fallback values, but practically these should never be used.
                 const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
                 ctx.clearRect(x, y, width, height);
@@ -144,7 +142,6 @@ export class Path extends Shape implements DistantObject {
     }
 
     protected drawPath(ctx: any) {
-        this.path.draw(ctx);
-        this.fillStroke(ctx);
+        this.fillStroke(ctx, this.path.getPath2D());
     }
 }
