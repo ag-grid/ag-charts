@@ -193,7 +193,6 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     missing?: MissMap;
     missingValue?: any;
     separateNegative?: boolean;
-    useScopedValues?: boolean;
     validation?: (value: any, datum: any) => boolean;
     processor?: () => ProcessorFn;
 };
@@ -568,12 +567,7 @@ export class DataModel<
                         sourceDatums[source.id][property] = value;
                     }
 
-                    if (def.useScopedValues) {
-                        values[valueDefIdx] ??= {};
-                        values[valueDefIdx][scope] = value;
-                    } else {
-                        values[valueDefIdx] = value;
-                    }
+                    values[valueDefIdx] = value;
                 }
 
                 if (value === INVALID_VALUE) {

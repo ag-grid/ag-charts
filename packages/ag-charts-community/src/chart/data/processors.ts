@@ -31,25 +31,6 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     },
 };
 
-export const AGG_VALUES_EXTENT: ProcessorOutputPropertyDefinition<'aggValuesExtent'> = {
-    type: 'processor',
-    property: 'aggValuesExtent',
-    calculate: (processedData) => {
-        const result: [number, number] = [...(processedData.domain.aggValues?.[0] ?? [0, 0])];
-
-        for (const [min, max] of processedData.domain.aggValues?.slice(1) ?? []) {
-            if (min < result[0]) {
-                result[0] = min;
-            }
-            if (max > result[1]) {
-                result[1] = max;
-            }
-        }
-
-        return result;
-    },
-};
-
 export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
     type: 'processor',
     property: 'sortedGroupDomain',

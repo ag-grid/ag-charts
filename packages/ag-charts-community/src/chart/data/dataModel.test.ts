@@ -16,7 +16,6 @@ import {
 import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
 import { DataModel } from './dataModel';
 import {
-    AGG_VALUES_EXTENT,
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
     normaliseGroupTo as actualNormaliseGroupTo,
@@ -556,7 +555,6 @@ describe('DataModel', () => {
                     value('localAuthority', 'all'),
                     value('housingAssociation', 'all'),
                     sum('all'),
-                    AGG_VALUES_EXTENT,
                 ],
                 groupByKeys: true,
             });
@@ -734,7 +732,6 @@ describe('DataModel', () => {
                     value('other', 'all'),
                     sum('all'),
                     normaliseGroupTo('all', 100),
-                    AGG_VALUES_EXTENT,
                 ],
                 groupByKeys: true,
             });
@@ -757,7 +754,6 @@ describe('DataModel', () => {
                     value('imported', 'all'),
                     sum('all'),
                     normaliseGroupTo('all', 100),
-                    AGG_VALUES_EXTENT,
                 ],
                 groupByKeys: true,
             });
@@ -767,7 +763,6 @@ describe('DataModel', () => {
                 time: expect.any(Number),
             });
             expect(result?.domain.aggValues).toEqual([[0, 100]]);
-            expect(result?.reduced?.[AGG_VALUES_EXTENT.property]).toEqual([0, 100]);
         });
 
         describe('property tests', () => {
@@ -835,7 +830,6 @@ describe('DataModel', () => {
                     accumulatedGroupValue('localAuthority', 'all'),
                     accumulatedGroupValue('housingAssociation', 'all'),
                     range('all'),
-                    AGG_VALUES_EXTENT,
                     normaliseGroupTo('all', 100, 'range'),
                 ],
                 groupByKeys: true,
@@ -855,7 +849,6 @@ describe('DataModel', () => {
                     accumulatedGroupValue('vp3', 'all'),
                     accumulatedGroupValue('vp4', 'all'),
                     range('all'),
-                    AGG_VALUES_EXTENT,
                     normaliseGroupTo('all', 100, 'range'),
                 ],
                 groupByKeys: true,
@@ -1175,7 +1168,6 @@ describe('DataModel', () => {
                         property: 'year',
                         type: 'key' as const,
                         valueType: 'category' as const,
-                        useScopedValues: true,
                     },
                     scopedValue(['test1', 'test2'], 'ie'),
                     scopedValue(['test1', 'test2'], 'chrome'),

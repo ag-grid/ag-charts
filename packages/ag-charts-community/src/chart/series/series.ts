@@ -575,9 +575,10 @@ export abstract class Series<
         return SeriesHighlight.This;
     }
 
-    protected getModuleTooltipParams(): object {
-        const params: object[] = this.moduleMap.mapModules((module) => module.getTooltipParams());
-        return params.reduce((total, current) => ({ ...current, ...total }), {});
+    protected getModuleTooltipParams() {
+        return this.moduleMap
+            .mapModules((module) => module.getTooltipParams())
+            .reduce((total, current) => Object.assign(total, current), {});
     }
 
     abstract getTooltipHtml(seriesDatum: any): string;
