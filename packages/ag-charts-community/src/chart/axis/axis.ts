@@ -1165,10 +1165,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
         clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
 
+        // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
         const maxTickCount = clamp(
             1,
             Math.floor(rangeWithBleed / minSpacing),
-            clampMaxTickCount ? Math.floor(rangeWithBleed / minRectDistance) : Infinity
+            clampMaxTickCount ? Math.min(Math.floor(rangeWithBleed / minRectDistance), 100) : 100
         );
         const minTickCount = Math.min(maxTickCount, Math.ceil(rangeWithBleed / maxSpacing));
         const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
