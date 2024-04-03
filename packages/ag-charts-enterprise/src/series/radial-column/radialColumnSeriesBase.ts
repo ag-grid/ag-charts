@@ -138,9 +138,7 @@ export abstract class RadialColumnSeriesBase<
         const extraProps = [];
 
         if (isDefined(normalizedTo)) {
-            extraProps.push(
-                normaliseGroupTo(this, [stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo), 'range')
-            );
+            extraProps.push(normaliseGroupTo([stackGroupId, stackGroupTrailingId], Math.abs(normalizedTo), 'range'));
         }
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -148,20 +146,20 @@ export abstract class RadialColumnSeriesBase<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
 
         await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, true, {
+                keyProperty(angleKey, false, { id: 'angleValue' }),
+                valueProperty(radiusKey, true, {
                     id: 'radiusValue-raw',
                     invalidValue: null,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'normal', 'current', {
+                ...groupAccumulativeValueProperty(radiusKey, true, 'normal', 'current', {
                     id: `radiusValue-end`,
                     rangeId: `radiusValue-range`,
                     invalidValue: null,
@@ -169,7 +167,7 @@ export abstract class RadialColumnSeriesBase<
                     separateNegative: true,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, radiusKey, true, 'trailing', 'current', {
+                ...groupAccumulativeValueProperty(radiusKey, true, 'trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
@@ -231,10 +229,10 @@ export abstract class RadialColumnSeriesBase<
             return;
         }
 
-        const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`).index;
-        const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`).index;
-        const radiusRangeIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-range`).index;
-        const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`).index;
+        const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`);
+        const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`);
+        const radiusRangeIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-range`);
+        const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`);
 
         let groupPaddingInner = 0;
         let groupPaddingOuter = 0;

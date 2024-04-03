@@ -86,17 +86,17 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, minKey, true, { id: `minValue` }),
-                valueProperty(this, q1Key, true, { id: `q1Value` }),
-                valueProperty(this, medianKey, true, { id: `medianValue` }),
-                valueProperty(this, q3Key, true, { id: `q3Value` }),
-                valueProperty(this, maxKey, true, { id: `maxValue` }),
+                keyProperty(xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(minKey, true, { id: `minValue` }),
+                valueProperty(q1Key, true, { id: `q1Value` }),
+                valueProperty(medianKey, true, { id: `medianValue` }),
+                valueProperty(q3Key, true, { id: `q3Value` }),
+                valueProperty(maxKey, true, { id: `maxValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -119,7 +119,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
         }
 
-        const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = processedData.domain.keys[index];
         if (def.type === 'key' && def.valueType === 'category') {
             return keys;

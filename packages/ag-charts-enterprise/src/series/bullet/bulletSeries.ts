@@ -106,22 +106,22 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         const extraProps = [];
 
         if (targetKey !== undefined) {
-            extraProps.push(valueProperty(this, targetKey, isContinuousY, { id: 'target' }));
+            extraProps.push(valueProperty(targetKey, isContinuousY, { id: 'target' }));
         }
 
         if (!this.ctx.animationManager.isSkipped()) {
             if (this.processedData !== undefined) {
                 extraProps.push(diff(this.processedData));
             }
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         // Bullet graphs only need 1 datum, but we keep that `data` option as array for consistency with other series
         // types and future compatibility (we may decide to support multiple datum at some point).
         await this.requestDataModel<any, any, true>(dataController, this.data.slice(0, 1), {
             props: [
-                keyProperty(this, valueKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
+                keyProperty(valueKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                valueProperty(valueKey, isContinuousY, { id: 'value' }),
                 ...extraProps,
             ],
             groupByKeys: true,
@@ -181,9 +181,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const multiplier = xScale.bandwidth ?? NaN;
         const maxValue = this.getMaxValue();
-        const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
-        const targetIndex =
-            targetKey === undefined ? NaN : dataModel.resolveProcessedDataIndexById(this, 'target').index;
+        const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value');
+        const targetIndex = targetKey === undefined ? NaN : dataModel.resolveProcessedDataIndexById(this, 'target');
         const context: _ModuleSupport.CartesianSeriesNodeDataContext<BulletNodeDatum> = {
             itemId: valueKey,
             nodeData: [],

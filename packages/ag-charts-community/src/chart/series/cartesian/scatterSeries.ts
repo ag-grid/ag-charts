@@ -65,19 +65,19 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
-                keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
-                valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
+                keyProperty(xKey, isContinuousX, { id: 'xKey-raw' }),
+                keyProperty(yKey, isContinuousY, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(labelKey, false, { id: `labelKey-raw` })] : []),
+                valueProperty(xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(yKey, isContinuousY, { id: `yValue` }),
+                ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
+                ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
             ],
             dataVisible: this.visible,
         });
 
         if (colorKey) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`);
             this.colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
             this.colorScale.range = colorRange;
             this.colorScale.update();
@@ -113,10 +113,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             return;
         }
 
-        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
-        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
+        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
+        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
