@@ -6,7 +6,7 @@ import { toTitleCase } from './string-utils';
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const clone = structuredClone(options);',
+        'const clone = deepClone(options);',
         'setOptions(clone);',
         'clone'
     );
@@ -27,12 +27,14 @@ function getImports(componentFilenames: string[], bindings): string[] {
         imports.push(chartImport);
     }
 
-    if (componentFilenames) {
-        imports.push(...componentFilenames.map(getImport));
-    }
-
     if (bindings.chartSettings.enterprise) {
         imports.push(`import 'ag-charts-enterprise';`);
+    }
+
+    imports.push(`import deepClone from 'deepclone';`);
+
+    if (componentFilenames) {
+        imports.push(...componentFilenames.map(getImport));
     }
 
     return imports;
@@ -109,7 +111,7 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
             root.render(<ChartExample />);
             `;
     } else {
-        const components: string[] = [];
+        const components = new Map<string, string>();
         indexFile = `
             ${imports.join(`
             `)}
@@ -143,17 +145,25 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
                 return ${getAgChartTag(bindings, componentAttributes)};
             }`;
 
-            components.push(`<${componentName} />`);
+            components.set(id, `<${componentName} />`);
         });
+
+        let wrapper = convertFunctionalTemplate(bindings.template);
+        Object.entries(bindings.placeholders).forEach(([id, template]: [string, string]) => {
+            wrapper = wrapper.replace(template, components.get(id)!);
+        });
+
+        if (!bindings.template.includes('</')) {
+            wrapper = `<Fragment>
+                ${wrapper}
+            </Fragment>`;
+        }
 
         indexFile = `${indexFile}
 
         const root = createRoot(document.getElementById('root'));
         root.render(
-            <Fragment>
-                ${components.join(`
-                `)}
-            </Fragment>
+            ${wrapper}
         );
         `;
     }

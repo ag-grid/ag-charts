@@ -165,7 +165,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             itemId: yKey,
             nodeData,
             labelData: nodeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
     }

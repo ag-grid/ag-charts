@@ -13,8 +13,10 @@ if (typeof document !== 'undefined') {
     verifiedGlobals.document = global.document;
 }
 
-export function getDocument() {
-    return verifiedGlobals.document;
+export function getDocument<E>(): Document & E;
+export function getDocument<K extends keyof Document>(propertyName: K): Document[K];
+export function getDocument<K extends keyof Document>(propertyName?: K) {
+    return propertyName ? verifiedGlobals.document?.[propertyName] : verifiedGlobals.document;
 }
 
 export function getWindow<E>(): Window & E;

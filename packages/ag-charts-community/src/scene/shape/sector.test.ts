@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { DropShadow } from '../dropShadow';
+import { SectorBox } from '../sectorBox';
 import { Sector } from './sector';
 
 describe('Sector', () => {
@@ -159,6 +160,11 @@ describe('Sector', () => {
                     ...mixin,
                 })
             ),
+            // Regressions
+            [
+                // AG-11219
+                { innerRadius: 30, outerRadius: 30, startAngle: 0, endAngle: 1, stroke: 'black', strokeWidth: 1 },
+            ],
         ];
 
         it('should render as expected', () => {
@@ -174,6 +180,148 @@ describe('Sector', () => {
                 rowHeight = 0;
 
                 for (const testCase of testCaseRow) {
+                    const sector = Object.assign(new Sector(), { ...DEFAULTS }, testCase);
+
+                    // Position Rect.
+                    sector.centerX = currX;
+                    sector.centerY = currY;
+
+                    // Render.
+                    ctx.save();
+                    sector.render({ ctx, forceRender: true, resized: false, debugNodes: {} });
+                    ctx.restore();
+
+                    // Prepare for next case.
+                    currX += sector.outerRadius * 2 + GAP;
+                    rowHeight = Math.max(sector.outerRadius * 2, rowHeight);
+                }
+            }
+
+            // Check rendering.
+            const imageData = extractImageData(canvasCtx);
+            expect(imageData).toMatchImageSnapshot();
+        });
+    });
+
+    describe('clipping', () => {
+        const canvasCtx = setupMockCanvas({ width: 1250, height: 1250 });
+
+        const GAP = 10;
+        const DEFAULTS: Partial<Sector> = { startAngle: 0, endAngle: 4, innerRadius: 0, outerRadius: 20 };
+
+        const TEST_CASES: Partial<Sector>[] = [
+            { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 3 },
+            { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 5 },
+            { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 8 },
+            { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 10 },
+            { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 15 },
+            { startAngle: 0, endAngle: Math.PI / 2, cornerRadius: 100 },
+
+            { startAngle: 0, endAngle: Math.PI, cornerRadius: 3 },
+            { startAngle: 0, endAngle: Math.PI, cornerRadius: 5 },
+            { startAngle: 0, endAngle: Math.PI, cornerRadius: 8 },
+            { startAngle: 0, endAngle: Math.PI, cornerRadius: 10 },
+            { startAngle: 0, endAngle: Math.PI, cornerRadius: 15 },
+            { startAngle: 0, endAngle: Math.PI, cornerRadius: 100 },
+
+            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 3 },
+            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 5 },
+            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 8 },
+            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 10 },
+            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 15 },
+            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 100 },
+        ]
+            .flatMap((s) => [
+                { ...s, innerRadius: 0, outerRadius: 30 },
+                { ...s, innerRadius: 15, outerRadius: 30 },
+            ])
+            .flatMap((s) => [
+                s,
+                {
+                    ...s,
+                    clipSector: new SectorBox(s.startAngle, s.endAngle, s.innerRadius, s.outerRadius),
+                },
+                {
+                    ...s,
+                    clipSector: new SectorBox(
+                        s.startAngle,
+                        (s.endAngle + s.startAngle) / 2,
+                        s.innerRadius,
+                        s.outerRadius
+                    ),
+                },
+                {
+                    ...s,
+                    clipSector: new SectorBox(
+                        (s.endAngle + s.startAngle) / 2,
+                        s.endAngle,
+                        s.innerRadius,
+                        s.outerRadius
+                    ),
+                },
+                {
+                    ...s,
+                    clipSector: new SectorBox(
+                        s.startAngle,
+                        s.endAngle,
+                        s.innerRadius,
+                        (s.outerRadius + s.innerRadius) / 2
+                    ),
+                },
+                {
+                    ...s,
+                    clipSector: new SectorBox(
+                        (s.endAngle + s.startAngle) / 2,
+                        s.endAngle,
+                        (s.outerRadius + s.innerRadius) / 2,
+                        s.outerRadius
+                    ),
+                },
+                {
+                    ...s,
+                    clipSector: new SectorBox(
+                        s.startAngle,
+                        (s.endAngle + s.startAngle) / 2,
+                        (s.outerRadius + s.innerRadius) / 2,
+                        s.outerRadius
+                    ),
+                },
+                {
+                    ...s,
+                    clipSector: new SectorBox(
+                        (s.endAngle + s.startAngle) / 2,
+                        s.endAngle,
+                        s.innerRadius,
+                        (s.outerRadius + s.innerRadius) / 2
+                    ),
+                },
+                {
+                    ...s,
+                    clipSector: new SectorBox(
+                        s.startAngle,
+                        (s.endAngle + s.startAngle) / 2,
+                        s.innerRadius,
+                        (s.outerRadius + s.innerRadius) / 2
+                    ),
+                },
+            ]);
+
+        it('should render as expected', () => {
+            const ctx = canvasCtx.nodeCanvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
+
+            const CASES_PER_ROW = 18;
+
+            let currY = 20;
+            let rowHeight = 0;
+            for (let i = 0; i < TEST_CASES.length; i += CASES_PER_ROW) {
+                let currX = 20 + GAP;
+                currY = currY + rowHeight + GAP;
+                rowHeight = 0;
+
+                for (let j = i; j < i + CASES_PER_ROW; j += 1) {
+                    const testCase = TEST_CASES[j];
                     const sector = Object.assign(new Sector(), { ...DEFAULTS }, testCase);
 
                     // Position Rect.

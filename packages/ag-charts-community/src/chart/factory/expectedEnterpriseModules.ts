@@ -11,6 +11,7 @@ type EnterpriseModuleStub = {
 
 export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
+    { type: 'root', optionsKey: 'annotations', chartTypes: ['cartesian'] },
     {
         type: 'root',
         optionsKey: 'background',
@@ -21,7 +22,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'root', optionsKey: 'dataSource', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
     { type: 'root', optionsKey: 'rangeButtons', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
-    { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian'] },
+    { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian', 'topology'] },
     {
         type: 'legend',
         optionsKey: 'gradientLegend',
@@ -37,6 +38,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'axis-option', optionsKey: 'crosshair', chartTypes: ['cartesian'] },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'box-plot' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'candlestick' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'ohlc' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'bullet' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'heatmap' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-area' },

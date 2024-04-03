@@ -117,10 +117,7 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
 
 export function fixNumericExtent(
     extent?: (number | Date)[],
-    axis?: {
-        calculatePadding(min: number, max: number, reversed: boolean): [number, number];
-        isReversed(): boolean;
-    }
+    axis?: { calculatePadding(min: number, max: number): [number, number] }
 ): [] | [number, number] {
     const fixedExtent = fixNumericExtentInternal(extent);
 
@@ -132,7 +129,7 @@ export function fixNumericExtent(
     if (min === max) {
         // domain has zero length, there is only a single valid value in data
 
-        const [paddingMin, paddingMax] = axis?.calculatePadding(min, max, axis.isReversed()) ?? [1, 1];
+        const [paddingMin, paddingMax] = axis?.calculatePadding(min, max) ?? [1, 1];
         min -= paddingMin;
         max += paddingMax;
     }

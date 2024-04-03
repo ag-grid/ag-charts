@@ -165,7 +165,8 @@ function findActiveTopLevelMenuItem({
         menuData.main.items.find(isTopLevelPath) ||
         menuData.financialCharts.items.find(isTopLevelPath) ||
         menuData.maps.items.find(isTopLevelPath) ||
-        menuData.charts.items.find(isTopLevelPath)
+        menuData.charts.items.find(isTopLevelPath) ||
+        menuData.misc.items.find(isTopLevelPath)
     );
 }
 
@@ -180,7 +181,7 @@ function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuDa
         return childMenuItem ? childMenuItem : foundMenuItem;
     };
 
-    for (const key of ['main', 'maps', 'charts', 'financialCharts'] as const) {
+    for (const key of ['main', 'maps', 'charts', 'financialCharts', 'misc'] as const) {
         const result = menuData[key].items.reduce<MenuItem | undefined>(getMenuItemReducer, undefined);
         if (result) {
             return result;
@@ -190,47 +191,57 @@ function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuDa
     return undefined;
 }
 
-function MainPagesNavigation({
+function MenuHeader({ title }: { title: string }) {
+    return (
+        <>
+            <hr />
+            <h5>{title}</h5>
+        </>
+    );
+}
+
+function MenuNavigation({
     menuData,
     framework,
+    menuGroupKey,
     activeMenuItem,
     activeTopLevelMenuItem,
     setActiveTopLevelMenuItem,
+    header,
 }: {
     menuData: MenuData;
     framework: Framework;
+    menuGroupKey: keyof MenuData;
     activeMenuItem?: MenuItem;
     activeTopLevelMenuItem?: MenuItem;
     setActiveTopLevelMenuItem: (menuItem?: MenuItem) => void;
+    header?: JSX.Element;
 }) {
-    const mainMenuItems = menuData.main.items;
+    const mainMenuItems = menuData[menuGroupKey].items;
+
     return (
-        <>
-            <div className={styles.whatsNewLink}>
-                <a href="/whats-new">What's New</a>
-            </div>
-            <ul className={classnames(styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
-                {mainMenuItems?.map((menuItem) => {
-                    const { title, path } = menuItem;
-                    const isActive = menuItem === activeTopLevelMenuItem;
+        <ul className={classnames(styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
+            {header}
+            {mainMenuItems?.map((menuItem) => {
+                const { title, path } = menuItem;
+                const isActive = menuItem === activeTopLevelMenuItem;
 
-                    const toggleActive = () => {
-                        setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
-                    };
+                const toggleActive = () => {
+                    setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
+                };
 
-                    return (
-                        <NavItemContainer
-                            key={`${title}-${path}`}
-                            framework={framework}
-                            menuItem={menuItem}
-                            isActive={isActive}
-                            toggleActive={toggleActive}
-                            activeMenuItem={activeMenuItem}
-                        />
-                    );
-                })}
-            </ul>
-        </>
+                return (
+                    <NavItemContainer
+                        key={`${title}-${path}`}
+                        framework={framework}
+                        menuItem={menuItem}
+                        isActive={isActive}
+                        toggleActive={toggleActive}
+                        activeMenuItem={activeMenuItem}
+                    />
+                );
+            })}
+        </ul>
     );
 }
 
@@ -262,8 +273,7 @@ function MenuGroupPagesNavigation({
                 'list-style-none'
             )}
         >
-            <hr />
-            <h5>{topLevelSeriesItem.title}</h5>
+            <MenuHeader title={topLevelSeriesItem.title} />
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
                 const isActive = menuItem === activeTopLevelMenuItem;
@@ -323,9 +333,13 @@ export function PagesNavigation({
     return (
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
             <aside className={classnames(styles.menu, gridStyles.menu)}>
-                <MainPagesNavigation
+                <div className={styles.whatsNewLink}>
+                    <a href="/whats-new">What's New</a>
+                </div>
+                <MenuNavigation
                     menuData={menuData}
                     framework={framework}
+                    menuGroupKey="main"
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
                     setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
@@ -353,6 +367,15 @@ export function PagesNavigation({
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
                     menuGroupKey="charts"
                     className={styles.seriesTypesNav}
+                />
+                <MenuNavigation
+                    menuData={menuData}
+                    framework={framework}
+                    menuGroupKey="misc"
+                    activeMenuItem={activeMenuItem}
+                    activeTopLevelMenuItem={activeTopLevelMenuItem}
+                    setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
+                    header={<MenuHeader title="Miscellaneous" />}
                 />
             </aside>
         </Collapsible>

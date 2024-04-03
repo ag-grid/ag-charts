@@ -70,6 +70,10 @@ export interface Toggleable {
     enabled?: boolean;
 }
 
+export interface Visible {
+    visible?: boolean;
+}
+
 /**
  * Represents parameters for formatting data in a chart series.
  */

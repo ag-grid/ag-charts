@@ -156,16 +156,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             groupByKeys: true,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
         const {
@@ -182,8 +179,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 return keys;
             }
 
-            const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
-            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
@@ -237,7 +233,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             itemId,
             nodeData: [],
             labelData: [],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
 

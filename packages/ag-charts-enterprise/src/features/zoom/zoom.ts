@@ -1,10 +1,9 @@
-import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
+import type { AgRangeButtonsButton, AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import { RANGES } from '../range-buttons/rangeTypes';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
-import { ZoomPanner } from './zoomPanner';
+import { ZoomPanUpdate, ZoomPanner } from './zoomPanner';
 import { ZoomRange } from './zoomRange';
 import { ZoomRatio } from './zoomRatio';
 import { ZoomScrollPanner } from './zoomScrollPanner';
@@ -36,6 +35,7 @@ const {
     ChartAxisDirection,
     ChartUpdateType,
     Validate,
+    ProxyProperty,
     round: sharedRound,
 } = _ModuleSupport;
 
@@ -60,9 +60,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         newValue(newValue) {
             if (newValue) {
                 this.registerContextMenuActions();
-                this.addToolbarButtons();
-            } else if (this.enabled) {
-                this.removeToolbarButtons();
             }
         },
     })
@@ -123,7 +120,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
-    private readonly toolbarManager: _ModuleSupport.ToolbarManager;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -142,6 +138,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     // TODO: This will become an option soon, and I don't want to delete my code in the meantime
     private enableSecondaryAxis = false;
 
+    @ProxyProperty('panner.deceleration')
+    deceleration: number = 1;
+
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -152,7 +151,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
-        this.toolbarManager = ctx.toolbarManager;
 
         // Add selection zoom method and attach selection rect to root scene
         const selectionRect = new ZoomRect();
@@ -176,7 +174,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
-            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange())
+            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
+            this.panner.addListener('update', (event) => this.onPanUpdate(event))
         );
     }
 
@@ -195,20 +194,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         this.toggleContextMenuActions(zoom);
-    }
-
-    private addToolbarButtons() {
-        for (const [range] of RANGES.entries()) {
-            this.toolbarManager.addButton(range, {
-                label: range,
-            });
-        }
-    }
-
-    private removeToolbarButtons() {
-        for (const [range] of RANGES.entries()) {
-            this.toolbarManager.removeButton(range);
-        }
     }
 
     private toggleContextMenuActions(zoom: DefinedZoomState) {
@@ -276,6 +261,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
         if (!this.enabled || !this.paddedRect) return;
 
+        this.panner.stopInteractions();
+
         // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
 
@@ -289,6 +276,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             if (this.enablePanning && (!this.enableSelecting || panKeyPressed)) {
                 this.cursorManager.updateCursor(CURSOR_ID, 'grabbing');
                 newDragState = DragState.Pan;
+                this.panner.start();
             }
             // Do not allow selection only if fully zoomed in or when the pankey is pressed
             else {
@@ -324,10 +312,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 break;
 
             case DragState.Pan:
-                const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
-                for (const [panAxisId, { direction: panDirection, zoom: panZoom }] of Object.entries(newZooms)) {
-                    this.updateAxisZoom(panAxisId, panDirection, panZoom);
-                }
+                this.panner.update(event);
                 break;
 
             case DragState.Select:
@@ -480,17 +465,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onToolbarButtonPress(event: _ModuleSupport.ToolbarEvent<'button-pressed'>) {
-        if (!RANGES.has(event.id)) return;
+    private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressEvent) {
+        if (event.groupId !== 'range') return;
 
-        const time = RANGES.get(event.id);
-
-        if (typeof time === 'function') {
-            this.rangeX.extendWith(time);
-        } else if (time == null) {
-            this.rangeX.extendAll();
-        } else {
+        const time = event.value as AgRangeButtonsButton['duration'];
+        if (typeof time === 'number') {
             this.rangeX.extendToEnd(time);
+            return;
+        }
+
+        switch (time) {
+            case 'year-to-date':
+                this.rangeX.extendWith((end) => new Date(`${new Date(end).getFullYear()}-01-01`).getTime());
+                break;
+            case 'all':
+                this.rangeX.extendAll();
+                break;
         }
     }
 
@@ -604,6 +594,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onZoomChange() {
         this.toggleContextMenuActions(definedZoomState(this.zoomManager.getZoom()));
+    }
+
+    private onPanUpdate(e: ZoomPanUpdate) {
+        const newZooms = this.panner.translateZooms(
+            this.seriesRect!,
+            this.zoomManager.getAxisZooms(),
+            e.deltaX,
+            e.deltaY
+        );
+        for (const [panAxisId, { direction: panDirection, zoom: panZoom }] of Object.entries(newZooms)) {
+            this.updateAxisZoom(panAxisId, panDirection, panZoom);
+        }
+        this.tooltipManager.updateTooltip(TOOLTIP_ID);
+        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {

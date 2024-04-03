@@ -529,6 +529,12 @@ export abstract class CartesianSeries<
         this.quadtree = undefined;
     }
 
+    protected *datumNodesIter(): Iterable<TNode> {
+        for (const { node } of this.datumSelection) {
+            yield node;
+        }
+    }
+
     public getQuadTree(): QuadtreeNearest<TDatum> {
         if (this.quadtree === undefined) {
             const { width, height } = this.ctx.scene.canvas;
@@ -1016,12 +1022,12 @@ export abstract class CartesianSeries<
 
     protected abstract isLabelEnabled(): boolean;
 
-    protected calculateScaling(): TContext['scales'] {
-        const result: TContext['scales'] = {};
+    protected calculateScaling() {
+        const result: { [key in ChartAxisDirection]?: Scaling } = {};
 
-        const addScale = (direction: ChartAxisDirection) => {
+        for (const direction of Object.values(ChartAxisDirection)) {
             const axis = this.axes[direction];
-            if (!axis) return;
+            if (!axis) continue;
 
             if (axis.scale instanceof LogScale) {
                 const { range, domain } = axis.scale;
@@ -1050,10 +1056,7 @@ export abstract class CartesianSeries<
                     range: domain.map((d) => axis.scale.convert(d)),
                 };
             }
-        };
-
-        addScale(ChartAxisDirection.X);
-        addScale(ChartAxisDirection.Y);
+        }
 
         return result;
     }

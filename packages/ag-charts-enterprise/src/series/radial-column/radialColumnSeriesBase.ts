@@ -19,6 +19,7 @@ const {
     valueProperty,
     animationValidation,
     isFiniteNumber,
+    SeriesNodePickMode,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -54,8 +55,11 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly label?: RadialColumnLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
+    readonly negative: boolean;
     readonly innerRadius: number;
     readonly outerRadius: number;
+    readonly stackInnerRadius: number;
+    readonly stackOuterRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
     readonly axisInnerRadius: number;
@@ -90,6 +94,7 @@ export abstract class RadialColumnSeriesBase<
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 ...animationResetFns,
                 label: resetLabelFn,
@@ -155,14 +160,17 @@ export abstract class RadialColumnSeriesBase<
                 }),
                 ...groupAccumulativeValueProperty(radiusKey, true, 'normal', 'current', {
                     id: `radiusValue-end`,
+                    rangeId: `radiusValue-range`,
                     invalidValue: null,
                     groupId: stackGroupId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...groupAccumulativeValueProperty(radiusKey, true, 'trailing', 'current', {
                     id: `radiusValue-start`,
                     invalidValue: null,
                     groupId: stackGroupTrailingId,
+                    separateNegative: true,
                     ...visibleProps,
                 }),
                 ...extraProps,
@@ -221,6 +229,7 @@ export abstract class RadialColumnSeriesBase<
 
         const radiusStartIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-start`);
         const radiusEndIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-end`);
+        const radiusRangeIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-range`);
         const radiusRawIndex = dataModel.resolveProcessedDataIndexById(this, `radiusValue-raw`);
 
         let groupPaddingInner = 0;
@@ -264,12 +273,15 @@ export abstract class RadialColumnSeriesBase<
         };
 
         const nodeData = processedData.data.map((group, index, data): RadialColumnNodeDatum => {
-            const { datum, keys, values } = group;
+            const { datum, keys, values, aggValues } = group;
 
             const angleDatum = keys[0];
             const radiusDatum = values[radiusRawIndex];
+            const isPositive = radiusDatum >= 0 && !Object.is(radiusDatum, -0);
             const innerRadiusDatum = values[radiusStartIndex];
             const outerRadiusDatum = values[radiusEndIndex];
+            const radiusRange = aggValues?.[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
+            const negative = isPositive === radiusAxisReversed;
 
             let startAngle: number;
             let endAngle: number;
@@ -287,11 +299,11 @@ export abstract class RadialColumnSeriesBase<
             const outerRadius = axisTotalRadius - radiusScale.convert(outerRadiusDatum);
             const midRadius = (innerRadius + outerRadius) / 2;
 
-            const cos = Math.cos(angle);
-            const sin = Math.sin(angle);
+            const stackInnerRadius = axisTotalRadius - radiusScale.convert(0);
+            const stackOuterRadius = axisTotalRadius - radiusScale.convert(radiusRange);
 
-            const x = cos * midRadius;
-            const y = sin * midRadius;
+            const x = Math.cos(angle) * midRadius;
+            const y = Math.sin(angle) * midRadius;
 
             const labelNodeDatum = this.properties.label.enabled
                 ? getLabelNodeDatum(datum, radiusDatum, x, y)
@@ -307,8 +319,11 @@ export abstract class RadialColumnSeriesBase<
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
+                negative,
                 innerRadius,
                 outerRadius,
+                stackInnerRadius,
+                stackOuterRadius,
                 startAngle,
                 endAngle,
                 axisInnerRadius,
@@ -483,6 +498,10 @@ export abstract class RadialColumnSeriesBase<
             { title, backgroundColor: fill, content },
             { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
         );
+    }
+
+    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

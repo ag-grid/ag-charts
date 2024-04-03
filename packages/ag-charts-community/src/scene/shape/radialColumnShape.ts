@@ -80,7 +80,7 @@ export class RadialColumnShape extends Path {
             [left, bottom],
         ].map(([x, y]) => rotatePoint(x, y, rotation));
 
-        path.clear({ trackChanges: true });
+        path.clear(true);
 
         path.moveTo(points[0].x, points[0].y);
         path.lineTo(points[1].x, points[1].y);
@@ -131,7 +131,7 @@ export class RadialColumnShape extends Path {
             right = bottomIntersectionX;
         }
 
-        path.clear({ trackChanges: true });
+        path.clear(true);
 
         // Bottom-left point
         const bottomLeftPt = rotate(left, bottom);

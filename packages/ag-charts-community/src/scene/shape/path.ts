@@ -1,3 +1,4 @@
+import type { DistantObject } from '../nearest';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Path2D } from '../path2D';
@@ -13,7 +14,7 @@ export function ScenePathChangeDetection(opts?: {
     return SceneChangeDetection({ redraw, type: 'path', convertor, changeCb });
 }
 
-export class Path extends Shape {
+export class Path extends Shape implements DistantObject {
     static readonly className: string = 'Path';
 
     /**
@@ -73,6 +74,11 @@ export class Path extends Shape {
     isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
         return this.path.closedPath && this.path.isPointInPath(point.x, point.y);
+    }
+
+    distanceSquared(x: number, y: number): number {
+        const point = this.transformPoint(x, y);
+        return this.path.distanceSquared(point.x, point.y);
     }
 
     protected isDirtyPath(): boolean {

@@ -4,9 +4,14 @@ import { loopSymmetrically } from '../../utils/polar';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { RATIO, Validate } = _ModuleSupport;
+const { RATIO, OR, POSITIVE_NUMBER, NAN, Validate } = _ModuleSupport;
 const { BandScale } = _Scale;
 const { isNumberEqual } = _Util;
+
+class AngleCategoryAxisTick extends _ModuleSupport.AxisTick<_Scale.BandScale<string>> {
+    @Validate(OR(POSITIVE_NUMBER, NAN))
+    override minSpacing: number = NaN;
+}
 
 export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string>> {
     static readonly className = 'AngleCategoryAxis';
@@ -20,6 +25,10 @@ export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new BandScale());
+    }
+
+    protected override createTick(): _ModuleSupport.AxisTick<_Scale.BandScale<string, number>, any, any> {
+        return new AngleCategoryAxisTick();
     }
 
     protected generateAngleTicks() {

@@ -32,6 +32,7 @@ import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
+import { AnnotationManager } from './annotation/annotationManager';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -255,6 +256,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     public readonly zoomManager = new ZoomManager();
 
     protected readonly animationManager: AnimationManager;
+    protected readonly annotationManager: AnnotationManager;
     protected readonly chartEventManager: ChartEventManager;
     protected readonly contextMenuRegistry: ContextMenuRegistry;
     protected readonly cursorManager: CursorManager;
@@ -312,15 +314,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.style.position = 'relative';
         element.style.userSelect = 'none';
 
-        const sizeMonitor = new SizeMonitor();
-        this.sizeMonitor = sizeMonitor;
-        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
+        this.sizeMonitor = new SizeMonitor();
+        this.sizeMonitor.observe(this.element, (size) => this.rawResize(size));
 
         const { overrideDevicePixelRatio } = options.specialOverrides;
         this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
         this.scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
+        this.annotationManager = new AnnotationManager(this.annotationRoot);
         this.chartEventManager = new ChartEventManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
@@ -389,7 +391,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
             this.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
-                this.series.map((s) => (s as any).animationState.transition('updateData'));
+                this.series.map((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -400,6 +402,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return {
             scene: this.scene,
             animationManager: this.animationManager,
+            annotationManager: this.annotationManager,
             chartEventManager: this.chartEventManager,
             contextMenuRegistry: this.contextMenuRegistry,
             cursorManager: this.cursorManager,
@@ -728,19 +731,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     readonly element: HTMLElement;
 
     @ActionOnSet<Chart>({
-        changeValue(newValue, oldValue = []) {
-            for (const axis of oldValue) {
-                if (newValue.includes(axis)) continue;
-                axis.detachAxis(this.axisGroup, this.axisGridGroup);
-                axis.destroy();
-            }
-
-            for (const axis of newValue) {
-                if (oldValue?.includes(axis)) continue;
-                axis.attachAxis(this.axisGroup, this.axisGridGroup);
-            }
-
-            this.zoomManager.updateAxes(newValue);
+        changeValue(newValue, oldValue) {
+            this.onAxisChange(newValue, oldValue);
         },
     })
     axes: ChartAxis[] = [];
@@ -752,7 +744,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
     })
     series: Series<any, any>[] = [];
 
-    private onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {
+    protected onAxisChange(newValue: ChartAxis[], oldValue: ChartAxis[] = []) {
+        for (const axis of oldValue) {
+            if (newValue.includes(axis)) continue;
+            axis.detachAxis(this.axisGroup, this.axisGridGroup);
+            axis.destroy();
+        }
+
+        for (const axis of newValue) {
+            if (oldValue?.includes(axis)) continue;
+            axis.attachAxis(this.axisGroup, this.axisGridGroup);
+        }
+    }
+
+    protected onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
         this.destroySeries(seriesToDestroy);
         this.seriesLayerManager?.setSeriesCount(newValue.length);
@@ -858,23 +863,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private rawResize(size: { width: number; height: number }) {
-        let { width, height } = size;
+    private rawResize({ width, height }: { width: number; height: number }) {
+        if (!this.autoSize) return;
+
         width = Math.floor(width);
         height = Math.floor(height);
 
-        if (!this.autoSize) {
-            return;
-        }
-
-        if (width === 0 && height === 0) {
-            return;
-        }
+        if (width === 0 && height === 0) return;
 
         const [autoWidth = 0, authHeight = 0] = this._lastAutoSize ?? [];
-        if (autoWidth === width && authHeight === height) {
-            return;
-        }
+        if (autoWidth === width && authHeight === height) return;
 
         this._lastAutoSize = [width, height];
         this.resize(undefined, undefined, 'SizeMonitor');

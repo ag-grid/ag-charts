@@ -19,7 +19,7 @@ export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
     boundSeries: ISeries<unknown, unknown>[];
     calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
-    calculatePadding(min: number, _max: number, reverse: boolean): [number, number];
+    calculatePadding(min: number, max: number): [number, number];
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     computeBBox(): BBox;
@@ -45,7 +45,7 @@ export interface ChartAxis {
     maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;
-    range: number[];
+    range: [number, number];
     rotation: number;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
@@ -56,7 +56,7 @@ export interface ChartAxis {
     update(primaryTickCount?: number, animated?: boolean): number | undefined;
     updateScale(): void;
     updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
-    visibleRange: number[];
+    visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
 }

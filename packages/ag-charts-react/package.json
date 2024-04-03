@@ -1,11 +1,17 @@
 {
   "name": "ag-charts-react",
-  "version": "9.2.0-beta.20240324",
+  "version": "9.2.1-beta.20240403",
   "description": "AG Charts React Component",
   "main": "./dist/package/index.cjs.js",
   "module": "./dist/package/index.esm.mjs",
   "type": "module",
   "types": "./dist/types/src/index.d.ts",
+  "exports": {
+    "import": "./dist/package/index.esm.mjs",
+    "require": "./dist/package/index.cjs.js",
+    "types": "./dist/types/src/index.d.ts",
+    "default": "./dist/package/index.cjs.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -27,7 +33,7 @@
     "prop-types": "^15.6.2"
   },
   "devDependencies": {
-    "ag-charts-community": "9.2.0-beta.20240324",
+    "ag-charts-community": "9.2.1-beta.20240403",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "babel-preset-react-app": "^9.0.1",
@@ -43,7 +49,7 @@
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
-    "ag-charts-community": "9.2.0-beta.20240324",
+    "ag-charts-community": "9.2.1-beta.20240403",
     "react": "^16.3.0 || ^17.0.0 || ^18.0.0",
     "react-dom": "^16.3.0 || ^17.0.0 || ^18.0.0"
   },

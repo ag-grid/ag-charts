@@ -1,5 +1,9 @@
-import type { AgNightingaleSeriesOptions } from 'ag-charts-community';
+import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 
-export class NightingaleSeriesProperties extends RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions> {}
+const { Validate, POSITIVE_NUMBER } = _ModuleSupport;
+export class NightingaleSeriesProperties extends RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions> {
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+}

@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
+import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 
 const {
@@ -18,6 +19,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     identifier: 'map-marker',
     instanceConstructor: MapMarkerSeries,
     themeTemplate: {
+        ...MAP_THEME_DEFAULTS,
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             maxSize: 30,
@@ -25,15 +27,6 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             label: {
                 color: DEFAULT_LABEL_COLOUR,
             },
-        },
-        legend: {
-            enabled: false,
-        },
-        gradientLegend: {
-            enabled: false,
-        },
-        tooltip: {
-            range: 'exact',
         },
     },
     paletteFactory: (opts) => {

@@ -187,10 +187,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             ],
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.updateSeriesItemTypes();
 
@@ -198,16 +195,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, smallestDataInterval } = this;
         if (!processedData || !dataModel) return [];
 
         const {
-            domain: {
-                keys: [keys],
-                values,
-            },
-            reduced: { [_ModuleSupport.SMALLEST_KEY_INTERVAL.property]: smallestX } = {},
-        } = processedData;
+            keys: [keys],
+            values,
+        } = processedData.domain;
 
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
 
@@ -216,7 +210,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 return keys;
             }
 
-            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
@@ -256,7 +250,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
         const barWidth =
-            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
+            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth) ?? 10;
 
         if (this.processedData?.type !== 'ungrouped') {
             return;
@@ -267,7 +261,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             nodeData: [],
             labelData: [],
             pointData: [],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
 
@@ -751,7 +745,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             ease: _ModuleSupport.Motion.easeOut,
             collapsable: false,
             onUpdate(pointX) {
-                linePath.clear({ trackChanges: true });
+                linePath.clear(true);
 
                 pointData.forEach((point, index) => {
                     const x = scale(pointX, startX, endX, startX, point.x);
@@ -800,7 +794,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             ease: _ModuleSupport.Motion.easeOut,
             collapsable: false,
             onUpdate(pointY) {
-                linePath.clear({ trackChanges: true });
+                linePath.clear(true);
 
                 pointData.forEach((point, index) => {
                     const y = scale(pointY, startY, endY, startY, point.y);
@@ -841,7 +835,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.updateLineNode(lineNode);
 
         const { path: linePath } = lineNode;
-        linePath.clear({ trackChanges: true });
+        linePath.clear(true);
 
         const { pointData } = contextData;
         if (!pointData) {

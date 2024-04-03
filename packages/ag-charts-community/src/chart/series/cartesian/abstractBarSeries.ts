@@ -1,15 +1,18 @@
 import type { Direction } from '../../../options/chart/types';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Node } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
+import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { DIRECTION, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
+import { QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
     @Validate(DIRECTION)
@@ -17,7 +20,7 @@ export abstract class AbstractBarSeriesProperties<T extends object> extends Cart
 }
 
 export abstract class AbstractBarSeries<
-    TNode extends Node,
+    TNode extends QuadtreeCompatibleNode,
     TProps extends AbstractBarSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
@@ -28,7 +31,7 @@ export abstract class AbstractBarSeries<
      */
     protected groupScale = new BandScale<string>();
 
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
+    protected smallestDataInterval?: number = undefined;
 
     override getBandScalePadding() {
         return { inner: 0.2, outer: 0.1 };
@@ -69,9 +72,7 @@ export abstract class AbstractBarSeries<
 
         const xScale = xAxis.scale;
 
-        const xBandWidth = ContinuousScale.is(xScale)
-            ? xScale.calcBandwidth(smallestDataInterval?.x)
-            : xScale.bandwidth;
+        const xBandWidth = ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth;
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
@@ -111,5 +112,13 @@ export abstract class AbstractBarSeries<
             return ChartAxisDirection.X;
         }
         return direction;
+    }
+
+    protected override initQuadTree(quadtree: QuadtreeNearest<TDatum>) {
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 }

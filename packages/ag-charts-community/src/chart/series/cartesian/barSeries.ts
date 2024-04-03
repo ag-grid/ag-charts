@@ -9,7 +9,6 @@ import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
@@ -28,10 +27,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import {
-    SeriesNodePickMatch,
-    SeriesNodePickMode,
-} from '../series';
+import { SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
@@ -52,7 +48,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
-import { addHitTestersToQuadtree, childrenOfChildrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -176,19 +171,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             groupByData: false,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, smallestDataInterval } = this;
         if (!processedData || !dataModel || processedData.data.length === 0) return [];
-
-        const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
 
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
@@ -202,7 +192,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 return keys;
             }
 
-            const scalePadding = isFiniteNumber(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             const isReversed = categoryAxis?.isReversed();
 
@@ -252,7 +242,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             itemId: yKey,
             nodeData: [] as BarNodeDatum[],
             labelData: [] as BarNodeDatum[],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
         };
 
@@ -474,14 +464,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum.label);
         });
-    }
-
-    protected override initQuadTree(quadtree: QuadtreeNearest<BarNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, childrenOfChildrenIter<Rect>(this.contentGroup));
-    }
-
-    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        return findQuadtreeMatch(this, point);
     }
 
     getTooltipHtml(nodeDatum: BarNodeDatum): string {

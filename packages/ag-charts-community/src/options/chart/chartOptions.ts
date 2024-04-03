@@ -1,4 +1,5 @@
 import type { AgAnimationOptions } from './animationOptions';
+import type { AgAnnotationsOptions } from './annotationsOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
@@ -171,14 +172,16 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     contextMenu?: AgContextMenuOptions;
 
     // Cartesian-specific options - special care required.
-    /** Configuration for the zoom options. */
-    zoom?: AgZoomOptions;
+    /** Configuration for annotations. */
+    annotations?: AgAnnotationsOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
     /** Configuration for the range buttons. */
     rangeButtons?: AgRangeButtonsOptions;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
+    /** Configuration for the zoom options. */
+    zoom?: AgZoomOptions;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum>;
 }

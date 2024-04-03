@@ -19,6 +19,8 @@
             'react-dom/client': 'npm:react-dom@18.2.0',
             'prop-types': 'npm:prop-types@15.8.1',
 
+            deepclone: 'npm:deepclone@1.0.2',
+
             app: 'app',
             // systemJsMap comes from index.html
             ...systemJsMap,

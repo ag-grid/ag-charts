@@ -191,7 +191,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             itemId: yKey,
             nodeData,
             labelData: nodeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
     }

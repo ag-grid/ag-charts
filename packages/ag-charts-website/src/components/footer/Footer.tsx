@@ -1,10 +1,9 @@
 import type { FooterItem } from '@ag-grid-types';
-import { SITE_BASE_URL } from '@constants';
+import { SiteLogo } from '@components/SiteLogo';
+import { Icon } from '@components/icon/Icon';
 import styles from '@design-system/modules/Footer.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
-
-import { Icon } from '../icon/Icon';
 
 interface FooterProps {
     path: string;
@@ -28,15 +27,23 @@ const MenuColumns = ({ footerItems }: { footerItems: FooterItem[] }) =>
         </div>
     ));
 
-export const Footer = ({ path, footerItems }: FooterProps) => (
-    <footer className={styles.footer}>
-        <div className={classNames(styles.footerColumns, 'layout-grid')}>
-            <MenuColumns footerItems={footerItems} />
-        </div>
+export const Footer = ({ path, footerItems }: FooterProps) => {
+    return (
+        <footer className={styles.footer}>
+            <div className={classNames(styles.footerColumns, 'layout-grid')}>
+                <div className={styles.menuColumn}>
+                    <div className={styles.logoContainer}>
+                        <SiteLogo />
+                    </div>
 
-        <div className={classNames(styles.legal, 'layout-grid')}>
-            <p className="text-sm">AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.</p>
-            <p className="text-sm">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
-        </div>
-    </footer>
-);
+                    <p className="text-sm">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
+
+                    <p className="text-sm">
+                        AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.
+                    </p>
+                </div>
+                <MenuColumns footerItems={footerItems} />
+            </div>
+        </footer>
+    );
+};

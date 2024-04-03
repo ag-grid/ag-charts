@@ -243,18 +243,16 @@ export class MapShapeSeries
         return { geometry, labelText, aspectRatio, x, y, maxWidth, fixedPolygon };
     }
 
-    private getLabelDatum(
-        labelLayout: LabelLayout,
-        scale: number,
-        originX: number,
-        originY: number
-    ): MapShapeNodeLabelDatum | undefined {
+    private getLabelDatum(labelLayout: LabelLayout, scaling: number): MapShapeNodeLabelDatum | undefined {
+        const { scale } = this;
+        if (scale == null) return;
+
         const { padding, label } = this.properties;
         const { labelText, aspectRatio, x: untruncatedX, y, maxWidth, fixedPolygon } = labelLayout;
 
         const maxSizeWithoutTruncation = {
-            width: Math.ceil(maxWidth * scale),
-            height: Math.ceil((maxWidth * scale) / aspectRatio),
+            width: Math.ceil(maxWidth * scaling),
+            height: Math.ceil((maxWidth * scaling) / aspectRatio),
             meta: untruncatedX,
         };
         const labelFormatting = formatSingleLabel<number, AgMapShapeSeriesLabelFormatterParams>(
@@ -264,9 +262,9 @@ export class MapShapeSeries
             (height, allowTruncation) => {
                 if (!allowTruncation) return maxSizeWithoutTruncation;
 
-                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scale);
+                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
                 return {
-                    width: result.width * scale,
+                    width: result.width * scaling,
                     height,
                     meta: result.x,
                 };
@@ -279,11 +277,13 @@ export class MapShapeSeries
         if (text === Text.ellipsis) return;
 
         // Only shift horizontally if necessary
-        const x = width > maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
+        const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
+
+        const position = this.scale!.convert(fixedScale.invert([x, y]));
 
         return {
-            x: x * scale - originX,
-            y: y * scale - originY,
+            x: position[0],
+            y: position[1],
             text,
             fontSize,
             lineHeight,
@@ -296,6 +296,8 @@ export class MapShapeSeries
         const { idKey, colorKey, labelKey, label, fill: fillProperty } = properties;
 
         if (dataModel == null || processedData == null) return;
+
+        const scaling = scale != null ? (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width : NaN;
 
         const colorScaleValid = this.isColorScaleValid();
 
@@ -337,9 +339,7 @@ export class MapShapeSeries
             }
 
             const labelDatum =
-                labelLayout != null && scale != null
-                    ? this.getLabelDatum(labelLayout, scale.scale / fixedScale.scale, scale.originX, scale.originY)
-                    : undefined;
+                labelLayout != null && scale != null ? this.getLabelDatum(labelLayout, scaling) : undefined;
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }

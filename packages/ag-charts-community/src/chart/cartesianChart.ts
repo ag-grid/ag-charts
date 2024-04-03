@@ -30,6 +30,12 @@ export class CartesianChart extends Chart {
 
     private firstSeriesTranslation = true;
 
+    override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
+        super.onAxisChange(newValue, oldValue);
+
+        this.zoomManager.updateAxes(newValue);
+    }
+
     override destroySeries(series: Series<any, any>[]) {
         super.destroySeries(series);
 

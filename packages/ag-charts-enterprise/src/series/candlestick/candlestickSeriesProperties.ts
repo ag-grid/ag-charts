@@ -1,10 +1,15 @@
 import type {
+    AgCandlestickSeriesBaseFormatterParams,
+    AgCandlestickSeriesBaseOptions,
     AgCandlestickSeriesFormatterParams,
+    AgCandlestickSeriesItemOptions,
     AgCandlestickSeriesOptions,
     AgCandlestickSeriesStyles,
     AgCandlestickSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
+
+import type { CandlestickNodeDatum } from './candlestickTypes';
 
 const {
     BaseProperties,
@@ -69,7 +74,7 @@ export class CandlestickSeriesItem extends BaseProperties {
     readonly wick = new CandlestickSeriesWick();
 }
 
-class CandlestickSeriesItems extends BaseProperties {
+class CandlestickSeriesItems extends BaseProperties implements CandlestickSeriesBaseItems<CandlestickSeriesItem> {
     @Validate(OBJECT)
     readonly up = new CandlestickSeriesItem();
 
@@ -77,12 +82,22 @@ class CandlestickSeriesItems extends BaseProperties {
     readonly down = new CandlestickSeriesItem();
 }
 
-export class CandlestickSeriesProperties extends AbstractBarSeriesProperties<AgCandlestickSeriesOptions> {
+export interface CandlestickSeriesBaseItems<T> {
+    readonly up: T;
+    readonly down: T;
+}
+
+export class CandlestickSeriesBaseProperties<
+    T extends Omit<AgCandlestickSeriesBaseOptions, 'openKey'>,
+    TItem extends AgCandlestickSeriesItemOptions,
+    TItems extends CandlestickSeriesBaseItems<TItem>,
+    TFormatterParams extends AgCandlestickSeriesBaseFormatterParams<unknown>,
+> extends AbstractBarSeriesProperties<T> {
     @Validate(STRING)
     xKey!: string;
 
-    @Validate(STRING)
-    openKey!: string;
+    @Validate(STRING, { optional: true })
+    openKey?: string;
 
     @Validate(STRING)
     closeKey!: string;
@@ -111,12 +126,31 @@ export class CandlestickSeriesProperties extends AbstractBarSeriesProperties<AgC
     @Validate(STRING, { optional: true })
     lowName?: string;
 
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgCandlestickSeriesFormatterParams<unknown>) => AgCandlestickSeriesStyles;
-
-    @Validate(OBJECT)
-    readonly item = new CandlestickSeriesItems();
-
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams>();
+
+    @Validate(OBJECT)
+    readonly item: TItems;
+
+    @Validate(FUNCTION, { optional: true })
+    formatter?: ((params: TFormatterParams) => AgCandlestickSeriesItemOptions) | undefined;
+
+    constructor(item: TItems, formatter?: (params: TFormatterParams) => AgCandlestickSeriesItemOptions) {
+        super();
+        this.item = item;
+        this.formatter = formatter;
+    }
+}
+
+export class CandlestickSeriesProperties extends CandlestickSeriesBaseProperties<
+    AgCandlestickSeriesOptions,
+    AgCandlestickSeriesItemOptions,
+    CandlestickSeriesItems,
+    AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>
+> {
+    @Validate(STRING)
+    override openKey!: string;
+    constructor() {
+        super(new CandlestickSeriesItems());
+    }
 }
