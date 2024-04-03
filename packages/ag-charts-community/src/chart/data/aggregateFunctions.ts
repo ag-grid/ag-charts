@@ -1,6 +1,6 @@
 import { isFiniteNumber } from '../../util/type-guards';
 import { ContinuousDomain } from './dataDomain';
-import type { AggregatePropertyDefinition, DatumPropertyDefinition, ScopeProvider } from './dataModel';
+import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
 
 function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
     for (const value of values) {
@@ -17,10 +17,9 @@ function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
     return accumulator;
 }
 
-export function sum(scope: ScopeProvider, id: string, matchGroupId: string) {
+export function sum(id: string, matchGroupId: string) {
     const result: AggregatePropertyDefinition<any, any> = {
         id,
-        scopes: [scope.id],
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
         aggregateFunction: (values) => sumValues(values),
@@ -29,14 +28,9 @@ export function sum(scope: ScopeProvider, id: string, matchGroupId: string) {
     return result;
 }
 
-export function groupSum(
-    scope: ScopeProvider,
-    id: string,
-    matchGroupId?: string
-): AggregatePropertyDefinition<any, any> {
+export function groupSum(id: string, matchGroupId?: string): AggregatePropertyDefinition<any, any> {
     return {
         id,
-        scopes: [scope.id],
         type: 'aggregate',
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
         aggregateFunction: (values) => sumValues(values),
@@ -48,10 +42,9 @@ export function groupSum(
     };
 }
 
-export function range(scope: ScopeProvider, id: string, matchGroupId: string) {
+export function range(id: string, matchGroupId: string) {
     const result: AggregatePropertyDefinition<any, any> = {
         id,
-        scopes: [scope.id],
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
         aggregateFunction: (values) => ContinuousDomain.extendDomain(values),
@@ -60,10 +53,9 @@ export function range(scope: ScopeProvider, id: string, matchGroupId: string) {
     return result;
 }
 
-export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyDefinition<any, any> {
+export function groupCount(id: string): AggregatePropertyDefinition<any, any> {
     return {
         id,
-        scopes: [scope.id],
         type: 'aggregate',
         aggregateFunction: () => [0, 1],
         groupAggregateFunction: (next, acc = [0, 0]) => {
@@ -74,10 +66,9 @@ export function groupCount(scope: ScopeProvider, id: string): AggregatePropertyD
     };
 }
 
-export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: string) {
+export function groupAverage(id: string, matchGroupId?: string) {
     const def: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
         id,
-        scopes: [scope.id],
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
         type: 'aggregate',
         aggregateFunction: (values) => sumValues(values),
@@ -99,15 +90,9 @@ export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: st
     return def;
 }
 
-export function area(
-    scope: ScopeProvider,
-    id: string,
-    aggFn: AggregatePropertyDefinition<any, any>,
-    matchGroupId?: string
-) {
+export function area(id: string, aggFn: AggregatePropertyDefinition<any, any>, matchGroupId?: string) {
     const result: AggregatePropertyDefinition<any, any> = {
         id,
-        scopes: [scope.id],
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
         type: 'aggregate',
         aggregateFunction: (values, keyRange = []) => {

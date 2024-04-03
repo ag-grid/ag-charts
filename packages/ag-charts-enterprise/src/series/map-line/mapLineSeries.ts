@@ -118,15 +118,15 @@ export class MapLineSeries
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(this, idKey, false, { id: 'idValue', includeProperty: false }),
-                valueProperty(this, idKey, false, {
+                valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
+                valueProperty(idKey, false, {
                     id: 'featureValue',
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum),
                 }),
-                ...(labelKey != null ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
-                ...(sizeKey != null ? [valueProperty(this, sizeKey, true, { id: 'sizeValue' })] : []),
-                ...(colorKey != null ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey != null ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
+                ...(sizeKey != null ? [valueProperty(sizeKey, true, { id: 'sizeValue' })] : []),
+                ...(colorKey != null ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 

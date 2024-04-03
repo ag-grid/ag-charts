@@ -141,15 +141,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             if (this.processedData) {
                 extraProps.push(diff(this.processedData));
             }
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
-                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
+                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
+                valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],

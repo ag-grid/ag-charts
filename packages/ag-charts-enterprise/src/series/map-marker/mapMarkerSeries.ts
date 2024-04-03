@@ -195,8 +195,8 @@ export class MapMarkerSeries
             props: [
                 ...(idKey != null
                     ? [
-                          valueProperty(this, idKey, false, { id: 'idValue', includeProperty: false }),
-                          valueProperty(this, idKey, false, {
+                          valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
+                          valueProperty(idKey, false, {
                               id: 'featureValue',
                               includeProperty: false,
                               processor: () => (datum) => featureById.get(datum),
@@ -205,13 +205,13 @@ export class MapMarkerSeries
                     : []),
                 ...(hasLatLon
                     ? [
-                          valueProperty(this, latitudeKey, false, { id: 'latValue' }),
-                          valueProperty(this, longitudeKey, false, { id: 'lonValue' }),
+                          valueProperty(latitudeKey, false, { id: 'latValue' }),
+                          valueProperty(longitudeKey, false, { id: 'lonValue' }),
                       ]
                     : []),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
-                ...(sizeKey ? [valueProperty(this, sizeKey, true, { id: 'sizeValue' })] : []),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
+                ...(sizeKey ? [valueProperty(sizeKey, true, { id: 'sizeValue' })] : []),
+                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 

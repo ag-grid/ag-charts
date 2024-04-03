@@ -247,7 +247,7 @@ export class DataController {
                     }
 
                     match.scopes ??= [];
-                    match.scopes.push(...(prop.scopes ?? []));
+                    match.scopes.push(...(clone.scopes ?? []));
 
                     if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
                         DataController.mergeIdsMap(clone.idsMap, match.idsMap);

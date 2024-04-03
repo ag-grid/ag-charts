@@ -131,22 +131,22 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const extraProps = [];
         if (isFiniteNumber(normalizedTo)) {
             extraProps.push(
-                normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo), 'range')
+                normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo), 'range')
             );
         }
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
+                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
                     rangeId: `yValue-range`,
                     invalidValue: null,
@@ -155,7 +155,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     separateNegative: true,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'trailing', 'current', {
                     id: `yValue-start`,
                     invalidValue: null,
                     missingValue: 0,

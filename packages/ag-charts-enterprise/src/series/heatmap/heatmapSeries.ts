@@ -101,9 +101,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, yKey, isContinuousY, { id: 'yValue' }),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
+                valueProperty(xKey, isContinuousX, { id: 'xValue' }),
+                valueProperty(yKey, isContinuousY, { id: 'yValue' }),
+                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 
