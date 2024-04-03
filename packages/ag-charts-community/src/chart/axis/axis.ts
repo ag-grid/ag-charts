@@ -1450,8 +1450,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
     }
 
-    calculatePadding(min: number, max: number, reverse: boolean): [number, number] {
-        const padding = Math.abs(reverse ? max : min) * 0.01;
+    calculatePadding(min: number, max: number): [number, number] {
+        const padding = Math.abs(this.reverse ? max : min) * 0.01;
         return [padding, padding];
     }
 
