@@ -179,17 +179,15 @@
         ]
       },
       "configurations": {
-        "options": {
+        "watch": {
           "commands": [
             "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' --watch"
           ]
         },
         "update": {
-          "options": {
-            "commands": [
-              "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' -u"
-            ]
-          }
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathPattern '.*/benchmarks/.*' -u"
+          ]
         }
       },
       "dependsOn": [
