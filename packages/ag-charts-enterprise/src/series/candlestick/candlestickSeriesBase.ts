@@ -160,7 +160,7 @@ export abstract class CandlestickSeriesBase<
             );
         }
 
-        const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = processedData.domain.keys[index];
         if (def.type === 'key' && def.valueType === 'category') {
             return keys;
