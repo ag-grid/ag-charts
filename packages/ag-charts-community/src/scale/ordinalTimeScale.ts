@@ -70,6 +70,10 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     override ticks(): Date[] {
+        if (!this.domain || this.domain.length < 2) {
+            return [];
+        }
+
         this.refresh();
 
         const [t0, t1] = [dateToNumber(this.domain[0]), dateToNumber(this.domain.at(-1))];
