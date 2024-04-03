@@ -11,12 +11,12 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, keyProperty, valueProperty } from '../../data/processors';
+import { createDatumId } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import type { SeriesNodeEventTypes } from '../series';
-import { SeriesNodePickMode } from '../series';
+import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -72,7 +72,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null || !this.visible) return;
+        if (!this.properties.isValid() || this.data == null) {
+            return;
+        }
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const { xKey, yKey, sizeKey, labelKey, colorDomain, colorRange, colorKey, marker } = this.properties;
@@ -87,6 +89,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
             ],
+            dataVisible: this.visible,
         });
 
         const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);

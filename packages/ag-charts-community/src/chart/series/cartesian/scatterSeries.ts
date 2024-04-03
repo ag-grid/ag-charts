@@ -11,11 +11,10 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { keyProperty, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode } from '../series';
+import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -57,7 +56,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null || !this.visible) return;
+        if (!this.properties.isValid() || this.data == null) {
+            return;
+        }
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const { xKey, yKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
@@ -72,6 +73,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
             ],
+            dataVisible: this.visible,
         });
 
         if (colorKey) {

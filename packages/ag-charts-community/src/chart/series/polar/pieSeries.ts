@@ -22,21 +22,13 @@ import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, getMissCount } from '../../data/dataModel';
-import {
-    accumulativeValueProperty,
-    animationValidation,
-    diff,
-    keyProperty,
-    normalisePropertyToRatio,
-    rangedValueProperty,
-    valueProperty,
-} from '../../data/processors';
+import { animationValidation, diff, normalisePropertyTo } from '../../data/processors';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
-import { SeriesNodeEvent } from '../series';
+import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, PieTitle } from './pieSeriesProperties';
@@ -218,6 +210,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 valueProperty(radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
                 normalisePropertyTo(
                     { id: 'radiusValue' },
+                    [0, 1],
                     1,
                     this.properties.radiusMin ?? 0,
                     this.properties.radiusMax
@@ -909,8 +902,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 box.x + box.width > other.x &&
                 (direction === 'to-top' ? box.y < other.y + other.height : box.y + box.height > other.y);
             if (collidesOrBehind) {
-                next.calloutLabel.collisionOffsetY =
-                    direction === 'to-top' ? box.y - other.y - other.height : box.y + box.height - other.y;
+                const dy = direction === 'to-top' ? box.y - other.y - other.height : box.y + box.height - other.y;
+                next.calloutLabel.collisionOffsetY = dy;
             }
         };
 

@@ -46,12 +46,6 @@ export abstract class DataModelSeries<
         return { dataModel, processedData };
     }
 
-    // protected async newRequestDataModel(
-    //     _dataController: DataController,
-    //     _data: any[] | undefined,
-    //     _options: ProcessorOptions
-    // ) {}
-
     protected isProcessedDataAnimatable() {
         const validationResults = this.processedData?.reduced?.animationValidation;
         if (!validationResults) {

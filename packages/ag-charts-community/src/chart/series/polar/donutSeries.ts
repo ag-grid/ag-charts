@@ -22,21 +22,13 @@ import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, getMissCount } from '../../data/dataModel';
-import {
-    accumulativeValueProperty,
-    animationValidation,
-    diff,
-    keyProperty,
-    normalisePropertyToRatio,
-    rangedValueProperty,
-    valueProperty,
-} from '../../data/processors';
+import { animationValidation, diff, normalisePropertyTo } from '../../data/processors';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
-import { SeriesNodeEvent } from '../series';
+import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
@@ -221,6 +213,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 valueProperty(radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
                 normalisePropertyTo(
                     { id: 'radiusValue' },
+                    [0, 1],
                     1,
                     this.properties.radiusMin ?? 0,
                     this.properties.radiusMax
