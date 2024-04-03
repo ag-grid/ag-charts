@@ -179,8 +179,6 @@ type PropertyIdentifiers = {
 type PropertySelectors = {
     /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
     matchScopes?: string[];
-    /** Tuples of [scope, id] that match this definition. */
-    matchIds?: [string, string][];
     /** Optional group a property belongs to, for cross-scope combination. */
     matchGroupIds?: string[];
 };
@@ -298,15 +296,6 @@ export class DataModel<
                 }
             }
         };
-        const verifyMatchIds = ({ matchIds }: { matchIds?: [string, string][] }) => {
-            for (const matchId of matchIds ?? []) {
-                if (!this.values.some((def) => def.idsMap?.get(matchId[0])?.has(matchId[1]))) {
-                    throw new Error(
-                        `AG Charts - internal config error: matchGroupIds properties must match defined groups (${matchId}).`
-                    );
-                }
-            }
-        };
 
         for (const def of opts.props) {
             switch (def.type) {
@@ -326,13 +315,11 @@ export class DataModel<
                     break;
 
                 case 'aggregate':
-                    verifyMatchIds(def);
                     verifyMatchGroupId(def);
                     this.aggregates.push({ ...def, index: this.aggregates.length });
                     break;
 
                 case 'group-value-processor':
-                    verifyMatchIds(def);
                     verifyMatchGroupId(def);
                     this.groupProcessors.push({ ...def, index: this.groupProcessors.length });
                     break;
@@ -484,22 +471,12 @@ export class DataModel<
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
-    private hasMatchingDef(matchIds: [string, string][], defIdsMap: Map<string, Set<string>>) {
-        for (const [matchScope, matchId] of matchIds) {
-            if (defIdsMap.get(matchScope)?.has(matchId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
+    private valueGroupIdxLookup({ matchGroupIds }: PropertySelectors) {
         const result: number[] = [];
         for (const [index, def] of this.values.entries()) {
-            if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) continue;
-            if (matchIds && (def.idsMap == null || !this.hasMatchingDef(matchIds, def.idsMap))) continue;
-
-            result.push(index);
+            if (!matchGroupIds || (def.groupId && matchGroupIds.includes(def.groupId))) {
+                result.push(index);
+            }
         }
         return result;
     }
