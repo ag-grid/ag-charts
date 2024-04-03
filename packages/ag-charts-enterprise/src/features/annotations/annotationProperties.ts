@@ -1,23 +1,23 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BaseProperties, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, Validate } =
+const { BOOLEAN, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, BaseProperties, Validate } =
     _ModuleSupport;
 
 const DEFAULT_COLOR = 'rgb(30, 100, 255)';
 
 export class AnnotationProperties extends BaseProperties {
-    @Validate(UNION(['line', 'crossline', 'parallel-channel', 'disjoint-channel']))
-    type: 'line' | 'crossline' | 'parallel-channel' | 'disjoint-channel' = 'line';
+    @Validate(UNION(['line', 'parallel-channel']))
+    type: 'line' | 'parallel-channel' = 'line';
 
-    // Handles
+    // Shared
+    @Validate(BOOLEAN, { optional: true })
+    locked?: boolean;
+
+    @Validate(BOOLEAN, { optional: true })
+    visible?: boolean;
+
+    @Validate(OBJECT, { optional: true })
     handle = new AnnotationHandleProperties();
-
-    // Line
-    @Validate(OBJECT, { optional: true })
-    start = new AnnotationPointProperties();
-
-    @Validate(OBJECT, { optional: true })
-    end = new AnnotationPointProperties();
 
     @Validate(COLOR_STRING, { optional: true })
     stroke?: string = DEFAULT_COLOR;
@@ -30,6 +30,13 @@ export class AnnotationProperties extends BaseProperties {
 
     @Validate(LINE_DASH, { optional: true })
     lineDash?: number[];
+
+    // Line
+    @Validate(OBJECT, { optional: true })
+    start = new AnnotationPointProperties();
+
+    @Validate(OBJECT, { optional: true })
+    end = new AnnotationPointProperties();
 
     // Channel
     @Validate(OBJECT, { optional: true })
@@ -69,10 +76,10 @@ export class AnnotationHandleProperties extends BaseProperties {
 
 export class AnnotationPointProperties extends BaseProperties {
     @Validate(OR(STRING, NUMBER, DATE))
-    x: string | number | Date = 0;
+    x?: string | number | Date;
 
     @Validate(OR(STRING, NUMBER, DATE))
-    y: string | number | Date = 0;
+    y?: string | number | Date;
 }
 
 export class AnnotationMiddleLineProperties extends BaseProperties {

@@ -24,20 +24,21 @@ export class Line extends Annotation {
 
     public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, coords?: LineCoords) {
         const { line, start, end } = this;
-        const { stroke, strokeWidth, strokeOpacity } = datum;
+        const { lineDash, locked, stroke, strokeWidth, strokeOpacity, visible } = datum;
 
+        this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
         if (coords == null) {
             this.visible = false;
             return;
         } else {
-            this.visible = true;
+            this.visible = visible ?? true;
         }
 
         const { x1, y1, x2, y2 } = coords;
 
-        line.setProperties({ x1, y1, x2, y2, stroke, strokeWidth, strokeOpacity, fillOpacity: 0 });
+        line.setProperties({ x1, y1, x2, y2, lineDash, stroke, strokeWidth, strokeOpacity, fillOpacity: 0 });
         line.updateCollisionBBox();
 
         const handleStyles = datum.handle.toJson();
@@ -62,6 +63,9 @@ export class Line extends Annotation {
 
     override dragHandle(datum: AnnotationProperties, target: Coords, invertPoint: (point: Coords) => Coords) {
         const { activeHandle, start, end } = this;
+
+        if (datum.start == null || datum.end == null) return;
+
         if (activeHandle === 'start') {
             start.toggleDragging(true);
             const point = invertPoint(start.drag(target).point);

@@ -1,7 +1,7 @@
 import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationProperties } from '../annotationProperties';
-import type { Coords, LineCoords } from '../annotationTypes';
+import { AnnotationType, type Coords, type LineCoords } from '../annotationTypes';
 import { Annotation } from './annotation';
 import { DivariantHandle, UnivariantHandle } from './handle';
 import { CollidableLine } from './shapes';
@@ -35,13 +35,16 @@ export class Channel extends Annotation {
     }
 
     public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, top?: LineCoords, bottom?: LineCoords) {
+        const { locked, visible } = datum;
+
+        this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
         if (top == null || bottom == null) {
             this.visible = false;
             return;
         } else {
-            this.visible = true;
+            this.visible = visible ?? true;
         }
 
         this.updateLines(datum, top, bottom);
@@ -97,6 +100,7 @@ export class Channel extends Annotation {
                 y: handles[move].handle.y + offset.y,
             });
             const datumPoint = this.getHandleDatumPoint(move, datum);
+            if (!datumPoint) continue;
             datumPoint.x = invertedMove.x;
             datumPoint.y = invertedMove.y;
         }
@@ -134,13 +138,14 @@ export class Channel extends Annotation {
 
     private updateLines(datum: AnnotationProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
-        const { stroke, strokeWidth, strokeOpacity } = datum;
+        const { lineDash, stroke, strokeWidth, strokeOpacity } = datum;
 
         topLine.setProperties({
             x1: top.x1,
             y1: top.y1,
             x2: top.x2,
             y2: top.y2,
+            lineDash,
             stroke,
             strokeWidth,
             strokeOpacity,
@@ -150,6 +155,7 @@ export class Channel extends Annotation {
             y1: bottom.y1,
             x2: bottom.x2,
             y2: bottom.y2,
+            lineDash,
             stroke,
             strokeWidth,
             strokeOpacity,
@@ -157,7 +163,7 @@ export class Channel extends Annotation {
         topLine.updateCollisionBBox();
         bottomLine.updateCollisionBBox();
 
-        if (datum.type === 'parallel-channel') {
+        if (datum.type === AnnotationType.ParallelChannel) {
             middleLine.setProperties({
                 x1: top.x1,
                 y1: bottom.y1 + (top.y1 - bottom.y1) / 2,

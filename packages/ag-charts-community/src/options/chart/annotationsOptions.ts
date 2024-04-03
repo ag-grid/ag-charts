@@ -7,7 +7,6 @@ import type {
 } from '../series/cartesian/commonOptions';
 
 export interface AgAnnotationsOptions extends Toggleable {
-    enableInteractions?: boolean;
     initial?: AgAnnotation[];
     // listeners?: {
     //     annotationsChange?: (event: AgAnnotationsChangeEvent) => void;
@@ -20,7 +19,13 @@ export interface AgAnnotationsOptions extends Toggleable {
 
 export type AgAnnotation = AgLineAnnotation | AgChannelAnnotation; // | AgCrossLineAnnotation
 
-export interface AgLineAnnotation extends AnnotationLinePoints, Visible, Extendable, StrokeOptions, LineDashOptions {
+export interface AgLineAnnotation
+    extends AnnotationLinePoints,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineDashOptions {
     type: 'line';
     // direction?: 'horizontal' | 'vertical';
     // startCap?: 'arrow' | 'circle';
@@ -32,8 +37,8 @@ export interface AgLineAnnotation extends AnnotationLinePoints, Visible, Extenda
 //     point: AgAnnotationPoint;
 // }
 
-export interface AgChannelAnnotation extends Visible, Extendable, StrokeOptions, LineDashOptions {
-    type: 'parallel-channel' | 'disjoint-channel';
+export interface AgChannelAnnotation extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+    type: 'parallel-channel';
     top: AgChannelLine;
     bottom: AgChannelLine;
     middle?: Visible & StrokeOptions & LineDashOptions;
@@ -43,13 +48,17 @@ export interface AgChannelAnnotation extends Visible, Extendable, StrokeOptions,
 export interface AgChannelLine extends AnnotationLinePoints {}
 
 interface AnnotationLinePoints {
-    start: AgAnnotationPoint;
-    end: AgAnnotationPoint;
+    start: AnnotationPoint;
+    end: AnnotationPoint;
 }
 
-interface AgAnnotationPoint {
+interface AnnotationPoint {
     x: string | number | Date;
     y: string | number | Date;
+}
+
+interface Lockable {
+    locked?: boolean;
 }
 
 interface Extendable {

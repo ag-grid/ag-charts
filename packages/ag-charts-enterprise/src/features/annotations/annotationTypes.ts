@@ -1,3 +1,8 @@
+export enum AnnotationType {
+    Line = 'line',
+    ParallelChannel = 'parallel-channel',
+}
+
 export interface Coords {
     x: number;
     y: number;
