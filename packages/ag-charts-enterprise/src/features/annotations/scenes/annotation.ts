@@ -4,6 +4,8 @@ import type { AnnotationProperties } from '../annotationProperties';
 import type { Coords } from '../annotationTypes';
 
 export abstract class Annotation extends _Scene.Group {
+    public locked: boolean = false;
+
     public abstract type: string;
     public abstract activeHandle?: string;
 
