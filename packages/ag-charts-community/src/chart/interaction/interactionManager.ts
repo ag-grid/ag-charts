@@ -267,21 +267,22 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private dispatchFocusEvent(sourceEvent: FocusEvent, types: FocusInteractionTypes[]) {
-        for (const type of types) {
-            this.listeners.dispatchWrapHandlers(
-                type,
-                this.dispatchWrapper,
-                this.buildConsumable({ type, sourceEvent })
-            );
-        }
+        this.dispatchTypedEvent<FocusInteractionTypes, FocusInteractionEvent>(sourceEvent, types);
     }
 
     private dispatchKeyEvent(sourceEvent: KeyboardEvent, types: KeyInteractionTypes[]) {
+        this.dispatchTypedEvent<KeyInteractionTypes, KeyInteractionEvent>(sourceEvent, types);
+    }
+
+    private dispatchTypedEvent<
+        T extends FocusInteractionTypes | KeyInteractionTypes,
+        E extends FocusInteractionEvent | KeyInteractionEvent,
+    >(sourceEvent: FocusEvent | KeyboardEvent, types: T[]) {
         for (const type of types) {
             this.listeners.dispatchWrapHandlers(
                 type,
                 this.dispatchWrapper,
-                this.buildConsumable({ type, sourceEvent })
+                this.buildConsumable({ type, sourceEvent } as E)
             );
         }
     }
