@@ -219,7 +219,6 @@ export class DataController {
         return ([group]: RequestedProcessing<any, any, any>[]) =>
             (opts.groupByData === false || group.data === data) &&
             group.opts.groupByKeys === opts.groupByKeys &&
-            group.opts.dataVisible === opts.dataVisible &&
             group.opts.groupByFn === opts.groupByFn &&
             keys(group.opts.props) === keys(opts.props);
     }

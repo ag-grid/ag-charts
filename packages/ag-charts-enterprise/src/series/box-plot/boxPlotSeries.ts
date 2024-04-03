@@ -73,9 +73,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
 
@@ -89,7 +87,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(animationValidation());
         }
 
-        const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
+        const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(minKey, true, { id: `minValue` }),
@@ -100,7 +98,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;

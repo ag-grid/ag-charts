@@ -89,9 +89,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid() || !this.data) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.data || !this.visible) return;
 
         const { valueKey, targetKey } = this.properties;
 
@@ -125,7 +123,6 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
                 ...extraProps,
             ],
             groupByKeys: true,
-            dataVisible: this.visible,
         });
 
         this.animationState.transition('updateData');
