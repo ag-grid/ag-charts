@@ -522,11 +522,6 @@ export class DataModel<
         let partialValidDataCount = 0;
         let resultDataIdx = 0;
 
-        const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
-        for (const source of sources ?? []) {
-            sourcesById[source.id] = source;
-        }
-
         for (const [datumIdx, datum] of data.entries()) {
             const sourceDatums: Record<string, any> = {};
 
@@ -867,7 +862,7 @@ export class DataModel<
                 initDataDomain();
             }
 
-            if (valueInDatum && !def.validation(value, datum)) {
+            if (valueInDatum && !(def.validation?.(value, datum) ?? false)) {
                 if ('invalidValue' in def) {
                     value = def.invalidValue;
                 } else {
