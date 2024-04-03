@@ -529,6 +529,11 @@ export class DataModel<
         let resultDataIdx = 0;
         let partialValidDataCount = 0;
 
+        const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
+        for (const source of sources ?? []) {
+            sourcesById[source.id] = source;
+        }
+
         for (const [datumIdx, datum] of data.entries()) {
             const sourceDatums: Record<string, any> = {};
 
@@ -547,11 +552,6 @@ export class DataModel<
 
             const values = dataVisible && valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
             let value;
-
-            const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
-            for (const source of sources ?? []) {
-                sourcesById[source.id] = source;
-            }
 
             for (const [valueDefIdx, def] of valueDefs.entries()) {
                 for (const scope of def.scopes ?? scopes) {

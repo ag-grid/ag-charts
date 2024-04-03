@@ -11,7 +11,7 @@ import {
     groupAverage as actualGroupAverage,
     groupCount as actualGroupCount,
     range as actualRange,
-    sum as actualSum,
+    sumValues,
 } from './aggregateFunctions';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
 import { DataModel } from './dataModel';
@@ -62,11 +62,14 @@ const accumulatedPropertyValue = (property: string, groupId: string = property, 
     ...value(property, groupId, id),
     processor: accumulatedValue(true),
 });
-const sum = (groupId: string) => ({ ...actualSum(`sum-${groupId}`, groupId), scopes: ['test'] });
-const scopedSum = (scopes: string[] | undefined, groupId: string) => ({
-    ...actualSum(`sum-${groupId}`, groupId),
-    scopes,
+const sum = (groupId: string): AggregatePropertyDefinition<any, any> => ({
+    scopes: ['test'],
+    id: `sum-${groupId}`,
+    matchGroupIds: [groupId],
+    type: 'aggregate',
+    aggregateFunction: (values) => sumValues(values),
 });
+const scopedSum = (scopes: string[], groupId: string) => ({ ...sum(groupId), scopes });
 const range = (groupId: string) => ({ ...actualRange(`range-${groupId}`, groupId), scopes: ['test'] });
 const groupAverage = (groupId: string) => ({
     ...actualGroupAverage(`groupAverage-${groupId}`, groupId),

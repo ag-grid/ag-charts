@@ -2,7 +2,7 @@ import { isFiniteNumber } from '../../util/type-guards';
 import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
 
-function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
+export function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
     for (const value of values) {
         if (typeof value !== 'number') {
             continue;
