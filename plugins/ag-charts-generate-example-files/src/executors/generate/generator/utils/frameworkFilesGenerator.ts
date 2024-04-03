@@ -194,8 +194,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
-            // Other files, not including entry file
-            scriptFiles: Object.keys(otherScriptFiles),
+            // NOTE: `scriptFiles` not required, as system js handles import
             entryFileName,
             mainFileName,
         };
