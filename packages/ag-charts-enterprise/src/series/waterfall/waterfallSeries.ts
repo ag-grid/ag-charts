@@ -190,10 +190,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             dataVisible: this.visible,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.updateSeriesItemTypes();
 
@@ -201,16 +198,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, smallestDataInterval } = this;
         if (!processedData || !dataModel) return [];
 
         const {
-            domain: {
-                keys: [keys],
-                values,
-            },
-            reduced: { [_ModuleSupport.SMALLEST_KEY_INTERVAL.property]: smallestX } = {},
-        } = processedData;
+            keys: [keys],
+            values,
+        } = processedData.domain;
 
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
 
@@ -219,7 +213,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 return keys;
             }
 
-            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
@@ -259,7 +253,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
         const barWidth =
-            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
+            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth) ?? 10;
 
         if (this.processedData?.type !== 'ungrouped') {
             return;

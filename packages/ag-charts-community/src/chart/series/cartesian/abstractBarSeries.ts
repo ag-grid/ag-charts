@@ -31,7 +31,7 @@ export abstract class AbstractBarSeries<
      */
     protected groupScale = new BandScale<string>();
 
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
+    protected smallestDataInterval?: number = undefined;
 
     override getBandScalePadding() {
         return { inner: 0.2, outer: 0.1 };
@@ -72,9 +72,7 @@ export abstract class AbstractBarSeries<
 
         const xScale = xAxis.scale;
 
-        const xBandWidth = ContinuousScale.is(xScale)
-            ? xScale.calcBandwidth(smallestDataInterval?.x)
-            : xScale.bandwidth;
+        const xBandWidth = ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth;
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
