@@ -1,11 +1,17 @@
 /* eslint-disable no-console */
 import type { ExecutorContext } from '@nx/devkit';
+import { CanvasRenderingContext2D } from 'canvas';
 import path from 'path';
+import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
 
 import type { AgChartThemeName } from 'ag-charts-community';
 
 import { consolePrefix, ensureDirectory, readJSONFile } from '../../executors-utils';
 import { generateThumbnail } from './generator/thumbnailGenerator';
+
+global.Path2D = Path2D;
+
+applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
 
 export type ExecutorOptions = {
     outputPath: string;
