@@ -34,6 +34,7 @@ import {
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+    EXTENDS_AXES_CROSSHAIR_DEFAULTS,
     EXTENDS_AXES_DEFAULTS,
     EXTENDS_AXES_GRID_LINE_DEFAULTS,
     EXTENDS_AXES_LABEL_DEFAULTS,
@@ -152,6 +153,18 @@ export class ChartTheme {
                     fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 5,
                     color: DEFAULT_LABEL_COLOUR,
+                },
+            },
+            crosshair: {
+                enabled: true,
+                snap: true,
+                stroke: DEFAULT_MUTED_LABEL_COLOUR,
+                strokeWidth: 1,
+                strokeOpacity: 1,
+                lineDash: [5, 6],
+                lineDashOffset: 0,
+                label: {
+                    enabled: true,
                 },
             },
         });
@@ -511,6 +524,7 @@ export class ChartTheme {
         extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);
         extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);
         extensions.set(EXTENDS_AXES_GRID_LINE_DEFAULTS, ChartTheme.getAxisDefaults().gridLine);
+        extensions.set(EXTENDS_AXES_CROSSHAIR_DEFAULTS, ChartTheme.getAxisDefaults().crosshair);
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
         extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
         extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
