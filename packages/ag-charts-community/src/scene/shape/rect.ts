@@ -4,21 +4,21 @@ import type { DistantObject } from '../nearest';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
 
-type CornerRadii = {
+interface CornerRadii {
     topLeft: number;
     topRight: number;
     bottomRight: number;
     bottomLeft: number;
-};
+}
 
-type Corner = {
+interface Corner {
     x0: number;
     y0: number;
     x1: number;
     y1: number;
     cx: number;
     cy: number;
-};
+}
 
 const epsilon = 1e-6;
 
@@ -308,11 +308,10 @@ export class Rect extends Path implements DistantObject {
     private lastUpdatePathStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
     protected override isDirtyPath() {
-        if (this.lastUpdatePathStrokeWidth !== this.strokeWidth) {
-            return true;
-        }
-
-        return !!(this.path.isDirty() || this.borderPath.isDirty());
+        return (
+            this.lastUpdatePathStrokeWidth !== this.strokeWidth ||
+            Boolean(this.path.isDirty() || this.borderPath.isDirty())
+        );
     }
 
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
