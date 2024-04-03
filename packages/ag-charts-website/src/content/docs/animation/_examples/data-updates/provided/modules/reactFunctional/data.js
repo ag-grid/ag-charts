@@ -2,13 +2,7 @@ const NUM_DATA_POINTS = 30;
 let _seed = 1234;
 
 // Create a set of data with predicatable "randomness"
-export function getData(
-    start = [100, 100, 100, 100],
-    variance = 2,
-    offset = 0,
-    length = NUM_DATA_POINTS,
-    seed = _seed
-) {
+function getData(start = [100, 100, 100, 100], variance = 2, offset = 0, length = NUM_DATA_POINTS, seed = _seed) {
     // Vary the datum by a random proportion of the variance +ve or -ve
     const vary = (n) => Math.max(0, n + variance * random() * 2 - variance);
 
@@ -36,7 +30,7 @@ export function getData(
     return data.slice(offset - (length - NUM_DATA_POINTS));
 }
 
-export function random() {
+function random() {
     _seed = (_seed * 16807) % 2147483647;
     return (_seed - 1) / 2147483646;
 }
