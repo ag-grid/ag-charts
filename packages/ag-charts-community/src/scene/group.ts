@@ -2,7 +2,6 @@ import { ascendingStringNumberUndefined, compoundAscending } from '../util/compa
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
-import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
@@ -15,7 +14,7 @@ export class Group extends Node {
     }
 
     private clipRect?: BBox;
-    protected layer?: HdpiCanvas | HdpiOffscreenCanvas;
+    protected layer?: HdpiCanvas;
     readonly name?: string;
 
     @SceneChangeDetection({
