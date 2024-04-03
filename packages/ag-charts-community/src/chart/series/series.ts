@@ -23,7 +23,7 @@ import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import { isFiniteNumber } from '../../util/type-guards';
-import { checkDatum } from '../../util/value';
+import { isContinuous } from '../../util/value';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -58,12 +58,12 @@ export type SeriesNodePickMatch = {
     distance: number;
 };
 
-function basicContinuousCheckDatumValidation(v: any) {
-    return checkDatum(v, true) != null;
+function basicContinuousCheckDatumValidation(value: any) {
+    return value != null && isContinuous(value);
 }
 
-function basicDiscreteCheckDatumValidation(v: any) {
-    return checkDatum(v, false) != null;
+function basicDiscreteCheckDatumValidation(value: any) {
+    return value != null;
 }
 
 export function keyProperty<K>(
