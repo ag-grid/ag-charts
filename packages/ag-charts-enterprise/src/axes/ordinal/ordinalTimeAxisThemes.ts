@@ -11,6 +11,15 @@ export const ORDINAL_TIME_AXIS_THEME = {
         enabled: false,
     },
     crosshair: {
-        __extends__: _Theme.EXTENDS_AXES_CROSSHAIR_DEFAULTS,
+        enabled: true,
+        snap: true,
+        stroke: _Theme.DEFAULT_MUTED_LABEL_COLOUR,
+        strokeWidth: 1,
+        strokeOpacity: 1,
+        lineDash: [5, 6],
+        lineDashOffset: 0,
+        label: {
+            enabled: true,
+        },
     },
 };

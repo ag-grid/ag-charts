@@ -8,7 +8,6 @@ export const EXTENDS_AXES_LABEL_DEFAULTS = Symbol('extends-axes-label-defaults')
 export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults') as unknown as string;
 export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults') as unknown as string;
 export const EXTENDS_AXES_GRID_LINE_DEFAULTS = Symbol('extends-axes-grid-line-defaults') as unknown as string;
-export const EXTENDS_AXES_CROSSHAIR_DEFAULTS = Symbol('extends-axes-crosshair-defaults') as unknown as string;
 export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults') as unknown as string;
 export const EXTENDS_CARTESIAN_MARKER_DEFAULTS = Symbol('extends-cartesian-marker-defaults') as unknown as string;
 export const OVERRIDE_SERIES_LABEL_DEFAULTS = Symbol('override-series-label-defaults') as unknown as string;
