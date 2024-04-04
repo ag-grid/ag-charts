@@ -54,7 +54,8 @@ export class RegionManager {
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
             ),
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
-            this.keyNavManager.addListener('nav-hori', this.onNavHori.bind(this))
+            this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
+            this.keyNavManager.addListener('nav-hori', this.onNav.bind(this))
         );
 
         this.focusIndicator = getDocument()?.createElement('div');
@@ -243,7 +244,7 @@ export class RegionManager {
         }
     }
 
-    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
+    private onNav(event: KeyNavEvent<'nav-hori' | 'nav-vert'>) {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         this.dispatch(focusedRegion, event);
     }

@@ -238,6 +238,7 @@ export class Legend extends BaseProperties {
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             region.addListener('tab', (e) => this.onTab(e)),
+            region.addListener('nav-vert', (e) => this.onNavVert(e)),
             region.addListener('nav-hori', (e) => this.onNavHori(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
@@ -600,6 +601,14 @@ export class Legend extends BaseProperties {
         }
     }
 
+    private getColumnCount(): number {
+        if (this.pages.length > 0) {
+            return this.pages[0].columns.length;
+        } else {
+            return 0;
+        }
+    }
+
     private updatePositions(pageNumber: number = 0) {
         const {
             item: { paddingY },
@@ -932,10 +941,17 @@ export class Legend extends BaseProperties {
         this.updateFocus();
     }
 
-    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
+    private onNavVert(event: KeyNavEvent<'nav-vert'>) {
         const newRow = this.focusedItem.row + event.delta;
         const maxRow = Math.max(this.getRowCount() - 1, 0);
         this.focusedItem.row = clamp(0, newRow, maxRow);
+        this.updateFocus();
+    }
+
+    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
+        const newCol = this.focusedItem.column + event.delta;
+        const maxCol = Math.max(this.getColumnCount() - 1, 0);
+        this.focusedItem.column = clamp(0, newCol, maxCol);
         this.updateFocus();
     }
 
