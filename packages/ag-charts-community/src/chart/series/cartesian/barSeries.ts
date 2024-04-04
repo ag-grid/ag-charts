@@ -139,6 +139,20 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             extraProps.push(animationValidation());
         }
 
+        function a(..._args: any[]) {
+            return null;
+        }
+
+        a({
+            keys: [xKey],
+            values: [yKey],
+            interval: isContinuousX,
+            continuousX: isContinuousX,
+            continuousY: isContinuousY,
+            separateNegative: true,
+            groupId: stackGroupName,
+        });
+
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),

@@ -30,6 +30,13 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(tagName: K,
     return getDocument().createElement<K>(tagName, options);
 }
 
+export function createDiv(style: Partial<CSSStyleDeclaration>, ...classNames: string[]) {
+    const element = createElement('div');
+    element.classList.add(...classNames);
+    Object.assign(element.style, style);
+    return element;
+}
+
 export function downloadUrl(dataUrl: string, fileName: string) {
     const { body } = getDocument();
     const element = createElement('a');
