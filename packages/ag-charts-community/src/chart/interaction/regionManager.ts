@@ -232,17 +232,29 @@ export class RegionManager {
         return BBox.merge(mapIterable(region.bboxproviders, (p) => p.getCachedBBox()));
     }
 
-    private onTab(event: KeyNavEvent<'tab'>) {
-        const newTabIndex = this.currentTabIndex + event.delta;
-        this.currentTabIndex = clamp(0, newTabIndex, REGION_TAB_ORDERING.length - 1);
+    private dispatchTabStart(event: KeyNavEvent<'tab'>): boolean {
+        const { delta, interactionEvent } = event;
+        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({ type: 'tab-start', delta, interactionEvent });
+        const focusedRegion = this.getTabRegion(this.currentTabIndex);
 
-        const newRegion = this.getTabRegion(newTabIndex);
-        if (newRegion !== undefined) {
-            event.interactionEvent.sourceEvent.preventDefault();
-            this.updateFocusIndicatorRect(this.getTabRegionBounds(newRegion)); // TODO: temporary
-            this.dispatch(newRegion, event);
-        } else {
-            this.updateFocusIndicatorRect(undefined);
+        this.dispatch(focusedRegion, startEvent);
+        return !!startEvent.consumed;
+    }
+
+    private onTab(event: KeyNavEvent<'tab'>) {
+        const consumed = this.dispatchTabStart(event);
+        if (!consumed) {
+            const newTabIndex = this.currentTabIndex + event.delta;
+            this.currentTabIndex = clamp(0, newTabIndex, REGION_TAB_ORDERING.length - 1);
+
+            const newRegion = this.getTabRegion(newTabIndex);
+            if (newRegion !== undefined) {
+                event.interactionEvent.sourceEvent.preventDefault();
+                this.updateFocusIndicatorRect(this.getTabRegionBounds(newRegion)); // TODO: temporary
+                this.dispatch(newRegion, event);
+            } else {
+                this.updateFocusIndicatorRect(undefined);
+            }
         }
     }
 

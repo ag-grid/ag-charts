@@ -40,6 +40,7 @@ import { InteractionState, PointerInteractionEvent } from './interaction/interac
 import type { KeyNavEvent } from './interaction/keyNavManager';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
+import type { Marker } from './marker/marker';
 import { MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
@@ -238,6 +239,7 @@ export class Legend extends BaseProperties {
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             region.addListener('tab', (e) => this.onTab(e)),
+            region.addListener('tab-start', (e) => this.onTabStart(e)),
             region.addListener('nav-vert', (e) => this.onNavVert(e)),
             region.addListener('nav-hori', (e) => this.onNavHori(e)),
             region.addListener('submit', (e) => this.onSubmit(e)),
@@ -946,37 +948,88 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private focusedItem = { row: 0, column: 0 };
+    private focus: { mode: 'item' | 'page'; pageButton: 'next' | 'prev'; row: number; column: number } = {
+        mode: 'item',
+        pageButton: 'next',
+        row: 0,
+        column: 0,
+    };
 
     private onTab(_event: KeyNavEvent<'tab'>) {
         this.updateFocus();
     }
 
+    private onTabStart(event: KeyNavEvent<'tab-start'>) {
+        if (!this.pagination.visible || !this.pagination.enabled) return;
+
+        // Tab forward/backward between the items and pagination buttons.
+        // Consuming the 'tab-start' event prevents to RegionManager from dispatch 'tab' events.
+        const consumeTabStart = (newMode: Legend['focus']['mode']) => {
+            this.focus.mode = newMode;
+            this.updateFocus();
+            event.consume();
+            event.interactionEvent.consume();
+            event.interactionEvent.sourceEvent.preventDefault();
+        };
+        if (this.focus.mode === 'item' && event.delta === 1) {
+            consumeTabStart('page');
+        } else if (this.focus.mode === 'page' && event.delta === -1) {
+            consumeTabStart('item');
+        }
+    }
+
     private onNavVert(event: KeyNavEvent<'nav-vert'>) {
-        const newRow = this.focusedItem.row + event.delta;
-        const maxRow = Math.max(this.getRowCount() - 1, 0);
-        this.focusedItem.row = clamp(0, newRow, maxRow);
-        this.updateFocus();
+        switch (this.focus.mode) {
+            case 'item':
+                const newRow = this.focus.row + event.delta;
+                const maxRow = Math.max(this.getRowCount() - 1, 0);
+                this.focus.row = clamp(0, newRow, maxRow);
+                this.updateFocus();
+                break;
+        }
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>) {
-        const newCol = this.focusedItem.column + event.delta;
-        const maxCol = Math.max(this.getColumnCount() - 1, 0);
-        this.focusedItem.column = clamp(0, newCol, maxCol);
-        this.updateFocus();
+        switch (this.focus.mode) {
+            case 'item':
+                const newCol = this.focus.column + event.delta;
+                const maxCol = Math.max(this.getColumnCount() - 1, 0);
+                this.focus.column = clamp(0, newCol, maxCol);
+                this.updateFocus();
+                break;
+            case 'page':
+                if (event.delta < 0) this.focus.pageButton = 'prev';
+                if (event.delta > 0) this.focus.pageButton = 'next';
+                this.updateFocus();
+                break;
+        }
     }
 
     private onSubmit(_event: KeyNavEvent<'submit'>) {
-        this.doClick(this.getFocus().datum);
+        switch (this.focus.mode) {
+            case 'item':
+                this.doClick(this.getFocusedItem().datum);
+                break;
+            case 'page':
+                if (this.focus.pageButton === 'next') this.pagination.clickNext();
+                if (this.focus.pageButton === 'prev') this.pagination.clickPrevious();
+                break;
+        }
     }
 
-    private getFocus(): { node?: MarkerLabel; datum?: CategoryLegendDatum } {
-        const { row, column } = this.focusedItem;
+    private getFocusedItem(): { node?: MarkerLabel; datum?: CategoryLegendDatum } {
+        if (this.focus.mode !== 'item') {
+            Logger.error(`getFocusedItem() should be called only when focus.mode is 'item'`);
+            return { node: undefined, datum: undefined };
+        }
+
+        const { row, column } = this.focus;
         const nodeIndex = this.pages[this.paginationTrackingIndex].columns[column].indices[row];
         if (nodeIndex < 0) {
             Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
             return { node: undefined, datum: undefined };
         }
+
         const node = this.itemSelection.nodes()[nodeIndex];
         const data = this.data;
         let datum: CategoryLegendDatum | undefined;
@@ -985,17 +1038,33 @@ export class Legend extends BaseProperties {
         } else {
             Logger.error(`Cannot access datum[${nodeIndex}]`);
         }
+
         return { node, datum };
     }
 
-    private updateFocus() {
-        const { node, datum } = this.getFocus();
-        const bbox = node?.computeTransformedBBox();
+    private getFocusedPaginationButton(): Marker {
+        const { focus, pagination } = this;
+        if (focus.mode !== 'page') {
+            Logger.error(`getFocusedPaginationItem() should be called only when focus.mode is 'page'`);
+        }
+        return focus.pageButton === 'next' ? pagination.nextButton : pagination.previousButton;
+    }
 
-        this.ctx.regionManager.updateFocusIndicatorRect(bbox);
-        if (bbox !== undefined) {
-            const { x, y } = bbox.computeCenter();
-            this.doHover(datum, x, y);
+    private updateFocus() {
+        switch (this.focus.mode) {
+            case 'item':
+                const { node, datum } = this.getFocusedItem();
+                const bbox = node?.computeTransformedBBox();
+                this.ctx.regionManager.updateFocusIndicatorRect(bbox);
+                if (bbox !== undefined) {
+                    const { x, y } = bbox.computeCenter();
+                    this.doHover(datum, x, y);
+                }
+                break;
+            case 'page':
+                const button = this.getFocusedPaginationButton();
+                this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
+                break;
         }
     }
 
