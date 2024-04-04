@@ -61,6 +61,7 @@ import { SyncManager } from './interaction/syncManager';
 import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
+import { Keyboard } from './keyboard';
 import { Layers } from './layers';
 import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
@@ -239,6 +240,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     @Validate(OBJECT)
     readonly footnote = new Caption();
 
+    @Validate(OBJECT)
+    readonly keyboard = new Keyboard();
+
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
 
@@ -328,7 +332,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(element, interactiveContainer);
+        this.interactionManager = new InteractionManager(this.keyboard, element, interactiveContainer);
         this.regionManager = new RegionManager(this.interactionManager, element);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(element);

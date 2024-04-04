@@ -157,7 +157,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private stateQueue: InteractionState = InteractionState.Default;
 
-    public constructor(element: HTMLElement, container?: HTMLElement) {
+    public constructor(
+        private keyboardOptions: { readonly enabled: boolean },
+        element: HTMLElement,
+
+        container?: HTMLElement
+    ) {
         super();
 
         this.rootElement = getDocument('body');
@@ -310,6 +315,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             case 'focus':
             case 'keydown':
             case 'keyup':
+                return this.keyboardOptions.enabled ? [event.type] : [];
+
             case 'click':
             case 'dblclick':
             case 'contextmenu':
