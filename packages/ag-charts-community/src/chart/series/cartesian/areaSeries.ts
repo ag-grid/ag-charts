@@ -83,9 +83,11 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid() || !this.visible) return;
+        if (this.data == null || !this.properties.isValid()) {
+            return;
+        }
 
-        const { data, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
@@ -121,6 +123,9 @@ export class AreaSeries extends CartesianSeries<
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if (connectMissingData && stackCount > 1) {
             common.invalidValue = 0;
+        }
+        if (!visible) {
+            common.forceValue = 0;
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -220,10 +225,10 @@ export class AreaSeries extends CartesianSeries<
             `yValueCumulative`,
         ]);
 
-        const createMovePoint = (plainPoint: AreaPathPoint) => {
-            const { point, ...stroke } = plainPoint;
-            return { ...stroke, point: { ...point, moveTo: true } };
-        };
+        const createMovePoint = (plainPoint: AreaPathPoint) => ({
+            ...plainPoint,
+            point: { ...plainPoint.point, moveTo: true },
+        });
 
         const createPathCoordinates = (xValue: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
             const x = xScale.convert(xValue) + xOffset;
