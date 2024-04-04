@@ -351,9 +351,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     protected getSeriesGroupId(series: GroupingSeriesOptions) {
-        if (!series.stacked && !series.grouped) {
-            return 'default-ag-charts-group';
-        }
         return [series.type, series.xKey, series.stacked ? series.stackGroup ?? 'stacked' : 'grouped']
             .filter(Boolean)
             .join('-');

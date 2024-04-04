@@ -225,10 +225,10 @@ export class AreaSeries extends CartesianSeries<
             `yValueCumulative`,
         ]);
 
-        const createMovePoint = (plainPoint: AreaPathPoint) => {
-            const { point, ...stroke } = plainPoint;
-            return { ...stroke, point: { ...point, moveTo: true } };
-        };
+        const createMovePoint = (plainPoint: AreaPathPoint) => ({
+            ...plainPoint,
+            point: { ...plainPoint.point, moveTo: true },
+        });
 
         const createPathCoordinates = (xValue: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
             const x = xScale.convert(xValue) + xOffset;

@@ -175,8 +175,6 @@ type PropertyIdentifiers = {
 };
 
 type PropertySelectors = {
-    /** Scope(s) a property definition belongs to (typically the defining entities unique identifier). */
-    matchScopes?: string[];
     /** Optional group a property belongs to, for cross-scope combination. */
     matchGroupIds?: string[];
 };
@@ -512,18 +510,13 @@ export class DataModel<
     }
 
     private extractData(data: D[], sources?: { id: string; data: D[] }[]): UngroupedData<D> {
-        const { keys: keyDefs, values: valueDefs } = this;
-
         const { dataDomain, processValue, scopes, allScopesHaveSameDefs } = this.initDataDomainProcessor();
-
+        const sourcesById = new Map(sources?.map((s) => [s.id, s]));
+        const { keys: keyDefs, values: valueDefs } = this;
         const resultData = new Array(data.length);
+
         let resultDataIdx = 0;
         let partialValidDataCount = 0;
-
-        const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
-        for (const source of sources ?? []) {
-            sourcesById[source.id] = source;
-        }
 
         for (const [datumIdx, datum] of data.entries()) {
             const sourceDatums: Record<string, any> = {};
@@ -546,17 +539,17 @@ export class DataModel<
 
             for (const [valueDefIdx, def] of valueDefs.entries()) {
                 for (const scope of def.scopes ?? scopes) {
-                    const source = sourcesById[scope];
+                    const source = sourcesById.get(scope);
                     const valueDatum = source?.data[datumIdx] ?? datum;
 
                     value = processValue(def, valueDatum, value, scope);
 
                     if (value === INVALID_VALUE || !values) continue;
 
-                    if (source !== undefined && def.includeProperty !== false) {
+                    if (source != null && def.includeProperty !== false) {
                         const property = def.includeProperty && def.id != null ? def.id : def.property;
-                        sourceDatums[source.id] ??= {};
-                        sourceDatums[source.id][property] = value;
+                        sourceDatums[scope] ??= {};
+                        sourceDatums[scope][property] = value;
                     }
 
                     values[valueDefIdx] = value;
@@ -682,11 +675,9 @@ export class DataModel<
             const domain: [number, number] = [Infinity, -Infinity];
 
             for (const datum of processedData.data) {
-                const scopeValid = !datum.validScopes || def.matchScopes?.some((s) => datum.validScopes?.has(s));
-
                 datum.aggValues ??= new Array(this.aggregates.length);
 
-                if (!scopeValid) continue;
+                if (datum.validScopes) continue;
 
                 const values = isUngrouped ? [datum.values] : datum.values;
                 let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
@@ -742,10 +733,7 @@ export class DataModel<
 
         for (const group of processedData.data) {
             for (const processor of groupProcessors) {
-                const scopeValid = !group.validScopes || processor.matchScopes?.some((s) => group.validScopes?.has(s));
-                if (!scopeValid) {
-                    continue;
-                }
+                if (group.validScopes) continue;
 
                 const valueIndexes = groupProcessorIndices.get(processor) ?? [];
                 const adjustFn = groupProcessorInitFns.get(processor)?.();
@@ -870,17 +858,14 @@ export class DataModel<
                 initDataDomain();
             }
 
-            if (valueInDatum) {
-                const valid = def.validation?.(value, datum) ?? true;
-                if (!valid) {
-                    if ('invalidValue' in def) {
-                        value = def.invalidValue;
-                    } else {
-                        if (this.mode !== 'integrated') {
-                            Logger.warnOnce(`invalid value of type [${typeof value}] ignored:`, `[${value}]`);
-                        }
-                        return INVALID_VALUE;
+            if (valueInDatum && !(def.validation?.(value, datum) ?? true)) {
+                if ('invalidValue' in def) {
+                    value = def.invalidValue;
+                } else {
+                    if (this.mode !== 'integrated') {
+                        Logger.warnOnce(`invalid value of type [${typeof value}] ignored:`, `[${value}]`);
                     }
+                    return INVALID_VALUE;
                 }
             }
 
