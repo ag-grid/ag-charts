@@ -308,7 +308,10 @@ describe('TreemapSeries', () => {
                 const maxDepth = Math.max(...nodes.map((n) => n.datum.depth ?? -1));
                 return nodes.filter((node) => node.datum.depth === maxDepth);
             },
-            getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],
+            getNodePoint: (item) => {
+                const { x, y, width, height } = item.clipBBox ?? item;
+                return [x + width / 2, y + height / 2];
+            },
             getDatumValues: (item, series) => {
                 const { datum } = item.datum;
                 return [datum[series.properties.labelKey], datum[series.properties.sizeKey]];
