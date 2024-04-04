@@ -68,7 +68,7 @@
     "jest-runner": "^29.5.0",
     "jest-serial-runner": "^1.2.1",
     "madge": "6.0.0",
-    "path2d": "^0.1.2",
+    "path2d": "^0.2.0",
     "pixelmatch": "^5.2.1",
     "pngjs": "3.4.0",
     "raf": "3.4.1",
