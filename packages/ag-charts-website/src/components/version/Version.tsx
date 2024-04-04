@@ -1,5 +1,7 @@
 import styles from '@design-system/modules/WhatsNew.module.scss';
+import { useFrameworkFromStore } from '@utils/hooks/useFrameworkFromStore';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { urlWithPrefix } from '@utils/urlWithPrefix';
 
 const parseVersion = (version: string) => {
     const [major, minor, patch] = version.split('.').map(Number);
@@ -11,14 +13,33 @@ type VersionProps = {
     version: string;
     blogUrl?: string;
     highlights?: Array<{ text: string; url: string }>;
-    notesUrl?: string;
+    notesPath?: string;
     isLatest: boolean;
 };
 
-export const Version = ({ date, version, blogUrl, highlights, notesUrl, isLatest }: VersionProps) => {
+interface HighlightParams {
+    url?: string;
+    path?: string;
+    text: string;
+}
+
+function Highlight({ url, path, text }: HighlightParams) {
+    const framework = useFrameworkFromStore();
+
+    if (url) {
+        return <a href={url}>{text}</a>;
+    } else if (path) {
+        return <a href={urlWithPrefix({ url: path, framework })}>{text}</a>;
+    } else {
+        return <>{text}</>;
+    }
+}
+
+export const Version = ({ date, version, blogUrl, highlights, notesPath, isLatest }: VersionProps) => {
     const { major, minor, isMajor } = parseVersion(version);
     const blogHref =
         blogUrl || `https://blog.ag-grid.com/whats-new-in-ag-charts-${minor ? `${major}-${minor}` : major}/`;
+    const framework = useFrameworkFromStore();
 
     return (
         <div className={styles.version}>
@@ -45,17 +66,17 @@ export const Version = ({ date, version, blogUrl, highlights, notesUrl, isLatest
                     <ul>
                         {highlights.map((highlight, i) => (
                             <li key={highlight.text + i}>
-                                <a href={highlight.url}>{highlight.text}</a>
+                                <Highlight {...highlight} />
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
             <div>
-                {notesUrl && (
+                {notesPath && (
                     <a
                         className={`${styles.buttonSecondary} button-secondary`}
-                        href={urlWithBaseUrl(notesUrl)}
+                        href={urlWithPrefix({ url: notesPath, framework })}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
