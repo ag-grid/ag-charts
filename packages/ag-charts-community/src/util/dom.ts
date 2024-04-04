@@ -26,8 +26,12 @@ export function getWindow<K extends keyof Window>(propertyName?: K) {
     return propertyName ? verifiedGlobals.window?.[propertyName] : verifiedGlobals.window;
 }
 
-export function createElement<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions) {
-    return getDocument().createElement<K>(tagName, options);
+export function createElement<K extends keyof HTMLElementTagNameMap>(tagName: K, style?: Partial<CSSStyleDeclaration>) {
+    const element = getDocument().createElement<K>(tagName);
+    if (style) {
+        Object.assign(element.style, style);
+    }
+    return element;
 }
 
 export function createDiv(style: Partial<CSSStyleDeclaration>, ...classNames: string[]) {

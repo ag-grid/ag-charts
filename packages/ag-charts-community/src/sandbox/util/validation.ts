@@ -8,7 +8,7 @@ export interface Validator {
     optional?: boolean;
 }
 
-export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<T>) {
+export function validation<T extends object>(options: T, optionsDefs: OptionsDefs<T>) {
     // TODO: should remember normalized path and display it as part of the warnings
     for (const [key, validator] of Object.entries<Validator>(optionsDefs)) {
         if (!validator(options[key as keyof T])) {

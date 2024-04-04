@@ -1,5 +1,5 @@
 import type { ChartType, IAxis, IModule, ISeries } from '../chart/types';
-import type { OptionsDefs } from '../util/validate';
+import type { OptionsDefs } from '../util/validation';
 
 export type Module =
     | AxisModule<any>

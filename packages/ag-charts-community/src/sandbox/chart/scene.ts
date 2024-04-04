@@ -1,4 +1,4 @@
-import { createDiv, createElement, getWindow } from '../../util/dom';
+import { createElement, getWindow } from '../../util/dom';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 import { EventEmitter } from '../util/eventEmitter';
 import type { IScene, SceneEventMap } from './types';
@@ -30,7 +30,8 @@ export class Scene implements IScene {
         this.context = this.canvas.getContext('2d')!;
         this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
-        this.rootElement = createDiv(Scene.ElementStyle, Scene.ElementClassName);
+        this.rootElement = createElement('div', Scene.ElementStyle);
+        this.rootElement.classList.add(Scene.ElementClassName);
         this.rootElement.appendChild(this.canvas);
 
         this.rootNode = {};

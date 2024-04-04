@@ -1,5 +1,5 @@
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
-import { type OptionsDefs, boolean, instanceOf, number, optional, positiveNumber } from '../util/validate';
+import { type OptionsDefs, boolean, instanceOf, number, optional, positiveNumber } from '../util/validation';
 import { ChartType } from './types';
 
 export const chartOptionsDef: OptionsDefs<string> = {

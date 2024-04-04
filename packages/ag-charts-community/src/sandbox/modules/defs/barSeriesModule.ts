@@ -1,5 +1,5 @@
 import { ChartType } from '../../chart/types';
-import { boolean, number, optional, string, union } from '../../util/validate';
+import { boolean, number, optional, string, union } from '../../util/validation';
 import { BarSeries, type BarSeriesOptions } from '../barSeries';
 import type { SeriesModule } from '../types';
 import { commonSeriesOptionsDefs } from './commonOptions';

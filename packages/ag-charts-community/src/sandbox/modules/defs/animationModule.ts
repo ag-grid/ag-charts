@@ -1,4 +1,4 @@
-import { boolean, number, optional } from '../../util/validate';
+import { boolean, number, optional } from '../../util/validation';
 import { AnimationModule, type AnimationModuleOptions } from '../animation';
 import type { OptionModule } from '../types';
 

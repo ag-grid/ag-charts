@@ -13,5 +13,3 @@ export class DataPipeline {
         }
     }
 }
-
-class DataDomain {}

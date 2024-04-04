@@ -1,4 +1,4 @@
-import { type OptionsDefs, boolean, callback, optional, string } from '../../util/validate';
+import { type OptionsDefs, boolean, callback, optional, string } from '../../util/validation';
 
 export interface CommonSeriesOptions {
     visible?: boolean;
