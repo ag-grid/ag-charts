@@ -2,138 +2,148 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
-import type { InteractionEvent } from '../interaction/interactionManager';
-import type { ToolbarButtonUpdatedEvent } from '../interaction/toolbarManager';
-import { ToolbarButton } from './scenes/toolbarButton';
-import { ToolbarContainer } from './scenes/toolbarContainer';
+import { createElement, getDocument, injectStyle } from '../../util/dom';
+import { BOOLEAN, Validate } from '../../util/validation';
+import type { ToolbarSection, ToolbarVisibilityEvent } from '../interaction/toolbarManager';
+import { ToolbarSectionProperties } from './toolbarProperties';
+import { TOOLBAR_CLASS, toolbarStyles } from './toolbarStyles';
 
-interface ButtonConfig {
-    id: string;
-    groupId: string;
-    value: any;
-}
+type ToolbarPosition = keyof Toolbar['elements']['fixed'];
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
+    @Validate(BOOLEAN)
     public enabled = true;
 
-    private y = 0;
-    private height = 30;
+    public ranges = new ToolbarSectionProperties(
+        this.onSectionEnabledChanged.bind(this, 'ranges'),
+        this.onSectionButtonsChanged.bind(this, 'ranges')
+    );
+
     private margin = 10;
-
-    private buttonGroups = new Map<string, Group>();
-
-    private activeButton: ButtonConfig | undefined = undefined;
-    private buttons = new Map<ToolbarButton, ButtonConfig>();
-    private buttonSpacingX = 10;
-
-    private container = new ToolbarContainer();
+    private readonly container: HTMLElement;
+    private elements: {
+        fixed: {
+            top: HTMLDivElement;
+            right: HTMLDivElement;
+            bottom: HTMLDivElement;
+            left: HTMLDivElement;
+        };
+        floating?: {
+            top: HTMLDivElement;
+            bottom: HTMLDivElement;
+        };
+    };
 
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        this.container.visible = false;
+        this.container = getDocument().body;
+        this.elements = {
+            fixed: {
+                top: this.container.appendChild(createElement('div')),
+                right: this.container.appendChild(createElement('div')),
+                bottom: this.container.appendChild(createElement('div')),
+                left: this.container.appendChild(createElement('div')),
+            },
+        };
 
-        const toolbarRegion = ctx.regionManager.addRegion('toolbar', this.container);
-        this.destroyFns.push(
-            ctx.scene.attachNode(this.container),
-            toolbarRegion.addListener('hover', this.onHover.bind(this)),
-            toolbarRegion.addListener('leave', this.onHover.bind(this)),
-            toolbarRegion.addListener('click', this.onClick.bind(this)),
-            ctx.toolbarManager.addListener('button-group-updated', this.onButtonGroupUpdated.bind(this))
-        );
+        injectStyle(toolbarStyles, 'toolbar');
+
+        this.renderToolbar('top');
+        this.renderToolbar('right');
+        this.renderToolbar('bottom');
+        this.renderToolbar('left');
+
+        this.toggleToolbarVisibility('top', false);
+        this.toggleToolbarVisibility('right', false);
+        this.toggleToolbarVisibility('bottom', false);
+        this.toggleToolbarVisibility('left', false);
+
+        this.destroyFns.push(ctx.toolbarManager.addListener('visibility', this.onVisibility.bind(this)));
+    }
+
+    private onSectionEnabledChanged(section: ToolbarSection, enabled: ToolbarSectionProperties['enabled']) {
+        this.toggleToolbarVisibility(this[section].position, enabled);
+    }
+
+    private onSectionButtonsChanged(section: ToolbarSection, buttons: ToolbarSectionProperties['buttons']) {
+        const position = this[section].position ?? 'top';
+        const toolbar = this.elements.fixed[position as ToolbarPosition];
+
+        for (const options of buttons ?? []) {
+            const button = this.createButtonElement(section, options);
+            toolbar.appendChild(button);
+        }
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        if (this.container.visible) {
-            const toolbarTotalHeight = this.height + this.margin;
-            shrinkRect.shrink(toolbarTotalHeight, 'top');
-            this.y = shrinkRect.y - this.height - this.margin;
-        } else {
-            this.y = 0;
+        const {
+            elements: { fixed },
+            margin,
+        } = this;
+
+        if (fixed.top.style.visibility !== 'hidden') {
+            shrinkRect.shrink(fixed.top.clientHeight + margin, 'top');
+        }
+
+        if (fixed.right.style.visibility !== 'hidden') {
+            shrinkRect.shrink(fixed.right.clientWidth + margin, 'right');
+        }
+
+        if (fixed.bottom.style.visibility !== 'hidden') {
+            shrinkRect.shrink(fixed.bottom.clientHeight + margin, 'bottom');
+        }
+
+        if (fixed.left.style.visibility !== 'hidden') {
+            shrinkRect.shrink(fixed.left.clientWidth + margin, 'left');
         }
 
         return { shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        const { x, width } = opts.seriesRect;
+        const {
+            elements: { fixed },
+            margin,
+        } = this;
+        const { seriesRect } = opts;
 
-        if (this.container.visible) {
-            const { y, height } = this;
-            this.layoutNodes(x, y, width, height);
-        }
+        fixed.top.style.top = `${seriesRect.y - fixed.top.clientHeight}px`;
+        fixed.top.style.left = `${margin}px`;
+
+        fixed.right.style.top = `${seriesRect.y + margin}px`;
+        fixed.right.style.right = `${margin}px`;
+
+        fixed.bottom.style.bottom = `${margin}px`;
+        fixed.bottom.style.left = `${margin}px`;
+
+        fixed.left.style.top = `${seriesRect.y + margin}px`;
+        fixed.left.style.left = `${margin}px`;
     }
 
-    private onHover({ offsetX, offsetY }: InteractionEvent<'hover' | 'leave'>) {
-        this.activeButton = undefined;
-
-        if (!this.container.visible) return;
-
-        for (const [button, config] of this.buttons) {
-            if (button.containsPoint(offsetX, offsetY)) {
-                this.activeButton = config;
-                break;
-            }
-        }
-
-        if (this.activeButton == null) {
-            this.ctx.cursorManager.updateCursor('rangeButtons');
-        } else {
-            this.ctx.cursorManager.updateCursor('rangeButtons', 'pointer');
-        }
+    private onVisibility({ section, visible }: ToolbarVisibilityEvent) {
+        this.toggleToolbarVisibility(this[section].position ?? 'top', this[section].enabled && visible);
     }
 
-    private onClick() {
-        if (!this.container.visible || this.activeButton == null) return;
-        const { id, groupId, value } = this.activeButton;
-        this.ctx.toolbarManager.pressButton(id, groupId, value);
+    private toggleToolbarVisibility(position: ToolbarPosition = 'top', visible = true) {
+        this.elements.fixed[position].style.visibility = visible ? 'visible' : 'hidden';
     }
 
-    private onButtonGroupUpdated({ id: groupId, buttons }: ToolbarButtonUpdatedEvent) {
-        const existingGroup = this.buttonGroups.get(groupId);
-        if (existingGroup != null) {
-            this.buttons.forEach((config, button) => {
-                if (config.groupId === groupId) {
-                    this.buttons.delete(button);
-                }
-            });
-            this.container.removeChild(existingGroup);
-        }
-
-        const buttonGroup = new Group();
-
-        let buttonOffsetX = 0;
-        buttons.forEach(({ id, label, value }) => {
-            const button = new ToolbarButton({
-                label,
-                minWidth: 32,
-                height: 20,
-                padding: 6,
-            });
-
-            button.translationX = buttonOffsetX;
-            buttonOffsetX += button.computeBBox().width + this.buttonSpacingX;
-
-            this.buttons.set(button, { id, groupId, value });
-
-            buttonGroup.append(button);
-        });
-
-        this.buttonGroups.set(groupId, buttonGroup);
-        this.container.appendChild(buttonGroup);
-
-        let buttonGroupOffsetX = 0;
-        this.container.children.forEach((group) => {
-            group.translationX = buttonGroupOffsetX;
-            buttonGroupOffsetX += (group.computeBBox()?.width ?? 0) + this.buttonSpacingX;
-        });
-
-        this.container.visible = this.buttons.size > 0;
+    private renderToolbar(position: ToolbarPosition = 'top') {
+        const element = this.elements.fixed[position];
+        element.classList.add(TOOLBAR_CLASS, `${TOOLBAR_CLASS}--${position}`);
     }
 
-    private layoutNodes(x: number, y: number, _width: number, _height: number) {
-        this.container.translationX = x;
-        this.container.translationY = y;
+    private createButtonElement(section: ToolbarSection, options: { label: string; value: any }) {
+        const button = createElement('button');
+        button.classList.add(`${TOOLBAR_CLASS}__button`);
+        button.innerText = options.label;
+        button.onclick = this.onButtonPress.bind(this, section, options.value);
+
+        return button;
+    }
+
+    private onButtonPress(section: ToolbarSection, value: any) {
+        this.ctx.toolbarManager.pressButton(section, value);
     }
 }

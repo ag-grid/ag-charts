@@ -47,8 +47,10 @@ const options: AgCartesianChartOptions = {
             start: new Date(2023, 10, 26),
         },
     },
-    rangeButtons: {
-        enabled: true,
+    toolbar: {
+        ranges: {
+            enabled: true,
+        },
     },
     title: {
         text: 'AAPL',
@@ -135,10 +137,10 @@ const options: AgCartesianChartOptions = {
         },
     ],
     annotations: {
+        enabled: true,
         initial: [
             {
                 type: 'parallel-channel',
-                locked: true,
                 top: {
                     // TODO: `new Date()` should not be needed once this chart uses the `OrdinalTimeAxis`
                     start: { x: new Date(1672756200000), y: 130.28 + 6 },
@@ -151,13 +153,11 @@ const options: AgCartesianChartOptions = {
             },
             {
                 type: 'line',
-                locked: true,
                 start: { x: new Date(1701959400000), y: 193.63 },
                 end: { x: new Date(1707489000000), y: 188.85 },
             },
             {
                 type: 'line',
-                locked: true,
                 start: { x: new Date(1691155800000), y: 185.52 },
                 end: { x: new Date(1698413400000), y: 166.91 },
             },
