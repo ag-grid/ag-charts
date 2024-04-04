@@ -17,6 +17,13 @@ const { Color, Logger, isEqual, sanitizeHtml } = _Util;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
+interface Padding {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+}
+
 interface LabelData {
     label: string | undefined;
     secondaryLabel: string | undefined;
@@ -229,15 +236,24 @@ export class TreemapSeries<
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
-    private squarify(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox, outputBoxes: (_Scene.BBox | undefined)[]) {
+    private squarify(
+        node: _ModuleSupport.HierarchyNode,
+        bbox: _Scene.BBox,
+        outputBoxes: (_Scene.BBox | undefined)[],
+        outputPadding: (Padding | undefined)[]
+    ) {
         const { index, datum, children } = node;
 
         if (bbox.width <= 0 || bbox.height <= 0) {
             outputBoxes[index] = undefined;
+            outputPadding[index] = undefined;
             return;
         }
 
+        const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
+
         outputBoxes[index] = index === 0 ? undefined : bbox;
+        outputPadding[index] = index === 0 ? undefined : padding;
 
         const sortedChildrenIndices = Array.from(children, (_, i) => i)
             .filter((i) => nodeSize(children[i]) > 0)
@@ -251,7 +267,6 @@ export class TreemapSeries<
         const allLeafNodes = sortedChildrenIndices.every((sortedIndex) => children[sortedIndex].children.length === 0);
 
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
-        const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
 
@@ -301,7 +316,7 @@ export class TreemapSeries<
 
                 const childBbox = new BBox(x, y, stackWidth, stackHeight);
                 this.applyGap(innerBox, childBbox, allLeafNodes);
-                this.squarify(child, childBbox, outputBoxes);
+                this.squarify(child, childBbox, outputBoxes, outputPadding);
 
                 partitionSum -= childSize;
                 start += length;
@@ -332,7 +347,7 @@ export class TreemapSeries<
             const childHeight = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, childWidth, childHeight);
             this.applyGap(innerBox, childBox, allLeafNodes);
-            this.squarify(child, childBox, outputBoxes);
+            this.squarify(child, childBox, outputBoxes, outputPadding);
             start += isVertical ? childWidth : childHeight;
         }
     }
@@ -441,7 +456,8 @@ export class TreemapSeries<
 
         const { width, height } = seriesRect;
         const bboxes: (_Scene.BBox | undefined)[] = Array.from(this.rootNode, () => undefined);
-        this.squarify(rootNode, new BBox(0, 0, width, height), bboxes);
+        const paddings: (Padding | undefined)[] = Array.from(this.rootNode, () => undefined);
+        this.squarify(rootNode, new BBox(0, 0, width, height), bboxes, paddings);
 
         let highlightedNode: _ModuleSupport.HierarchyNode | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
@@ -487,17 +503,31 @@ export class TreemapSeries<
                 highlightedStrokeOpacity ??
                 (isLeaf ? tile.strokeOpacity : group.strokeOpacity);
 
+            rect.crisp = true;
             rect.fill = validateColor(fill);
             rect.fillOpacity = fillOpacity;
             rect.stroke = validateColor(stroke);
             rect.strokeWidth = strokeWidth;
             rect.strokeOpacity = strokeOpacity;
-            rect.crisp = true;
+            rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
 
-            rect.x = bbox.x;
-            rect.y = bbox.y;
-            rect.width = bbox.width;
-            rect.height = bbox.height;
+            const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
+            const parentBbox = node.parent != null ? bboxes[node.parent.index] : undefined;
+            const parentPadding = node.parent != null ? paddings[node.parent.index] : undefined;
+            if (onlyLeaves === true && parentBbox != null && parentPadding != null) {
+                rect.clipBBox = bbox;
+                rect.x = parentBbox.x + parentPadding.left;
+                rect.y = parentBbox.y + parentPadding.top;
+                rect.width = parentBbox.width - (parentPadding.left + parentPadding.right);
+                rect.height = parentBbox.height - (parentPadding.top + parentPadding.bottom);
+            } else {
+                rect.clipBBox = undefined;
+                rect.x = bbox.x;
+                rect.y = bbox.y;
+                rect.width = bbox.width;
+                rect.height = bbox.height;
+            }
+
             rect.visible = true;
         };
         this.groupSelection.selectByClass(Rect).forEach((rect) => updateRectFn(rect.datum, rect, false));
