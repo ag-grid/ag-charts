@@ -83,11 +83,9 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (this.data == null || !this.properties.isValid()) {
-            return;
-        }
+        if (this.data == null || !this.properties.isValid() || !this.visible) return;
 
-        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { data, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
@@ -123,9 +121,6 @@ export class AreaSeries extends CartesianSeries<
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if (connectMissingData && stackCount > 1) {
             common.invalidValue = 0;
-        }
-        if (!visible) {
-            common.forceValue = 0;
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [

@@ -388,7 +388,7 @@ export abstract class AngleAxis<
             }
         } else if (orientation === 'perpendicular') {
             rotation += tickAngle;
-            if (tickAngle >= Math.PI / 2 && tickAngle < (3 * Math.PI) / 2) {
+            if (tickAngle >= Math.PI / 2 && tickAngle < 1.5 * Math.PI) {
                 rotation += Math.PI;
             }
         }

@@ -70,10 +70,10 @@ export class ExtendedPath2D {
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/roundRect
         radii = Math.min(radii, width / 2, height / 2);
         this.moveTo(x, y + radii);
-        this.arc(x + radii, y + radii, radii, Math.PI, (3 * Math.PI) / 2);
+        this.arc(x + radii, y + radii, radii, Math.PI, 1.5 * Math.PI);
         this.lineTo(x + radii, y);
         this.lineTo(x + width - radii, y);
-        this.arc(x + width - radii, y + radii, radii, (3 * Math.PI) / 2, 2 * Math.PI);
+        this.arc(x + width - radii, y + radii, radii, 1.5 * Math.PI, 2 * Math.PI);
         this.lineTo(x + width, y + radii);
         this.lineTo(x + width, y + height - radii);
         this.arc(x + width - radii, y + height - radii, radii, 0, Math.PI / 2);

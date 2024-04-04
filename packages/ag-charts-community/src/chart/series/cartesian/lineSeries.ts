@@ -62,9 +62,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null) {
-            return;
-        }
+        if (!this.properties.isValid() || this.data == null || !this.visible) return;
 
         const { xKey, yKey } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -363,8 +361,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         const { yKey, yName, stroke, strokeOpacity, strokeWidth, lineDash, title, marker, visible } = this.properties;
+        const transparent = 'rgba(0, 0, 0, 0)';
 
-        const color0 = 'rgba(0, 0, 0, 0)';
         return [
             {
                 legendType: 'category',
@@ -377,15 +375,15 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 },
                 marker: {
                     shape: marker.shape,
-                    fill: marker.fill ?? color0,
-                    stroke: marker.stroke ?? stroke ?? color0,
+                    fill: marker.fill ?? transparent,
+                    stroke: marker.stroke ?? stroke ?? transparent,
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
                     strokeWidth: marker.strokeWidth ?? 0,
                     enabled: marker.enabled,
                 },
                 line: {
-                    stroke: stroke ?? color0,
+                    stroke: stroke ?? transparent,
                     strokeOpacity,
                     strokeWidth,
                     lineDash,

@@ -439,7 +439,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const midAngle180 = normalizeAngle180(midAngle);
 
         // Split the circle into quadrants like so: ⊗
-        const quadrantStart = (-3 * Math.PI) / 4; // same as `normalizeAngle180(toRadians(-135))`
+        const quadrantStart = -0.75 * Math.PI; // same as `normalizeAngle180(toRadians(-135))`
         const quadrantOffset = midAngle180 - quadrantStart;
         const quadrant = Math.floor(quadrantOffset / (Math.PI / 2));
         const quadrantIndex = mod(quadrant, quadrantTextOpts.length);

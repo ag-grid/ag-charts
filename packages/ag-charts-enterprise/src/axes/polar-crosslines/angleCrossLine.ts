@@ -165,7 +165,7 @@ export class AngleCrossLine extends PolarCrossLine {
 
         if (type === 'line') {
             const angle = normalizeAngle360(scale.convert(this.value));
-            const angle270 = (3 * Math.PI) / 2;
+            const angle270 = 1.5 * Math.PI;
             const isRightSide = isNumberEqual(angle, angle270) || angle > angle270 || angle < Math.PI / 2;
             const midX = ((axisInnerRadius + axisOuterRadius) / 2) * Math.cos(angle);
             const midY = ((axisInnerRadius + axisOuterRadius) / 2) * Math.sin(angle);
