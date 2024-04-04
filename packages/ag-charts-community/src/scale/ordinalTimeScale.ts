@@ -80,7 +80,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         let { tickCount, minTickCount } = this;
 
         const n = this.domain.length;
-        if (n <= maxTickCount) {
+        if (isFinite(maxTickCount) && n <= maxTickCount) {
             tickCount = Math.max(1, n - 1);
             minTickCount = Math.max(1, n - 1);
         }
