@@ -1,5 +1,5 @@
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
-import { type OptionsDefs, instanceOf, number, object, optional, positiveNumber } from '../util/validate';
+import { type OptionsDefs, boolean, instanceOf, number, optional, positiveNumber } from '../util/validate';
 import { ChartType } from './types';
 
 export const chartOptionsDef: OptionsDefs<string> = {
@@ -7,23 +7,21 @@ export const chartOptionsDef: OptionsDefs<string> = {
     width: optional(positiveNumber),
     height: optional(positiveNumber),
 
-    padding: optional(
-        object({
-            top: optional(number),
-            right: optional(number),
-            bottom: optional(number),
-            left: optional(number),
-        })
-    ),
+    padding: optional({
+        top: optional(number),
+        right: optional(number),
+        bottom: optional(number),
+        left: optional(number),
+    }),
 
     // modules - dynamically added, optional
-    animation: optional(object({})),
-    background: optional(object({})),
-    contextMenu: optional(object({})),
-    legend: optional(object({})),
-    navigator: optional(object({})),
-    sync: optional(object({})),
-    zoom: optional(object({})),
+    animation: optional({ enabled: optional(boolean) }),
+    background: optional({ enabled: optional(boolean) }),
+    contextMenu: optional({ enabled: optional(boolean) }),
+    legend: optional({ enabled: optional(boolean) }),
+    navigator: optional({ enabled: optional(boolean) }),
+    sync: optional({ enabled: optional(boolean) }),
+    zoom: optional({ enabled: optional(boolean) }),
 };
 
 export class ChartOptions<T extends object> {

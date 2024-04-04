@@ -46,7 +46,8 @@ export const union =
     (value: any) =>
         allowed.includes(value);
 
-export function optional(validator: Validator): Validator {
+export function optional(validatorOrDefs: Validator | OptionsDefs<string>): Validator {
+    const validator = typeof validatorOrDefs === 'object' ? object(validatorOrDefs) : validatorOrDefs;
     const optionalValidator = (value?: unknown) => typeof value === 'undefined' || validator(value);
     return Object.assign(optionalValidator, { optional: true });
 }
