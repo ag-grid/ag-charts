@@ -70,14 +70,25 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     override ticks(): Date[] {
+        if (!this.domain || this.domain.length < 2) {
+            return [];
+        }
+
         this.refresh();
+
+        const { interval, maxTickCount } = this;
+        let { tickCount, minTickCount } = this;
+
+        const n = this.domain.length;
+        if (isFinite(maxTickCount) && n <= maxTickCount) {
+            tickCount = Math.max(1, n - 1);
+            minTickCount = Math.max(1, n - 1);
+        }
 
         const [t0, t1] = [dateToNumber(this.domain[0]), dateToNumber(this.domain.at(-1))];
 
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
-
-        const { interval, tickCount, minTickCount, maxTickCount } = this;
 
         let ticks;
         if (interval !== undefined) {

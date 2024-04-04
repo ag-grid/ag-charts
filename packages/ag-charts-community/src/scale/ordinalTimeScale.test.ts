@@ -37,6 +37,22 @@ describe('OrdinalTimeScale', () => {
         ]);
     });
 
+    it('should create ticks matching the data domain if the domain length is smaller than maxTickCount', () => {
+        const scale = new OrdinalTimeScale();
+        scale.domain = [
+            new Date(2024, 1, 26),
+            new Date(2024, 1, 27),
+            new Date(2024, 1, 28),
+            new Date(2024, 1, 29),
+            new Date(2024, 2, 1),
+            new Date(2024, 2, 4),
+            new Date(2024, 2, 5),
+            new Date(2024, 2, 6),
+        ];
+        scale.maxTickCount = 8;
+        expect(scale.ticks()).toEqual(scale.domain);
+    });
+
     describe('should create ticks with configured', () => {
         describe(`milliseconds interval`, () => {
             const MILLISECONDS_INTERVALS = [
