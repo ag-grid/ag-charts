@@ -34,15 +34,15 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
             const { fullOptions } = options;
             const prevOptions = options.prevOptions.fullOptions;
 
-            if (fullOptions.autoSize !== prevOptions.autoSize) {
-                this.setAutoSize(fullOptions.autoSize);
+            if (fullOptions.width !== prevOptions.width || fullOptions.height !== prevOptions.height) {
+                this.setAutoSize(Boolean(fullOptions.width || fullOptions.height));
             }
             if (fullOptions.container != prevOptions.container) {
                 this.setContainer(fullOptions.container, prevOptions.container);
             }
         } else {
             const { fullOptions } = options;
-            this.setAutoSize(fullOptions.autoSize);
+            this.setAutoSize(Boolean(fullOptions.width || fullOptions.height));
             this.setContainer(fullOptions.container);
         }
 

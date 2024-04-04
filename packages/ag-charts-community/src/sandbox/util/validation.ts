@@ -24,17 +24,16 @@ export interface Validator extends Function {
 export function validation<T extends PlainObject>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
     const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : `${path}.${key}`);
     for (const [key, validatorOrDefs] of Object.entries<Validator | OptionsDefs<any>>(optionsDefs)) {
+        const value = options[key as keyof T];
         if (isFunction(validatorOrDefs)) {
-            const value = options[key as keyof T];
             if (validatorOrDefs(value)) continue;
 
             const description = validatorOrDefs.description ? `; expecting ${validatorOrDefs.description}` : '';
             Logger.warn(
-                `Option \`${extendPath(key)}\` cannot be set to \`${stringify(value)}\`${description}, ignoring.`
+                `Option \`${extendPath(key)}\` cannot be set to [${stringify(value)}]${description}, ignoring.`
             );
             return false;
-        }
-        if (!validation(options[key as keyof T], validatorOrDefs, extendPath(key))) {
+        } else if (!validation(value, validatorOrDefs, extendPath(key))) {
             return false;
         }
     }
