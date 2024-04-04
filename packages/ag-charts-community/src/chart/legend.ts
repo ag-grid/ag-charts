@@ -1013,6 +1013,9 @@ export class Legend extends BaseProperties {
             case 'page':
                 if (this.focus.pageButton === 'next') this.pagination.clickNext();
                 if (this.focus.pageButton === 'prev') this.pagination.clickPrevious();
+                // Reset the item focus (row/col indices might be out-of-bounds in this new page):
+                this.focus.row = 0;
+                this.focus.column = 0;
                 break;
         }
     }
@@ -1024,7 +1027,7 @@ export class Legend extends BaseProperties {
         }
 
         const { row, column } = this.focus;
-        const nodeIndex = this.pages[this.paginationTrackingIndex].columns[column].indices[row];
+        const nodeIndex = this.pages[this.pagination.currentPage].columns[column].indices[row];
         if (nodeIndex < 0) {
             Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
             return { node: undefined, datum: undefined };
