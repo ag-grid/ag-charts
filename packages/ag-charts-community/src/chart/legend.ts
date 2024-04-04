@@ -37,6 +37,7 @@ import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import { InteractionState, PointerInteractionEvent } from './interaction/interactionManager';
+import type { KeyNavEvent } from './interaction/keyNavManager';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
 import { MarkerConstructor, getMarker } from './marker/util';
@@ -236,6 +237,8 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
+            region.addListener('tab', (e) => this.onTab(e)),
+            region.addListener('nav-hori', (e) => this.onNavHori(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -589,6 +592,14 @@ export class Legend extends BaseProperties {
         return { maxPageWidth, maxPageHeight, pages, paginationBBox, paginationVertical };
     }
 
+    private getRowCount(): number {
+        if (this.pages.length > 0 && this.pages[0].columns.length > 0) {
+            return this.pages[0].columns[0].indices.length;
+        } else {
+            return 0;
+        }
+    }
+
     private updatePositions(pageNumber: number = 0) {
         const {
             item: { paddingY },
@@ -607,7 +618,7 @@ export class Legend extends BaseProperties {
         let y = 0;
 
         const columnCount = columns.length;
-        const rowCount = columns[0].indices.length;
+        const rowCount = this.getRowCount();
         const horizontal = this.getOrientation() === 'horizontal';
 
         const itemHeight = columns[0].bboxes[0].height + paddingY;
@@ -913,6 +924,26 @@ export class Legend extends BaseProperties {
         if (enabled && datum !== undefined && (toggle || clickListener != null || dblclickListener != null)) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
+    }
+
+    private focusedItem = { row: 0, column: 0 };
+
+    private onTab(_event: KeyNavEvent<'tab'>) {
+        this.updateFocus();
+    }
+
+    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
+        const newRow = this.focusedItem.row + event.delta;
+        const maxRow = Math.max(this.getRowCount() - 1, 0);
+        this.focusedItem.row = clamp(0, newRow, maxRow);
+        this.updateFocus();
+    }
+
+    private updateFocus() {
+        const { row, column } = this.focusedItem;
+        const nodeIndex = this.pages[this.paginationTrackingIndex].columns[column].indices[row];
+        const node = this.itemSelection.nodes()[nodeIndex];
+        this.ctx.regionManager.updateFocusIndicatorRect(node.computeTransformedBBox());
     }
 
     private positionLegend(shrinkRect: BBox) {

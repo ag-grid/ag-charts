@@ -6,7 +6,7 @@ import type {
     KeyInteractionEvent,
 } from './interactionManager';
 
-type KeyNavEventType = 'tab' | 'nav-hori';
+export type KeyNavEventType = 'tab' | 'nav-hori';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
     type: T;
@@ -14,6 +14,9 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
     interactionEvent: InteractionEvent;
 };
 
+// The purpose of this class is to decouple keyboard input events configuration with
+// navigation commands. For example, keybindings might be different on macOS and Windows,
+// or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isFocused: boolean = false;
 
@@ -50,9 +53,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
                     return this.dispatch('tab', 1, event);
                 }
             case 'ArrowDown':
-                return this.dispatch('nav-hori', -1, event);
-            case 'ArrowUp':
                 return this.dispatch('nav-hori', 1, event);
+            case 'ArrowUp':
+                return this.dispatch('nav-hori', -1, event);
         }
     }
 
