@@ -6,7 +6,7 @@ import type {
     KeyInteractionEvent,
 } from './interactionManager';
 
-export type KeyNavEventType = 'tab' | 'nav-hori' | 'nav-vert';
+export type KeyNavEventType = 'tab' | 'nav-hori' | 'nav-vert' | 'submit';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
     type: T;
@@ -60,6 +60,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
                 return this.dispatch('nav-hori', -1, event);
             case 'ArrowRight':
                 return this.dispatch('nav-hori', 1, event);
+            case 'Space':
+            case 'Enter':
+                return this.dispatch('submit', 0, event);
         }
     }
 

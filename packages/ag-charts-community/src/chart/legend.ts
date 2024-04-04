@@ -240,6 +240,7 @@ export class Legend extends BaseProperties {
             region.addListener('tab', (e) => this.onTab(e)),
             region.addListener('nav-vert', (e) => this.onNavVert(e)),
             region.addListener('nav-hori', (e) => this.onNavHori(e)),
+            region.addListener('submit', (e) => this.onSubmit(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -769,24 +770,29 @@ export class Legend extends BaseProperties {
     }
 
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
+        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        if (this.doClick(datum)) {
+            event.consume();
+        }
+    }
+
+    private doClick(datum: CategoryLegendDatum | undefined): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
             item: { toggleSeriesVisible },
             preventHidingAll,
         } = this;
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
 
         if (!datum) {
-            return;
+            return false;
         }
 
         const { id, itemId, enabled } = datum;
         const series = chartService.series.find((s) => s.id === id);
         if (!series) {
-            return;
+            return false;
         }
-        event.consume();
 
         let newEnabled = enabled;
         if (toggleSeriesVisible) {
@@ -818,6 +824,7 @@ export class Legend extends BaseProperties {
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
         legendItemClick?.({ type: 'click', enabled: newEnabled, itemId, seriesId: series.id });
+        return true;
     }
 
     private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
@@ -959,21 +966,36 @@ export class Legend extends BaseProperties {
         this.updateFocus();
     }
 
-    private updateFocus() {
+    private onSubmit(_event: KeyNavEvent<'submit'>) {
+        this.doClick(this.getFocus().datum);
+    }
+
+    private getFocus(): { node?: MarkerLabel; datum?: CategoryLegendDatum } {
         const { row, column } = this.focusedItem;
         const nodeIndex = this.pages[this.paginationTrackingIndex].columns[column].indices[row];
+        if (nodeIndex < 0) {
+            Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
+            return { node: undefined, datum: undefined };
+        }
         const node = this.itemSelection.nodes()[nodeIndex];
-        const bbox = node.computeTransformedBBox();
         const data = this.data;
+        let datum: CategoryLegendDatum | undefined;
+        if (nodeIndex < data.length) {
+            datum = this.data[nodeIndex];
+        } else {
+            Logger.error(`Cannot access datum[${nodeIndex}]`);
+        }
+        return { node, datum };
+    }
+
+    private updateFocus() {
+        const { node, datum } = this.getFocus();
+        const bbox = node?.computeTransformedBBox();
 
         this.ctx.regionManager.updateFocusIndicatorRect(bbox);
         if (bbox !== undefined) {
-            if (nodeIndex < 0 || nodeIndex >= data.length) {
-                Logger.error(`Cannot access datum[${nodeIndex}]`);
-            } else {
-                const { x, y } = bbox.computeCenter();
-                this.doHover(data[nodeIndex], x, y);
-            }
+            const { x, y } = bbox.computeCenter();
+            this.doHover(datum, x, y);
         }
     }
 

@@ -55,7 +55,8 @@ export class RegionManager {
             ),
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
-            this.keyNavManager.addListener('nav-hori', this.onNav.bind(this))
+            this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
+            this.keyNavManager.addListener('submit', this.onNav.bind(this))
         );
 
         this.focusIndicator = getDocument()?.createElement('div');
@@ -244,7 +245,7 @@ export class RegionManager {
         }
     }
 
-    private onNav(event: KeyNavEvent<'nav-hori' | 'nav-vert'>) {
+    private onNav(event: KeyNavEvent<'nav-hori' | 'nav-vert' | 'submit'>) {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         this.dispatch(focusedRegion, event);
     }
