@@ -58,6 +58,10 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         );
     }
 
+    computeCenter(): { x: number; y: number } {
+        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+    }
+
     isFinite() {
         return (
             Number.isFinite(this.x) &&

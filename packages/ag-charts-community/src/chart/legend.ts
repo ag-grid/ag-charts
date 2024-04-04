@@ -866,12 +866,7 @@ export class Legend extends BaseProperties {
     }
 
     private handleLegendMouseMove(event: PointerInteractionEvent<'hover'>) {
-        const {
-            enabled,
-            item: { toggleSeriesVisible },
-            listeners,
-        } = this;
-        if (!enabled) {
+        if (!this.enabled) {
             return;
         }
 
@@ -881,6 +876,15 @@ export class Legend extends BaseProperties {
         event.consume();
 
         const datum = this.getDatumForPoint(offsetX, offsetY);
+        this.doHover(datum, offsetX, offsetY);
+    }
+
+    private doHover(datum: CategoryLegendDatum | undefined, offsetX: number, offsetY: number) {
+        const {
+            item: { toggleSeriesVisible },
+            listeners,
+        } = this;
+
         if (datum === undefined) {
             this.ctx.cursorManager.updateCursor(this.id);
             this.ctx.highlightManager.updateHighlight(this.id);
@@ -891,7 +895,7 @@ export class Legend extends BaseProperties {
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
+                { offsetX, offsetY, lastPointerEvent: { offsetX, offsetY }, showArrow: false },
                 toTooltipHtml({ content: this.getItemLabel(datum) })
             );
         } else {
@@ -959,7 +963,18 @@ export class Legend extends BaseProperties {
         const { row, column } = this.focusedItem;
         const nodeIndex = this.pages[this.paginationTrackingIndex].columns[column].indices[row];
         const node = this.itemSelection.nodes()[nodeIndex];
-        this.ctx.regionManager.updateFocusIndicatorRect(node.computeTransformedBBox());
+        const bbox = node.computeTransformedBBox();
+        const data = this.data;
+
+        this.ctx.regionManager.updateFocusIndicatorRect(bbox);
+        if (bbox !== undefined) {
+            if (nodeIndex < 0 || nodeIndex >= data.length) {
+                Logger.error(`Cannot access datum[${nodeIndex}]`);
+            } else {
+                const { x, y } = bbox.computeCenter();
+                this.doHover(data[nodeIndex], x, y);
+            }
+        }
     }
 
     private positionLegend(shrinkRect: BBox) {
