@@ -3,6 +3,7 @@ import { mapIterable } from '../../util/array';
 import { getDocument } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import { clamp } from '../../util/number';
+import { buildConsumable } from './consumableEvent';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
@@ -124,7 +125,7 @@ export class RegionManager {
             ): () => void {
                 return (
                     region?.listeners.addListener(type, (e: RegionEvent) => {
-                        if (!('consumed' in e) || !e.consumed) {
+                        if (!e.consumed) {
                             const currentState = interactionManager.getState();
                             if (currentState & triggeringStates) {
                                 handler(e as TypeInfo[T]);

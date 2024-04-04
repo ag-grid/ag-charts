@@ -1,4 +1,5 @@
 import { BaseManager } from './baseManager';
+import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -8,7 +9,7 @@ import type {
 
 export type KeyNavEventType = 'tab' | 'nav-hori' | 'nav-vert' | 'submit';
 
-export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
+export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
     delta: number;
     interactionEvent: InteractionEvent;
@@ -67,6 +68,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private dispatch(type: KeyNavEventType, delta: number, interactionEvent: KeyNavEvent['interactionEvent']) {
-        this.listeners.dispatch(type, { type, delta, interactionEvent });
+        const event = buildConsumable({ type, delta, interactionEvent });
+        dispatchTypedConsumable(this.listeners, type, event);
     }
 }
