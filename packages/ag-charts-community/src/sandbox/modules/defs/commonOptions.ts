@@ -1,4 +1,4 @@
-import { type OptionsDefs, boolean, callback, optional, string } from '../../util/validation';
+import { type OptionsDefs, boolean, callback, required, string } from '../../util/validation';
 
 export interface CommonSeriesOptions {
     visible?: boolean;
@@ -9,9 +9,9 @@ export interface CommonSeriesOptions {
 }
 
 export const commonSeriesOptionsDefs: OptionsDefs<keyof CommonSeriesOptions> = {
-    visible: optional(boolean),
-    showInLegend: optional(boolean),
-    cursor: optional(string),
-    onNodeClick: optional(callback),
-    onNodeDoubleClick: optional(callback),
+    visible: required(boolean),
+    showInLegend: required(boolean),
+    cursor: required(string),
+    onNodeClick: required(callback),
+    onNodeDoubleClick: required(callback),
 };

@@ -1,5 +1,5 @@
 import { ChartType } from '../../chart/types';
-import { boolean, number, optional, string, union } from '../../util/validation';
+import { boolean, number, required, string, union } from '../../util/validation';
 import { BarSeries, type BarSeriesOptions } from '../barSeries';
 import type { SeriesModule } from '../types';
 import { commonSeriesOptionsDefs } from './commonOptions';
@@ -19,13 +19,13 @@ export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
         ...commonSeriesOptionsDefs,
         xKey: string,
         yKey: string,
-        xValue: optional(string),
-        yValue: optional(string),
-        normalizedTo: optional(number),
-        direction: optional(union('vertical', 'horizontal')),
-        grouped: optional(boolean),
-        stacked: optional(boolean),
-        stackGroup: optional(string),
+        xValue: required(string),
+        yValue: required(string),
+        normalizedTo: required(number),
+        direction: required(union('vertical', 'horizontal')),
+        grouped: required(boolean),
+        stacked: required(boolean),
+        stackGroup: required(string),
     },
 
     dataDefs: {

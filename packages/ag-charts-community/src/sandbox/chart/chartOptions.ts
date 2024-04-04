@@ -1,27 +1,83 @@
+import type { AgChartCaptionOptions, AgChartPaddingOptions } from '../../options/chart/chartOptions';
+import type { PlainObject } from '../../util/types';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
-import { type OptionsDefs, boolean, instanceOf, number, optional, positiveNumber } from '../util/validation';
-import { ChartType } from './types';
+import {
+    type OptionsDefs,
+    arrayOf,
+    boolean,
+    constant,
+    instanceOf,
+    number,
+    object,
+    optionsDefs,
+    or,
+    positiveNumber,
+    required,
+    string,
+    union,
+} from '../util/validation';
+import { type CartesianChartOptions, ChartType } from './types';
 
-export const chartOptionsDef: OptionsDefs<string> = {
-    container: instanceOf(HTMLElement),
-    width: optional(positiveNumber),
-    height: optional(positiveNumber),
+export const themeOptionsDef: OptionsDefs<PlainObject> = {};
 
-    padding: optional({
-        top: optional(number),
-        right: optional(number),
-        bottom: optional(number),
-        left: optional(number),
-    }),
+export const boxOptionsDef: OptionsDefs<AgChartPaddingOptions> = {
+    top: number,
+    right: number,
+    bottom: number,
+    left: number,
+};
+
+export const captionOptionsDef: OptionsDefs<AgChartCaptionOptions> = {
+    enabled: boolean,
+    text: required(string),
+
+    maxWidth: number,
+    maxHeight: number,
+
+    color: string,
+    fontFamily: string,
+    fontSize: number,
+    fontStyle: string,
+    fontWeight: or(string, number),
+    textAlign: union('center', 'left', 'right'),
+    wrapping: union('always', 'hyphenate', 'never', 'on-space'),
+    spacing: number,
+};
+
+export const chartOptionsDef: OptionsDefs<CartesianChartOptions> = {
+    container: required(instanceOf(HTMLElement)),
+    data: required(arrayOf(object)),
+
+    theme: or(string, optionsDefs(themeOptionsDef, 'a theme object')),
+
+    width: positiveNumber,
+    height: positiveNumber,
+
+    padding: boxOptionsDef,
+
+    seriesArea: {
+        clip: boolean,
+        padding: boxOptionsDef,
+    },
+
+    title: { text: string },
+    subtitle: { text: string },
+    footnote: { text: string },
+
+    // dynamically generated
+    axes: required([{ type: constant('number'), visible: boolean }]),
+    series: required([{ type: constant('line'), visible: boolean }]),
+
+    // refactor?
 
     // modules - dynamically added, optional
-    animation: optional({ enabled: optional(boolean) }),
-    background: optional({ enabled: optional(boolean) }),
-    contextMenu: optional({ enabled: optional(boolean) }),
-    legend: optional({ enabled: optional(boolean) }),
-    navigator: optional({ enabled: optional(boolean) }),
-    sync: optional({ enabled: optional(boolean) }),
-    zoom: optional({ enabled: optional(boolean) }),
+    // animation: { enabled: boolean },
+    // background: { enabled: boolean },
+    // contextMenu: { enabled: boolean },
+    // legend: { enabled: boolean },
+    // navigator: { enabled: boolean },
+    // sync: { enabled: boolean },
+    // zoom: { enabled: boolean },
 };
 
 export class ChartOptions<T extends object> {
@@ -66,3 +122,6 @@ export class ChartOptions<T extends object> {
         return true;
     }
 }
+
+const test = required([{ type: constant('number'), visible: boolean }, { visible: boolean }]);
+console.log(test);

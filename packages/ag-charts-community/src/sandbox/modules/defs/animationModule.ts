@@ -1,4 +1,4 @@
-import { boolean, number, optional } from '../../util/validation';
+import { boolean, number, required } from '../../util/validation';
 import { AnimationModule, type AnimationModuleOptions } from '../animation';
 import type { OptionModule } from '../types';
 
@@ -11,7 +11,7 @@ export const animationModule: OptionModule<AnimationModuleOptions> = {
         enabled: true,
     },
     optionsDefs: {
-        enabled: optional(boolean),
-        duration: optional(number),
+        enabled: required(boolean),
+        duration: required(number),
     },
 };

@@ -55,10 +55,12 @@ export type AgChartOptions = CartesianChartOptions | PolarChartOptions;
 
 export interface ChartSeries<T extends string> {
     type: T;
+    visible?: boolean;
 }
 
 export interface ChartAxis<T extends string> {
     type: T;
+    visible?: boolean;
 }
 
 export type CartesianChartAxes = ChartAxis<'category'> | ChartAxis<'number'>;
@@ -72,20 +74,28 @@ export type CartesianChartSeries =
 export type PolarChartAxes = ChartAxis<'angle-category'> | ChartAxis<'angle-number'>;
 export type PolarChartSeries = ChartSeries<'donut'> | ChartSeries<'pie'>;
 
+export type Padding = { top?: number; right?: number; bottom?: number; left?: number };
+
 export interface CommonChartOptions {
     container: HTMLElement;
-    theme?: string | object;
 
-    axes?: object[];
-    series: object[];
+    theme?: string | object;
 
     width?: number;
     height?: number;
-    autoSize?: boolean;
+
+    padding?: Padding;
+    seriesArea?: {
+        clip?: boolean;
+        padding?: Padding;
+    };
 
     title?: object;
     subtitle?: object;
     footnote?: object;
+
+    axes?: object[];
+    series: object[];
 }
 
 export interface CartesianChartOptions extends CommonChartOptions {
