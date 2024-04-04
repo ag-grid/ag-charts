@@ -152,7 +152,6 @@ export type DataModelOptions<K, Grouped extends boolean | undefined> = {
     groupByKeys?: Grouped;
     groupByData?: Grouped;
     groupByFn?: GroupByFn;
-    dataVisible?: boolean;
 };
 
 export type PropertyDefinition<K> =
@@ -283,8 +282,6 @@ export class DataModel<
                 keys = false;
             }
         }
-
-        this.opts.dataVisible ??= true;
 
         const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
             for (const matchGroupId of matchGroupIds) {

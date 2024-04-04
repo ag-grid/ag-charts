@@ -93,12 +93,9 @@ export abstract class CandlestickSeriesBase<
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
-
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.getCategoryAxis()?.scale;
@@ -106,10 +103,10 @@ export abstract class CandlestickSeriesBase<
         const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
 
         const extraProps = [];
-        if (animationEnabled && this.processedData) {
-            extraProps.push(diff(this.processedData));
-        }
         if (animationEnabled) {
+            if (this.processedData) {
+                extraProps.push(diff(this.processedData));
+            }
             extraProps.push(animationValidation());
         }
         if (openKey) {
@@ -122,7 +119,7 @@ export abstract class CandlestickSeriesBase<
             );
         }
 
-        const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
+        const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
                 valueProperty(closeKey, true, { id: `closeValue` }),
@@ -131,7 +128,6 @@ export abstract class CandlestickSeriesBase<
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;

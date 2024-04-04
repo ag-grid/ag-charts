@@ -1,6 +1,4 @@
-import { toArray } from '../util/array';
 import { Debug } from '../util/debug';
-import { getWindow } from '../util/dom';
 import { Logger } from '../util/logger';
 import { isString } from '../util/type-guards';
 import { Group } from './group';
@@ -65,30 +63,7 @@ export function debugStats(
     ctx.restore();
 }
 
-export function debugSceneNodeHighlight(
-    root: Node | null,
-    ctx: CanvasRenderingContext2D,
-    debugNodes: Record<string, Node>
-) {
-    const sceneNodeHighlight = toArray(getWindow('agChartsSceneDebug') as string | RegExp).flatMap((name) =>
-        isString(name) && name === 'layout' ? ['seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/] : name
-    );
-    for (const next of sceneNodeHighlight) {
-        if (isString(next) && debugNodes[next] != null) continue;
-
-        const predicate = isString(next) ? stringPredicate(next) : regexpPredicate(next);
-        const nodes = root?.findNodes(predicate);
-
-        if (!nodes?.length) {
-            Logger.log(`Scene.render() - no debugging node with id [${next}] in scene graph.`);
-            continue;
-        }
-
-        for (const node of nodes) {
-            debugNodes[Group.is(node) ? node.name ?? node.id : node.id] = node;
-        }
-    }
-
+export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
     ctx.save();
 
     for (const [name, node] of Object.entries(debugNodes)) {
@@ -215,12 +190,4 @@ function accumulate<T>(iterator: Iterable<T>, mapper: (item: T) => number) {
         sum += mapper(item);
     }
     return sum;
-}
-
-function regexpPredicate(matcher: RegExp) {
-    return (node: Node) => matcher.test(node.id) || (Group.is(node) && node.name != null && matcher.test(node.name));
-}
-
-function stringPredicate(match: string) {
-    return (node: Node) => match === node.id || (Group.is(node) && node.name != null && match === node.name);
 }
