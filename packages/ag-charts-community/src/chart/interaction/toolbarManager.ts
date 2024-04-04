@@ -1,42 +1,33 @@
 import { BaseManager } from './baseManager';
 
-type EventTypes = ToolbarButtonUpdated | ToolbarButtonPressed;
-type ToolbarButtonUpdated = 'button-group-updated';
-type ToolbarButtonPressed = 'button-pressed';
+export type ToolbarSection = 'ranges';
 
-export type ToolbarEvent = ToolbarButtonUpdatedEvent | ToolbarButtonPressEvent;
+type EventTypes = ToolbarButtonPressed | ToolbarVisibility;
+type ToolbarButtonPressed = 'button-pressed';
+type ToolbarVisibility = 'visibility';
+
+type ToolbarEvent = ToolbarButtonPressedEvent | ToolbarVisibilityEvent;
 
 interface Event<T extends EventTypes> {
     type: T;
 }
 
-export interface ToolbarButton {
-    id: string;
-    label: string;
-    value: any;
+export interface ToolbarVisibilityEvent extends Event<ToolbarVisibility> {
+    section: ToolbarSection;
+    visible: boolean;
 }
 
-export interface ToolbarButtonUpdatedEvent extends Event<ToolbarButtonUpdated> {
-    id: string;
-    buttons: ToolbarButton[];
-}
-
-export interface ToolbarButtonPressEvent extends Event<ToolbarButtonPressed> {
-    id: string;
-    groupId: string | undefined;
+export interface ToolbarButtonPressedEvent extends Event<ToolbarButtonPressed> {
+    section: ToolbarSection;
     value: any;
 }
 
 export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
-    setButtonGroup(id: string, buttons: ToolbarButton[]) {
-        this.listeners.dispatch('button-group-updated', {
-            type: 'button-group-updated',
-            id,
-            buttons,
-        });
+    pressButton(section: ToolbarSection, value: any) {
+        this.listeners.dispatch('button-pressed', { type: 'button-pressed', section, value });
     }
 
-    pressButton(id: string, groupId: string | undefined, value: any) {
-        this.listeners.dispatch('button-pressed', { type: 'button-pressed', id, groupId, value });
+    toggleSection(section: ToolbarSection, visible: boolean) {
+        this.listeners.dispatch('visibility', { type: 'visibility', section, visible });
     }
 }

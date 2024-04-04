@@ -7,7 +7,7 @@ import type { AgBaseChartListeners } from './eventOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
-import type { AgRangeButtonsOptions } from './rangeButtonsOptions';
+import type { AgToolbarOptions } from './toolbarOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
 import type { AgZoomOptions } from './zoomOptions';
@@ -170,14 +170,14 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     dataSource?: AgDataSourceOptions<TDatum>;
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions;
+    /** Configuration for the toolbar. */
+    toolbar?: AgToolbarOptions;
 
     // Cartesian-specific options - special care required.
     /** Configuration for annotations. */
     annotations?: AgAnnotationsOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
-    /** Configuration for the range buttons. */
-    rangeButtons?: AgRangeButtonsOptions;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */

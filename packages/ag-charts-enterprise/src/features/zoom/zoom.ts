@@ -1,4 +1,4 @@
-import type { AgRangeButtonsButton, AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
+import type { AgToolbarRangesButtonValue, AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
@@ -57,10 +57,11 @@ enum DragState {
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
-        newValue(newValue) {
-            if (newValue) {
+        newValue(enabled) {
+            if (enabled) {
                 this.registerContextMenuActions();
             }
+            this.toolbarManager?.toggleSection('ranges', Boolean(enabled));
         },
     })
     @Validate(BOOLEAN)
@@ -116,6 +117,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
+    private readonly toolbarManager: _ModuleSupport.ToolbarManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
@@ -147,6 +149,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.scene = ctx.scene;
         this.cursorManager = ctx.cursorManager;
         this.highlightManager = ctx.highlightManager;
+        this.toolbarManager = ctx.toolbarManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
@@ -277,10 +280,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 this.cursorManager.updateCursor(CURSOR_ID, 'grabbing');
                 newDragState = DragState.Pan;
                 this.panner.start();
-            }
-            // Do not allow selection only if fully zoomed in or when the pankey is pressed
-            else {
+            } else if (this.enableSelecting) {
                 const fullyZoomedIn = this.isMinZoom(definedZoomState(this.zoomManager.getZoom()));
+                // Do not allow selection if fully zoomed in or when the pankey is pressed
                 if (!fullyZoomedIn && !panKeyPressed) {
                     newDragState = DragState.Select;
                 }
@@ -465,10 +467,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressEvent) {
-        if (event.groupId !== 'range') return;
+    private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (event.section !== 'ranges') return;
 
-        const time = event.value as AgRangeButtonsButton['duration'];
+        const time = event.value as AgToolbarRangesButtonValue;
         if (typeof time === 'number') {
             this.rangeX.extendToEnd(time);
         } else if (Array.isArray(time)) {

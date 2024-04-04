@@ -20,7 +20,6 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     },
     { type: 'root', optionsKey: 'contextMenu', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
     { type: 'root', optionsKey: 'dataSource', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
-    { type: 'root', optionsKey: 'rangeButtons', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian', 'topology'] },
     {
