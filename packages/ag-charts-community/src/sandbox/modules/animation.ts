@@ -1,4 +1,4 @@
-import type { IModule } from '../chart/types';
+import type { IModule } from '../types';
 
 export interface AnimationModuleOptions {
     enabled?: boolean;

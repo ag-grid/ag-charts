@@ -1,7 +1,8 @@
-import { ChartType } from '../../chart/types';
-import { boolean, number, required, string, union } from '../../util/validation';
-import { BarSeries, type BarSeriesOptions } from '../barSeries';
-import type { SeriesModule } from '../types';
+import { CARTESIAN_AXIS_TYPE, POSITION } from '../../chart/themes/constants';
+import type { SeriesModule } from '../modules/types';
+import { BarSeries, type BarSeriesOptions } from '../series/barSeries';
+import { ChartType } from '../types';
+import { boolean, number, required, string, union } from '../util/validation';
 import { commonSeriesOptionsDefs } from './commonOptions';
 
 export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
@@ -29,11 +30,21 @@ export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
     },
 
     dataDefs: {
-        xValue: { type: 'key' },
-        yValue: { type: 'value' },
-        yRange: { type: 'value', subtype: 'range' },
-        sInterval: { type: 'reducer' },
+        x: ['x'],
+        y: ['y'],
     },
+
+    defaultAxes: [
+        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
+        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: POSITION.BOTTOM },
+    ],
+
+    // dataDefs: {
+    //     xValue: { type: 'key' },
+    //     yValue: { type: 'value' },
+    //     yRange: { type: 'value', subtype: 'range' },
+    //     sInterval: { type: 'reducer' },
+    // },
 
     // dataDefs: [
     //     { type: 'key', id: 'xValue', param: 'xKey' },

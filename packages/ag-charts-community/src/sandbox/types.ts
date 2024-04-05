@@ -1,6 +1,6 @@
-import type { EventEmitter } from '../util/eventEmitter';
-import type { StageQueue } from '../util/stageQueue';
-import type { ChartOptions } from './chartOptions';
+import type { ChartOptions } from './chart/chartOptions';
+import type { EventEmitter } from './util/eventEmitter';
+import type { StageQueue } from './util/stageQueue';
 
 /**
  * TODO: Split options API navigation into sections:
@@ -45,6 +45,8 @@ export interface SceneEventMap {
     update: {};
 }
 
+export interface IScale {}
+
 export interface IModule {}
 
 export interface ISeries extends IModule {}
@@ -58,7 +60,6 @@ export interface ChartSeries<T extends string> {
 
 export interface ChartAxis<T extends string> {
     type: T;
-    visible?: boolean;
 }
 
 export type CartesianChartAxes = ChartAxis<'category'> | ChartAxis<'number'>;

@@ -1,7 +1,7 @@
 import { createElement, getWindow } from '../../util/dom';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
+import type { IScene, SceneEventMap } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
-import type { IScene, SceneEventMap } from './types';
 
 export class Scene implements IScene {
     static ElementClassName = 'ag-chart-wrapper';

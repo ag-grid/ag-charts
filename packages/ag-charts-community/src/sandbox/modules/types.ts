@@ -1,4 +1,4 @@
-import type { ChartType, IAxis, IModule, ISeries } from '../chart/types';
+import type { ChartType, IAxis, IModule, ISeries } from '../types';
 import type { OptionsDefs } from '../util/validation';
 
 export type Module =
@@ -33,6 +33,8 @@ export interface SeriesModule<T extends object> extends ModuleDef<T, ISeries> {
     paletteFactory?: (params: object) => { fill: string[]; stroke: string[] }; // TODO: improve
 
     dataDefs?: object;
+
+    defaultAxes?: { type: string; position: string }[];
 }
 
 export interface OptionModule<T extends object> extends ModuleDef<T> {

@@ -1,8 +1,11 @@
-import { CartesianChart, HierarchyChart, PolarChart, TopologyChart } from './chart/baseChart';
+import { Scene } from './canvas/scene';
+import { CartesianChart } from './chart/cartesianChart';
 import { ChartOptions } from './chart/chartOptions';
-import { Scene } from './chart/scene';
-import { ChartType, IChart } from './chart/types';
-import type { AgChartOptions } from './modules/defs/commonOptions';
+import { HierarchyChart } from './chart/hierarchyChart';
+import { PolarChart } from './chart/polarChart';
+import { TopologyChart } from './chart/topologyChart';
+import type { AgChartOptions } from './defs/commonOptions';
+import { ChartType, IChart } from './types';
 
 export abstract class AgCharts {
     static create(options: AgChartOptions) {

@@ -1,12 +1,6 @@
-import type { AgChartCaptionOptions } from '../../../options/chart/chartOptions';
-import type {
-    CartesianChartAxes,
-    CartesianChartSeries,
-    ChartSeries,
-    PolarChartAxes,
-    PolarChartSeries,
-} from '../../chart/types';
-import { type OptionsDefs, boolean, callback, string } from '../../util/validation';
+import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
+import type { CartesianChartAxes, CartesianChartSeries, ChartSeries, PolarChartAxes, PolarChartSeries } from '../types';
+import { type OptionsDefs, boolean, callback, string } from '../util/validation';
 
 export type BoxPosition = { top?: number; right?: number; bottom?: number; left?: number };
 

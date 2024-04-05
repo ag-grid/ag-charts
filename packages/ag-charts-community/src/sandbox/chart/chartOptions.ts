@@ -1,6 +1,7 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { PlainObject } from '../../util/types';
-import type { BoxPosition, CartesianChartOptions } from '../modules/defs/commonOptions';
+import type { BoxPosition, CartesianChartOptions } from '../defs/commonOptions';
+import { ChartType } from '../types';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
 import {
     type OptionsDefs,
@@ -17,7 +18,6 @@ import {
     string,
     union,
 } from '../util/validation';
-import { ChartType } from './types';
 
 export const themeOptionsDef: OptionsDefs<PlainObject> = {};
 
@@ -66,7 +66,7 @@ export const chartOptionsDef: OptionsDefs<CartesianChartOptions> = {
     footnote: captionOptionsDef,
 
     // dynamically generated
-    axes: required([{ type: constant('number'), visible: boolean }]),
+    axes: [{ type: constant('number') }],
     series: required([{ type: constant('line'), visible: boolean }]),
 
     // refactor?

@@ -1,10 +1,10 @@
-import type { CartesianChartOptions, CommonChartOptions, PolarChartOptions } from '../modules/defs/commonOptions';
+import type { Scene } from '../canvas/scene';
+import type { CommonChartOptions } from '../defs/commonOptions';
+import type { ChartEventMap, IChart, IScale } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
 import { SizeObserver } from '../util/resizeObserver';
 import { Stage, StageQueue } from '../util/stageQueue';
 import type { ChartOptions } from './chartOptions';
-import type { Scene } from './scene';
-import type { ChartEventMap, IChart } from './types';
 
 export abstract class BaseChart<T extends CommonChartOptions> implements IChart {
     private static sizeObserver = new SizeObserver();
@@ -13,6 +13,9 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
     readonly stageQueue = new StageQueue();
 
     private pendingOptions: ChartOptions<T> | null = null;
+
+    protected scales?: any[];
+    protected series?: any[];
 
     constructor(
         public readonly scene: Scene,
@@ -27,6 +30,10 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
     }
 
     remove() {}
+
+    protected determineScale(): IScale {
+        return null as any;
+    }
 
     protected applyOptions(options: ChartOptions<T>) {
         this.options = options;
@@ -83,11 +90,3 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         prevContainer?.removeAttribute('data-ag-charts');
     }
 }
-
-export class CartesianChart extends BaseChart<CartesianChartOptions> {}
-
-export class PolarChart extends BaseChart<PolarChartOptions> {}
-
-export class HierarchyChart extends BaseChart<any> {}
-
-export class TopologyChart extends BaseChart<any> {}

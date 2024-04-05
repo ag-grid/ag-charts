@@ -1,5 +1,5 @@
-import type { ISeries } from '../chart/types';
-import type { CommonSeriesOptions } from './defs/commonOptions';
+import type { CommonSeriesOptions } from '../defs/commonOptions';
+import { BaseSeries } from './baseSeries';
 
 export interface BarSeriesOptions extends CommonSeriesOptions {
     xKey: string;
@@ -13,4 +13,4 @@ export interface BarSeriesOptions extends CommonSeriesOptions {
     stackGroup?: string;
 }
 
-export class BarSeries implements ISeries {}
+export class BarSeries extends BaseSeries {}
