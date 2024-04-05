@@ -1,3 +1,5 @@
+import { clamp } from 'packages/ag-charts-community/src/util/number';
+
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
@@ -1059,5 +1061,11 @@ export abstract class CartesianSeries<
         }
 
         return result;
+    }
+
+    public override updateFocus(focus: { datum: number }) {
+        const datumNodes = (this.opts.hasMarkers ? this.markerGroup : this.dataNodeGroup).children;
+        focus.datum = clamp(0, focus.datum, datumNodes.length - 1);
+        this.ctx.regionManager.updateFocusIndicatorRect(datumNodes[focus.datum].computeTransformedBBox());
     }
 }
