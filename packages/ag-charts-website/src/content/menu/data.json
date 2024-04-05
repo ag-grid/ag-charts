@@ -422,6 +422,10 @@
                     {
                         "title": "Supported Frameworks",
                         "path": "supported-frameworks"
+                    },
+                    {
+                        "title": "Security",
+                        "path": "security"
                     }
                 ]
             }
