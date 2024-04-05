@@ -57,26 +57,26 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         super();
 
         const series = toErrorBoundCartesianSeries(ctx);
-        const { annotationGroup, annotationSelections } = series;
+        const { addonGroup, addonSelections } = series;
 
         this.cartesianSeries = series;
         this.groupNode = new ErrorBarGroup({
-            name: `${annotationGroup.id}-errorBars`,
+            name: `${add.id}-errorBars`,
             zIndex: _ModuleSupport.Layers.SERIES_LAYER_ZINDEX,
-            zIndexSubOrder: series.getGroupZIndexSubOrder('annotation'),
+            zIndexSubOrder: series.getGroupZIndexSubOrder('addon'),
         });
 
-        annotationGroup.appendChild(this.groupNode);
+        addonGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
-        annotationSelections.add(this.selection);
+        addonSelections.add(this.selection);
 
         this.destroyFns.push(
             series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
-            () => annotationGroup.removeChild(this.groupNode),
-            () => annotationSelections.delete(this.selection)
+            () => addonGroup.removeChild(this.groupNode),
+            () => addonSelections.delete(this.selection)
         );
     }
 

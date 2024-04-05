@@ -116,7 +116,7 @@ export interface CartesianAnimationData<
     datumSelection: Selection<TNode, TDatum>;
     markerSelection: Selection<Marker, TDatum>;
     labelSelection: Selection<Text, TLabel>;
-    annotationSelections: Selection<NodeWithOpacity, TDatum>[];
+    addonSelections: Selection<NodeWithOpacity, TDatum>[];
     contextData: TContext;
     previousContextData?: TContext;
     paths: Path[];
@@ -183,7 +183,7 @@ export abstract class CartesianSeries<
     ) as Selection<TNode, TDatum>;
     private highlightLabelSelection = Selection.select<Text, TLabel>(this.highlightLabel, Text);
 
-    public annotationSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
+    public addonSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
 
     private minRectsCache: {
         dirtyNodeData: boolean;
@@ -1003,7 +1003,7 @@ export abstract class CartesianSeries<
             datumSelection: this.datumSelection,
             markerSelection: this.markerSelection,
             labelSelection: this.labelSelection,
-            annotationSelections: [...this.annotationSelections],
+            addonSelections: [...this.addonSelections],
             contextData,
             previousContextData,
             paths: this.paths,

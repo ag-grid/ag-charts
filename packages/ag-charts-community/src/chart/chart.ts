@@ -145,10 +145,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
         nonEmptyChildDerivedZIndex: true,
     });
-    readonly annotationRoot = new Group({
-        name: `${this.id}-annotation-root`,
+    readonly addonGroup = new Group({
+        name: `${this.id}-addon-root`,
         layer: true,
-        zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
+        zIndex: Layers.SERIES_ADDON_ZINDEX,
     });
 
     readonly tooltip: Tooltip;
@@ -301,7 +301,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         root.visible = false;
         root.append(this.seriesRoot);
         root.append(this.highlightRoot);
-        root.append(this.annotationRoot);
+        root.append(this.addonGroup);
 
         this.axisGridGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
         root.appendChild(this.axisGridGroup);
@@ -322,7 +322,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
-        this.annotationManager = new AnnotationManager(this.annotationRoot);
+        this.annotationManager = new AnnotationManager(this.addonGroup); // TODO: addonGroup is meant for error-bars
         this.chartEventManager = new ChartEventManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
@@ -334,7 +334,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, opts) => this.update(type, opts));
         this.seriesStateManager = new SeriesStateManager();
-        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
+        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.addonGroup);
         this.callbackCache = new CallbackCache();
 
         this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
@@ -1316,7 +1316,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             type: series.type,
             rootGroup: series.rootGroup,
             highlightGroup: series.highlightGroup,
-            annotationGroup: series.annotationGroup,
+            addonGroup: series.addonGroup,
             getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
             seriesGrouping,
             oldGrouping,

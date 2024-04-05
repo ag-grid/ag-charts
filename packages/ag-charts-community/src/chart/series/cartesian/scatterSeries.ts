@@ -330,10 +330,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override animateEmptyUpdateReady(data: ScatterAnimationData) {
-        const { markerSelection, labelSelection, annotationSelections } = data;
+        const { markerSelection, labelSelection, addonSelections } = data;
         markerScaleInAnimation(this, this.ctx.animationManager, markerSelection);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
+        seriesLabelFadeInAnimation(this, 'addons', this.ctx.animationManager, ...addonSelections);
     }
 
     protected isLabelEnabled() {

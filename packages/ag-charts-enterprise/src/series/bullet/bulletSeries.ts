@@ -80,7 +80,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         this.colorRangesGroup = new _Scene.Group({ name: `${this.id}-colorRanges` });
         this.colorRangesSelection = _Scene.Selection.select(this.colorRangesGroup, _Scene.Rect, false);
         this.rootGroup.append(this.colorRangesGroup);
-        this.targetLinesSelection = _Scene.Selection.select(this.annotationGroup, _Scene.Line, false);
+        this.targetLinesSelection = _Scene.Selection.select(this.addonGroup, _Scene.Line, false);
     }
 
     override destroy() {
@@ -387,16 +387,16 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady(data: BulletAnimationData) {
-        const { datumSelection, annotationSelections } = data;
+        const { datumSelection, addonSelections } = data;
 
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
+        seriesLabelFadeInAnimation(this, 'addons', this.ctx.animationManager, ...addonSelections);
     }
 
     override animateWaitingUpdateReady(data: BulletAnimationData) {
-        const { datumSelection, annotationSelections } = data;
+        const { datumSelection, addonSelections } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -415,7 +415,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
-            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
+            seriesLabelFadeInAnimation(this, 'addons', this.ctx.animationManager, ...addonSelections);
         }
     }
 }

@@ -536,16 +536,16 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection, addonSelections }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
+        seriesLabelFadeInAnimation(this, 'addons', this.ctx.animationManager, ...addonSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
+        const { datumSelection, labelSelection, addonSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -566,7 +566,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
-            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
+            seriesLabelFadeInAnimation(this, 'addons', this.ctx.animationManager, ...addonSelections);
         }
     }
 

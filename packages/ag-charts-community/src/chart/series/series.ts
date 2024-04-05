@@ -267,7 +267,8 @@ export abstract class Series<
     // Lazily initialised labelGroup for label presentation.
     readonly labelGroup: Group;
 
-    readonly annotationGroup: Group;
+    // The group node that contains additional series content from module (e.g. error-bars).
+    readonly addonGroup: Group;
 
     // Package-level visibility, not meant to be set by the user.
     chart?: {
@@ -396,11 +397,11 @@ export abstract class Series<
             })
         );
 
-        this.annotationGroup = new Group({
-            name: `${this.id}-annotation`,
+        this.addonGroup = new Group({
+            name: `${this.id}-addon`,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
+            zIndexSubOrder: this.getGroupZIndexSubOrder('addon'),
         });
     }
 
@@ -420,7 +421,7 @@ export abstract class Series<
             case 'highlight':
                 subIndex += 15000;
                 break;
-            case 'annotation':
+            case 'addon':
                 mainAdjust += 15000;
                 break;
         }

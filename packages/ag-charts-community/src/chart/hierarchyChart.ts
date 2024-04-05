@@ -17,7 +17,7 @@ export class HierarchyChart extends Chart {
         const {
             seriesArea: { padding },
             seriesRoot,
-            annotationRoot,
+            addonGroup,
             highlightRoot,
         } = this;
 
@@ -31,7 +31,7 @@ export class HierarchyChart extends Chart {
         this.animationRect = shrinkRect;
         this.hoverRect = shrinkRect;
 
-        for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+        for (const group of [seriesRoot, addonGroup, highlightRoot]) {
             group.translationX = Math.floor(shrinkRect.x);
             group.translationY = Math.floor(shrinkRect.y);
         }

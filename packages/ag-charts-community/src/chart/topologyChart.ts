@@ -56,7 +56,7 @@ export class TopologyChart extends Chart {
         const {
             seriesArea: { padding },
             seriesRoot,
-            annotationRoot,
+            addonGroup,
             highlightRoot,
         } = this;
 
@@ -122,7 +122,7 @@ export class TopologyChart extends Chart {
 
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
-        for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+        for (const group of [seriesRoot, addonGroup, highlightRoot]) {
             group.translationX = Math.floor(shrinkRect.x);
             group.translationY = Math.floor(shrinkRect.y);
             group.setClipRectInGroupCoordinateSpace(

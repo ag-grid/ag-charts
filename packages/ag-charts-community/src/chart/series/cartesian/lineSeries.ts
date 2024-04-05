@@ -419,7 +419,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
-        const { markerSelection, labelSelection, annotationSelections, contextData, paths } = animationData;
+        const { markerSelection, labelSelection, addonSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateLinePaths(paths, contextData);
@@ -427,7 +427,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         resetMotion([markerSelection], resetMarkerPositionFn);
         markerSwipeScaleInAnimation(this, animationManager, markerSelection);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
-        seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
+        seriesLabelFadeInAnimation(this, 'addons', animationManager, ...addonSelections);
     }
 
     protected override animateReadyResize(animationData: LineAnimationData): void {
@@ -442,7 +442,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const {
             markerSelection: markerSelections,
             labelSelection: labelSelections,
-            annotationSelections,
+            addonSelections,
             contextData,
             paths,
             previousContextData,
@@ -466,7 +466,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             markerFadeInAnimation(this, animationManager, 'added', markerSelections);
             pathFadeInAnimation(this, 'path_properties', animationManager, 'add', path);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-            seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
+            seriesLabelFadeInAnimation(this, 'addons', animationManager, ...addonSelections);
             return;
         }
 
@@ -483,7 +483,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
         if (fns.hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-            seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
+            seriesLabelFadeInAnimation(this, 'addons', animationManager, ...addonSelections);
         }
     }
 

@@ -44,7 +44,7 @@ export class CartesianChart extends Chart {
 
     override async performLayout() {
         const shrinkRect = await super.performLayout();
-        const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
+        const { firstSeriesTranslation, seriesRoot, addonGroup, highlightRoot } = this;
 
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
         this.seriesRoot.visible = visibility.series;
@@ -54,7 +54,7 @@ export class CartesianChart extends Chart {
         const { x, y } = seriesRect;
         if (firstSeriesTranslation) {
             // For initial rendering, don't animate.
-            for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+            for (const group of [seriesRoot, addonGroup, highlightRoot]) {
                 group.translationX = Math.floor(x);
                 group.translationY = Math.floor(y);
             }
@@ -66,7 +66,7 @@ export class CartesianChart extends Chart {
                 this.id,
                 'seriesRect',
                 this.animationManager,
-                [seriesRoot, highlightRoot, annotationRoot],
+                [seriesRoot, highlightRoot, addonGroup],
                 { translationX, translationY },
                 { translationX: Math.floor(x), translationY: Math.floor(y) },
                 { phase: 'update' }
@@ -81,7 +81,7 @@ export class CartesianChart extends Chart {
         const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
         seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
         highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        addonGroup.setClipRectInGroupCoordinateSpace(clipRect);
 
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
