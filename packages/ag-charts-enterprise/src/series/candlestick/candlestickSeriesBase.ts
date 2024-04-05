@@ -11,7 +11,7 @@ import {
 import type { CandlestickBaseGroup } from './candlestickGroup';
 import type { CandlestickSeriesBaseItems, CandlestickSeriesBaseProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeBaseDatum } from './candlestickTypes';
-import { prepareCandlestickFromTo, resetCandlestickSelectionsScalingStartFn } from './candlestickUtil';
+import { prepareCandlestickAnimationFunctions } from './candlestickUtil';
 
 const {
     extent,
@@ -359,17 +359,23 @@ export abstract class CandlestickSeriesBase<
         );
     }
 
-    protected override animateEmptyUpdateReady({
+    protected override animateWaitingUpdateReady({
         datumSelection,
     }: _ModuleSupport.CartesianAnimationData<CandlestickBaseGroup<TNodeDatum, TItemOptions>, TNodeDatum>) {
-        const isVertical = this.isVertical();
-        const { from, to } = prepareCandlestickFromTo(isVertical);
-        motion.resetMotion([datumSelection], resetCandlestickSelectionsScalingStartFn(isVertical));
-        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
-            phase: 'initial',
-        });
-    }
+        const { processedData } = this;
+        const difference = processedData?.reduced?.diff;
+        const fns = prepareCandlestickAnimationFunctions();
 
+        motion.fromToMotion(
+            this.id,
+            'datums',
+            this.ctx.animationManager,
+            [datumSelection],
+            fns,
+            (_, datum) => datum.xValue,
+            difference
+        );
+    }
     protected override isVertical(): boolean {
         return true;
     }
