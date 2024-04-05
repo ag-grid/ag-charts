@@ -418,6 +418,10 @@
                     {
                         "title": "Supported Browsers",
                         "path": "supported-browsers"
+                    },
+                    {
+                        "title": "Supported Frameworks",
+                        "path": "supported-frameworks"
                     }
                 ]
             }
