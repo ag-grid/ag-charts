@@ -1,3 +1,5 @@
+import { getWindow } from '../util/dom';
+import { hasConstrainedCanvasMemory } from '../util/userAgent';
 import { CartesianChart } from './chart/cartesianChart';
 import { ChartOptions } from './chart/chartOptions';
 import { HierarchyChart } from './chart/hierarchyChart';
@@ -36,8 +38,9 @@ class ChartInstance {
     private readonly scene: Scene;
 
     constructor(options: object) {
+        const pixelRatio = hasConstrainedCanvasMemory() ? 1 : getWindow('devicePixelRatio');
         // default size, big enough to prevent blurriness in Safari.
-        this.scene = new Scene(1024, 768);
+        this.scene = new Scene(1024, 768, pixelRatio);
         this.options = new ChartOptions(options);
         this.chart = ChartInstance.create(this.scene, this.options);
     }

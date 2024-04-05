@@ -1,5 +1,4 @@
-import { createElement, getWindow } from '../../util/dom';
-import { hasConstrainedCanvasMemory } from '../../util/userAgent';
+import { createElement } from '../../util/dom';
 import type { IScene, SceneEventMap } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
 
@@ -17,12 +16,8 @@ export class Scene implements IScene {
     constructor(
         public width: number,
         public height: number,
-        public pixelRatio: number = getWindow('devicePixelRatio')
+        public pixelRatio: number = 1
     ) {
-        if (hasConstrainedCanvasMemory()) {
-            this.pixelRatio = 1;
-        }
-
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         this.canvas = createElement('canvas');
         this.setCanvasSize(width, height);
