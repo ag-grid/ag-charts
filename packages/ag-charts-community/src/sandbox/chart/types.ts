@@ -76,8 +76,19 @@ export type PolarChartSeries = ChartSeries<'donut'> | ChartSeries<'pie'>;
 
 export type Padding = { top?: number; right?: number; bottom?: number; left?: number };
 
+export interface CaptionOptions {
+    enabled?: boolean;
+    text?: string;
+}
+
+export interface SeriesAreaOptions {
+    clip?: boolean;
+    padding?: Padding;
+}
+
 export interface CommonChartOptions {
     container: HTMLElement;
+    data: any;
 
     theme?: string | object;
 
@@ -85,14 +96,11 @@ export interface CommonChartOptions {
     height?: number;
 
     padding?: Padding;
-    seriesArea?: {
-        clip?: boolean;
-        padding?: Padding;
-    };
+    seriesArea?: SeriesAreaOptions;
 
-    title?: object;
-    subtitle?: object;
-    footnote?: object;
+    title?: CaptionOptions;
+    subtitle?: CaptionOptions;
+    footnote?: CaptionOptions;
 
     axes?: object[];
     series: object[];

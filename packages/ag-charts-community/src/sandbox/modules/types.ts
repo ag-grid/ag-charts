@@ -14,12 +14,11 @@ export interface ModuleDef<OptionsType extends object, ConstructorType extends I
     type: ModuleType;
     identifier: string;
     constructor: ConstructorType;
+    optionsDefs: OptionsDefs<OptionsType>;
 
     chartTypes?: ChartType[];
     enterprise?: boolean;
-
     defaults?: Partial<OptionsType>;
-    optionsDefs: OptionsDefs<OptionsType>;
 }
 
 export interface AxisModule<T extends object> extends ModuleDef<T, IAxis> {

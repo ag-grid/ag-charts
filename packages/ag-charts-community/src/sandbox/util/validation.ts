@@ -4,14 +4,19 @@ import type { PlainObject } from '../../util/types';
 import { stringify } from '../../util/validation';
 import { joinFormatted } from './string';
 
+const descriptionSymbol = Symbol('description');
+const requiredSymbol = Symbol('required');
+
+type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
+
 // Definitions for options validation with support for nested structures.
-export type OptionsDefs<T extends PlainObject> = { [K in keyof T]-?: Validator | OptionsDefs<T[K]> } | OptionsDefs<T>[];
+export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]> };
 
 // Validator interface with optional description and required flag for better error messages.
 export interface Validator extends Function {
     (value: unknown): boolean;
-    description?: string;
-    required?: boolean;
+    [descriptionSymbol]?: string;
+    [requiredSymbol]?: boolean;
 }
 
 /**
@@ -21,17 +26,20 @@ export interface Validator extends Function {
  * @param path (Optional) The current path in the options object, for nested properties.
  * @returns A boolean indicating whether the options are valid.
  */
-export function validation<T extends PlainObject>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
+export function validation<T>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
     const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : `${path}.${key}`);
-    for (const [key, validatorOrDefs] of Object.entries<Validator | OptionsDefs<any>>(optionsDefs)) {
+    for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
         const value = options[key as keyof T];
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value)) continue;
 
-            const description = validatorOrDefs.description ? `; expecting ${validatorOrDefs.description}` : '';
+            let description = validatorOrDefs[descriptionSymbol];
+            description = description ? `; expecting ${description}` : '';
+
             Logger.warn(
                 `Option \`${extendPath(key)}\` cannot be set to [${stringify(value)}]${description}, ignoring.`
             );
+
             return false;
         } else if (!validation(value, validatorOrDefs, extendPath(key))) {
             return false;
@@ -47,7 +55,7 @@ export function validation<T extends PlainObject>(options: T, optionsDefs: Optio
  * @returns A new validator function with the attached description.
  */
 export function attachDescription(validator: Validator, description: string): Validator {
-    return Object.assign((value: unknown) => validator(value), { description });
+    return Object.assign((value: unknown) => validator(value), { [descriptionSymbol]: description });
 }
 
 /**
@@ -56,13 +64,14 @@ export function attachDescription(validator: Validator, description: string): Va
  * @returns The modified validator or option definitions, marked as required.
  */
 export function required<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
+export function required<T extends OptionsDefs<any>[]>(validatorOrDefs: T): T;
 export function required(validatorOrDefs: Validator): Validator;
 export function required<T>(validatorOrDefs: T): T {
     return Object.assign(
         isFunction(validatorOrDefs)
             ? (value: any) => (validatorOrDefs as Function)(value)
             : optionsDefs(validatorOrDefs as OptionsDefs<any>),
-        { required: true }
+        { [requiredSymbol]: true }
     ) as T;
 }
 
@@ -72,7 +81,10 @@ export function required<T>(validatorOrDefs: T): T {
  * @param description (Optional) A description for the validator, defaulting to 'an object'.
  * @returns A validator function for the given option definitions.
  */
-export const optionsDefs = <T extends PlainObject>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
+export const optionsDefs = <T extends PlainObject>(
+    defs: OptionsDefs<T> | OptionsDefs<T>[],
+    description = 'an object'
+): Validator =>
     attachDescription(
         (value: unknown) =>
             isObject(value) &&
@@ -91,7 +103,7 @@ export const and = (...validators: Validator[]) =>
     attachDescription(
         (value: unknown) => validators.every((validator) => validator(value)),
         validators
-            .map((v) => v.description)
+            .map((v) => v[descriptionSymbol])
             .filter(Boolean)
             .join(' and ')
     );
@@ -105,7 +117,7 @@ export const or = (...validators: Validator[]) =>
     attachDescription(
         (value: unknown) => validators.some((validator) => validator(value)),
         validators
-            .map((v) => v.description)
+            .map((v) => v[descriptionSymbol])
             .filter(Boolean)
             .join(' or ')
     );
@@ -158,4 +170,7 @@ export const instanceOf = (instanceType: Function) =>
  * @returns A validator function for arrays with elements validated by the specified validator.
  */
 export const arrayOf = (validator: Validator) =>
-    attachDescription((value: unknown) => isArray(value) && value.every(validator), `${validator.description} array`);
+    attachDescription(
+        (value: unknown) => isArray(value) && value.every(validator),
+        `${validator[descriptionSymbol]} array`
+    );

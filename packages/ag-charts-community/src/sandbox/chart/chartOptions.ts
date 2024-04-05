@@ -1,4 +1,4 @@
-import type { AgChartCaptionOptions, AgChartPaddingOptions } from '../../options/chart/chartOptions';
+import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { PlainObject } from '../../util/types';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
 import {
@@ -16,11 +16,11 @@ import {
     string,
     union,
 } from '../util/validation';
-import { type CartesianChartOptions, ChartType } from './types';
+import { type CartesianChartOptions, ChartType, type Padding } from './types';
 
 export const themeOptionsDef: OptionsDefs<PlainObject> = {};
 
-export const boxOptionsDef: OptionsDefs<AgChartPaddingOptions> = {
+export const boxOptionsDef: OptionsDefs<Padding> = {
     top: number,
     right: number,
     bottom: number,
@@ -60,9 +60,9 @@ export const chartOptionsDef: OptionsDefs<CartesianChartOptions> = {
         padding: boxOptionsDef,
     },
 
-    title: { text: string },
-    subtitle: { text: string },
-    footnote: { text: string },
+    title: captionOptionsDef,
+    subtitle: captionOptionsDef,
+    footnote: captionOptionsDef,
 
     // dynamically generated
     axes: required([{ type: constant('number'), visible: boolean }]),

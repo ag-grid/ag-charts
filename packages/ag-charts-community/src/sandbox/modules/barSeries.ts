@@ -4,8 +4,8 @@ import type { CommonSeriesOptions } from './defs/commonOptions';
 export interface BarSeriesOptions extends CommonSeriesOptions {
     xKey: string;
     yKey: string;
-    xValue?: string;
-    yValue?: string;
+    xName?: string;
+    yName?: string;
     normalizedTo?: number;
     direction?: string;
     grouped?: boolean;

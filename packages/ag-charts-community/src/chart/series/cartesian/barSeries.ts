@@ -196,7 +196,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yExtent = dataModel.getDomain(this, `yValue-end`, 'value', processedData);
 
         if (direction === this.getCategoryDirection()) {
-            if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
+            if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
                 return keys;
             }
 
@@ -214,10 +214,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
             return fixNumericExtent([d0, d1], categoryAxis);
         } else if (this.getValueAxis() instanceof LogAxis) {
-            return fixNumericExtent(yExtent as any, valueAxis);
+            return fixNumericExtent(yExtent, valueAxis);
         } else {
-            const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return fixNumericExtent(fixedYExtent as any, valueAxis);
+            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(yExtent[1])];
+            return fixNumericExtent(fixedYExtent, valueAxis);
         }
     }
 
