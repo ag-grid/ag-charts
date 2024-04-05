@@ -1,5 +1,7 @@
-import type { Scene } from '../canvas/scene';
+import { DataPipeline } from '../data/dataPipeline';
+import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import type { CommonChartOptions } from '../defs/commonOptions';
+import type { Scene } from '../render/scene';
 import type { ChartEventMap, IChart, IScale } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
 import { SizeObserver } from '../util/resizeObserver';
@@ -14,6 +16,7 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
 
     private pendingOptions: ChartOptions<T> | null = null;
 
+    protected dataPipeline = new DataPipeline();
     protected scales?: any[];
     protected series?: any[];
 
@@ -36,10 +39,11 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
     }
 
     protected applyOptions(options: ChartOptions<T>) {
+        const { fullOptions } = options;
+
         this.options = options;
 
         if (options.prevOptions) {
-            const { fullOptions } = options;
             const prevOptions = options.prevOptions.fullOptions;
 
             if (fullOptions.width !== prevOptions.width || fullOptions.height !== prevOptions.height) {
@@ -49,10 +53,15 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
                 this.setContainer(fullOptions.container, prevOptions.container);
             }
         } else {
-            const { fullOptions } = options;
             this.setAutoSize(Boolean(fullOptions.width || fullOptions.height));
             this.setContainer(fullOptions.container);
         }
+
+        // 'x' and 'y' represent the values inside `xKey` and `yKey`
+        this.dataPipeline.addProcessor('x', new CategoryProcessor());
+        this.dataPipeline.addProcessor('y', new NumberProcessor());
+
+        this.dataPipeline.processData(fullOptions.data).getResults();
 
         this.events.emit('change', this.options);
     }
