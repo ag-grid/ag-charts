@@ -1,0 +1,58 @@
+---
+title: 'Toolbar'
+enterprise: true
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+{% chartExampleRunner title="Toolbar" name="toolbar" type="generated" /%}
+
+```ts
+toolbar: {
+    ranges: {
+        enabled: true,
+    }
+}
+```
+
+## Positions
+
+{% chartExampleRunner title="Toolbar" name="toolbar-positions" type="generated" /%}
+
+```ts
+toolbar: {
+    ranges: {
+        position: 'left',
+    },
+}
+```
+
+## Buttons
+
+{% chartExampleRunner title="Toolbar" name="toolbar-buttons" type="generated" /%}
+
+```ts
+const MONTH = 30 * 24 * 60 * 60 * 1000;
+
+// ...
+
+toolbar: {
+    ranges: {
+        buttons: [
+            { label: '6 months', value: 6 * MONTH },
+            { label: '12 months', value: 12 * MONTH },
+            { label: 'All', value: (start, end) => [start, end] },
+        ]
+    },
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgToolbarOptions" label="Toolbar" %}
+{% apiReference id="AgToolbarOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

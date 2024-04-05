@@ -2,17 +2,17 @@ import { BaseManager } from './baseManager';
 
 export type ToolbarSection = 'ranges';
 
-type EventTypes = ToolbarButtonPressed | ToolbarVisibility;
+type EventTypes = ToolbarButtonPressed | ToolbarSectionToggled;
 type ToolbarButtonPressed = 'button-pressed';
-type ToolbarVisibility = 'visibility';
+type ToolbarSectionToggled = 'section-toggled';
 
-type ToolbarEvent = ToolbarButtonPressedEvent | ToolbarVisibilityEvent;
+type ToolbarEvent = ToolbarButtonPressedEvent | ToolbarSectionToggledEvent;
 
 interface Event<T extends EventTypes> {
     type: T;
 }
 
-export interface ToolbarVisibilityEvent extends Event<ToolbarVisibility> {
+export interface ToolbarSectionToggledEvent extends Event<ToolbarSectionToggled> {
     section: ToolbarSection;
     visible: boolean;
 }
@@ -28,6 +28,6 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
     }
 
     toggleSection(section: ToolbarSection, visible: boolean) {
-        this.listeners.dispatch('visibility', { type: 'visibility', section, visible });
+        this.listeners.dispatch('section-toggled', { type: 'section-toggled', section, visible });
     }
 }
