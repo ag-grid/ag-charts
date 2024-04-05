@@ -39,7 +39,7 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
     }
 
     protected applyOptions(options: ChartOptions<T>) {
-        const { fullOptions } = options;
+        const { fullOptions, optionsDiff } = options;
 
         this.options = options;
 
@@ -47,13 +47,13 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
             const prevOptions = options.prevOptions.fullOptions;
 
             if (fullOptions.width !== prevOptions.width || fullOptions.height !== prevOptions.height) {
-                this.setAutoSize(Boolean(fullOptions.width || fullOptions.height));
+                this.setSceneSize(fullOptions.width, fullOptions.height);
             }
             if (fullOptions.container != prevOptions.container) {
                 this.setContainer(fullOptions.container, prevOptions.container);
             }
         } else {
-            this.setAutoSize(Boolean(fullOptions.width || fullOptions.height));
+            this.setSceneSize(fullOptions.width, fullOptions.height);
             this.setContainer(fullOptions.container);
         }
 
@@ -61,7 +61,9 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         this.dataPipeline.addProcessor('x', new CategoryProcessor());
         this.dataPipeline.addProcessor('y', new NumberProcessor());
 
-        this.dataPipeline.processData(fullOptions.data).getResults();
+        if (!optionsDiff || optionsDiff.data) {
+            this.dataPipeline.processData(fullOptions.data);
+        }
 
         this.events.emit('change', this.options);
     }
@@ -72,14 +74,13 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         this.pendingOptions = null;
     };
 
-    private setAutoSize(autoSize?: boolean) {
-        if (autoSize) {
+    private setSceneSize(width?: number, height?: number) {
+        if (!width || !height) {
             let pendingSize: DOMRect | null;
 
             const onResize = () => {
                 if (pendingSize == null) return;
-                const { width, height } = pendingSize;
-                this.scene.resize(width, height);
+                this.scene.resize(width ?? pendingSize.width, height ?? pendingSize.height);
                 pendingSize = null;
             };
 
@@ -90,6 +91,7 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
             });
         } else {
             BaseChart.sizeObserver.unobserve(this.scene.rootElement);
+            this.stageQueue.enqueue(Stage.PRE_RENDER, () => this.scene.resize(width, height));
         }
     }
 

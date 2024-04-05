@@ -3,9 +3,30 @@ export interface IDataProcessor {
     getResult(): any;
 }
 
-class ContinuousProcessor<T extends number | Date> implements IDataProcessor {
-    readonly domain: [T | number, T | number] = [Infinity, -Infinity];
-    readonly values: T[] = [];
+export interface ContinuousProcessorOptions {
+    min?: number;
+    max?: number;
+    nice?: boolean;
+    reverse?: boolean;
+}
+
+export interface DiscreteProcessorOptions {
+    align?: number;
+    padding?: number;
+    paddingInner?: number;
+    paddingOuter?: number;
+}
+
+abstract class DataProcessor<T> implements IDataProcessor {
+    constructor(protected options?: T) {}
+
+    abstract process(value: any, index: number): void;
+    abstract getResult(): any;
+}
+
+abstract class ContinuousProcessor<T extends number | Date> extends DataProcessor<ContinuousProcessorOptions> {
+    protected readonly domain: [T | number, T | number] = [Infinity, -Infinity];
+    protected readonly values: T[] = [];
 
     process(value: T) {
         this.values.push(value);
@@ -22,10 +43,7 @@ class ContinuousProcessor<T extends number | Date> implements IDataProcessor {
     }
 }
 
-export class NumberProcessor<T extends number> extends ContinuousProcessor<T> {}
-export class TimeProcessor<T extends Date> extends ContinuousProcessor<T> {}
-
-class DiscreteProcessor<T> implements IDataProcessor {
+abstract class DiscreteProcessor<T> extends DataProcessor<DiscreteProcessorOptions> {
     readonly domain = new Set<T>();
     readonly values: T[] = [];
 
@@ -38,5 +56,9 @@ class DiscreteProcessor<T> implements IDataProcessor {
         return { domain: this.domain, values: this.values };
     }
 }
+
+export class LogProcessor<T extends Date> extends ContinuousProcessor<T> {}
+export class NumberProcessor<T extends number> extends ContinuousProcessor<T> {}
+export class TimeProcessor<T extends Date> extends ContinuousProcessor<T> {}
 
 export class CategoryProcessor<T> extends DiscreteProcessor<T> {}

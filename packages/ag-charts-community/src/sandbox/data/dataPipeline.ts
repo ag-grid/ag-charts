@@ -1,7 +1,7 @@
 import type { IDataProcessor } from './dataProcessor';
 
 export class DataPipeline {
-    private processors = new Map<string, IDataProcessor>();
+    private readonly processors = new Map<string, IDataProcessor>();
 
     addProcessor(key: string, processor: IDataProcessor) {
         this.processors.set(key, processor);
