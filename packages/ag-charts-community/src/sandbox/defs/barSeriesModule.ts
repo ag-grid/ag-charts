@@ -1,9 +1,10 @@
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../chart/themes/constants';
-import type { SeriesModule } from '../modules/types';
-import { BarSeries, type BarSeriesOptions } from '../series/barSeries';
+import { BarSeries } from '../series/barSeries';
 import { ChartType } from '../types';
+import type { SeriesModule } from '../types/moduleTypes';
+import type { BarSeriesOptions } from '../types/seriesTypes';
 import { boolean, number, required, string, union } from '../util/validation';
-import { commonSeriesOptionsDefs } from './commonOptions';
+import { commonSeriesOptionsDefs } from './commonOptionsDefs';
 
 export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
     type: 'series',

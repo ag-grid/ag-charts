@@ -25,8 +25,7 @@ export class Scene implements IScene {
         this.context = this.canvas.getContext('2d')!;
         this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
-        this.rootElement = createElement('div', Scene.ElementStyle);
-        this.rootElement.classList.add(Scene.ElementClassName);
+        this.rootElement = createElement('div', Scene.ElementClassName, Scene.ElementStyle);
         this.rootElement.appendChild(this.canvas);
 
         this.rootNode = {};

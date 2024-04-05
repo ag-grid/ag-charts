@@ -52,23 +52,3 @@ export interface IModule {}
 export interface ISeries extends IModule {}
 
 export interface IAxis extends IModule {}
-
-export interface ChartSeries<T extends string> {
-    type: T;
-    visible?: boolean;
-}
-
-export interface ChartAxis<T extends string> {
-    type: T;
-}
-
-export type CartesianChartAxes = ChartAxis<'category'> | ChartAxis<'number'>;
-export type CartesianChartSeries =
-    | ChartSeries<'area'>
-    | ChartSeries<'bar'>
-    | ChartSeries<'bullet'>
-    | ChartSeries<'column'>
-    | ChartSeries<'line'>;
-
-export type PolarChartAxes = ChartAxis<'angle-category'> | ChartAxis<'angle-number'>;
-export type PolarChartSeries = ChartSeries<'donut'> | ChartSeries<'pie'>;

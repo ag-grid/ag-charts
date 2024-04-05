@@ -1,8 +1,8 @@
 import { DataPipeline } from '../data/dataPipeline';
 import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
-import type { CommonChartOptions } from '../defs/commonOptions';
 import type { Scene } from '../render/scene';
 import type { ChartEventMap, IChart, IScale } from '../types';
+import type { CommonChartOptions } from '../types/agChartsTypes';
 import { EventEmitter } from '../util/eventEmitter';
 import { SizeObserver } from '../util/resizeObserver';
 import { Stage, StageQueue } from '../util/stageQueue';

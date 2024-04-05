@@ -5,7 +5,7 @@ import { ChartOptions } from './chart/chartOptions';
 import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
-import type { AgChartOptions } from './defs/commonOptions';
+import type { AgChartOptions } from './options/commonOptions';
 import { Scene } from './render/scene';
 import { ChartType, IChart } from './types';
 

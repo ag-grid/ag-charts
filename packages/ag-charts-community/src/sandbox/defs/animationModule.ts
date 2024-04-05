@@ -1,5 +1,5 @@
 import { AnimationModule, type AnimationModuleOptions } from '../modules/animation';
-import type { OptionModule } from '../modules/types';
+import type { OptionModule } from '../types/moduleTypes';
 import { boolean, number, required } from '../util/validation';
 
 export const animationModule: OptionModule<AnimationModuleOptions> = {
