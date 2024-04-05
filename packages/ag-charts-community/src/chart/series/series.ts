@@ -763,4 +763,8 @@ export abstract class Series<
 
         return resize;
     }
+
+    public updateFocus(_focuedDatum: number) {
+        this.ctx.regionManager.updateFocusIndicatorRect(this.rootGroup.computeTransformedBBox());
+    }
 }

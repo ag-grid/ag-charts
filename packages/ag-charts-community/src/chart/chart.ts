@@ -22,6 +22,7 @@ import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
+import { clamp } from '../util/number';
 import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
@@ -56,6 +57,7 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { PointerInteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
+import type { KeyNavEvent } from './interaction/keyNavManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { ToolbarManager } from './interaction/toolbarManager';
@@ -385,6 +387,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
+            seriesRegion.addListener('tab', (event) => this.onTab(event)),
+            seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
+            seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
             this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
@@ -1083,6 +1088,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    private onTab(_event: KeyNavEvent<'tab'>): void {
+        this.handleFocus();
+    }
+
+    private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
+        this.focus.series += event.delta;
+        this.handleFocus();
+    }
+
+    private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
+        this.focus.datum += event.delta;
+        this.handleFocus();
+    }
+
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
         this.tooltipManager.removeTooltip(this.id);
 
@@ -1095,6 +1114,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.highlightManager.updateHighlight(this.id);
             });
         }
+    }
+
+    private focus = { series: 0, datum: 0 };
+    private handleFocus() {
+        const { series, focus } = this;
+        const visibleSeries = series.filter((s) => s.visible);
+        if (visibleSeries.length === 0) return;
+
+        // Update focused series:
+        focus.series = clamp(0, focus.series, visibleSeries.length)
+        const focusedSeries = visibleSeries[focus.series];
+
+        // Update focused datum:
+        focusedSeries.updateFocus(focus.datum);
     }
 
     private lastInteractionEvent?: PointerInteractionEvent<'hover'>;
