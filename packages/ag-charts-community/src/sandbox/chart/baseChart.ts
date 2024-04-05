@@ -1,9 +1,10 @@
+import type { CartesianChartOptions, CommonChartOptions, PolarChartOptions } from '../modules/defs/commonOptions';
 import { EventEmitter } from '../util/eventEmitter';
 import { SizeObserver } from '../util/resizeObserver';
 import { Stage, StageQueue } from '../util/stageQueue';
 import type { ChartOptions } from './chartOptions';
 import type { Scene } from './scene';
-import type { CartesianChartOptions, ChartEventMap, CommonChartOptions, IChart, PolarChartOptions } from './types';
+import type { ChartEventMap, IChart } from './types';
 
 export abstract class BaseChart<T extends CommonChartOptions> implements IChart {
     private static sizeObserver = new SizeObserver();

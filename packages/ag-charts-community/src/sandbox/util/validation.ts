@@ -1,6 +1,5 @@
 import { Logger } from '../../util/logger';
 import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from '../../util/type-guards';
-import type { PlainObject } from '../../util/types';
 import { stringify } from '../../util/validation';
 import { joinFormatted } from './string';
 
@@ -81,14 +80,11 @@ export function required<T>(validatorOrDefs: T): T {
  * @param description (Optional) A description for the validator, defaulting to 'an object'.
  * @returns A validator function for the given option definitions.
  */
-export const optionsDefs = <T extends PlainObject>(
-    defs: OptionsDefs<T> | OptionsDefs<T>[],
-    description = 'an object'
-): Validator =>
+export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
     attachDescription(
         (value: unknown) =>
             isObject(value) &&
-            Object.entries(defs).every(([key, validatorOrDefs]) =>
+            Object.entries<Validator | ObjectLikeDef<any>>(defs).every(([key, validatorOrDefs]) =>
                 isFunction(validatorOrDefs) ? validatorOrDefs(value[key]) : optionsDefs(validatorOrDefs)
             ),
         description

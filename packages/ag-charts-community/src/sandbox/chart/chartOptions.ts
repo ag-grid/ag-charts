@@ -1,5 +1,6 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { PlainObject } from '../../util/types';
+import type { BoxPosition, CartesianChartOptions } from '../modules/defs/commonOptions';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
 import {
     type OptionsDefs,
@@ -16,11 +17,11 @@ import {
     string,
     union,
 } from '../util/validation';
-import { type CartesianChartOptions, ChartType, type Padding } from './types';
+import { ChartType } from './types';
 
 export const themeOptionsDef: OptionsDefs<PlainObject> = {};
 
-export const boxOptionsDef: OptionsDefs<Padding> = {
+export const boxOptionsDef: OptionsDefs<BoxPosition> = {
     top: number,
     right: number,
     bottom: number,

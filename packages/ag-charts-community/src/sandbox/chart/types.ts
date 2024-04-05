@@ -3,7 +3,7 @@ import type { StageQueue } from '../util/stageQueue';
 import type { ChartOptions } from './chartOptions';
 
 /**
- * Split options API navigation into sections:
+ * TODO: Split options API navigation into sections:
  * - Common options
  * - Per chart type
  * - Modules config
@@ -51,8 +51,6 @@ export interface ISeries extends IModule {}
 
 export interface IAxis extends IModule {}
 
-export type AgChartOptions = CartesianChartOptions | PolarChartOptions;
-
 export interface ChartSeries<T extends string> {
     type: T;
     visible?: boolean;
@@ -73,47 +71,3 @@ export type CartesianChartSeries =
 
 export type PolarChartAxes = ChartAxis<'angle-category'> | ChartAxis<'angle-number'>;
 export type PolarChartSeries = ChartSeries<'donut'> | ChartSeries<'pie'>;
-
-export type Padding = { top?: number; right?: number; bottom?: number; left?: number };
-
-export interface CaptionOptions {
-    enabled?: boolean;
-    text?: string;
-}
-
-export interface SeriesAreaOptions {
-    clip?: boolean;
-    padding?: Padding;
-}
-
-export interface CommonChartOptions {
-    container: HTMLElement;
-    data: any;
-
-    theme?: string | object;
-
-    width?: number;
-    height?: number;
-
-    padding?: Padding;
-    seriesArea?: SeriesAreaOptions;
-
-    title?: CaptionOptions;
-    subtitle?: CaptionOptions;
-    footnote?: CaptionOptions;
-
-    axes?: object[];
-    series: object[];
-}
-
-export interface CartesianChartOptions extends CommonChartOptions {
-    data: object[];
-    axes?: CartesianChartAxes[];
-    series: Exclude<CartesianChartSeries, ChartSeries<'bullet'>>[] | [ChartSeries<'bullet'>];
-}
-
-export interface PolarChartOptions extends CommonChartOptions {
-    data: object[];
-    axes?: PolarChartAxes[];
-    series: PolarChartSeries[];
-}

@@ -1,7 +1,8 @@
 import { CartesianChart, HierarchyChart, PolarChart, TopologyChart } from './chart/baseChart';
 import { ChartOptions } from './chart/chartOptions';
 import { Scene } from './chart/scene';
-import { AgChartOptions, ChartType, IChart } from './chart/types';
+import { ChartType, IChart } from './chart/types';
+import type { AgChartOptions } from './modules/defs/commonOptions';
 
 export abstract class AgCharts {
     static create(options: AgChartOptions) {
