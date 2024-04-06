@@ -17,6 +17,10 @@ export interface DiscreteProcessorOptions {
     paddingOuter?: number;
 }
 
+export interface LogProcessorOptions extends ContinuousProcessorOptions {
+    base?: number;
+}
+
 abstract class DataProcessor<T> implements IDataProcessor {
     constructor(protected options?: T) {}
 
@@ -24,7 +28,10 @@ abstract class DataProcessor<T> implements IDataProcessor {
     abstract getResult(): any;
 }
 
-abstract class ContinuousProcessor<T extends number | Date> extends DataProcessor<ContinuousProcessorOptions> {
+abstract class ContinuousProcessor<
+    T extends number | Date,
+    Options extends ContinuousProcessorOptions = ContinuousProcessorOptions,
+> extends DataProcessor<Options> {
     protected readonly domain: [T | number, T | number] = [Infinity, -Infinity];
     protected readonly values: T[] = [];
 
@@ -43,7 +50,10 @@ abstract class ContinuousProcessor<T extends number | Date> extends DataProcesso
     }
 }
 
-abstract class DiscreteProcessor<T> extends DataProcessor<DiscreteProcessorOptions> {
+abstract class DiscreteProcessor<
+    T,
+    Options extends DiscreteProcessorOptions = DiscreteProcessorOptions,
+> extends DataProcessor<Options> {
     readonly domain = new Set<T>();
     readonly values: T[] = [];
 
@@ -57,7 +67,7 @@ abstract class DiscreteProcessor<T> extends DataProcessor<DiscreteProcessorOptio
     }
 }
 
-export class LogProcessor<T extends Date> extends ContinuousProcessor<T> {}
+export class LogProcessor<T extends number> extends ContinuousProcessor<T> {}
 export class NumberProcessor<T extends number> extends ContinuousProcessor<T> {}
 export class TimeProcessor<T extends Date> extends ContinuousProcessor<T> {}
 

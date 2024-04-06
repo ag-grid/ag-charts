@@ -1,6 +1,6 @@
-import { CARTESIAN_AXIS_TYPE, POSITION } from '../../chart/themes/constants';
 import { BarSeries } from '../series/barSeries';
 import { ChartType } from '../types';
+import { Position } from '../types/commonTypes';
 import type { SeriesModule } from '../types/moduleTypes';
 import type { BarSeriesOptions } from '../types/seriesTypes';
 import { boolean, number, required, string, union } from '../util/validation';
@@ -35,10 +35,12 @@ export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
         y: ['y'],
     },
 
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
-        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: POSITION.BOTTOM },
+    axesDefaults: [
+        { type: 'number', position: Position.Left },
+        { type: 'category', position: Position.Bottom },
     ],
+
+    axesDefaults: {},
 
     // dataDefs: {
     //     xValue: { type: 'key' },

@@ -1,8 +1,8 @@
 export enum Position {
-    TOP = 'top',
-    RIGHT = 'right',
-    BOTTOM = 'bottom',
-    LEFT = 'left',
+    Top = 'top',
+    Right = 'right',
+    Bottom = 'bottom',
+    Left = 'left',
 }
 
 export type BoxPosition = { [K in Position]?: number };

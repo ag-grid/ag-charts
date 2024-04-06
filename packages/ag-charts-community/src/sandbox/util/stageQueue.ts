@@ -1,11 +1,11 @@
 export type Task = () => void;
 
 export enum Stage {
-    OPTIONS_UPDATE,
-    DATA_PROCESS,
-    PRE_RENDER,
-    RENDER,
-    // POST_RENDER,
+    OptionsUpdate,
+    DataProcess,
+    PreRender,
+    Render,
+    PostRender,
 }
 
 export class StageQueue {
@@ -23,7 +23,7 @@ export class StageQueue {
     enqueue(stage: Stage, task: Task): void {
         this.stageQueue.get(stage)?.add(task);
 
-        if (stage === Stage.RENDER) {
+        if (stage === Stage.Render) {
             this.processAsyncQueue();
         } else {
             setTimeout(() => this.processSyncQueue());
@@ -38,7 +38,7 @@ export class StageQueue {
 
         this.isProcessingSync = true;
         for (const [stage, tasks] of this.stageQueue.entries()) {
-            if (stage === Stage.RENDER) continue;
+            if (stage === Stage.Render) continue;
             this.runTasks(tasks);
         }
         this.isProcessingSync = false;
@@ -54,7 +54,7 @@ export class StageQueue {
         this.requestAnimationFrameId = requestAnimationFrame(() => {
             this.requestAnimationFrameId = null;
 
-            const tasks = this.stageQueue.get(Stage.RENDER)!;
+            const tasks = this.stageQueue.get(Stage.Render)!;
             this.runTasks(tasks, true);
             // Trigger another cycle for newly added tasks.
             if (tasks.size) {

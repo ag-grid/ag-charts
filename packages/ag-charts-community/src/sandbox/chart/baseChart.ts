@@ -29,7 +29,7 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
 
     setOptions(options: ChartOptions<T>) {
         this.pendingOptions = options;
-        this.stageQueue.enqueue(Stage.OPTIONS_UPDATE, this.applyPendingOptions);
+        this.stageQueue.enqueue(Stage.OptionsUpdate, this.applyPendingOptions);
     }
 
     remove() {}
@@ -87,11 +87,11 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
             // If called multiple times it'll only register once, storing latest size.
             BaseChart.sizeObserver.observe(this.scene.rootElement, (size) => {
                 pendingSize = size;
-                this.stageQueue.enqueue(Stage.PRE_RENDER, onResize);
+                this.stageQueue.enqueue(Stage.PreRender, onResize);
             });
         } else {
             BaseChart.sizeObserver.unobserve(this.scene.rootElement);
-            this.stageQueue.enqueue(Stage.PRE_RENDER, () => this.scene.resize(width, height));
+            this.stageQueue.enqueue(Stage.PreRender, () => this.scene.resize(width, height));
         }
     }
 

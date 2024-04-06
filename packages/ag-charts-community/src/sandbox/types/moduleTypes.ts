@@ -1,5 +1,6 @@
 import type { ChartType, IAxis, IModule, ISeries } from '../types';
 import type { OptionsDefs } from '../util/validation';
+import type { Position } from './commonTypes';
 
 export type Module =
     | AxisModule<any>
@@ -34,7 +35,8 @@ export interface SeriesModule<T extends object> extends ModuleDef<T, ISeries> {
 
     dataDefs?: object;
 
-    defaultAxes?: { type: string; position: string }[];
+    // axesDefaults?: { type: string; position: Position }[];
+    axesDefaults?: object;
 }
 
 export interface OptionModule<T extends object> extends ModuleDef<T> {
