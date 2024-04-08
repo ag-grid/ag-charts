@@ -1,6 +1,7 @@
 import { describe } from '@jest/globals';
 
 import { DATA_MEAN_SEA_LEVEL } from '../chart/test/data';
+import './bootstrap';
 import { createTestInstance } from './util/testUtil';
 
 describe('Sandbox tests', () => {

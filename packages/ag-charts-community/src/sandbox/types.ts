@@ -1,4 +1,5 @@
 import type { ChartOptions } from './chart/chartOptions';
+import type { AgChartOptions } from './types/agChartsTypes';
 import type { EventEmitter } from './util/eventEmitter';
 import type { StageQueue } from './util/stageQueue';
 
@@ -16,8 +17,8 @@ export enum ChartType {
     Topology,
 }
 
-export interface IChart<T extends object = any> {
-    events: EventEmitter<ChartEventMap>;
+export interface IChart<T extends AgChartOptions> {
+    events: EventEmitter<ChartEventMap<T>>;
     options: ChartOptions<T>;
     scene: IScene;
     stageQueue: StageQueue;
@@ -26,7 +27,7 @@ export interface IChart<T extends object = any> {
     remove(): void;
 }
 
-export interface ChartEventMap<T extends object = any> {
+export interface ChartEventMap<T extends AgChartOptions> {
     change: ChartOptions<T>;
 }
 

@@ -28,6 +28,8 @@ export interface AxisModule<T extends object> extends ModuleDef<T, IAxis> {
 
 export interface SeriesModule<T extends object> extends ModuleDef<T, ISeries> {
     type: 'series';
+    chartTypes: [ChartType];
+
     groupable?: boolean;
     stackable?: boolean;
     canSwapDirection?: boolean;

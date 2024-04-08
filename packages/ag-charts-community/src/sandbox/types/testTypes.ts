@@ -5,7 +5,7 @@ import type { IChart } from '../types';
 import type { AgChartOptions } from './agChartsTypes';
 
 export interface TestInstance<T extends AgChartOptions> extends Omit<ChartInstance<T>, 'chart' | 'options' | 'scene'> {
-    chart: IChart;
+    chart: IChart<T>;
     options: ChartOptions<T>;
     scene: Scene;
 }

@@ -1,7 +1,9 @@
-import { ChartType } from '../types';
+import { moduleRegistry } from '../modules/moduleRegistry';
+import type { ChartType } from '../types';
+import type { AgChartOptions } from '../types/agChartsTypes';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
 
-export class ChartOptions<T extends object> {
+export class ChartOptions<T extends AgChartOptions> {
     public fullOptions: T;
     public optionsDiff: Partial<T> | null = null;
 
@@ -32,11 +34,12 @@ export class ChartOptions<T extends object> {
     }
 
     get chartType(): ChartType {
-        // determine by this.options
-        if (Math.random() > 0.5) {
-            return ChartType.Cartesian;
+        const { series } = this.fullOptions;
+        const mainSeriesModule = moduleRegistry.getModule(series[0]?.type);
+        if (!series.length || !mainSeriesModule) {
+            throw new ReferenceError('AG Charts - Cannot determine chart type, missing series configuration.');
         }
-        return ChartType.Topology;
+        return mainSeriesModule.chartTypes?.[0]!;
     }
 
     validate() {

@@ -2,20 +2,20 @@ import { DataPipeline } from '../data/dataPipeline';
 import { moduleRegistry } from '../modules/moduleRegistry';
 import type { Scene } from '../render/scene';
 import type { ChartEventMap, IChart, IScale } from '../types';
-import type { CommonChartOptions } from '../types/agChartsTypes';
+import type { AgChartOptions } from '../types/agChartsTypes';
 import type { SeriesModule } from '../types/moduleTypes';
 import { EventEmitter } from '../util/eventEmitter';
 import { SizeObserver } from '../util/resizeObserver';
 import { Stage, StageQueue } from '../util/stageQueue';
 import type { ChartOptions } from './chartOptions';
 
-export abstract class BaseChart<T extends CommonChartOptions> implements IChart {
+export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
     static DefaultAxes?: object[];
     static DefaultKeysMap?: object;
 
     private static sizeObserver = new SizeObserver();
 
-    readonly events = new EventEmitter<ChartEventMap>();
+    readonly events = new EventEmitter<ChartEventMap<T>>();
     readonly stageQueue = new StageQueue();
 
     private pendingOptions: ChartOptions<T> | null = null;
@@ -57,7 +57,7 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
 
         for (const { type: seriesType } of series) {
             const seriesModule = moduleRegistry.getModule(seriesType) as SeriesModule<any>;
-            const seriesKeysMap = seriesModule?.axesKeysMap ?? DefaultKeysMap;
+            const seriesKeysMap = Object.entries<string[]>(seriesModule?.axesKeysMap ?? DefaultKeysMap);
             for (const [axisCoordinate, axisKeys] of seriesKeysMap) {
                 const axisCoordinateKeys = keysMap.has(axisCoordinate)
                     ? keysMap.get(axisCoordinate)!
@@ -84,7 +84,7 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
     }
 
     protected applyOptions(options: ChartOptions<T>) {
-        const { fullOptions } = options;
+        const { fullOptions, optionsDiff } = options;
 
         this.options = options;
 
@@ -100,6 +100,10 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         } else {
             this.setSceneSize(fullOptions.width, fullOptions.height);
             this.setContainer(fullOptions.container);
+        }
+
+        if (!optionsDiff || optionsDiff.data) {
+            this.processData();
         }
 
         this.events.emit('change', this.options);

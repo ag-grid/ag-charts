@@ -9,6 +9,8 @@ import { Scene } from './render/scene';
 import { ChartType, IChart } from './types';
 import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './types/agChartsTypes';
 
+type IChartConstructor = new (scene: Scene, options: ChartOptions<any>) => IChart<any>;
+
 export abstract class AgCharts {
     static create<T extends AgChartOptions>(options: T) {
         // first-time: check license
@@ -33,7 +35,7 @@ export abstract class AgCharts {
 }
 
 export class ChartInstance<T extends AgChartOptions> {
-    private chart: IChart;
+    private chart: IChart<T>;
     private options: ChartOptions<T>;
     private readonly scene: Scene;
 
@@ -69,7 +71,7 @@ export class ChartInstance<T extends AgChartOptions> {
         return new ChartConstructor(scene, options);
     }
 
-    private static getConstructor(options: ChartOptions<any>) {
+    private static getConstructor(options: ChartOptions<any>): IChartConstructor {
         switch (options.chartType) {
             case ChartType.Cartesian:
                 return CartesianChart;
