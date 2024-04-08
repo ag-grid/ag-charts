@@ -77,7 +77,7 @@ import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './s
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
-import { Tooltip } from './tooltip/tooltip';
+import { Tooltip, TooltipPointerEvent } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -1142,13 +1142,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager.updateHighlight(this.id, datum);
         if (bbox !== undefined) {
             const { x: offsetX, y: offsetY } = bbox.computeCenter();
+            this.lastInteractionEvent = { type: 'keyboard', offsetX, offsetY };
             const html = focusedSeries.getTooltipHtml(datum);
-            const meta = TooltipManager.makeTooltipMeta({ offsetX, offsetY }, datum);
+            const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
             this.tooltipManager.updateTooltip(this.id, meta, html);
         }
     }
 
-    private lastInteractionEvent?: PointerInteractionEvent<'hover'>;
+    private lastInteractionEvent?: TooltipPointerEvent;
+    private static isHoverEvent(event: TooltipPointerEvent | undefined): event is TooltipPointerEvent<'hover'> {
+        return event !== undefined && event.type === 'hover';
+    }
     private pointerScheduler = debouncedAnimationFrame(() => {
         if (!this.lastInteractionEvent) return;
 
@@ -1162,8 +1166,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.handlePointer(this.lastInteractionEvent, false);
         this.lastInteractionEvent = undefined;
     });
-    protected handlePointer(event: PointerOffsets, redisplay: boolean) {
-        if (this.interactionManager.getState() !== InteractionState.Default) {
+    protected handlePointer(event: TooltipPointerEvent, redisplay: boolean) {
+        // Ignored "pointer event" that comes from a keyboard. We don't need to worry about finding out
+        // which datum to use in the highlight & tooltip because the keyboard just navigates through the
+        // data directly.
+        if (this.interactionManager.getState() !== InteractionState.Default || !Chart.isHoverEvent(event)) {
             return;
         }
 
@@ -1188,7 +1195,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.handlePointerNode(event);
     }
 
-    protected handlePointerTooltip(event: PointerOffsets, disablePointer: (highlightOnly?: boolean) => void) {
+    protected handlePointerTooltip(
+        event: TooltipPointerEvent<'hover'>,
+        disablePointer: (highlightOnly?: boolean) => void
+    ) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
         const { offsetX, offsetY } = event;

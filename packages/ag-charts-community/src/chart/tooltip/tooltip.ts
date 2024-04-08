@@ -32,9 +32,11 @@ type TooltipPositionType =
     | 'bottom-right'
     | 'bottom-left';
 
+export type TooltipPointerEvent<T extends 'hover' | 'keyboard' = 'hover' | 'keyboard'> = PointerOffsets & { type: T };
+
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
-    lastPointerEvent?: PointerOffsets;
+    lastPointerEvent?: TooltipPointerEvent;
     position?: {
         type?: TooltipPositionType;
         xOffset?: number;

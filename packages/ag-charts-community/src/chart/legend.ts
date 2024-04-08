@@ -886,10 +886,15 @@ export class Legend extends BaseProperties {
         event.consume();
 
         const datum = this.getDatumForPoint(offsetX, offsetY);
-        this.doHover(datum, offsetX, offsetY);
+        this.doHover('hover', datum, offsetX, offsetY);
     }
 
-    private doHover(datum: CategoryLegendDatum | undefined, offsetX: number, offsetY: number) {
+    private doHover(
+        type: 'hover' | 'keyboard',
+        datum: CategoryLegendDatum | undefined,
+        offsetX: number,
+        offsetY: number
+    ) {
         const {
             item: { toggleSeriesVisible },
             listeners,
@@ -905,7 +910,7 @@ export class Legend extends BaseProperties {
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, lastPointerEvent: { offsetX, offsetY }, showArrow: false },
+                { offsetX, offsetY, lastPointerEvent: { type, offsetX, offsetY }, showArrow: false },
                 toTooltipHtml({ content: this.getItemLabel(datum) })
             );
         } else {
@@ -1062,7 +1067,7 @@ export class Legend extends BaseProperties {
             this.ctx.regionManager.updateFocusIndicatorRect(bbox);
             if (bbox !== undefined) {
                 const { x, y } = bbox.computeCenter();
-                this.doHover(datum, x, y);
+                this.doHover('keyboard', datum, x, y);
             }
         } else if (this.focus.mode === 'page') {
             const button = this.getFocusedPaginationButton();
