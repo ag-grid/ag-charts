@@ -15,7 +15,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { InteractionEvent, PointerOffsets } from '../interaction/interactionManager';
+import type { PointerInteractionEvent as InteractionEvent, PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';

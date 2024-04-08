@@ -36,7 +36,7 @@ import {
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
-import { InteractionEvent, InteractionState } from './interaction/interactionManager';
+import { PointerInteractionEvent as InteractionEvent, InteractionState } from './interaction/interactionManager';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
 import { MarkerConstructor, getMarker } from './marker/util';

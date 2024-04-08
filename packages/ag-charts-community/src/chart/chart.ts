@@ -54,7 +54,7 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
-import type { InteractionEvent, PointerOffsets } from './interaction/interactionManager';
+import type { PointerInteractionEvent as InteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
@@ -322,13 +322,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
+        const interactiveContainer = container ?? options.userOptions.container ?? undefined;
         this.annotationManager = new AnnotationManager(this.annotationRoot);
         this.chartEventManager = new ChartEventManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(element);
-        this.regionManager = new RegionManager(this.interactionManager);
+        this.interactionManager = new InteractionManager(element, interactiveContainer);
+        this.regionManager = new RegionManager(this.interactionManager, element);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();

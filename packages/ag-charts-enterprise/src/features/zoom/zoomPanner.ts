@@ -47,7 +47,7 @@ export class ZoomPanner {
         }
     }
 
-    update(event: _ModuleSupport.InteractionEvent<'drag'>) {
+    update(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         this.updateCoords(event.offsetX, event.offsetY);
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
         this.onUpdate?.({
