@@ -764,7 +764,9 @@ export abstract class Series<
         return resize;
     }
 
-    public updateFocus(_focus: { datum: number }) {
-        this.ctx.regionManager.updateFocusIndicatorRect(this.rootGroup.computeTransformedBBox());
+    public pickFocus(_focus: { readonly datum: number }): { node: Node; datum: TDatum; datumIndex: number } {
+        // Override point for subclasses - but if this is invoked, the subclass specified it wants
+        // to use this feature.
+        throw new Error('AG Charts - Series.pickFocus() not implemented');
     }
 }

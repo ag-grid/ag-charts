@@ -1127,7 +1127,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const focusedSeries = visibleSeries[focus.series];
 
         // Update focused datum:
-        focusedSeries.updateFocus(focus);
+        const { node, datum, datumIndex } = focusedSeries.pickFocus(focus);
+        focus.datum = datumIndex;
+
+        // Update user interaction/interface:
+        this.regionManager.updateFocusIndicatorRect(node.computeTransformedBBox());
+        this.highlightManager.updateHighlight(this.id, datum);
     }
 
     private lastInteractionEvent?: PointerInteractionEvent<'hover'>;

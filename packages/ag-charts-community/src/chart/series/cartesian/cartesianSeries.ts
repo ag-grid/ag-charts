@@ -1063,9 +1063,11 @@ export abstract class CartesianSeries<
         return result;
     }
 
-    public override updateFocus(focus: { datum: number }) {
+    public override pickFocus(focus: { readonly datum: number }): { node: Node; datum: TDatum; datumIndex: number } {
         const datumNodes = (this.opts.hasMarkers ? this.markerGroup : this.dataNodeGroup).children;
-        focus.datum = clamp(0, focus.datum, datumNodes.length - 1);
-        this.ctx.regionManager.updateFocusIndicatorRect(datumNodes[focus.datum].computeTransformedBBox());
+        const datumIndex = clamp(0, focus.datum, datumNodes.length - 1);
+        const node = datumNodes[datumIndex];
+        const datum = node.datum;
+        return { node, datum, datumIndex };
     }
 }
