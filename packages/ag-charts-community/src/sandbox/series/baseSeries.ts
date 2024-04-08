@@ -1,3 +1,4 @@
+import { BaseModule } from '../modules/baseModule';
 import type { ISeries } from '../types';
 
-export abstract class BaseSeries implements ISeries {}
+export abstract class BaseSeries extends BaseModule implements ISeries {}

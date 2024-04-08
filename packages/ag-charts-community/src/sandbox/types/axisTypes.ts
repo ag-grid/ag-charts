@@ -1,16 +1,22 @@
-export interface ChartAxis<T extends string> {
+import type { Position } from './commonTypes';
+
+export interface ChartAxisOptions<T extends string> {
     type: T;
 }
 
+export interface CartesianAxisOptions<T extends string> extends ChartAxisOptions<T> {
+    position: Position;
+}
+
 export type CartesianChartAxes =
-    | ChartAxis<'category'>
-    | ChartAxis<'log'>
-    | ChartAxis<'number'>
-    | ChartAxis<'ordinal-time'>
-    | ChartAxis<'time'>;
+    | CartesianAxisOptions<'category'>
+    | CartesianAxisOptions<'log'>
+    | CartesianAxisOptions<'number'>
+    | CartesianAxisOptions<'ordinal-time'>
+    | CartesianAxisOptions<'time'>;
 
 export type PolarChartAxes =
-    | ChartAxis<'angle-category'>
-    | ChartAxis<'angle-number'>
-    | ChartAxis<'radius-category'>
-    | ChartAxis<'radius-number'>;
+    | ChartAxisOptions<'angle-category'>
+    | ChartAxisOptions<'angle-number'>
+    | ChartAxisOptions<'radius-category'>
+    | ChartAxisOptions<'radius-number'>;

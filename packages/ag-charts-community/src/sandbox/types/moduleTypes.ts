@@ -1,6 +1,6 @@
 import type { ChartType, IAxis, IModule, ISeries } from '../types';
 import type { OptionsDefs } from '../util/validation';
-import type { Position } from './commonTypes';
+import type { CartesianChartAxes, PolarChartAxes } from './axisTypes';
 
 export type Module =
     | AxisModule<any>
@@ -14,7 +14,7 @@ export type ModuleType = 'axis' | 'series' | 'axis-option' | 'chart-option' | 's
 export interface ModuleDef<OptionsType extends object, ConstructorType extends IModule = IModule> {
     type: ModuleType;
     identifier: string;
-    constructor: ConstructorType;
+    constructor: { createInstance: () => ConstructorType };
     optionsDefs: OptionsDefs<OptionsType>;
 
     chartTypes?: ChartType[];
@@ -35,21 +35,17 @@ export interface SeriesModule<T extends object> extends ModuleDef<T, ISeries> {
 
     dataDefs?: object;
 
-    // axesDefaults?: { type: string; position: Position }[];
-    axesDefaults?: object;
+    axesDefaults?: CartesianChartAxes[] | PolarChartAxes[];
 }
 
 export interface OptionModule<T extends object> extends ModuleDef<T> {
     type: 'chart-option';
-    constructor: IModule;
 }
 
 export interface AxisOptionModule<T extends object> extends ModuleDef<T> {
     type: 'axis-option';
-    constructor: IModule;
 }
 
 export interface SeriesOptionModule<T extends object> extends ModuleDef<T> {
     type: 'series-option';
-    constructor: IModule;
 }

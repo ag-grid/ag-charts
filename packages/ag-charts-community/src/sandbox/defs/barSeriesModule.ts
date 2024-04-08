@@ -1,6 +1,5 @@
 import { BarSeries } from '../series/barSeries';
 import { ChartType } from '../types';
-import { Position } from '../types/commonTypes';
 import type { SeriesModule } from '../types/moduleTypes';
 import type { BarSeriesOptions } from '../types/seriesTypes';
 import { boolean, number, required, string, union } from '../util/validation';
@@ -34,13 +33,6 @@ export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
         x: ['x'],
         y: ['y'],
     },
-
-    axesDefaults: [
-        { type: 'number', position: Position.Left },
-        { type: 'category', position: Position.Bottom },
-    ],
-
-    axesDefaults: {},
 
     // dataDefs: {
     //     xValue: { type: 'key' },
