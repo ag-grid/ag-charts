@@ -5,12 +5,12 @@ import { Position } from '../types/commonTypes';
 import { BaseChart } from './baseChart';
 
 export class CartesianChart extends BaseChart<CartesianChartOptions> {
-    static DefaultAxes: CartesianChartAxes[] = [
+    static override DefaultAxes: CartesianChartAxes[] = [
         { type: 'number', position: Position.Left },
         { type: 'category', position: Position.Bottom },
     ];
 
-    static DefaultKeysMap: { [K in CartesianCoordinate]: string[] } = {
+    static override DefaultKeysMap: { [K in CartesianCoordinate]: string[] } = {
         [CartesianCoordinate.Horizontal]: ['x'],
         [CartesianCoordinate.Vertical]: ['y'],
     };

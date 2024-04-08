@@ -40,3 +40,5 @@ export class ModuleRegistry {
         }
     }
 }
+
+export const moduleRegistry = new ModuleRegistry();

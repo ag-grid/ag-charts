@@ -1,15 +1,18 @@
-import { isArray } from '../../util/type-guards';
 import { DataPipeline } from '../data/dataPipeline';
-import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
+import { moduleRegistry } from '../modules/moduleRegistry';
 import type { Scene } from '../render/scene';
 import type { ChartEventMap, IChart, IScale } from '../types';
 import type { CommonChartOptions } from '../types/agChartsTypes';
+import type { SeriesModule } from '../types/moduleTypes';
 import { EventEmitter } from '../util/eventEmitter';
 import { SizeObserver } from '../util/resizeObserver';
 import { Stage, StageQueue } from '../util/stageQueue';
 import type { ChartOptions } from './chartOptions';
 
 export abstract class BaseChart<T extends CommonChartOptions> implements IChart {
+    static DefaultAxes?: object[];
+    static DefaultKeysMap?: object;
+
     private static sizeObserver = new SizeObserver();
 
     readonly events = new EventEmitter<ChartEventMap>();
@@ -43,8 +46,45 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         return null as any;
     }
 
+    protected processData() {
+        const { fullOptions } = this.options;
+
+        if (!fullOptions.data?.length || !fullOptions.series?.length) return;
+
+        const { DefaultAxes, DefaultKeysMap } = this.constructor as any;
+        const { axes = DefaultAxes, series } = fullOptions;
+        let keysMap = new Map<string, Set<string>>();
+
+        for (const { type: seriesType } of series) {
+            const seriesModule = moduleRegistry.getModule(seriesType) as SeriesModule<any>;
+            const seriesKeysMap = seriesModule?.axesKeysMap ?? DefaultKeysMap;
+            for (const [axisCoordinate, axisKeys] of seriesKeysMap) {
+                const axisCoordinateKeys = keysMap.has(axisCoordinate)
+                    ? keysMap.get(axisCoordinate)!
+                    : keysMap.set(axisCoordinate, new Set()).get(axisCoordinate)!;
+                for (const key of axisKeys) {
+                    axisCoordinateKeys.add(key);
+                }
+            }
+        }
+
+        console.log({ axes, series, keysMap });
+
+        this.dataPipeline.processData(fullOptions.data);
+
+        // if (fullOptions.axes ?? DefaultAxes) {
+        //     // 'x' and 'y' represent the values inside `xKey` and `yKey`
+        //     this.dataPipeline.addProcessor('x', new CategoryProcessor());
+        //     this.dataPipeline.addProcessor('y', new NumberProcessor());
+        // }
+        //
+        // if ((!optionsDiff || optionsDiff.data) && isArray(fullOptions.data)) {
+        //     this.dataPipeline.processData(fullOptions.data);
+        // }
+    }
+
     protected applyOptions(options: ChartOptions<T>) {
-        const { fullOptions, optionsDiff } = options;
+        const { fullOptions } = options;
 
         this.options = options;
 
@@ -60,14 +100,6 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         } else {
             this.setSceneSize(fullOptions.width, fullOptions.height);
             this.setContainer(fullOptions.container);
-        }
-
-        // 'x' and 'y' represent the values inside `xKey` and `yKey`
-        this.dataPipeline.addProcessor('x', new CategoryProcessor());
-        this.dataPipeline.addProcessor('y', new NumberProcessor());
-
-        if ((!optionsDiff || optionsDiff.data) && isArray(fullOptions.data)) {
-            this.dataPipeline.processData(fullOptions.data);
         }
 
         this.events.emit('change', this.options);

@@ -29,3 +29,26 @@ describe('Sandbox tests', () => {
         expect(chartInstance.options.fullOptions.title.text).toBe('Changed text');
     });
 });
+
+//const chart = AgCharts.create({
+//     title: {
+//         text: 'Mean Sea Level (mm)',
+//     },
+//
+//     container: document.getElementById('container')!,
+//     data: [{ test: true }],
+//     axes: [
+//         { type: 'number', position: 'bottom', nice: false },
+//         { type: 'number', position: 'left' },
+//     ],
+//     series: [
+//         {
+//             type: 'bar',
+//             xKey: 'time',
+//             yKey: 'mm',
+//             showInLegend: false,
+//         },
+//     ],
+// });
+//
+// chart.update({});

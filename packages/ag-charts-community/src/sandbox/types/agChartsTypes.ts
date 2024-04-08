@@ -21,8 +21,8 @@ export interface CommonChartOptions {
     subtitle?: AgChartCaptionOptions;
     footnote?: AgChartCaptionOptions;
 
-    axes?: object[];
-    series: object[];
+    axes?: { type: string }[];
+    series: { type: string }[];
 }
 
 export interface CartesianChartOptions extends CommonChartOptions {
