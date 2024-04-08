@@ -138,11 +138,17 @@ export const ratio = attachDescription(
  * @param allowed An array of allowed values.
  * @returns A validator function that checks if a value is among the allowed ones.
  */
-export const union = (...allowed: any[]) =>
-    attachDescription(
+export function union(allowed: object): Validator;
+export function union(...allowed: any[]): Validator;
+export function union(...allowed: any[]) {
+    if (isObject(allowed[0])) {
+        allowed = Object.values(allowed[0]);
+    }
+    return attachDescription(
         (value: any) => allowed.includes(value),
         `a keyword such as ${joinFormatted(allowed, 'or', (value) => `'${value}'`)}`
     );
+}
 
 /**
  * Creates a validator for a single constant value.

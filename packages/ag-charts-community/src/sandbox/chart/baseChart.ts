@@ -1,3 +1,4 @@
+import { isArray } from '../../util/type-guards';
 import { DataPipeline } from '../data/dataPipeline';
 import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import type { Scene } from '../render/scene';
@@ -61,7 +62,7 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         this.dataPipeline.addProcessor('x', new CategoryProcessor());
         this.dataPipeline.addProcessor('y', new NumberProcessor());
 
-        if (!optionsDiff || optionsDiff.data) {
+        if ((!optionsDiff || optionsDiff.data) && isArray(fullOptions.data)) {
             this.dataPipeline.processData(fullOptions.data);
         }
 
