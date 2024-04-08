@@ -1,11 +1,11 @@
 import { BarSeries } from '../series/barSeries';
 import { ChartType } from '../types';
-import type { SeriesModule } from '../types/moduleTypes';
+import type { CartesianSeriesModule } from '../types/moduleTypes';
 import type { BarSeriesOptions } from '../types/seriesTypes';
 import { boolean, number, required, string, union } from '../util/validation';
 import { commonSeriesOptionsDefs } from './commonOptionsDefs';
 
-export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
+export const BarSeriesModule: CartesianSeriesModule<BarSeriesOptions> = {
     type: 'series',
     identifier: 'bar',
     constructor: BarSeries,
@@ -27,11 +27,6 @@ export const BarSeriesModule: SeriesModule<BarSeriesOptions> = {
         grouped: boolean,
         stacked: boolean,
         stackGroup: string,
-    },
-
-    dataDefs: {
-        x: ['x'],
-        y: ['y'],
     },
 
     // dataDefs: {

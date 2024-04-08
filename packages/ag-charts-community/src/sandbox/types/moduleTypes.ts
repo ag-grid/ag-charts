@@ -1,6 +1,6 @@
 import type { ChartType, IAxis, IModule, ISeries } from '../types';
 import type { OptionsDefs } from '../util/validation';
-import type { CartesianChartAxes, PolarChartAxes } from './axisTypes';
+import type { CartesianChartAxes, CartesianCoordinate, PolarChartAxes, PolarCoordinate } from './axisTypes';
 
 export type Module =
     | AxisModule<any>
@@ -31,11 +31,21 @@ export interface SeriesModule<T extends object> extends ModuleDef<T, ISeries> {
     groupable?: boolean;
     stackable?: boolean;
     canSwapDirection?: boolean;
-    paletteFactory?: (params: object) => { fill: string[]; stroke: string[] }; // TODO: improve
-
-    dataDefs?: object;
 
     axesDefaults?: CartesianChartAxes[] | PolarChartAxes[];
+    axesKeysMap?: Record<string, string[]>;
+
+    paletteFactory?: (params: object) => { fill: string[]; stroke: string[] }; // TODO: improve
+}
+
+export interface CartesianSeriesModule<T extends object> extends SeriesModule<T> {
+    chartTypes: [ChartType.Cartesian];
+    axesKeysMap?: { [K in CartesianCoordinate]: string[] };
+}
+
+export interface PolarSeriesModule<T extends object> extends SeriesModule<T> {
+    chartTypes: [ChartType.Polar];
+    axesKeysMap?: { [K in PolarCoordinate]: string[] };
 }
 
 export interface OptionModule<T extends object> extends ModuleDef<T> {

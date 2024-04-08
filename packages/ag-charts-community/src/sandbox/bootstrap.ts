@@ -6,9 +6,9 @@ export const moduleRegistry = new ModuleRegistry();
 
 moduleRegistry.registerModules(BarSeriesModule);
 
-AgCharts.create({
+const chart = AgCharts.create({
     container: document.getElementById('container')!,
-    data: [{}],
+    data: [{ test: true }],
     axes: [
         {
             type: 'category',
@@ -24,3 +24,5 @@ AgCharts.create({
         // },
     ],
 });
+
+chart.update({});
