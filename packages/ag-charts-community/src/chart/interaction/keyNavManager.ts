@@ -16,7 +16,6 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
 
 export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isFocused: boolean = false;
-    private readonly destroyFns: (() => void)[] = [];
 
     constructor(interactionManager: InteractionManager) {
         super();
@@ -29,7 +28,6 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
 
     public override destroy() {
         super.destroy();
-        this.destroyFns.forEach((fn) => fn());
     }
 
     private onBlur(_event: FocusInteractionEvent<'blur'>) {
