@@ -1,7 +1,7 @@
+import LogoType from '@ag-website-shared/images/inline-svgs/ag-charts-logotype.svg?react';
 import LogoMark from '@components/logo/LogoMark';
 import { SITE_BASE_URL } from '@constants';
 import gridStyles from '@design-system/modules/SiteHeader.module.scss';
-import LogoType from '@images/inline-svgs/ag-charts-logotype.svg?react';
 import type { FunctionComponent } from 'react';
 import { useState } from 'react';
 

@@ -1,9 +1,9 @@
 import type { MenuItem } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import MenuIcon from '@ag-website-shared/images/inline-svgs/menu-icon.svg?react';
 import { SITE_BASE_URL } from '@constants';
 import styles from '@design-system/modules/HeaderNav.module.scss';
 import gridStyles from '@design-system/modules/SiteHeader.module.scss';
-import MenuIcon from '@images/inline-svgs/menu-icon.svg?react';
 import { pathJoin } from '@utils/pathJoin';
 import classnames from 'classnames';
 import { type ReactElement, useState } from 'react';

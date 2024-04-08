@@ -1,5 +1,5 @@
+import LogoMarkSVG from '@ag-website-shared/images/inline-svgs/ag-grid-logomark.svg?react';
 import styles from '@design-system/modules/LogoMark.module.scss';
-import LogoMarkSVG from '@images/inline-svgs/ag-grid-logomark.svg?react';
 import type { FunctionComponent } from 'react';
 
 interface Props {
