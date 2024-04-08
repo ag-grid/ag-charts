@@ -1131,8 +1131,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
         focus.datum = datumIndex;
 
         // Update user interaction/interface:
-        this.regionManager.updateFocusIndicatorRect(node.computeTransformedBBox());
+        const bbox = node.computeTransformedBBox();
+        this.regionManager.updateFocusIndicatorRect(bbox);
         this.highlightManager.updateHighlight(this.id, datum);
+        if (bbox !== undefined) {
+            const { x: offsetX, y: offsetY } = bbox.computeCenter();
+            const html = focusedSeries.getTooltipHtml(datum);
+            const meta = TooltipManager.makeTooltipMeta({ offsetX, offsetY }, datum);
+            this.tooltipManager.updateTooltip(this.id, meta, html);
+        }
     }
 
     private lastInteractionEvent?: PointerInteractionEvent<'hover'>;
