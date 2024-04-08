@@ -89,7 +89,7 @@ export class CandlestickSeries extends CandlestickSeriesBase<
     }
 
     protected resetAnimations(datumSelection: _Scene.Selection<CandlestickGroup, CandlestickNodeDatum>) {
-        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Rect);
+        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Body);
         const wicks = datumSelection.selectByClass<_Scene.Line>(_Scene.Line);
 
         motion.resetMotion(rects, resetCandlestickSelectionsStartFn());
@@ -101,7 +101,7 @@ export class CandlestickSeries extends CandlestickSeriesBase<
     }: _ModuleSupport.CartesianAnimationData<CandlestickGroup, CandlestickNodeDatum>) {
         const { processedData } = this;
         const difference = processedData?.reduced?.diff;
-        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Rect);
+        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Body);
         const wicks = datumSelection.selectByClass<_Scene.Line>(_Scene.Line);
 
         const bodyAnimationFns = prepareCandlestickBodyAnimationFunctions();

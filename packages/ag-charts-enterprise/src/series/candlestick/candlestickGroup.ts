@@ -4,7 +4,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { CandlestickNodeDatum } from './candlestickTypes';
 
 export enum GroupTags {
-    Rect,
+    Body,
     LowWick,
     HighWick,
 }
@@ -34,7 +34,7 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
     constructor() {
         super();
         this.append([
-            new _Scene.Rect({ tag: GroupTags.Rect }),
+            new _Scene.Rect({ tag: GroupTags.Body }),
             new _Scene.Line({ tag: GroupTags.LowWick }),
             new _Scene.Line({ tag: GroupTags.HighWick }),
         ]);
@@ -58,7 +58,7 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
         wickStyles.strokeWidth ??= 1;
 
         const selection = _Scene.Selection.select(this, _Scene.Rect);
-        const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Rect);
+        const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
         const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
         const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
 
