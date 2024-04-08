@@ -1,9 +1,8 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@design-system/modules/SearchHits.module.scss';
 import { ChevronRight } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { useHits } from 'react-instantsearch';
-
-import { Icon } from '../icon/Icon';
 
 export default ({ closeModal, structuredHits, selectedHit, setSelectedHit, query }) => {
     const { sendEvent } = useHits();

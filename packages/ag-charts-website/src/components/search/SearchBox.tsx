@@ -1,8 +1,7 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@design-system/modules/SearchBox.module.scss';
 import React, { useEffect, useRef } from 'react';
 import { useHits, useSearchBox } from 'react-instantsearch';
-
-import { Icon } from '../icon/Icon';
 
 let timeout;
 

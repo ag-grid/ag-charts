@@ -34,7 +34,7 @@ export default defineMarkdocConfig({
     tags: {
         link,
         enterpriseIcon: {
-            render: component('./src/components/icon/EnterpriseIcon.astro'),
+            render: component('./src/ag-website-shared/src/components/icon/EnterpriseIcon', 'EnterpriseIcon'),
         },
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),

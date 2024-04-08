@@ -1,3 +1,4 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { Alert } from '@components/alert/Alert';
 // @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
@@ -9,7 +10,6 @@ import { Grid } from '@components/grid/Grid';
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 // @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
-import { Icon } from '@components/icon/Icon';
 import { SITE_BASE_URL, SITE_URL } from '@constants';
 import styles from '@design-system/modules/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';

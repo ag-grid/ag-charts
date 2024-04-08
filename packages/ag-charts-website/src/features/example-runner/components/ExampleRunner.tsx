@@ -1,5 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
-import { Icon } from '@components/icon/Icon';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
 // Charts specific example runner styles
 import chartsStyles from '@design-system/modules/ChartsExampleRunner.module.scss';

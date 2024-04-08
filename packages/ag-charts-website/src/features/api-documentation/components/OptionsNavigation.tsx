@@ -1,4 +1,4 @@
-import { Icon } from '@components/icon/Icon';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@design-system/modules/OptionsNavigation.module.scss';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoView, scrollIntoViewById, useLocation } from '@utils/navigation';

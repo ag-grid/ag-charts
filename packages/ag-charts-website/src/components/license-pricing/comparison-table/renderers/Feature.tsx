@@ -1,4 +1,4 @@
-import { Icon } from '@components/icon/Icon';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@design-system/modules/ComparisonTableRenderers.module.scss';
 
 export function Feature({ value }: { value: boolean | string }) {
