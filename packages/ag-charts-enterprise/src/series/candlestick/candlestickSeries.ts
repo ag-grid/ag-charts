@@ -3,12 +3,21 @@ import {
     AgCandlestickSeriesFormatterParams,
     AgCandlestickSeriesItemOptions,
     _ModuleSupport,
+    _Scene,
 } from 'ag-charts-community';
 
-import { CandlestickGroup } from './candlestickGroup';
+import { CandlestickGroup, GroupTags } from './candlestickGroup';
 import { CandlestickSeriesBase } from './candlestickSeriesBase';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeDatum } from './candlestickTypes';
+import {
+    prepareCandlestickBodyAnimationFunctions,
+    prepareCandlestickWickAnimationFunctions,
+    resetCandlestickSelectionsStartFn,
+    resetCandlestickWickSelectionsStartFn,
+} from './candlestickUtil';
+
+const { motion } = _Scene;
 
 const { extractDecoratedProperties, mergeDefaults } = _ModuleSupport;
 export class CandlestickSeries extends CandlestickSeriesBase<
@@ -65,6 +74,57 @@ export class CandlestickSeries extends CandlestickSeriesBase<
 
     protected override nodeFactory() {
         return new CandlestickGroup();
+    }
+
+    protected override animateEmptyUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<CandlestickGroup, CandlestickNodeDatum>) {
+        this.resetAnimations(datumSelection);
+    }
+
+    protected override animateReadyResize({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<CandlestickGroup, CandlestickNodeDatum>) {
+        this.resetAnimations(datumSelection);
+    }
+
+    protected resetAnimations(datumSelection: _Scene.Selection<CandlestickGroup, CandlestickNodeDatum>) {
+        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Rect);
+        const wicks = datumSelection.selectByClass<_Scene.Line>(_Scene.Line);
+
+        motion.resetMotion(rects, resetCandlestickSelectionsStartFn());
+        motion.resetMotion(wicks, resetCandlestickWickSelectionsStartFn());
+    }
+
+    protected override animateWaitingUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<CandlestickGroup, CandlestickNodeDatum>) {
+        const { processedData } = this;
+        const difference = processedData?.reduced?.diff;
+        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Rect);
+        const wicks = datumSelection.selectByClass<_Scene.Line>(_Scene.Line);
+
+        const bodyAnimationFns = prepareCandlestickBodyAnimationFunctions();
+        motion.fromToMotion(
+            this.id,
+            'datums',
+            this.ctx.animationManager,
+            rects,
+            bodyAnimationFns,
+            (_, datum) => String(datum.xValue),
+            difference
+        );
+
+        const wickAnimationFns = prepareCandlestickWickAnimationFunctions();
+        motion.fromToMotion(
+            this.id,
+            'datums',
+            this.ctx.animationManager,
+            wicks,
+            wickAnimationFns,
+            (_, datum) => String(datum.xValue),
+            difference
+        );
     }
 
     protected override getSeriesStyles(nodeDatum: CandlestickNodeDatum): AgCandlestickSeriesItemOptions {
