@@ -16,6 +16,7 @@
       "@ag-grid-types": ["src/types/ag-grid.d.ts"],
       "@utils/*": ["src/utils/*"],
       "@constants": ["src/constants.ts"],
+      "@ag-website-shared/*": ["src/ag-website-shared/src/*"],
       "ag-charts-community": ["../ag-charts-community/src/main.ts"],
       "ag-charts-enterprise": ["../ag-charts-enterprise/src/main.ts"]
     },
