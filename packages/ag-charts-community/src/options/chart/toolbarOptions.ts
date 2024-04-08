@@ -1,6 +1,7 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
 
 export interface AgToolbarOptions extends Toggleable {
+    annotations?: AgToolbarAnnotationsSection;
     ranges?: AgToolbarRangesSection;
 }
 
@@ -15,6 +16,17 @@ export interface AgToolbarButton {
     /** Text label to display on the button. */
     label: string;
     value: any;
+}
+
+export interface AgToolbarAnnotationsSection extends AgToolbarSection {
+    buttons?: AgToolbarAnnotationsButton[];
+}
+
+export interface AgToolbarAnnotationsButton extends AgToolbarButton {
+    // TODO: fix docs to use this type
+    // value: AgAnnotation['type'];
+    /** An annotation type. */
+    value: 'line' | 'parallel-channel';
 }
 
 export interface AgToolbarRangesSection extends AgToolbarSection {

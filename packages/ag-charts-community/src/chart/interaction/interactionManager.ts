@@ -126,11 +126,12 @@ type SupportedEvent = MouseEvent | TouchEvent | Event;
 // Smaller numbers have higher priority, because it is possible to find the least
 // significant bit in O(1) complexity using a bitwise operation.
 export enum InteractionState {
-    Default = 8,
-    ZoomDrag = 4,
+    Default = 16,
+    ZoomDrag = 8,
+    Annotations = 4,
     ContextMenu = 2,
     Animation = 1,
-    All = Default | ZoomDrag | ContextMenu | Animation,
+    All = Default | ZoomDrag | Annotations | ContextMenu | Animation,
 }
 
 /**

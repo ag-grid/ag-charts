@@ -3,9 +3,34 @@ import { _ModuleSupport } from 'ag-charts-community';
 const { BOOLEAN, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, BaseProperties, Validate } =
     _ModuleSupport;
 
-const DEFAULT_COLOR = 'rgb(30, 100, 255)';
+// --- Styles ---
+export class LineAnnotationStylesProperties extends BaseProperties {
+    @Validate(COLOR_STRING, { optional: true })
+    stroke?: string;
 
-export class AnnotationProperties extends BaseProperties {
+    @Validate(RATIO, { optional: true })
+    strokeOpacity?: number;
+
+    @Validate(NUMBER, { optional: true })
+    strokeWidth?: number;
+
+    @Validate(LINE_DASH, { optional: true })
+    lineDash?: number[];
+
+    @Validate(NUMBER, { optional: true })
+    lineDashOffset?: number;
+}
+
+export class ChannelAnnotationStylesProperties extends LineAnnotationStylesProperties {
+    @Validate(OBJECT, { optional: true })
+    middle = new LineAnnotationStylesProperties();
+
+    @Validate(OBJECT, { optional: true })
+    background = new AnnotationFillProperties();
+}
+
+// --- Annotations ---
+export class AnnotationProperties extends LineAnnotationStylesProperties {
     @Validate(UNION(['line', 'parallel-channel']))
     type: 'line' | 'parallel-channel' = 'line';
 
@@ -18,18 +43,6 @@ export class AnnotationProperties extends BaseProperties {
 
     @Validate(OBJECT, { optional: true })
     handle = new AnnotationHandleProperties();
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = DEFAULT_COLOR;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = 1;
-
-    @Validate(NUMBER, { optional: true })
-    strokeWidth?: number = 2;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[];
 
     // Line
     @Validate(OBJECT, { optional: true })
@@ -46,7 +59,7 @@ export class AnnotationProperties extends BaseProperties {
     bottom = new AnnotationLinePointsProperties();
 
     @Validate(OBJECT, { optional: true })
-    middle = new AnnotationMiddleLineProperties();
+    middle = new LineAnnotationStylesProperties();
 
     @Validate(OBJECT, { optional: true })
     background = new AnnotationFillProperties();
@@ -62,7 +75,7 @@ export class AnnotationLinePointsProperties extends BaseProperties {
 
 export class AnnotationHandleProperties extends BaseProperties {
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = 'rgb(255, 255, 255)';
+    fill?: string;
 
     @Validate(COLOR_STRING, { optional: true })
     stroke?: string;
@@ -72,6 +85,9 @@ export class AnnotationHandleProperties extends BaseProperties {
 
     @Validate(LINE_DASH, { optional: true })
     lineDash?: number[];
+
+    @Validate(NUMBER, { optional: true })
+    lineDashOffset?: number;
 }
 
 export class AnnotationPointProperties extends BaseProperties {
@@ -82,24 +98,10 @@ export class AnnotationPointProperties extends BaseProperties {
     y?: string | number | Date;
 }
 
-export class AnnotationMiddleLineProperties extends BaseProperties {
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = DEFAULT_COLOR;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = 1;
-
-    @Validate(NUMBER, { optional: true })
-    strokeWidth?: number = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [6, 5];
-}
-
 export class AnnotationFillProperties extends BaseProperties {
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = DEFAULT_COLOR;
+    fill?: string;
 
     @Validate(RATIO, { optional: true })
-    fillOpacity?: number = 0.2;
+    fillOpacity?: number;
 }

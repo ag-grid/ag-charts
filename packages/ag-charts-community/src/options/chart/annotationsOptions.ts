@@ -6,16 +6,37 @@ import type {
     Visible,
 } from '../series/cartesian/commonOptions';
 
-export interface AgAnnotationsOptions extends Toggleable {
-    initial?: AgAnnotation[];
-    // listeners?: {
-    //     annotationsChange?: (event: AgAnnotationsChangeEvent) => void;
-    // };
+// --- Theme ---
+export interface AgAnnotationsThemeableOptions extends AgLineAnnotationsTheme, AgChannelAnnotationTheme {
+    handle?: AgAnnotationHandleStyles;
 }
 
-// export interface AgAnnotationsChangeEvent {
-//     annotations: AgAnnotation[];
-// }
+type AgLineAnnotationsTheme = {
+    // TODO: can this work in the docs?
+    // [key in AgLineAnnotation['type']]?: AgLineAnnotationStyles;
+    line?: AgLineAnnotationStyles;
+};
+
+type AgChannelAnnotationTheme = {
+    // TODO: can this work in the docs?
+    // [key in AgChannelAnnotation['type']]?: AgChannelAnnotationStyles;
+    'parallel-channel'?: AgChannelAnnotationStyles;
+};
+
+// --- Options ---
+export interface AgAnnotationsOptions extends Toggleable {
+    /** The initial set of annotations to display. */
+    initial?: AgAnnotation[];
+}
+
+export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgLineAnnotationStyles extends StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationStyles extends StrokeOptions, LineDashOptions {
+    middle?: AgChannelAnnotationMiddleStyles;
+    background?: AgChannelAnnotationBackgroundStyles;
+}
+export interface AgChannelAnnotationMiddleStyles extends StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationBackgroundStyles extends FillOptions {}
 
 export type AgAnnotation = AgLineAnnotation | AgChannelAnnotation; // | AgCrossLineAnnotation
 
@@ -27,37 +48,39 @@ export interface AgLineAnnotation
         StrokeOptions,
         LineDashOptions {
     type: 'line';
-    // direction?: 'horizontal' | 'vertical';
     // startCap?: 'arrow' | 'circle';
     // endCap?: 'arrow' | 'circle';
 }
 
-// export interface AgCrossLineAnnotation extends Visible, FillOptions, StrokeOptions, LineDashOptions {
-//     type: 'crossline';
-//     point: AgAnnotationPoint;
-// }
-
 export interface AgChannelAnnotation extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
     type: 'parallel-channel';
-    top: AgChannelLine;
-    bottom: AgChannelLine;
-    middle?: Visible & StrokeOptions & LineDashOptions;
-    background?: FillOptions;
+    top: AgAnnotationLine;
+    bottom: AgAnnotationLine;
+    middle?: AgChannelAnnotationMiddle;
+    background?: AgChannelAnnotationBackground;
 }
 
-export interface AgChannelLine extends AnnotationLinePoints {}
+export interface AgAnnotationLine extends AnnotationLinePoints {}
+export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationBackground extends FillOptions {}
 
 interface AnnotationLinePoints {
-    start: AnnotationPoint;
-    end: AnnotationPoint;
+    start: AgAnnotationPoint;
+    end: AgAnnotationPoint;
 }
 
-interface AnnotationPoint {
+export interface AgAnnotationPoint {
+    /** The x-value of the point. */
     x: string | number | Date;
+    /** The y-value of the point. */
     y: string | number | Date;
 }
 
 interface Lockable {
+    /**
+     * Whether the annotation should be locked to prevent editing.
+     * Default: `false`
+     */
     locked?: boolean;
 }
 

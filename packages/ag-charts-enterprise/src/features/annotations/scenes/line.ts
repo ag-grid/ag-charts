@@ -1,10 +1,20 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnnotationProperties } from '../annotationProperties';
+import type {
+    AnnotationHandleProperties,
+    AnnotationProperties,
+    LineAnnotationStylesProperties,
+} from '../annotationProperties';
 import type { Coords, LineCoords } from '../annotationTypes';
 import { Annotation } from './annotation';
 import { DivariantHandle } from './handle';
 import { CollidableLine } from './shapes';
+
+function firstOf<T extends string>(prop: T, ...sources: Array<Partial<Record<T, any>> | undefined>) {
+    for (const obj of sources) {
+        if (obj?.[prop] !== undefined) return obj[prop];
+    }
+}
 
 export class Line extends Annotation {
     type = 'line';
@@ -22,9 +32,15 @@ export class Line extends Annotation {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, coords?: LineCoords) {
+    public update(
+        datum: AnnotationProperties,
+        handleStyles: AnnotationHandleProperties,
+        lineStyles: LineAnnotationStylesProperties,
+        seriesRect: _Scene.BBox,
+        coords?: LineCoords
+    ) {
         const { line, start, end } = this;
-        const { lineDash, locked, stroke, strokeWidth, strokeOpacity, visible } = datum;
+        const { handle, locked, visible } = datum;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
@@ -38,18 +54,37 @@ export class Line extends Annotation {
 
         const { x1, y1, x2, y2 } = coords;
 
-        line.setProperties({ x1, y1, x2, y2, lineDash, stroke, strokeWidth, strokeOpacity, fillOpacity: 0 });
+        line.setProperties({
+            x1,
+            y1,
+            x2,
+            y2,
+            lineDash: datum.lineDash ?? lineStyles.lineDash,
+            lineDashOffset: datum.lineDashOffset ?? lineStyles.lineDashOffset,
+            stroke: datum.stroke ?? lineStyles.stroke,
+            strokeWidth: datum.strokeWidth ?? lineStyles.strokeWidth,
+            strokeOpacity: datum.strokeOpacity ?? lineStyles.strokeOpacity,
+            fillOpacity: 0,
+        });
         line.updateCollisionBBox();
 
-        const handleStyles = datum.handle.toJson();
+        const mergedHandleStyles = {
+            fill: firstOf('fill', handle, handleStyles),
+            stroke: firstOf('stroke', handle, handleStyles, datum, lineStyles),
+            strokeOpacity: firstOf('strokeOpacity', handle, handleStyles, datum, lineStyles),
+        };
 
-        start.update({ ...handleStyles, x: x1, y: y1, stroke, strokeOpacity });
-        end.update({ ...handleStyles, x: x2, y: y2, stroke, strokeOpacity });
+        start.update({ ...mergedHandleStyles, x: x1, y: y1 });
+        end.update({ ...mergedHandleStyles, x: x2, y: y2 });
     }
 
-    public toggleHandles(show: boolean) {
-        this.start.visible = show;
-        this.end.visible = show;
+    public toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
+        if (typeof show === 'boolean') {
+            show = { start: show, end: show };
+        }
+
+        this.start.visible = show.start ?? true;
+        this.end.visible = show.end ?? true;
 
         this.start.toggleHovered(this.activeHandle === 'start');
         this.end.toggleHovered(this.activeHandle === 'end');
@@ -61,22 +96,20 @@ export class Line extends Annotation {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: AnnotationProperties, target: Coords, invertPoint: (point: Coords) => Coords) {
-        const { activeHandle, start, end } = this;
+    override dragHandle(
+        datum: AnnotationProperties,
+        target: Coords,
+        invertPoint: (point: Coords) => Coords | undefined
+    ) {
+        const { activeHandle } = this;
 
-        if (datum.start == null || datum.end == null) return;
+        if (!activeHandle || datum.start == null || datum.end == null) return;
 
-        if (activeHandle === 'start') {
-            start.toggleDragging(true);
-            const point = invertPoint(start.drag(target).point);
-            datum.start.x = point.x;
-            datum.start.y = point.y;
-        } else {
-            end.toggleDragging(true);
-            const point = invertPoint(end.drag(target).point);
-            datum.end.x = point.x;
-            datum.end.y = point.y;
-        }
+        this[activeHandle].toggleDragging(true);
+        const point = invertPoint(this[activeHandle].drag(target).point);
+        if (!point) return;
+        datum[activeHandle].x = point.x;
+        datum[activeHandle].y = point.y;
     }
 
     override stopDragging() {

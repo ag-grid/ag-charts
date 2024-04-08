@@ -1,6 +1,9 @@
 import type { AgChartThemeOptions, AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 import {
+    DEFAULT_ANNOTATION_BACKGROUND_FILL,
+    DEFAULT_ANNOTATION_HANDLE_FILL,
+    DEFAULT_ANNOTATION_STROKE,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_CROSS_LINES_COLOUR,
@@ -116,6 +119,10 @@ export class DarkTheme extends ChartTheme {
         result.properties.set(DEFAULT_HIERARCHY_STROKES, ['#192834', '#3b5164', '#496275', '#577287', '#668399']);
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
+
+        result.properties.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_DARK_STROKES.BLUE);
+        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_DARK_FILLS.BLUE);
+        result.properties.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
 
         return result;
     }

@@ -6,6 +6,15 @@ const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
+const annotations: AgToolbarOptions['annotations'] = {
+    enabled: false,
+    position: 'left',
+    buttons: [
+        { label: 'Li', value: 'line' },
+        { label: 'PCh', value: 'parallel-channel' },
+    ],
+};
+
 const ranges: AgToolbarOptions['ranges'] = {
     enabled: false,
     position: 'top',
@@ -28,6 +37,7 @@ export const ToolbarModule: Module = {
     themeTemplate: {
         toolbar: {
             enabled: true,
+            annotations,
             ranges,
         },
     },
