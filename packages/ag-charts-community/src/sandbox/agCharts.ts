@@ -5,47 +5,47 @@ import { ChartOptions } from './chart/chartOptions';
 import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
-import type { AgChartOptions } from './options/commonOptions';
 import { Scene } from './render/scene';
 import { ChartType, IChart } from './types';
+import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './types/agChartsTypes';
 
 export abstract class AgCharts {
-    static create(options: AgChartOptions) {
+    static create<T extends AgChartOptions>(options: T) {
         // first-time: check license
-        return new ChartInstance(options);
+        return new ChartInstance<T>(options);
     }
 
-    static update(chartInstance: ChartInstance, options: object) {
+    static update<T extends AgChartOptions>(chartInstance: ChartInstance<T>, options: Partial<T>) {
         return chartInstance.update(options);
     }
 
-    static remove(chartInstance: ChartInstance) {
+    static remove(chartInstance: ChartInstance<any>) {
         return chartInstance.remove();
     }
 
-    static download(chartInstance: ChartInstance, options: object) {
+    static download(chartInstance: ChartInstance<any>, options: DownloadOptions) {
         return chartInstance.download(options);
     }
 
-    static getImageDataURL(chartInstance: ChartInstance, options: object) {
+    static getImageDataURL(chartInstance: ChartInstance<any>, options: ImageUrlOptions) {
         return chartInstance.getImageDataURL(options);
     }
 }
 
-class ChartInstance {
+class ChartInstance<T extends AgChartOptions> {
     private chart: IChart;
-    private options: ChartOptions<any>;
+    private options: ChartOptions<T>;
     private readonly scene: Scene;
 
-    constructor(options: object) {
+    constructor(options: T) {
         const pixelRatio = hasConstrainedCanvasMemory() ? 1 : getWindow('devicePixelRatio');
         // default size, big enough to prevent blurriness in Safari.
         this.scene = new Scene(1024, 768, pixelRatio);
-        this.options = new ChartOptions(options);
+        this.options = new ChartOptions<T>(options);
         this.chart = ChartInstance.create(this.scene, this.options);
     }
 
-    update(options: object) {
+    update(options: Partial<T>) {
         const outOfSync = this.chart.options !== this.options;
         this.options = new ChartOptions(options, this.options, outOfSync);
         if (this.options.chartType !== this.options.prevOptions?.chartType) {
@@ -60,9 +60,9 @@ class ChartInstance {
         this.chart.remove();
     }
 
-    download(_options: object) {}
+    download(_options: DownloadOptions) {}
 
-    getImageDataURL(_options: object) {}
+    getImageDataURL(_options: ImageUrlOptions) {}
 
     private static create(scene: Scene, options: ChartOptions<any>) {
         const ChartConstructor = this.getConstructor(options);

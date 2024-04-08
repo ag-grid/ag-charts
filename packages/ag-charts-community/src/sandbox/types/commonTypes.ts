@@ -1,3 +1,5 @@
+export type NonArrayObject = object & { length?: never };
+
 export enum Position {
     Top = 'top',
     Right = 'right',

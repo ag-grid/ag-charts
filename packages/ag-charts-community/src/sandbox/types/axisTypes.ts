@@ -5,7 +5,7 @@ export interface ChartAxisOptions<T extends string> {
 }
 
 export interface CartesianAxisOptions<T extends string> extends ChartAxisOptions<T> {
-    position: Position;
+    position: `${Position}`;
 }
 
 export type CartesianChartAxes =

@@ -1,6 +1,6 @@
 import { AnimationModule, type AnimationModuleOptions } from '../modules/animation';
 import type { OptionModule } from '../types/moduleTypes';
-import { boolean, number, required } from '../util/validation';
+import { boolean, number } from '../util/validation';
 
 export const animationModule: OptionModule<AnimationModuleOptions> = {
     type: 'chart-option',
@@ -11,7 +11,7 @@ export const animationModule: OptionModule<AnimationModuleOptions> = {
         enabled: true,
     },
     optionsDefs: {
-        enabled: required(boolean),
-        duration: required(number),
+        enabled: boolean,
+        duration: number,
     },
 };

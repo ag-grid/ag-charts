@@ -1,6 +1,6 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { CartesianChartAxes, PolarChartAxes } from './axisTypes';
-import type { BoxPosition, SeriesAreaOptions } from './commonTypes';
+import type { BoxPosition, NonArrayObject, SeriesAreaOptions } from './commonTypes';
 import type {
     CartesianChartSeries,
     ChartSeries,
@@ -13,7 +13,7 @@ export type AgChartOptions = CartesianChartOptions | PolarChartOptions | Hierarc
 
 export interface CommonChartOptions {
     container: HTMLElement;
-    data: any;
+    data: NonArrayObject | object[];
 
     theme?: string | object;
 
@@ -44,11 +44,15 @@ export interface PolarChartOptions extends CommonChartOptions {
 }
 
 export interface HierarchyChartOptions extends CommonChartOptions {
-    data: object;
+    data: NonArrayObject;
     series: HierarchyChartSeries[];
 }
 
 export interface TopologyChartOptions extends CommonChartOptions {
-    data: object;
+    data: NonArrayObject;
     series: TopologyChartSeries[];
 }
+
+export interface DownloadOptions {}
+
+export interface ImageUrlOptions {}
