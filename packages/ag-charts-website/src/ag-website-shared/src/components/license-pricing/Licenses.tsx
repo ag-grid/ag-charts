@@ -4,8 +4,8 @@ import styles from '@design-system/modules/Licenses.module.scss';
 import classnames from 'classnames';
 import { FunctionComponent, useState } from 'react';
 
-import chartsFeaturesData from '../../content/licence-features/chartsFeaturesMatrix.json';
-import gridFeaturesData from '../../content/licence-features/gridFeaturesMatrix.json';
+import chartsFeaturesData from '../../content/license-features/chartsFeaturesMatrix.json';
+import gridFeaturesData from '../../content/license-features/gridFeaturesMatrix.json';
 import { ComparisonTable } from './comparison-table/ComparisonTable';
 
 type LicenseData = {

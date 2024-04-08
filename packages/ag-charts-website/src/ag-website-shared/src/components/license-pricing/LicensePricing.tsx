@@ -1,14 +1,14 @@
+import ChartsActive from '@ag-website-shared/images/inline-svgs/pricing/charts-active.svg?react';
+import ChartsInactive from '@ag-website-shared/images/inline-svgs/pricing/charts-inactive.svg?react';
+import GridActive from '@ag-website-shared/images/inline-svgs/pricing/grid-active.svg?react';
+import GridInactive from '@ag-website-shared/images/inline-svgs/pricing/grid-inactive.svg?react';
 import styles from '@design-system/modules/license-pricing.module.scss';
-import ChartsActive from '@images/inline-svgs/pricing/charts-active.svg?react';
-import ChartsInactive from '@images/inline-svgs/pricing/charts-inactive.svg?react';
-import GridActive from '@images/inline-svgs/pricing/grid-active.svg?react';
-import GridInactive from '@images/inline-svgs/pricing/grid-inactive.svg?react';
 // import { trackOnceInfoEmail } from '@utils/analytics';
 import classnames from 'classnames';
-import { useEffect, useRef, useState } from 'react';
+import { type FunctionComponent, useEffect, useRef, useState } from 'react';
 
-import chartsFeaturesData from '../../content/licence-features/chartsFeaturesMatrix.json';
-import gridFeaturesData from '../../content/licence-features/gridFeaturesMatrix.json';
+import chartsFeaturesData from '../../content/license-features/chartsFeaturesMatrix.json';
+import gridFeaturesData from '../../content/license-features/gridFeaturesMatrix.json';
 import { InfoEmailLink } from './InfoEmailLink';
 import { Licenses } from './Licenses';
 import SocialProof from './SocialProof';
@@ -16,7 +16,11 @@ import { ComparisonTable } from './comparison-table/ComparisonTable';
 
 export type LicenseTab = 'grid' | 'charts';
 
-export const LicensePricing = () => {
+interface Props {
+    defaultSelection: LicenseTab;
+}
+
+export const LicensePricing: FunctionComponent<Props> = ({ defaultSelection }) => {
     const [showFullWidthBar, setShowFullWidthBar] = useState(false);
 
     const contactSalesRef = useRef(null); // Step 1: Create a ref for the contactSales div
@@ -61,7 +65,7 @@ export const LicensePricing = () => {
     });
 
     // Handles charts/grid toggle logic
-    const [chartsIsSelected, setChartsIsSelected] = useState(true);
+    const [chartsIsSelected, setChartsIsSelected] = useState(defaultSelection === 'charts');
 
     const handleToggle = () => {
         setChartsIsSelected(!chartsIsSelected);
