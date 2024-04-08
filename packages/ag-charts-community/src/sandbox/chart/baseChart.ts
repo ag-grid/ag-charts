@@ -36,8 +36,15 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
         this.stageQueue.enqueue(Stage.OptionsUpdate, this.applyPendingOptions);
     }
 
-    waitForUpdate(): Promise<void> {
-        return new Promise((resolve) => this.stageQueue.enqueue(Stage.Notify, resolve));
+    waitForUpdate(timeoutMs = 10_000): Promise<void> {
+        const message = `Chart.waitForUpdate() timeout of ${timeoutMs}ms reached - chart update is taking too long.`;
+        return new Promise((resolve, reject) => {
+            const timerId = setTimeout(() => reject(new Error(message)), timeoutMs);
+            this.stageQueue.enqueue(Stage.Notify, () => {
+                clearTimeout(timerId);
+                resolve();
+            });
+        });
     }
 
     remove() {}

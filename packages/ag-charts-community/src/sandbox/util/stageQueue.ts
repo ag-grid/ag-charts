@@ -30,7 +30,8 @@ export class StageQueue {
 
         if (stage === Stage.Render) {
             this.processAsyncQueue();
-        } else {
+        } else if (!this.isProcessingSync) {
+            this.isProcessingSync = true;
             setTimeout(() => this.processSyncQueue());
         }
     }
@@ -39,15 +40,17 @@ export class StageQueue {
      * Processes synchronous tasks, excluding RENDER tasks.
      */
     private processSyncQueue(): void {
-        if (this.isProcessingSync) return;
-
-        this.isProcessingSync = true;
         for (const [stage, tasks] of this.stageQueue.entries()) {
-            if (stage === Stage.Render) continue;
-            this.runTasks(tasks);
+            if (stage < Stage.Render) {
+                this.runTasks(tasks);
+                continue;
+            }
+            if (tasks.size) {
+                this.processAsyncQueue();
+                break;
+            }
         }
         this.isProcessingSync = false;
-        this.processAsyncQueue();
     }
 
     /**
@@ -59,10 +62,18 @@ export class StageQueue {
         this.requestAnimationFrameId = requestAnimationFrame(() => {
             this.requestAnimationFrameId = null;
 
-            const tasks = this.stageQueue.get(Stage.Render)!;
-            this.runTasks(tasks, true);
-            // Trigger another cycle for newly added tasks.
-            if (tasks.size) {
+            if (this.isProcessingSync) {
+                this.processAsyncQueue();
+                return;
+            }
+
+            const asyncTasks: Set<Task>[] = [];
+            for (const [stage, tasks] of this.stageQueue.entries()) {
+                if (stage < Stage.Render) continue;
+                this.runTasks(tasks, true);
+                asyncTasks.push(tasks);
+            }
+            if (asyncTasks.some((tasks) => tasks.size)) {
                 this.processAsyncQueue();
             }
         });
