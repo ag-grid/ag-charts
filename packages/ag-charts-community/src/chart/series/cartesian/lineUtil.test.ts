@@ -1,13 +1,17 @@
 import { afterEach, describe, expect, test } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
-import { clickAction, prepareTestOptions, setupMockConsole } from '../../test/utils';
-import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
+    extractImageData,
+    prepareTestOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../../test/utils';
 
 describe('LineUtil', () => {
     setupMockConsole();

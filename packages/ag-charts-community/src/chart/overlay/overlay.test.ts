@@ -1,10 +1,9 @@
 import { afterEach, describe, expect } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { Chart } from '../chart';
-import { createChart } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    createChart,
     expectWarningMessages,
     expectWarnings,
     extractImageData,
@@ -12,8 +11,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Overlay', () => {
     setupMockConsole();

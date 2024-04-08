@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
     AgBarSeriesOptions,
@@ -19,8 +18,6 @@ import {
     waitForChartStability,
 } from '../test/utils';
 import { themes } from './themes';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('themes module', () => {
     setupMockConsole();

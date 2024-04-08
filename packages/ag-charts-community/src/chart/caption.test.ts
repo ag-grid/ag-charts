@@ -1,5 +1,4 @@
 import { describe, expect, test } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { TextAlign } from '../options/agChartOptions';
 import type { Chart } from './chart';
@@ -12,8 +11,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Caption', () => {
     setupMockConsole();

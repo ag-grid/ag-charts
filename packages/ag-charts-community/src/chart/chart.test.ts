@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { fail } from 'assert';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from '../options/agChartOptions';
 import type { Node } from '../scene/node';
@@ -21,8 +20,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Chart', () => {
     setupMockConsole();

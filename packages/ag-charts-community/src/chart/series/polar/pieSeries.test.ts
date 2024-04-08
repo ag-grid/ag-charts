@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgPolarChartOptions } from '../../../options/agChartOptions';
 import type { Chart } from '../../chart';
@@ -13,8 +12,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('PieSeries', () => {
     setupMockConsole();
