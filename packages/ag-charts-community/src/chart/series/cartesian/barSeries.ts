@@ -108,7 +108,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || !this.data || !this.visible) return;
+        if (!this.properties.isValid() || !this.data) {
+            return;
+        }
 
         const { seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
         const { xKey, yKey, normalizedTo } = this.properties;
@@ -139,10 +141,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             extraProps.push(animationValidation());
         }
 
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null }),
+                valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
                 ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
                     rangeId: `yValue-range`,
@@ -150,6 +153,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     missingValue: 0,
                     groupId: stackGroupName,
                     separateNegative: true,
+                    ...visibleProps,
                 }),
                 ...groupAccumulativeValueProperty(yKey, isContinuousY, 'trailing', 'current', {
                     id: `yValue-start`,
@@ -157,6 +161,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     missingValue: 0,
                     groupId: stackGroupTrailingName,
                     separateNegative: true,
+                    ...visibleProps,
                 }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
