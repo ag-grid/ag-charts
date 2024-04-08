@@ -387,6 +387,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
+            seriesRegion.addListener('blur', (event) => this.onBlur(event)),
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
@@ -1086,6 +1087,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.update(ChartUpdateType.SCENE_RENDER);
             this.cursorManager.updateCursor('chart');
         }
+    }
+
+    private onBlur(_event: KeyNavEvent<'blur'>): void {
+        this.regionManager.updateFocusIndicatorRect(undefined);
+        this.resetPointer();
     }
 
     private onTab(_event: KeyNavEvent<'tab'>): void {
