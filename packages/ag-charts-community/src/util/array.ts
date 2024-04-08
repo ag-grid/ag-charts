@@ -109,3 +109,22 @@ export function bifurcate<T>(isLeft: (array: T) => boolean, array: T[]): [T[], T
         [[], []] as [T[], T[]]
     );
 }
+
+export function* mapIterable<Src, Dst>(src: Iterable<Src>, predicate: (e: Src) => Dst): Iterable<Dst> {
+    for (const e of src) {
+        yield predicate(e);
+    }
+}
+
+function constStringsIncludes<T extends string>(array: readonly T[], value: string): boolean {
+    const casting: readonly string[] = array;
+    return casting.includes(value);
+}
+
+function isInStringUnion<T extends string>(unionValues: readonly T[], value: string): value is T {
+    return constStringsIncludes(unionValues, value);
+}
+
+export function allInStringUnion<T extends string>(unionValues: readonly T[], values: string[]): values is T[] {
+    return !values.some((v: string) => !isInStringUnion(unionValues, v));
+}
