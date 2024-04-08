@@ -7,26 +7,7 @@ export const toolbarStyles = `
     display: flex;
     padding: 2px;
     position: absolute;
-}
-
-.${TOOLBAR_CLASS}--top {
-    left: 0;
-    top: 0;
-}
-
-.${TOOLBAR_CLASS}--right {
-    right: 0;
-    top: 0;
-}
-
-.${TOOLBAR_CLASS}--bottom {
-    bottom: 0;
-    left: 0;
-}
-
-.${TOOLBAR_CLASS}--left {
-    left: 0;
-    top: 0;
+    visibility: hidden;
 }
 
 .${TOOLBAR_CLASS}--top, .${TOOLBAR_CLASS}--bottom {
@@ -41,8 +22,10 @@ export const toolbarStyles = `
     background: none;
     border: 0;
     border-radius: 4px;
+    display: none;
     height: 40px;
-    width: 40px;
+    min-width: 40px;
+    padding: 0 6px;
 }
 
 .${TOOLBAR_CLASS}__button:hover {

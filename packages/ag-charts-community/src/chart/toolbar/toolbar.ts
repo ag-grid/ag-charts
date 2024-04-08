@@ -4,34 +4,32 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import { createElement, getDocument, injectStyle } from '../../util/dom';
 import { BOOLEAN, Validate } from '../../util/validation';
-import type { ToolbarSection, ToolbarVisibilityEvent } from '../interaction/toolbarManager';
+import type { ToolbarSection } from '../interaction/toolbarManager';
 import { ToolbarSectionProperties } from './toolbarProperties';
 import { TOOLBAR_CLASS, toolbarStyles } from './toolbarStyles';
-
-type ToolbarPosition = keyof Toolbar['elements']['fixed'];
+import { TOOLBAR_POSITIONS, type ToolbarPosition } from './toolbarTypes';
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
     public enabled = true;
 
     public ranges = new ToolbarSectionProperties(
-        this.onSectionEnabledChanged.bind(this, 'ranges'),
+        this.toggleSection.bind(this, 'ranges'),
         this.onSectionButtonsChanged.bind(this, 'ranges')
     );
 
     private margin = 10;
     private readonly container: HTMLElement;
     private elements: {
-        fixed: {
-            top: HTMLDivElement;
-            right: HTMLDivElement;
-            bottom: HTMLDivElement;
-            left: HTMLDivElement;
-        };
-        floating?: {
-            top: HTMLDivElement;
-            bottom: HTMLDivElement;
-        };
+        fixed: Record<ToolbarPosition, HTMLDivElement>;
+        floating?: Record<'top' | 'bottom', HTMLDivElement>;
+    };
+
+    private positions: Record<ToolbarPosition, Set<ToolbarSection>> = {
+        top: new Set(),
+        right: new Set(),
+        bottom: new Set(),
+        left: new Set(),
     };
 
     constructor(private readonly ctx: ModuleContext) {
@@ -59,11 +57,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleToolbarVisibility('bottom', false);
         this.toggleToolbarVisibility('left', false);
 
-        this.destroyFns.push(ctx.toolbarManager.addListener('visibility', this.onVisibility.bind(this)));
-    }
-
-    private onSectionEnabledChanged(section: ToolbarSection, enabled: ToolbarSectionProperties['enabled']) {
-        this.toggleToolbarVisibility(this[section].position, enabled);
+        this.destroyFns.push(
+            ctx.toolbarManager.addListener('section-toggled', (event) => {
+                this.toggleSection(event.section, event.visible);
+            })
+        );
     }
 
     private onSectionButtonsChanged(section: ToolbarSection, buttons: ToolbarSectionProperties['buttons']) {
@@ -76,26 +74,51 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
+    private toggleSection(section: ToolbarSection, enabled?: boolean) {
+        if (this[section] == null) return;
+
+        for (const position of TOOLBAR_POSITIONS) {
+            if (enabled && this[section].position === position) {
+                this.positions[position].add(section);
+            } else {
+                this.positions[position].delete(section);
+            }
+
+            this.toggleToolbarVisibility(position, this.positions[position].size > 0);
+        }
+
+        const buttons = this.elements.fixed[this[section].position].children;
+        for (let i = 0; i < buttons.length; i++) {
+            const child = buttons[i];
+            if (child.classList.contains(`${TOOLBAR_CLASS}__button--${section}`)) {
+                (child as HTMLDivElement).style.display = enabled ? 'block' : 'none';
+            }
+        }
+    }
+
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
         const {
+            container,
             elements: { fixed },
             margin,
         } = this;
 
+        container.style.visibility = 'visible';
+
         if (fixed.top.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.top.clientHeight + margin, 'top');
+            shrinkRect.shrink(fixed.top.clientHeight + margin * 2, 'top');
         }
 
         if (fixed.right.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.right.clientWidth + margin, 'right');
+            shrinkRect.shrink(fixed.right.clientWidth, 'right');
         }
 
         if (fixed.bottom.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.bottom.clientHeight + margin, 'bottom');
+            shrinkRect.shrink(fixed.bottom.clientHeight + margin * 2, 'bottom');
         }
 
         if (fixed.left.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.left.clientWidth + margin, 'left');
+            shrinkRect.shrink(fixed.left.clientWidth, 'left');
         }
 
         return { shrinkRect };
@@ -108,7 +131,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         } = this;
         const { seriesRect } = opts;
 
-        fixed.top.style.top = `${seriesRect.y - fixed.top.clientHeight}px`;
+        fixed.top.style.top = `${seriesRect.y - fixed.top.clientHeight - margin}px`;
         fixed.top.style.left = `${margin}px`;
 
         fixed.right.style.top = `${seriesRect.y + margin}px`;
@@ -119,10 +142,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         fixed.left.style.top = `${seriesRect.y + margin}px`;
         fixed.left.style.left = `${margin}px`;
-    }
-
-    private onVisibility({ section, visible }: ToolbarVisibilityEvent) {
-        this.toggleToolbarVisibility(this[section].position ?? 'top', this[section].enabled && visible);
     }
 
     private toggleToolbarVisibility(position: ToolbarPosition = 'top', visible = true) {
@@ -137,8 +156,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private createButtonElement(section: ToolbarSection, options: { label: string; value: any }) {
         const button = createElement('button');
         button.classList.add(`${TOOLBAR_CLASS}__button`);
-        button.innerText = options.label;
+        button.classList.add(`${TOOLBAR_CLASS}__button--${section}`);
+        button.innerHTML = options.label;
         button.onclick = this.onButtonPress.bind(this, section, options.value);
+
+        button.style.display = this[section].enabled ? 'block' : 'none';
 
         return button;
     }

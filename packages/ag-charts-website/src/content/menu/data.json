@@ -253,6 +253,11 @@
                         "icon": "chartsCandlestick",
                         "path": "candlestick-series",
                         "isEnterprise": true
+                    },
+                    {
+                        "title": "Toolbar",
+                        "path": "toolbar",
+                        "isEnterprise": true
                     }
                 ]
             }
@@ -418,6 +423,14 @@
                     {
                         "title": "Supported Browsers",
                         "path": "supported-browsers"
+                    },
+                    {
+                        "title": "Supported Frameworks",
+                        "path": "supported-frameworks"
+                    },
+                    {
+                        "title": "Security",
+                        "path": "security"
                     }
                 ]
             }

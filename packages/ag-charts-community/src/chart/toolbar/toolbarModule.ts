@@ -1,5 +1,5 @@
 import type { Module } from '../../module/module';
-import type { AgToolbarOptions } from '../../options/agChartOptions';
+import type { AgToolbarOptions } from '../../options/chart/toolbarOptions';
 import { Toolbar } from './toolbar';
 
 const DAY = 1000 * 60 * 60 * 24;
