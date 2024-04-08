@@ -15,7 +15,7 @@ export interface ModuleDef<OptionsType extends object, ConstructorType extends I
     type: ModuleType;
     identifier: string;
     constructor: { createInstance: () => ConstructorType };
-    optionsDefs: OptionsDefs<OptionsType>;
+    optionsDefs: Omit<OptionsDefs<OptionsType>, 'type'>;
 
     chartTypes?: ChartType[];
     enterprise?: boolean;

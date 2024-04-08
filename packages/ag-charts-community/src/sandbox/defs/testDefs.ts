@@ -17,6 +17,7 @@ import {
     string,
     union,
 } from '../util/validation';
+import { commonSeriesOptionsDefs } from './commonOptionsDefs';
 
 export const themeOptionsDef: OptionsDefs<PlainObject> = {};
 
@@ -66,7 +67,7 @@ export const chartOptionsDef: OptionsDefs<CartesianChartOptions> = {
 
     // dynamically generated
     axes: [{ type: constant('number'), position: union(Position) }],
-    series: required([{ type: constant('line'), visible: boolean }]),
+    series: required([{ ...commonSeriesOptionsDefs, type: constant('line'), visible: boolean }]),
 
     // refactor?
 

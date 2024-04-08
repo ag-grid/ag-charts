@@ -14,6 +14,7 @@ export const BarSeriesModule: CartesianSeriesModule<BarSeriesOptions> = {
     groupable: true,
     stackable: true,
     defaults: {
+        direction: 'vertical',
         stacked: true,
     },
     optionsDefs: {

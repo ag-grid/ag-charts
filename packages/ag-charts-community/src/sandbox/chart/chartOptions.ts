@@ -17,7 +17,7 @@ export class ChartOptions<T extends object> {
             throw new Error('options bad.');
         }
 
-        const fullOptions = {} as T;
+        const fullOptions = defaultsDeep(userOptions) as T;
         // build fullOptions
 
         if (prevOptions) {

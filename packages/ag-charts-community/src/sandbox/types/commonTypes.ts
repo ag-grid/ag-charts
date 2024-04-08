@@ -5,6 +5,11 @@ export enum Position {
     Left = 'left',
 }
 
+export enum Direction {
+    Horizontal = 'horizontal',
+    Vertical = 'vertical',
+}
+
 export type BoxPosition = { [K in Position]?: number };
 
 export interface SeriesAreaOptions {

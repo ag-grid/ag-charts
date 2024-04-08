@@ -1,3 +1,5 @@
+import { isNumber } from '../../util/type-guards';
+
 export type Task = () => void;
 
 export enum Stage {
@@ -6,14 +8,17 @@ export enum Stage {
     PreRender,
     Render,
     PostRender,
+    Notify,
+}
+
+function stageMapper(callback: (stage: Stage) => [Stage, Set<Task>]) {
+    return (Object.values(Stage).filter(isNumber) as unknown as Stage[]).map(callback);
 }
 
 export class StageQueue {
     private isProcessingSync = false;
     private requestAnimationFrameId: number | null = null;
-    private readonly stageQueue = new Map<Stage, Set<Task>>(
-        (Object.keys(Stage) as unknown as Stage[]).map((stage) => [stage, new Set()])
-    );
+    private readonly stageQueue = new Map<Stage, Set<Task>>(stageMapper((stage) => [stage, new Set()]));
 
     /**
      * Adds a task to the queue with a specified priority.

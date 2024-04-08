@@ -22,6 +22,7 @@ export interface IChart<T extends object = any> {
     scene: IScene;
     stageQueue: StageQueue;
     setOptions(options: ChartOptions<T>): void;
+    waitForUpdate(): Promise<void>;
     remove(): void;
 }
 

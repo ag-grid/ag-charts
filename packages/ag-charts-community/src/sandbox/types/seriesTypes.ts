@@ -1,11 +1,12 @@
-export interface ChartSeries<T extends string> {
+import type { Direction } from './commonTypes';
+
+export interface ChartSeries<T extends string> extends CommonSeriesOptions {
     type: T;
-    visible?: boolean;
 }
 
 export type CartesianChartSeries =
     | ChartSeries<'area'>
-    | ChartSeries<'bar'>
+    | BarSeriesOptions
     | ChartSeries<'bubble'>
     | ChartSeries<'bullet'>
     | ChartSeries<'line'>
@@ -30,13 +31,13 @@ export interface CommonSeriesOptions {
     onNodeDoubleClick?: (event: object) => void;
 }
 
-export interface BarSeriesOptions extends CommonSeriesOptions {
+export interface BarSeriesOptions extends ChartSeries<'bar'> {
     xKey: string;
     yKey: string;
     xName?: string;
     yName?: string;
     normalizedTo?: number;
-    direction?: string;
+    direction?: `${Direction}`;
     grouped?: boolean;
     stacked?: boolean;
     stackGroup?: string;

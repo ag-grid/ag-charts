@@ -1,18 +1,12 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { CartesianChartAxes, PolarChartAxes } from './axisTypes';
 import type { BoxPosition, SeriesAreaOptions } from './commonTypes';
-import type {
-    CartesianChartSeries,
-    ChartSeries,
-    HierarchyChartSeries,
-    PolarChartSeries,
-    TopologyChartSeries,
-} from './seriesTypes';
+import type { CartesianChartSeries, HierarchyChartSeries, PolarChartSeries, TopologyChartSeries } from './seriesTypes';
 
 export type AgChartOptions = CartesianChartOptions | PolarChartOptions | HierarchyChartOptions | TopologyChartOptions;
 
 export interface CommonChartOptions {
-    container: HTMLElement;
+    container?: HTMLElement;
     data?: object[];
 
     theme?: string | object;
@@ -34,7 +28,8 @@ export interface CommonChartOptions {
 export interface CartesianChartOptions extends CommonChartOptions {
     data: object[];
     axes?: CartesianChartAxes[];
-    series: Exclude<CartesianChartSeries, ChartSeries<'bullet'>>[] | [ChartSeries<'bullet'>];
+    series: CartesianChartSeries[];
+    // series: Exclude<CartesianChartSeries, ChartSeries<'bullet'>>[] | [ChartSeries<'bullet'>];
 }
 
 export interface PolarChartOptions extends CommonChartOptions {

@@ -32,7 +32,7 @@ export abstract class AgCharts {
     }
 }
 
-class ChartInstance<T extends AgChartOptions> {
+export class ChartInstance<T extends AgChartOptions> {
     private chart: IChart;
     private options: ChartOptions<T>;
     private readonly scene: Scene;

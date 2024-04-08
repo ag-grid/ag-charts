@@ -33,6 +33,10 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         this.stageQueue.enqueue(Stage.OptionsUpdate, this.applyPendingOptions);
     }
 
+    waitForUpdate(): Promise<void> {
+        return new Promise((resolve) => this.stageQueue.enqueue(Stage.Notify, resolve));
+    }
+
     remove() {}
 
     protected determineScale(): IScale {
@@ -96,9 +100,9 @@ export abstract class BaseChart<T extends CommonChartOptions> implements IChart 
         }
     }
 
-    private setContainer(container: HTMLElement, prevContainer?: HTMLElement) {
-        container.setAttribute('data-ag-charts', '');
-        container.appendChild(this.scene.rootElement);
+    private setContainer(container?: HTMLElement, prevContainer?: HTMLElement) {
+        container?.setAttribute('data-ag-charts', '');
+        container?.appendChild(this.scene.rootElement);
         prevContainer?.removeAttribute('data-ag-charts');
     }
 }
