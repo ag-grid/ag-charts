@@ -54,6 +54,7 @@ export class RegionManager {
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
             ),
+            this.keyNavManager.addListener('blur', this.onNav.bind(this)),
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
@@ -245,9 +246,13 @@ export class RegionManager {
         const consumed = this.dispatchTabStart(event);
         if (!consumed) {
             const newTabIndex = this.currentTabIndex + event.delta;
+            const newRegion = this.getTabRegion(newTabIndex);
+            const focusedRegion = this.getTabRegion(this.currentTabIndex);
             this.currentTabIndex = clamp(0, newTabIndex, REGION_TAB_ORDERING.length - 1);
 
-            const newRegion = this.getTabRegion(newTabIndex);
+            if (focusedRegion !== undefined && newRegion?.name !== focusedRegion.name) {
+                this.dispatch(focusedRegion, { ...event, type: 'blur' });
+            }
             if (newRegion !== undefined) {
                 event.interactionEvent.sourceEvent.preventDefault();
                 this.updateFocusIndicatorRect(this.getTabRegionBounds(newRegion)); // TODO: temporary
@@ -258,7 +263,7 @@ export class RegionManager {
         }
     }
 
-    private onNav(event: KeyNavEvent<'nav-hori' | 'nav-vert' | 'submit'>) {
+    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'submit'>) {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         this.dispatch(focusedRegion, event);
     }

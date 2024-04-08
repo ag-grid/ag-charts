@@ -7,7 +7,7 @@ import type {
     KeyInteractionEvent,
 } from './interactionManager';
 
-export type KeyNavEventType = 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
+export type KeyNavEventType = 'blur' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
@@ -34,8 +34,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         super.destroy();
     }
 
-    private onBlur(_event: FocusInteractionEvent<'blur'>) {
+    private onBlur(event: FocusInteractionEvent<'blur'>) {
         this.isFocused = false;
+        this.dispatch('blur', 0, event);
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {

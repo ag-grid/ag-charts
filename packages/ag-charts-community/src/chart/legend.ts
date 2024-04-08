@@ -238,6 +238,7 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
+            region.addListener('blur', (e) => this.onBlur(e)),
             region.addListener('tab', (e) => this.onTab(e)),
             region.addListener('tab-start', (e) => this.onTabStart(e)),
             region.addListener('nav-vert', (e) => this.onNavVert(e)),
@@ -927,6 +928,10 @@ export class Legend extends BaseProperties {
     }
 
     private handleLegendMouseExit(_event: PointerInteractionEvent<'leave'>) {
+        this.doMouseExit();
+    }
+
+    private doMouseExit() {
         this.ctx.cursorManager.updateCursor(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
         // Updating the highlight can interrupt animations, so only clear the highlight if the chart
@@ -954,6 +959,11 @@ export class Legend extends BaseProperties {
         row: 0,
         column: 0,
     };
+
+    private onBlur(_event: KeyNavEvent<'blur'>) {
+        this.doMouseExit();
+        this.ctx.regionManager.updateFocusIndicatorRect(undefined);
+    }
 
     private onTab(_event: KeyNavEvent<'tab'>) {
         this.updateFocus();
