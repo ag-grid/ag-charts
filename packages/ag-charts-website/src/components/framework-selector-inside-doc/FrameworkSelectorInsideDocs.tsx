@@ -1,6 +1,6 @@
+import fwLogos from '@ag-website-shared/images/fw-logos';
 import { FRAMEWORKS } from '@constants';
 import styles from '@design-system/modules/FrameworkSelectorInsideDocs.module.scss';
-import fwLogos from '@images/fw-logos';
 import { getFrameworkDisplayText } from '@utils/framework';
 import classnames from 'classnames';
 

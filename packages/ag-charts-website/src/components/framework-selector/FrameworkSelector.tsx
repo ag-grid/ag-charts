@@ -1,5 +1,5 @@
+import fwLogos from '@ag-website-shared/images/fw-logos';
 import styles from '@design-system/modules/FrameworkSelector.module.scss';
-import fwLogos from '@images/fw-logos';
 import classnames from 'classnames';
 
 /**
