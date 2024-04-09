@@ -989,44 +989,36 @@ export class Legend extends BaseProperties {
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>) {
-        switch (this.focus.mode) {
-            case 'item':
-                const newRow = this.focus.row + event.delta;
-                const maxRow = Math.max(this.getRowCount() - 1, 0);
-                this.focus.row = clamp(0, newRow, maxRow);
-                this.updateFocus();
-                break;
+        if (this.focus.mode === 'item') {
+            const newRow = this.focus.row + event.delta;
+            const maxRow = Math.max(this.getRowCount() - 1, 0);
+            this.focus.row = clamp(0, newRow, maxRow);
+            this.updateFocus();
         }
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>) {
-        switch (this.focus.mode) {
-            case 'item':
-                const newCol = this.focus.column + event.delta;
-                const maxCol = Math.max(this.getColumnCount() - 1, 0);
-                this.focus.column = clamp(0, newCol, maxCol);
-                this.updateFocus();
-                break;
-            case 'page':
-                if (event.delta < 0) this.focus.pageButton = 'prev';
-                if (event.delta > 0) this.focus.pageButton = 'next';
-                this.updateFocus();
-                break;
+        if (this.focus.mode === 'item') {
+            const newCol = this.focus.column + event.delta;
+            const maxCol = Math.max(this.getColumnCount() - 1, 0);
+            this.focus.column = clamp(0, newCol, maxCol);
+            this.updateFocus();
+        } else if (this.focus.mode === 'page') {
+            if (event.delta < 0) this.focus.pageButton = 'prev';
+            if (event.delta > 0) this.focus.pageButton = 'next';
+            this.updateFocus();
         }
     }
 
     private onSubmit(_event: KeyNavEvent<'submit'>) {
-        switch (this.focus.mode) {
-            case 'item':
-                this.doClick(this.getFocusedItem().datum);
-                break;
-            case 'page':
-                if (this.focus.pageButton === 'next') this.pagination.clickNext();
-                if (this.focus.pageButton === 'prev') this.pagination.clickPrevious();
-                // Reset the item focus (row/col indices might be out-of-bounds in this new page):
-                this.focus.row = 0;
-                this.focus.column = 0;
-                break;
+        if (this.focus.mode === 'item') {
+            this.doClick(this.getFocusedItem().datum);
+        } else if (this.focus.mode === 'page') {
+            if (this.focus.pageButton === 'next') this.pagination.clickNext();
+            if (this.focus.pageButton === 'prev') this.pagination.clickPrevious();
+            // Reset the item focus (row/col indices might be out-of-bounds in this new page):
+            this.focus.row = 0;
+            this.focus.column = 0;
         }
     }
 
@@ -1064,20 +1056,17 @@ export class Legend extends BaseProperties {
     }
 
     private updateFocus() {
-        switch (this.focus.mode) {
-            case 'item':
-                const { node, datum } = this.getFocusedItem();
-                const bbox = node?.computeTransformedBBox();
-                this.ctx.regionManager.updateFocusIndicatorRect(bbox);
-                if (bbox !== undefined) {
-                    const { x, y } = bbox.computeCenter();
-                    this.doHover(datum, x, y);
-                }
-                break;
-            case 'page':
-                const button = this.getFocusedPaginationButton();
-                this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
-                break;
+        if (this.focus.mode === 'item') {
+            const { node, datum } = this.getFocusedItem();
+            const bbox = node?.computeTransformedBBox();
+            this.ctx.regionManager.updateFocusIndicatorRect(bbox);
+            if (bbox !== undefined) {
+                const { x, y } = bbox.computeCenter();
+                this.doHover(datum, x, y);
+            }
+        } else if (this.focus.mode === 'page') {
+            const button = this.getFocusedPaginationButton();
+            this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
         }
     }
 
