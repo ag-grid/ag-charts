@@ -6,7 +6,7 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
 
-export const INTERACTION_TYPES = [
+export const POINTER_INTERACTION_TYPES = [
     'click',
     'dblclick',
     'contextmenu',
@@ -24,7 +24,7 @@ const FOCUS_INTERACTION_TYPES = ['blur', 'focus'] as const;
 
 const KEY_INTERACTION_TYPES = ['keydown', 'keyup'] as const;
 
-export type PointerInteractionTypes = (typeof INTERACTION_TYPES)[number];
+export type PointerInteractionTypes = (typeof POINTER_INTERACTION_TYPES)[number];
 
 export type FocusInteractionTypes = (typeof FOCUS_INTERACTION_TYPES)[number];
 
@@ -157,7 +157,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private stateQueue: InteractionState = InteractionState.Default;
 
-    public constructor(element: HTMLElement, container?: HTMLElement) {
+    public constructor(
+        private readonly keyboardOptions: { readonly enabled: boolean },
+        element: HTMLElement,
+
+        container?: HTMLElement
+    ) {
         super();
 
         this.rootElement = getDocument('body');
@@ -235,7 +240,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
-        if (allInStringUnion(INTERACTION_TYPES, types)) {
+        if (allInStringUnion(POINTER_INTERACTION_TYPES, types)) {
             this.dispatchPointerEvent(event, types);
         } else if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
             this.dispatchFocusEvent(event as FocusEvent, types);
@@ -310,6 +315,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             case 'focus':
             case 'keydown':
             case 'keyup':
+                return this.keyboardOptions.enabled ? [event.type] : [];
+
             case 'click':
             case 'dblclick':
             case 'contextmenu':

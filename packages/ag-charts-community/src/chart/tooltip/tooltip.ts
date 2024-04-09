@@ -15,7 +15,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { PointerInteractionEvent as InteractionEvent, PointerOffsets } from '../interaction/interactionManager';
+import type { PointerInteractionEvent, PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -257,7 +257,7 @@ export class Tooltip extends BaseProperties {
         }
     }
 
-    pointerLeftOntoTooltip(event: InteractionEvent<'leave'>): boolean {
+    pointerLeftOntoTooltip(event: PointerInteractionEvent<'leave'>): boolean {
         if (!this.enableInteraction) return false;
 
         const classList = ((event.sourceEvent as MouseEvent).relatedTarget as any)?.classList as DOMTokenList;

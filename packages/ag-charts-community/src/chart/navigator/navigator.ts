@@ -7,7 +7,7 @@ import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
-import { PointerInteractionEvent as InteractionEvent, InteractionState } from '../interaction/interactionManager';
+import { InteractionState, PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
@@ -121,7 +121,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.width = width;
     }
 
-    private onHover(event: InteractionEvent<'hover'>) {
+    private onHover(event: PointerInteractionEvent<'hover'>) {
         if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle } = this;
@@ -136,7 +136,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private onDragStart(event: InteractionEvent<'drag-start'>) {
+    private onDragStart(event: PointerInteractionEvent<'drag-start'>) {
         if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle, x, width, _min: min } = this;
@@ -164,7 +164,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private onDrag(event: InteractionEvent<'drag'>) {
+    private onDrag(event: PointerInteractionEvent<'drag'>) {
         if (!this.enabled || this.dragging == null) return;
 
         const { dragging, minRange, panStart, x, width } = this;
@@ -193,7 +193,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.dragging = undefined;
     }
 
-    private onLeave(_event: InteractionEvent<'leave'>) {
+    private onLeave(_event: PointerInteractionEvent<'leave'>) {
         this.ctx.cursorManager.updateCursor('navigator');
     }
 

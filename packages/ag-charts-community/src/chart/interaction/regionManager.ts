@@ -4,11 +4,13 @@ import { getDocument } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import { clamp } from '../../util/number';
 import type {
-    PointerInteractionEvent as InteractionEvent,
+    InteractionEvent,
     InteractionManager,
-    PointerInteractionTypes as InteractionTypes,
+    InteractionTypes,
+    PointerInteractionEvent,
+    PointerInteractionTypes,
 } from './interactionManager';
-import { INTERACTION_TYPES, InteractionState } from './interactionManager';
+import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { KeyNavEvent, KeyNavManager } from './keyNavManager';
 
 export type RegionName = 'legend' | 'navigator' | 'pagination' | 'root' | 'series' | 'toolbar';
@@ -17,7 +19,7 @@ const REGION_TAB_ORDERING: RegionName[] = ['series', 'legend'];
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
-class RegionListeners extends Listeners<InteractionTypes, RegionHandler<InteractionEvent<InteractionTypes>>> {}
+class RegionListeners extends Listeners<InteractionTypes, RegionHandler<PointerInteractionEvent>> {}
 
 interface BBoxProvider {
     getCachedBBox(): BBox;
@@ -38,7 +40,7 @@ export class RegionManager {
     private isDragging = false;
     private leftCanvas = false;
 
-    private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
+    private pointerEventHandler = (event: PointerInteractionEvent) => this.processPointerEvent(event);
     private regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
 
@@ -48,8 +50,8 @@ export class RegionManager {
     ) {
         this.keyNavManager = new KeyNavManager(interactionManager);
         this.destroyFns.push(
-            ...INTERACTION_TYPES.map((eventName) =>
-                interactionManager.addListener(eventName, this.eventHandler, InteractionState.All)
+            ...POINTER_INTERACTION_TYPES.map((eventName) =>
+                interactionManager.addListener(eventName, this.pointerEventHandler, InteractionState.All)
             ),
             this.keyNavManager.addListener('tab', this.onTab.bind(this))
         );
@@ -112,9 +114,9 @@ export class RegionManager {
     private makeObserver(region: Region | undefined) {
         const { interactionManager } = this;
         class ObservableRegionImplementation {
-            addListener<T extends InteractionTypes>(
+            addListener<T extends PointerInteractionTypes>(
                 type: T,
-                handler: RegionHandler<InteractionEvent<T>>,
+                handler: RegionHandler<PointerInteractionEvent<T>>,
                 triggeringStates: InteractionState = InteractionState.Default
             ): () => void {
                 return (
@@ -122,7 +124,7 @@ export class RegionManager {
                         if (!e.consumed) {
                             const currentState = interactionManager.getState();
                             if (currentState & triggeringStates) {
-                                handler(e as InteractionEvent<T>);
+                                handler(e as PointerInteractionEvent<T>);
                             }
                         }
                     }) ?? (() => {})
@@ -132,7 +134,7 @@ export class RegionManager {
         return new ObservableRegionImplementation();
     }
 
-    private checkPointerHistory(targetRegion: Region, event: InteractionEvent<InteractionTypes>): boolean {
+    private checkPointerHistory(targetRegion: Region, event: PointerInteractionEvent): boolean {
         for (const historyEvent of event.pointerHistory) {
             const historyRegion = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY);
             if (targetRegion.name !== historyRegion?.name) {
@@ -142,13 +144,13 @@ export class RegionManager {
         return true;
     }
 
-    private dispatch(region: Region | undefined, event: InteractionEvent<InteractionTypes>) {
+    private dispatch(region: Region | undefined, event: PointerInteractionEvent) {
         region?.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
     // RegionManager.processEvent flow, or true if this event already processed by this function.
-    private handleDragging(event: InteractionEvent<InteractionTypes>): boolean {
+    private handleDragging(event: PointerInteractionEvent): boolean {
         const { currentRegion } = this;
 
         switch (event.type) {
@@ -190,7 +192,7 @@ export class RegionManager {
         return false;
     }
 
-    private processEvent(event: InteractionEvent<InteractionTypes>) {
+    private processPointerEvent(event: PointerInteractionEvent) {
         if (this.handleDragging(event)) {
             // We are current dragging, so do not send leave/enter events until dragging is done.
             return;

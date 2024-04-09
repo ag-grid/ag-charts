@@ -17,7 +17,7 @@ import {
     Validate,
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
-import type { PointerInteractionEvent as InteractionEvent } from './interaction/interactionManager';
+import type { PointerInteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
@@ -96,7 +96,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = truncated;
     }
 
-    handleMouseMove(moduleCtx: ModuleContext, event: InteractionEvent<'hover'>) {
+    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
         if (!this.enabled) return;
 
         const { offsetX, offsetY } = event;

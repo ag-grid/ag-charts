@@ -54,13 +54,14 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
-import type { PointerInteractionEvent as InteractionEvent, PointerOffsets } from './interaction/interactionManager';
+import type { PointerInteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
+import { Keyboard } from './keyboard';
 import { Layers } from './layers';
 import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
@@ -116,7 +117,7 @@ export interface ChartSpecialOverrides {
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
-type PointerEvent = PointerOffsets & Pick<Partial<InteractionEvent>, 'pointerHistory'>;
+type PointerEvent = PointerOffsets & Pick<Partial<PointerInteractionEvent>, 'pointerHistory'>;
 
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
@@ -239,6 +240,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     @Validate(OBJECT)
     readonly footnote = new Caption();
 
+    @Validate(OBJECT)
+    readonly keyboard = new Keyboard();
+
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
 
@@ -328,7 +332,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(element, interactiveContainer);
+        this.interactionManager = new InteractionManager(this.keyboard, element, interactiveContainer);
         this.regionManager = new RegionManager(this.interactionManager, element);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(element);
@@ -1063,7 +1067,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private lastPick?: SeriesNodeDatum;
 
-    protected onMouseMove(event: InteractionEvent<'hover'>): void {
+    protected onMouseMove(event: PointerInteractionEvent<'hover'>): void {
         this.lastInteractionEvent = event;
         this.pointerScheduler.schedule();
 
@@ -1072,7 +1076,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.update(ChartUpdateType.SCENE_RENDER);
     }
 
-    protected onLeave(event: InteractionEvent<'leave'>): void {
+    protected onLeave(event: PointerInteractionEvent<'leave'>): void {
         if (!this.tooltip.pointerLeftOntoTooltip(event)) {
             this.resetPointer();
             this.update(ChartUpdateType.SCENE_RENDER);
@@ -1080,7 +1084,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private onContextMenu(event: InteractionEvent<'contextmenu'>): void {
+    private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
         this.tooltipManager.removeTooltip(this.id);
 
         // If there is already a context menu visible, then re-pick the highlighted node.
@@ -1094,7 +1098,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private lastInteractionEvent?: InteractionEvent<'hover'>;
+    private lastInteractionEvent?: PointerInteractionEvent<'hover'>;
     private pointerScheduler = debouncedAnimationFrame(() => {
         if (!this.lastInteractionEvent) return;
 
@@ -1197,7 +1201,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    protected onClick(event: InteractionEvent<'click'>) {
+    protected onClick(event: PointerInteractionEvent<'click'>) {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
@@ -1208,7 +1212,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    protected onDoubleClick(event: InteractionEvent<'dblclick'>) {
+    protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
@@ -1219,11 +1223,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private checkSeriesNodeClick(event: InteractionEvent<'click'>): boolean {
+    private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {
         return this.checkSeriesNodeRange(event, (series, datum) => series.fireNodeClickEvent(event.sourceEvent, datum));
     }
 
-    private checkSeriesNodeDoubleClick(event: InteractionEvent<'dblclick'>): boolean {
+    private checkSeriesNodeDoubleClick(event: PointerInteractionEvent<'dblclick'>): boolean {
         return this.checkSeriesNodeRange(event, (series, datum) =>
             series.fireNodeDoubleClickEvent(event.sourceEvent, datum)
         );
