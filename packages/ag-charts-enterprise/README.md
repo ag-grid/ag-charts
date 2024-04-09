@@ -11,7 +11,7 @@ AG Charts Enterprise
 
 AG Charts is a fully-featured and highly customizable JavaScript charting library. The professional choice for developers building enterprise applications.
 
-It delivers outstanding performance, has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/javascript/quick-start?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
+It delivers outstanding performance, has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/javascript/supported-frameworks/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
 
 ## Examples
 
