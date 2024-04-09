@@ -158,7 +158,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private stateQueue: InteractionState = InteractionState.Default;
 
     public constructor(
-        private keyboardOptions: { readonly enabled: boolean },
+        private readonly keyboardOptions: { readonly enabled: boolean },
         element: HTMLElement,
 
         container?: HTMLElement
