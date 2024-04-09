@@ -162,6 +162,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         button.style.display = this[section].enabled ? 'block' : 'none';
 
+        this.destroyFns.push(() => button.remove());
+
         return button;
     }
 
