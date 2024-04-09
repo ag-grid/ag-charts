@@ -19,7 +19,8 @@ import {
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
-import { toTooltipHtml } from './tooltip/tooltip';
+import type { KeyNavEvent } from './interaction/keyNavManager';
+import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
@@ -89,10 +90,18 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     registerInteraction(moduleCtx: ModuleContext, regionName: 'root' | 'title' | 'subtitle' | 'footnote') {
         const region = this.getOrAddRegion(moduleCtx, regionName);
-        return joinFunctions(
+        const destroyFns = [
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
-            region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event))
-        );
+            region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
+        ];
+        if (regionName !== 'root') {
+            destroyFns.push(
+                region.addListener('tab', (event) => this.handleFocus(moduleCtx, event)),
+                region.addListener('blur', (event) => this.handleBlur(moduleCtx, event))
+            );
+        }
+
+        return joinFunctions(...destroyFns);
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
@@ -108,23 +117,42 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = truncated;
     }
 
-    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
-        if (!this.enabled || !this.node.visible) return;
-
-        // Prevent other handlers from consuming this event if it's generated inside the caption
-        // boundaries.
-        event.consume();
-        if (this.truncated) {
+    private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent) {
+        if (this.enabled && this.node.visible && this.truncated) {
             const { offsetX, offsetY } = event;
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.text })
             );
+            return true;
+        }
+        return false;
+    }
+
+    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
+        if (this.updateTooltip(moduleCtx, event)) {
+            // Prevent other handlers from consuming this event if it's generated inside the caption
+            // boundaries.
+            event.consume();
         }
     }
 
     handleMouseLeave(moduleCtx: ModuleContext, _event: PointerInteractionEvent<'leave'>) {
+        moduleCtx.tooltipManager.removeTooltip(this.id);
+    }
+
+    handleFocus(moduleCtx: ModuleContext, _event: KeyNavEvent<'tab'>) {
+        const bbox = this.node.computeBBox();
+        moduleCtx.regionManager.updateFocusIndicatorRect(bbox);
+        if (bbox !== undefined) {
+            const { x: offsetX, y: offsetY } = bbox.computeCenter();
+            this.updateTooltip(moduleCtx, { type: 'keyboard', offsetX, offsetY });
+        }
+    }
+
+    handleBlur(moduleCtx: ModuleContext, _event: KeyNavEvent<'blur'>) {
+        moduleCtx.regionManager.updateFocusIndicatorRect(undefined);
         moduleCtx.tooltipManager.removeTooltip(this.id);
     }
 }
