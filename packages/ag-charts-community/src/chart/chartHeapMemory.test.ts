@@ -1,13 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { memoryUsage } from 'process';
 
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 // Heap size comparisons can be flaky - let's be sure any failure is consistent.
 jest.retryTimes(5);

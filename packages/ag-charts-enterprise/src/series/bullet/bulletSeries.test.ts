@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, xit } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import { type AgChartInstance, AgCharts } from 'ag-charts-community';
 import {
@@ -14,8 +13,6 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 type TChart = Parameters<typeof waitForChartStability>[0];
 type TCtx = ReturnType<typeof setupMockCanvas>;
