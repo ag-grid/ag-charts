@@ -1,5 +1,3 @@
-import { clamp } from 'packages/ag-charts-community/src/util/number';
-
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
@@ -16,6 +14,7 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
+import { clamp } from '../../../util/number';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
