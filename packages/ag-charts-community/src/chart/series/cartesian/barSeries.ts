@@ -207,7 +207,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         } else if (this.getValueAxis() instanceof LogAxis) {
             return fixNumericExtent(yExtent, valueAxis);
         } else {
-            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(yExtent[1])];
+            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
             return fixNumericExtent(fixedYExtent, valueAxis);
         }
     }
