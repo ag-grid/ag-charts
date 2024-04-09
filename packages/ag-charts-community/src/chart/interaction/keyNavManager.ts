@@ -1,4 +1,5 @@
 import { BaseManager } from './baseManager';
+import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -6,14 +7,17 @@ import type {
     KeyInteractionEvent,
 } from './interactionManager';
 
-type KeyNavEventType = 'tab' | 'nav-hori';
+export type KeyNavEventType = 'blur' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
 
-export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
+export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
     delta: number;
     interactionEvent: InteractionEvent;
 };
 
+// The purpose of this class is to decouple keyboard input events configuration with
+// navigation commands. For example, keybindings might be different on macOS and Windows,
+// or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isFocused: boolean = false;
 
@@ -30,8 +34,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         super.destroy();
     }
 
-    private onBlur(_event: FocusInteractionEvent<'blur'>) {
+    private onBlur(event: FocusInteractionEvent<'blur'>) {
         this.isFocused = false;
+        this.dispatch('blur', 0, event);
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
@@ -50,13 +55,21 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
                     return this.dispatch('tab', 1, event);
                 }
             case 'ArrowDown':
-                return this.dispatch('nav-hori', -1, event);
+                return this.dispatch('nav-vert', 1, event);
             case 'ArrowUp':
+                return this.dispatch('nav-vert', -1, event);
+            case 'ArrowLeft':
+                return this.dispatch('nav-hori', -1, event);
+            case 'ArrowRight':
                 return this.dispatch('nav-hori', 1, event);
+            case 'Space':
+            case 'Enter':
+                return this.dispatch('submit', 0, event);
         }
     }
 
     private dispatch(type: KeyNavEventType, delta: number, interactionEvent: KeyNavEvent['interactionEvent']) {
-        this.listeners.dispatch(type, { type, delta, interactionEvent });
+        const event = buildConsumable({ type, delta, interactionEvent });
+        dispatchTypedConsumable(this.listeners, type, event);
     }
 }
