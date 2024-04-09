@@ -36,7 +36,7 @@ import {
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
-import { PointerInteractionEvent as InteractionEvent, InteractionState } from './interaction/interactionManager';
+import { InteractionState, PointerInteractionEvent } from './interaction/interactionManager';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
 import { MarkerConstructor, getMarker } from './marker/util';
@@ -748,7 +748,7 @@ export class Legend extends BaseProperties {
         return actualBBox;
     }
 
-    private checkLegendClick(event: InteractionEvent<'click'>) {
+    private checkLegendClick(event: PointerInteractionEvent<'click'>) {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -800,7 +800,7 @@ export class Legend extends BaseProperties {
         legendItemClick?.({ type: 'click', enabled: newEnabled, itemId, seriesId: series.id });
     }
 
-    private checkLegendDoubleClick(event: InteractionEvent<'dblclick'>) {
+    private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
@@ -845,7 +845,7 @@ export class Legend extends BaseProperties {
         legendItemDoubleClick?.({ type: 'dblclick', enabled: true, itemId, seriesId: series.id });
     }
 
-    private handleLegendMouseMove(event: InteractionEvent<'hover'>) {
+    private handleLegendMouseMove(event: PointerInteractionEvent<'hover'>) {
         const {
             enabled,
             item: { toggleSeriesVisible },
@@ -893,7 +893,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseExit(_event: InteractionEvent<'leave'>) {
+    private handleLegendMouseExit(_event: PointerInteractionEvent<'leave'>) {
         this.ctx.cursorManager.updateCursor(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
         // Updating the highlight can interrupt animations, so only clear the highlight if the chart
@@ -903,7 +903,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseEnter(event: InteractionEvent<'enter'>) {
+    private handleLegendMouseEnter(event: PointerInteractionEvent<'enter'>) {
         const {
             enabled,
             item: { toggleSeriesVisible: toggle },

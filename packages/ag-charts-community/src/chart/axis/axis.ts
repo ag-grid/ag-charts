@@ -44,7 +44,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { PointerInteractionEvent as InteractionEvent } from '../interaction/interactionManager';
+import type { PointerInteractionEvent } from '../interaction/interactionManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
@@ -458,7 +458,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return new AxisLabel();
     }
 
-    private checkAxisHover(event: InteractionEvent<'hover'>) {
+    private checkAxisHover(event: PointerInteractionEvent<'hover'>) {
         if (!this.interactionEnabled) return;
 
         const bbox = this.computeBBox();
