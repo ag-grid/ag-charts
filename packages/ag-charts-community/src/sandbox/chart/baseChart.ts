@@ -60,7 +60,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
         const { DefaultAxes, DefaultKeysMap } = this.constructor as any;
         const { axes = DefaultAxes, series } = fullOptions;
-        let keysMap = new Map<string, Set<string>>();
+        const keysMap = new Map<string, Set<string>>();
 
         for (const { type: seriesType } of series) {
             const seriesModule = moduleRegistry.getModule(seriesType) as SeriesModule<any>;

@@ -144,10 +144,8 @@ export function union(...allowed: any[]) {
     if (isObject(allowed[0])) {
         allowed = Object.values(allowed[0]);
     }
-    return attachDescription(
-        (value: any) => allowed.includes(value),
-        `a keyword such as ${joinFormatted(allowed, 'or', (value) => `'${value}'`)}`
-    );
+    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`);
+    return attachDescription((value: any) => allowed.includes(value), `a keyword such as ${keywords}`);
 }
 
 /**

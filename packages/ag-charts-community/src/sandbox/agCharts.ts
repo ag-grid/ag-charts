@@ -6,11 +6,11 @@ import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
 import { Scene } from './render/scene';
-import type { IChart } from './types';
+import type { IChart, IChartOptions } from './types';
 import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './types/agChartsTypes';
 import { ChartType } from './types/enums';
 
-type IChartConstructor = new (scene: Scene, options: ChartOptions<any>) => IChart<any>;
+type IChartConstructor = new (scene: Scene, options: IChartOptions<any>) => IChart<any>;
 
 export abstract class AgCharts {
     static create<T extends AgChartOptions>(options: T) {
@@ -72,7 +72,7 @@ export class ChartInstance<T extends AgChartOptions> {
         return new ChartConstructor(scene, options);
     }
 
-    private static getConstructor(options: ChartOptions<any>): IChartConstructor {
+    private static getConstructor(options: IChartOptions<any>): IChartConstructor {
         switch (options.chartType) {
             case ChartType.Cartesian:
                 return CartesianChart;
