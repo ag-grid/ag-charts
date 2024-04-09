@@ -1,4 +1,4 @@
-import type { Position } from './commonTypes';
+import type { Position } from './enums';
 
 export interface ChartAxisOptions<T extends string> {
     type: T;

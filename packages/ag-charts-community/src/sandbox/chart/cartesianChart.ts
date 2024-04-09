@@ -1,7 +1,7 @@
 import type { CartesianAxis } from '../axes/baseAxis';
 import type { CartesianChartOptions } from '../types/agChartsTypes';
 import { type CartesianChartAxes, CartesianCoordinate } from '../types/axisTypes';
-import { Position } from '../types/commonTypes';
+import { Position } from '../types/enums';
 import { BaseChart } from './baseChart';
 
 export class CartesianChart extends BaseChart<CartesianChartOptions> {

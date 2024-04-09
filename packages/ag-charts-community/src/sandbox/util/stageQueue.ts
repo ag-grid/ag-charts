@@ -16,9 +16,11 @@ function stageMapper(callback: (stage: Stage) => [Stage, Set<Task>]) {
 }
 
 export class StageQueue {
+    private readonly stageQueue = new Map<Stage, Set<Task>>(stageMapper((stage) => [stage, new Set()]));
+
     private isProcessingSync = false;
     private requestAnimationFrameId: number | null = null;
-    private readonly stageQueue = new Map<Stage, Set<Task>>(stageMapper((stage) => [stage, new Set()]));
+    private timerId?: number;
 
     /**
      * Adds a task to the queue with a specified priority.
@@ -32,7 +34,7 @@ export class StageQueue {
             this.processAsyncQueue();
         } else if (!this.isProcessingSync) {
             this.isProcessingSync = true;
-            setTimeout(() => this.processSyncQueue());
+            this.timerId = setTimeout(() => this.processSyncQueue()) as any;
         }
     }
 
@@ -94,6 +96,11 @@ export class StageQueue {
         if (this.requestAnimationFrameId !== null) {
             cancelAnimationFrame(this.requestAnimationFrameId);
             this.requestAnimationFrameId = null;
+        }
+        if (this.isProcessingSync) {
+            clearTimeout(this.timerId);
+            this.isProcessingSync = false;
+            this.timerId = undefined;
         }
     }
 }

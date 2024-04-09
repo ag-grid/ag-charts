@@ -6,8 +6,9 @@ import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
 import { Scene } from './render/scene';
-import { ChartType, IChart } from './types';
+import type { IChart } from './types';
 import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './types/agChartsTypes';
+import { ChartType } from './types/enums';
 
 type IChartConstructor = new (scene: Scene, options: ChartOptions<any>) => IChart<any>;
 

@@ -1,6 +1,6 @@
 import { moduleRegistry } from '../modules/moduleRegistry';
-import type { ChartType } from '../types';
 import type { AgChartOptions } from '../types/agChartsTypes';
+import type { ChartType } from '../types/enums';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
 
 export class ChartOptions<T extends AgChartOptions> {

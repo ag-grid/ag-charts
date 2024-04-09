@@ -10,13 +10,6 @@ import type { StageQueue } from './util/stageQueue';
  * - Modules config
  */
 
-export enum ChartType {
-    Cartesian,
-    Polar,
-    Hierarchy,
-    Topology,
-}
-
 export interface IChart<T extends AgChartOptions> {
     events: EventEmitter<ChartEventMap<T>>;
     options: ChartOptions<T>;

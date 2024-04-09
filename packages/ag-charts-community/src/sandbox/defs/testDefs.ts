@@ -1,7 +1,8 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { PlainObject } from '../../util/types';
 import type { CartesianChartOptions } from '../types/agChartsTypes';
-import { type BoxPosition, Position } from '../types/commonTypes';
+import type { BoxPosition } from '../types/commonTypes';
+import { Position } from '../types/enums';
 import {
     type OptionsDefs,
     arrayOf,
