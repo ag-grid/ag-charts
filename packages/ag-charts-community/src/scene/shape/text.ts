@@ -603,7 +603,13 @@ export class Text extends Shape {
     private static _textContext: CanvasRenderingContext2D;
 
     private static get textContext() {
-        return (this._textContext ??= createElement('canvas').getContext('2d')!);
+        if (!this._textContext) {
+            const canvasElement = createElement('canvas');
+            canvasElement.width = 0;
+            canvasElement.height = 0;
+            this._textContext = canvasElement.getContext('2d')!;
+        }
+        return this._textContext;
     }
 
     private static _measureText = memoizeFunction(

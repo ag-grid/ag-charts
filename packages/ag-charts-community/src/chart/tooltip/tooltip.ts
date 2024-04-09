@@ -140,8 +140,7 @@ export class Tooltip extends BaseProperties {
     constructor() {
         super();
 
-        this.element = createElement('div');
-        this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
+        this.element = createElement('div', DEFAULT_TOOLTIP_CLASS);
 
         this.root = getDocument('body');
         this.root.appendChild(this.element);
