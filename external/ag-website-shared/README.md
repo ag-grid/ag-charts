@@ -2,32 +2,29 @@
 
 Shared code for all AG Grid websites ([AG Grid](https://github.com/ag-grid/ag-grid) and [AG Charts](https://github.com/ag-grid/ag-charts)).
 
-## Usage
+This code is hosted in the [ag-website-shared](https://github.com/ag-grid/ag-website-shared) repository and included in other repositories using [git-subrepo](https://github.com/ingydotnet/git-subrepo). Once it is included, the people using the container repository do not need to know about `git-subrepo`, unless they need to push/pull updates from this repository.
 
-This repository is included in other repositories by using [git-subrepo](https://github.com/ingydotnet/git-subrepo). Once it is included, the people using the container repository does not need to know about `git-subrepo`, unless they need to push/pull updates from this repository.
+## Usage
 
 ### Prerequisites
 
 1. To modify or update this repository from the container repository, install [git-subrepo](https://github.com/ingydotnet/git-subrepo) on your local machine. You do not need `git-subrepo` if you just need to push/pull directly to this repository
     1. `git clone https://github.com/ingydotnet/git-subrepo /path/to/git-subrepo`
-    1. Add `source /path/to/git-subrepo/.rc` to your terminal rc file eg, `~/.zshrc` (see docs for others)
+    1. Add `source /path/to/git-subrepo/.rc` to your terminal rc file eg, `~/.zshrc` (see [docs](https://github.com/ingydotnet/git-subrepo?tab=readme-ov-file#command-completion) for other terminal environments)
     1. Update `bash` if required: `brew install bash`
     1. Restart your terminal
 
 ### Installation
 
-To install this shared repository into another container repository, run the following commands (NOTE: This only needs to be done once on the container repository).
+To install this shared repository into another container repository, run the following commands (NOTE: This only needs to be done once, on the container repository).
 
 1. In the container respository figure out the destination folder for this shared repository to go into (`[dest-folder]`), then run
 
     ```
     git subrepo clone git@github.com:ag-grid/ag-website-shared.git [dest-folder] -b latest --method rebase
 
-    # Grid
-    git subrepo clone git@github.com:ag-grid/ag-website-shared.git documentation/ag-grid-docs/src/ag-website-shared -b latest --method rebase
-
-    # Charts
-    git subrepo clone git@github.com:ag-grid/ag-website-shared.git packages/ag-charts-website/src/ag-website-shared -b latest --method rebase
+    # Grid/Charts
+    git subrepo clone git@github.com:ag-grid/ag-website-shared.git external/ag-website-shared -b latest --method rebase
     ```
 
 1. In the website folder of the container repository, add the `@ag-website-shared/*` import alias to point to the `src` folder of this repository eg, if this repository is included in the `src/ag-website-shared` folder:
@@ -38,7 +35,7 @@ To install this shared repository into another container repository, run the fol
       "compilerOptions": {
          "baseUrl": ".",
          "paths": {
-           "@ag-website-shared/*": ["src/ag-website-shared/src/*"],
+           "@ag-website-shared/*": ["../../external/ag-website-shared/src/*"],
          }
       }
     }
@@ -53,11 +50,8 @@ In the container repository:
 ```
 git subrepo pull [dest-folder]
 
-# Grid
-git subrepo pull documentation/ag-grid-docs/src/ag-website-shared
-
-# Charts
-git subrepo pull packages/ag-charts-website/src/ag-website-shared
+# Grid/Charts
+git subrepo pull external/ag-website-shared
 ```
 
 ### Updating this shared repository
@@ -76,11 +70,8 @@ There are 2 ways to update this shared repository:
         ```
         git subrepo push [dest-folder]
 
-        # Grid
-        git subrepo push documentation/ag-grid-docs/src/ag-website-shared
-
-        # Charts
-        git subrepo push packages/ag-charts-website/src/ag-website-shared
+        # Grid/Charts
+        git subrepo push external/ag-website-shared
         ```
 
         If there are changes already on the shared repository, you will get the following error:
