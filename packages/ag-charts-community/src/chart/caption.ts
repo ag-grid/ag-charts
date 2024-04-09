@@ -85,7 +85,11 @@ export class Caption extends BaseProperties implements CaptionLike {
         if (regionName === 'root') {
             return moduleCtx.regionManager.getRegion('root');
         } else {
-            return moduleCtx.regionManager.addRegion(regionName, this.node);
+            return moduleCtx.regionManager.addRegionFromProperties({
+                name: regionName,
+                bboxproviders: [this.node],
+                canInteraction: () => this.enabled && this.node.visible && this.truncated,
+            });
         }
     }
 
