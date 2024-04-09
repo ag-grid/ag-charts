@@ -1,4 +1,5 @@
 import { Canvas, PngConfig, createCanvas } from 'canvas';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import { mockCanvas } from 'ag-charts-test';
 
@@ -9,9 +10,10 @@ import type { Box } from '../types/commonTypes';
 import type { TestInstance } from '../types/testTypes';
 import { mapValues } from './object';
 
-export const CanvasWidth = 800;
-export const CanvasHeight = 600;
-export const CanvasToBufferDefaults: PngConfig = { compressionLevel: 6, filters: Canvas.prototype.PNG_NO_FILTERS };
+const CanvasWidth = 800;
+const CanvasHeight = 600;
+const CanvasToBufferDefaults: PngConfig = { compressionLevel: 6, filters: Canvas.prototype.PNG_NO_FILTERS };
+const SnapshotFailureThreshold = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
 
 export function createTestInstance<T extends AgChartOptions>(options: T) {
     options.container ??= getDocument('body');
@@ -33,6 +35,19 @@ export function setupMockCanvas(width = CanvasWidth, height = CanvasHeight) {
     });
 
     return mockCtx.ctx;
+}
+
+export function expectCanvasToMatchImageSnapshot(
+    ctx: mockCanvas.MockContext['ctx'],
+    options?: MatchImageSnapshotOptions,
+    bbox?: Box
+) {
+    const imageData = extractImageData(ctx, bbox);
+    expect(imageData).toMatchImageSnapshot({
+        failureThreshold: SnapshotFailureThreshold,
+        failureThresholdType: 'percent',
+        ...options,
+    });
 }
 
 export function extractImageData({ nodeCanvas }: mockCanvas.MockContext['ctx'], bbox?: Box) {

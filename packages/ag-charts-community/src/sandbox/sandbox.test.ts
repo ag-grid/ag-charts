@@ -2,10 +2,11 @@ import { describe } from '@jest/globals';
 
 import { DATA_MEAN_SEA_LEVEL } from '../chart/test/data';
 import './bootstrap';
-import { Stage } from './util/stageQueue';
-import { createTestInstance } from './util/testUtil';
+import { createTestInstance, expectCanvasToMatchImageSnapshot, setupMockCanvas } from './util/testUtil';
 
 describe('Sandbox tests', () => {
+    const ctx = setupMockCanvas();
+
     it('Should render `bar` series correctly', async () => {
         const chartInstance = createTestInstance({
             title: {
@@ -28,8 +29,8 @@ describe('Sandbox tests', () => {
         await chartInstance.chart.waitForUpdate();
         chartInstance.update({ title: { text: 'Changed text' } });
         await chartInstance.chart.waitForUpdate();
-        console.log(Stage);
         expect(chartInstance.options.fullOptions.title.text).toBe('Changed text');
+        expectCanvasToMatchImageSnapshot(ctx);
     });
 });
 
