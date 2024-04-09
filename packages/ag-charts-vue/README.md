@@ -12,11 +12,11 @@ AG Charts Vue
 
 AG Charts is a fully-featured and highly customizable JavaScript charting library. The professional choice for developers building enterprise applications.
 
-It delivers [outstanding performance](https://charts.ag-grid.com/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github), has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/vue/quick-start?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
+It delivers outstanding performance, has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/vue/quick-start?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
 
 ## Examples
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-1-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-1-light.png"><img alt="Images from our gallery" src="./.github/example-1-light.png"></picture>
+<a href="https://charts.ag-grid.com/gallery/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github"><picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-1-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-1-light.png"><img alt="Images from our gallery" src="./.github/example-1-light.png"></picture></a>
 
 ## Features
 
@@ -55,13 +55,12 @@ Here are some of the features that make AG Charts stand out:
                 <a href="https://charts.ag-grid.com/vue/nightingale-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Nightingale</a>*<br/>
                 <a href="https://charts.ag-grid.com/vue/range-bar-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Range Bar</a>* & <a href="https://charts.ag-grid.com/vue/range-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Range Area</a>*<br/>
                 <a href="https://charts.ag-grid.com/vue/radar-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radar Area</a>* & <a href="https://charts.ag-grid.com/vue/radar-line-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radar Line</a>*<br/>
-                <a href="https://charts.ag-grid.com/vue/radar-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radial Area</a>* & <a href="https://charts.ag-grid.com/vue/radar-line-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radial Line</a>*<br/>
+                <a href="https://charts.ag-grid.com/vue/radial-bar-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radial Bar</a>* & <a href="https://charts.ag-grid.com/vue/radial-column-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Radial Column</a>*<br/>
                 <a href="https://charts.ag-grid.com/vue/sunburst-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Sunburst*</a> & <a href="https://charts.ag-grid.com/vue/treemap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Treemap</a>*<br/>
                 <a href="https://charts.ag-grid.com/vue/bullet-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Bullet</a>*<br/>
             </td>
             <td>
                 <a href="https://charts.ag-grid.com/vue/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Animation</a>*<br/>
-                <a href="https://charts.ag-grid.com/vue/annotations/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Annotations</a>*<br/>
                 <a href="https://charts.ag-grid.com/vue/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Synchronized Charts</a>*<br/>
                 <a href="https://charts.ag-grid.com/vue/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Context Menu</a>*<br/>
                 <a href="https://charts.ag-grid.com/vue/axes-crosshairs/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Crosshairs</a>*<br/>
@@ -84,7 +83,7 @@ Here are some of the features that make AG Charts stand out:
 
 \* These are available in the [Enterprise version](https://charts.ag-grid.com/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
 
-Check out the [developer documentation](https://charts.ag-grid.com/vue/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features or visit [our official docs](https://charts.ag-grid.com/gallery/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for tutorials and feature demos.
+Check out the [developer documentation](https://charts.ag-grid.com/vue/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features or visit [our official docs](https://charts.ag-grid.com/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for tutorials and feature demos.
 
 ## Getting started
 
@@ -97,7 +96,7 @@ If you have found a bug, please report it in this repository's [issues](https://
 
 ## Asking Questions
 
-Look for similar problems on [StackOverflow](https://stackoverflow.com/questions/tagged/ag-charts) using the `ag-charts` tag. If nothing seems related, post a new message there. Please do not use GitHub issues to ask questions.
+Look for similar problems on [StackOverflow](https://stackoverflow.com/questions/tagged/ag-charts) using the `ag-charts` tag. If nothing seems related, post a new message there. Please do not use GitHub issues to ask questions. If you're using the Enterprise version, please use the [private ticketing](https://ag-grid.zendesk.com/) system to do that.
 
 ## Contributing
 
