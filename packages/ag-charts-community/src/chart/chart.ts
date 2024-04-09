@@ -64,6 +64,7 @@ import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
+import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
@@ -1137,12 +1138,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         focus.datum = datumIndex;
 
         // Update user interaction/interface:
-        const bbox = node.computeTransformedBBox();
-        this.regionManager.updateFocusIndicatorRect(bbox);
-        this.highlightManager.updateHighlight(this.id, datum);
-        if (bbox !== undefined) {
-            const { x: offsetX, y: offsetY } = bbox.computeCenter();
-            this.lastInteractionEvent = { type: 'keyboard', offsetX, offsetY };
+        const keyboardEvent = makeKeyboardPointerEvent(this.regionManager, node);
+        if (keyboardEvent !== undefined) {
+            this.lastInteractionEvent = keyboardEvent;
             const html = focusedSeries.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
             this.tooltipManager.updateTooltip(this.id, meta, html);

@@ -20,6 +20,7 @@ import {
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
 import type { KeyNavEvent } from './interaction/keyNavManager';
+import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
@@ -117,8 +118,8 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = truncated;
     }
 
-    private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent) {
-        if (this.enabled && this.node.visible && this.truncated) {
+    private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent | undefined) {
+        if (event !== undefined && this.enabled && this.node.visible && this.truncated) {
             const { offsetX, offsetY } = event;
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
@@ -143,12 +144,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     handleFocus(moduleCtx: ModuleContext, _event: KeyNavEvent<'tab'>) {
-        const bbox = this.node.computeBBox();
-        moduleCtx.regionManager.updateFocusIndicatorRect(bbox);
-        if (bbox !== undefined) {
-            const { x: offsetX, y: offsetY } = bbox.computeCenter();
-            this.updateTooltip(moduleCtx, { type: 'keyboard', offsetX, offsetY });
-        }
+        this.updateTooltip(moduleCtx, makeKeyboardPointerEvent(moduleCtx.regionManager, this.node));
     }
 
     handleBlur(moduleCtx: ModuleContext, _event: KeyNavEvent<'blur'>) {

@@ -38,13 +38,14 @@ import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import { InteractionState, PointerInteractionEvent } from './interaction/interactionManager';
 import type { KeyNavEvent } from './interaction/keyNavManager';
+import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { Marker } from './marker/marker';
 import { MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
-import { toTooltipHtml } from './tooltip/tooltip';
+import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -886,21 +887,16 @@ export class Legend extends BaseProperties {
         event.consume();
 
         const datum = this.getDatumForPoint(offsetX, offsetY);
-        this.doHover('hover', datum, offsetX, offsetY);
+        this.doHover(event, datum);
     }
 
-    private doHover(
-        type: 'hover' | 'keyboard',
-        datum: CategoryLegendDatum | undefined,
-        offsetX: number,
-        offsetY: number
-    ) {
+    private doHover(event: TooltipPointerEvent | undefined, datum: CategoryLegendDatum | undefined) {
         const {
             item: { toggleSeriesVisible },
             listeners,
         } = this;
 
-        if (datum === undefined) {
+        if (event === undefined || datum === undefined) {
             this.ctx.cursorManager.updateCursor(this.id);
             this.ctx.highlightManager.updateHighlight(this.id);
             return;
@@ -908,9 +904,10 @@ export class Legend extends BaseProperties {
 
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
+            const { offsetX, offsetY } = event;
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, lastPointerEvent: { type, offsetX, offsetY }, showArrow: false },
+                { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.getItemLabel(datum) })
             );
         } else {
@@ -1063,12 +1060,7 @@ export class Legend extends BaseProperties {
     private updateFocus() {
         if (this.focus.mode === 'item') {
             const { node, datum } = this.getFocusedItem();
-            const bbox = node?.computeTransformedBBox();
-            this.ctx.regionManager.updateFocusIndicatorRect(bbox);
-            if (bbox !== undefined) {
-                const { x, y } = bbox.computeCenter();
-                this.doHover('keyboard', datum, x, y);
-            }
+            this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, node), datum);
         } else if (this.focus.mode === 'page') {
             const button = this.getFocusedPaginationButton();
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
