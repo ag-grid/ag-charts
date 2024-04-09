@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { getDocument } from '../../util/dom';
@@ -13,8 +12,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Tooltip', () => {
     setupMockConsole();

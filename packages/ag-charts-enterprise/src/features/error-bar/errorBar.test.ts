@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
     AgErrorBarFormatterParams,
@@ -24,8 +23,6 @@ import { createEnterpriseChart } from '../../test/utils';
 
 export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
 export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
-
-expect.extend({ toMatchImageSnapshot });
 
 const SERIES_CANADA = {
     data: [
