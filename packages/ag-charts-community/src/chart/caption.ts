@@ -2,6 +2,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
+import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
@@ -78,9 +79,20 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private truncated = false;
 
-    registerInteraction(moduleCtx: ModuleContext) {
-        const rootRegion = moduleCtx.regionManager.getRegion('root');
-        return rootRegion.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event));
+    private getOrAddRegion(moduleCtx: ModuleContext, regionName: 'root' | 'title' | 'subtitle' | 'footnote') {
+        if (regionName === 'root') {
+            return moduleCtx.regionManager.getRegion('root');
+        } else {
+            return moduleCtx.regionManager.addRegion(regionName, this.node);
+        }
+    }
+
+    registerInteraction(moduleCtx: ModuleContext, regionName: 'root' | 'title' | 'subtitle' | 'footnote') {
+        const region = this.getOrAddRegion(moduleCtx, regionName);
+        return joinFunctions(
+            region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
+            region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event))
+        );
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
@@ -97,26 +109,22 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.node.visible) return;
 
-        const { offsetX, offsetY } = event;
-        const bbox = this.node.computeBBox();
-        const pointerInsideCaption = this.node.visible && bbox.containsPoint(offsetX, offsetY);
-
-        if (pointerInsideCaption) {
-            // Prevent other handlers from consuming this event if it's generated inside the caption
-            // boundaries.
-            event.consume();
-        }
-
-        if (!this.truncated || !pointerInsideCaption) {
-            moduleCtx.tooltipManager.removeTooltip(this.id);
-        } else {
+        // Prevent other handlers from consuming this event if it's generated inside the caption
+        // boundaries.
+        event.consume();
+        if (this.truncated) {
+            const { offsetX, offsetY } = event;
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.text })
             );
         }
+    }
+
+    handleMouseLeave(moduleCtx: ModuleContext, _event: PointerInteractionEvent<'leave'>) {
+        moduleCtx.tooltipManager.removeTooltip(this.id);
     }
 }

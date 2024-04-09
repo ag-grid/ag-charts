@@ -7,7 +7,16 @@ import type { InteractionManager, PointerInteractionEvent, PointerInteractionTyp
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 
-export type RegionName = 'legend' | 'navigator' | 'pagination' | 'root' | 'series' | 'toolbar';
+export type RegionName =
+    | 'title'
+    | 'subtitle'
+    | 'footnote'
+    | 'legend'
+    | 'navigator'
+    | 'pagination'
+    | 'root'
+    | 'series'
+    | 'toolbar';
 
 const REGION_TAB_ORDERING: RegionName[] = ['series', 'legend'];
 
