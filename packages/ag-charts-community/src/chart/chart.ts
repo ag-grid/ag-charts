@@ -296,8 +296,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.chartOptions = options;
 
         const scene = resources?.scene;
-        const element = resources?.element ?? createElement('div');
+        const element =
+            resources?.element ??
+            createElement('div', 'ag-chart-wrapper', { position: 'relative', userSelect: 'none' });
         const container = resources?.container;
+
+        this.element = element;
 
         const root = new Group({ name: 'root' });
         // Prevent the scene from rendering chart components in an invalid state
@@ -312,11 +316,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.axisGroup = new Group({ name: 'Axes', layer: true, zIndex: Layers.AXIS_ZINDEX });
         root.appendChild(this.axisGroup);
-
-        this.element = element;
-        element.classList.add('ag-chart-wrapper');
-        element.style.position = 'relative';
-        element.style.userSelect = 'none';
 
         this.sizeMonitor = new SizeMonitor();
         this.sizeMonitor.observe(this.element, (size) => this.rawResize(size));
