@@ -13,6 +13,10 @@ import { AgChartInstance, AgChartOptions } from '../src/options/agChartOptions';
 import { Point } from '../src/scene/point';
 import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
 
+export interface BenchmarkExpectations {
+    expectedMaxMemoryMB: number;
+}
+
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     chart: AgChartProxy | AgChartInstance;
     options: T;
@@ -35,7 +39,13 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     }
 }
 
-export function benchmark(name: string, ctx: BenchmarkContext, callback: () => Promise<void>, timeoutMs = 10000) {
+export function benchmark(
+    name: string,
+    ctx: BenchmarkContext,
+    expectations: BenchmarkExpectations,
+    callback: () => Promise<void>,
+    timeoutMs = 10000
+) {
     const isGcEnabled = 'gc' in global;
     if (!isGcEnabled) {
         global.console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
@@ -61,7 +71,7 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
                 throw new Error('Unable to resolve current test name.');
             }
 
-            recordTiming(testPath, currentTestName, {
+            const memoryUse = recordTiming(testPath, currentTestName, {
                 timeMs: duration,
                 memory:
                     memoryUsageBefore && memoryUsageAfter
@@ -85,6 +95,11 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
 
             const newImageData = extractImageData(ctx.canvasCtx);
             expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+
+            if (memoryUse != null) {
+                const BYTES_PER_MB = 1024 ** 2;
+                expect(memoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
+            }
         },
         timeoutMs
     );
