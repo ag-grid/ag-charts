@@ -4,11 +4,15 @@ import { beforeEach, describe } from '@jest/globals';
 import { benchmark, setupBenchmark } from '../../ag-charts-community/benchmarks/benchmark';
 import { AgCartesianChartOptions } from '../src/main';
 
+const EXPECTATIONS = {
+    expectedMaxMemoryMB: 270,
+};
+
 /** Placeholder tests until we have real tests for Enterprise. */
 describe('multi-series benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('multi-series');
 
-    benchmark('initial load', ctx, async () => {
+    benchmark('initial load', ctx, EXPECTATIONS, async () => {
         await ctx.create();
     });
 
@@ -17,7 +21,7 @@ describe('multi-series benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('1x legend toggle', ctx, async () => {
+        benchmark('1x legend toggle', ctx, EXPECTATIONS, async () => {
             ctx.options.series![0].visible = false;
             await ctx.update();
 
@@ -25,7 +29,7 @@ describe('multi-series benchmark', () => {
             await ctx.update();
         });
 
-        benchmark('10x legend toggle', ctx, async () => {
+        benchmark('10x legend toggle', ctx, EXPECTATIONS, async () => {
             for (let i = 0; i < 5; i++) {
                 for (const visible of [false, true]) {
                     ctx.options.series![i].visible = visible;
