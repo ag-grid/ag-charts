@@ -38,6 +38,7 @@ import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
+import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import { JSON_APPLY_PLUGINS } from './chartOptions';
@@ -141,7 +142,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     className?: string;
 
-    readonly scene: Scene;
     readonly seriesRoot = new Group({ name: `${this.id}-series-root` });
     readonly highlightRoot = new Group({
         name: `${this.id}-highlight-root`,
@@ -256,28 +256,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
-    public readonly highlightManager = new HighlightManager();
     public readonly modulesManager = new ModulesManager();
-    public readonly syncManager = new SyncManager(this);
-    public readonly tooltipManager: TooltipManager;
-    public readonly zoomManager = new ZoomManager();
-
-    protected readonly animationManager: AnimationManager;
-    protected readonly annotationManager: AnnotationManager;
-    protected readonly chartEventManager: ChartEventManager;
-    protected readonly contextMenuRegistry: ContextMenuRegistry;
-    protected readonly cursorManager: CursorManager;
-    protected readonly interactionManager: InteractionManager;
-    protected readonly regionManager: RegionManager;
-    protected readonly toolbarManager: ToolbarManager;
-    protected readonly gestureDetector: GestureDetector;
-    protected readonly dataService: DataService<any>;
-    protected readonly layoutService: LayoutService;
-    protected readonly updateService: UpdateService;
+    private readonly ctx: ChartContext;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
-    protected readonly callbackCache: CallbackCache;
-    protected readonly seriesStateManager: SeriesStateManager;
     protected readonly seriesLayerManager: SeriesLayerManager;
 
     private readonly sizeMonitor: SizeMonitor;
@@ -298,7 +280,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.chartOptions = options;
 
-        const scene = resources?.scene;
+        let scene: Scene | undefined = resources?.scene;
         const element =
             resources?.element ??
             createElement('div', 'ag-chart-wrapper', { position: 'relative', userSelect: 'none' });
@@ -324,83 +306,71 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.sizeMonitor.observe(this.element, (size) => this.rawResize(size));
 
         const { overrideDevicePixelRatio } = options.specialOverrides;
-        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
-        this.scene.setRoot(root).setContainer(element);
+        scene ??= new Scene({ pixelRatio: overrideDevicePixelRatio });
+        scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
         const interactiveContainer = container ?? options.userOptions.container ?? undefined;
-        this.annotationManager = new AnnotationManager(this.annotationRoot);
-        this.chartEventManager = new ChartEventManager();
-        this.contextMenuRegistry = new ContextMenuRegistry();
-        this.cursorManager = new CursorManager(element);
-        this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(this.keyboard, element, interactiveContainer);
-        this.regionManager = new RegionManager(this.interactionManager, element);
-        this.toolbarManager = new ToolbarManager();
-        this.gestureDetector = new GestureDetector(element);
-        this.layoutService = new LayoutService();
-        this.updateService = new UpdateService((type = ChartUpdateType.FULL, opts) => this.update(type, opts));
-        this.seriesStateManager = new SeriesStateManager();
+        this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
-        this.callbackCache = new CallbackCache();
-
-        this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
-        this.animationManager.skip();
-        this.animationManager.play();
-
-        this.dataService = new DataService<any>(this.animationManager);
+        const ctx = (this.ctx = new ChartContext(this, {
+            scene,
+            syncManager: new SyncManager(this),
+            element,
+            interactiveContainer,
+            updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
+            updateMutex: this.updateMutex,
+        }));
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
-            getLoadingSpinner(this.overlays.loading.getText(), this.animationManager.defaultDuration);
+            getLoadingSpinner(this.overlays.loading.getText(), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new BaseLayoutProcessor(this, this.layoutService),
-            new DataWindowProcessor(this, this.dataService, this.updateService, this.zoomManager),
-            new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService, this.animationManager),
+            new BaseLayoutProcessor(this, ctx.layoutService),
+            new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager),
+            new OverlaysProcessor(this, this.overlays, ctx.dataService, ctx.layoutService, ctx.animationManager),
         ];
 
-        this.tooltip = new Tooltip();
-        this.tooltipManager = new TooltipManager(this.scene.canvas.element, this.tooltip);
         this.highlight = new ChartHighlight();
         this.container = container;
 
         const { All } = InteractionState;
         const moduleContext = this.getModuleContext();
-        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
+        const seriesRegion = ctx.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
 
-        this.regionManager.addRegion('root', root);
+        ctx.regionManager.addRegion('root', root);
 
         this._destroyFns.push(
-            this.dataService.addListener('data-load', (event) => {
+            ctx.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
             }),
 
-            this.scene.attachNode(this.title.node),
-            this.scene.attachNode(this.subtitle.node),
-            this.scene.attachNode(this.footnote.node),
+            ctx.scene.attachNode(this.title.node),
+            ctx.scene.attachNode(this.subtitle.node),
+            ctx.scene.attachNode(this.footnote.node),
 
             this.title.registerInteraction(moduleContext, 'title'),
             this.subtitle.registerInteraction(moduleContext, 'subtitle'),
             this.footnote.registerInteraction(moduleContext, 'footnote'),
 
-            this.interactionManager.addListener('click', (event) => this.onClick(event)),
-            this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
+            ctx.interactionManager.addListener('click', (event) => this.onClick(event)),
+            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             seriesRegion.addListener('blur', (event) => this.onBlur(event)),
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
-            this.interactionManager.addListener('page-left', () => this.destroy()),
-            this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
+            ctx.interactionManager.addListener('page-left', () => this.destroy()),
+            ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
-            this.animationManager.addListener('animation-frame', () => {
+            ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
-            this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
-            this.zoomManager.addListener('zoom-change', () => {
+            ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
+            ctx.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
+            ctx.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
                 this.series.map((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
@@ -410,28 +380,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     getModuleContext(): ModuleContext {
-        return {
-            scene: this.scene,
-            animationManager: this.animationManager,
-            annotationManager: this.annotationManager,
-            chartEventManager: this.chartEventManager,
-            contextMenuRegistry: this.contextMenuRegistry,
-            cursorManager: this.cursorManager,
-            highlightManager: this.highlightManager,
-            interactionManager: this.interactionManager,
-            regionManager: this.regionManager,
-            tooltipManager: this.tooltipManager,
-            toolbarManager: this.toolbarManager,
-            syncManager: this.syncManager,
-            zoomManager: this.zoomManager,
-            gestureDetector: this.gestureDetector,
-            chartService: this,
-            dataService: this.dataService,
-            layoutService: this.layoutService,
-            updateService: this.updateService,
-            seriesStateManager: this.seriesStateManager,
-            callbackCache: this.callbackCache,
-        };
+        return this.ctx;
     }
 
     resetAnimations() {
@@ -446,11 +395,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Reset animation state.
         this.animationRect = undefined;
-        this.animationManager.reset();
+        this.ctx.animationManager.reset();
     }
 
     skipAnimations() {
-        this.animationManager.skipCurrentBatch();
+        this.ctx.animationManager.skipCurrentBatch();
         this._performUpdateSkipAnimations = true;
     }
 
@@ -466,26 +415,25 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this._destroyFns.forEach((fn) => fn());
         this.processors.forEach((p) => p.destroy());
-        this.tooltipManager.destroy();
         this.tooltip.destroy();
         this.overlays.destroy();
         this.sizeMonitor.unobserve(this.element);
 
         this.modulesManager.destroy();
 
-        this.regionManager.destroy();
-        this.interactionManager.destroy();
-        this.animationManager.stop();
-        this.animationManager.destroy();
-        this.chartEventManager.destroy();
-        this.highlightManager.destroy();
-        this.zoomManager.destroy();
+        this.ctx.regionManager.destroy();
+        this.ctx.interactionManager.destroy();
+        this.ctx.animationManager.stop();
+        this.ctx.animationManager.destroy();
+        this.ctx.chartEventManager.destroy();
+        this.ctx.highlightManager.destroy();
+        this.ctx.zoomManager.destroy();
 
         if (keepTransferableResources) {
-            this.scene.strip();
-            result = { container: this.container, scene: this.scene, element: this.element };
+            this.ctx.scene.strip();
+            result = { container: this.container, scene: this.ctx.scene, element: this.element };
         } else {
-            this.scene.destroy();
+            this.ctx.scene.destroy();
             this.container = undefined;
         }
 
@@ -495,14 +443,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.axes.forEach((a) => a.destroy());
         this.axes = [];
 
-        this.callbackCache.invalidateCache();
-
         // Reset animation state.
         this.animationRect = undefined;
-        this.animationManager.reset();
 
-        this.syncManager.destroy();
-
+        this.ctx.destroy();
         this.destroyed = true;
 
         Object.freeze(this);
@@ -512,9 +456,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     resetPointer(highlightOnly = false) {
         if (!highlightOnly) {
-            this.tooltipManager.removeTooltip(this.id);
+            this.ctx.tooltipManager.removeTooltip(this.id);
         }
-        this.highlightManager.updateHighlight(this.id);
+        this.ctx.highlightManager.updateHighlight(this.id);
         this.lastInteractionEvent = undefined;
     }
 
@@ -593,7 +537,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private _performUpdateSplits: Record<string, number> = {};
     private async performUpdate(count: number) {
-        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits } = this;
+        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
@@ -601,8 +545,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesToUpdate.clear();
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
-            this.animationManager.startBatch(this._performUpdateSkipAnimations);
-            this.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
+            ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
+            ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
         }
 
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
@@ -651,7 +595,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             case ChartUpdateType.TOOLTIP_RECALCULATION:
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
-                const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
+                const tooltipMeta = ctx.tooltipManager.getTooltipMeta(this.id);
 
                 if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta?.lastPointerEvent != null) {
                     this.handlePointer(tooltipMeta.lastPointerEvent, true);
@@ -663,10 +607,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (this.checkUpdateShortcut(ChartUpdateType.SCENE_RENDER)) break;
 
                 // Force any initial animation changes to be applied BEFORE any rendering happens.
-                this.animationManager.endBatch();
+                ctx.animationManager.endBatch();
 
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
-                await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
+                await ctx.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
                 for (const key in splits) {
                     delete splits[key];
@@ -678,11 +622,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.updateShortcutCount = 0;
                 this.updateRequestors = {};
                 this._performUpdateSkipAnimations = false;
-                this.animationManager.endBatch();
+                ctx.animationManager.endBatch();
         }
 
         if (!updateDeferred) {
-            this.updateService.dispatchUpdateComplete(this.getMinRects());
+            ctx.updateService.dispatchUpdateComplete(this.getMinRects());
         }
 
         const end = performance.now();
@@ -890,14 +834,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private resize(width?: number, height?: number, source?: string) {
-        width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : this.scene.canvas.width);
-        height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : this.scene.canvas.height);
+        const { scene, animationManager } = this.ctx;
+        width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : scene.canvas.width);
+        height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : scene.canvas.height);
         this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
         if (!width || !height || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
-        if (this.scene.resize(width, height)) {
+        if (scene.resize(width, height)) {
             this.resetPointer();
-            this.animationManager.reset();
+            animationManager.reset();
 
             let skipAnimations = true;
             if (this.autoSize && this._firstAutoSize) {
@@ -1007,17 +952,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
             // Skip animations if the layout changed.
-            this.animationManager.skipCurrentBatch();
+            this.ctx.animationManager.skipCurrentBatch();
         }
 
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
     protected async performLayout() {
-        const { width, height } = this.scene;
+        const { width, height } = this.ctx.scene;
         let ctx = { shrinkRect: new BBox(0, 0, width, height) };
-        ctx = this.layoutService.dispatchPerformLayout('start-layout', ctx);
-        ctx = this.layoutService.dispatchPerformLayout('before-series', ctx);
+        ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
+        ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
 
         const modulePromises = this.modulesManager.mapModules(async (m) => {
             if (m.performLayout != null) {
@@ -1086,7 +1031,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (!this.tooltip.pointerLeftOntoTooltip(event)) {
             this.resetPointer();
             this.update(ChartUpdateType.SCENE_RENDER);
-            this.cursorManager.updateCursor('chart');
+            this.ctx.cursorManager.updateCursor('chart');
         }
     }
 
@@ -1110,15 +1055,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
-        this.tooltipManager.removeTooltip(this.id);
+        this.ctx.tooltipManager.removeTooltip(this.id);
 
         // If there is already a context menu visible, then re-pick the highlighted node.
         // We check InteractionState.Default too just in case we were in ContextMenu and the
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
-        if (this.interactionManager.getState() & (Default | ContextMenu)) {
+        if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
             this.checkSeriesNodeRange(event, () => {
-                this.highlightManager.updateHighlight(this.id);
+                this.ctx.highlightManager.updateHighlight(this.id);
             });
         }
     }
@@ -1168,7 +1113,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // Ignored "pointer event" that comes from a keyboard. We don't need to worry about finding out
         // which datum to use in the highlight & tooltip because the keyboard just navigates through the
         // data directly.
-        if (this.interactionManager.getState() !== InteractionState.Default || !Chart.isHoverEvent(event)) {
+        if (this.ctx.interactionManager.getState() !== InteractionState.Default || !Chart.isHoverEvent(event)) {
             return;
         }
 
@@ -1181,7 +1126,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
         };
 
-        if (redisplay ? this.animationManager.isActive() : !hoverRect?.containsPoint(offsetX, offsetY)) {
+        if (redisplay ? this.ctx.animationManager.isActive() : !hoverRect?.containsPoint(offsetX, offsetY)) {
             disablePointer();
             return;
         }
@@ -1208,7 +1153,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
 
         if (!pick) {
-            this.tooltipManager.removeTooltip(this.id);
+            this.ctx.tooltipManager.removeTooltip(this.id);
             if (this.highlight.range === 'tooltip') {
                 disablePointer(true);
             }
@@ -1222,7 +1167,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             html = pick.series.getTooltipHtml(pick.datum);
 
             if (this.highlight.range === 'tooltip') {
-                this.highlightManager.updateHighlight(this.id, pick.datum);
+                this.ctx.highlightManager.updateHighlight(this.id, pick.datum);
             }
         }
 
@@ -1235,26 +1180,26 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
 
         if (shouldUpdateTooltip) {
-            this.tooltipManager.updateTooltip(this.id, meta, html);
+            this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
         }
     }
 
     protected handlePointerNode(event: PointerEvent) {
         const found = this.checkSeriesNodeRange(event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
-                this.cursorManager.updateCursor('chart', 'pointer');
+                this.ctx.cursorManager.updateCursor('chart', 'pointer');
             }
 
             if (this.highlight.range === 'node') {
-                this.highlightManager.updateHighlight(this.id, datum);
+                this.ctx.highlightManager.updateHighlight(this.id, datum);
             }
         });
 
         if (!found) {
-            this.cursorManager.updateCursor('chart');
+            this.ctx.cursorManager.updateCursor('chart');
 
             if (this.highlight.range === 'node') {
-                this.highlightManager.updateHighlight(this.id);
+                this.ctx.highlightManager.updateHighlight(this.id);
             }
         }
     }
@@ -1308,9 +1253,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // Find the node if exactly matched and update the highlight picked node
         let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
         if (pickedNode) {
-            this.highlightManager.updatePicked(this.id, pickedNode.datum);
+            this.ctx.highlightManager.updatePicked(this.id, pickedNode.datum);
         } else {
-            this.highlightManager.updatePicked(this.id);
+            this.ctx.highlightManager.updatePicked(this.id);
         }
 
         // First check if we should trigger the callback based on nearest node
@@ -1401,10 +1346,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Adjust cursor if a specific datum is highlighted, rather than just a series.
         if (lastSeries?.properties.cursor && lastDatum) {
-            this.cursorManager.updateCursor(lastSeries.id);
+            this.ctx.cursorManager.updateCursor(lastSeries.id);
         }
         if (newSeries?.properties.cursor && newDatum) {
-            this.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
+            this.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
         this.lastPick = event.currentHighlight;
@@ -1457,7 +1402,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected getMinRects() {
-        const { width, height } = this.scene;
+        const { width, height } = this.ctx.scene;
         const minRects = this.series.map((series) => series.getMinRects(width, height)).filter(isDefined);
 
         if (minRects.length === 0) return;
@@ -1553,7 +1498,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (!navigatorModule?.enabled && !zoomModule?.enabled) {
             // reset zoom to initial state
-            this.zoomManager.updateZoom('chart');
+            this.ctx.zoomManager.updateZoom('chart');
         }
 
         const miniChart = navigatorModule?.miniChart;
@@ -1669,7 +1614,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.modulesManager.addModule(module, (m) => new m.instanceConstructor(this.getModuleContext()));
 
                 if (module.type === 'legend') {
-                    this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.scene);
+                    this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.ctx.scene);
                 }
 
                 (this as any)[module.optionsKey] = this.modulesManager.getModule(module); // TODO remove
