@@ -1,7 +1,9 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import { GroupTags } from './candlestickGroup';
 import type { CandlestickNodeDatum } from './candlestickTypes';
+
+const { NODE_UPDATE_STATE_TO_PHASE_MAPPING } = _ModuleSupport;
 
 type AnimatableCandlestickBodyDatum = {
     x?: number;
@@ -57,6 +59,8 @@ export function prepareCandlestickBodyAnimationFunctions() {
     > = (body: _Scene.Rect, datum: CandlestickNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
         const { x, width } = getRectCoordinates(datum);
 
+        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
+
         if (status === 'added' && datum != null) {
             const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
             return {
@@ -64,6 +68,7 @@ export function prepareCandlestickBodyAnimationFunctions() {
                 y: maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue),
                 width,
                 height: 0,
+                phase,
             };
         }
         return {
@@ -71,10 +76,11 @@ export function prepareCandlestickBodyAnimationFunctions() {
             y: body.y,
             width: body.width,
             height: body.height,
+            phase,
         };
     };
     const toFn: _ModuleSupport.FromToMotionPropFn<_Scene.Rect, AnimatableCandlestickBodyDatum, CandlestickNodeDatum> = (
-        rect: _Scene.Rect,
+        _: _Scene.Rect,
         datum: CandlestickNodeDatum,
         status: _ModuleSupport.NodeUpdateState
     ) => {
@@ -107,6 +113,7 @@ export function prepareCandlestickWickAnimationFunctions() {
         AnimatableCandlestickWickDatum,
         CandlestickNodeDatum
     > = (line: _Scene.Line, datum: CandlestickNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
+        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         if (status === 'added' && datum != null) {
             const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
             const collapsedY = maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue);
@@ -115,12 +122,14 @@ export function prepareCandlestickWickAnimationFunctions() {
                 y1: collapsedY,
                 y2: collapsedY,
                 x,
+                phase,
             };
         }
         return {
             y1: line.y1,
             y2: line.y2,
             x: line.x1,
+            phase,
         };
     };
     const toFn: _ModuleSupport.FromToMotionPropFn<_Scene.Line, AnimatableCandlestickWickDatum, CandlestickNodeDatum> = (
@@ -184,7 +193,7 @@ function getWickCoordinates(line: _Scene.Line, datum: CandlestickNodeDatum) {
     const halfStrokeWidth = line.strokeWidth / 2;
     return {
         y1: Math.round((isLowWick ? yLow : yHigh) + halfStrokeWidth),
-        y2: Math.round((isLowWick ? yBottom : y) + halfStrokeWidth),
+        y2: Math.round(isLowWick ? yBottom : y),
         x: Math.floor(x + bandwidth / 2),
     };
 }

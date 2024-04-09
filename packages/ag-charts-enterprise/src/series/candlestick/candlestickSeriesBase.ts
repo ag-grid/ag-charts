@@ -87,6 +87,7 @@ export abstract class CandlestickSeriesBase<
                 y: ['lowName', 'highName', 'openName', 'closeName'],
             },
             pathsPerSeries: 1,
+            datumSelectionGarbageCollection: false,
         });
     }
 
