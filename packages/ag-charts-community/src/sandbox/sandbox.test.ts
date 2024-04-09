@@ -5,7 +5,7 @@ import './bootstrap';
 import { createTestInstance, expectCanvasToMatchImageSnapshot, setupMockCanvas } from './util/testUtil';
 
 describe('Sandbox tests', () => {
-    const ctx = setupMockCanvas();
+    const canvasContext = setupMockCanvas();
 
     it('Should render `bar` series correctly', async () => {
         const chartInstance = createTestInstance({
@@ -30,7 +30,7 @@ describe('Sandbox tests', () => {
         chartInstance.update({ title: { text: 'Changed text' } });
         await chartInstance.chart.waitForUpdate();
         expect(chartInstance.options.fullOptions.title.text).toBe('Changed text');
-        expectCanvasToMatchImageSnapshot(ctx);
+        expectCanvasToMatchImageSnapshot(canvasContext);
     });
 });
 

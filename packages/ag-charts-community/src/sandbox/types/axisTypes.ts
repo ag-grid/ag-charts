@@ -1,4 +1,4 @@
-import type { Position } from './enums';
+import type { Direction } from './enums';
 
 export interface ChartAxisOptions<T extends string> {
     type: T;
@@ -10,7 +10,7 @@ export enum CartesianCoordinate {
 }
 
 export interface CartesianAxisOptions<T extends string> extends ChartAxisOptions<T> {
-    position: `${Position}`;
+    position: `${Direction}`;
 }
 
 export type CartesianChartAxes =

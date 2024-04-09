@@ -62,20 +62,31 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
         const { axes = DefaultAxes, series } = fullOptions;
         const keysMap = new Map<string, Set<string>>();
 
-        for (const { type: seriesType } of series) {
-            const seriesModule = moduleRegistry.getModule(seriesType) as SeriesModule<any>;
+        for (const seriesOptions of series) {
+            const seriesModule = moduleRegistry.getModule<SeriesModule<any>>(seriesOptions.type);
             const seriesKeysMap = Object.entries<string[]>(seriesModule?.axesKeysMap ?? DefaultKeysMap);
             for (const [axisCoordinate, axisKeys] of seriesKeysMap) {
-                const axisCoordinateKeys = keysMap.has(axisCoordinate)
-                    ? keysMap.get(axisCoordinate)!
-                    : keysMap.set(axisCoordinate, new Set()).get(axisCoordinate)!;
-                for (const key of axisKeys) {
-                    axisCoordinateKeys.add(key);
+                const axisCoordinateKeys =
+                    keysMap.get(axisCoordinate) ?? keysMap.set(axisCoordinate, new Set()).get(axisCoordinate)!;
+                for (let key of axisKeys) {
+                    key += 'Key';
+                    if (Object.hasOwn(seriesOptions, key)) {
+                        axisCoordinateKeys.add((seriesOptions as any)[key]);
+                    }
                 }
             }
         }
 
-        console.log({ axes, series, keysMap });
+        /**
+         * Order:
+         * create data processors
+         * create / modify axes
+         * create / modify series
+         */
+
+        const axisInstances = axes;
+
+        console.log({ axes, series, keysMap, axisInstances });
 
         this.dataPipeline.processData(fullOptions.data);
 
@@ -83,10 +94,6 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
         //     // 'x' and 'y' represent the values inside `xKey` and `yKey`
         //     this.dataPipeline.addProcessor('x', new CategoryProcessor());
         //     this.dataPipeline.addProcessor('y', new NumberProcessor());
-        // }
-        //
-        // if ((!optionsDiff || optionsDiff.data) && isArray(fullOptions.data)) {
-        //     this.dataPipeline.processData(fullOptions.data);
         // }
     }
 

@@ -1,8 +1,10 @@
+import { chartOptionsDef } from '../defs/chartOptionsDef';
 import { moduleRegistry } from '../modules/moduleRegistry';
 import type { IChartOptions } from '../types';
 import type { AgChartOptions } from '../types/agChartsTypes';
 import type { ChartType } from '../types/enums';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
+import { validation } from '../util/validation';
 
 export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> {
     fullOptions: T;
@@ -43,7 +45,7 @@ export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> 
         return mainSeriesModule.chartTypes?.[0]!;
     }
 
-    validate(_options: Partial<T>) {
-        return true;
+    validate(options: Partial<T>) {
+        return validation(options as T, chartOptionsDef);
     }
 }

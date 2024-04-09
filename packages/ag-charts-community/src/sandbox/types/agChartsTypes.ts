@@ -1,6 +1,6 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { CartesianChartAxes, PolarChartAxes } from './axisTypes';
-import type { BoxPosition, SeriesAreaOptions } from './commonTypes';
+import type { DirectionMetrics, SeriesAreaOptions } from './commonTypes';
 import type { CartesianChartSeries, HierarchyChartSeries, PolarChartSeries, TopologyChartSeries } from './seriesTypes';
 
 export type AgChartOptions = CartesianChartOptions | PolarChartOptions | HierarchyChartOptions | TopologyChartOptions;
@@ -14,7 +14,7 @@ export interface CommonChartOptions {
     width?: number;
     height?: number;
 
-    padding?: BoxPosition;
+    padding?: DirectionMetrics;
     seriesArea?: SeriesAreaOptions;
 
     title?: AgChartCaptionOptions;

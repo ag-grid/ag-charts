@@ -16,8 +16,8 @@ export class ModuleRegistry {
         }
     }
 
-    getModule(moduleId: string): Module | undefined {
-        return this.modules.get(moduleId);
+    getModule<T extends Module>(moduleId: string): T | undefined {
+        return this.modules.get(moduleId) as T;
     }
 
     createInstance(moduleId: string) {

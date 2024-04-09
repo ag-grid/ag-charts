@@ -1,4 +1,4 @@
-import type { Direction } from './enums';
+import type { DirectionType } from './enums';
 
 export interface ChartSeries<T extends string> extends CommonSeriesOptions {
     type: T;
@@ -37,7 +37,7 @@ export interface BarSeriesOptions extends ChartSeries<'bar'> {
     xName?: string;
     yName?: string;
     normalizedTo?: number;
-    direction?: `${Direction}`;
+    direction?: `${DirectionType}`;
     grouped?: boolean;
     stacked?: boolean;
     stackGroup?: string;

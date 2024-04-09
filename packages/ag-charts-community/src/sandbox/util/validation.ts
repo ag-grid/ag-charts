@@ -26,7 +26,7 @@ export interface Validator extends Function {
  * @returns A boolean indicating whether the options are valid.
  */
 export function validation<T>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
-    const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : `${path}.${key}`);
+    const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : path ? `${path}.${key}` : key);
     for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
         const value = options[key as keyof T];
         if (isFunction(validatorOrDefs)) {

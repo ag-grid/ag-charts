@@ -1,10 +1,10 @@
-import type { Position } from './enums';
+import type { Direction } from './enums';
 
-export type BoxPosition = { [K in Position]?: number };
+export type DirectionMetrics = { [K in Direction]?: number };
 
 export interface SeriesAreaOptions {
     clip?: boolean;
-    padding?: BoxPosition;
+    padding?: DirectionMetrics;
 }
 
 export interface Point {
