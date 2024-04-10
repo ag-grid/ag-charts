@@ -25,6 +25,8 @@ describe('Sandbox tests', () => {
                 { type: 'category', position: 'bottom', nice: false },
                 { type: 'number', position: 'left' },
             ],
+
+            notDefined: 123,
         });
         await chartInstance.chart.waitForUpdate();
         chartInstance.update({ title: { text: 'Changed text' } });

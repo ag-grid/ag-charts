@@ -102,8 +102,8 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
         this.options = options;
 
-        if (options.prevOptions) {
-            const prevOptions = options.prevOptions.fullOptions;
+        if (options.lastOptions) {
+            const prevOptions = options.lastOptions.fullOptions;
 
             if (fullOptions.width !== prevOptions.width || fullOptions.height !== prevOptions.height) {
                 this.setSceneSize(fullOptions.width, fullOptions.height);

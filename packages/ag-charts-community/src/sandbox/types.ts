@@ -13,7 +13,7 @@ import type { PipelineQueue } from './util/pipelineQueue';
 export interface IChartOptions<T extends AgChartOptions> {
     fullOptions: T;
     userOptions: Partial<T>;
-    prevOptions?: IChartOptions<T>;
+    lastOptions?: IChartOptions<T>;
     optionsDiff: Partial<T> | null;
     readonly chartType: ChartType;
     validate(options: Partial<T>): boolean;

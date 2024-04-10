@@ -9,7 +9,10 @@ const requiredSymbol = Symbol('required');
 type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
 // Definitions for options validation with support for nested structures.
-export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]> };
+export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]> } & {
+    [descriptionSymbol]?: string;
+    [requiredSymbol]?: boolean;
+};
 
 // Validator interface with optional description and required flag for better error messages.
 export interface Validator extends Function {
@@ -25,26 +28,35 @@ export interface Validator extends Function {
  * @param path (Optional) The current path in the options object, for nested properties.
  * @returns A boolean indicating whether the options are valid.
  */
-export function validation<T>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
+export function validation<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
     const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : path ? `${path}.${key}` : key);
+    const optionsKeys = new Set(Object.keys(options));
+
+    let isValid = true;
+
     for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
+        optionsKeys.delete(key);
         const value = options[key as keyof T];
+        if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value)) continue;
 
             let description = validatorOrDefs[descriptionSymbol];
             description = description ? `; expecting ${description}` : '';
 
-            Logger.warn(
-                `Option \`${extendPath(key)}\` cannot be set to [${stringify(value)}]${description}, ignoring.`
-            );
+            Logger.warn(`Option ${extendPath(key)} cannot be set to [${stringify(value)}]${description}, ignoring.`);
 
-            return false;
+            isValid &&= false;
         } else if (!validation(value, validatorOrDefs, extendPath(key))) {
-            return false;
+            isValid &&= false;
         }
     }
-    return true;
+
+    for (const unknownKey of optionsKeys) {
+        Logger.warn(`Unknown option ${extendPath(unknownKey)}, ignoring.`);
+    }
+
+    return isValid;
 }
 
 /**

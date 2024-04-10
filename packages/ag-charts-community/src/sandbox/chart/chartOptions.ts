@@ -12,10 +12,10 @@ export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> 
 
     constructor(
         public userOptions: Partial<T>,
-        public prevOptions?: ChartOptions<T>,
-        preserveDiff?: boolean
+        public lastOptions?: ChartOptions<T>,
+        keepDiff?: boolean
     ) {
-        this.userOptions = defaultsDeep(userOptions, prevOptions?.userOptions);
+        this.userOptions = defaultsDeep(userOptions, lastOptions?.userOptions);
 
         // should validation only user options
         if (!this.validate(this.userOptions)) {
@@ -25,10 +25,10 @@ export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> 
         const fullOptions = defaultsDeep(userOptions) as T;
         // build fullOptions
 
-        if (prevOptions) {
-            const diff = difference(prevOptions.fullOptions, fullOptions);
-            this.optionsDiff = defaultsDeep(diff, preserveDiff && prevOptions.optionsDiff);
-            this.fullOptions = defaultsDeep(fullOptions, prevOptions.fullOptions);
+        if (lastOptions) {
+            const diff = difference(lastOptions.fullOptions, fullOptions);
+            this.optionsDiff = defaultsDeep(diff, keepDiff && lastOptions.optionsDiff);
+            this.fullOptions = defaultsDeep(fullOptions, lastOptions.fullOptions);
         } else {
             this.fullOptions = fullOptions;
         }

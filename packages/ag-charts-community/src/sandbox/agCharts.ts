@@ -51,7 +51,7 @@ export class ChartInstance<T extends AgChartOptions> {
     update(options: Partial<T>) {
         const outOfSync = this.chart.options !== this.options;
         this.options = new ChartOptions(options, this.options, outOfSync);
-        if (this.options.chartType !== this.options.prevOptions?.chartType) {
+        if (this.options.chartType !== this.options.lastOptions?.chartType) {
             this.chart.remove();
             this.chart = ChartInstance.create(this.stage, this.options);
         } else {
