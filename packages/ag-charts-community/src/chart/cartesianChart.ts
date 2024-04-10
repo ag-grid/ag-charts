@@ -33,7 +33,7 @@ export class CartesianChart extends Chart {
     override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         super.onAxisChange(newValue, oldValue);
 
-        this.zoomManager.updateAxes(newValue);
+        this.ctx.zoomManager.updateAxes(newValue);
     }
 
     override destroySeries(series: Series<any, any>[]) {
@@ -65,7 +65,7 @@ export class CartesianChart extends Chart {
             staticFromToMotion(
                 this.id,
                 'seriesRect',
-                this.animationManager,
+                this.ctx.animationManager,
                 [seriesRoot, highlightRoot, annotationRoot],
                 { translationX, translationY },
                 { translationX: Math.floor(x), translationY: Math.floor(y) },
@@ -83,9 +83,9 @@ export class CartesianChart extends Chart {
         highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
         annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
 
-        this.layoutService.dispatchLayoutComplete({
+        this.ctx.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
-            chart: { width: this.scene.width, height: this.scene.height },
+            chart: { width: this.ctx.scene.width, height: this.ctx.scene.height },
             clipSeries,
             series: {
                 rect: seriesRect,
@@ -416,7 +416,7 @@ export class CartesianChart extends Chart {
 
         const axisOffset = newAxisWidths[position] ?? 0;
 
-        const { min, max } = this.zoomManager.getAxisZoom(axis.id);
+        const { min, max } = this.ctx.zoomManager.getAxisZoom(axis.id);
 
         if (isLeftRight) {
             if (isCategory) {

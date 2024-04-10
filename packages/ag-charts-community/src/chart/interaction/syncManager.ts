@@ -23,10 +23,12 @@ type ChartLike = {
     id: string;
     axes: AxisLike[];
     series: ISeries<any, any>[];
-    highlightManager: HighlightManager;
     modulesManager: { getModule<R>(module: string): R | undefined };
-    tooltipManager: TooltipManager;
-    zoomManager: ZoomManager;
+    ctx: {
+        highlightManager: HighlightManager;
+        tooltipManager: TooltipManager;
+        zoomManager: ZoomManager;
+    };
     waitForDataProcess(timeout?: number): Promise<void>;
 };
 

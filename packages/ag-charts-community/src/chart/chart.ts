@@ -15,7 +15,6 @@ import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement'
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
-import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
 import { createElement } from '../util/dom';
 import { createId } from '../util/id';
@@ -33,7 +32,6 @@ import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
-import { AnnotationManager } from './annotation/annotationManager';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -44,30 +42,19 @@ import type { ChartMode } from './chartMode';
 import { JSON_APPLY_PLUGINS } from './chartOptions';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
-import { DataService } from './data/dataService';
 import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import { AnimationManager } from './interaction/animationManager';
-import { ChartEventManager } from './interaction/chartEventManager';
-import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
-import { CursorManager } from './interaction/cursorManager';
-import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
-import { HighlightManager } from './interaction/highlightManager';
 import type { PointerInteractionEvent, PointerOffsets } from './interaction/interactionManager';
-import { InteractionManager, InteractionState } from './interaction/interactionManager';
+import { InteractionState } from './interaction/interactionManager';
 import type { KeyNavEvent } from './interaction/keyNavManager';
-import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
-import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
-import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
-import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
@@ -77,14 +64,14 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
+import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip, TooltipPointerEvent } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import { UpdateOpts, UpdateService } from './updateService';
+import type { UpdateOpts } from './updateService';
 
 const debug = Debug.create(true, 'opts');
 
@@ -225,7 +212,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     download(fileName?: string, fileFormat?: string) {
-        this.scene.download(fileName, fileFormat);
+        this.ctx.scene.download(fileName, fileFormat);
     }
 
     @Validate(OBJECT)
@@ -257,7 +244,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
-    private readonly ctx: ChartContext;
+    public readonly ctx: ChartContext;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
     protected readonly seriesLayerManager: SeriesLayerManager;
@@ -513,11 +500,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         if (skipAnimations) {
-            this.animationManager.skipCurrentBatch();
+            this.ctx.animationManager.skipCurrentBatch();
             this._performUpdateSkipAnimations = true;
         }
 
-        if (newAnimationBatch && this.animationManager.isActive()) {
+        if (newAnimationBatch && this.ctx.animationManager.isActive()) {
             this._performUpdateSkipAnimations = true;
         }
 
@@ -1036,7 +1023,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private onBlur(_event: KeyNavEvent<'blur'>): void {
-        this.regionManager.updateFocusIndicatorRect(undefined);
+        this.ctx.regionManager.updateFocusIndicatorRect(undefined);
         this.resetPointer();
     }
 
@@ -1083,12 +1070,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         focus.datum = datumIndex;
 
         // Update user interaction/interface:
-        const keyboardEvent = makeKeyboardPointerEvent(this.regionManager, node);
+        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.regionManager, node);
         if (keyboardEvent !== undefined) {
             this.lastInteractionEvent = keyboardEvent;
             const html = focusedSeries.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
-            this.tooltipManager.updateTooltip(this.id, meta, html);
+            this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
         }
     }
 
