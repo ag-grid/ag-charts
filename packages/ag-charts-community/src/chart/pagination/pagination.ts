@@ -314,16 +314,22 @@ export class Pagination extends BaseProperties {
         return !this.previousButtonDisabled && this.previousButton.containsPoint(offsetX, offsetY);
     }
 
+    public clickNext() {
+        this.incrementPage();
+        this.onPaginationChanged();
+    }
+
+    public clickPrevious() {
+        this.decrementPage();
+        this.onPaginationChanged();
+    }
+
     private onPaginationClick(event: PointerInteractionEvent<'click'>) {
         const { offsetX, offsetY } = event;
 
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
-            this.incrementPage();
-            this.onPaginationChanged();
-            event.consume();
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
-            this.decrementPage();
-            this.onPaginationChanged();
+        const hitButton =
+            this.nextButtonContainsPoint(offsetX, offsetY) || this.previousButtonContainsPoint(offsetX, offsetY);
+        if (hitButton) {
             event.consume();
         }
     }

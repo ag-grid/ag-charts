@@ -1,6 +1,6 @@
 import { BaseManager } from './baseManager';
 
-export type ToolbarSection = 'ranges';
+export type ToolbarSection = 'annotations' | 'ranges';
 
 type EventTypes = ToolbarButtonPressed | ToolbarSectionToggled;
 type ToolbarButtonPressed = 'button-pressed';

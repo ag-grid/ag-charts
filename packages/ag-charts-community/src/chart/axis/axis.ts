@@ -256,7 +256,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ) {
         this.refreshScale();
 
-        this._titleCaption.registerInteraction(this.moduleCtx);
+        this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx, 'root'));
         this._titleCaption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this._titleCaption.node);
 

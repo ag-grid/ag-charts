@@ -14,6 +14,7 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
+import { clamp } from '../../../util/number';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -1059,5 +1060,13 @@ export abstract class CartesianSeries<
         }
 
         return result;
+    }
+
+    public override pickFocus(focus: { readonly datum: number }): { node: Node; datum: TDatum; datumIndex: number } {
+        const datumNodes = (this.opts.hasMarkers ? this.markerGroup : this.dataNodeGroup).children;
+        const datumIndex = clamp(0, focus.datum, datumNodes.length - 1);
+        const node = datumNodes[datumIndex];
+        const datum = node.datum;
+        return { node, datum, datumIndex };
     }
 }

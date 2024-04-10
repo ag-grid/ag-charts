@@ -56,10 +56,9 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
 
 export function downloadUrl(dataUrl: string, fileName: string) {
     const { body } = getDocument();
-    const element = createElement('a');
+    const element = createElement('a', { display: 'none' });
     element.href = dataUrl;
     element.download = fileName;
-    element.style.display = 'none';
     body.appendChild(element);
     element.click();
     setTimeout(() => body.removeChild(element));

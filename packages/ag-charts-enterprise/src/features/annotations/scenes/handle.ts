@@ -3,8 +3,8 @@ import { _Scene } from 'ag-charts-community';
 import type { Coords } from '../annotationTypes';
 
 abstract class Handle extends _Scene.Group {
-    public abstract handle: _Scene.Rect | _Scene.Circle;
-    public abstract glow: _Scene.Rect | _Scene.Circle;
+    protected abstract handle: _Scene.Rect | _Scene.Circle;
+    protected abstract glow: _Scene.Rect | _Scene.Circle;
 
     override visible = false;
 
@@ -26,11 +26,14 @@ abstract class Handle extends _Scene.Group {
 
     public toggleHovered(hovered: boolean) {
         this.glow.visible = hovered;
+        this.glow.dirtyPath = true;
     }
 
     public toggleDragging(dragging: boolean): void {
         this.handle.visible = !dragging;
         this.glow.visible = this.glow.visible && !dragging;
+        this.handle.dirtyPath = true;
+        this.glow.dirtyPath = true;
     }
 
     public getCursor() {
@@ -59,8 +62,8 @@ export class UnivariantHandle extends Handle {
         this.handle.zIndex = 2;
 
         this.glow.cornerRadius = 4;
-        this.glow.width = 18;
-        this.glow.height = 18;
+        this.glow.width = 16;
+        this.glow.height = 16;
         this.glow.strokeWidth = 0;
         this.glow.fillOpacity = 0.2;
         this.glow.zIndex = 1;
@@ -71,8 +74,8 @@ export class UnivariantHandle extends Handle {
         this.handle.setProperties(styles);
         this.glow.setProperties({
             ...styles,
-            x: (styles.x ?? this.glow.x) - 3,
-            y: (styles.y ?? this.glow.y) - 3,
+            x: (styles.x ?? this.glow.x) - 2,
+            y: (styles.y ?? this.glow.y) - 2,
             fill: styles.stroke ?? styles.fill,
         });
     }

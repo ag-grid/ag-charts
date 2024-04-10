@@ -22,6 +22,7 @@ import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
+import { clamp } from '../util/number';
 import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
@@ -56,12 +57,14 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { PointerInteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
+import type { KeyNavEvent } from './interaction/keyNavManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
+import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
@@ -75,7 +78,7 @@ import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './s
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
-import { Tooltip } from './tooltip/tooltip';
+import { Tooltip, TooltipPointerEvent } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -296,8 +299,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.chartOptions = options;
 
         const scene = resources?.scene;
-        const element = resources?.element ?? createElement('div');
+        const element =
+            resources?.element ??
+            createElement('div', 'ag-chart-wrapper', { position: 'relative', userSelect: 'none' });
         const container = resources?.container;
+
+        this.element = element;
 
         const root = new Group({ name: 'root' });
         // Prevent the scene from rendering chart components in an invalid state
@@ -312,11 +319,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.axisGroup = new Group({ name: 'Axes', layer: true, zIndex: Layers.AXIS_ZINDEX });
         root.appendChild(this.axisGroup);
-
-        this.element = element;
-        element.classList.add('ag-chart-wrapper');
-        element.style.position = 'relative';
-        element.style.userSelect = 'none';
 
         this.sizeMonitor = new SizeMonitor();
         this.sizeMonitor.observe(this.element, (size) => this.rawResize(size));
@@ -378,14 +380,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.scene.attachNode(this.subtitle.node),
             this.scene.attachNode(this.footnote.node),
 
-            this.title.registerInteraction(moduleContext),
-            this.subtitle.registerInteraction(moduleContext),
-            this.footnote.registerInteraction(moduleContext),
+            this.title.registerInteraction(moduleContext, 'title'),
+            this.subtitle.registerInteraction(moduleContext, 'subtitle'),
+            this.footnote.registerInteraction(moduleContext, 'footnote'),
 
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
+            seriesRegion.addListener('blur', (event) => this.onBlur(event)),
+            seriesRegion.addListener('tab', (event) => this.onTab(event)),
+            seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
+            seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
             this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
@@ -1084,6 +1090,25 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    private onBlur(_event: KeyNavEvent<'blur'>): void {
+        this.regionManager.updateFocusIndicatorRect(undefined);
+        this.resetPointer();
+    }
+
+    private onTab(_event: KeyNavEvent<'tab'>): void {
+        this.handleFocus();
+    }
+
+    private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
+        this.focus.series += event.delta;
+        this.handleFocus();
+    }
+
+    private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
+        this.focus.datum += event.delta;
+        this.handleFocus();
+    }
+
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
         this.tooltipManager.removeTooltip(this.id);
 
@@ -1098,7 +1123,34 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private lastInteractionEvent?: PointerInteractionEvent<'hover'>;
+    private focus = { series: 0, datum: 0 };
+    private handleFocus() {
+        const { series, focus } = this;
+        const visibleSeries = series.filter((s) => s.visible);
+        if (visibleSeries.length === 0) return;
+
+        // Update focused series:
+        focus.series = clamp(0, focus.series, visibleSeries.length - 1);
+        const focusedSeries = visibleSeries[focus.series];
+
+        // Update focused datum:
+        const { node, datum, datumIndex } = focusedSeries.pickFocus(focus);
+        focus.datum = datumIndex;
+
+        // Update user interaction/interface:
+        const keyboardEvent = makeKeyboardPointerEvent(this.regionManager, node);
+        if (keyboardEvent !== undefined) {
+            this.lastInteractionEvent = keyboardEvent;
+            const html = focusedSeries.getTooltipHtml(datum);
+            const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
+            this.tooltipManager.updateTooltip(this.id, meta, html);
+        }
+    }
+
+    private lastInteractionEvent?: TooltipPointerEvent;
+    private static isHoverEvent(event: TooltipPointerEvent | undefined): event is TooltipPointerEvent<'hover'> {
+        return event !== undefined && event.type === 'hover';
+    }
     private pointerScheduler = debouncedAnimationFrame(() => {
         if (!this.lastInteractionEvent) return;
 
@@ -1112,8 +1164,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.handlePointer(this.lastInteractionEvent, false);
         this.lastInteractionEvent = undefined;
     });
-    protected handlePointer(event: PointerOffsets, redisplay: boolean) {
-        if (this.interactionManager.getState() !== InteractionState.Default) {
+    protected handlePointer(event: TooltipPointerEvent, redisplay: boolean) {
+        // Ignored "pointer event" that comes from a keyboard. We don't need to worry about finding out
+        // which datum to use in the highlight & tooltip because the keyboard just navigates through the
+        // data directly.
+        if (this.interactionManager.getState() !== InteractionState.Default || !Chart.isHoverEvent(event)) {
             return;
         }
 
@@ -1138,7 +1193,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.handlePointerNode(event);
     }
 
-    protected handlePointerTooltip(event: PointerOffsets, disablePointer: (highlightOnly?: boolean) => void) {
+    protected handlePointerTooltip(
+        event: TooltipPointerEvent<'hover'>,
+        disablePointer: (highlightOnly?: boolean) => void
+    ) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
         const { offsetX, offsetY } = event;
@@ -1506,6 +1564,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             miniChart.series = [];
             miniChart.axes = [];
         }
+
+        this.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;

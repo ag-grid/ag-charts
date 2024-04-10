@@ -1,8 +1,8 @@
 import { injectStyle } from '../../util/dom';
 import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
-import { DEFAULT_TOOLTIP_CLASS, type Tooltip, type TooltipMeta } from '../tooltip/tooltip';
-import type { PointerOffsets } from './interactionManager';
+import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
+import { DEFAULT_TOOLTIP_CLASS, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
     content?: string;
@@ -208,7 +208,7 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: PointerOffsets,
+        event: TooltipPointerEvent,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { offsetX, offsetY } = event;
@@ -217,7 +217,7 @@ export class TooltipManager {
             offsetX,
             offsetY,
             enableInteraction: tooltip.interaction?.enabled ?? false,
-            lastPointerEvent: { offsetX, offsetY },
+            lastPointerEvent: { type: event.type, offsetX, offsetY },
             showArrow: tooltip.showArrow,
             position: {
                 type: tooltip.position.type,

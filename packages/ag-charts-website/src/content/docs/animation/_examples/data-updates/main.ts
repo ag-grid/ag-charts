@@ -266,46 +266,6 @@ function changeSeriesDonut() {
     AgCharts.update(chart, options);
 }
 
-function toggleTickingUpdates() {
-    if (tickingButton) {
-        if (!interval) {
-            tickingButton.textContent = 'Stop Ticking Updates';
-        } else {
-            tickingButton.textContent = 'Start Ticking Updates';
-        }
-    }
-
-    if (actionButtons && actionButtons.length > 0) {
-        if (!interval) {
-            for (let i = 0; i < actionButtons.length; i++) {
-                const item = actionButtons.item(i);
-                if (!item) continue;
-                item.setAttribute('disabled', 'disabled');
-            }
-        } else {
-            for (let i = 0; i < actionButtons.length; i++) {
-                const item = actionButtons.item(i);
-                if (!item) continue;
-                item.removeAttribute('disabled');
-            }
-        }
-    }
-
-    if (!interval) {
-        offset++;
-        options.data = getGeneratedData();
-        AgCharts.update(chart, options);
-        interval = setInterval(() => {
-            offset++;
-            options.data = getGeneratedData();
-            AgCharts.update(chart, options);
-        }, 2000);
-    } else {
-        clearInterval(interval);
-        interval = undefined;
-    }
-}
-
 function add() {
     offset++;
     length++;

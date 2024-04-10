@@ -5,6 +5,7 @@ import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
+import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -66,12 +67,9 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'wheel',
 ];
 
-type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = {
+type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
     sourceEvent: TEvent;
-    /** Consume the event, don't notify other listeners! */
-    consume(): void;
-    consumed?: boolean;
 };
 
 export type PointerOffsets = {
@@ -126,11 +124,12 @@ type SupportedEvent = MouseEvent | TouchEvent | Event;
 // Smaller numbers have higher priority, because it is possible to find the least
 // significant bit in O(1) complexity using a bitwise operation.
 export enum InteractionState {
-    Default = 8,
-    ZoomDrag = 4,
+    Default = 16,
+    ZoomDrag = 8,
+    Annotations = 4,
     ContextMenu = 2,
     Animation = 1,
-    All = Default | ZoomDrag | ContextMenu | Animation,
+    All = Default | ZoomDrag | Annotations | ContextMenu | Animation,
 }
 
 /**
@@ -138,6 +137,10 @@ export enum InteractionState {
  * children)
  */
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
+    static isPointerEvent<T extends PointerInteractionTypes>(type: T, value: any): value is PointerInteractionEvent<T> {
+        return value.type === type;
+    }
+
     private readonly debug = Debug.create(true, 'interaction');
 
     private readonly rootElement: HTMLElement;
@@ -243,17 +246,23 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         if (allInStringUnion(POINTER_INTERACTION_TYPES, types)) {
             this.dispatchPointerEvent(event, types);
         } else if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
-            this.dispatchFocusEvent(event as FocusEvent, types);
+            for (const type of types) {
+                dispatchTypedConsumable(
+                    this.listeners,
+                    type,
+                    buildConsumable({ type, sourceEvent: event as FocusEvent })
+                );
+            }
         } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
-            this.dispatchKeyEvent(event as KeyboardEvent, types);
+            for (const type of types) {
+                dispatchTypedConsumable(
+                    this.listeners,
+                    type,
+                    buildConsumable({ type, sourceEvent: event as KeyboardEvent })
+                );
+            }
         }
     }
-
-    private dispatchWrapper: (handler: (e: InteractionEvent) => void, e: InteractionEvent) => void = (handler, e) => {
-        if (!e.consumed) {
-            handler(e);
-        }
-    };
 
     private dispatchPointerEvent(event: SupportedEvent, types: PointerInteractionTypes[]) {
         const coords = this.calculateCoordinates(event);
@@ -263,32 +272,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of types) {
-            this.listeners.dispatchWrapHandlers(
-                type,
-                this.dispatchWrapper,
-                this.buildPointerEvent({ type, event, ...coords })
-            );
-        }
-    }
-
-    private dispatchFocusEvent(sourceEvent: FocusEvent, types: FocusInteractionTypes[]) {
-        this.dispatchTypedEvent<FocusInteractionTypes, FocusInteractionEvent>(sourceEvent, types);
-    }
-
-    private dispatchKeyEvent(sourceEvent: KeyboardEvent, types: KeyInteractionTypes[]) {
-        this.dispatchTypedEvent<KeyInteractionTypes, KeyInteractionEvent>(sourceEvent, types);
-    }
-
-    private dispatchTypedEvent<
-        T extends FocusInteractionTypes | KeyInteractionTypes,
-        E extends FocusInteractionEvent | KeyInteractionEvent,
-    >(sourceEvent: FocusEvent | KeyboardEvent, types: T[]) {
-        for (const type of types) {
-            this.listeners.dispatchWrapHandlers(
-                type,
-                this.dispatchWrapper,
-                this.buildConsumable({ type, sourceEvent } as E)
-            );
+            dispatchTypedConsumable(this.listeners, type, this.buildPointerEvent({ type, event, ...coords }));
         }
     }
 
@@ -442,18 +426,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         return event.type === 'wheel';
     }
 
-    private buildConsumable<T>(obj: T): T & { consume: () => void; consumed?: boolean } {
-        const builtEvent = {
-            ...obj,
-
-            consumed: false,
-            consume() {
-                builtEvent.consumed = true;
-            },
-        };
-        return builtEvent;
-    }
-
     private buildPointerEvent(opts: {
         type: PointerInteractionTypes;
         event: Event;
@@ -497,7 +469,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pointerHistory = this.dblclickHistory;
         }
 
-        const builtEvent = this.buildConsumable({
+        const builtEvent = buildConsumable({
             type,
             offsetX,
             offsetY,

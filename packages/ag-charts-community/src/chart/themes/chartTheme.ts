@@ -16,6 +16,9 @@ import { seriesRegistry } from '../factory/seriesRegistry';
 import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
+    DEFAULT_ANNOTATION_BACKGROUND_FILL,
+    DEFAULT_ANNOTATION_HANDLE_FILL,
+    DEFAULT_ANNOTATION_STROKE,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
@@ -542,6 +545,9 @@ export class ChartTheme {
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke
         );
+        properties.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_STROKES.BLUE);
+        properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
+        properties.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
 
         return {
             extensions,

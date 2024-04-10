@@ -5,14 +5,29 @@ import {
     AnnotationPointProperties,
     AnnotationProperties,
 } from './annotationProperties';
-import { AnnotationType, type Coords } from './annotationTypes';
+import type { Coords } from './annotationTypes';
+import { AnnotationType } from './annotationTypes';
+import type { Annotation } from './scenes/annotation';
 import { Channel } from './scenes/channel';
 import { Line } from './scenes/line';
 
-const { OBJECT_ARRAY, PropertiesArray, Validate } = _ModuleSupport;
+const { BOOLEAN, OBJECT_ARRAY, InteractionState, PropertiesArray, Validate } = _ModuleSupport;
+
+enum AddingStep {
+    Start = 'start',
+    End = 'end',
+    Height = 'height',
+}
+
+type ClickAddingFn = (node: Annotation | undefined, point: Coords, offset: Coords) => void;
+type HoverAddingFn = (datum: AnnotationProperties, node: Annotation, point: Coords, offset: Coords) => void;
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    public enabled?: boolean = false;
+    @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
+        target.ctx.toolbarManager.toggleSection('annotations', Boolean(enabled));
+    })
+    @Validate(BOOLEAN)
+    public enabled: boolean = true;
 
     @_ModuleSupport.ObserveChanges<Annotations>((target, newValue) => {
         target.annotationData ??= newValue;
@@ -20,6 +35,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     @Validate(OBJECT_ARRAY, { optional: true })
     public initial = new PropertiesArray(AnnotationProperties);
 
+    // State
     private annotationData?: AnnotationProperties[];
 
     private container = new _Scene.Group({ name: 'static-annotations' });
@@ -36,25 +52,48 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private hovered?: number;
     private active?: number;
 
+    private addingType?: AnnotationType;
+    private addingStep?: AddingStep;
+
     private seriesRect?: _Scene.BBox;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
+        const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
+
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
-            ctx.interactionManager.addListener('hover', this.onHover.bind(this)),
-            ctx.interactionManager.addListener('click', this.onClick.bind(this)),
-            ctx.interactionManager.addListener('drag-start', this.onClick.bind(this)),
-            // TODO: InteractionState.Annotations?
-            ctx.interactionManager.addListener('drag', this.onDrag.bind(this), _ModuleSupport.InteractionState.All),
-            ctx.interactionManager.addListener('drag-end', this.onDragEnd.bind(this)),
+            ctx.interactionManager.addListener('hover', this.onHover.bind(this), All),
+            ctx.interactionManager.addListener('click', this.onClick.bind(this), Default | AnnotationsState),
+            ctx.interactionManager.addListener('drag-start', this.onClick.bind(this), All),
+            ctx.interactionManager.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
+            ctx.interactionManager.addListener(
+                'drag-end',
+                this.onDragEnd.bind(this),
+                Default | ZoomDrag | AnnotationsState
+            ),
+            ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
         );
     }
 
-    private createAnnotation(note: AnnotationProperties) {
-        switch (note.type) {
+    private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (this.active != null) {
+            this.annotations.nodes()[this.active].toggleActive(false);
+            this.active = undefined;
+        }
+
+        if (event.section !== 'annotations' || !Object.values(AnnotationType).includes(event.value)) return;
+
+        this.ctx.interactionManager.pushState(InteractionState.Annotations);
+
+        this.addingStep = AddingStep.Start;
+        this.addingType = event.value;
+    }
+
+    private createAnnotation(datum: AnnotationProperties) {
+        switch (datum.type) {
             case AnnotationType.ParallelChannel:
                 return new Channel();
 
@@ -62,6 +101,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             default:
                 return new Line();
         }
+    }
+
+    private createDatum(type: AnnotationType, point: Coords) {
+        const datum = new AnnotationProperties();
+        datum.set(_ModuleSupport.mergeDefaults({ type }, this.ctx.annotationManager.getAnnotationTypeStyles(type)));
+
+        switch (type) {
+            case AnnotationType.Line:
+                datum.set({ start: point, end: point });
+                break;
+
+            case AnnotationType.ParallelChannel:
+                datum.set({
+                    top: { start: point, end: point },
+                    bottom: { start: point, end: point },
+                });
+                break;
+        }
+
+        return datum;
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -133,11 +192,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return valid;
     }
 
-    private validateDatumPoint(point: AnnotationPointProperties, prefix: string) {
+    private validateDatumPoint(
+        point: { x?: number | string | Date; y?: number | string | Date },
+        loggerPrefix?: string
+    ) {
         const { domainX, domainY, scaleX, scaleY } = this;
 
         if (point.x == null || point.y == null) {
-            _Util.Logger.warnOnce(`${prefix} requires both an [x] and [y] property, ignoring.`);
+            if (loggerPrefix) {
+                _Util.Logger.warnOnce(`${loggerPrefix} requires both an [x] and [y] property, ignoring.`);
+            }
             return false;
         }
 
@@ -150,7 +214,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             let text = 'x & y domains';
             if (validX) text = 'y domain';
             if (validY) text = 'x domain';
-            _Util.Logger.warnOnce(`${prefix} is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`);
+            if (loggerPrefix) {
+                _Util.Logger.warnOnce(
+                    `${loggerPrefix} is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
+                );
+            }
             return false;
         }
 
@@ -165,6 +233,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+        const { addingStep } = this;
+
+        if (addingStep == null) {
+            this.onHoverSelecting(event);
+        } else {
+            this.onHoverEditing(event);
+        }
+    }
+
+    private onHoverSelecting(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
         const {
             active,
             annotations,
@@ -186,7 +264,90 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onClick(_event: _ModuleSupport.PointerInteractionEvent<'click' | 'drag-start'>) {
+    private onHoverEditing(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+        const {
+            annotationData,
+            annotations,
+            addingStep,
+            addingType,
+            ctx: { cursorManager, updateService },
+        } = this;
+
+        if (!annotationData || !addingType || !addingStep) return;
+
+        const offset = {
+            x: event.offsetX - (this.seriesRect?.x ?? 0),
+            y: event.offsetY - (this.seriesRect?.y ?? 0),
+        };
+        const point = this.invertPoint(offset);
+
+        const valid = this.validateDatumPoint(point);
+        cursorManager.updateCursor('annotations', valid ? undefined : 'not-allowed');
+
+        if (!valid || addingStep === AddingStep.Start) return;
+
+        const datum = annotationData.at(-1);
+        this.active = annotationData.length - 1;
+        const node = annotations.nodes()[this.active];
+
+        if (!datum || !node) return;
+
+        node.toggleActive(true);
+
+        const hoverAddingFn = this.hoverAddingFns[addingType]?.[addingStep];
+        if (hoverAddingFn) {
+            hoverAddingFn(datum, node, point, offset);
+        }
+
+        updateService.update();
+    }
+
+    private hoverAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, HoverAddingFn>>>> = {
+        [AnnotationType.Line]: {
+            [AddingStep.End]: (datum, node, point) => {
+                datum.set({ end: point });
+                node.toggleHandles({ end: false });
+            },
+        },
+        [AnnotationType.ParallelChannel]: {
+            [AddingStep.End]: (datum, node, point) => {
+                datum.set({ top: { end: point }, bottom: { end: point } });
+                node.toggleHandles(false);
+            },
+            [AddingStep.Height]: (datum, node, point, offset) => {
+                const start = this.convertPoint(datum.bottom.start);
+                const end = this.convertPoint(datum.bottom.end);
+
+                if (!start || !end) return;
+
+                const height = offset.y - end.y;
+                const startY = this.invertY(start.y + height);
+                const endY = point.y;
+
+                if (
+                    !this.validateDatumPoint({ x: start.x, y: startY }) ||
+                    !this.validateDatumPoint({ x: end.x, y: endY })
+                ) {
+                    return;
+                }
+
+                node.toggleHandles({ topMiddle: false, bottomMiddle: false });
+                datum.set({
+                    bottom: { start: { y: startY }, end: { y: endY } },
+                });
+            },
+        },
+    };
+
+    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click' | 'drag-start'>) {
+        if (this.addingStep == null) {
+            this.onClickSelecting();
+        } else if (_ModuleSupport.InteractionManager.isPointerEvent('click', event)) {
+            this.onClickAdding(event);
+        }
+    }
+
+    private onClickSelecting() {
         if (this.active != null) {
             this.annotations.nodes()[this.active].toggleActive(false);
         }
@@ -198,16 +359,105 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotations.nodes()[this.active].toggleActive(true);
     }
 
+    private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
+        const {
+            active,
+            annotationData,
+            annotations,
+            addingStep,
+            addingType,
+            ctx: { updateService },
+        } = this;
+        if (!annotationData || !addingStep || !addingType) return;
+
+        const offset = {
+            x: event.offsetX - (this.seriesRect?.x ?? 0),
+            y: event.offsetY - (this.seriesRect?.y ?? 0),
+        };
+        const point = this.invertPoint(offset);
+        const node = active ? annotations.nodes()[active] : undefined;
+
+        if (!this.validateDatumPoint(point)) {
+            return;
+        }
+
+        const clickAddingFn = this.clickAddingFns[addingType]?.[addingStep];
+        if (clickAddingFn) {
+            clickAddingFn(node, point, offset);
+        }
+
+        updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+    }
+
+    private clickAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, ClickAddingFn>>>> = {
+        [AnnotationType.Line]: {
+            [AddingStep.Start]: (_node, point) => {
+                const datum = this.createDatum(AnnotationType.Line, point);
+                this.annotationData?.push(datum);
+                this.addingStep = AddingStep.End;
+            },
+            [AddingStep.End]: (node, point) => {
+                this.annotationData?.at(-1)?.set({ end: point });
+                this.addingStep = undefined;
+                node?.toggleHandles(true);
+                this.ctx.interactionManager.popState(InteractionState.Annotations);
+            },
+        },
+        [AnnotationType.ParallelChannel]: {
+            [AddingStep.Start]: (_node, point) => {
+                const datum = this.createDatum(AnnotationType.ParallelChannel, point);
+                this.annotationData?.push(datum);
+                this.addingStep = AddingStep.End;
+            },
+            [AddingStep.End]: (node, point) => {
+                this.annotationData?.at(-1)?.set({
+                    top: { end: point },
+                    bottom: { end: point },
+                });
+                node?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+                this.addingStep = AddingStep.Height;
+            },
+            [AddingStep.Height]: (node, point, offset) => {
+                // TODO: rationalise with the hoverAddingFn which is very similar
+                const datum = this.annotationData?.at(-1)!;
+                const start = this.convertPoint(datum.bottom.start);
+                const end = this.convertPoint(datum.bottom.end);
+
+                if (!start || !end) return;
+
+                const height = offset.y - end.y;
+                const startY = this.invertY(start.y + height);
+                const endY = point.y;
+                if (
+                    datum &&
+                    this.validateDatumPoint({ x: start.x, y: startY }) &&
+                    this.validateDatumPoint({ x: end.x, y: endY })
+                ) {
+                    datum.set({
+                        bottom: { start: { y: startY }, end: { y: endY } },
+                    });
+                }
+
+                node?.toggleHandles(true);
+                this.addingStep = undefined;
+                this.ctx.interactionManager.popState(InteractionState.Annotations);
+            },
+        },
+    };
+
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
             active,
             annotationData,
             annotations,
+            addingStep,
             seriesRect,
-            ctx: { updateService },
+            ctx: { cursorManager, interactionManager, updateService },
         } = this;
 
-        if (active == null || annotationData == null) return;
+        if (active == null || annotationData == null || addingStep != null) return;
+
+        interactionManager.pushState(InteractionState.Annotations);
 
         const { offsetX, offsetY } = event;
         const datum = annotationData[active];
@@ -217,15 +467,38 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             y: offsetY - (seriesRect?.y ?? 0),
         };
 
-        node.dragHandle(datum, offset, this.invertPoint.bind(this));
+        cursorManager.updateCursor('annotations');
+        node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
-        const { active, annotations } = this;
-        if (active != null) {
-            annotations.nodes()[active].stopDragging();
+    private onDragNodeHandle(handleOffset: Coords) {
+        const point = this.invertPoint(handleOffset);
+        const valid = this.validateDatumPoint(point);
+        if (!valid) {
+            this.ctx.cursorManager.updateCursor('annotations', 'not-allowed');
+            return;
         }
+        return point;
+    }
+
+    private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
+        const {
+            active,
+            annotations,
+            addingStep,
+            ctx: { cursorManager, interactionManager, updateService },
+        } = this;
+
+        if (addingStep != null) return;
+
+        interactionManager.popState(InteractionState.Annotations);
+
+        if (active == null) return;
+
+        annotations.nodes()[active].stopDragging();
+        updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        cursorManager.updateCursor('annotations');
     }
 
     private convertLine(datum: AnnotationProperties | AnnotationLinePointsProperties) {
@@ -254,22 +527,33 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private invertPoint(point: Coords) {
-        const { scaleX, scaleY } = this;
-        let x = 0;
-        let y = 0;
+        return {
+            x: this.invertX(point.x),
+            y: this.invertY(point.y),
+        };
+    }
+
+    private invertX(x: number) {
+        const { scaleX } = this;
 
         if (_Scene.ContinuousScale.is(scaleX)) {
-            x = scaleX.invert(point.x ?? 0);
+            x = scaleX.invert(x);
         } else if (_Scene.BandScale.is(scaleX)) {
-            x = scaleX.invertNearest(point.x ?? 0);
+            x = scaleX.invertNearest(x);
         }
+
+        return x;
+    }
+
+    private invertY(y: number) {
+        const { scaleY } = this;
 
         if (_Scene.ContinuousScale.is(scaleY)) {
-            y = scaleY.invert(point.y ?? 0);
+            y = scaleY.invert(y);
         } else if (_Scene.BandScale.is(scaleY)) {
-            y = scaleY.invertNearest(point.y ?? 0);
+            y = scaleY.invertNearest(y);
         }
 
-        return { x, y };
+        return y;
     }
 }
