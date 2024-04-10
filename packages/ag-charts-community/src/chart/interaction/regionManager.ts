@@ -1,7 +1,6 @@
 import type { BBox } from '../../scene/bbox';
 import { getDocument } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
-import { clamp } from '../../util/number';
 import { buildConsumable } from './consumableEvent';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
