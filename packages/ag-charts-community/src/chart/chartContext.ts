@@ -17,7 +17,7 @@ import { RegionManager } from './interaction/regionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
-import { ZoomManager } from './interaction/zoomManager';
+import type { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
 import { LayoutService } from './layout/layoutService';
 import { SeriesStateManager } from './series/seriesStateManager';
@@ -50,7 +50,7 @@ export class ChartContext implements ModuleContext {
     zoomManager: ZoomManager;
 
     constructor(
-        chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
+        chart: ChartService & { zoomManager: ZoomManager; annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
             scene: Scene;
             syncManager: SyncManager;
@@ -64,7 +64,7 @@ export class ChartContext implements ModuleContext {
         this.chartService = chart;
         this.scene = scene;
         this.syncManager = syncManager;
-        this.zoomManager = new ZoomManager();
+        this.zoomManager = chart.zoomManager;
 
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.chartEventManager = new ChartEventManager();
@@ -89,7 +89,7 @@ export class ChartContext implements ModuleContext {
     }
 
     destroy() {
-        // chart.ts handles the destruction of the scene.
+        // chart.ts handles the destruction of the scene and zoomManager.
         this.tooltipManager.destroy();
         this.regionManager.destroy();
         this.interactionManager.destroy();
@@ -97,7 +97,6 @@ export class ChartContext implements ModuleContext {
         this.animationManager.destroy();
         this.chartEventManager.destroy();
         this.highlightManager.destroy();
-        this.zoomManager.destroy();
         this.callbackCache.invalidateCache();
         this.animationManager.reset();
         this.syncManager.destroy();

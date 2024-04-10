@@ -52,6 +52,7 @@ import { InteractionState } from './interaction/interactionManager';
 import type { KeyNavEvent } from './interaction/keyNavManager';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
+import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
@@ -244,6 +245,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
+    // FIXME: zoomManager should be owned by ctx, but it can't because it is used by CartesianChart.onAxisChange before ctx is initialised
+    public readonly zoomManager = new ZoomManager();
     public readonly ctx: ChartContext;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
@@ -405,16 +408,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltip.destroy();
         this.overlays.destroy();
         this.sizeMonitor.unobserve(this.element);
-
         this.modulesManager.destroy();
-
-        this.ctx.regionManager.destroy();
-        this.ctx.interactionManager.destroy();
-        this.ctx.animationManager.stop();
-        this.ctx.animationManager.destroy();
-        this.ctx.chartEventManager.destroy();
-        this.ctx.highlightManager.destroy();
-        this.ctx.zoomManager.destroy();
 
         if (keepTransferableResources) {
             this.ctx.scene.strip();
@@ -434,6 +428,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.animationRect = undefined;
 
         this.ctx.destroy();
+        this.zoomManager.destroy();
         this.destroyed = true;
 
         Object.freeze(this);

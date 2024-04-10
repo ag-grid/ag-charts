@@ -33,7 +33,7 @@ export class CartesianChart extends Chart {
     override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         super.onAxisChange(newValue, oldValue);
 
-        this.ctx.zoomManager.updateAxes(newValue);
+        this.zoomManager.updateAxes(newValue);
     }
 
     override destroySeries(series: Series<any, any>[]) {
