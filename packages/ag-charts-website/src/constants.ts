@@ -22,10 +22,10 @@ export const FRAMEWORK_DISPLAY_TEXT: Record<Framework, string> = {
     vue: 'Vue',
 };
 
-export const agChartsVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
-export const agChartsReactVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
-export const agChartsAngularVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
-export const agChartsVueVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
+export const agChartsVersion = '9.2.0';
+export const agChartsReactVersion = '9.2.0';
+export const agChartsAngularVersion = '9.2.0';
+export const agChartsVueVersion = '9.2.0';
 
 export const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
 export const PUBLISHED_URLS = {
