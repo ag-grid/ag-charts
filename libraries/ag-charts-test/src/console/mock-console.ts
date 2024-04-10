@@ -1,5 +1,14 @@
 /* eslint-disable no-console */
-export function setupMockConsole() {
+
+// The intent of setupMockConsole is to suppress console warnings and errors from tests.
+// The reason for this is that we have some tests for console messages, (i.e. we have tests
+// that pass if a message is printed) and we do not want to pollute the test output with
+// messages from passes because it makes it difficult to identify the failures.
+//
+// But unfortunately suppressing the message also removes the stack-info from the output.
+// This makes it more difficult to debug genuine failures. Therefore, we provide an optional
+// debug option to disable the message suppression.
+export function setupMockConsole(debugShowOutput?: boolean) {
     const originalConsole = {
         warn: console.warn,
         error: console.error,
@@ -7,10 +16,14 @@ export function setupMockConsole() {
 
     beforeEach(() => {
         console.warn = jest.fn().mockImplementation((...args: any[]) => {
-            originalConsole.warn(...args);
+            if (debugShowOutput) {
+                originalConsole.warn(...args);
+            }
         });
         console.error = jest.fn().mockImplementation((...args: any[]) => {
-            originalConsole.error(...args);
+            if (debugShowOutput) {
+                originalConsole.error(...args);
+            }
         });
     });
 
