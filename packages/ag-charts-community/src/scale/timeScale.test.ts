@@ -188,7 +188,7 @@ describe('TimeScale', () => {
                     new Date(2023, 0, 1, 13, 27),
                     new Date(2023, 0, 1, 13, 28),
                 ],
-                expectedFormat: '%I:%M', // hour:minute
+                expectedFormat: '%I:%M%p', // hour:minute:{A,P}M
             },
             {
                 name: 'several hours',
@@ -224,12 +224,12 @@ describe('TimeScale', () => {
                     new Date(2023, 0, 1, 13, 26, 30),
                     new Date(2023, 0, 1, 13, 27, 0),
                 ],
-                expectedFormat: '%I:%M:%S', // hour:minute:second
+                expectedFormat: '%I:%M:%S%p', // hour:minute:second:{A,P}M
             },
             {
                 name: 'several minutes spanning hours',
                 ticks: [new Date(2023, 0, 1, 13, 25), new Date(2023, 0, 1, 15, 25), new Date(2023, 0, 1, 17, 25)],
-                expectedFormat: '%I %p%I:%M',
+                expectedFormat: '%I:%M%p',
             },
             {
                 name: 'several hours spanning days',
