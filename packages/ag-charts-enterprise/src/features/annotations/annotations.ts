@@ -84,12 +84,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.active = undefined;
         }
 
-        if (event.section !== 'annotations') return;
+        if (event.section !== 'annotations' || !Object.values(AnnotationType).includes(event.value)) return;
 
         this.ctx.interactionManager.pushState(InteractionState.Annotations);
 
         this.addingStep = AddingStep.Start;
-        this.addingType = event.value as AnnotationType;
+        this.addingType = event.value;
     }
 
     private createAnnotation(datum: AnnotationProperties) {
@@ -342,8 +342,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click' | 'drag-start'>) {
         if (this.addingStep == null) {
             this.onClickSelecting();
-        } else if (event.type === 'click') {
-            this.onClickAdding(event as _ModuleSupport.PointerInteractionEvent<'click'>);
+        } else if (_ModuleSupport.InteractionManager.isPointerEvent('click', event)) {
+            this.onClickAdding(event);
         }
     }
 

@@ -139,6 +139,10 @@ export enum InteractionState {
  * children)
  */
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
+    static isPointerEvent<T extends PointerInteractionTypes>(type: T, value: any): value is PointerInteractionEvent<T> {
+        return value.type === type;
+    }
+
     private readonly debug = Debug.create(true, 'interaction');
 
     private readonly rootElement: HTMLElement;

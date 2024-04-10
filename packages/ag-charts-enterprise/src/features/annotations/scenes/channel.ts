@@ -6,7 +6,7 @@ import { Annotation } from './annotation';
 import { DivariantHandle, UnivariantHandle } from './handle';
 import { CollidableLine } from './shapes';
 
-type ChannelHandle = 'topLeft' | 'topMiddle' | 'topRight' | 'bottomLeft' | 'bottomMiddle' | 'bottomRight';
+type ChannelHandle = keyof Channel['handles'];
 
 export class Channel extends Annotation {
     type = 'channel';

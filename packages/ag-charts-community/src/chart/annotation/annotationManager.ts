@@ -1,10 +1,9 @@
+import type { AgAnnotationsThemeableOptions } from '../../options/chart/annotationsOptions';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { isObject } from '../../util/type-guards';
-import type { PlainObject } from '../../util/types';
 
 export class AnnotationManager {
-    private styles?: PlainObject;
+    private styles?: AgAnnotationsThemeableOptions;
 
     constructor(private readonly annotationRoot: Group) {}
 
@@ -16,12 +15,11 @@ export class AnnotationManager {
         };
     }
 
-    public setAnnotationStyles(styles: any) {
-        this.styles = isObject(styles) ? styles : {};
+    public setAnnotationStyles(styles: AgAnnotationsThemeableOptions) {
+        this.styles = styles;
     }
 
-    public getAnnotationTypeStyles(type: 'line' | 'parallel-channel') {
-        const styles = this.styles?.[type];
-        return isObject(styles) ? styles : undefined;
+    public getAnnotationTypeStyles(type: keyof AgAnnotationsThemeableOptions) {
+        return this.styles?.[type];
     }
 }
