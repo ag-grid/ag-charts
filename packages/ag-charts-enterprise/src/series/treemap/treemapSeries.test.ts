@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     TREEMAP_SERIES_LABELS,
@@ -74,7 +75,7 @@ describe('TreemapSeries', () => {
                 depth--;
             }
 
-            const highlightManager = (chart as any).highlightManager;
+            const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
             await compare();
         });
@@ -321,7 +322,7 @@ describe('TreemapSeries', () => {
                 return [datum[params.labelKey], datum[params.sizeKey]];
             },
             getHighlightNode: (chartInstance, series) => {
-                const highlightedDatum = chartInstance.highlightManager.getActiveHighlight();
+                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum)
                     .children[0];
             },
