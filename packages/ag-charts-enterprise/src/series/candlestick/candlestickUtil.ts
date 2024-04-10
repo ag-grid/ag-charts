@@ -17,10 +17,10 @@ export function resetCandlestickSelectionsScalingStartFn(
     datum: CandlestickNodeBaseDatum
 ) => { scalingCenterY: number } | { scalingCenterX: number } {
     return (_node, datum) => {
+        const { lowValue, highValue } = datum.scaledValues;
         if (isVertical) {
-            const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
-            return { scalingCenterY: maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue) };
+            return { scalingCenterY: (highValue + lowValue) / 2 };
         }
-        return { scalingCenterX: datum.scaledValues.highValue };
+        return { scalingCenterX: (highValue + lowValue) / 2 };
     };
 }
