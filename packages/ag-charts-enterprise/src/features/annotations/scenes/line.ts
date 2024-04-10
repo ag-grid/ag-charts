@@ -1,20 +1,10 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type {
-    AnnotationHandleProperties,
-    AnnotationProperties,
-    LineAnnotationStylesProperties,
-} from '../annotationProperties';
+import type { AnnotationProperties } from '../annotationProperties';
 import type { Coords, LineCoords } from '../annotationTypes';
 import { Annotation } from './annotation';
 import { DivariantHandle } from './handle';
 import { CollidableLine } from './shapes';
-
-function firstOf<T extends string>(prop: T, ...sources: Array<Partial<Record<T, any>> | undefined>) {
-    for (const obj of sources) {
-        if (obj?.[prop] !== undefined) return obj[prop];
-    }
-}
 
 export class Line extends Annotation {
     type = 'line';
@@ -32,15 +22,9 @@ export class Line extends Annotation {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(
-        datum: AnnotationProperties,
-        handleStyles: AnnotationHandleProperties,
-        lineStyles: LineAnnotationStylesProperties,
-        seriesRect: _Scene.BBox,
-        coords?: LineCoords
-    ) {
+    public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, coords?: LineCoords) {
         const { line, start, end } = this;
-        const { handle, locked, visible } = datum;
+        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
@@ -59,23 +43,23 @@ export class Line extends Annotation {
             y1,
             x2,
             y2,
-            lineDash: datum.lineDash ?? lineStyles.lineDash,
-            lineDashOffset: datum.lineDashOffset ?? lineStyles.lineDashOffset,
-            stroke: datum.stroke ?? lineStyles.stroke,
-            strokeWidth: datum.strokeWidth ?? lineStyles.strokeWidth,
-            strokeOpacity: datum.strokeOpacity ?? lineStyles.strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
             fillOpacity: 0,
         });
         line.updateCollisionBBox();
 
-        const mergedHandleStyles = {
-            fill: firstOf('fill', handle, handleStyles),
-            stroke: firstOf('stroke', handle, handleStyles, datum, lineStyles),
-            strokeOpacity: firstOf('strokeOpacity', handle, handleStyles, datum, lineStyles),
+        const handleStyles = {
+            fill: datum.handle.fill,
+            stroke: datum.handle.stroke ?? stroke,
+            strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
         };
 
-        start.update({ ...mergedHandleStyles, x: x1, y: y1 });
-        end.update({ ...mergedHandleStyles, x: x2, y: y2 });
+        start.update({ ...handleStyles, x: x1, y: y1 });
+        end.update({ ...handleStyles, x: x2, y: y2 });
     }
 
     public toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {

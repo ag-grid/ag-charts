@@ -1,12 +1,9 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import {
-    AnnotationHandleProperties,
     AnnotationLinePointsProperties,
     AnnotationPointProperties,
     AnnotationProperties,
-    ChannelAnnotationStylesProperties,
-    LineAnnotationStylesProperties,
 } from './annotationProperties';
 import type { Coords } from './annotationTypes';
 import { AnnotationType } from './annotationTypes';
@@ -14,7 +11,7 @@ import type { Annotation } from './scenes/annotation';
 import { Channel } from './scenes/channel';
 import { Line } from './scenes/line';
 
-const { BOOLEAN, OBJECT, OBJECT_ARRAY, InteractionState, PropertiesArray, Validate } = _ModuleSupport;
+const { BOOLEAN, OBJECT_ARRAY, InteractionState, PropertiesArray, Validate } = _ModuleSupport;
 
 enum EditingStep {
     Start = 'start',
@@ -37,16 +34,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     })
     @Validate(OBJECT_ARRAY, { optional: true })
     public initial = new PropertiesArray(AnnotationProperties);
-
-    // Styles
-    @Validate(OBJECT, { optional: true })
-    public handle = new AnnotationHandleProperties();
-
-    @Validate(OBJECT, { optional: true })
-    public line = new LineAnnotationStylesProperties();
-
-    @Validate(OBJECT, { optional: true })
-    public 'parallel-channel' = new ChannelAnnotationStylesProperties();
 
     // State
     private annotationData?: AnnotationProperties[];
@@ -105,8 +92,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.editingType = event.value as AnnotationType;
     }
 
-    private createAnnotation(note: AnnotationProperties) {
-        switch (note.type) {
+    private createAnnotation(datum: AnnotationProperties) {
+        switch (datum.type) {
             case AnnotationType.ParallelChannel:
                 return new Channel();
 
@@ -117,7 +104,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        const { annotationData, annotations, handle } = this;
+        const { annotationData, annotations } = this;
 
         this.seriesRect = event.series.rect;
 
@@ -138,14 +125,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             switch (datum.type) {
                 case AnnotationType.Line:
-                    (node as Line).update(datum, handle, this[datum.type], event.series.rect, this.convertLine(datum));
+                    (node as Line).update(datum, event.series.rect, this.convertLine(datum));
                     break;
 
                 case AnnotationType.ParallelChannel:
                     (node as Channel).update(
                         datum,
-                        handle,
-                        this[datum.type],
                         event.series.rect,
                         this.convertLine(datum.top),
                         this.convertLine(datum.bottom)

@@ -52,7 +52,6 @@ const options: AgChartOptions = {
         initial: [
             {
                 type: 'parallel-channel',
-                locked: true,
                 top: {
                     start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 - 50 },
                     end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 - 50 },

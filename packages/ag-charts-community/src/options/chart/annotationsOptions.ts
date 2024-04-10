@@ -7,20 +7,18 @@ import type {
 } from '../series/cartesian/commonOptions';
 
 // --- Theme ---
-export interface AgAnnotationsThemeableOptions extends AgLineAnnotationsTheme, AgChannelAnnotationTheme {
-    handle?: AgAnnotationHandleStyles;
-}
+export interface AgAnnotationsThemeableOptions extends AgLineAnnotationsTheme, AgChannelAnnotationTheme {}
 
 type AgLineAnnotationsTheme = {
     // TODO: can this work in the docs?
     // [key in AgLineAnnotation['type']]?: AgLineAnnotationStyles;
-    line?: AgLineAnnotationStyles;
+    line?: AgLineAnnotationStyles & { handle?: AgAnnotationHandleStyles };
 };
 
 type AgChannelAnnotationTheme = {
     // TODO: can this work in the docs?
     // [key in AgChannelAnnotation['type']]?: AgChannelAnnotationStyles;
-    'parallel-channel'?: AgChannelAnnotationStyles;
+    'parallel-channel'?: AgChannelAnnotationStyles & { handle?: AgAnnotationHandleStyles };
 };
 
 // --- Options ---
@@ -30,13 +28,11 @@ export interface AgAnnotationsOptions extends Toggleable {
 }
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
-export interface AgLineAnnotationStyles extends StrokeOptions, LineDashOptions {}
-export interface AgChannelAnnotationStyles extends StrokeOptions, LineDashOptions {
-    middle?: AgChannelAnnotationMiddleStyles;
-    background?: AgChannelAnnotationBackgroundStyles;
+export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+    middle?: AgChannelAnnotationMiddle;
+    background?: AgChannelAnnotationBackground;
 }
-export interface AgChannelAnnotationMiddleStyles extends StrokeOptions, LineDashOptions {}
-export interface AgChannelAnnotationBackgroundStyles extends FillOptions {}
 
 export type AgAnnotation = AgLineAnnotation | AgChannelAnnotation; // | AgCrossLineAnnotation
 
