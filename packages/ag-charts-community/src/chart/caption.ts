@@ -149,6 +149,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     handleFocus(moduleCtx: ModuleContext, _event: KeyNavEvent<'tab'>) {
         this.updateTooltip(moduleCtx, makeKeyboardPointerEvent(moduleCtx.regionManager, this.node));
+        moduleCtx.ariaAnnouncementService.announceValue(this.text ?? '');
     }
 
     handleBlur(moduleCtx: ModuleContext, _event: KeyNavEvent<'blur'>) {
