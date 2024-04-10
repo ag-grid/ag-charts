@@ -1,199 +1,104 @@
 import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import { GroupTags } from './candlestickGroup';
-import type { CandlestickNodeDatum } from './candlestickTypes';
+import type { CandlestickBaseGroup } from './candlestickGroup';
+import type { CandlestickNodeBaseDatum, CandlestickNodeDatum } from './candlestickTypes';
 
 const { NODE_UPDATE_STATE_TO_PHASE_MAPPING } = _ModuleSupport;
 
-type AnimatableCandlestickBodyDatum = {
+export type AnimatableCandlestickGroupDatum = {
     x?: number;
     y?: number;
-    height?: number;
+    yBottom?: number;
+    yHigh?: number;
+    yLow?: number;
     width?: number;
-    opacity?: number;
+    height?: number;
 };
 
-type AnimatableCandlestickWickDatum = {
-    y1?: number;
-    y2?: number;
-    x?: number;
-    opacity?: number;
-};
-
-export function resetCandlestickSelectionsStartFn(): (
-    node: _Scene.Rect,
-    datum: CandlestickNodeDatum
-) => AnimatableCandlestickBodyDatum {
-    return (_node, datum) => {
-        const { x, y, width, height } = getRectCoordinates(datum);
-
-        return {
-            x,
-            y,
-            width,
-            height,
-        };
-    };
+export function resetCandlestickSelectionsFn(
+    _node: CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+    datum: CandlestickNodeBaseDatum
+) {
+    return getCoordinates(datum);
 }
 
-export function resetCandlestickWickSelectionsStartFn(): (
-    node: _Scene.Line,
-    datum: CandlestickNodeDatum
-) => AnimatableCandlestickWickDatum {
-    return (node, datum) => {
-        const { y1, y2, x } = getWickCoordinates(node, datum);
-
-        return {
-            y1,
-            y2,
-            x,
-        };
-    };
-}
-
-export function prepareCandlestickBodyAnimationFunctions() {
+export function prepareCandlestickAnimationFunctions() {
     const fromFn: _ModuleSupport.FromToMotionPropFn<
-        _Scene.Rect,
-        AnimatableCandlestickBodyDatum,
-        CandlestickNodeDatum
-    > = (body: _Scene.Rect, datum: CandlestickNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
-        const { x, width } = getRectCoordinates(datum);
-
+        CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        AnimatableCandlestickGroupDatum,
+        CandlestickNodeBaseDatum
+    > = (
+        candlestickGroup: CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        datum: CandlestickNodeBaseDatum,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
 
         if (status === 'added' && datum != null) {
-            const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
+            const { x, yLow, yHigh, width } = getCoordinates(datum);
+            const collapsedY = datum.itemId === 'up' ? yLow : yHigh;
             return {
                 x,
-                y: maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue),
+                y: collapsedY,
+                yBottom: collapsedY,
+                yHigh: collapsedY,
+                yLow: collapsedY,
                 width,
                 height: 0,
                 phase,
             };
         }
+
         return {
-            x: body.x,
-            y: body.y,
-            width: body.width,
-            height: body.height,
+            x: candlestickGroup.x,
+            y: candlestickGroup.y,
+            yBottom: candlestickGroup.yBottom,
+            yHigh: candlestickGroup.yHigh,
+            yLow: candlestickGroup.yLow,
+            width: candlestickGroup.width,
+            height: candlestickGroup.height,
             phase,
         };
     };
-    const toFn: _ModuleSupport.FromToMotionPropFn<_Scene.Rect, AnimatableCandlestickBodyDatum, CandlestickNodeDatum> = (
-        _: _Scene.Rect,
-        datum: CandlestickNodeDatum,
+    const toFn: _ModuleSupport.FromToMotionPropFn<
+        CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        AnimatableCandlestickGroupDatum,
+        CandlestickNodeBaseDatum
+    > = (
+        _: CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        datum: CandlestickNodeBaseDatum,
         status: _ModuleSupport.NodeUpdateState
     ) => {
-        const { x, y, width, height } = getRectCoordinates(datum);
-
         if (status === 'removed') {
-            const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
-            return {
-                x,
-                y: maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue),
-                width,
-                height: 0,
-            };
+            const { x, yLow, yHigh, width } = getCoordinates(datum);
+            const collapsedY = datum.itemId === 'up' ? yLow : yHigh;
+            return { x, y: collapsedY, yBottom: collapsedY, yHigh: collapsedY, yLow: collapsedY, width, height: 0 };
         }
 
-        return {
-            x,
-            y,
-            width,
-            height,
-        };
+        return getCoordinates(datum);
     };
 
     return { toFn, fromFn };
 }
 
-export function prepareCandlestickWickAnimationFunctions() {
-    const fromFn: _ModuleSupport.FromToMotionPropFn<
-        _Scene.Line,
-        AnimatableCandlestickWickDatum,
-        CandlestickNodeDatum
-    > = (line: _Scene.Line, datum: CandlestickNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
-        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
-        if (status === 'added' && datum != null) {
-            const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
-            const collapsedY = maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue);
-            const { x } = getWickCoordinates(line, datum);
-            return {
-                y1: collapsedY,
-                y2: collapsedY,
-                x,
-                phase,
-            };
-        }
-        return {
-            y1: line.y1,
-            y2: line.y2,
-            x: line.x1,
-            phase,
-        };
-    };
-    const toFn: _ModuleSupport.FromToMotionPropFn<_Scene.Line, AnimatableCandlestickWickDatum, CandlestickNodeDatum> = (
-        line: _Scene.Line,
-        datum: CandlestickNodeDatum,
-        status: _ModuleSupport.NodeUpdateState
-    ) => {
-        const { y1, y2, x } = getWickCoordinates(line, datum);
-
-        if (status === 'removed') {
-            const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
-            const collapsedY = maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue);
-            return {
-                y1: collapsedY,
-                y2: collapsedY,
-                x,
-            };
-        }
-
-        return {
-            y1,
-            y2,
-            x,
-        };
-    };
-
-    return { toFn, fromFn };
-}
-
-export function getRectCoordinates(datum: CandlestickNodeDatum) {
-    const {
-        bandwidth,
-        scaledValues: { xValue: x, openValue, closeValue },
-    } = datum;
-
-    const y = Math.min(openValue, closeValue);
-    const yBottom = Math.max(openValue, closeValue);
-
-    return {
-        x,
-        y,
-        width: bandwidth,
-        height: yBottom - y,
-        yBottom,
-    };
-}
-
-function getWickCoordinates(line: _Scene.Line, datum: CandlestickNodeDatum) {
+function getCoordinates(datum: CandlestickNodeDatum) {
     const {
         bandwidth,
         scaledValues: { xValue: x, openValue, closeValue, highValue, lowValue },
     } = datum;
 
     const y = Math.min(openValue, closeValue);
-    const yBottom = Math.max(openValue, closeValue);
+    const yBottom = isNaN(openValue) ? closeValue : Math.max(openValue, closeValue);
     const yHigh = Math.min(highValue, lowValue);
     const yLow = Math.max(highValue, lowValue);
 
-    const isLowWick = line.tag === GroupTags.LowWick;
-
-    const halfStrokeWidth = line.strokeWidth / 2;
     return {
-        y1: Math.round((isLowWick ? yLow : yHigh) + halfStrokeWidth),
-        y2: Math.round(isLowWick ? yBottom : y),
-        x: Math.floor(x + bandwidth / 2),
+        x,
+        y,
+        yBottom,
+        yHigh,
+        yLow,
+        width: bandwidth,
+        height: yBottom - y,
     };
 }
