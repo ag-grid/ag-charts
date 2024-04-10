@@ -1,5 +1,4 @@
-import { BBox } from '../../scene/bbox';
-import { mapIterable } from '../../util/array';
+import type { BBox } from '../../scene/bbox';
 import { getDocument } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import { clamp } from '../../util/number';
@@ -229,10 +228,6 @@ export class RegionManager {
         return undefined;
     }
 
-    private getTabRegionBounds(region: Region): BBox {
-        return BBox.merge(mapIterable(region.bboxproviders, (p) => p.getCachedBBox()));
-    }
-
     private dispatchTabStart(event: KeyNavEvent<'tab'>): boolean {
         const { delta, interactionEvent } = event;
         const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({ type: 'tab-start', delta, interactionEvent });
@@ -255,7 +250,6 @@ export class RegionManager {
             }
             if (newRegion !== undefined) {
                 event.interactionEvent.sourceEvent.preventDefault();
-                this.updateFocusIndicatorRect(this.getTabRegionBounds(newRegion)); // TODO: temporary
                 this.dispatch(newRegion, event);
             } else {
                 this.updateFocusIndicatorRect(undefined);
