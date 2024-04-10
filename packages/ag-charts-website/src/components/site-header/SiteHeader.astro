@@ -5,7 +5,7 @@ import { getEntry } from 'astro:content';
 import { FRAMEWORKS } from '@constants';
 import gridStyles from '@legacy-design-system/modules/SiteHeader.module.scss';
 import { SiteLogo } from '@components/SiteLogo';
-import Search from '../search/Search';
+import Search from '@ag-website-shared/components/search/Search';
 import { getFrameworkFromPath } from '../../features/docs/utils/urlPaths';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { isDynamicFrameworkPath, replaceDynamicFrameworkPath } from '@utils/framework';
