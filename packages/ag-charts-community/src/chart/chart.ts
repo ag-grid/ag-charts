@@ -1492,7 +1492,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             miniChart.axes = [];
         }
 
-        this.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
+        this.ctx.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
