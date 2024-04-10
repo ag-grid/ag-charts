@@ -1,3 +1,4 @@
+import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
     AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
@@ -41,6 +42,8 @@ export interface AgBaseCartesianChartOptions {
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
     series?: AgCartesianSeriesOptions[];
+    /** Annotations configurations. */
+    annotations?: AgAnnotationsOptions;
 }
 
 export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {

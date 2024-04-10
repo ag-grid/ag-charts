@@ -255,6 +255,11 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Annotations",
+                        "path": "annotations",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Toolbar",
                         "path": "toolbar",
                         "isEnterprise": true

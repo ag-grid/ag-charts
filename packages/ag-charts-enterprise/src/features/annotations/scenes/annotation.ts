@@ -13,12 +13,12 @@ export abstract class Annotation extends _Scene.Group {
 
     abstract override containsPoint(x: number, y: number): boolean;
 
-    public abstract toggleHandles(show: boolean): void;
+    public abstract toggleHandles(show: boolean | Record<string, boolean>): void;
     public abstract toggleActive(active: boolean): void;
     public abstract dragHandle(
         datum: AnnotationProperties,
         target: Coords,
-        invertPoint: (point: Coords) => Coords
+        invertPoint: (point: Coords) => Coords | undefined
     ): void;
     public abstract stopDragging(): void;
     public abstract getCursor(): string;

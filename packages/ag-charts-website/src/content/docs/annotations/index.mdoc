@@ -1,0 +1,131 @@
+---
+title: 'Annotations'
+enterprise: true
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+## Initial
+
+{% chartExampleRunner title="Annotations Initial" name="annotation-initial" type="generated" /%}
+
+```ts
+annotations: {
+    initial: [
+        {
+            type: 'line',
+            // ...
+        },
+    ],
+}
+```
+
+## Adding & Editing
+
+{% chartExampleRunner title="Annotations Adding & Editing" name="annotation-editing" type="generated" /%}
+
+```ts
+toolbar: {
+    annotations: {
+        enabled: true,
+    }
+}
+```
+
+## Saving & Loading
+
+{% warning %}
+todo
+{% /warning %}
+
+## Line
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Trend Line
+
+{% chartExampleRunner title="Line Annotation" name="annotation-line" type="generated" /%}
+
+```ts
+{
+    type: 'line',
+    start: { x: new Date('2024-03-21T18:55:00.000Z'), y: 39838.38 },
+    end: { x: new Date('2024-03-21T19:02:00.000Z'), y: 39829.71 },
+},
+```
+
+### Ray
+
+{% warning %}
+todo
+{% /warning %}
+
+## Channels
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+### Parallel Channel
+
+{% chartExampleRunner title="Channel Annotation" name="annotation-channel" type="generated" /%}
+
+```ts
+{
+    type: 'parallel-channel',
+    top: {
+        start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 - 50 },
+        end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 - 50 },
+    },
+    bottom: {
+        start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 + 50 },
+        end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 + 50 },
+    },
+},
+```
+
+### Dijsoint Channel
+
+{% warning %}
+todo
+{% /warning %}
+
+## Customisation
+
+{% chartExampleRunner title="Annotation Customisation" name="annotation-customisation" type="generated" /%}
+
+```ts
+annotations: {
+    line: {
+        stroke: 'black',
+        strokeWidth: 3,
+        lineDash: [3, 4],
+    },
+    'parallel-channel': {
+        stroke: 'red',
+        strokeWidth: 4,
+        background: {
+            fill: 'red',
+        },
+        middle: {
+            strokeOpacity: 0,
+        },
+    },
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgAnnotationsOptions" label="Annotations" %}
+{% apiReference id="AgAnnotationsOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgLineAnnotation" label="Line Annotation" %}
+{% apiReference id="AgLineAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgChannelAnnotation" label="Channel Annotation" %}
+{% apiReference id="AgChannelAnnotation" /%}
+{% /tabItem %}
+
+{% /tabs %}

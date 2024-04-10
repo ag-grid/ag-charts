@@ -40,3 +40,6 @@ export const DEFAULT_DIVERGING_SERIES_COLOUR_RANGE = Symbol(
 ) as unknown as string;
 export const DEFAULT_HIERARCHY_FILLS = Symbol('default-hierarchy-fills') as unknown as string;
 export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
+export const DEFAULT_ANNOTATION_STROKE = Symbol('default-annotation-stroke') as unknown as string;
+export const DEFAULT_ANNOTATION_BACKGROUND_FILL = Symbol('default-annotation-background-fill') as unknown as string;
+export const DEFAULT_ANNOTATION_HANDLE_FILL = Symbol('default-annotation-handle-fill') as unknown as string;

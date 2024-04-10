@@ -13,6 +13,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
     public enabled = true;
 
+    public annotations = new ToolbarSectionProperties(
+        this.toggleSection.bind(this, 'annotations'),
+        this.onSectionButtonsChanged.bind(this, 'annotations')
+    );
     public ranges = new ToolbarSectionProperties(
         this.toggleSection.bind(this, 'ranges'),
         this.onSectionButtonsChanged.bind(this, 'ranges')
