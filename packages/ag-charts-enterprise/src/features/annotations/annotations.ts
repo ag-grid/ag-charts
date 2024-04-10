@@ -13,14 +13,14 @@ import { Line } from './scenes/line';
 
 const { BOOLEAN, OBJECT_ARRAY, InteractionState, PropertiesArray, Validate } = _ModuleSupport;
 
-enum EditingStep {
+enum AddingStep {
     Start = 'start',
     End = 'end',
     Height = 'height',
 }
 
-type AddingStepFn = (node: Annotation | undefined, point: Coords, offset: Coords) => void;
-type EditingStepFn = (datum: AnnotationProperties, node: Annotation, point: Coords, offset: Coords) => void;
+type ClickAddingFn = (node: Annotation | undefined, point: Coords, offset: Coords) => void;
+type HoverAddingFn = (datum: AnnotationProperties, node: Annotation, point: Coords, offset: Coords) => void;
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
@@ -52,8 +52,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private hovered?: number;
     private active?: number;
 
-    private editingType?: AnnotationType;
-    private editingStep?: EditingStep;
+    private addingType?: AnnotationType;
+    private addingStep?: AddingStep;
 
     private seriesRect?: _Scene.BBox;
 
@@ -88,8 +88,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.ctx.interactionManager.pushState(InteractionState.Annotations);
 
-        this.editingStep = EditingStep.Start;
-        this.editingType = event.value as AnnotationType;
+        this.addingStep = AddingStep.Start;
+        this.addingType = event.value as AnnotationType;
     }
 
     private createAnnotation(datum: AnnotationProperties) {
@@ -233,9 +233,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
-        const { editingStep } = this;
+        const { addingStep } = this;
 
-        if (editingStep == null) {
+        if (addingStep == null) {
             this.onHoverSelecting(event);
         } else {
             this.onHoverEditing(event);
@@ -268,12 +268,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             annotationData,
             annotations,
-            editingStep,
-            editingType,
+            addingStep,
+            addingType,
             ctx: { cursorManager, updateService },
         } = this;
 
-        if (!annotationData || !editingType || !editingStep) return;
+        if (!annotationData || !addingType || !addingStep) return;
 
         const offset = {
             x: event.offsetX - (this.seriesRect?.x ?? 0),
@@ -284,7 +284,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const valid = this.validateDatumPoint(point);
         cursorManager.updateCursor('annotations', valid ? undefined : 'not-allowed');
 
-        if (!valid || editingStep === EditingStep.Start) return;
+        if (!valid || addingStep === AddingStep.Start) return;
 
         const datum = annotationData.at(-1);
         this.active = annotationData.length - 1;
@@ -294,27 +294,27 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         node.toggleActive(true);
 
-        const editingStepFn = this.editingStepFns[editingType]?.[editingStep];
-        if (editingStepFn) {
-            editingStepFn(datum, node, point, offset);
+        const hoverAddingFn = this.hoverAddingFns[addingType]?.[addingStep];
+        if (hoverAddingFn) {
+            hoverAddingFn(datum, node, point, offset);
         }
 
         updateService.update();
     }
 
-    private editingStepFns: Partial<Record<AnnotationType, Partial<Record<EditingStep, EditingStepFn>>>> = {
+    private hoverAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, HoverAddingFn>>>> = {
         [AnnotationType.Line]: {
-            [EditingStep.End]: (datum, node, point) => {
+            [AddingStep.End]: (datum, node, point) => {
                 datum.set({ end: point });
                 node.toggleHandles({ end: false });
             },
         },
         [AnnotationType.ParallelChannel]: {
-            [EditingStep.End]: (datum, node, point) => {
+            [AddingStep.End]: (datum, node, point) => {
                 datum.set({ top: { end: point }, bottom: { end: point } });
                 node.toggleHandles(false);
             },
-            [EditingStep.Height]: (datum, node, point, offset) => {
+            [AddingStep.Height]: (datum, node, point, offset) => {
                 const start = this.convertPoint(datum.bottom.start);
                 const end = this.convertPoint(datum.bottom.end);
 
@@ -340,7 +340,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     };
 
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click' | 'drag-start'>) {
-        if (this.editingStep == null) {
+        if (this.addingStep == null) {
             this.onClickSelecting();
         } else if (event.type === 'click') {
             this.onClickAdding(event as _ModuleSupport.PointerInteractionEvent<'click'>);
@@ -364,11 +364,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
-            editingStep,
-            editingType,
+            addingStep,
+            addingType,
             ctx: { updateService },
         } = this;
-        if (!annotationData || !editingStep || !editingType) return;
+        if (!annotationData || !addingStep || !addingType) return;
 
         const offset = {
             x: event.offsetX - (this.seriesRect?.x ?? 0),
@@ -381,44 +381,44 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const addingStepFn = this.addingStepFns[editingType]?.[editingStep];
-        if (addingStepFn) {
-            addingStepFn(node, point, offset);
+        const clickAddingFn = this.clickAddingFns[addingType]?.[addingStep];
+        if (clickAddingFn) {
+            clickAddingFn(node, point, offset);
         }
 
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private addingStepFns: Partial<Record<AnnotationType, Partial<Record<EditingStep, AddingStepFn>>>> = {
+    private clickAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, ClickAddingFn>>>> = {
         [AnnotationType.Line]: {
-            [EditingStep.Start]: (_node, point) => {
+            [AddingStep.Start]: (_node, point) => {
                 const datum = this.createDatum(AnnotationType.Line, point);
                 this.annotationData?.push(datum);
-                this.editingStep = EditingStep.End;
+                this.addingStep = AddingStep.End;
             },
-            [EditingStep.End]: (node, point) => {
+            [AddingStep.End]: (node, point) => {
                 this.annotationData?.at(-1)?.set({ end: point });
-                this.editingStep = undefined;
+                this.addingStep = undefined;
                 node?.toggleHandles(true);
                 this.ctx.interactionManager.popState(InteractionState.Annotations);
             },
         },
         [AnnotationType.ParallelChannel]: {
-            [EditingStep.Start]: (_node, point) => {
+            [AddingStep.Start]: (_node, point) => {
                 const datum = this.createDatum(AnnotationType.ParallelChannel, point);
                 this.annotationData?.push(datum);
-                this.editingStep = EditingStep.End;
+                this.addingStep = AddingStep.End;
             },
-            [EditingStep.End]: (node, point) => {
+            [AddingStep.End]: (node, point) => {
                 this.annotationData?.at(-1)?.set({
                     top: { end: point },
                     bottom: { end: point },
                 });
                 node?.toggleHandles({ topMiddle: false, bottomMiddle: false });
-                this.editingStep = EditingStep.Height;
+                this.addingStep = AddingStep.Height;
             },
-            [EditingStep.Height]: (node, point, offset) => {
-                // TODO: rationalise with the editingStepFn which is very similar
+            [AddingStep.Height]: (node, point, offset) => {
+                // TODO: rationalise with the hoverAddingFn which is very similar
                 const datum = this.annotationData?.at(-1)!;
                 const start = this.convertPoint(datum.bottom.start);
                 const end = this.convertPoint(datum.bottom.end);
@@ -439,7 +439,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 }
 
                 node?.toggleHandles(true);
-                this.editingStep = undefined;
+                this.addingStep = undefined;
                 this.ctx.interactionManager.popState(InteractionState.Annotations);
             },
         },
@@ -450,11 +450,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
+            addingStep,
             seriesRect,
             ctx: { cursorManager, interactionManager, updateService },
         } = this;
 
-        if (active == null || annotationData == null) return;
+        if (active == null || annotationData == null || addingStep != null) return;
 
         interactionManager.pushState(InteractionState.Annotations);
 
@@ -485,8 +486,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             active,
             annotations,
+            addingStep,
             ctx: { cursorManager, interactionManager, updateService },
         } = this;
+
+        if (addingStep != null) return;
 
         interactionManager.popState(InteractionState.Annotations);
 
