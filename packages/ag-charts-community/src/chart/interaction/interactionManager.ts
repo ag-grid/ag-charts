@@ -241,9 +241,21 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         if (allInStringUnion(POINTER_INTERACTION_TYPES, types)) {
             this.dispatchPointerEvent(event, types);
         } else if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
-            this.dispatchFocusEvent(event as FocusEvent, types);
+            for (const type of types) {
+                dispatchTypedConsumable(
+                    this.listeners,
+                    type,
+                    buildConsumable({ type, sourceEvent: event as FocusEvent })
+                );
+            }
         } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
-            this.dispatchKeyEvent(event as KeyboardEvent, types);
+            for (const type of types) {
+                dispatchTypedConsumable(
+                    this.listeners,
+                    type,
+                    buildConsumable({ type, sourceEvent: event as KeyboardEvent })
+                );
+            }
         }
     }
 
@@ -256,18 +268,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         for (const type of types) {
             dispatchTypedConsumable(this.listeners, type, this.buildPointerEvent({ type, event, ...coords }));
-        }
-    }
-
-    private dispatchFocusEvent(sourceEvent: FocusEvent, types: FocusInteractionTypes[]) {
-        for (const type of types) {
-            dispatchTypedConsumable(this.listeners, type, buildConsumable({ type, sourceEvent }));
-        }
-    }
-
-    private dispatchKeyEvent(sourceEvent: KeyboardEvent, types: KeyInteractionTypes[]) {
-        for (const type of types) {
-            dispatchTypedConsumable(this.listeners, type, buildConsumable({ type, sourceEvent }));
         }
     }
 
