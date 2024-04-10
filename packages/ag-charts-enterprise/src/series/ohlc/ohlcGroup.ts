@@ -40,17 +40,15 @@ export class OhlcGroup extends CandlestickBaseGroup<
         });
 
         open.setProperties({
-            y1: Math.round(y + open.strokeWidth / 2),
-            y2: Math.round(y + open.strokeWidth / 2),
             x1: Math.floor(x),
             x2: Math.floor(x + halfWidth),
+            y: Math.round(y + open.strokeWidth / 2),
         });
 
         close.setProperties({
-            y1: Math.round(yBottom - close.strokeWidth / 2),
-            y2: Math.round(yBottom - close.strokeWidth / 2),
             x1: Math.floor(x + halfWidth),
             x2: Math.floor(x + width),
+            y: Math.round(yBottom - close.strokeWidth / 2),
         });
     }
 
