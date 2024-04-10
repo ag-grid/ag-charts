@@ -1,6 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import Code from '@components/Code';
-import styles from '@design-system/modules/Options.module.scss';
 import {
     type JsonFunction,
     type JsonModel,
@@ -10,6 +9,7 @@ import {
     type JsonUnionType,
     buildModel,
 } from '@features/api-explorer/utils/model';
+import styles from '@legacy-design-system/modules/Options.module.scss';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { type ReactNode, useState } from 'react';

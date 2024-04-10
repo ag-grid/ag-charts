@@ -1,4 +1,4 @@
-import styles from '@design-system/modules/GalleryExampleImage.module.scss';
+import styles from '@legacy-design-system/modules/GalleryExampleImage.module.scss';
 import classNames from 'classnames';
 import { type FunctionComponent, useEffect, useState } from 'react';
 

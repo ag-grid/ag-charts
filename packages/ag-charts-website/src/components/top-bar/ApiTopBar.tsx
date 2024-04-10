@@ -1,6 +1,6 @@
 import type { ApiMenuItem, Framework } from '@ag-grid-types';
 import { DEFAULT_FRAMEWORK } from '@constants';
-import styles from '@design-system/modules/Toolbar.module.scss';
+import styles from '@legacy-design-system/modules/Toolbar.module.scss';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework, replaceDynamicFrameworkPath } from '@utils/framework';

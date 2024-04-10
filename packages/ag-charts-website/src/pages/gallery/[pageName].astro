@@ -51,7 +51,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 </Layout>
 
 <style lang="scss">
-    @use '../../design-system' as *;
+    @use 'design-system' as *;
 
     .gallery-page-container {
         padding-top: $spacing-size-10;
@@ -105,7 +105,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 </style>
 
 <style lang="scss" is:global>
-    @use '../../design-system' as *;
+    @use 'design-system' as *;
 
     @media screen and (max-width: 920px) {
         .container > * > div {

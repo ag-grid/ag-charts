@@ -1,4 +1,4 @@
-import styles from '@design-system/modules/ApiReferencePage.module.scss';
+import styles from '@legacy-design-system/modules/ApiReferencePage.module.scss';
 import { navigate, useHistory, useLocation } from '@utils/navigation';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';

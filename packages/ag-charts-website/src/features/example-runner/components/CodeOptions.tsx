@@ -1,5 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
-import styles from '@design-system/modules/CodeOptions.module.scss';
+import styles from '@legacy-design-system/modules/CodeOptions.module.scss';
 import { setInternalFramework } from '@stores/frameworkStore';
 import { isReactInternalFramework, isVueInternalFramework } from '@utils/framework';
 

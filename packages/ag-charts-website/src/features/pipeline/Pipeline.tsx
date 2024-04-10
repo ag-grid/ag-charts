@@ -11,7 +11,7 @@ import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 // @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import { SITE_BASE_URL, SITE_URL } from '@constants';
-import styles from '@design-system/modules/pipelineChangelog.module.scss';
+import styles from '@legacy-design-system/modules/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';

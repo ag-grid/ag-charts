@@ -1,5 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import styles from '@design-system/modules/SearchHits.module.scss';
+import styles from '@legacy-design-system/modules/SearchHits.module.scss';
 import { ChevronRight } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { useHits } from 'react-instantsearch';

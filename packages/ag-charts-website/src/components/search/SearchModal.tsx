@@ -1,4 +1,4 @@
-import styles from '@design-system/modules/SearchModal.module.scss';
+import styles from '@legacy-design-system/modules/SearchModal.module.scss';
 import algoliasearch from 'algoliasearch/lite';
 import React, { useEffect, useMemo, useState } from 'react';
 import { InstantSearch, useHits, useInstantSearch, useSearchBox } from 'react-instantsearch';

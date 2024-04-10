@@ -1,5 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import styles from '@design-system/modules/SearchControls.module.scss';
+import styles from '@legacy-design-system/modules/SearchControls.module.scss';
 import React from 'react';
 
 export default () => (

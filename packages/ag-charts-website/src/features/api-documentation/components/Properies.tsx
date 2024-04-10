@@ -1,5 +1,5 @@
 import { LinkIcon } from '@components/link-icon/LinkIcon';
-import styles from '@design-system/modules/ApiReference.module.scss';
+import styles from '@legacy-design-system/modules/ApiReference.module.scss';
 import { navigate, scrollIntoViewById } from '@utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
