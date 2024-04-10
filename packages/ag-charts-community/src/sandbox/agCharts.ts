@@ -5,12 +5,12 @@ import { ChartOptions } from './chart/chartOptions';
 import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
-import { Scene } from './render/scene';
+import { Stage } from './render/stage';
 import type { IChart, IChartOptions } from './types';
 import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './types/agChartsTypes';
 import { ChartType } from './types/enums';
 
-type IChartConstructor = new (scene: Scene, options: IChartOptions<any>) => IChart<any>;
+type IChartConstructor = new (stage: Stage, options: IChartOptions<any>) => IChart<any>;
 
 export abstract class AgCharts {
     static create<T extends AgChartOptions>(options: T) {
@@ -38,14 +38,14 @@ export abstract class AgCharts {
 export class ChartInstance<T extends AgChartOptions> {
     private chart: IChart<T>;
     private options: ChartOptions<T>;
-    private readonly scene: Scene;
+    private readonly stage: Stage;
 
     constructor(options: T) {
         const pixelRatio = hasConstrainedCanvasMemory() ? 1 : getWindow('devicePixelRatio');
         // default size, big enough to prevent blurriness in Safari.
-        this.scene = new Scene(1024, 768, pixelRatio);
+        this.stage = new Stage(1024, 768, pixelRatio);
         this.options = new ChartOptions<T>(options);
-        this.chart = ChartInstance.create(this.scene, this.options);
+        this.chart = ChartInstance.create(this.stage, this.options);
     }
 
     update(options: Partial<T>) {
@@ -53,7 +53,7 @@ export class ChartInstance<T extends AgChartOptions> {
         this.options = new ChartOptions(options, this.options, outOfSync);
         if (this.options.chartType !== this.options.prevOptions?.chartType) {
             this.chart.remove();
-            this.chart = ChartInstance.create(this.scene, this.options);
+            this.chart = ChartInstance.create(this.stage, this.options);
         } else {
             this.chart.setOptions(this.options);
         }
@@ -67,9 +67,9 @@ export class ChartInstance<T extends AgChartOptions> {
 
     getImageDataURL(_options: ImageUrlOptions) {}
 
-    private static create(scene: Scene, options: ChartOptions<any>) {
+    private static create(stage: Stage, options: ChartOptions<any>) {
         const ChartConstructor = this.getConstructor(options);
-        return new ChartConstructor(scene, options);
+        return new ChartConstructor(stage, options);
     }
 
     private static getConstructor(options: IChartOptions<any>): IChartConstructor {

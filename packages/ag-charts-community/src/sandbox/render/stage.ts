@@ -1,8 +1,8 @@
 import { createElement } from '../../util/dom';
-import type { IScene, SceneEventMap } from '../types';
+import type { IStage, SceneEventMap } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
 
-export class Scene implements IScene {
+export class Stage implements IStage {
     static ElementClassName = 'ag-chart-wrapper';
     static ElementStyle = { position: 'relative', userSelect: 'none' };
 
@@ -25,7 +25,7 @@ export class Scene implements IScene {
         this.context = this.canvas.getContext('2d')!;
         this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
-        this.rootElement = createElement('div', Scene.ElementClassName, Scene.ElementStyle);
+        this.rootElement = createElement('div', Stage.ElementClassName, Stage.ElementStyle);
         this.rootElement.appendChild(this.canvas);
 
         this.rootNode = {};

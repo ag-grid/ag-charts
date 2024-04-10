@@ -2,7 +2,7 @@ import { isNumber } from '../../util/type-guards';
 
 export type Task = () => void;
 
-export enum Stage {
+export enum PipelinePhase {
     OptionsUpdate,
     DataProcess,
     PreRender,
@@ -11,26 +11,26 @@ export enum Stage {
     Notify,
 }
 
-function stageMapper(callback: (stage: Stage) => [Stage, Set<Task>]) {
-    return (Object.values(Stage).filter(isNumber) as unknown as Stage[]).map(callback);
+function phaseMapper(callback: (phase: PipelinePhase) => [PipelinePhase, Set<Task>]) {
+    return (Object.values(PipelinePhase).filter(isNumber) as unknown as PipelinePhase[]).map(callback);
 }
 
-export class StageQueue {
-    private readonly stageQueue = new Map<Stage, Set<Task>>(stageMapper((stage) => [stage, new Set()]));
+export class PipelineQueue {
+    private readonly queue = new Map<PipelinePhase, Set<Task>>(phaseMapper((phase) => [phase, new Set()]));
 
     private isProcessingSync = false;
     private requestAnimationFrameId: number | null = null;
     private timerId?: number;
 
     /**
-     * Adds a task to the queue with a specified priority.
-     * @param stage The priority stage of the task.
+     * Adds a task to the queue with a specified priority phase.
+     * @param phase The priority phase of the task.
      * @param task The task to add.
      */
-    enqueue(stage: Stage, task: Task): void {
-        this.stageQueue.get(stage)?.add(task);
+    enqueue(phase: PipelinePhase, task: Task): void {
+        this.queue.get(phase)?.add(task);
 
-        if (stage === Stage.Render) {
+        if (phase === PipelinePhase.Render) {
             this.processAsyncQueue();
         } else if (!this.isProcessingSync) {
             this.isProcessingSync = true;
@@ -42,8 +42,8 @@ export class StageQueue {
      * Processes synchronous tasks, excluding RENDER tasks.
      */
     private processSyncQueue(): void {
-        for (const [stage, tasks] of this.stageQueue.entries()) {
-            if (stage < Stage.Render) {
+        for (const [phase, tasks] of this.queue.entries()) {
+            if (phase < PipelinePhase.Render) {
                 this.runTasks(tasks);
                 continue;
             }
@@ -70,8 +70,8 @@ export class StageQueue {
             }
 
             const asyncTasks: Set<Task>[] = [];
-            for (const [stage, tasks] of this.stageQueue.entries()) {
-                if (stage < Stage.Render) continue;
+            for (const [phase, tasks] of this.queue.entries()) {
+                if (phase < PipelinePhase.Render) continue;
                 this.runTasks(tasks, true);
                 asyncTasks.push(tasks);
             }
@@ -92,7 +92,7 @@ export class StageQueue {
      * Clears all tasks from the queue and cancels any scheduled asynchronous tasks.
      */
     clear(): void {
-        this.stageQueue.forEach((tasks) => tasks.clear());
+        this.queue.forEach((tasks) => tasks.clear());
         if (this.requestAnimationFrameId !== null) {
             cancelAnimationFrame(this.requestAnimationFrameId);
             this.requestAnimationFrameId = null;

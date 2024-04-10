@@ -1,12 +1,12 @@
 import { DataPipeline } from '../data/dataPipeline';
 import { moduleRegistry } from '../modules/moduleRegistry';
-import type { Scene } from '../render/scene';
+import type { Stage } from '../render/stage';
 import type { ChartEventMap, IChart, IScale } from '../types';
 import type { AgChartOptions } from '../types/agChartsTypes';
 import type { SeriesModule } from '../types/moduleTypes';
 import { EventEmitter } from '../util/eventEmitter';
+import { PipelinePhase, PipelineQueue } from '../util/pipelineQueue';
 import { SizeObserver } from '../util/resizeObserver';
-import { Stage, StageQueue } from '../util/stageQueue';
 import type { ChartOptions } from './chartOptions';
 
 export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
@@ -16,7 +16,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
     private static sizeObserver = new SizeObserver();
 
     readonly events = new EventEmitter<ChartEventMap<T>>();
-    readonly stageQueue = new StageQueue();
+    readonly pipeline = new PipelineQueue();
 
     private pendingOptions: ChartOptions<T> | null = null;
 
@@ -25,7 +25,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
     protected series?: any[];
 
     constructor(
-        public readonly scene: Scene,
+        public readonly stage: Stage,
         public options: ChartOptions<T>
     ) {
         this.setOptions(options);
@@ -33,14 +33,14 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
     setOptions(options: ChartOptions<T>) {
         this.pendingOptions = options;
-        this.stageQueue.enqueue(Stage.OptionsUpdate, this.applyPendingOptions);
+        this.pipeline.enqueue(PipelinePhase.OptionsUpdate, this.applyPendingOptions);
     }
 
     waitForUpdate(timeoutMs = 10_000): Promise<void> {
         const message = `Chart.waitForUpdate() timeout of ${timeoutMs}ms reached - chart update is taking too long.`;
         return new Promise((resolve, reject) => {
             const timerId = setTimeout(() => reject(new Error(message)), timeoutMs);
-            this.stageQueue.enqueue(Stage.Notify, () => {
+            this.pipeline.enqueue(PipelinePhase.Notify, () => {
                 clearTimeout(timerId);
                 resolve();
             });
@@ -135,24 +135,24 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
             const onResize = () => {
                 if (pendingSize == null) return;
-                this.scene.resize(width ?? pendingSize.width, height ?? pendingSize.height);
+                this.stage.resize(width ?? pendingSize.width, height ?? pendingSize.height);
                 pendingSize = null;
             };
 
             // If called multiple times it'll only register once, storing latest size.
-            BaseChart.sizeObserver.observe(this.scene.rootElement, (size) => {
+            BaseChart.sizeObserver.observe(this.stage.rootElement, (size) => {
                 pendingSize = size;
-                this.stageQueue.enqueue(Stage.PreRender, onResize);
+                this.pipeline.enqueue(PipelinePhase.PreRender, onResize);
             });
         } else {
-            BaseChart.sizeObserver.unobserve(this.scene.rootElement);
-            this.stageQueue.enqueue(Stage.PreRender, () => this.scene.resize(width, height));
+            BaseChart.sizeObserver.unobserve(this.stage.rootElement);
+            this.pipeline.enqueue(PipelinePhase.PreRender, () => this.stage.resize(width, height));
         }
     }
 
     private setContainer(container?: HTMLElement, prevContainer?: HTMLElement) {
         container?.setAttribute('data-ag-charts', '');
-        container?.appendChild(this.scene.rootElement);
+        container?.appendChild(this.stage.rootElement);
         prevContainer?.removeAttribute('data-ag-charts');
     }
 }

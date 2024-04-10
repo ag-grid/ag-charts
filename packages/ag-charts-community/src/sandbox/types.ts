@@ -1,7 +1,7 @@
 import type { AgChartOptions } from './types/agChartsTypes';
 import type { ChartType } from './types/enums';
 import type { EventEmitter } from './util/eventEmitter';
-import type { StageQueue } from './util/stageQueue';
+import type { PipelineQueue } from './util/pipelineQueue';
 
 /**
  * TODO: Split options API navigation into sections:
@@ -22,8 +22,8 @@ export interface IChartOptions<T extends AgChartOptions> {
 export interface IChart<T extends AgChartOptions> {
     events: EventEmitter<ChartEventMap<T>>;
     options: IChartOptions<T>;
-    scene: IScene;
-    stageQueue: StageQueue;
+    stage: IStage;
+    pipeline: PipelineQueue;
     setOptions(options: IChartOptions<T>): void;
     waitForUpdate(): Promise<void>;
     remove(): void;
@@ -33,7 +33,7 @@ export interface ChartEventMap<T extends AgChartOptions> {
     change: IChartOptions<T>;
 }
 
-export interface IScene {
+export interface IStage {
     readonly canvas: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D;
     readonly events: EventEmitter<SceneEventMap>;
