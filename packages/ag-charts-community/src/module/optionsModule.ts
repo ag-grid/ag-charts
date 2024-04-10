@@ -75,6 +75,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     defaultAxes: T;
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
+    annotationThemes: any;
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
@@ -266,6 +267,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!isAgCartesianChartOptions(options)) return;
 
         if (options.annotations == null) return;
+
+        this.annotationThemes = annotationsThemes;
 
         const processedAnnotations = options.annotations.initial?.map((annotation) => {
             const annotationTheme = annotationsThemes[annotation.type];

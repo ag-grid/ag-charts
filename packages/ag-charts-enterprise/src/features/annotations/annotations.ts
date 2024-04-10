@@ -103,6 +103,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
+    private createDatum(type: AnnotationType, point: Coords) {
+        const datum = new AnnotationProperties();
+        datum.set(_ModuleSupport.mergeDefaults({ type }, this.ctx.annotationManager.getAnnotationTypeStyles(type)));
+
+        switch (type) {
+            case AnnotationType.Line:
+                datum.set({ start: point, end: point });
+                break;
+
+            case AnnotationType.ParallelChannel:
+                datum.set({
+                    top: { start: point, end: point },
+                    bottom: { start: point, end: point },
+                });
+                break;
+        }
+
+        return datum;
+    }
+
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         const { annotationData, annotations } = this;
 
@@ -372,8 +392,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private addingStepFns: Partial<Record<AnnotationType, Partial<Record<EditingStep, AddingStepFn>>>> = {
         [AnnotationType.Line]: {
             [EditingStep.Start]: (_node, point) => {
-                const datum = new AnnotationProperties();
-                datum.set({ type: AnnotationType.Line, start: point, end: point });
+                const datum = this.createDatum(AnnotationType.Line, point);
                 this.annotationData?.push(datum);
                 this.editingStep = EditingStep.End;
             },
@@ -386,12 +405,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         },
         [AnnotationType.ParallelChannel]: {
             [EditingStep.Start]: (_node, point) => {
-                const datum = new AnnotationProperties();
-                datum.set({
-                    type: AnnotationType.ParallelChannel,
-                    top: { start: point, end: point },
-                    bottom: { start: point, end: point },
-                });
+                const datum = this.createDatum(AnnotationType.ParallelChannel, point);
                 this.annotationData?.push(datum);
                 this.editingStep = EditingStep.End;
             },
