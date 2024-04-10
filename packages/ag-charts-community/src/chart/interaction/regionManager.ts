@@ -280,11 +280,11 @@ export class RegionManager {
             if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
                 this.dispatch(focusedRegion, { ...event, type: 'blur' });
             }
-            if (newRegion !== undefined) {
+            if (newRegion == undefined) {
+                this.updateFocusIndicatorRect(undefined);
+            } else {
                 event.interactionEvent.sourceEvent.preventDefault();
                 this.dispatch(newRegion, event);
-            } else {
-                this.updateFocusIndicatorRect(undefined);
             }
         }
     }

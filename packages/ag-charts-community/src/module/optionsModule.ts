@@ -211,9 +211,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
             // Don't advance series index for background series
-            const seriesPaletteOptions = !unthemedSeries.has(series.type)
-                ? paletteOptions
-                : { colourIndex: 0, userPalette };
+            const seriesPaletteOptions = unthemedSeries.has(series.type)
+                ? { colourIndex: 0, userPalette }
+                : paletteOptions;
             const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
