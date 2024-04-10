@@ -131,5 +131,8 @@ export default defineMarkdocConfig({
         oneTrustCookies: {
             render: component('./src/components/OneTrustCookiesDetails.astro'),
         },
+        br: {
+            render: 'br',
+        },
     },
 });
