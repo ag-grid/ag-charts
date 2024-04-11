@@ -138,15 +138,19 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         fixed.top.style.top = `${seriesRect.y - fixed.top.offsetHeight - margin * 2}px`;
         fixed.top.style.left = `${margin}px`;
+        fixed.top.style.width = `calc(100% - ${margin * 2}px)`;
 
         fixed.right.style.top = `${seriesRect.y + margin}px`;
         fixed.right.style.right = `${margin}px`;
+        fixed.right.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
 
         fixed.bottom.style.bottom = `${margin}px`;
         fixed.bottom.style.left = `${margin}px`;
+        fixed.bottom.style.width = `calc(100% - ${margin * 2}px)`;
 
         fixed.left.style.top = `${seriesRect.y}px`;
         fixed.left.style.left = `${margin}px`;
+        fixed.left.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
     }
 
     private toggleToolbarVisibility(position: ToolbarPosition = 'top', visible = true) {

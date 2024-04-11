@@ -21,6 +21,7 @@ export const css = `
     border-right: var(--ag-charts-borders);
     border-color: var(--ag-charts-border-color);
     display: flex;
+    overflow: hidden;
     position: absolute;
     visibility: hidden;
 }
