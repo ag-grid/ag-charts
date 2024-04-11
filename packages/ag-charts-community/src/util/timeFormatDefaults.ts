@@ -8,7 +8,7 @@ import timeYear from '../util/time/year';
 import { durationDay, durationHour, durationMinute, durationWeek, durationYear } from './time/duration';
 import { buildFormatter } from './timeFormat';
 
-export enum DefaultTimeFormats {
+enum DefaultTimeFormats {
     MILLISECOND,
     SECOND,
     MINUTE,
@@ -20,18 +20,6 @@ export enum DefaultTimeFormats {
     YEAR,
 }
 
-export const TIME_FORMAT_STRINGS: Record<DefaultTimeFormats, string> = {
-    [DefaultTimeFormats.MILLISECOND]: '.%L',
-    [DefaultTimeFormats.SECOND]: ':%S',
-    [DefaultTimeFormats.MINUTE]: '%I:%M',
-    [DefaultTimeFormats.HOUR]: '%I %p',
-    [DefaultTimeFormats.WEEK_DAY]: '%a',
-    [DefaultTimeFormats.SHORT_MONTH]: '%b %d',
-    [DefaultTimeFormats.MONTH]: '%B',
-    [DefaultTimeFormats.SHORT_YEAR]: '%y',
-    [DefaultTimeFormats.YEAR]: '%Y',
-};
-
 export function dateToNumber(x: any) {
     return x instanceof Date ? x.getTime() : x;
 }
@@ -42,7 +30,7 @@ export function defaultTimeTickFormat(ticks?: any[]) {
 }
 
 export function calculateDefaultTimeTickFormat(ticks: any[] | undefined = []) {
-    let defaultTimeFormat = DefaultTimeFormats.YEAR as DefaultTimeFormats;
+    let defaultTimeFormat = DefaultTimeFormats.YEAR;
 
     const updateFormat = (format: DefaultTimeFormats) => {
         if (format < defaultTimeFormat) {
@@ -64,7 +52,7 @@ export function calculateDefaultTimeTickFormat(ticks: any[] | undefined = []) {
     return formatStringBuilder(defaultTimeFormat, yearChange, ticks);
 }
 
-export function getLowestGranularityFormat(value: Date | number): DefaultTimeFormats {
+function getLowestGranularityFormat(value: Date | number): DefaultTimeFormats {
     if (timeSecond.floor(value) < value) {
         return DefaultTimeFormats.MILLISECOND;
     } else if (timeMinute.floor(value) < value) {
@@ -85,70 +73,58 @@ export function getLowestGranularityFormat(value: Date | number): DefaultTimeFor
     return DefaultTimeFormats.YEAR;
 }
 
-export function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean, ticks: any[]): string {
-    let formatStringArray: string[] = [TIME_FORMAT_STRINGS[defaultTimeFormat]];
-    let timeEndIndex = 0;
-
+function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean, ticks: any[]): string {
     const firstTick = dateToNumber(ticks[0]);
     const lastTick = dateToNumber(ticks.at(-1)!);
     const extent = Math.abs(lastTick - firstTick);
 
-    switch (defaultTimeFormat) {
-        case DefaultTimeFormats.SECOND:
-            if (extent / durationMinute > 1) {
-                formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.MINUTE]);
-            }
-        // fall through deliberately
-        case DefaultTimeFormats.MINUTE:
-            if (extent / durationHour > 1) {
-                formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.HOUR]);
-            }
-        // fall through deliberately
-        case DefaultTimeFormats.HOUR:
-            timeEndIndex = formatStringArray.length;
-            if (extent / durationDay > 1) {
-                formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
-            }
-        // fall through deliberately
-        case DefaultTimeFormats.WEEK_DAY:
-            if (extent / durationWeek > 1 || yearChange) {
-                // if it's more than a week or there is a year change, don't show week day
-                const weekDayIndex = formatStringArray.indexOf(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
+    const activeYear = yearChange || defaultTimeFormat === DefaultTimeFormats.YEAR;
+    const activeDate = extent === 0;
+    const parts: ([string, number, number, DefaultTimeFormats, string] | string)[] = [
+        ['hour', 6 * durationHour, 14 * durationDay, DefaultTimeFormats.HOUR, '%I %p'],
+        ['hour', durationMinute, 6 * durationHour, DefaultTimeFormats.HOUR, '%I:%M'],
+        ['second', 1_000, 6 * durationHour, DefaultTimeFormats.SECOND, ':%S'],
+        ['ms', 0, 6 * durationHour, DefaultTimeFormats.MILLISECOND, '.%L'],
+        ['am/pm', durationMinute, 6 * durationHour, DefaultTimeFormats.HOUR, '%p'],
+        ' ',
+        ['day', durationDay, 1 * durationWeek, DefaultTimeFormats.WEEK_DAY, '%a'],
+        ['month', activeDate ? 0 : durationWeek, 52 * durationWeek, DefaultTimeFormats.SHORT_MONTH, '%b %d'],
+        ['month', 5 * durationWeek, 10 * durationYear, DefaultTimeFormats.MONTH, '%B'],
+        ' ',
+        ['year', activeYear ? 0 : durationYear, Infinity, DefaultTimeFormats.YEAR, '%Y'],
+    ];
 
-                if (weekDayIndex > -1) {
-                    formatStringArray.splice(weekDayIndex, 1, TIME_FORMAT_STRINGS[DefaultTimeFormats.SHORT_MONTH]);
+    const formatParts = parts
+        // Retain relevant parts.
+        .filter((v) => {
+            if (typeof v === 'string') return true;
+
+            const [_, min, max, format] = v;
+
+            return format >= defaultTimeFormat && min <= extent && extent < max;
+        })
+        // Deduplicate overlapping parts (earlier declaration wins).
+        .reduce(
+            (r, next) => {
+                if (typeof next === 'string') {
+                    r.result.push(next);
+                } else if (!r.used.has(next[0])) {
+                    r.result.push(next);
+                    r.used.add(next[0]);
                 }
-            }
-        // fall through deliberately
-        case DefaultTimeFormats.SHORT_MONTH:
-        case DefaultTimeFormats.MONTH:
-            if (extent / durationYear > 1 || yearChange) {
-                formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.YEAR]);
-            }
-        // fall through deliberately
-        default:
-            break;
-    }
+                return r;
+            },
+            { result: [] as typeof parts, used: new Set<string>() }
+        ).result;
 
-    if (timeEndIndex < formatStringArray.length) {
-        // Insert a gap between all date components.
-        formatStringArray = [
-            ...formatStringArray.slice(0, timeEndIndex),
-            formatStringArray.slice(timeEndIndex).join(' '),
-        ];
-    }
-    if (timeEndIndex > 0) {
-        // Reverse order of time components, since they should be displayed in descending
-        // granularity.
-        formatStringArray = [
-            ...formatStringArray.slice(0, timeEndIndex).reverse(),
-            ...formatStringArray.slice(timeEndIndex),
-        ];
-        if (timeEndIndex < formatStringArray.length) {
-            // Insert a gap between time and date components.
-            formatStringArray.splice(timeEndIndex, 0, ' ');
-        }
-    }
+    // Strip redundant leading/trailing separators.
+    const firstFormat = formatParts.findIndex((v) => typeof v !== 'string');
+    const lastFormat = formatParts.length - [...formatParts].reverse().findIndex((v) => typeof v !== 'string');
 
-    return formatStringArray.join('');
+    return formatParts
+        .slice(firstFormat, lastFormat)
+        .map((v) => (typeof v === 'string' ? v : v[4]))
+        .join('')
+        .replaceAll(/\s+/g, ' ')
+        .trim();
 }
