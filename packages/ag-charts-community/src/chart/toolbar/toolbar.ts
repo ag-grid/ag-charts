@@ -4,8 +4,8 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import { createElement, injectStyle } from '../../util/dom';
 import { BOOLEAN, Validate } from '../../util/validation';
-import type { ToolbarSection } from '../interaction/toolbarManager';
-import { ToolbarSectionProperties } from './toolbarProperties';
+import type { ToolbarGroup } from '../interaction/toolbarManager';
+import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import { TOOLBAR_POSITIONS, type ToolbarPosition } from './toolbarTypes';
 
@@ -13,13 +13,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
     public enabled = true;
 
-    public annotations = new ToolbarSectionProperties(
-        this.toggleSection.bind(this, 'annotations'),
-        this.onSectionButtonsChanged.bind(this, 'annotations')
+    public annotations = new ToolbarGroupProperties(
+        this.toggleGroup.bind(this, 'annotations'),
+        this.onGroupButtonsChanged.bind(this, 'annotations')
     );
-    public ranges = new ToolbarSectionProperties(
-        this.toggleSection.bind(this, 'ranges'),
-        this.onSectionButtonsChanged.bind(this, 'ranges')
+    public ranges = new ToolbarGroupProperties(
+        this.toggleGroup.bind(this, 'ranges'),
+        this.onGroupButtonsChanged.bind(this, 'ranges')
     );
 
     private margin = 10;
@@ -29,7 +29,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         floating?: Record<'top' | 'bottom', HTMLDivElement>;
     };
 
-    private positions: Record<ToolbarPosition, Set<ToolbarSection>> = {
+    private positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
         top: new Set(),
         right: new Set(),
         bottom: new Set(),
@@ -62,40 +62,40 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleToolbarVisibility('left', false);
 
         this.destroyFns.push(
-            ctx.toolbarManager.addListener('section-toggled', (event) => {
-                this.toggleSection(event.section, event.visible);
+            ctx.toolbarManager.addListener('group-toggled', (event) => {
+                this.toggleGroup(event.group, event.visible);
             })
         );
     }
 
-    private onSectionButtonsChanged(section: ToolbarSection, buttons: ToolbarSectionProperties['buttons']) {
-        const position = this[section].position ?? 'top';
+    private onGroupButtonsChanged(group: ToolbarGroup, buttons: ToolbarGroupProperties['buttons']) {
+        const position = this[group].position ?? 'top';
         const toolbar = this.elements.fixed[position as ToolbarPosition];
 
         for (const options of buttons ?? []) {
-            const button = this.createButtonElement(section, options);
+            const button = this.createButtonElement(group, options);
             toolbar.appendChild(button);
         }
     }
 
-    private toggleSection(section: ToolbarSection, enabled?: boolean) {
-        if (this[section] == null) return;
+    private toggleGroup(group: ToolbarGroup, enabled?: boolean) {
+        if (this[group] == null) return;
 
         for (const position of TOOLBAR_POSITIONS) {
-            if (enabled && this[section].position === position) {
-                this.positions[position].add(section);
+            if (enabled && this[group].position === position) {
+                this.positions[position].add(group);
             } else {
-                this.positions[position].delete(section);
+                this.positions[position].delete(group);
             }
 
             this.toggleToolbarVisibility(position, this.positions[position].size > 0);
         }
 
-        const buttons = this.elements.fixed[this[section].position].children;
+        const buttons = this.elements.fixed[this[group].position].children;
         for (let i = 0; i < buttons.length; i++) {
             const child = buttons[i];
             if (!(child instanceof HTMLDivElement)) continue;
-            if (child.dataset.toolbarSection === section) {
+            if (child.dataset.toolbarGroup === group) {
                 child.classList.toggle(styles.modifiers.button.hidden, !enabled);
             }
         }
@@ -162,20 +162,20 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         element.classList.add(styles.block, styles.modifiers[position]);
     }
 
-    private createButtonElement(section: ToolbarSection, options: { label: string; value: any }) {
+    private createButtonElement(group: ToolbarGroup, options: { label: string; value: any }) {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
-        button.classList.toggle(styles.modifiers.button.hidden, !this[section].enabled);
-        button.dataset.toolbarSection = section;
+        button.classList.toggle(styles.modifiers.button.hidden, !this[group].enabled);
+        button.dataset.toolbarGroup = group;
         button.innerHTML = options.label;
-        button.onclick = this.onButtonPress.bind(this, section, options.value);
+        button.onclick = this.onButtonPress.bind(this, group, options.value);
 
         this.destroyFns.push(() => button.remove());
 
         return button;
     }
 
-    private onButtonPress(section: ToolbarSection, value: any) {
-        this.ctx.toolbarManager.pressButton(section, value);
+    private onButtonPress(group: ToolbarGroup, value: any) {
+        this.ctx.toolbarManager.pressButton(group, value);
     }
 }
