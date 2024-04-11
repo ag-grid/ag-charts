@@ -10,7 +10,7 @@ import { getFrameworkFromPath } from '../../features/docs/utils/urlPaths';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { isDynamicFrameworkPath, replaceDynamicFrameworkPath } from '@utils/framework';
 import { DarkModeToggle } from './DarkModeToggle';
-import { ProductDropdown } from '../productDropdown/ProductDropdown';
+import { ProductDropdown } from '@ag-website-shared/components/product-dropdown/ProductDropdown';
 
 const { pathname } = Astro.url;
 const { data: menuData } = await getEntry('menu', 'data');
