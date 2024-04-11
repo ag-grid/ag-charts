@@ -23,6 +23,10 @@ export interface ToolbarButtonPressedEvent extends Event<ToolbarButtonPressed> {
 }
 
 export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
+    constructor(readonly element: HTMLElement) {
+        super();
+    }
+
     pressButton(section: ToolbarSection, value: any) {
         this.listeners.dispatch('button-pressed', { type: 'button-pressed', section, value });
     }

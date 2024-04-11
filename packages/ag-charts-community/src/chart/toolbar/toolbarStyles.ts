@@ -1,34 +1,62 @@
-export const TOOLBAR_CLASS = 'ag-charts-toolbar';
+export const block = 'ag-charts-toolbar';
+export const elements = {
+    button: `${block}__button`,
+};
+export const modifiers = {
+    top: `${block}--top`,
+    right: `${block}--right`,
+    bottom: `${block}--bottom`,
+    left: `${block}--left`,
+    button: {
+        hidden: `${elements.button}--hidden`,
+    },
+};
 
-export const toolbarStyles = `
-.${TOOLBAR_CLASS} {
-    background: #fff;
-    border: 1px solid #ddd;
+export const css = `
+.${block} {
+    background: var(--ag-charts-header-background-color);
+    border-bottom: var(--ag-charts-borders-critical);
+    border-top: var(--ag-charts-borders-critical);
+    border-left: var(--ag-charts-borders);
+    border-right: var(--ag-charts-borders);
+    border-color: var(--ag-charts-border-color);
     display: flex;
-    padding: 2px;
     position: absolute;
     visibility: hidden;
 }
 
-.${TOOLBAR_CLASS}--top, .${TOOLBAR_CLASS}--bottom {
+.${modifiers.top}, .${modifiers.bottom} {
     flex-direction: row;
+    height: var(--ag-charts-header-height);
+    padding: 0 var(--ag-charts-horizontal-padding);
 }
 
-.${TOOLBAR_CLASS}--left, .${TOOLBAR_CLASS}--right {
+.${modifiers.left}, .${modifiers.right} {
     flex-direction: column;
+    padding: var(--ag-charts-horizontal-padding) 0;
+    width: var(--ag-charts-header-height);
 }
 
-.${TOOLBAR_CLASS}__button {
-    background: none;
-    border: 0;
-    border-radius: 4px;
+.${elements.button} {
+    align-items: center;
+    color: var(--ag-charts-header-foreground-color);
+    display: flex;
+    font-weight: 500;
+    height: 100%;
+    justify-content: center;
+    min-width: var(--ag-charts-header-height);
+    padding: 0 var(--ag-charts-horizontal-padding);
+}
+
+.${modifiers.left} .${elements.button}, .${modifiers.right} .${elements.button} {
+    height: 48px;
+}
+
+.${modifiers.button.hidden} {
     display: none;
-    height: 40px;
-    min-width: 40px;
-    padding: 0 6px;
 }
 
-.${TOOLBAR_CLASS}__button:hover {
-    background: rgb(33, 150, 243, 0.1);
+.${elements.button}:hover {
+    background: var(--ag-charts-hover-color);
 }
 `;

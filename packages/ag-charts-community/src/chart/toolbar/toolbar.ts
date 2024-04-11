@@ -2,11 +2,11 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
-import { createElement, getDocument, injectStyle } from '../../util/dom';
+import { createElement, injectStyle } from '../../util/dom';
 import { BOOLEAN, Validate } from '../../util/validation';
 import type { ToolbarSection } from '../interaction/toolbarManager';
 import { ToolbarSectionProperties } from './toolbarProperties';
-import { TOOLBAR_CLASS, toolbarStyles } from './toolbarStyles';
+import * as styles from './toolbarStyles';
 import { TOOLBAR_POSITIONS, type ToolbarPosition } from './toolbarTypes';
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
@@ -39,7 +39,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        this.container = getDocument().body;
+        this.container = ctx.toolbarManager.element;
         this.elements = {
             fixed: {
                 top: this.container.appendChild(createElement('div')),
@@ -49,7 +49,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             },
         };
 
-        injectStyle(toolbarStyles, 'toolbar');
+        injectStyle(styles.css, 'toolbar');
 
         this.renderToolbar('top');
         this.renderToolbar('right');
@@ -94,8 +94,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const buttons = this.elements.fixed[this[section].position].children;
         for (let i = 0; i < buttons.length; i++) {
             const child = buttons[i];
-            if (child.classList.contains(`${TOOLBAR_CLASS}__button--${section}`)) {
-                (child as HTMLDivElement).style.display = enabled ? 'block' : 'none';
+            if (!(child instanceof HTMLDivElement)) continue;
+            if (child.dataset.toolbarSection === section) {
+                child.classList.toggle(styles.modifiers.button.hidden, !enabled);
             }
         }
     }
@@ -110,19 +111,19 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         container.style.visibility = 'visible';
 
         if (fixed.top.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.top.clientHeight + margin * 2, 'top');
+            shrinkRect.shrink(fixed.top.offsetHeight + margin * 2, 'top');
         }
 
         if (fixed.right.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.right.clientWidth, 'right');
+            shrinkRect.shrink(fixed.right.offsetWidth + margin, 'right');
         }
 
         if (fixed.bottom.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.bottom.clientHeight + margin * 2, 'bottom');
+            shrinkRect.shrink(fixed.bottom.offsetHeight + margin * 2, 'bottom');
         }
 
         if (fixed.left.style.visibility !== 'hidden') {
-            shrinkRect.shrink(fixed.left.clientWidth, 'left');
+            shrinkRect.shrink(fixed.left.offsetWidth + margin, 'left');
         }
 
         return { shrinkRect };
@@ -135,7 +136,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         } = this;
         const { seriesRect } = opts;
 
-        fixed.top.style.top = `${seriesRect.y - fixed.top.clientHeight - margin}px`;
+        fixed.top.style.top = `${seriesRect.y - fixed.top.offsetHeight - margin * 2}px`;
         fixed.top.style.left = `${margin}px`;
 
         fixed.right.style.top = `${seriesRect.y + margin}px`;
@@ -144,7 +145,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         fixed.bottom.style.bottom = `${margin}px`;
         fixed.bottom.style.left = `${margin}px`;
 
-        fixed.left.style.top = `${seriesRect.y + margin}px`;
+        fixed.left.style.top = `${seriesRect.y}px`;
         fixed.left.style.left = `${margin}px`;
     }
 
@@ -154,17 +155,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private renderToolbar(position: ToolbarPosition = 'top') {
         const element = this.elements.fixed[position];
-        element.classList.add(TOOLBAR_CLASS, `${TOOLBAR_CLASS}--${position}`);
+        element.classList.add(styles.block, styles.modifiers[position]);
     }
 
     private createButtonElement(section: ToolbarSection, options: { label: string; value: any }) {
         const button = createElement('button');
-        button.classList.add(`${TOOLBAR_CLASS}__button`);
-        button.classList.add(`${TOOLBAR_CLASS}__button--${section}`);
+        button.classList.add(styles.elements.button);
+        button.classList.toggle(styles.modifiers.button.hidden, !this[section].enabled);
+        button.dataset.toolbarSection = section;
         button.innerHTML = options.label;
         button.onclick = this.onButtonPress.bind(this, section, options.value);
-
-        button.style.display = this[section].enabled ? 'block' : 'none';
 
         this.destroyFns.push(() => button.remove());
 
