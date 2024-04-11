@@ -1,5 +1,5 @@
 import type { IAxis, IModule, ISeries } from '../types';
-import type { OptionsDefs } from '../util/isValid';
+import type { OptionsDefs } from '../util/validation';
 import type { CartesianChartAxes, CartesianCoordinate, PolarChartAxes, PolarCoordinate } from './axisTypes';
 import type { ChartType } from './enums';
 

@@ -3,14 +3,10 @@ import type { IStage, SceneEventMap } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
 
 export class Stage implements IStage {
-    static ElementClassName = 'ag-chart-wrapper';
+    static ElementClassName = 'ag-chart-wrapper'; // ag-charts-stage
     static ElementStyle = { position: 'relative', userSelect: 'none' };
 
     readonly events = new EventEmitter<SceneEventMap>();
-
-    /**
-     * Canvas for
-     */
 
     readonly canvas: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D;
@@ -18,8 +14,8 @@ export class Stage implements IStage {
     readonly rootNode: object;
 
     constructor(
-        public width: number,
-        public height: number,
+        width: number,
+        height: number,
         public pixelRatio: number = 1
     ) {
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
@@ -27,7 +23,7 @@ export class Stage implements IStage {
         this.setCanvasSize(width, height);
 
         this.context = this.canvas.getContext('2d')!;
-        this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        this.context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         this.rootElement = createElement('div', Stage.ElementClassName, Stage.ElementStyle);
         this.rootElement.appendChild(this.canvas);
@@ -35,6 +31,15 @@ export class Stage implements IStage {
         this.rootNode = {};
     }
 
+    get width() {
+        return this.canvas.width;
+    }
+
+    get height() {
+        return this.canvas.height;
+    }
+
+    // should be avoided, prefer clearing and redrawing smaller rects
     clear() {
         this.context.save();
         this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
@@ -49,13 +54,10 @@ export class Stage implements IStage {
 
         this.setCanvasSize(width, height);
 
-        this.width = width;
-        this.height = height;
-
         this.events.emit('resize', { width, height });
     }
 
-    toDataURL(type?: string): string {
+    toDataURL(type?: string) {
         return this.canvas.toDataURL(type);
     }
 

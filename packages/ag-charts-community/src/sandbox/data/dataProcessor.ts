@@ -1,6 +1,6 @@
 export interface IDataProcessor {
     process(value: any, index: number): void;
-    getResult(): any;
+    getResult(): object;
 }
 
 export interface ContinuousProcessorOptions {

@@ -1,6 +1,6 @@
 import { isNumber } from '../../util/type-guards';
 
-export type Task = () => void;
+type Task = () => void;
 
 export enum PipelinePhase {
     OptionsUpdate,
@@ -12,11 +12,12 @@ export enum PipelinePhase {
 }
 
 function phaseMapper(callback: (phase: PipelinePhase) => [PipelinePhase, Set<Task>]) {
-    return (Object.values(PipelinePhase).filter(isNumber) as unknown as PipelinePhase[]).map(callback);
+    const isPipelinePhase = (value: unknown): value is PipelinePhase => isNumber(value);
+    return Object.values(PipelinePhase).filter(isPipelinePhase).map(callback);
 }
 
 export class PipelineQueue {
-    private readonly queue = new Map<PipelinePhase, Set<Task>>(phaseMapper((phase) => [phase, new Set()]));
+    private readonly queue = new Map(phaseMapper((phase) => [phase, new Set()]));
 
     private isProcessingSync = false;
     private requestAnimationFrameId: number | null = null;
@@ -30,7 +31,7 @@ export class PipelineQueue {
     enqueue(phase: PipelinePhase, task: Task): void {
         this.queue.get(phase)?.add(task);
 
-        if (phase === PipelinePhase.Render) {
+        if (phase >= PipelinePhase.Render) {
             this.processAsyncQueue();
         } else if (!this.isProcessingSync) {
             this.isProcessingSync = true;

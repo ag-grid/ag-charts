@@ -10,7 +10,7 @@ import {
     positiveNumber,
     required,
     string,
-} from '../util/isValid';
+} from '../util/validation';
 import { captionOptionsDef, directionMetricsOptionsDef } from './commonOptionsDefs';
 import { themeOptionsDef } from './testDefs';
 

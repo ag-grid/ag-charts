@@ -20,7 +20,7 @@ export class DataPipeline {
     }
 
     getResults() {
-        const results = new Map<string, any>();
+        const results = new Map<string, object>();
         for (const [key, processor] of this.processors) {
             results.set(key, processor.getResult());
         }

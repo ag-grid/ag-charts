@@ -1,7 +1,7 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { DirectionMetrics } from '../types/commonTypes';
 import type { CommonSeriesOptions } from '../types/seriesTypes';
-import { type OptionsDefs, boolean, callback, number, or, required, string, union } from '../util/isValid';
+import { type OptionsDefs, boolean, callback, number, or, required, string, union } from '../util/validation';
 
 export const directionMetricsOptionsDef: OptionsDefs<DirectionMetrics> = {
     top: number,

@@ -17,7 +17,7 @@ import {
     required,
     string,
     union,
-} from './isValid';
+} from './validation';
 
 // Mock the Logger to avoid actual logging during tests
 jest.mock('../../util/logger', () => ({

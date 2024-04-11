@@ -3,8 +3,8 @@ import { moduleRegistry } from '../modules/moduleRegistry';
 import type { IChartOptions } from '../types';
 import type { AgChartOptions } from '../types/agChartsTypes';
 import type { ChartType } from '../types/enums';
-import { isValid } from '../util/isValid';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
+import { isValid } from '../util/validation';
 
 export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> {
     fullOptions: T;

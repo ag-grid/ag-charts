@@ -2,7 +2,7 @@ import { BarSeries } from '../series/barSeries';
 import { ChartType } from '../types/enums';
 import type { CartesianSeriesModule } from '../types/moduleTypes';
 import type { BarSeriesOptions } from '../types/seriesTypes';
-import { boolean, number, required, string, union } from '../util/isValid';
+import { boolean, number, required, string, union } from '../util/validation';
 import { commonSeriesOptionsDefs } from './commonOptionsDefs';
 
 export const BarSeriesModule: CartesianSeriesModule<BarSeriesOptions> = {

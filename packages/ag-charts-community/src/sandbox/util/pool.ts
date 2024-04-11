@@ -2,12 +2,13 @@
 const pooledKey = Symbol('pooledObject');
 
 /** Defines a type that includes pooling capabilities for any object. */
-type Pooled<T> = T & { [pooledKey]: Pool<T>; constructor: PooledConstructor<T> };
+type Pooled<T> = T & { [pooledKey]: Pool<T>; constructor: PoolConstructor<T> };
 
 /** Constructor signature for objects that can be managed by a Pool. */
-interface PooledConstructor<T> {
-    new (): Pooled<T>;
-    className: string;
+interface PoolConstructor<T> {
+    className?: string;
+    name: string;
+    new (): T;
 }
 
 /** Manages a pool of object instances to optimize resource allocation. */
@@ -23,8 +24,8 @@ export class Pool<T> {
      * @param classType The constructor of the class to acquire an instance of.
      * @returns An instance of the requested class.
      */
-    static acquire<T>(classType: PooledConstructor<T>): T {
-        const pool = this.pools.get(classType.className) ?? new Pool(classType);
+    static acquire<T>(classType: PoolConstructor<T>): T {
+        const pool = this.pools.get(classType.className ?? classType.name) ?? new Pool(classType);
         return pool.acquire();
     }
 
@@ -50,10 +51,10 @@ export class Pool<T> {
      * @param increment Number of instances to add when expanding the pool.
      */
     constructor(
-        private classType: PooledConstructor<T>,
+        private classType: PoolConstructor<T>,
         private increment = Pool.GrowthFactor
     ) {
-        Pool.pools.set(classType.className, this);
+        Pool.pools.set(classType.className ?? classType.name, this);
     }
 
     /**
@@ -73,7 +74,7 @@ export class Pool<T> {
      */
     expand(increment: number) {
         for (let i = 0; i < increment; i++) {
-            const instance = new this.classType();
+            const instance = new this.classType() as Pooled<T>;
             instance[pooledKey] = this;
             this.freeList.push(instance);
         }
