@@ -238,8 +238,8 @@ export class RegionManager {
         return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
     }
 
-    private getTabRegion(tabIndex: number): Region | undefined {
-        if (tabIndex >= 0 && tabIndex < REGION_TAB_ORDERING.length) {
+    private getTabRegion(tabIndex: number | undefined): Region | undefined {
+        if (tabIndex !== undefined && tabIndex >= 0 && tabIndex < REGION_TAB_ORDERING.length) {
             return this.regions.get(REGION_TAB_ORDERING[tabIndex]);
         }
         return undefined;
@@ -254,13 +254,13 @@ export class RegionManager {
         return !!startEvent.consumed;
     }
 
-    private getNextInteractableTabIndex(delta: number): number {
+    private getNextInteractableTabIndex(delta: number): number | undefined {
         const direction = delta < 0 ? -1 : 1;
         let i = this.currentTabIndex;
         while (delta !== 0) {
             const region = this.getTabRegion(i + direction);
             if (region === undefined) {
-                break;
+                return undefined;
             } else if (region.properties.canInteraction()) {
                 delta = delta - direction;
             }
@@ -269,18 +269,31 @@ export class RegionManager {
         return i;
     }
 
+    private validateCurrentTabIndex() {
+        // This currentTabIndex might be referencing a region that is no longer interactable.
+        // If that's the case, then refresh the focus to the first interactable region.
+        const focusedRegion = this.getTabRegion(this.currentTabIndex);
+        if (focusedRegion !== undefined && !focusedRegion.properties.canInteraction()) {
+            this.currentTabIndex = -1;
+            this.currentTabIndex = this.getNextInteractableTabIndex(1) ?? 0;
+        }
+    }
+
     private onTab(event: KeyNavEvent<'tab'>) {
         const consumed = this.dispatchTabStart(event);
         if (!consumed) {
+            this.validateCurrentTabIndex();
             const newTabIndex = this.getNextInteractableTabIndex(event.delta);
             const newRegion = this.getTabRegion(newTabIndex);
             const focusedRegion = this.getTabRegion(this.currentTabIndex);
-            this.currentTabIndex = newTabIndex;
+            if (newTabIndex !== undefined) {
+                this.currentTabIndex = newTabIndex;
+            }
 
             if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
                 this.dispatch(focusedRegion, { ...event, type: 'blur' });
             }
-            if (newRegion == undefined) {
+            if (newRegion === undefined || !newRegion.properties.canInteraction()) {
                 this.updateFocusIndicatorRect(undefined);
             } else {
                 event.interactionEvent.sourceEvent.preventDefault();
