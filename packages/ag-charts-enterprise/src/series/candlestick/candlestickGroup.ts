@@ -5,8 +5,8 @@ import type { CandlestickNodeDatum } from './candlestickTypes';
 
 export enum GroupTags {
     Rect,
-    Outline,
-    Wick,
+    LowWick,
+    HighWick,
 }
 
 export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
@@ -35,17 +35,13 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
         super();
         this.append([
             new _Scene.Rect({ tag: GroupTags.Rect }),
-            new _Scene.Line({ tag: GroupTags.Wick }),
-            new _Scene.Line({ tag: GroupTags.Wick }),
+            new _Scene.Line({ tag: GroupTags.LowWick }),
+            new _Scene.Line({ tag: GroupTags.HighWick }),
         ]);
     }
 
     updateDatumStyles(datum: CandlestickNodeDatum, activeStyles: AgCandlestickSeriesItemOptions) {
-        const {
-            bandwidth,
-            scaledValues: { xValue: axisValue },
-        } = datum;
-        const { openValue, closeValue, highValue, lowValue } = datum.scaledValues;
+        const { bandwidth } = datum;
 
         const {
             fill,
@@ -63,23 +59,12 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
 
         const selection = _Scene.Selection.select(this, _Scene.Rect);
         const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Rect);
-        const wicks = selection.selectByTag<_Scene.Line>(GroupTags.Wick);
+        const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
+        const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
 
         if (wickStyles.strokeWidth > bandwidth) {
             wickStyles.strokeWidth = bandwidth;
         }
-
-        const y = Math.min(openValue, closeValue);
-        const yBottom = Math.max(openValue, closeValue);
-        const yHigh = Math.min(highValue, lowValue);
-        const yLow = Math.max(highValue, lowValue);
-
-        rect.setProperties({
-            x: axisValue,
-            y,
-            width: bandwidth,
-            height: yBottom - y,
-        });
 
         rect.setProperties({
             fill,
@@ -92,18 +77,7 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
             cornerRadius,
         });
 
-        wicks[0].setProperties({
-            y1: Math.round(yLow + wickStyles.strokeWidth / 2),
-            y2: yBottom,
-            x: Math.floor(axisValue + bandwidth / 2),
-        });
-        wicks[0].setProperties(wickStyles);
-
-        wicks[1].setProperties({
-            y1: Math.round(yHigh - wickStyles.strokeWidth / 2),
-            y2: y,
-            x: Math.floor(axisValue + bandwidth / 2),
-        });
-        wicks[1].setProperties(wickStyles);
+        lowWick.setProperties(wickStyles);
+        highWick.setProperties(wickStyles);
     }
 }

@@ -8,10 +8,15 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import type { CandlestickBaseGroup } from './candlestickGroup';
+import { type CandlestickBaseGroup, GroupTags } from './candlestickGroup';
 import type { CandlestickSeriesBaseItems, CandlestickSeriesBaseProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeBaseDatum } from './candlestickTypes';
-import { prepareCandlestickAnimationFunctions } from './candlestickUtil';
+import {
+    prepareCandlestickBodyAnimationFunctions,
+    prepareCandlestickWickAnimationFunctions,
+    resetCandlestickSelectionsStartFn,
+    resetCandlestickWickSelectionsStartFn,
+} from './candlestickUtil';
 
 const {
     extent,
@@ -359,20 +364,55 @@ export abstract class CandlestickSeriesBase<
         );
     }
 
+    protected override animateEmptyUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<CandlestickBaseGroup<TNodeDatum, TItemOptions>, TNodeDatum>) {
+        this.resetAnimations(datumSelection);
+    }
+
+    protected override animateReadyResize({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<CandlestickBaseGroup<TNodeDatum, TItemOptions>, TNodeDatum>) {
+        this.resetAnimations(datumSelection);
+    }
+
+    private resetAnimations(
+        datumSelection: _Scene.Selection<CandlestickBaseGroup<TNodeDatum, TItemOptions>, TNodeDatum>
+    ) {
+        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Rect);
+        const wicks = datumSelection.selectByClass<_Scene.Line>(_Scene.Line);
+
+        motion.resetMotion(rects, resetCandlestickSelectionsStartFn());
+        motion.resetMotion(wicks, resetCandlestickWickSelectionsStartFn());
+    }
+
     protected override animateWaitingUpdateReady({
         datumSelection,
     }: _ModuleSupport.CartesianAnimationData<CandlestickBaseGroup<TNodeDatum, TItemOptions>, TNodeDatum>) {
         const { processedData } = this;
         const difference = processedData?.reduced?.diff;
-        const fns = prepareCandlestickAnimationFunctions();
+        const rects = datumSelection.selectByTag<_Scene.Rect>(GroupTags.Rect);
+        const wicks = datumSelection.selectByClass<_Scene.Line>(_Scene.Line);
 
+        const bodyAnimationFns = prepareCandlestickBodyAnimationFunctions();
         motion.fromToMotion(
             this.id,
             'datums',
             this.ctx.animationManager,
-            [datumSelection],
-            fns,
-            (_, datum) => datum.xValue,
+            rects,
+            bodyAnimationFns,
+            (_, datum) => String(datum.xValue),
+            difference
+        );
+
+        const wickAnimationFns = prepareCandlestickWickAnimationFunctions();
+        motion.fromToMotion(
+            this.id,
+            'datums',
+            this.ctx.animationManager,
+            wicks,
+            wickAnimationFns,
+            (_, datum) => String(datum.xValue),
             difference
         );
     }
