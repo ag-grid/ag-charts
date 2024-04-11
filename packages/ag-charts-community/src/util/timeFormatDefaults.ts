@@ -5,7 +5,7 @@ import timeMonth from '../util/time/month';
 import timeSecond from '../util/time/second';
 import timeWeek from '../util/time/week';
 import timeYear from '../util/time/year';
-import { durationDay, durationHour, durationMinute, durationWeek, durationYear } from './time/duration';
+import { durationDay, durationMinute, durationWeek, durationYear } from './time/duration';
 import { buildFormatter } from './timeFormat';
 
 export enum DefaultTimeFormats {
@@ -100,10 +100,6 @@ export function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearC
             }
         // fall through deliberately
         case DefaultTimeFormats.MINUTE:
-            if (extent / durationHour > 1) {
-                formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.HOUR]);
-            }
-        // fall through deliberately
         case DefaultTimeFormats.HOUR:
             timeEndIndex = formatStringArray.length;
             if (extent / durationDay > 1) {

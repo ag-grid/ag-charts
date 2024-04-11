@@ -229,7 +229,7 @@ describe('TimeScale', () => {
             {
                 name: 'several minutes spanning hours',
                 ticks: [new Date(2023, 0, 1, 13, 25), new Date(2023, 0, 1, 15, 25), new Date(2023, 0, 1, 17, 25)],
-                expectedFormat: '%I %p%I:%M',
+                expectedFormat: '%I:%M', // hour:minute
             },
             {
                 name: 'several hours spanning days',
