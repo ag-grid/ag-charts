@@ -45,7 +45,14 @@ export type TooltipMeta = PointerOffsets & {
     enableInteraction?: boolean;
 };
 
-export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?: AgTooltipRendererResult): string {
+export type TooltipContent = string;
+
+export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = '';
+
+export function toTooltipHtml(
+    input: string | AgTooltipRendererResult,
+    defaults?: AgTooltipRendererResult
+): TooltipContent {
     if (typeof input === 'string') {
         return input;
     }
@@ -160,7 +167,7 @@ export class Tooltip extends BaseProperties {
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
-    show(canvasRect: DOMRect, meta: TooltipMeta, html?: string | null, instantly = false) {
+    show(canvasRect: DOMRect, meta: TooltipMeta, html?: TooltipContent | null, instantly = false) {
         const { element } = this;
 
         if (html != null) {

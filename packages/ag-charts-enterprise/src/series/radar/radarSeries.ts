@@ -352,9 +352,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: RadarNodeDatum): string {
+    getTooltipHtml(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent {
         if (!this.properties.isValid()) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { id: seriesId } = this;

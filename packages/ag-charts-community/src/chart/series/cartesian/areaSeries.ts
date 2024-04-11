@@ -26,6 +26,7 @@ import { animationValidation, diff, normaliseGroupTo } from '../../data/processo
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { AreaSeriesProperties } from './areaSeriesProperties';
@@ -580,7 +581,7 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: MarkerSelectionDatum): string {
+    getTooltipHtml(nodeDatum: MarkerSelectionDatum): TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
         const { xKey, xName, yName, tooltip, marker } = this.properties;
         const { yKey, xValue, yValue, datum } = nodeDatum;
@@ -589,7 +590,7 @@ export class AreaSeries extends CartesianSeries<
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(yValue)) || !dataModel) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const xString = xAxis.formatDatum(xValue);

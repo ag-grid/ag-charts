@@ -35,6 +35,7 @@ import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
+import type { TooltipContent } from '../tooltip/tooltip';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
@@ -581,7 +582,7 @@ export abstract class Series<
             .reduce((total, current) => Object.assign(total, current), {});
     }
 
-    abstract getTooltipHtml(seriesDatum: any): string;
+    abstract getTooltipHtml(seriesDatum: any): TooltipContent;
 
     pickNode(
         point: Point,

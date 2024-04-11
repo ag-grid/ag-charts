@@ -84,6 +84,7 @@ export * from './chart/axis/cartesianAxis';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/legendDatum';
+export * from './chart/tooltip/tooltip';
 export * from './motion/animation';
 export * as Motion from './motion/easing';
 export * from './motion/states';

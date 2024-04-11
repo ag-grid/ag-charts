@@ -3,6 +3,7 @@ import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import type { TooltipContent } from '../tooltip/tooltip';
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
@@ -21,7 +22,7 @@ export interface ISeries<TDatum, TProps> {
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): any;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
-    getTooltipHtml(seriesDatum: any): string;
+    getTooltipHtml(seriesDatum: any): TooltipContent;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];

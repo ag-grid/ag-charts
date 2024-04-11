@@ -326,7 +326,7 @@ export abstract class CandlestickSeriesBase<
         return [];
     }
 
-    getTooltipHtml(nodeDatum: TNodeDatum): string {
+    getTooltipHtml(nodeDatum: TNodeDatum): _ModuleSupport.TooltipContent {
         const {
             xKey,
             openKey,
@@ -346,7 +346,7 @@ export abstract class CandlestickSeriesBase<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!xAxis || !yAxis || !this.properties.isValid()) return '';
+        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
 
         const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 

@@ -275,13 +275,13 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         return [];
     }
 
-    override getTooltipHtml(nodeDatum: BulletNodeDatum): string {
+    override getTooltipHtml(nodeDatum: BulletNodeDatum): _ModuleSupport.TooltipContent {
         const { valueKey, valueName, targetKey, targetName } = this.properties;
         const axis = this.getValueAxis();
         const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum } = nodeDatum;
 
         if (valueKey === undefined || valueValue === undefined || axis === undefined) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const makeLine = (key: string, name: string | undefined, value: number) => {
