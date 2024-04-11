@@ -22,29 +22,29 @@ import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
 export interface ModuleContext {
-    scene: Scene;
+    readonly scene: Scene;
 
-    callbackCache: CallbackCache;
-    gestureDetector: GestureDetector;
+    readonly callbackCache: CallbackCache;
+    readonly gestureDetector: GestureDetector;
 
-    chartService: ChartService;
-    dataService: DataService<any>;
-    layoutService: LayoutService;
-    updateService: UpdateService;
+    readonly chartService: ChartService;
+    readonly dataService: DataService<any>;
+    readonly layoutService: LayoutService;
+    readonly updateService: UpdateService;
 
-    animationManager: AnimationManager;
-    annotationManager: AnnotationManager;
-    chartEventManager: ChartEventManager;
-    contextMenuRegistry: ContextMenuRegistry;
-    cursorManager: CursorManager;
-    highlightManager: HighlightManager;
-    interactionManager: InteractionManager;
-    regionManager: RegionManager;
-    seriesStateManager: SeriesStateManager;
-    syncManager: SyncManager;
-    toolbarManager: ToolbarManager;
-    tooltipManager: TooltipManager;
-    zoomManager: ZoomManager;
+    readonly animationManager: AnimationManager;
+    readonly annotationManager: AnnotationManager;
+    readonly chartEventManager: ChartEventManager;
+    readonly contextMenuRegistry: ContextMenuRegistry;
+    readonly cursorManager: CursorManager;
+    readonly highlightManager: HighlightManager;
+    readonly interactionManager: InteractionManager;
+    readonly regionManager: RegionManager;
+    readonly seriesStateManager: SeriesStateManager;
+    readonly syncManager: SyncManager;
+    readonly toolbarManager: ToolbarManager;
+    readonly tooltipManager: TooltipManager;
+    readonly zoomManager: ZoomManager;
 }
 
 export interface ModuleContextWithParent<P> extends ModuleContext {
