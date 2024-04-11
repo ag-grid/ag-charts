@@ -69,7 +69,7 @@ export class ChartContext implements ModuleContext {
         this.zoomManager = chart.zoomManager;
 
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
-        this.ariaAnnouncementService = new AriaAnnouncementService(element);
+        this.ariaAnnouncementService = new AriaAnnouncementService(scene.canvas.element);
         this.chartEventManager = new ChartEventManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);

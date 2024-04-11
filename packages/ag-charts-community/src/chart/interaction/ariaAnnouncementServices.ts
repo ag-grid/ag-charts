@@ -11,15 +11,21 @@ export class AriaAnnouncementService {
         return e;
     }
 
-    constructor(private readonly container: HTMLElement) {
-        this.container.appendChild((this.liveElem = AriaAnnouncementService.createAnnouncer()));
+    constructor(private readonly canvas: HTMLCanvasElement) {
+        this.canvas.appendChild((this.liveElem = AriaAnnouncementService.createAnnouncer()));
     }
 
     destroy() {
-        this.container.removeChild(this.liveElem);
+        this.canvas.removeChild(this.liveElem);
     }
 
     public announceValue(value: string): void {
         this.liveElem.setAttribute('aria-label', value);
+    }
+
+    public announceHtml(html: string): void {
+        const tmp = getDocument().createElement('div');
+        tmp.innerHTML = html;
+        this.announceValue(tmp.textContent ?? '');
     }
 }
