@@ -1061,9 +1061,15 @@ export class Legend extends BaseProperties {
         if (this.focus.mode === 'item') {
             const { node, datum } = this.getFocusedItem();
             this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, node), datum);
+            const label = datum && this.getItemLabel(datum);
+            if (label) {
+                this.ctx.ariaAnnouncementService.announceValue(`Legend item ${label}`);
+            }
         } else if (this.focus.mode === 'page') {
             const button = this.getFocusedPaginationButton();
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
+            const values = { next: 'Next legend page', prev: 'Previous legend page' };
+            this.ctx.ariaAnnouncementService.announceValue(values[this.focus.pageButton]);
         }
     }
 
