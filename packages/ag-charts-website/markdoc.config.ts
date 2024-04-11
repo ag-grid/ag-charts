@@ -49,13 +49,13 @@ export default defineMarkdocConfig({
             render: component('./src/components/featureComparator/FeatureComparator.astro'),
         },
         note: {
-            render: component('./src/components/alert/Note'),
+            render: component('../../external/ag-website-shared/src/components/alert/Note'),
         },
         warning: {
-            render: component('./src/components/alert/Warning'),
+            render: component('../../external/ag-website-shared/src/components/alert/Warning'),
         },
         idea: {
-            render: component('./src/components/alert/Idea'),
+            render: component('../../external/ag-website-shared/src/components/alert/Idea'),
         },
         image: {
             render: component('./src/components/image/Image.astro'),

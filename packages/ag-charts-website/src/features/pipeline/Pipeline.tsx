@@ -1,5 +1,5 @@
+import { Alert } from '@ag-website-shared/components/alert/Alert';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { Alert } from '@components/alert/Alert';
 // @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
 // @ts-expect-error
