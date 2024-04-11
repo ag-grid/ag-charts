@@ -2,11 +2,9 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const data = getData();
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data,
+    data: getData(),
     title: {
         text: 'Candlestick update last value',
     },
@@ -29,14 +27,12 @@ let flag = 0.001;
 function updateData() {
     // Update
     console.log('updating');
-    const { data = [] } = options;
-    const datum = flag < 1 ? data.at(-2) : data.at(-1);
-    const lastDatum = data.at(-1);
-    const lastDate = lastDatum.date;
-    const date = new Date(lastDate);
-    date.setDate(lastDate.getDate() + 1);
+    const newData = [...options.data!];
+    const datum = flag < 1 ? newData.at(-2) : newData.at(-1);
+    const date = new Date(newData.at(-1).date);
+    date.setDate(date.getDate() + 1);
     const shift = Math.random() * flag + 1;
-    data.push({
+    newData.push({
         ...datum,
         date,
         close: shift * datum.close,
@@ -45,6 +41,6 @@ function updateData() {
         low: shift * datum.low,
     });
     flag *= -1;
-    options.data = data;
+    options.data = newData;
     AgCharts.update(chart, options);
 }
