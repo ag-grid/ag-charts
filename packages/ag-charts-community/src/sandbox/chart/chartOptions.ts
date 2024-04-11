@@ -3,8 +3,8 @@ import { moduleRegistry } from '../modules/moduleRegistry';
 import type { IChartOptions } from '../types';
 import type { AgChartOptions } from '../types/agChartsTypes';
 import type { ChartType } from '../types/enums';
+import { isValid } from '../util/isValid';
 import { defaultsDeep, difference, freezeDeep } from '../util/object';
-import { validation } from '../util/validation';
 
 export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> {
     fullOptions: T;
@@ -17,7 +17,7 @@ export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> 
     ) {
         this.userOptions = defaultsDeep(userOptions, lastOptions?.userOptions);
 
-        // should validation only user options
+        // should validate only user options
         if (!this.validate(this.userOptions)) {
             throw new Error('options bad.');
         }
@@ -46,6 +46,6 @@ export class ChartOptions<T extends AgChartOptions> implements IChartOptions<T> 
     }
 
     validate(options: Partial<T>) {
-        return validation(options as T, chartOptionsDef);
+        return isValid(options as T, chartOptionsDef);
     }
 }

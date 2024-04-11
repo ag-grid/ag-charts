@@ -7,6 +7,7 @@ import {
     callback,
     constant,
     instanceOf,
+    isValid,
     number,
     object,
     optionsDefs,
@@ -16,8 +17,7 @@ import {
     required,
     string,
     union,
-    validation,
-} from './validation';
+} from './isValid';
 
 // Mock the Logger to avoid actual logging during tests
 jest.mock('../../util/logger', () => ({
@@ -87,16 +87,16 @@ describe('Validation', () => {
             const validUser = { name: 'John', age: 30, hobbies: ['coding', 'reading'] };
             const invalidUser = { name: '', age: 30, hobbies: ['coding', 42] }; // Invalid name and one invalid hobby
 
-            expect(validation(validUser, userOptionsDef)).toBe(true);
-            expect(validation(invalidUser, userOptionsDef)).toBe(false);
+            expect(isValid(validUser, userOptionsDef)).toBe(true);
+            expect(isValid(invalidUser, userOptionsDef)).toBe(false);
         });
     });
 
     describe('Utility Functions', () => {
         test('required marks a validator as required', () => {
             const requiredString = required(string);
-            expect(validation({ value: '' }, { value: requiredString })).toBe(true); // Assuming empty string is valid for `string` validator
-            expect(validation({ value: undefined }, { value: requiredString })).toBe(false); // Assuming `required` enforces presence
+            expect(isValid({ value: '' }, { value: requiredString })).toBe(true); // Assuming empty string is valid for `string` validator
+            expect(isValid({ value: undefined }, { value: requiredString })).toBe(false); // Assuming `required` enforces presence
         });
 
         // should check the description in the logger
@@ -195,8 +195,8 @@ describe('Validation', () => {
                 },
             };
 
-            expect(validation(validUser, userSchema)).toBe(true);
-            expect(validation(invalidUser, userSchema)).toBe(false);
+            expect(isValid(validUser, userSchema)).toBe(true);
+            expect(isValid(invalidUser, userSchema)).toBe(false);
         });
     });
 });

@@ -28,11 +28,26 @@ export interface Validator extends Function {
  * @param path (Optional) The current path in the options object, for nested properties.
  * @returns A boolean indicating whether the options are valid.
  */
-export function validation<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
+export function isValid<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path?: string) {
+    const warnings = validate(options, optionsDefs, path);
+    for (const { message } of warnings) {
+        Logger.warn(message);
+    }
+    return warnings.length > 0;
+}
+
+interface ValidationWarning {
+    key: string;
+    path: string;
+    message: string;
+    unknown?: boolean;
+    value?: any;
+}
+
+export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
     const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : path ? `${path}.${key}` : key);
     const optionsKeys = new Set(Object.keys(options));
-
-    let isValid = true;
+    const warnings: ValidationWarning[] = [];
 
     for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
         optionsKeys.delete(key);
@@ -44,19 +59,27 @@ export function validation<T extends object>(options: T, optionsDefs: OptionsDef
             let description = validatorOrDefs[descriptionSymbol];
             description = description ? `; expecting ${description}` : '';
 
-            Logger.warn(`Option ${extendPath(key)} cannot be set to [${stringify(value)}]${description}, ignoring.`);
-
-            isValid &&= false;
-        } else if (!validation(value, validatorOrDefs, extendPath(key))) {
-            isValid &&= false;
+            warnings.push({
+                key,
+                path,
+                value,
+                message: `Option ${extendPath(key)} cannot be set to [${stringify(value)}]${description}, ignoring.`,
+            });
+        } else {
+            warnings.push(...validate(value, validatorOrDefs, extendPath(key)));
         }
     }
 
-    for (const unknownKey of optionsKeys) {
-        Logger.warn(`Unknown option ${extendPath(unknownKey)}, ignoring.`);
+    for (const key of optionsKeys) {
+        warnings.push({
+            key,
+            path,
+            unknown: true,
+            message: `Unknown option ${extendPath(key)}, ignoring.`,
+        });
     }
 
-    return isValid;
+    return warnings;
 }
 
 /**

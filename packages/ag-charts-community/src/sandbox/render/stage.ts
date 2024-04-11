@@ -8,6 +8,10 @@ export class Stage implements IStage {
 
     readonly events = new EventEmitter<SceneEventMap>();
 
+    /**
+     * Canvas for
+     */
+
     readonly canvas: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D;
     readonly rootElement: HTMLDivElement;

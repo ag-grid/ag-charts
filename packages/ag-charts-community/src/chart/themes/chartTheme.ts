@@ -1,8 +1,8 @@
 import type {
     AgChartTheme,
+    AgChartThemeOptionalPalette,
     AgChartThemeOptions,
     AgChartThemeOverrides,
-    AgChartThemePalette,
     AgCommonThemeableChartOptions,
     InteractionRange,
 } from '../../options/agChartOptions';
@@ -55,7 +55,7 @@ import {
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
 
-const DEFAULT_PALETTE: AgChartThemePalette = {
+const DEFAULT_PALETTE: AgChartThemeOptionalPalette = {
     fills: Object.values(DEFAULT_FILLS),
     strokes: Object.values(DEFAULT_STROKES),
 };
@@ -83,9 +83,9 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 >((r, { commonOptions }) => [...r, ...commonOptions], []);
 
 export function resolvePartialPalette(
-    partialPalette: Partial<AgChartThemePalette> | null | undefined,
-    basePalette: AgChartThemePalette
-): AgChartThemePalette | null {
+    partialPalette: Partial<AgChartThemeOptionalPalette> | null | undefined,
+    basePalette: AgChartThemeOptionalPalette
+): AgChartThemeOptionalPalette | null {
     if (partialPalette == null) return null;
     return {
         fills: partialPalette.fills ?? basePalette.fills,
@@ -94,9 +94,9 @@ export function resolvePartialPalette(
 }
 
 export class ChartTheme {
-    readonly palette: AgChartThemePalette;
+    readonly palette: AgChartThemeOptionalPalette;
 
-    protected getPalette(): AgChartThemePalette {
+    protected getPalette(): AgChartThemeOptionalPalette {
         return DEFAULT_PALETTE;
     }
 

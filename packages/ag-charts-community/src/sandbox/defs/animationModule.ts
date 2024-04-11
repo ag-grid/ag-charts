@@ -1,6 +1,6 @@
 import { AnimationModule, type AnimationModuleOptions } from '../modules/animation';
 import type { OptionModule } from '../types/moduleTypes';
-import { boolean, number } from '../util/validation';
+import { boolean, number } from '../util/isValid';
 
 export const animationModule: OptionModule<AnimationModuleOptions> = {
     type: 'chart-option',
