@@ -32,7 +32,10 @@ const headings = getHeadings({
 
 const menuEntry = await getEntry('menu', 'data');
 
-const description = page.data.description || getFirstParagraphText(page.body);
+const appendSeoToDescription = `Download AG Charts today: The best ${getFrameworkDisplayText(
+    currentFramework
+)} charts in the world.`;
+const description = page.data.description || `${getFirstParagraphText(page.body)} ${appendSeoToDescription}`;
 ---
 
 <Layout
