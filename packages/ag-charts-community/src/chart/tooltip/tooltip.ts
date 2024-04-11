@@ -45,16 +45,19 @@ export type TooltipMeta = PointerOffsets & {
     enableInteraction?: boolean;
 };
 
-export type TooltipContent = string;
+export type TooltipContent = {
+    html: string;
+    ariaLabel: string;
+};
 
-export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = '';
+export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', ariaLabel: '' };
 
 export function toTooltipHtml(
     input: string | AgTooltipRendererResult,
     defaults?: AgTooltipRendererResult
 ): TooltipContent {
     if (typeof input === 'string') {
-        return input;
+        return { html: input, ariaLabel: input };
     }
 
     const {
@@ -71,7 +74,10 @@ export function toTooltipHtml(
 
     const contentHtml = content ? `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>` : '';
 
-    return `${titleHtml}${contentHtml}`;
+    return {
+        html: `${titleHtml}${contentHtml}`,
+        ariaLabel: `${title}: ${content}`,
+    };
 }
 export class TooltipPosition extends BaseProperties {
     @Validate(
@@ -167,11 +173,11 @@ export class Tooltip extends BaseProperties {
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
-    show(canvasRect: DOMRect, meta: TooltipMeta, html?: TooltipContent | null, instantly = false) {
+    show(canvasRect: DOMRect, meta: TooltipMeta, content?: TooltipContent | null, instantly = false) {
         const { element } = this;
 
-        if (html != null) {
-            element.innerHTML = html;
+        if (content != null) {
+            element.innerHTML = content.html;
         } else if (!element.innerHTML) {
             this.toggle(false);
             return;
