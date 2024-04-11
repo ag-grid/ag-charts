@@ -3,12 +3,14 @@ import {
     AgCandlestickSeriesFormatterParams,
     AgCandlestickSeriesItemOptions,
     _ModuleSupport,
+    _Scene,
 } from 'ag-charts-community';
 
 import { CandlestickGroup } from './candlestickGroup';
 import { CandlestickSeriesBase } from './candlestickSeriesBase';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeDatum } from './candlestickTypes';
+import { resetCandlestickSelectionsFn } from './candlestickUtil';
 
 const { extractDecoratedProperties, mergeDefaults } = _ModuleSupport;
 export class CandlestickSeries extends CandlestickSeriesBase<
@@ -24,7 +26,7 @@ export class CandlestickSeries extends CandlestickSeriesBase<
     override properties = new CandlestickSeriesProperties();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx);
+        super(moduleCtx, resetCandlestickSelectionsFn);
     }
 
     async createNodeData() {

@@ -3,9 +3,11 @@ import {
     AgOhlcSeriesFormatterParams,
     AgOhlcSeriesItemOptions,
     _ModuleSupport,
+    _Scene,
 } from 'ag-charts-community';
 
 import { CandlestickSeriesBase } from '../candlestick/candlestickSeriesBase';
+import { resetCandlestickSelectionsFn } from '../candlestick/candlestickUtil';
 import { OhlcGroup } from './ohlcGroup';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 import type { OhlcNodeDatum } from './ohlcTypes';
@@ -25,7 +27,7 @@ export class OhlcSeries extends CandlestickSeriesBase<
     override properties = new OhlcSeriesProperties();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx);
+        super(moduleCtx, resetCandlestickSelectionsFn);
     }
 
     async createNodeData() {

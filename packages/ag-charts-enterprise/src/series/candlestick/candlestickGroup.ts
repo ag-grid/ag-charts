@@ -4,16 +4,40 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { CandlestickNodeDatum } from './candlestickTypes';
 
 export enum GroupTags {
-    Rect,
-    Outline,
-    Wick,
+    Body,
+    LowWick,
+    HighWick,
 }
+
+const { SceneChangeDetection, BBox, RedrawType } = _Scene;
 
 export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
     extends _Scene.Group
     implements _ModuleSupport.QuadtreeCompatibleNode
 {
     abstract updateDatumStyles(datum: TNodeDatum, activeStyles: TStyles): void;
+    abstract updateCoordinates(): void;
+
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    x: number = 0;
+
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    y: number = 0;
+
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    yBottom: number = 0;
+
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    yHigh: number = 0;
+
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    yLow: number = 0;
+
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    width: number = 0;
+
+    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    height: number = 0;
 
     distanceSquared(x: number, y: number): number {
         const nodes = _Scene.Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, _Scene.Rect, _Scene.Line);
@@ -28,24 +52,56 @@ export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
         }
         return datum.midPoint;
     }
+
+    override render(renderCtx: _Scene.RenderContext) {
+        this.updateCoordinates();
+        super.render(renderCtx);
+    }
 }
 
 export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum, AgCandlestickSeriesItemOptions> {
     constructor() {
         super();
         this.append([
-            new _Scene.Rect({ tag: GroupTags.Rect }),
-            new _Scene.Line({ tag: GroupTags.Wick }),
-            new _Scene.Line({ tag: GroupTags.Wick }),
+            new _Scene.Rect({ tag: GroupTags.Body }),
+            new _Scene.Line({ tag: GroupTags.LowWick }),
+            new _Scene.Line({ tag: GroupTags.HighWick }),
         ]);
     }
 
+    updateCoordinates() {
+        const { x, y, yBottom, yHigh, yLow, width, height } = this;
+        const selection = _Scene.Selection.select(this, _Scene.Rect);
+        const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
+        const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
+        const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
+
+        rect.setProperties({
+            x,
+            y,
+            width,
+            height,
+            crisp: true,
+            clipBBox: new BBox(x, y, width, height),
+        });
+
+        const halfWidth = width / 2;
+
+        lowWick.setProperties({
+            y1: Math.round(yLow + lowWick.strokeWidth / 2),
+            y2: yBottom,
+            x: Math.floor(x + halfWidth),
+        });
+
+        highWick.setProperties({
+            y1: Math.round(yHigh + highWick.strokeWidth / 2),
+            y2: y,
+            x: Math.floor(x + halfWidth),
+        });
+    }
+
     updateDatumStyles(datum: CandlestickNodeDatum, activeStyles: AgCandlestickSeriesItemOptions) {
-        const {
-            bandwidth,
-            scaledValues: { xValue: axisValue },
-        } = datum;
-        const { openValue, closeValue, highValue, lowValue } = datum.scaledValues;
+        const { bandwidth } = datum;
 
         const {
             fill,
@@ -62,24 +118,13 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
         wickStyles.strokeWidth ??= 1;
 
         const selection = _Scene.Selection.select(this, _Scene.Rect);
-        const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Rect);
-        const wicks = selection.selectByTag<_Scene.Line>(GroupTags.Wick);
+        const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
+        const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
+        const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
 
         if (wickStyles.strokeWidth > bandwidth) {
             wickStyles.strokeWidth = bandwidth;
         }
-
-        const y = Math.min(openValue, closeValue);
-        const yBottom = Math.max(openValue, closeValue);
-        const yHigh = Math.min(highValue, lowValue);
-        const yLow = Math.max(highValue, lowValue);
-
-        rect.setProperties({
-            x: axisValue,
-            y,
-            width: bandwidth,
-            height: yBottom - y,
-        });
 
         rect.setProperties({
             fill,
@@ -92,18 +137,7 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
             cornerRadius,
         });
 
-        wicks[0].setProperties({
-            y1: Math.round(yLow + wickStyles.strokeWidth / 2),
-            y2: yBottom,
-            x: Math.floor(axisValue + bandwidth / 2),
-        });
-        wicks[0].setProperties(wickStyles);
-
-        wicks[1].setProperties({
-            y1: Math.round(yHigh - wickStyles.strokeWidth / 2),
-            y2: y,
-            x: Math.floor(axisValue + bandwidth / 2),
-        });
-        wicks[1].setProperties(wickStyles);
+        lowWick.setProperties(wickStyles);
+        highWick.setProperties(wickStyles);
     }
 }

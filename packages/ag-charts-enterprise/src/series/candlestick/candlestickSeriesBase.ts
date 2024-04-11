@@ -11,7 +11,9 @@ import {
 import type { CandlestickBaseGroup } from './candlestickGroup';
 import type { CandlestickSeriesBaseItems, CandlestickSeriesBaseProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeBaseDatum } from './candlestickTypes';
-import { prepareCandlestickFromTo, resetCandlestickSelectionsScalingStartFn } from './candlestickUtil';
+import { prepareCandlestickAnimationFunctions } from './candlestickUtil';
+
+const { motion } = _Scene;
 
 const {
     extent,
@@ -27,7 +29,6 @@ const {
     mergeDefaults,
     isFiniteNumber,
 } = _ModuleSupport;
-const { motion } = _Scene;
 
 const { sanitizeHtml, Logger } = _Util;
 const { ContinuousScale, OrdinalTimeScale } = _Scale;
@@ -76,7 +77,13 @@ export abstract class CandlestickSeriesBase<
 > extends _ModuleSupport.AbstractBarSeries<TItemShapeGroup, TSeriesOptions, TNodeDatum> {
     protected override readonly NodeEvent = CandlestickSeriesNodeEvent;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(
+        moduleCtx: _ModuleSupport.ModuleContext,
+        datumAnimationResetFnc: (
+            node: TItemShapeGroup,
+            datum: TNodeDatum
+        ) => _ModuleSupport.AnimationValue & Partial<TItemShapeGroup>
+    ) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
@@ -89,7 +96,30 @@ export abstract class CandlestickSeriesBase<
                 y: ['lowName', 'highName', 'openName', 'closeName'],
             },
             pathsPerSeries: 1,
+            datumSelectionGarbageCollection: false,
+            animationAlwaysUpdateSelections: true,
+            animationResetFns: {
+                datum: datumAnimationResetFnc,
+            },
         });
+    }
+
+    protected override animateWaitingUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<TItemShapeGroup, TNodeDatum>) {
+        const { processedData } = this;
+        const difference = processedData?.reduced?.diff;
+
+        const animationFns = prepareCandlestickAnimationFunctions();
+        motion.fromToMotion(
+            this.id,
+            'datums',
+            this.ctx.animationManager,
+            [datumSelection],
+            animationFns,
+            (_, datum) => String(datum.xValue),
+            difference
+        );
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -357,17 +387,6 @@ export abstract class CandlestickSeriesBase<
                 lowName,
             }
         );
-    }
-
-    protected override animateEmptyUpdateReady({
-        datumSelection,
-    }: _ModuleSupport.CartesianAnimationData<CandlestickBaseGroup<TNodeDatum, TItemOptions>, TNodeDatum>) {
-        const isVertical = this.isVertical();
-        const { from, to } = prepareCandlestickFromTo(isVertical);
-        motion.resetMotion([datumSelection], resetCandlestickSelectionsScalingStartFn(isVertical));
-        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
-            phase: 'initial',
-        });
     }
 
     protected override isVertical(): boolean {
