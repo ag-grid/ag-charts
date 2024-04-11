@@ -1,4 +1,5 @@
 import { DataPipeline } from '../data/dataPipeline';
+import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import { moduleRegistry } from '../modules/moduleRegistry';
 import type { Stage } from '../render/stage';
 import type { ChartEventMap, IChart, IScale } from '../types';
@@ -84,16 +85,23 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
          * create / modify series
          */
 
-        const axisInstances = axes;
-
-        console.log({ axes, series, keysMap, axisInstances });
+        for (const axis of axes) {
+            const direction = axis.position === 'bottom' || axis.position === 'top' ? 'x' : 'y';
+            for (const key of keysMap.get(direction)!) {
+                this.dataPipeline.addProcessor(
+                    key,
+                    axis.type === 'category' ? new CategoryProcessor() : new NumberProcessor()
+                );
+            }
+        }
 
         this.dataPipeline.processData(fullOptions.data);
 
+        console.log({ axes, series, keysMap });
+        console.log(this.dataPipeline.getResults());
+
         // if (fullOptions.axes ?? DefaultAxes) {
-        //     // 'x' and 'y' represent the values inside `xKey` and `yKey`
-        //     this.dataPipeline.addProcessor('x', new CategoryProcessor());
-        //     this.dataPipeline.addProcessor('y', new NumberProcessor());
+        // 'x' and 'y' represent the values inside `xKey` and `yKey`
         // }
     }
 

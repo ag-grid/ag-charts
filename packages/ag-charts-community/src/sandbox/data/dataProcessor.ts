@@ -67,8 +67,8 @@ abstract class DiscreteProcessor<
     }
 }
 
-export class LogProcessor<T extends number> extends ContinuousProcessor<T> {}
 export class NumberProcessor<T extends number> extends ContinuousProcessor<T> {}
+export class LogProcessor<T extends number> extends NumberProcessor<T> {}
 export class TimeProcessor<T extends Date> extends ContinuousProcessor<T> {}
 
 export class CategoryProcessor<T> extends DiscreteProcessor<T> {}

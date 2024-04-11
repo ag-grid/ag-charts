@@ -25,8 +25,6 @@ describe('Sandbox tests', () => {
                 { type: 'category', position: 'bottom', nice: false },
                 { type: 'number', position: 'left' },
             ],
-
-            notDefined: 123,
         });
         await chartInstance.chart.waitForUpdate();
         chartInstance.update({ title: { text: 'Changed text' } });
@@ -35,26 +33,3 @@ describe('Sandbox tests', () => {
         expectCanvasToMatchImageSnapshot(canvasContext);
     });
 });
-
-//const chart = AgCharts.create({
-//     title: {
-//         text: 'Mean Sea Level (mm)',
-//     },
-//
-//     container: document.getElementById('container')!,
-//     data: [{ test: true }],
-//     axes: [
-//         { type: 'number', position: 'bottom', nice: false },
-//         { type: 'number', position: 'left' },
-//     ],
-//     series: [
-//         {
-//             type: 'bar',
-//             xKey: 'time',
-//             yKey: 'mm',
-//             showInLegend: false,
-//         },
-//     ],
-// });
-//
-// chart.update({});
