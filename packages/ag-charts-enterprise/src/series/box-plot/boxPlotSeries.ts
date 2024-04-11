@@ -16,11 +16,11 @@ const {
     valueProperty,
     diff,
     animationValidation,
-    ChartAxisDirection,
     convertValuesToScaleByDefs,
     isFiniteNumber,
 } = _ModuleSupport;
 const { motion } = _Scene;
+const { ContinuousScale } = _Scale;
 
 class BoxPlotSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -123,19 +123,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const categoryAxis = this.getCategoryAxis();
-        const isReversed = categoryAxis?.isReversed();
 
         const keysExtent = extent(keys) ?? [NaN, NaN];
-        const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
+        const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval * 0.5 : 0;
 
-        if (direction === ChartAxisDirection.Y) {
-            const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
-            const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
-            return fixNumericExtent([d0, d1], categoryAxis);
-        }
-
-        const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
-        const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+        const d0 = keysExtent[0] + -scalePadding;
+        const d1 = keysExtent[1] + scalePadding;
         return fixNumericExtent([d0, d1], categoryAxis);
     }
 
@@ -164,6 +157,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         ]);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
         const { groupScale, processedData } = this;
         const isVertical = this.isVertical();
 
@@ -195,7 +189,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 yAxis,
             });
 
-            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
+            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset;
 
             const bandwidth = Math.round(barWidth);
             const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);

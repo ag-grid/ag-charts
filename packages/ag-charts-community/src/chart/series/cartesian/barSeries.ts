@@ -191,18 +191,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 return keys;
             }
 
-            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval * 0.5 : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
-            const isReversed = categoryAxis?.isReversed();
 
-            if (direction === ChartAxisDirection.Y) {
-                const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
-                const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
-                return fixNumericExtent([d0, d1], categoryAxis);
-            }
-
-            const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
-            const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+            const d0 = keysExtent[0] + -scalePadding;
+            const d1 = keysExtent[1] + scalePadding;
             return fixNumericExtent([d0, d1], categoryAxis);
         } else if (this.getValueAxis() instanceof LogAxis) {
             return fixNumericExtent(yExtent, valueAxis);
@@ -227,6 +220,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yReversed = yAxis.isReversed();
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
 
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`);
@@ -255,7 +249,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
                 const isUpward = isPositive !== yReversed;
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
-                const barX = x + groupScale.convert(String(groupIndex));
+                const barX = x + groupScale.convert(String(groupIndex)) + barOffset;
 
                 if (isNaN(currY)) return;
 
