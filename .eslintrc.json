@@ -11,7 +11,7 @@
   "parserOptions": {
     "sourceType": "module",
     "allowImportExportEverywhere": true,
-    "project": "tsconfig.base.json"
+    "project": "../../tsconfig.base.json"
   },
   "globals": {
     "Atomics": "readonly",
