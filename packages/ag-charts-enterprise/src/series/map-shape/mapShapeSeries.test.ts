@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import type {
-    AgCartesianChartOptions,
-    AgChartOptions,
-    AgPolarChartOptions,
-    InteractionRange,
+import {
+    type AgCartesianChartOptions,
+    type AgChartOptions,
+    type AgPolarChartOptions,
+    type InteractionRange,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
@@ -28,6 +29,8 @@ import { usData } from '../map-test/usData';
 // @ts-expect-error
 import usTopology from '../map-test/usTopology';
 import type { MapShapeSeries } from './mapShapeSeries';
+
+const { getDocument } = _ModuleSupport;
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {
     data: ukData,
@@ -90,7 +93,7 @@ describe('MapShapeSeries', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
-            const node = seriesImpl['contextNodeData'].nodeData[i];
+            const node = seriesImpl['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
@@ -190,7 +193,7 @@ describe('MapShapeSeries', () => {
             const listeners = params.onNodeClick ? { nodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
-                container: document.body,
+                container: getDocument('body'),
                 autoSize: false,
                 series: [
                     {
@@ -252,7 +255,7 @@ describe('MapShapeSeries', () => {
 
             // Check click handler
             const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+                (sum: number, series: any) => sum + testParams.getNodeData(series).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -262,7 +265,7 @@ describe('MapShapeSeries', () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
                 // Check the tooltip is shown
-                const tooltip = document.querySelector('.ag-chart-tooltip');
+                const tooltip = getDocument().querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(false);
 
@@ -282,7 +285,7 @@ describe('MapShapeSeries', () => {
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart);
-            const tooltip = document.querySelector('.ag-chart-tooltip');
+            const tooltip = getDocument().querySelector('.ag-chart-tooltip');
             expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(true);
         });
 

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
+import { getDocument } from '../util/dom';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
@@ -39,7 +40,7 @@ for (let i = 0; i < 200; i++) {
 }
 
 const OPTIONS: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
+    container: getDocument().getElementById('myChart'),
     title: {
         text: 'Browser Usage Statistics',
     },

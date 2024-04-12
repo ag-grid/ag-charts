@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from '@jest/globals';
 
 import type { AgChartInstance } from '../options/agChartOptions';
+import { getDocument } from '../util/dom';
 import { AgCharts } from './agChartV2';
 import { NumberAxis } from './axis/numberAxis';
 import { AreaSeries } from './series/cartesian/areaSeries';
@@ -55,7 +56,7 @@ describe('AgChart', () => {
     test('cartesian chart top-level properties', async () => {
         chartProxy = AgCharts.create({
             // chart type is optional because it defaults to `cartesian`
-            container: document.body,
+            container: getDocument('body'),
             data: revenueProfitData,
             series: [
                 {
@@ -83,7 +84,7 @@ describe('AgChart', () => {
         await waitForChartStability(chartProxy);
         AgCharts.update(chartProxy, {
             // chart type is optional because it defaults to `cartesian`
-            container: document.body,
+            container: getDocument('body'),
             width: 500,
             height: 500,
             autoSize: false,

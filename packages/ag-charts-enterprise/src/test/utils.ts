@@ -1,11 +1,14 @@
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import { AgChartProxy, Chart, deproxy, prepareTestOptions, waitForChartStability } from 'ag-charts-community-test';
 
 import { setupEnterpriseModules } from '../setup';
 
 setupEnterpriseModules();
 
-export function prepareEnterpriseTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
+export function prepareEnterpriseTestOptions<T extends AgChartOptions>(
+    options: T,
+    container = _ModuleSupport.getDocument('body')
+) {
     if (!options.animation && !options.series?.some(({ type }) => type === 'treemap')) {
         // Default to animation off.
         options.animation ??= { enabled: false };

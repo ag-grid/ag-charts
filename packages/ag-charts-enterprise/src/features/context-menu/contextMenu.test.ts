@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import { contextMenuAction, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
+
+const { getDocument } = _ModuleSupport;
 
 describe('Context Menu', () => {
     setupMockConsole();
@@ -56,7 +58,7 @@ describe('Context Menu', () => {
 
     const compare = async () => {
         await waitForChartStability(chart);
-        expect(document.body.getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS)).toMatchSnapshot();
+        expect(getDocument('body').getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS)).toMatchSnapshot();
     };
 
     it('should initially be hidden', async () => {

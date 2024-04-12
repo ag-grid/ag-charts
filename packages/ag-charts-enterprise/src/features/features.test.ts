@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     clickAction,
     contextMenuAction,
@@ -16,6 +16,8 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './context-menu/contextMenuStyles';
+
+const { getDocument } = _ModuleSupport;
 
 describe('Feature Combinations', () => {
     setupMockConsole();
@@ -201,7 +203,7 @@ describe('Feature Combinations', () => {
 
         const compareContextMenu = async () => {
             await waitForChartStability(chart);
-            expect(document.body.getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS)).toMatchSnapshot();
+            expect(getDocument('body').getElementsByClassName(DEFAULT_CONTEXT_MENU_CLASS)).toMatchSnapshot();
         };
 
         it('when fully zoomed out it should only enable the zoom option', async () => {

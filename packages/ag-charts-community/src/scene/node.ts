@@ -393,9 +393,7 @@ export abstract class Node extends ChangeDetectable {
     }
 
     computeTransformMatrix() {
-        if (!this.dirtyTransform) {
-            return;
-        }
+        if (!this.dirtyTransform) return;
 
         const {
             matrix,
@@ -410,12 +408,19 @@ export abstract class Node extends ChangeDetectable {
             rotationCenterY,
         } = this;
 
-        Matrix.updateTransformMatrix(matrix, scalingX, scalingY, rotation, translationX, translationY, {
-            scalingCenterX,
-            scalingCenterY,
-            rotationCenterX,
-            rotationCenterY,
-        });
+        matrix.setElements(
+            Matrix.calculateTransformMatrix(
+                scalingX,
+                scalingY,
+                rotation,
+                translationX,
+                translationY,
+                scalingCenterX,
+                scalingCenterY,
+                rotationCenterX,
+                rotationCenterY
+            )
+        );
 
         this.dirtyTransform = false;
     }
