@@ -7,6 +7,7 @@ import { AnnotationManager } from './annotation/annotationManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
 import { AnimationManager } from './interaction/animationManager';
+import { AriaAnnouncementService } from './interaction/ariaAnnouncementServices';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { CursorManager } from './interaction/cursorManager';
@@ -37,6 +38,7 @@ export class ChartContext implements ModuleContext {
 
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
+    ariaAnnouncementService: AriaAnnouncementService;
     chartEventManager: ChartEventManager;
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
@@ -67,6 +69,7 @@ export class ChartContext implements ModuleContext {
         this.zoomManager = chart.zoomManager;
 
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
+        this.ariaAnnouncementService = new AriaAnnouncementService(scene.canvas.element);
         this.chartEventManager = new ChartEventManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
@@ -95,6 +98,7 @@ export class ChartContext implements ModuleContext {
         this.interactionManager.destroy();
         this.animationManager.stop();
         this.animationManager.destroy();
+        this.ariaAnnouncementService.destroy();
         this.chartEventManager.destroy();
         this.highlightManager.destroy();
         this.callbackCache.invalidateCache();

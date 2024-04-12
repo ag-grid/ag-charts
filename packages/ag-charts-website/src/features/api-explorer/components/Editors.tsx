@@ -2,8 +2,8 @@
  * These are the different editors available to be used in the Standalone Charts API Explorer, depending on the data
  * type of the particular option.
  */
-import styles from '@design-system/modules/Editors.module.scss';
 import type { JsonModelProperty, JsonProperty } from '@features/api-explorer/utils/model';
+import styles from '@legacy-design-system/modules/Editors.module.scss';
 import classnames from 'classnames';
 import React, { useState } from 'react';
 import { AlphaPicker, HuePicker } from 'react-color';

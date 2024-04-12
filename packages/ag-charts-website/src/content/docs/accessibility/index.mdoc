@@ -1,0 +1,57 @@
+---
+title: 'Accessibility'
+---
+
+AG Charts are fully accessible, providing keyboard navigation and screen reader support.
+
+## Web Conformance Guidelines
+
+Even if you are not mandated to conform to any particular accessibility standard, it can be helpful to understand the guidelines outlined, as they are generally good practices worth incorporating into your web based applications.
+
+Currently the most commonly encountered conformance guidelines are:
+
+-   [ADA](https://www.ada.gov/) - US Department of Justice.
+-   [Section 508](https://www.section508.gov/) - US federal agencies.
+-   [WCAG 2.0](https://www.w3.org/WAI/standards-guidelines/wcag/) - Globally accepted standard.
+
+WCAG 2.0 has 3 levels of conformance; A, AA and AAA (in order of conformance)
+
+As meeting WCAG 2.0 level AA guidelines also meets the ADA and Section 508 standards, it is likely that most organisations will want to target this standard.
+
+## Keyboard navigation
+
+Users who have motor disabilities, as well as visually impaired users, often rely on keyboards for navigation.
+
+It is possible to interact with chart components and navigate through the displayed data without using a mouse.
+
+To do this, all you need to do is to add a `tabindex` to the chart container.
+
+The following keys are available:
+
+-   TAB moves focus between chart components. These are:
+    -   Title
+    -   Subtitle
+    -   Series
+    -   Legend
+    -   Legend pagination control
+    -   Footnote
+-   LEFT/RIGHT moves focus between items in a series, or between legend items.
+-   UP/DOWN moves focus between series in a chart.  
+    Please note that datapoints and series are traversed in declared order which may not match the visual display.
+-   ENTER or SPACE toggles legend items and triggers click event callbacks.
+
+## Screen Readers (Aria)
+
+Users who are visually impaired, will typically require the assistance of a screen reader to interpret and interact with web based applications.
+
+There are numerous screen readers available, however right now the most popular screen reader for Windows is [JAWS](https://support.freedomscientific.com/Downloads/JAWS) and for MAC users it is the embedded [VoiceOver](https://support.apple.com/en-gb/guide/voiceover/welcome/10) software. Our testing has focused on these screen readers.
+
+As AG Charts is a canvas based library, it uses an ARIA live tag to announce the details of the focused element.
+
+If there is a need to customise these labels, this could be achieved by using the localisation configuration.
+
+## High Contrast Theme
+
+For users that are visually impaired due to colour deficiencies, care should be taken to provide enough contrast between adjacent colours. Additionally, when using charts it is common to use red and green to denote negative and positive values, however this can pose difficulties for people suffering from colour blindness.
+
+To create a high contrast theme, please check out the [Themes](./themes/) documentation for details.

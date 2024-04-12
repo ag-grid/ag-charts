@@ -1,4 +1,4 @@
-import styles from '@design-system/modules/VideoSection.module.scss';
+import styles from '@legacy-design-system/modules/VideoSection.module.scss';
 import classnames from 'classnames';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 

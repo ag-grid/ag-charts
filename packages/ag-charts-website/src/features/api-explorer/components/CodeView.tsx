@@ -1,5 +1,5 @@
 import Code from '@components/Code';
-import styles from '@design-system/modules/CodeView.module.scss';
+import styles from '@legacy-design-system/modules/CodeView.module.scss';
 
 import { formatJson } from '../utils/utils';
 

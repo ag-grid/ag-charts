@@ -1,7 +1,7 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
-import { Icon } from '@components/icon/Icon';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import GalleryExampleRunner from '@features/gallery/components/GalleryExampleRunner.astro';
 import { getGalleryPages } from '@features/gallery/utils/pageData';
 import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
@@ -51,7 +51,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 </Layout>
 
 <style lang="scss">
-    @use '../../design-system' as *;
+    @use 'design-system' as *;
 
     .gallery-page-container {
         padding-top: $spacing-size-10;
@@ -105,7 +105,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 </style>
 
 <style lang="scss" is:global>
-    @use '../../design-system' as *;
+    @use 'design-system' as *;
 
     @media screen and (max-width: 920px) {
         .container > * > div {

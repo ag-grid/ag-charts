@@ -1,4 +1,4 @@
-import styles from '@design-system/modules/ChartsApiExplorer.module.scss';
+import styles from '@legacy-design-system/modules/ChartsApiExplorer.module.scss';
 import classnames from 'classnames';
 import { useState } from 'react';
 

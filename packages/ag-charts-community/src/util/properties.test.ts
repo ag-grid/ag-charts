@@ -52,6 +52,7 @@ describe('BaseProperties', () => {
 
         const incompleteInstance = new MyClass();
         expect(incompleteInstance.isValid()).toBe(false);
+        expectWarning('AG Charts - [prop1] is required.');
     });
 
     it('should serialize to JSON correctly', () => {

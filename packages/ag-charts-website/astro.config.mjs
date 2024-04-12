@@ -3,6 +3,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import dotenvExpand from 'dotenv-expand';
+import * as sass from 'sass';
 import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 import svgr from 'vite-plugin-svgr';
@@ -11,6 +12,7 @@ import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import { getDevFileList } from './src/utils/pages';
 import { getSitemapConfig } from './src/utils/sitemap';
+import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
 
 const { NODE_ENV } = process.env;
 
@@ -69,7 +71,21 @@ export default defineConfig({
         server: {
             https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
             fs: {
-                allow: ['.'].concat(getDevFileList()),
+                allow: ['.'].concat(getDevFileList()).concat('../../external'),
+            },
+        },
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    functions: {
+                        'urlWithBaseUrl($url)': function (url) {
+                            const urlWithBase = urlWithBaseUrl(url.getValue(), PUBLIC_BASE_URL);
+
+                            return new sass.types.String(urlWithBase);
+                        },
+                    },
+                    includePaths: ['../../external/ag-website-shared/src'],
+                },
             },
         },
     },

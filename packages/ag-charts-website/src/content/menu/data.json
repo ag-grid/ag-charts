@@ -137,6 +137,10 @@
                 "title": "Interactivity",
                 "items": [
                     {
+                        "title": "Accessibility",
+                        "path": "accessibility"
+                    },
+                    {
                         "title": "Series Highlighting",
                         "path": "series-highlighting"
                     },

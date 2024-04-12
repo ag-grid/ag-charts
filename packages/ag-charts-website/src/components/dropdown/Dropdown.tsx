@@ -1,8 +1,8 @@
-import styles from '@design-system/modules/ProductDropdown.module.scss';
-import ChartsDark from '@images/inline-svgs/chart-dark.svg?react';
-import ChartsLight from '@images/inline-svgs/chart-light.svg?react';
-import GridDark from '@images/inline-svgs/grid-dark.svg?react';
-import GridLight from '@images/inline-svgs/grid-light.svg?react';
+import ChartsDark from '@ag-website-shared/images/inline-svgs/chart-dark.svg?react';
+import ChartsLight from '@ag-website-shared/images/inline-svgs/chart-light.svg?react';
+import GridDark from '@ag-website-shared/images/inline-svgs/grid-dark.svg?react';
+import GridLight from '@ag-website-shared/images/inline-svgs/grid-light.svg?react';
+import styles from '@legacy-design-system/modules/ProductDropdown.module.scss';
 import React, { useEffect, useRef, useState } from 'react';
 
 export const Dropdown = ({ items, children }) => {
