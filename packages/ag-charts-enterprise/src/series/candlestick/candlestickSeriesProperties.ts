@@ -96,8 +96,8 @@ export class CandlestickSeriesBaseProperties<
     @Validate(STRING)
     xKey!: string;
 
-    @Validate(STRING, { optional: true })
-    openKey?: string;
+    @Validate(STRING)
+    openKey!: string;
 
     @Validate(STRING)
     closeKey!: string;
