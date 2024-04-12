@@ -17,13 +17,6 @@
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
   },
-  "settings": {
-    "eslint.workingDirectories": [
-      {"directory": "./libraries/*", "changeProcessCWD": true},
-      {"directory": "./packages/*", "changeProcessCWD": true},
-      {"directory": "./plugins/*", "changeProcessCWD": true}
-    ]
-  },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
