@@ -88,6 +88,7 @@ Check out the [developer documentation](https://charts.ag-grid.com/angular/?utm_
 ## Getting started
 
 Get started with [Angular](https://charts.ag-grid.com/angular/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+
 Installation for [Angular](https://charts.ag-grid.com/angular/installation/).
 
 ## Issue Reporting

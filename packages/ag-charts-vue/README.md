@@ -88,6 +88,7 @@ Check out the [developer documentation](https://charts.ag-grid.com/vue/?utm_sour
 ## Getting started
 
 Get started with [Vue](https://charts.ag-grid.com/vue/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+
 Installation for [Vue](https://charts.ag-grid.com/vue/installation/).
 
 ## Issue Reporting

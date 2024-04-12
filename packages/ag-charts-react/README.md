@@ -88,6 +88,7 @@ Check out the [developer documentation](https://charts.ag-grid.com/react/?utm_so
 ## Getting started
 
 Get started with [React](https://charts.ag-grid.com/react/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+
 Installation for [React](https://charts.ag-grid.com/react/installation/).
 
 ## Issue Reporting

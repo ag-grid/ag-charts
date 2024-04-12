@@ -44,7 +44,7 @@ function updateContent(target) {
         Installation for [${frameworkTitle}](https://charts.ag-grid.com/${framework}/installation/).
     `
         .trim()
-        .replaceAll(/\n[\s]*/g, '\n');
+        .replaceAll(/\n */g, '\n');
 
     return [before, gettingStartedSection, after].join('');
 }
