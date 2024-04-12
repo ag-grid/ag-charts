@@ -1,4 +1,5 @@
-import { Alert } from '@components/alert/Alert';
+import { Alert } from '@ag-website-shared/components/alert/Alert';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 // @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
 // @ts-expect-error
@@ -9,9 +10,8 @@ import { Grid } from '@components/grid/Grid';
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 // @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
-import { Icon } from '@components/icon/Icon';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
-import styles from '@design-system/modules/pipelineChangelog.module.scss';
+import styles from '@legacy-design-system/modules/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';

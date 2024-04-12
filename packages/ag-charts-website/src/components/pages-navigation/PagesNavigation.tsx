@@ -1,11 +1,11 @@
 import type { Framework, MenuData } from '@ag-grid-types';
 import type { MenuItem } from '@ag-grid-types';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { Collapsible } from '@components/Collapsible';
-import { Icon } from '@components/icon/Icon';
-// ag-grid menu styles
-import gridStyles from '@design-system/modules/Menu.module.scss';
-import styles from '@design-system/modules/PagesNavigation.module.scss';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+// ag-grid menu styles
+import gridStyles from '@legacy-design-system/modules/Menu.module.scss';
+import styles from '@legacy-design-system/modules/PagesNavigation.module.scss';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 

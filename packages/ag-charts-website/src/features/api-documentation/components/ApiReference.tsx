@@ -1,6 +1,6 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import Code from '@components/Code';
-import { Icon } from '@components/icon/Icon';
-import styles from '@design-system/modules/ApiReference.module.scss';
+import styles from '@legacy-design-system/modules/ApiReference.module.scss';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';

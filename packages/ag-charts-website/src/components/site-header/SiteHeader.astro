@@ -1,16 +1,16 @@
 ---
-import { Icon } from '@components/icon/Icon';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { HeaderNav } from './HeaderNav';
 import { getEntry } from 'astro:content';
 import { FRAMEWORKS } from '@constants';
-import gridStyles from '@design-system/modules/SiteHeader.module.scss';
+import gridStyles from '@legacy-design-system/modules/SiteHeader.module.scss';
 import { SiteLogo } from '@components/SiteLogo';
-import Search from '../search/Search';
+import Search from '@ag-website-shared/components/search/Search';
 import { getFrameworkFromPath } from '../../features/docs/utils/urlPaths';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { isDynamicFrameworkPath, replaceDynamicFrameworkPath } from '@utils/framework';
 import { DarkModeToggle } from './DarkModeToggle';
-import { ProductDropdown } from '../productDropdown/ProductDropdown';
+import { ProductDropdown } from '@ag-website-shared/components/product-dropdown/ProductDropdown';
 
 const { pathname } = Astro.url;
 const { data: menuData } = await getEntry('menu', 'data');
@@ -101,7 +101,7 @@ const dropdownItems = [
 </header>
 
 <style lang="scss">
-    @use '../../design-system' as *;
+    @use 'design-system' as *;
 
     // Required to stop mobile docs nav flash on page load
     @media screen and (min-width: $breakpoint-docs-nav-medium) {

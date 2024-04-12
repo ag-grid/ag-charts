@@ -1,9 +1,9 @@
-import styles from '@design-system/modules/TopBar.module.scss';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
+import styles from '@legacy-design-system/modules/TopBar.module.scss';
 import { getNewFrameworkPath } from '@utils/framework';
 import classNames from 'classnames';
 
 import { FrameworkSelector } from '../framework-selector/FrameworkSelector';
-import { Icon } from '../icon/Icon';
 
 export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFrameworkSelector }) => {
     const frameworksData = frameworks.map((framework) => ({

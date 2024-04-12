@@ -1,10 +1,10 @@
 import type { InternalFramework } from '@ag-grid-types';
-import { Icon } from '@components/icon/Icon';
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
-// Charts specific example runner styles
-import chartsStyles from '@design-system/modules/ChartsExampleRunner.module.scss';
-import styles from '@design-system/modules/ExampleRunner.module.scss';
 import type { ExampleType, FileContents } from '@features/example-generator/types';
+// Charts specific example runner styles
+import chartsStyles from '@legacy-design-system/modules/ChartsExampleRunner.module.scss';
+import styles from '@legacy-design-system/modules/ExampleRunner.module.scss';
 import classnames from 'classnames';
 import { type FunctionComponent, type ReactElement, useState } from 'react';
 
