@@ -3,12 +3,9 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 /* eslint-disable sonarjs/no-duplicate-string */
-import { _ModuleSupport } from 'ag-charts-community';
 
 /* eslint-disable no-console */
 import { MD5 } from './md5';
-
-const { getDocument, getWindow } = _ModuleSupport;
 
 // move to general utils
 function missingOrEmpty<T>(value?: T[] | string | null): value is null | undefined {
@@ -28,11 +25,13 @@ export class LicenseManager {
     private watermarkMessage: string | undefined = undefined;
 
     private md5: MD5;
-    private localhost = !getDocument();
+    private document?: Document;
 
     private totalMessageLength = 124;
 
-    constructor() {
+    constructor(document?: Document) {
+        this.document = document;
+
         this.md5 = new MD5();
         this.md5.init();
     }
@@ -189,10 +188,10 @@ export class LicenseManager {
     }
 
     private getHostname(): string {
-        if (this.localhost) {
+        if (!this.document) {
             return 'localhost';
         }
-        const win = getDocument('defaultView') ?? getWindow();
+        const win = this.document!.defaultView || window;
         if (!win) {
             return 'localhost';
         }
@@ -203,10 +202,10 @@ export class LicenseManager {
     }
 
     private isForceWatermark(): boolean {
-        if (this.localhost) {
+        if (!this.document) {
             return false;
         }
-        const win = getDocument('defaultView') ?? getWindow();
+        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
         if (!win) {
             return false;
         }
