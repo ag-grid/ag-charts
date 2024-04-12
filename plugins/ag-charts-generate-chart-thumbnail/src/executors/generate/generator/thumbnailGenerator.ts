@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom';
 import path from 'path';
 import sharp from 'sharp';
 
-import { type AgChartThemeName, AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
 import 'ag-charts-enterprise';
 import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
 import { mockCanvas } from 'ag-charts-test';
@@ -19,8 +19,6 @@ import {
 } from './constants';
 import { getChartLayout } from './getChartLayout';
 import { patchOptions } from './patchOptions';
-
-const { setDocument, setWindow } = _ModuleSupport;
 
 interface Params {
     example: GeneratedContents;
@@ -61,22 +59,22 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
 
     for (const { id, row, column } of charts) {
         /* TODO: Initialize these once */
-        const { window } = new JSDOM(`<html><head><style></style></head><body></body></html>`);
-
-        setWindow(window as any);
-        setDocument(window.document);
+        const {
+            window,
+            window: { document },
+        } = new JSDOM(`<html><head><style></style></head><body></body></html>`);
 
         // Note - we'll need one instance per DPI setting
         const mockCtx = mockCanvas.setup({
             width: DEFAULT_THUMBNAIL_WIDTH * dpi,
             height: DEFAULT_THUMBNAIL_HEIGHT * dpi,
-            document: window.document,
+            document,
             mockText,
         });
 
         const chartProxy = AgCharts.create({
             animation: { enabled: false },
-            document: window.document,
+            document,
             window,
             width: DEFAULT_THUMBNAIL_WIDTH,
             height: DEFAULT_THUMBNAIL_HEIGHT,
@@ -118,7 +116,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         AgCharts.update(chartProxy, {
             ...options,
             animation: { enabled: false },
-            document: window.document,
+            document,
             window,
             width,
             height,
