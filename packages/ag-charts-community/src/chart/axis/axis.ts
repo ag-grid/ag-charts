@@ -673,7 +673,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         const getTransformBox = (bbox: BBox) => {
-            const matrix = new Matrix();
             const {
                 rotation: axisRotation,
                 translationX,
@@ -681,12 +680,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 rotationCenterX,
                 rotationCenterY,
             } = this.getAxisTransform();
-            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-                scalingCenterX: 0,
-                scalingCenterY: 0,
-                rotationCenterX,
-                rotationCenterY,
-            });
+
+            const matrix = new Matrix(
+                Matrix.calculateTransformMatrix(
+                    1,
+                    1,
+                    axisRotation,
+                    translationX,
+                    translationY,
+                    null,
+                    null,
+                    rotationCenterX,
+                    rotationCenterY
+                )
+            );
+
             return matrix.transformBBox(bbox);
         };
 
@@ -981,7 +989,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelX: number,
         textProps: TextSizeProperties
     ): boolean {
-        Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
+        labelMatrix.setElements(Matrix.calculateTransformMatrix(1, 1, rotation, 0, 0));
 
         const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
         const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);

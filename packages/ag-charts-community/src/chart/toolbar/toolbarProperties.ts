@@ -3,14 +3,14 @@ import { ObserveChanges } from '../../util/proxy';
 import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validation';
 import type { ToolbarPosition } from './toolbarTypes';
 
-export class ToolbarSectionProperties extends BaseProperties {
-    @ObserveChanges<ToolbarSectionProperties>((target) => {
+export class ToolbarGroupProperties extends BaseProperties {
+    @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onChange(target.enabled);
     })
     @Validate(BOOLEAN)
     enabled?: boolean;
 
-    @ObserveChanges<ToolbarSectionProperties>((target) => {
+    @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onChange(target.enabled);
     })
     @Validate(UNION(['top', 'right', 'bottom', 'left']), { optional: true })
@@ -19,7 +19,7 @@ export class ToolbarSectionProperties extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     floating = false;
 
-    @ObserveChanges<ToolbarSectionProperties>((target) => {
+    @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onButtonsChange(target.buttons);
     })
     @Validate(ARRAY, { optional: true })

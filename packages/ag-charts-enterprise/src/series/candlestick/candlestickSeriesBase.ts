@@ -24,7 +24,6 @@ const {
     valueProperty,
     diff,
     animationValidation,
-    ChartAxisDirection,
     convertValuesToScaleByDefs,
     mergeDefaults,
     isFiniteNumber,
@@ -193,19 +192,12 @@ export abstract class CandlestickSeriesBase<
         }
 
         const categoryAxis = this.getCategoryAxis();
-        const isReversed = categoryAxis?.isReversed();
 
         const keysExtent = extent(keys) ?? [NaN, NaN];
         const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
 
-        if (direction === ChartAxisDirection.Y) {
-            const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
-            const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
-            return fixNumericExtent([d0, d1], categoryAxis);
-        }
-
-        const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
-        const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+        const d0 = keysExtent[0] + -scalePadding;
+        const d1 = keysExtent[1] + scalePadding;
         return fixNumericExtent([d0, d1], categoryAxis);
     }
 
@@ -230,6 +222,7 @@ export abstract class CandlestickSeriesBase<
         const defs = dataModel.resolveProcessedDataDefsByIds(this, ids);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
         const { groupScale, processedData } = this;
 
         processedData?.data.forEach(({ datum, keys, values }) => {
@@ -272,7 +265,7 @@ export abstract class CandlestickSeriesBase<
                 yAxis,
             });
 
-            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
+            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset;
 
             const isRising = !hasOpenValue || closeValue > openValue;
             const itemId = this.getSeriesItemType(isRising);

@@ -34,10 +34,11 @@ enum TextNodeTag {
     Secondary,
 }
 
-const tempText = new Text();
+let tempText: _Scene.Text;
 
 function getTextSize(text: string, style: FontOptions): { width: number; height: number } {
     const { fontStyle, fontWeight, fontSize, fontFamily } = style;
+    tempText ??= new Text();
     tempText.setProperties({
         text,
         fontStyle,

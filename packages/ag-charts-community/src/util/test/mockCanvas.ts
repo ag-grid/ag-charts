@@ -6,6 +6,7 @@ import { PNG } from 'pngjs';
 import { mockCanvas } from 'ag-charts-test';
 
 import { resetIds } from '../../util/id';
+import { getDocument } from '../dom';
 
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
@@ -44,12 +45,13 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
     nodeCanvas: Canvas;
     getActiveCanvasInstances: () => Canvas[];
 } {
+    const document = getDocument();
     const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(CANVAS_WIDTH, CANVAS_HEIGHT, document);
 
     beforeEach(() => {
         resetIds();
 
-        mockCanvas.setup({ mockCtx, width, height, mockText: true });
+        mockCanvas.setup({ mockCtx, width, height, document, mockText: true });
     });
 
     afterEach(() => {

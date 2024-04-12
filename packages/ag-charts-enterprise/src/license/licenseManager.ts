@@ -5,7 +5,11 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 
 /* eslint-disable no-console */
+import { _ModuleSupport } from 'ag-charts-community';
+
 import { MD5 } from './md5';
+
+const { getWindow } = _ModuleSupport;
 
 // move to general utils
 function missingOrEmpty<T>(value?: T[] | string | null): value is null | undefined {
@@ -191,7 +195,7 @@ export class LicenseManager {
         if (!this.document) {
             return 'localhost';
         }
-        const win = this.document!.defaultView || window;
+        const win = this.document!.defaultView || getWindow();
         if (!win) {
             return 'localhost';
         }
@@ -205,7 +209,7 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
+        const win = this.document?.defaultView ?? getWindow();
         if (!win) {
             return false;
         }

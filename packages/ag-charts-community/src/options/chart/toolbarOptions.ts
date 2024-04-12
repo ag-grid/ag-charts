@@ -1,11 +1,11 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
 
 export interface AgToolbarOptions extends Toggleable {
-    annotations?: AgToolbarAnnotationsSection;
-    ranges?: AgToolbarRangesSection;
+    annotations?: AgToolbarAnnotationsGroup;
+    ranges?: AgToolbarRangesGroup;
 }
 
-export interface AgToolbarSection extends Toggleable {
+export interface AgToolbarGroup extends Toggleable {
     /** Position of the toolbar section on the outside of the chart. */
     position?: 'top' | 'left' | 'right' | 'bottom';
     // floating?: boolean;
@@ -18,7 +18,7 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export interface AgToolbarAnnotationsSection extends AgToolbarSection {
+export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
     buttons?: AgToolbarAnnotationsButton[];
 }
 
@@ -29,7 +29,7 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
     value: 'line' | 'parallel-channel';
 }
 
-export interface AgToolbarRangesSection extends AgToolbarSection {
+export interface AgToolbarRangesGroup extends AgToolbarGroup {
     buttons?: AgToolbarRangesButton[];
 }
 
