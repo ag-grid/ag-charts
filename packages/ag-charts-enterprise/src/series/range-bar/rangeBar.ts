@@ -183,15 +183,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             const keysExtent = extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
-            const isReversed = categoryAxis?.isReversed();
-            if (direction === ChartAxisDirection.Y) {
-                const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
-                const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
-                return fixNumericExtent([d0, d1], categoryAxis);
-            }
 
-            const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
-            const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+            const d0 = keysExtent[0] + -scalePadding;
+            const d1 = keysExtent[1] + scalePadding;
             return fixNumericExtent([d0, d1], categoryAxis);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
@@ -242,10 +236,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             values.forEach((value, valueIndex) => {
                 const xDatum = keys[xIndex];
-                const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
+                const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
 
                 const rawLowValue = value[yLowIndex];
                 const rawHighValue = value[yHighIndex];

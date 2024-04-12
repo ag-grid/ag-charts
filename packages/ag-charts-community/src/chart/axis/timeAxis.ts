@@ -83,8 +83,10 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     }
 
     override calculatePadding(): [number, number] {
-        // numbers in domain correspond to Unix timestamps
-        // automatically expand domain by 1 in forward direction
-        return this.reverse ? [1, 0] : [0, 1];
+        // NOTE: Extending the domain of a time-axis can interfere with automatic date label
+        // formatting - extending the domain effectively implies that the axis labels should be
+        // rendered at the same time granularity as the gap we add in certain cases (e.g. a single
+        // data-point).
+        return [0, 0];
     }
 }
