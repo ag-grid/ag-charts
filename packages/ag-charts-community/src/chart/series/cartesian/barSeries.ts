@@ -9,7 +9,6 @@ import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
@@ -25,13 +24,7 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import {
-    SeriesNodePickMatch,
-    SeriesNodePickMode,
-    groupAccumulativeValueProperty,
-    keyProperty,
-    valueProperty,
-} from '../series';
+import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
@@ -52,7 +45,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
-import { addHitTestersToQuadtree, childrenOfChildrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -124,7 +116,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const { xKey, yKey, normalizedTo } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -137,24 +128,25 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
-        const normaliseTo = normalizedToAbs && isFinite(normalizedToAbs) ? normalizedToAbs : undefined;
         const extraProps = [];
-        if (normaliseTo) {
-            extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
+        if (isFiniteNumber(normalizedTo)) {
+            extraProps.push(
+                normaliseGroupTo([stackGroupName, stackGroupTrailingName], Math.abs(normalizedTo), 'range')
+            );
         }
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
+                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
                     rangeId: `yValue-range`,
                     invalidValue: null,
@@ -163,7 +155,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     separateNegative: true,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'trailing', 'current', {
                     id: `yValue-start`,
                     invalidValue: null,
                     missingValue: 0,
@@ -178,19 +170,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             groupByData: false,
         });
 
-        this.smallestDataInterval = {
-            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
-            y: Infinity,
-        };
+        this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
         this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, smallestDataInterval } = this;
         if (!processedData || !dataModel || processedData.data.length === 0) return [];
-
-        const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
 
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
@@ -200,11 +187,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yExtent = dataModel.getDomain(this, `yValue-end`, 'value', processedData);
 
         if (direction === this.getCategoryDirection()) {
-            if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
+            if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
                 return keys;
             }
 
-            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
             const isReversed = categoryAxis?.isReversed();
 
@@ -218,10 +205,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
             return fixNumericExtent([d0, d1], categoryAxis);
         } else if (this.getValueAxis() instanceof LogAxis) {
-            return fixNumericExtent(yExtent as any, valueAxis);
+            return fixNumericExtent(yExtent, valueAxis);
         } else {
-            const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return fixNumericExtent(fixedYExtent as any, valueAxis);
+            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
+            return fixNumericExtent(fixedYExtent, valueAxis);
         }
     }
 
@@ -230,9 +217,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && xAxis && yAxis && this.properties.isValid())) {
-            return;
-        }
+        if (!dataModel || !xAxis || !yAxis || !this.properties.isValid()) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -243,18 +228,18 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
 
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
-        const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
-        const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
-        const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
+        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`);
+        const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`);
+        const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`);
+        const yRangeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-range`);
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const context = {
             itemId: yKey,
             nodeData: [] as BarNodeDatum[],
             labelData: [] as BarNodeDatum[],
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
         };
 
@@ -272,9 +257,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
                 const barX = x + groupScale.convert(String(groupIndex));
 
-                if (isNaN(currY)) {
-                    return;
-                }
+                if (isNaN(currY)) return;
 
                 const y = yScale.convert(currY);
                 const bottomY = yScale.convert(prevY);
@@ -476,14 +459,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum.label);
         });
-    }
-
-    protected override initQuadTree(quadtree: QuadtreeNearest<BarNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, childrenOfChildrenIter<Rect>(this.contentGroup));
-    }
-
-    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        return findQuadtreeMatch(this, point);
     }
 
     getTooltipHtml(nodeDatum: BarNodeDatum): string {

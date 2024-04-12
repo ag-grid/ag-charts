@@ -9,6 +9,7 @@ import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeri
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
+import type { AgOhlcSeriesThemeableOptions } from '../series/cartesian/ohlcOptions';
 import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rangeAreaOptions';
 import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/rangeBarOptions';
 import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
@@ -30,6 +31,7 @@ import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMa
 import type { AgMapShapeBackgroundThemeableOptions } from '../series/topology/mapShapeBackgroundOptions';
 import type { AgMapShapeSeriesThemeableOptions } from '../series/topology/mapShapeOptions';
 import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
+import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { CssColor } from './types';
 
@@ -102,6 +104,9 @@ export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptio
 export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgCandlestickSeriesThemeableOptions;
 }
+export interface AgOhlcSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgOhlcSeriesThemeableOptions;
+}
 export interface AgHistogramSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgHistogramSeriesThemeableOptions;
 }
@@ -167,6 +172,7 @@ export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPo
 
 export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptions {
     axes?: AgCommonThemeableAxisOptions;
+    annotations?: AgAnnotationsThemeableOptions;
 }
 
 export interface AgChartThemeOverrides {
@@ -187,6 +193,8 @@ export interface AgChartThemeOverrides {
     'box-plot'?: AgBoxPlotSeriesThemeOverrides;
     /** Candlestick series theme overrides. */
     candlestick?: AgCandlestickSeriesThemeOverrides;
+    /** ohlc series theme overrides. */
+    ohlc?: AgOhlcSeriesThemeOverrides;
     /** Histogram series theme overrides. */
     histogram?: AgHistogramSeriesThemeOverrides;
     /** Heatmap series theme overrides. */

@@ -42,7 +42,7 @@ export type { DistantObject, NearestResult } from './scene/nearest';
 export { nearestSquared, nearestSquaredInContainer } from './scene/nearest';
 export { HdpiCanvas } from './scene/canvas/hdpiCanvas';
 export { Image } from './scene/image';
-export { Path2D } from './scene/path2D';
+export { ExtendedPath2D } from './scene/extendedPath2D';
 export * as easing from './motion/easing';
 
 const motion = { ...fromToMotion, ...resetMotion };

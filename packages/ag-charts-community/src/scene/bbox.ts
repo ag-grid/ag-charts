@@ -58,6 +58,10 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         );
     }
 
+    computeCenter(): { x: number; y: number } {
+        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+    }
+
     isFinite() {
         return (
             Number.isFinite(this.x) &&
@@ -153,12 +157,12 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         this.height = Math.max(y + height, other.y + other.height) - this.y;
     }
 
-    static merge(boxes: BBox[]) {
+    static merge(boxes: Iterable<BBox>) {
         let left = Infinity;
         let top = Infinity;
         let right = -Infinity;
         let bottom = -Infinity;
-        boxes.forEach((box) => {
+        for (const box of boxes) {
             if (box.x < left) {
                 left = box.x;
             }
@@ -171,7 +175,7 @@ export class BBox implements DistantObject, Interpolating<BBox> {
             if (box.y + box.height > bottom) {
                 bottom = box.y + box.height;
             }
-        });
+        }
         return new BBox(left, top, right - left, bottom - top);
     }
 

@@ -8,9 +8,7 @@ exports[`DataModel empty data set processing should generated the expected resul
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
         "scopes": [
           "test",
@@ -24,9 +22,7 @@ exports[`DataModel empty data set processing should generated the expected resul
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "ie",
         "scopes": [
           "test",
@@ -39,9 +35,7 @@ exports[`DataModel empty data set processing should generated the expected resul
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "chrome",
         "scopes": [
           "test",
@@ -54,9 +48,7 @@ exports[`DataModel empty data set processing should generated the expected resul
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "firefox",
         "scopes": [
           "test",
@@ -69,9 +61,7 @@ exports[`DataModel empty data set processing should generated the expected resul
         "groupId": undefined,
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "safari",
         "scopes": [
           "test",
@@ -282,9 +272,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "curb-weight",
         "scope": "test",
         "type": "key",
@@ -296,9 +284,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         "groupId": "weight",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "curb-weight",
         "scopes": [
           "test",
@@ -565,9 +551,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "engine-size",
         "scopes": [
           "test",
@@ -581,9 +565,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         "groupId": "mpg",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "highway-mpg",
         "scopes": [
           "test",
@@ -792,9 +774,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "engine-size",
         "scopes": [
           "test",
@@ -1045,9 +1025,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
         "scopes": [
           "test",
@@ -1061,9 +1039,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "total",
         "scopes": [
           "test",
@@ -1076,9 +1052,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "regular",
         "scopes": [
           "test",
@@ -1567,9 +1541,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "month",
         "scopes": [
           "test",
@@ -1583,9 +1555,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "petroleum",
         "scopes": [
           "test",
@@ -1598,9 +1568,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "naturalGas",
         "scopes": [
           "test",
@@ -1613,9 +1581,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "bioenergyWaste",
         "scopes": [
           "test",
@@ -1628,9 +1594,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "nuclear",
         "scopes": [
           "test",
@@ -1643,9 +1607,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 4,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "windSolarHydro",
         "scopes": [
           "test",
@@ -1658,9 +1620,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 5,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "imported",
         "scopes": [
           "test",
@@ -1763,12 +1723,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 12,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -1948,9 +1902,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
         "scopes": [
           "test",
@@ -1964,9 +1916,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "white",
         "scopes": [
           "test",
@@ -1979,9 +1929,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "mixed",
         "scopes": [
           "test",
@@ -1994,9 +1942,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "asian",
         "scopes": [
           "test",
@@ -2009,9 +1955,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "black",
         "scopes": [
           "test",
@@ -2024,9 +1968,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 4,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "chinese",
         "scopes": [
           "test",
@@ -2039,9 +1981,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         "groupId": "all",
         "id": undefined,
         "index": 5,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "other",
         "scopes": [
           "test",
@@ -2116,12 +2056,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 5,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2368,9 +2302,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
         "scopes": [
           "test",
@@ -2384,9 +2316,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "ownerOccupied",
         "scopes": [
           "test",
@@ -2399,9 +2329,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "privateRented",
         "scopes": [
           "test",
@@ -2414,9 +2342,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "localAuthority",
         "scopes": [
           "test",
@@ -2429,9 +2355,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "housingAssociation",
         "scopes": [
           "test",
@@ -2510,12 +2434,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     "count": 8,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      0,
-      6002,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -2762,9 +2680,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
         "scopes": [
           "test",
@@ -2778,9 +2694,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "groupId": "all",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "ownerOccupied",
         "scopes": [
@@ -2794,9 +2708,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "groupId": "all",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "privateRented",
         "scopes": [
@@ -2810,9 +2722,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "groupId": "all",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "localAuthority",
         "scopes": [
@@ -2826,9 +2736,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
         "groupId": "all",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "housingAssociation",
         "scopes": [
@@ -2908,12 +2816,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     "count": 8,
   },
   "partialValidDataCount": 0,
-  "reduced": {
-    "aggValuesExtent": [
-      23.7745,
-      100,
-    ],
-  },
   "time": Any<Number>,
   "type": "grouped",
 }
@@ -3112,9 +3014,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "type",
         "scopes": [
           "test",
@@ -3128,9 +3028,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
         "groupId": "ownerOccupied",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "ownerOccupied",
         "scopes": [
@@ -3144,9 +3042,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
         "groupId": "privateRented",
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "privateRented",
         "scopes": [
@@ -3160,9 +3056,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
         "groupId": "localAuthority",
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "localAuthority",
         "scopes": [
@@ -3176,9 +3070,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
         "groupId": "housingAssociation",
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "housingAssociation",
         "scopes": [
@@ -3451,9 +3343,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
         "scopes": [
           "test",
@@ -3467,9 +3357,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "ie",
         "scopes": undefined,
@@ -3482,9 +3370,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "chrome",
         "scopes": [
@@ -3499,9 +3385,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "firefox",
         "scopes": [
@@ -3516,9 +3400,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         "groupId": undefined,
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "safari",
         "scopes": [
@@ -3771,9 +3653,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
         "scopes": [
           "test",
@@ -3788,9 +3668,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 0,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "ie",
         "scopes": [
@@ -3806,9 +3684,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 1,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "chrome",
         "scopes": [
@@ -3824,9 +3700,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 2,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "firefox",
         "scopes": [
@@ -3842,9 +3716,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
         "id": undefined,
         "index": 3,
         "invalidValue": NaN,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "missingValue": null,
         "property": "safari",
         "scopes": [
@@ -3928,22 +3800,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2009",
       ],
       "values": [
-        {
-          "test1": 64.97,
-          "test2": 64.97,
-        },
-        {
-          "test1": 1.37,
-          "test2": 1.37,
-        },
-        {
-          "test1": 26.85,
-          "test2": 53.7,
-        },
-        {
-          "test1": 2.79,
-          "test2": 2.79,
-        },
+        64.97,
+        1.37,
+        53.7,
+        2.79,
       ],
     },
     {
@@ -3970,22 +3830,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2010",
       ],
       "values": [
-        {
-          "test1": 54.39,
-          "test2": 54.39,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": 31.15,
-          "test2": 62.3,
-        },
-        {
-          "test1": 4.22,
-          "test2": 4.22,
-        },
+        54.39,
+        undefined,
+        62.3,
+        4.22,
       ],
     },
     {
@@ -4012,22 +3860,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2011",
       ],
       "values": [
-        {
-          "test1": 44.03,
-          "test2": 44.03,
-        },
-        {
-          "test1": 15.01,
-          "test2": 15.01,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": 5.94,
-          "test2": 5.94,
-        },
+        44.03,
+        15.01,
+        undefined,
+        5.94,
       ],
     },
     {
@@ -4054,22 +3890,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2012",
       ],
       "values": [
-        {
-          "test1": 34.27,
-          "test2": 34.27,
-        },
-        {
-          "test1": 25.99,
-          "test2": 25.99,
-        },
-        {
-          "test1": 22.69,
-          "test2": 45.38,
-        },
-        {
-          "test1": 8.09,
-          "test2": 8.09,
-        },
+        34.27,
+        25.99,
+        45.38,
+        8.09,
       ],
     },
     {
@@ -4096,22 +3920,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2013",
       ],
       "values": [
-        {
-          "test1": 26.55,
-          "test2": 26.55,
-        },
-        {
-          "test1": 31.71,
-          "test2": 31.71,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
-        {
-          "test1": undefined,
-          "test2": undefined,
-        },
+        26.55,
+        31.71,
+        undefined,
+        undefined,
       ],
     },
     {
@@ -4138,22 +3950,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2014",
       ],
       "values": [
-        {
-          "test1": 17.75,
-          "test2": 17.75,
-        },
-        {
-          "test1": 35.85,
-          "test2": 35.85,
-        },
-        {
-          "test1": 14.77,
-          "test2": 29.54,
-        },
-        {
-          "test1": 12.63,
-          "test2": 12.63,
-        },
+        17.75,
+        35.85,
+        29.54,
+        12.63,
       ],
     },
     {
@@ -4180,22 +3980,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2015",
       ],
       "values": [
-        {
-          "test1": -13.3,
-          "test2": -13.3,
-        },
-        {
-          "test1": 42.27,
-          "test2": 42.27,
-        },
-        {
-          "test1": 11.82,
-          "test2": 23.64,
-        },
-        {
-          "test1": 13.79,
-          "test2": 13.79,
-        },
+        -13.3,
+        42.27,
+        23.64,
+        13.79,
       ],
     },
     {
@@ -4222,22 +4010,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2016",
       ],
       "values": [
-        {
-          "test1": -8.94,
-          "test2": -8.94,
-        },
-        {
-          "test1": 47.79,
-          "test2": 47.79,
-        },
-        {
-          "test1": 8.97,
-          "test2": 17.94,
-        },
-        {
-          "test1": 12.9,
-          "test2": 12.9,
-        },
+        -8.94,
+        47.79,
+        17.94,
+        12.9,
       ],
     },
     {
@@ -4264,22 +4040,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2017",
       ],
       "values": [
-        {
-          "test1": -4.77,
-          "test2": -4.77,
-        },
-        {
-          "test1": 51.76,
-          "test2": 51.76,
-        },
-        {
-          "test1": 6.75,
-          "test2": 13.5,
-        },
-        {
-          "test1": 14.54,
-          "test2": 14.54,
-        },
+        -4.77,
+        51.76,
+        13.5,
+        14.54,
       ],
     },
     {
@@ -4306,22 +4070,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2018",
       ],
       "values": [
-        {
-          "test1": 3.2,
-          "test2": 3.2,
-        },
-        {
-          "test1": 56.31,
-          "test2": 56.31,
-        },
-        {
-          "test1": 5.66,
-          "test2": 11.32,
-        },
-        {
-          "test1": 14.44,
-          "test2": 14.44,
-        },
+        3.2,
+        56.31,
+        11.32,
+        14.44,
       ],
     },
     {
@@ -4348,22 +4100,10 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "2019",
       ],
       "values": [
-        {
-          "test1": 2.7,
-          "test2": 2.7,
-        },
-        {
-          "test1": 61.72,
-          "test2": 61.72,
-        },
-        {
-          "test1": 4.66,
-          "test2": 9.32,
-        },
-        {
-          "test1": 15.23,
-          "test2": 15.23,
-        },
+        2.7,
+        61.72,
+        9.32,
+        15.23,
       ],
     },
   ],
@@ -4372,16 +4112,13 @@ exports[`DataModel multiple data sources should generate the expected results 1`
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "year",
         "scopes": [
           "test1",
           "test2",
         ],
         "type": "key",
-        "useScopedValues": true,
         "valueType": "category",
       },
     ],
@@ -4390,9 +4127,7 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "ie",
         "scopes": [
           "test1",
@@ -4406,9 +4141,7 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "chrome",
         "scopes": [
           "test1",
@@ -4422,9 +4155,7 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "firefox",
         "scopes": [
           "test1",
@@ -4438,9 +4169,7 @@ exports[`DataModel multiple data sources should generate the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 3,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "safari",
         "scopes": [
           "test1",
@@ -4568,9 +4297,7 @@ exports[`DataModel repeated property processing should generated the expected re
         "groupId": "angleGroup",
         "id": "angle",
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "share",
         "scopes": [
@@ -4583,9 +4310,7 @@ exports[`DataModel repeated property processing should generated the expected re
       {
         "id": "radius",
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "share",
         "scopes": [
@@ -4727,9 +4452,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
         "groupId": "population",
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "processor": [Function],
         "property": "population",
         "scopes": [
@@ -4741,9 +4464,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
       },
       {
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "religion",
         "scopes": [
           "test",
@@ -4755,9 +4476,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
         "groupId": undefined,
         "id": undefined,
         "index": 2,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "population",
         "scopes": [
           "test",
@@ -5537,9 +5256,7 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
     "keys": [
       {
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "date",
         "scope": "test",
         "type": "key",
@@ -5551,9 +5268,7 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 0,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "petrol",
         "scopes": [
           "test",
@@ -5566,9 +5281,7 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
         "groupId": undefined,
         "id": undefined,
         "index": 1,
-        "missing": Map {
-          undefined => 0,
-        },
+        "missing": Map {},
         "property": "diesel",
         "scopes": [
           "test",

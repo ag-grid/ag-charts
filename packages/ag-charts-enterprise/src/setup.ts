@@ -13,7 +13,6 @@ import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { NavigatorModule } from './features/navigator/navigatorModule';
-import { RangeButtonsModule } from './features/range-buttons/main';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
@@ -29,6 +28,7 @@ import { MapMarkerModule } from './series/map-marker/main';
 import { MapShapeBackgroundModule } from './series/map-shape-background/main';
 import { MapShapeModule } from './series/map-shape/main';
 import { NightingaleModule } from './series/nightingale/main';
+import { OhlcModule } from './series/ohlc/main';
 import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
 import { RadialBarModule } from './series/radial-bar/main';
@@ -48,6 +48,7 @@ export function setupEnterpriseModules() {
         BackgroundModule,
         BoxPlotModule,
         CandlestickModule,
+        OhlcModule,
         BulletModule,
         ContextMenuModule,
         CrosshairModule,
@@ -70,7 +71,6 @@ export function setupEnterpriseModules() {
         RadiusCategoryAxisModule,
         RadiusNumberAxisModule,
         RangeBarModule,
-        RangeButtonsModule,
         RangeAreaModule,
         SunburstModule,
         SyncModule,

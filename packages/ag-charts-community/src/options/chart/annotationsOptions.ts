@@ -6,50 +6,78 @@ import type {
     Visible,
 } from '../series/cartesian/commonOptions';
 
+// --- Theme ---
+export interface AgAnnotationsThemeableOptions extends AgLineAnnotationsTheme, AgChannelAnnotationTheme {}
+
+type AgLineAnnotationsTheme = {
+    // TODO: can this work in the docs?
+    // [key in AgLineAnnotation['type']]?: AgLineAnnotationStyles;
+    line?: AgLineAnnotationStyles & { handle?: AgAnnotationHandleStyles };
+};
+
+type AgChannelAnnotationTheme = {
+    // TODO: can this work in the docs?
+    // [key in AgChannelAnnotation['type']]?: AgChannelAnnotationStyles;
+    'parallel-channel'?: AgChannelAnnotationStyles & { handle?: AgAnnotationHandleStyles };
+};
+
+// --- Options ---
 export interface AgAnnotationsOptions extends Toggleable {
-    enableInteractions?: boolean;
+    /** The initial set of annotations to display. */
     initial?: AgAnnotation[];
-    // listeners?: {
-    //     annotationsChange?: (event: AgAnnotationsChangeEvent) => void;
-    // };
 }
 
-// export interface AgAnnotationsChangeEvent {
-//     annotations: AgAnnotation[];
-// }
+export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+    middle?: AgChannelAnnotationMiddle;
+    background?: AgChannelAnnotationBackground;
+}
 
 export type AgAnnotation = AgLineAnnotation | AgChannelAnnotation; // | AgCrossLineAnnotation
 
-export interface AgLineAnnotation extends AnnotationLinePoints, Visible, Extendable, StrokeOptions, LineDashOptions {
+export interface AgLineAnnotation
+    extends AnnotationLinePoints,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineDashOptions {
     type: 'line';
-    // direction?: 'horizontal' | 'vertical';
     // startCap?: 'arrow' | 'circle';
     // endCap?: 'arrow' | 'circle';
 }
 
-// export interface AgCrossLineAnnotation extends Visible, FillOptions, StrokeOptions, LineDashOptions {
-//     type: 'crossline';
-//     point: AgAnnotationPoint;
-// }
-
-export interface AgChannelAnnotation extends Visible, Extendable, StrokeOptions, LineDashOptions {
-    type: 'parallel-channel' | 'disjoint-channel';
-    top: AgChannelLine;
-    bottom: AgChannelLine;
-    middle?: Visible & StrokeOptions & LineDashOptions;
-    background?: FillOptions;
+export interface AgChannelAnnotation extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+    type: 'parallel-channel';
+    top: AgAnnotationLine;
+    bottom: AgAnnotationLine;
+    middle?: AgChannelAnnotationMiddle;
+    background?: AgChannelAnnotationBackground;
 }
 
-export interface AgChannelLine extends AnnotationLinePoints {}
+export interface AgAnnotationLine extends AnnotationLinePoints {}
+export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationBackground extends FillOptions {}
 
 interface AnnotationLinePoints {
     start: AgAnnotationPoint;
     end: AgAnnotationPoint;
 }
 
-interface AgAnnotationPoint {
+export interface AgAnnotationPoint {
+    /** The x-value of the point. */
     x: string | number | Date;
+    /** The y-value of the point. */
     y: string | number | Date;
+}
+
+interface Lockable {
+    /**
+     * Whether the annotation should be locked to prevent editing.
+     * Default: `false`
+     */
+    locked?: boolean;
 }
 
 interface Extendable {

@@ -99,9 +99,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid()) {
-            return;
-        }
+        if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, yLowKey, yHighKey } = this.properties;
         const { isContinuousX, isContinuousY } = this.isContinuous();
@@ -112,17 +110,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
-        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
+        await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
-                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
+                keyProperty(xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
+                valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
                 ...extraProps,
             ],
-            dataVisible: this.visible,
         });
 
         this.animationState.transition('updateData');
@@ -149,9 +146,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
             return fixNumericExtent(extent(keys), xAxis);
         } else {
-            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
+            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];
-            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue').index;
+            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue');
             const yHighExtent = values[yHighIndex];
             const fixedYExtent = [
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
@@ -207,7 +204,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             nodeData: markerData,
             fillData,
             strokeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
 
@@ -421,7 +418,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { fillData } = contextData;
         const [fill] = paths;
         const { path: fillPath } = fill;
-        fillPath.clear({ trackChanges: true });
+        fillPath.clear(true);
         for (const { point } of fillData.points) {
             if (point.moveTo) {
                 fillPath.moveTo(point.x, point.y);
@@ -437,7 +434,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { strokeData } = contextData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
-        strokePath.clear({ trackChanges: true });
+        strokePath.clear(true);
         for (const { point } of strokeData.points) {
             if (point.moveTo) {
                 strokePath.moveTo(point.x, point.y);

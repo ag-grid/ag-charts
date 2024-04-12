@@ -1,0 +1,76 @@
+---
+title: 'Security'
+---
+
+AG Charts allows you to work with security tools and parameters to make your application meet your business requirements.
+
+## Content Security Policy (CSP)
+
+The basic information on Content Security Policy can be found on the [MDN web docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) website and will cover the necessary information on the subject. AG Charts works with CSP, but some basic configuration is necessary to have your application load correctly. Below is detailed what the minimum set of CSP rules for AG Charts is and why.
+
+### script-src
+
+The `script-src` policy will work only with `'self'` rule. If you use property paths for keys, it will be necessary to add `unsafe-eval` rule to your policy.
+
+```js
+series: [
+    // unsafe-eval NOT required
+    {
+        xKey: 'name',
+    },
+    // unsafe-eval IS required
+    {
+        yKey: 'totals.stock',
+    },
+    {
+        latKey: 'coordinates[0]',
+    },
+];
+```
+
+### style-src
+
+The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and stlyling canvases to accommodate for HiDPI screens.
+
+{% note %}
+Even though the `style-src` policy requires `unsafe-inline`, the specific way AG Charts uses it causes no actual security vulnerability.
+
+The reason is that AG Charts doesn't require `unsafe-inline` for scripts, but only for styles. The inline-style injection is only a problem if you allow users to upload their own content to your servers and then they can use injected styles to show that content over your page.
+
+Also, as styles aren't executed, a user would need to upload their own content to your servers and then reference it from an injected style. In order to fully prevent this scenario from occurring, we recommend sanitising user-uploaded content in your application to ensure that only valid content gets uploaded and fully prevent this risk.
+{% /note %}
+
+### img-src
+
+If you allow users to [download charts](./api-download/), or use [Background Images](./background-image/) using `data:` urls, the `img-src` policy will require the `data:` rule.
+
+### Summary
+
+In summary, the minimal rule to load a chart is:
+
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'" />
+```
+
+However if you are using all the features mentioned above, the rule is:
+
+```html
+<meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+/>
+```
+
+## Security Vulnerability Testing
+
+Applications may be required to pass an Application Security Test prior to being put into production. If your application is using AG Charts, you will want to make sure that AG Charts has also been tested for security vulnerabilities.
+
+AG Charts is tested for a wide variety of security vulnerabilities using the [SonarQube](https://www.sonarqube.org/) automatic security testing tool. SonarQube performs testing using a number of security rules, covering well-established security vulnerability standards such as CWE, SANS Top 25 and OWASP Top 10. For more details please refer to the section on [Security-related Rules](https://docs.sonarqube.org/latest/user-guide/security-rules/#header-2).
+
+## SonarQube Results
+
+The SonarQube security test results for our main NPM packages are shown below:
+
+| AG Charts Package                                                                                                                               | Result                                                                                                                                                       |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ag-charts-community{% br /%}ag-charts-enterprise{% br /%}ag-charts-angular{% br /%}ag-charts-react{% br /%}ag-charts-vue{% br /%}ag-charts-vue3 | [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=ag-charts-community)](https://sonarcloud.io/dashboard?id=ag-charts-community) |

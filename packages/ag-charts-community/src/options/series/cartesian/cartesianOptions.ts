@@ -1,3 +1,4 @@
+import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
     AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
@@ -41,6 +42,8 @@ export interface AgBaseCartesianChartOptions {
     axes?: AgCartesianAxisOptions[];
     /** Series configurations. */
     series?: AgCartesianSeriesOptions[];
+    /** Annotations configurations. */
+    annotations?: AgAnnotationsOptions;
 }
 
 export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {
@@ -204,6 +207,8 @@ export interface AgAxisTimeTickOptions extends AgAxisBaseTickOptions {
 }
 
 export interface AgAxisOrdinalTimeTickOptions extends AgAxisBaseTickOptions {
+    /** Maximum gap in pixels between tick lines. */
+    maxSpacing?: PixelSize;
     /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
     interval?: any;
 }

@@ -72,32 +72,29 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null) {
-            return;
-        }
+        if (!this.properties.isValid() || this.data == null || !this.visible) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const { xKey, yKey, sizeKey, labelKey, colorDomain, colorRange, colorKey, marker } = this.properties;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
-                keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(this, labelKey, false, { id: `labelKey-raw` })] : []),
-                valueProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
-                valueProperty(this, sizeKey, true, { id: `sizeValue` }),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
+                keyProperty(xKey, isContinuousX, { id: 'xKey-raw' }),
+                keyProperty(yKey, isContinuousY, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(labelKey, false, { id: `labelKey-raw` })] : []),
+                valueProperty(xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(yKey, isContinuousY, { id: `yValue` }),
+                valueProperty(sizeKey, true, { id: `sizeValue` }),
+                ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
+                ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
             ],
-            dataVisible: this.visible,
         });
 
-        const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
+        const sizeKeyIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
         const processedSize = processedData.domain.values[sizeKeyIdx] ?? [];
         this.sizeScale.domain = marker.domain ? marker.domain : processedSize;
 
         if (colorKey) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`);
             this.colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
             this.colorScale.range = colorRange;
             this.colorScale.update();
@@ -134,11 +131,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             return;
         }
 
-        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const sizeDataIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : -1;
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
-        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
+        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const sizeDataIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : -1;
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
+        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -194,7 +191,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             itemId: yKey,
             nodeData,
             labelData: nodeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
     }

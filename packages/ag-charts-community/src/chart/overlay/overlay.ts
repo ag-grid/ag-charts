@@ -31,13 +31,11 @@ export class Overlay extends BaseProperties {
     }
 
     getElement(animationManager: AnimationManager | undefined, rect: BBox) {
-        this.element ??= createElement('div');
-        this.element.classList.add(this.className, DEFAULT_OVERLAY_CLASS);
+        this.element ??= createElement('div', DEFAULT_OVERLAY_CLASS, { position: 'absolute' });
         this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
 
         const element = this.element;
 
-        element.style.position = 'absolute';
         element.style.left = `${rect.x}px`;
         element.style.top = `${rect.y}px`;
         element.style.width = `${rect.width}px`;
@@ -51,8 +49,7 @@ export class Overlay extends BaseProperties {
                 element.innerHTML = htmlContent;
             }
         } else {
-            const content = createElement('div');
-            Object.assign(content.style, {
+            const content = createElement('div', {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

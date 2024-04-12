@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     deproxy,
@@ -98,7 +99,7 @@ describe('MapLineSeries', () => {
             const seriesImpl = chart.series[0] as MapLineSeries;
             const node = seriesImpl['contextNodeData'].nodeData[i];
 
-            const highlightManager = (chart as any).highlightManager;
+            const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
             await compare();
         });

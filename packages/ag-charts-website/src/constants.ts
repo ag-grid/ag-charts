@@ -85,7 +85,7 @@ function calculateGridUrl() {
     if (SITE_URL == null) return;
 
     if (SITE_URL?.includes('localhost:4600')) {
-        return 'https://localhost:8000';
+        return 'https://localhost:4610';
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://grid-staging.ag-grid.com';
     }

@@ -75,6 +75,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     defaultAxes: T;
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
+    annotationThemes: any;
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
@@ -88,7 +89,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
-        const { axes: axesThemes = {}, series: _, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
+        const {
+            axes: axesThemes = {},
+            annotations: annotationsThemes = {},
+            series: _,
+            ...themeDefaults
+        } = this.getSeriesThemeConfig(chartType);
 
         this.processedOptions = deepClone(
             mergeDefaults(this.userOptions, themeDefaults, this.defaultAxes),
@@ -98,6 +104,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
         this.processMiniChartSeriesOptions(this.processedOptions);
+        this.processAnnotationsOptions(this.processedOptions, annotationsThemes);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -211,9 +218,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
             // Don't advance series index for background series
-            const seriesPaletteOptions = !unthemedSeries.has(series.type)
-                ? paletteOptions
-                : { colourIndex: 0, userPalette };
+            const seriesPaletteOptions = unthemedSeries.has(series.type)
+                ? { colourIndex: 0, userPalette }
+                : paletteOptions;
             const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
@@ -254,6 +261,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return this.activeTheme.templateTheme(seriesOptions);
         });
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
+    }
+
+    protected processAnnotationsOptions(options: T, annotationsThemes: any) {
+        if (!isAgCartesianChartOptions(options)) return;
+
+        if (options.annotations == null) return;
+
+        this.annotationThemes = annotationsThemes;
+
+        const processedAnnotations = options.annotations.initial?.map((annotation) => {
+            const annotationTheme = annotationsThemes[annotation.type];
+            return mergeDefaults(annotation, annotationTheme);
+        });
+
+        options.annotations.initial = processedAnnotations;
     }
 
     protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {
@@ -351,9 +373,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     protected getSeriesGroupId(series: GroupingSeriesOptions) {
-        if (!series.stacked && !series.grouped) {
-            return 'default-ag-charts-group';
-        }
         return [series.type, series.xKey, series.stacked ? series.stackGroup ?? 'stacked' : 'grouped']
             .filter(Boolean)
             .join('-');

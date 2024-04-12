@@ -44,7 +44,7 @@ export class ZoomRange {
     public extendWith(fn: (end: Date | number) => Date | number) {
         if (!this.domain) return;
 
-        const end = this.domain.at(-1);
+        const [, end] = this.domain;
         if (end == null) return;
 
         const start = fn(end);
@@ -57,11 +57,25 @@ export class ZoomRange {
         if (!changed) this.onChange?.(this.getRange());
     }
 
+    public updateWith(fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]) {
+        if (!this.domain) return;
+
+        let [start, end] = this.domain;
+        [start, end] = fn(start, end);
+
+        const changed = this.start !== start || this.end !== end;
+
+        this.end = end;
+        this.start = start;
+
+        // If neither start or end were changed, ensure we still call the `onChange` callback
+        if (!changed) this.onChange?.(this.getRange());
+    }
+
     public extendAll() {
         if (!this.domain) return;
 
-        const start = this.domain[0];
-        const end = this.domain.at(-1);
+        const [start, end] = this.domain;
 
         const changed = this.start !== start || this.end !== end;
 
@@ -80,32 +94,31 @@ export class ZoomRange {
             return isNumberAxis || isDateAxis;
         });
 
-        let domain = this.domain;
-
-        if (!validAxis) return domain != null;
+        if (!validAxis) return this.domain != null;
 
         let validAxisDomain = validAxis.domain;
 
-        // Ensure a valid comparison of date objects by mapping to timestamps
-        if (domain != null && domain[0] instanceof Date) {
-            domain = domain.map((d) => (d instanceof Date ? d.getTime() : d));
-            validAxisDomain = validAxisDomain.map((d) => (d instanceof Date ? d.getTime() : d));
+        if (validAxisDomain != null) {
+            // We only need to compare the extents of the domain, not the full category domain
+            validAxisDomain = [validAxisDomain[0], validAxisDomain.at(-1)];
+
+            // Ensure a valid comparison of date objects by mapping to timestamps
+            if (validAxisDomain[0] instanceof Date && validAxisDomain[1] instanceof Date) {
+                validAxisDomain = [validAxisDomain[0].getTime(), validAxisDomain[1].getTime()];
+            }
         }
 
-        const changed = domain == null || !_Util.areArrayItemsStrictlyEqual(domain, validAxisDomain);
+        const changed = this.domain == null || !_Util.areArrayItemsStrictlyEqual(this.domain, validAxisDomain);
 
         if (changed) {
-            this.domain = validAxis.domain;
+            this.domain = validAxisDomain;
         }
 
         return changed;
     }
 
     private getRangeWithValues(start?: Date | number, end?: Date | number) {
-        const { domain } = this;
-
-        let d0 = domain?.[0];
-        let d1 = domain?.at(-1);
+        let [d0, d1] = this.domain ?? [];
 
         if ((start == null && end == null) || d0 == null || d1 == null) return;
 

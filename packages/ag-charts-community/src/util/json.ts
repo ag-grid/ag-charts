@@ -206,7 +206,9 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 targetAny[property].set(newValue);
             } else if (newValueType === 'array') {
                 ctr ??= constructedArrays?.get(currentValue);
-                if (ctr != null) {
+                if (ctr == null) {
+                    targetAny[property] = newValue;
+                } else {
                     const newValueArray: any[] = newValue as any;
                     targetAny[property] = newValueArray.map((v) =>
                         jsonApply(new ctr!(), v, {
@@ -215,8 +217,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                             matcherPath: propertyMatcherPath + '[]',
                         })
                     );
-                } else {
-                    targetAny[property] = newValue;
                 }
             } else if (newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
@@ -227,15 +227,15 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,
                     });
-                } else if (ctr != null) {
-                    targetAny[property] = jsonApply(new ctr(), newValue, {
+                } else if (ctr == null) {
+                    targetAny[property] = {};
+                    jsonApply(targetAny[property], newValue as any, {
                         ...params,
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,
                     });
                 } else {
-                    targetAny[property] = {};
-                    jsonApply(targetAny[property], newValue as any, {
+                    targetAny[property] = jsonApply(new ctr(), newValue, {
                         ...params,
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,

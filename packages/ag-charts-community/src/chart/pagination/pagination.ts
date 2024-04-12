@@ -17,7 +17,7 @@ import {
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
-import type { InteractionEvent } from '../interaction/interactionManager';
+import type { PointerInteractionEvent } from '../interaction/interactionManager';
 import type { RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
@@ -314,21 +314,27 @@ export class Pagination extends BaseProperties {
         return !this.previousButtonDisabled && this.previousButton.containsPoint(offsetX, offsetY);
     }
 
-    private onPaginationClick(event: InteractionEvent<'click'>) {
+    public clickNext() {
+        this.incrementPage();
+        this.onPaginationChanged();
+    }
+
+    public clickPrevious() {
+        this.decrementPage();
+        this.onPaginationChanged();
+    }
+
+    private onPaginationClick(event: PointerInteractionEvent<'click'>) {
         const { offsetX, offsetY } = event;
 
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
-            this.incrementPage();
-            this.onPaginationChanged();
-            event.consume();
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
-            this.decrementPage();
-            this.onPaginationChanged();
+        const hitButton =
+            this.nextButtonContainsPoint(offsetX, offsetY) || this.previousButtonContainsPoint(offsetX, offsetY);
+        if (hitButton) {
             event.consume();
         }
     }
 
-    private onPaginationMouseMove(event: InteractionEvent<'hover'>) {
+    private onPaginationMouseMove(event: PointerInteractionEvent<'hover'>) {
         const { offsetX, offsetY } = event;
 
         if (this.nextButtonContainsPoint(offsetX, offsetY)) {

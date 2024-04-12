@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
@@ -17,8 +16,6 @@ import {
     waitForChartStability,
 } from '../test/utils';
 import * as examples from './test/examples';
-
-expect.extend({ toMatchImageSnapshot });
 
 const EXAMPLES: Record<string, TestCase> = {
     COLUMN_SERIES_LABELS: {

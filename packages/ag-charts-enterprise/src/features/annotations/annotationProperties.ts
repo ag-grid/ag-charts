@@ -1,15 +1,47 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BaseProperties, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, Validate } =
+const { BOOLEAN, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, BaseProperties, Validate } =
     _ModuleSupport;
 
-const DEFAULT_COLOR = 'rgb(30, 100, 255)';
+// --- Styles ---
+export class LineAnnotationStylesProperties extends BaseProperties {
+    @Validate(COLOR_STRING, { optional: true })
+    stroke?: string;
 
-export class AnnotationProperties extends BaseProperties {
-    @Validate(UNION(['line', 'crossline', 'parallel-channel', 'disjoint-channel']))
-    type: 'line' | 'crossline' | 'parallel-channel' | 'disjoint-channel' = 'line';
+    @Validate(RATIO, { optional: true })
+    strokeOpacity?: number;
 
-    // Handles
+    @Validate(NUMBER, { optional: true })
+    strokeWidth?: number;
+
+    @Validate(LINE_DASH, { optional: true })
+    lineDash?: number[];
+
+    @Validate(NUMBER, { optional: true })
+    lineDashOffset?: number;
+}
+
+export class ChannelAnnotationStylesProperties extends LineAnnotationStylesProperties {
+    @Validate(OBJECT, { optional: true })
+    middle = new LineAnnotationStylesProperties();
+
+    @Validate(OBJECT, { optional: true })
+    background = new AnnotationFillProperties();
+}
+
+// --- Annotations ---
+export class AnnotationProperties extends LineAnnotationStylesProperties {
+    @Validate(UNION(['line', 'parallel-channel']))
+    type: 'line' | 'parallel-channel' = 'line';
+
+    // Shared
+    @Validate(BOOLEAN, { optional: true })
+    locked?: boolean;
+
+    @Validate(BOOLEAN, { optional: true })
+    visible?: boolean;
+
+    @Validate(OBJECT, { optional: true })
     handle = new AnnotationHandleProperties();
 
     // Line
@@ -19,18 +51,6 @@ export class AnnotationProperties extends BaseProperties {
     @Validate(OBJECT, { optional: true })
     end = new AnnotationPointProperties();
 
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = DEFAULT_COLOR;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = 1;
-
-    @Validate(NUMBER, { optional: true })
-    strokeWidth?: number = 2;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[];
-
     // Channel
     @Validate(OBJECT, { optional: true })
     top = new AnnotationLinePointsProperties();
@@ -39,7 +59,7 @@ export class AnnotationProperties extends BaseProperties {
     bottom = new AnnotationLinePointsProperties();
 
     @Validate(OBJECT, { optional: true })
-    middle = new AnnotationMiddleLineProperties();
+    middle = new LineAnnotationStylesProperties();
 
     @Validate(OBJECT, { optional: true })
     background = new AnnotationFillProperties();
@@ -55,7 +75,7 @@ export class AnnotationLinePointsProperties extends BaseProperties {
 
 export class AnnotationHandleProperties extends BaseProperties {
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = 'rgb(255, 255, 255)';
+    fill?: string;
 
     @Validate(COLOR_STRING, { optional: true })
     stroke?: string;
@@ -65,34 +85,23 @@ export class AnnotationHandleProperties extends BaseProperties {
 
     @Validate(LINE_DASH, { optional: true })
     lineDash?: number[];
+
+    @Validate(NUMBER, { optional: true })
+    lineDashOffset?: number;
 }
 
 export class AnnotationPointProperties extends BaseProperties {
     @Validate(OR(STRING, NUMBER, DATE))
-    x: string | number | Date = 0;
+    x?: string | number | Date;
 
     @Validate(OR(STRING, NUMBER, DATE))
-    y: string | number | Date = 0;
-}
-
-export class AnnotationMiddleLineProperties extends BaseProperties {
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = DEFAULT_COLOR;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = 1;
-
-    @Validate(NUMBER, { optional: true })
-    strokeWidth?: number = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [6, 5];
+    y?: string | number | Date;
 }
 
 export class AnnotationFillProperties extends BaseProperties {
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = DEFAULT_COLOR;
+    fill?: string;
 
     @Validate(RATIO, { optional: true })
-    fillOpacity?: number = 0.2;
+    fillOpacity?: number;
 }

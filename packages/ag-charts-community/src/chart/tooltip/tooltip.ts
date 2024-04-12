@@ -1,5 +1,4 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
-import { BBox } from '../../scene/bbox';
 import { createElement, getDocument, getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { Bounds, calculatePlacement } from '../../util/placement';
@@ -16,7 +15,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { InteractionEvent, PointerOffsets } from '../interaction/interactionManager';
+import type { PointerInteractionEvent, PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -33,9 +32,11 @@ type TooltipPositionType =
     | 'bottom-right'
     | 'bottom-left';
 
+export type TooltipPointerEvent<T extends 'hover' | 'keyboard' = 'hover' | 'keyboard'> = PointerOffsets & { type: T };
+
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
-    lastPointerEvent?: PointerOffsets;
+    lastPointerEvent?: TooltipPointerEvent;
     position?: {
         type?: TooltipPositionType;
         xOffset?: number;
@@ -141,10 +142,9 @@ export class Tooltip extends BaseProperties {
     constructor() {
         super();
 
-        this.element = createElement('div');
-        this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
+        this.element = createElement('div', DEFAULT_TOOLTIP_CLASS);
 
-        this.root = getDocument().body;
+        this.root = getDocument('body');
         this.root.appendChild(this.element);
     }
 
@@ -175,9 +175,7 @@ export class Tooltip extends BaseProperties {
         const yOffset = meta.position?.yOffset ?? 0;
 
         const tooltipBounds = this.getTooltipBounds({ positionType, meta, yOffset, xOffset, canvasRect });
-        const windowBounds = this.getWindowBoundingBox();
-        const maxLeft = windowBounds.x + windowBounds.width - element.clientWidth - 1;
-        const maxTop = windowBounds.y + windowBounds.height - element.clientHeight;
+        const windowBounds = this.getWindowSize();
 
         const position = calculatePlacement(
             element.clientWidth,
@@ -190,8 +188,8 @@ export class Tooltip extends BaseProperties {
         position.x += canvasRect.x;
         position.y += canvasRect.y;
 
-        const left = clamp(windowBounds.x, position.x, maxLeft);
-        const top = clamp(windowBounds.y, position.y, maxTop);
+        const left = clamp(0, position.x, windowBounds.width - element.clientWidth - 1);
+        const top = clamp(0, position.y, windowBounds.height - element.clientHeight);
 
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
@@ -213,9 +211,9 @@ export class Tooltip extends BaseProperties {
         }
     }
 
-    private getWindowBoundingBox(): BBox {
+    private getWindowSize() {
         const { innerWidth, innerHeight } = getWindow();
-        return new BBox(0, 0, innerWidth, innerHeight);
+        return { width: innerWidth, height: innerHeight };
     }
 
     toggle(visible: boolean) {
@@ -260,7 +258,7 @@ export class Tooltip extends BaseProperties {
         }
     }
 
-    pointerLeftOntoTooltip(event: InteractionEvent<'leave'>): boolean {
+    pointerLeftOntoTooltip(event: PointerInteractionEvent<'leave'>): boolean {
         if (!this.enableInteraction) return false;
 
         const classList = ((event.sourceEvent as MouseEvent).relatedTarget as any)?.classList as DOMTokenList;

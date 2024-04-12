@@ -44,7 +44,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { InteractionEvent } from '../interaction/interactionManager';
+import type { PointerInteractionEvent } from '../interaction/interactionManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
@@ -256,7 +256,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ) {
         this.refreshScale();
 
-        this._titleCaption.registerInteraction(this.moduleCtx);
+        this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx, 'root'));
         this._titleCaption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this._titleCaption.node);
 
@@ -458,7 +458,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return new AxisLabel();
     }
 
-    private checkAxisHover(event: InteractionEvent<'hover'>) {
+    private checkAxisHover(event: PointerInteractionEvent<'hover'>) {
         if (!this.interactionEnabled) return;
 
         const bbox = this.computeBBox();
@@ -537,7 +537,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + label.padding + this.seriesAreaPadding);
-        const visible = text !== '' && text != undefined;
+        const visible = text !== '' && text != null;
         return {
             tickId: datum.tickId,
             translationY: datum.translationY,
@@ -1097,7 +1097,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
             ticks.push({ tick: rawTick, tickId, tickLabel, translationY: Math.floor(translationY) });
 
-            if (tickLabel === '' || tickLabel == undefined) {
+            if (tickLabel === '' || tickLabel == null) {
                 continue;
             }
             labelCount++;
@@ -1165,10 +1165,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
         clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
 
+        // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
         const maxTickCount = clamp(
             1,
             Math.floor(rangeWithBleed / minSpacing),
-            clampMaxTickCount ? Math.floor(rangeWithBleed / minRectDistance) : Infinity
+            clampMaxTickCount ? Math.min(Math.floor(rangeWithBleed / minRectDistance), 100) : 100
         );
         const minTickCount = Math.min(maxTickCount, Math.ceil(rangeWithBleed / maxSpacing));
         const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
@@ -1450,8 +1451,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
     }
 
-    calculatePadding(min: number, max: number, reverse: boolean): [number, number] {
-        const padding = Math.abs(reverse ? max : min) * 0.01;
+    calculatePadding(min: number, max: number): [number, number] {
+        const padding = Math.abs(this.reverse ? max : min) * 0.01;
         return [padding, padding];
     }
 

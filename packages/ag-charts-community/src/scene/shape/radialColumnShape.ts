@@ -1,6 +1,6 @@
 import { angleBetween, normalizeAngle360 } from '../../util/angle';
 import { isEqual } from '../../util/number';
-import { Path2D } from '../path2D';
+import { ExtendedPath2D } from '../extendedPath2D';
 import { Path, ScenePathChangeDetection } from './path';
 
 function rotatePoint(x: number, y: number, rotation: number) {
@@ -16,7 +16,7 @@ function rotatePoint(x: number, y: number, rotation: number) {
 export class RadialColumnShape extends Path {
     static override readonly className = 'RadialColumnShape';
 
-    readonly borderPath = new Path2D();
+    readonly borderPath = new ExtendedPath2D();
 
     @ScenePathChangeDetection()
     isBeveled: boolean = true;
@@ -80,7 +80,7 @@ export class RadialColumnShape extends Path {
             [left, bottom],
         ].map(([x, y]) => rotatePoint(x, y, rotation));
 
-        path.clear({ trackChanges: true });
+        path.clear(true);
 
         path.moveTo(points[0].x, points[0].y);
         path.lineTo(points[1].x, points[1].y);
@@ -131,7 +131,7 @@ export class RadialColumnShape extends Path {
             right = bottomIntersectionX;
         }
 
-        path.clear({ trackChanges: true });
+        path.clear(true);
 
         // Bottom-left point
         const bottomLeftPt = rotate(left, bottom);

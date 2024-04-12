@@ -1,12 +1,12 @@
 import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationProperties } from '../annotationProperties';
-import type { Coords, LineCoords } from '../annotationTypes';
+import { AnnotationType, type Coords, type LineCoords } from '../annotationTypes';
 import { Annotation } from './annotation';
 import { DivariantHandle, UnivariantHandle } from './handle';
 import { CollidableLine } from './shapes';
 
-type ChannelHandle = 'topLeft' | 'topMiddle' | 'topRight' | 'bottomLeft' | 'bottomMiddle' | 'bottomRight';
+type ChannelHandle = keyof Channel['handles'];
 
 export class Channel extends Annotation {
     type = 'channel';
@@ -35,13 +35,16 @@ export class Channel extends Annotation {
     }
 
     public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, top?: LineCoords, bottom?: LineCoords) {
+        const { locked, visible } = datum;
+
+        this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
         if (top == null || bottom == null) {
             this.visible = false;
             return;
         } else {
-            this.visible = true;
+            this.visible = visible ?? true;
         }
 
         this.updateLines(datum, top, bottom);
@@ -49,9 +52,20 @@ export class Channel extends Annotation {
         this.updateBackground(datum, top, bottom);
     }
 
-    override toggleHandles(show: boolean) {
+    override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
+        if (typeof show === 'boolean') {
+            show = {
+                topLeft: show,
+                topMiddle: show,
+                topRight: show,
+                bottomLeft: show,
+                bottomMiddle: show,
+                bottomRight: show,
+            };
+        }
+
         for (const [handle, node] of Object.entries(this.handles)) {
-            node.visible = show;
+            node.visible = show[handle as ChannelHandle] ?? true;
             node.toggleHovered(this.activeHandle === handle);
         }
     }
@@ -63,7 +77,11 @@ export class Channel extends Annotation {
         }
     }
 
-    override dragHandle(datum: AnnotationProperties, target: Coords, invertPoint: (point: Coords) => Coords) {
+    override dragHandle(
+        datum: AnnotationProperties,
+        target: Coords,
+        invertPoint: (point: Coords) => Coords | undefined
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -91,14 +109,22 @@ export class Channel extends Annotation {
                 break;
         }
 
-        for (const move of moves) {
-            const invertedMove = invertPoint({
+        const invertedMoves = moves.map((move) =>
+            invertPoint({
                 x: handles[move].handle.x + offset.x,
                 y: handles[move].handle.y + offset.y,
-            });
-            const datumPoint = this.getHandleDatumPoint(move, datum);
-            datumPoint.x = invertedMove.x;
-            datumPoint.y = invertedMove.y;
+            })
+        );
+
+        // Do not move any handles if some of them are trying to move to invalid points
+        if (invertedMoves.some((invertedMove) => invertedMove === undefined)) {
+            return;
+        }
+
+        for (const [index, invertedMove] of invertedMoves.entries()) {
+            const datumPoint = this.getHandleDatumPoint(moves[index], datum);
+            datumPoint.x = invertedMove!.x;
+            datumPoint.y = invertedMove!.y;
         }
     }
 
@@ -134,39 +160,38 @@ export class Channel extends Annotation {
 
     private updateLines(datum: AnnotationProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
-        const { stroke, strokeWidth, strokeOpacity } = datum;
+        const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
+
+        const lineStyles = { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth };
 
         topLine.setProperties({
             x1: top.x1,
             y1: top.y1,
             x2: top.x2,
             y2: top.y2,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
+            ...lineStyles,
         });
         bottomLine.setProperties({
             x1: bottom.x1,
             y1: bottom.y1,
             x2: bottom.x2,
             y2: bottom.y2,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
+            ...lineStyles,
         });
         topLine.updateCollisionBBox();
         bottomLine.updateCollisionBBox();
 
-        if (datum.type === 'parallel-channel') {
+        if (datum.type === AnnotationType.ParallelChannel) {
             middleLine.setProperties({
                 x1: top.x1,
                 y1: bottom.y1 + (top.y1 - bottom.y1) / 2,
                 x2: top.x2,
                 y2: bottom.y2 + (top.y2 - bottom.y2) / 2,
-                stroke: datum.middle.stroke,
-                strokeWidth: datum.middle.strokeWidth,
-                strokeOpacity: datum.middle.strokeOpacity,
-                lineDash: datum.middle.lineDash,
+                lineDash: datum.middle.lineDash ?? lineDash,
+                lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
+                stroke: datum.middle.stroke ?? stroke,
+                strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
+                strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
             });
         } else {
             middleLine.visible = false;
@@ -177,12 +202,11 @@ export class Channel extends Annotation {
         const {
             handles: { topLeft, topMiddle, topRight, bottomLeft, bottomMiddle, bottomRight },
         } = this;
-        const { stroke, strokeOpacity } = datum;
 
         const handleStyles = {
-            ...datum.handle.toJson(),
-            stroke,
-            strokeOpacity,
+            fill: datum.handle.fill,
+            stroke: datum.handle.stroke ?? datum.stroke,
+            strokeOpacity: datum.handle.strokeOpacity ?? datum.strokeOpacity,
         };
 
         topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });
@@ -203,9 +227,6 @@ export class Channel extends Annotation {
 
     private updateBackground(datum: AnnotationProperties, top: LineCoords, bottom: LineCoords) {
         const { background } = this;
-        const {
-            background: { fill, fillOpacity },
-        } = datum;
 
         background.path.clear();
         background.path.moveTo(top.x1, top.y1);
@@ -214,7 +235,10 @@ export class Channel extends Annotation {
         background.path.lineTo(bottom.x1, bottom.y1);
         background.path.closePath();
         background.checkPathDirty();
-        background.setProperties({ fill, fillOpacity });
+        background.setProperties({
+            fill: datum.background.fill,
+            fillOpacity: datum.background.fillOpacity,
+        });
     }
 
     private getHandleDatumPoint(

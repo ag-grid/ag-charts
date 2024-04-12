@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
 
-const { Path, Path2D, BBox, ScenePathChangeDetection } = _Scene;
+const { Path, ExtendedPath2D, BBox, ScenePathChangeDetection } = _Scene;
 
 export enum GeoGeometryRenderMode {
     All = 0b11,
@@ -20,7 +20,7 @@ export class GeoGeometry extends Path {
 
     private bbox: _Scene.BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
-    private strokePath = new Path2D();
+    private strokePath = new ExtendedPath2D();
 
     override computeBBox(): _Scene.BBox | undefined {
         if (this.dirtyPath || this.isDirtyPath()) {
@@ -43,8 +43,7 @@ export class GeoGeometry extends Path {
     override drawPath(ctx: any) {
         super.drawPath(ctx);
 
-        this.strokePath.draw(ctx);
-        this.renderStroke(ctx);
+        this.renderStroke(ctx, this.strokePath.getPath2D());
     }
 
     override containsPoint(x: number, y: number): boolean {
@@ -148,7 +147,7 @@ export class GeoGeometry extends Path {
     }
 
     private drawPolygon(
-        path: _Scene.Path2D,
+        path: _Scene.ExtendedPath2D,
         polygons: _ModuleSupport.Position[][],
         bbox: _Scene.BBox | undefined
     ): _Scene.BBox | undefined {
@@ -164,7 +163,7 @@ export class GeoGeometry extends Path {
     }
 
     private drawLineString(
-        path: _Scene.Path2D,
+        path: _Scene.ExtendedPath2D,
         coordinates: _ModuleSupport.Position[],
         bbox: _Scene.BBox | undefined,
         isClosed: boolean

@@ -36,13 +36,16 @@ import {
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
-import { InteractionEvent, InteractionState } from './interaction/interactionManager';
+import { InteractionState, PointerInteractionEvent } from './interaction/interactionManager';
+import type { KeyNavEvent } from './interaction/keyNavManager';
+import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
+import type { Marker } from './marker/marker';
 import { MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
-import { toTooltipHtml } from './tooltip/tooltip';
+import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -236,6 +239,12 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
+            region.addListener('blur', (e) => this.onBlur(e)),
+            region.addListener('tab', (e) => this.onTab(e)),
+            region.addListener('tab-start', (e) => this.onTabStart(e)),
+            region.addListener('nav-vert', (e) => this.onNavVert(e)),
+            region.addListener('nav-hori', (e) => this.onNavHori(e)),
+            region.addListener('submit', (e) => this.onSubmit(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -589,6 +598,22 @@ export class Legend extends BaseProperties {
         return { maxPageWidth, maxPageHeight, pages, paginationBBox, paginationVertical };
     }
 
+    private getRowCount(): number {
+        if (this.pages.length > 0 && this.pages[0].columns.length > 0) {
+            return this.pages[0].columns[0].indices.length;
+        } else {
+            return 0;
+        }
+    }
+
+    private getColumnCount(): number {
+        if (this.pages.length > 0) {
+            return this.pages[0].columns.length;
+        } else {
+            return 0;
+        }
+    }
+
     private updatePositions(pageNumber: number = 0) {
         const {
             item: { paddingY },
@@ -607,7 +632,7 @@ export class Legend extends BaseProperties {
         let y = 0;
 
         const columnCount = columns.length;
-        const rowCount = columns[0].indices.length;
+        const rowCount = this.getRowCount();
         const horizontal = this.getOrientation() === 'horizontal';
 
         const itemHeight = columns[0].bboxes[0].height + paddingY;
@@ -748,25 +773,30 @@ export class Legend extends BaseProperties {
         return actualBBox;
     }
 
-    private checkLegendClick(event: InteractionEvent<'click'>) {
+    private checkLegendClick(event: PointerInteractionEvent<'click'>) {
+        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        if (this.doClick(datum)) {
+            event.consume();
+        }
+    }
+
+    private doClick(datum: CategoryLegendDatum | undefined): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
             item: { toggleSeriesVisible },
             preventHidingAll,
         } = this;
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
 
         if (!datum) {
-            return;
+            return false;
         }
 
         const { id, itemId, enabled } = datum;
         const series = chartService.series.find((s) => s.id === id);
         if (!series) {
-            return;
+            return false;
         }
-        event.consume();
 
         let newEnabled = enabled;
         if (toggleSeriesVisible) {
@@ -798,9 +828,10 @@ export class Legend extends BaseProperties {
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
         legendItemClick?.({ type: 'click', enabled: newEnabled, itemId, seriesId: series.id });
+        return true;
     }
 
-    private checkLegendDoubleClick(event: InteractionEvent<'dblclick'>) {
+    private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
@@ -845,13 +876,8 @@ export class Legend extends BaseProperties {
         legendItemDoubleClick?.({ type: 'dblclick', enabled: true, itemId, seriesId: series.id });
     }
 
-    private handleLegendMouseMove(event: InteractionEvent<'hover'>) {
-        const {
-            enabled,
-            item: { toggleSeriesVisible },
-            listeners,
-        } = this;
-        if (!enabled) {
+    private handleLegendMouseMove(event: PointerInteractionEvent<'hover'>) {
+        if (!this.enabled) {
             return;
         }
 
@@ -861,7 +887,16 @@ export class Legend extends BaseProperties {
         event.consume();
 
         const datum = this.getDatumForPoint(offsetX, offsetY);
-        if (datum === undefined) {
+        this.doHover(event, datum);
+    }
+
+    private doHover(event: TooltipPointerEvent | undefined, datum: CategoryLegendDatum | undefined) {
+        const {
+            item: { toggleSeriesVisible },
+            listeners,
+        } = this;
+
+        if (event === undefined || datum === undefined) {
             this.ctx.cursorManager.updateCursor(this.id);
             this.ctx.highlightManager.updateHighlight(this.id);
             return;
@@ -869,6 +904,7 @@ export class Legend extends BaseProperties {
 
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
+            const { offsetX, offsetY } = event;
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
                 { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
@@ -893,7 +929,11 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseExit(_event: InteractionEvent<'leave'>) {
+    private handleLegendMouseExit(_event: PointerInteractionEvent<'leave'>) {
+        this.doMouseExit();
+    }
+
+    private doMouseExit() {
         this.ctx.cursorManager.updateCursor(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
         // Updating the highlight can interrupt animations, so only clear the highlight if the chart
@@ -903,7 +943,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseEnter(event: InteractionEvent<'enter'>) {
+    private handleLegendMouseEnter(event: PointerInteractionEvent<'enter'>) {
         const {
             enabled,
             item: { toggleSeriesVisible: toggle },
@@ -912,6 +952,118 @@ export class Legend extends BaseProperties {
         const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
         if (enabled && datum !== undefined && (toggle || clickListener != null || dblclickListener != null)) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
+        }
+    }
+
+    private focus: { mode: 'item' | 'page'; pageButton: 'next' | 'prev'; row: number; column: number } = {
+        mode: 'item',
+        pageButton: 'next',
+        row: 0,
+        column: 0,
+    };
+
+    private onBlur(_event: KeyNavEvent<'blur'>) {
+        this.doMouseExit();
+        this.ctx.regionManager.updateFocusIndicatorRect(undefined);
+    }
+
+    private onTab(_event: KeyNavEvent<'tab'>) {
+        this.updateFocus();
+    }
+
+    private onTabStart(event: KeyNavEvent<'tab-start'>) {
+        if (!this.pagination.visible || !this.pagination.enabled) return;
+
+        // Tab forward/backward between the items and pagination buttons.
+        // Consuming the 'tab-start' event prevents to RegionManager from dispatch 'tab' events.
+        const consumeTabStart = (newMode: Legend['focus']['mode']) => {
+            this.focus.mode = newMode;
+            this.updateFocus();
+            event.consume();
+            event.interactionEvent.consume();
+            event.interactionEvent.sourceEvent.preventDefault();
+        };
+        if (this.focus.mode === 'item' && event.delta === 1) {
+            consumeTabStart('page');
+        } else if (this.focus.mode === 'page' && event.delta === -1) {
+            consumeTabStart('item');
+        }
+    }
+
+    private onNavVert(event: KeyNavEvent<'nav-vert'>) {
+        if (this.focus.mode === 'item') {
+            const newRow = this.focus.row + event.delta;
+            const maxRow = Math.max(this.getRowCount() - 1, 0);
+            this.focus.row = clamp(0, newRow, maxRow);
+            this.updateFocus();
+        }
+    }
+
+    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
+        if (this.focus.mode === 'item') {
+            const newCol = this.focus.column + event.delta;
+            const maxCol = Math.max(this.getColumnCount() - 1, 0);
+            this.focus.column = clamp(0, newCol, maxCol);
+            this.updateFocus();
+        } else if (this.focus.mode === 'page') {
+            if (event.delta < 0) this.focus.pageButton = 'prev';
+            if (event.delta > 0) this.focus.pageButton = 'next';
+            this.updateFocus();
+        }
+    }
+
+    private onSubmit(_event: KeyNavEvent<'submit'>) {
+        if (this.focus.mode === 'item') {
+            this.doClick(this.getFocusedItem().datum);
+        } else if (this.focus.mode === 'page') {
+            if (this.focus.pageButton === 'next') this.pagination.clickNext();
+            if (this.focus.pageButton === 'prev') this.pagination.clickPrevious();
+            // Reset the item focus (row/col indices might be out-of-bounds in this new page):
+            this.focus.row = 0;
+            this.focus.column = 0;
+        }
+    }
+
+    private getFocusedItem(): { node?: MarkerLabel; datum?: CategoryLegendDatum } {
+        if (this.focus.mode !== 'item') {
+            Logger.error(`getFocusedItem() should be called only when focus.mode is 'item'`);
+            return { node: undefined, datum: undefined };
+        }
+
+        const { row, column } = this.focus;
+        const nodeIndex = this.pages[this.pagination.currentPage].columns[column].indices[row];
+        if (nodeIndex < 0) {
+            Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
+            return { node: undefined, datum: undefined };
+        }
+
+        const node = this.itemSelection.nodes()[nodeIndex];
+        const data = this.data;
+        let datum: CategoryLegendDatum | undefined;
+        if (nodeIndex < data.length) {
+            datum = this.data[nodeIndex];
+        } else {
+            Logger.error(`Cannot access datum[${nodeIndex}]`);
+        }
+
+        return { node, datum };
+    }
+
+    private getFocusedPaginationButton(): Marker {
+        const { focus, pagination } = this;
+        if (focus.mode !== 'page') {
+            Logger.error(`getFocusedPaginationItem() should be called only when focus.mode is 'page'`);
+        }
+        return focus.pageButton === 'next' ? pagination.nextButton : pagination.previousButton;
+    }
+
+    private updateFocus() {
+        if (this.focus.mode === 'item') {
+            const { node, datum } = this.getFocusedItem();
+            this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, node), datum);
+        } else if (this.focus.mode === 'page') {
+            const button = this.getFocusedPaginationButton();
+            this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
         }
     }
 

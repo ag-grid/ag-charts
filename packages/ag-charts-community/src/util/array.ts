@@ -6,8 +6,7 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
     let min = Infinity;
     let max = -Infinity;
 
-    for (const v of values) {
-        let n = v;
+    for (let n of values) {
         if (n instanceof Date) {
             n = n.getTime();
         }
@@ -73,7 +72,7 @@ export function arraysEqual(a: any[], b: any[]): boolean {
     return true;
 }
 
-export function toArray<T>(value: T): T[] {
+export function toArray<T>(value: T | T[] | undefined): T[] {
     if (typeof value === 'undefined') {
         return [];
     }
@@ -107,6 +106,25 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
 export function bifurcate<T>(isLeft: (array: T) => boolean, array: T[]): [T[], T[]] {
     return array.reduce(
         ([left, right], value) => (isLeft(value) ? [[...left, value], right] : [left, [...right, value]]),
-        [[] as T[], [] as T[]]
+        [[], []] as [T[], T[]]
     );
+}
+
+export function* mapIterable<Src, Dst>(src: Iterable<Src>, predicate: (e: Src) => Dst): Iterable<Dst> {
+    for (const e of src) {
+        yield predicate(e);
+    }
+}
+
+function constStringsIncludes<T extends string>(array: readonly T[], value: string): boolean {
+    const casting: readonly string[] = array;
+    return casting.includes(value);
+}
+
+function isInStringUnion<T extends string>(unionValues: readonly T[], value: string): value is T {
+    return constStringsIncludes(unionValues, value);
+}
+
+export function allInStringUnion<T extends string>(unionValues: readonly T[], values: string[]): values is T[] {
+    return !values.some((v: string) => !isInStringUnion(unionValues, v));
 }

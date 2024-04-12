@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { fail } from 'assert';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from '../options/agChartOptions';
 import type { Node } from '../scene/node';
@@ -21,8 +20,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Chart', () => {
     setupMockConsole();
@@ -357,7 +354,7 @@ describe('Chart', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.datum[params.angleKey]],
             getHighlightNode: (chartInstance, series) => {
                 // Returns a highlighted sector
-                const highlightedDatum = chartInstance.highlightManager.getActiveHighlight();
+                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find(
                     (child: any) => child?.datum?.itemId === highlightedDatum.itemId
                 );

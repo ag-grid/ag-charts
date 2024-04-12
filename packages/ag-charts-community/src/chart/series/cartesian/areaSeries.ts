@@ -105,8 +105,8 @@ export class AreaSeries extends CartesianSeries<
 
         const extraProps = [];
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(this, [ids[0], ids[1], ids[4]], normalizedTo, 'range'));
-            extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
         }
 
         // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
@@ -117,7 +117,7 @@ export class AreaSeries extends CartesianSeries<
             extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
@@ -129,29 +129,29 @@ export class AreaSeries extends CartesianSeries<
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(this, yKey, isContinuousY, { id: `yValueRaw`, ...common }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window', 'current', {
+                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                valueProperty(yKey, isContinuousY, { id: `yValueRaw`, ...common }),
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'current', {
                     id: `yValueEnd`,
                     ...common,
                     groupId: ids[0],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window-trailing', 'current', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'current', {
                     id: `yValueStart`,
                     ...common,
                     groupId: ids[1],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window', 'last', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'last', {
                     id: `yValuePreviousEnd`,
                     ...common,
                     groupId: ids[2],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window-trailing', 'last', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'last', {
                     id: `yValuePreviousStart`,
                     ...common,
                     groupId: ids[3],
                 }),
-                ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
+                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
                     id: `yValueCumulative`,
                     ...common,
                     groupId: ids[4],
@@ -225,10 +225,10 @@ export class AreaSeries extends CartesianSeries<
             `yValueCumulative`,
         ]);
 
-        const createMovePoint = (plainPoint: AreaPathPoint) => {
-            const { point, ...stroke } = plainPoint;
-            return { ...stroke, point: { ...point, moveTo: true } };
-        };
+        const createMovePoint = (plainPoint: AreaPathPoint) => ({
+            ...plainPoint,
+            point: { ...plainPoint.point, moveTo: true },
+        });
 
         const createPathCoordinates = (xValue: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
             const x = xScale.convert(xValue) + xOffset;
@@ -271,7 +271,7 @@ export class AreaSeries extends CartesianSeries<
             strokeData: { itemId, points: [] },
             labelData,
             nodeData: markerData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
         };
@@ -464,7 +464,7 @@ export class AreaSeries extends CartesianSeries<
         const { fillData } = contextData;
         const [fill] = paths;
         const { path: fillPath } = fill;
-        fillPath.clear({ trackChanges: true });
+        fillPath.clear(true);
 
         let lastPoint: { x: number; y: number; moveTo?: boolean } | undefined;
         for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints!))) {
@@ -489,7 +489,7 @@ export class AreaSeries extends CartesianSeries<
         const { strokeData } = contextData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
-        strokePath.clear({ trackChanges: true });
+        strokePath.clear(true);
         for (const { point } of strokeData.points) {
             if (point.moveTo) {
                 strokePath.moveTo(point.x, point.y);

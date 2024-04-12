@@ -1,23 +1,104 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import type { CandlestickGroup } from './candlestickGroup';
-import type { CandlestickNodeDatum } from './candlestickTypes';
+import type { CandlestickBaseGroup } from './candlestickGroup';
+import type { CandlestickNodeBaseDatum, CandlestickNodeDatum } from './candlestickTypes';
 
-export function prepareCandlestickFromTo(isVertical: boolean) {
-    const from = isVertical ? { scalingX: 1, scalingY: 0 } : { scalingX: 0, scalingY: 1 };
-    const to = { scalingX: 1, scalingY: 1 };
+const { NODE_UPDATE_STATE_TO_PHASE_MAPPING } = _ModuleSupport;
 
-    return { from, to };
+export type AnimatableCandlestickGroupDatum = {
+    x?: number;
+    y?: number;
+    yBottom?: number;
+    yHigh?: number;
+    yLow?: number;
+    width?: number;
+    height?: number;
+};
+
+export function resetCandlestickSelectionsFn(
+    _node: CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+    datum: CandlestickNodeBaseDatum
+) {
+    return getCoordinates(datum);
 }
 
-export function resetCandlestickSelectionsScalingStartFn(
-    isVertical: boolean
-): (node: CandlestickGroup, datum: CandlestickNodeDatum) => { scalingCenterY: number } | { scalingCenterX: number } {
-    return (_node, datum) => {
-        if (isVertical) {
-            const maxOrMin = datum.itemId === 'up' ? Math.max : Math.min;
-            return { scalingCenterY: maxOrMin(datum.scaledValues.highValue, datum.scaledValues.lowValue) };
+export function prepareCandlestickAnimationFunctions() {
+    const fromFn: _ModuleSupport.FromToMotionPropFn<
+        CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        AnimatableCandlestickGroupDatum,
+        CandlestickNodeBaseDatum
+    > = (
+        candlestickGroup: CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        datum: CandlestickNodeBaseDatum,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
+        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
+
+        if (status === 'added' && datum != null) {
+            const { x, yLow, yHigh, width } = getCoordinates(datum);
+            const collapsedY = datum.itemId === 'up' ? yLow : yHigh;
+            return {
+                x,
+                y: collapsedY,
+                yBottom: collapsedY,
+                yHigh: collapsedY,
+                yLow: collapsedY,
+                width,
+                height: 0,
+                phase,
+            };
         }
-        return { scalingCenterX: datum.scaledValues.highValue };
+
+        return {
+            x: candlestickGroup.x,
+            y: candlestickGroup.y,
+            yBottom: candlestickGroup.yBottom,
+            yHigh: candlestickGroup.yHigh,
+            yLow: candlestickGroup.yLow,
+            width: candlestickGroup.width,
+            height: candlestickGroup.height,
+            phase,
+        };
+    };
+    const toFn: _ModuleSupport.FromToMotionPropFn<
+        CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        AnimatableCandlestickGroupDatum,
+        CandlestickNodeBaseDatum
+    > = (
+        _: CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
+        datum: CandlestickNodeBaseDatum,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
+        if (status === 'removed') {
+            const { x, yLow, yHigh, width } = getCoordinates(datum);
+            const collapsedY = datum.itemId === 'up' ? yLow : yHigh;
+            return { x, y: collapsedY, yBottom: collapsedY, yHigh: collapsedY, yLow: collapsedY, width, height: 0 };
+        }
+
+        return getCoordinates(datum);
+    };
+
+    return { toFn, fromFn };
+}
+
+function getCoordinates(datum: CandlestickNodeDatum) {
+    const {
+        bandwidth,
+        scaledValues: { xValue: x, openValue, closeValue, highValue, lowValue },
+    } = datum;
+
+    const y = Math.min(openValue, closeValue);
+    const yBottom = isNaN(openValue) ? closeValue : Math.max(openValue, closeValue);
+    const yHigh = Math.min(highValue, lowValue);
+    const yLow = Math.max(highValue, lowValue);
+
+    return {
+        x,
+        y,
+        yBottom,
+        yHigh,
+        yLow,
+        width: bandwidth,
+        height: yBottom - y,
     };
 }

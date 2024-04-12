@@ -24,31 +24,51 @@ export class Line extends Annotation {
 
     public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, coords?: LineCoords) {
         const { line, start, end } = this;
-        const { stroke, strokeWidth, strokeOpacity } = datum;
+        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
 
+        this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
         if (coords == null) {
             this.visible = false;
             return;
         } else {
-            this.visible = true;
+            this.visible = visible ?? true;
         }
 
         const { x1, y1, x2, y2 } = coords;
 
-        line.setProperties({ x1, y1, x2, y2, stroke, strokeWidth, strokeOpacity, fillOpacity: 0 });
+        line.setProperties({
+            x1,
+            y1,
+            x2,
+            y2,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            fillOpacity: 0,
+        });
         line.updateCollisionBBox();
 
-        const handleStyles = datum.handle.toJson();
+        const handleStyles = {
+            fill: datum.handle.fill,
+            stroke: datum.handle.stroke ?? stroke,
+            strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
+        };
 
-        start.update({ ...handleStyles, x: x1, y: y1, stroke, strokeOpacity });
-        end.update({ ...handleStyles, x: x2, y: y2, stroke, strokeOpacity });
+        start.update({ ...handleStyles, x: x1, y: y1 });
+        end.update({ ...handleStyles, x: x2, y: y2 });
     }
 
-    public toggleHandles(show: boolean) {
-        this.start.visible = show;
-        this.end.visible = show;
+    public toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
+        if (typeof show === 'boolean') {
+            show = { start: show, end: show };
+        }
+
+        this.start.visible = show.start ?? true;
+        this.end.visible = show.end ?? true;
 
         this.start.toggleHovered(this.activeHandle === 'start');
         this.end.toggleHovered(this.activeHandle === 'end');
@@ -60,19 +80,20 @@ export class Line extends Annotation {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: AnnotationProperties, target: Coords, invertPoint: (point: Coords) => Coords) {
-        const { activeHandle, start, end } = this;
-        if (activeHandle === 'start') {
-            start.toggleDragging(true);
-            const point = invertPoint(start.drag(target).point);
-            datum.start.x = point.x;
-            datum.start.y = point.y;
-        } else {
-            end.toggleDragging(true);
-            const point = invertPoint(end.drag(target).point);
-            datum.end.x = point.x;
-            datum.end.y = point.y;
-        }
+    override dragHandle(
+        datum: AnnotationProperties,
+        target: Coords,
+        invertPoint: (point: Coords) => Coords | undefined
+    ) {
+        const { activeHandle } = this;
+
+        if (!activeHandle || datum.start == null || datum.end == null) return;
+
+        this[activeHandle].toggleDragging(true);
+        const point = invertPoint(this[activeHandle].drag(target).point);
+        if (!point) return;
+        datum[activeHandle].x = point.x;
+        datum[activeHandle].y = point.y;
     }
 
     override stopDragging() {

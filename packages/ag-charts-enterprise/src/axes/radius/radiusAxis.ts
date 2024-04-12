@@ -114,7 +114,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
         const drawCircleShape = (node: _Scene.Path, value: any) => {
             const { path } = node;
-            path.clear({ trackChanges: true });
+            path.clear(true);
             const radius = this.getTickRadius(value);
             if (isFullCircle) {
                 path.moveTo(radius, 0);
@@ -131,7 +131,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         const drawPolygonShape = (node: _Scene.Path, value: any) => {
             const { path } = node;
             const angles = this.gridAngles;
-            path.clear({ trackChanges: true });
+            path.clear(true);
             if (!angles || angles.length < 3) {
                 return;
             }

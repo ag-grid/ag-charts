@@ -78,7 +78,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         // HTML elements
         this.canvasElement = ctx.scene.canvas.element;
-        this.container = getDocument().body;
+        this.container = getDocument('body');
 
         this.element = this.container.appendChild(createElement('div'));
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
@@ -140,7 +140,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private onContextMenu(event: _ModuleSupport.InteractionEvent<'contextmenu'>) {
+    private onContextMenu(event: _ModuleSupport.PointerInteractionEvent<'contextmenu'>) {
         if (!this.enabled) return;
 
         this.showEvent = event.sourceEvent as MouseEvent;

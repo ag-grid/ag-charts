@@ -130,7 +130,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private updateLabels(keys: string[]) {
         const { labels, ctx, axisLayout } = this;
         keys.forEach((key) => {
-            labels[key] ??= new CrosshairLabel(ctx.scene.canvas.container ?? getDocument().body);
+            labels[key] ??= new CrosshairLabel(ctx.scene.canvas.container ?? getDocument('body'));
 
             this.updateLabel(labels[key]);
         });
@@ -194,7 +194,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return typeof val === 'number' ? val.toFixed(fractionDigits) : String(val);
     }
 
-    private onMouseMove(event: _ModuleSupport.InteractionEvent<'hover'>) {
+    private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
         if (!this.enabled || this.snap) {
             return;
         }
@@ -271,7 +271,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
     }
 
-    private getData(event: _ModuleSupport.InteractionEvent<'hover'>): {
+    private getData(event: _ModuleSupport.PointerInteractionEvent<'hover'>): {
         [key: string]: { position: number; value: any };
     } {
         const { seriesRect, axisCtx } = this;

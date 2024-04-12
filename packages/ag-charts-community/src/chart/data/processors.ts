@@ -11,7 +11,6 @@ import type {
     PropertyId,
     PropertyValueProcessorDefinition,
     ReducerOutputPropertyDefinition,
-    ScopeProvider,
 } from './dataModel';
 
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'> = {
@@ -29,25 +28,6 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
             }
             return smallestSoFar;
         };
-    },
-};
-
-export const AGG_VALUES_EXTENT: ProcessorOutputPropertyDefinition<'aggValuesExtent'> = {
-    type: 'processor',
-    property: 'aggValuesExtent',
-    calculate: (processedData) => {
-        const result: [number, number] = [...(processedData.domain.aggValues?.[0] ?? [0, 0])];
-
-        for (const [min, max] of processedData.domain.aggValues?.slice(1) ?? []) {
-            if (min < result[0]) {
-                result[0] = min;
-            }
-            if (max > result[1]) {
-                result[1] = max;
-            }
-        }
-
-        return result;
     },
 };
 
@@ -97,13 +77,11 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
 }
 
 export function normaliseGroupTo(
-    scope: ScopeProvider,
     matchGroupIds: string[],
     normaliseTo: number,
     mode: 'sum' | 'range' = 'sum'
 ): GroupValueProcessorDefinition<any, any> {
     return {
-        scopes: [scope.id],
         type: 'group-value-processor',
         matchGroupIds,
         adjust: memo({ normaliseTo, mode }, normaliseFnBuilder),
@@ -156,7 +134,6 @@ function normalisePropertyFnBuilder({
 }
 
 export function normalisePropertyTo(
-    scope: ScopeProvider,
     property: PropertyId<any>,
     normaliseTo: [number, number],
     zeroDomain: number,
@@ -164,17 +141,15 @@ export function normalisePropertyTo(
     rangeMax?: number
 ): PropertyValueProcessorDefinition<any> {
     return {
-        scopes: [scope.id],
         type: 'property-value-processor',
         property,
         adjust: memo({ normaliseTo, rangeMin, rangeMax, zeroDomain }, normalisePropertyFnBuilder),
     };
 }
 
-export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
+export function animationValidation(valueKeyIds?: string[]): ProcessorOutputPropertyDefinition {
     return {
         type: 'processor',
-        scopes: [scope.id],
         property: 'animationValidation',
         calculate(result: ProcessedData<any>) {
             const { keys, values } = result.defs;
@@ -184,7 +159,6 @@ export function animationValidation(scope: ScopeProvider, valueKeyIds?: string[]
 
             const valueKeys: [number, DatumPropertyDefinition<unknown>][] = [];
             for (let k = 0; k < values.length; k++) {
-                if (!values[k].scopes?.includes(scope.id)) continue;
                 if (!valueKeyIds?.includes(values[k].id as string)) continue;
 
                 valueKeys.push([k, values[k]]);
@@ -272,7 +246,6 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
 }
 
 export function accumulateGroup(
-    scope: ScopeProvider,
     matchGroupId: string,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
     sum: 'current' | 'last',
@@ -287,7 +260,6 @@ export function accumulateGroup(
     }
 
     return {
-        scopes: [scope.id],
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
         adjust,

@@ -91,7 +91,7 @@ export class RadarAreaSeries extends RadarSeries {
             areaNode.lineDashOffset = this.properties.lineDashOffset;
             areaNode.lineJoin = areaNode.lineCap = 'round';
 
-            areaPath.clear({ trackChanges: true });
+            areaPath.clear(true);
 
             areaPoints.forEach(({ x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 }) => {
                 if (arc) {

@@ -52,6 +52,9 @@ class TreemapSeriesGroup extends BaseProperties {
     @Validate(RATIO)
     strokeOpacity: number = 1;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     @Validate(TEXT_ALIGN)
     textAlign: TextAlign = 'center';
 
@@ -83,6 +86,9 @@ class TreemapSeriesTile extends BaseProperties {
 
     @Validate(RATIO)
     strokeOpacity: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
 
     @Validate(TEXT_ALIGN)
     textAlign: TextAlign = 'center';

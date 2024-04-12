@@ -11,12 +11,11 @@ import {
     groupAverage as actualGroupAverage,
     groupCount as actualGroupCount,
     range as actualRange,
-    sum as actualSum,
+    sumValues,
 } from './aggregateFunctions';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
 import { DataModel } from './dataModel';
 import {
-    AGG_VALUES_EXTENT,
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
     normaliseGroupTo as actualNormaliseGroupTo,
@@ -62,20 +61,32 @@ const accumulatedPropertyValue = (property: string, groupId: string = property, 
     ...value(property, groupId, id),
     processor: accumulatedValue(true),
 });
-const sum = (groupId: string) => actualSum({ id: 'test' }, `sum-${groupId}`, groupId);
-const scopedSum = (scopes: string[] | undefined, groupId: string) => ({
-    ...actualSum({ id: 'test' }, `sum-${groupId}`, groupId),
-    scopes,
+const sum = (groupId: string): AggregatePropertyDefinition<any, any> => ({
+    scopes: ['test'],
+    id: `sum-${groupId}`,
+    matchGroupIds: [groupId],
+    type: 'aggregate',
+    aggregateFunction: (values) => sumValues(values),
 });
-const range = (groupId: string) => actualRange({ id: 'test' }, `range-${groupId}`, groupId);
-const groupAverage = (groupId: string) => actualGroupAverage({ id: 'test' }, `groupAverage-${groupId}`, groupId);
-const groupCount = () => actualGroupCount({ id: 'test' }, `groupCount`);
-const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) =>
-    actualArea({ id: 'test' }, `area-${groupId}`, aggFn);
-const normaliseGroupTo = (groupId: string, normaliseTo: number, mode?: 'sum' | 'range') =>
-    actualNormaliseGroupTo({ id: 'test' }, [groupId], normaliseTo, mode);
-const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number]) =>
-    actualNormalisePropertyTo({ id: 'test' }, prop, normaliseTo, 0);
+const scopedSum = (scopes: string[], groupId: string) => ({ ...sum(groupId), scopes });
+const range = (groupId: string) => ({ ...actualRange(`range-${groupId}`, groupId), scopes: ['test'] });
+const groupAverage = (groupId: string) => ({
+    ...actualGroupAverage(`groupAverage-${groupId}`, groupId),
+    scopes: ['test'],
+});
+const groupCount = () => ({ ...actualGroupCount(`groupCount`), scopes: ['test'] });
+const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) => ({
+    ...actualArea(`area-${groupId}`, aggFn),
+    scopes: ['test'],
+});
+const normaliseGroupTo = (groupId: string, normaliseTo: number, mode?: 'sum' | 'range') => ({
+    ...actualNormaliseGroupTo([groupId], normaliseTo, mode),
+    scopes: ['test'],
+});
+const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number]) => ({
+    ...actualNormalisePropertyTo(prop, normaliseTo, 0),
+    scopes: ['test'],
+});
 
 describe('DataModel', () => {
     setupMockConsole();
@@ -544,7 +555,6 @@ describe('DataModel', () => {
                     value('localAuthority', 'all'),
                     value('housingAssociation', 'all'),
                     sum('all'),
-                    AGG_VALUES_EXTENT,
                 ],
                 groupByKeys: true,
             });
@@ -722,7 +732,6 @@ describe('DataModel', () => {
                     value('other', 'all'),
                     sum('all'),
                     normaliseGroupTo('all', 100),
-                    AGG_VALUES_EXTENT,
                 ],
                 groupByKeys: true,
             });
@@ -745,7 +754,6 @@ describe('DataModel', () => {
                     value('imported', 'all'),
                     sum('all'),
                     normaliseGroupTo('all', 100),
-                    AGG_VALUES_EXTENT,
                 ],
                 groupByKeys: true,
             });
@@ -755,7 +763,6 @@ describe('DataModel', () => {
                 time: expect.any(Number),
             });
             expect(result?.domain.aggValues).toEqual([[0, 100]]);
-            expect(result?.reduced?.[AGG_VALUES_EXTENT.property]).toEqual([0, 100]);
         });
 
         describe('property tests', () => {
@@ -823,7 +830,6 @@ describe('DataModel', () => {
                     accumulatedGroupValue('localAuthority', 'all'),
                     accumulatedGroupValue('housingAssociation', 'all'),
                     range('all'),
-                    AGG_VALUES_EXTENT,
                     normaliseGroupTo('all', 100, 'range'),
                 ],
                 groupByKeys: true,
@@ -843,7 +849,6 @@ describe('DataModel', () => {
                     accumulatedGroupValue('vp3', 'all'),
                     accumulatedGroupValue('vp4', 'all'),
                     range('all'),
-                    AGG_VALUES_EXTENT,
                     normaliseGroupTo('all', 100, 'range'),
                 ],
                 groupByKeys: true,
@@ -1136,11 +1141,14 @@ describe('DataModel', () => {
             const dataModel = new DataModel<any, any>({
                 props: [
                     accumulatedPropertyValue('share', 'angleGroup', 'angle'),
-                    rangedValueProperty({ id: 'test' }, 'share', {
-                        id: 'radius',
-                        min: 0.05,
-                        max: 0.7,
-                    }),
+                    {
+                        ...rangedValueProperty('share', {
+                            id: 'radius',
+                            min: 0.05,
+                            max: 0.7,
+                        }),
+                        scopes: ['test'],
+                    },
                     normalisePropertyTo({ id: 'angle' }, [0, 1]),
                 ],
             });
@@ -1160,7 +1168,6 @@ describe('DataModel', () => {
                         property: 'year',
                         type: 'key' as const,
                         valueType: 'category' as const,
-                        useScopedValues: true,
                     },
                     scopedValue(['test1', 'test2'], 'ie'),
                     scopedValue(['test1', 'test2'], 'chrome'),

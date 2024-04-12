@@ -10,6 +10,7 @@ import type {
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
+import { getDocument } from '../../util/dom';
 import {
     CANVAS_HEIGHT,
     CANVAS_TO_BUFFER_DEFAULTS,
@@ -57,7 +58,7 @@ export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function prepareTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
+export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument('body')) {
     options.autoSize = false;
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
@@ -134,8 +135,8 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
     await chart.waitForUpdate(timeoutMs, true);
     if (chart.autoSize === true && !chartAny._lastAutoSize) {
         // Bypass wait for SizeObservable callback - it's never going to be invoked.
-        const width = chart.width ?? chart.scene.canvas.width;
-        const height = chart.height ?? chart.scene.canvas.height;
+        const width = chart.width ?? chart.ctx.scene.canvas.width;
+        const height = chart.height ?? chart.ctx.scene.canvas.height;
         chartAny._lastAutoSize = [width, height];
         chartAny.resize(width, height);
         await chart.waitForUpdate(timeoutMs, true);
@@ -255,7 +256,7 @@ const checkTargetValid = (target: HTMLElement) => {
 export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy | AgChartInstance) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.scene.canvas.element;
+        const target = chart.ctx.scene.canvas.element;
         checkTargetValid(target);
 
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
@@ -270,7 +271,7 @@ export function clickAction(
 ): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.scene.canvas.element;
+        const target = chart.ctx.scene.canvas.element;
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
@@ -284,7 +285,7 @@ export function clickAction(
 export function doubleClickAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.scene.canvas.element;
+        const target = chart.ctx.scene.canvas.element;
         const offsets = { offsetX: x, offsetY: y };
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
         target?.dispatchEvent(mouseDownEvent(offsets));
@@ -303,7 +304,7 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
 export function contextMenuAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.scene.canvas.element;
+        const target = chart.ctx.scene.canvas.element;
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
@@ -318,7 +319,7 @@ export function dragAction(
 ): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.scene.canvas.element;
+        const target = chart.ctx.scene.canvas.element;
         checkTargetValid(target);
 
         target?.dispatchEvent(mouseDownEvent({ offsetX: from.x, offsetY: from.y }));
@@ -340,7 +341,7 @@ export function scrollAction(
 ): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.scene.canvas.element;
+        const target = chart.ctx.scene.canvas.element;
         target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY, deltaX, deltaMode }));
         await delay(50);
     };

@@ -47,8 +47,10 @@ const options: AgCartesianChartOptions = {
             start: new Date(2023, 10, 26),
         },
     },
-    rangeButtons: {
-        enabled: true,
+    toolbar: {
+        ranges: {
+            enabled: true,
+        },
     },
     title: {
         text: 'AAPL',
@@ -135,7 +137,7 @@ const options: AgCartesianChartOptions = {
         },
     ],
     annotations: {
-        enableInteractions: false,
+        enabled: true,
         initial: [
             {
                 type: 'parallel-channel',

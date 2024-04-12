@@ -77,10 +77,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         // is updated. If this is a static chart, we can instead not bother with identifying datum and
         // automatically garbage collect the marker selection.
         if (!isContinuousX) {
-            props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
+            props.push(keyProperty(xKey, isContinuousX, { id: 'xKey' }));
         }
         if (animationEnabled) {
-            props.push(animationValidation(this, isContinuousX ? ['xValue'] : undefined));
+            props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
             if (this.processedData) {
                 props.push(diff(this.processedData));
             }
@@ -90,8 +90,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
 
         props.push(
-            valueProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-            valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
+            valueProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+            valueProperty(yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
         await this.requestDataModel<any>(dataController, this.data, { props });
@@ -138,8 +138,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const nodeData: LineNodeDatum[] = [];
         const size = marker.enabled ? marker.size : 0;
 
-        const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
-        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
+        const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
 
         let moveTo = true;
         let nextPoint: UngroupedDataItem<any, any> | undefined;
@@ -200,7 +200,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             itemId: yKey,
             nodeData,
             labelData: nodeData,
-            scales: super.calculateScaling(),
+            scales: this.calculateScaling(),
             visible: this.visible,
         };
     }
@@ -407,7 +407,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const { path: linePath } = lineNode;
 
-        linePath.clear({ trackChanges: true });
+        linePath.clear(true);
         for (const data of nodeData) {
             if (data.point.moveTo) {
                 linePath.moveTo(data.point.x, data.point.y);

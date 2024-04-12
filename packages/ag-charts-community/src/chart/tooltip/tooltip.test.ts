@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { getDocument } from '../../util/dom';
@@ -13,8 +12,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 describe('Tooltip', () => {
     setupMockConsole();
@@ -90,22 +87,24 @@ describe('Tooltip', () => {
 
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-chart-tooltip'));
+            expect(element.map((e) => e.textContent).join('')).toEqual('4: 1.5');
 
             await nextValue(10, 1.3249187570726666);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element.map((e) => e.textContent).join('')).toEqual('5: 1.4');
 
             await nextValue(11, 1.2651169069335022);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element.map((e) => e.textContent).join('')).toEqual('6: 1.2');
 
             await nextValue(12, 1.3627720015958902);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element.map((e) => e.textContent).join('')).toEqual('7: 1.1');
 
             await nextValue(13, 1.490244608234256);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element.map((e) => e.textContent).join('')).toEqual('8: 1.5');
 
             await nextValue(14, 1.490244608234256);
-            expect(getDocument().body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+            expect(element.map((e) => e.textContent).join('')).toEqual('9: 1.2');
         });
     });
 });

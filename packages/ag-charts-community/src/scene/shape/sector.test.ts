@@ -45,12 +45,12 @@ describe('Sector', () => {
                 { startAngle: 0, endAngle: Math.PI, cornerRadius: 100 },
             ],
             [
-                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 3 },
-                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 5 },
-                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 8 },
-                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 10 },
-                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 15 },
-                { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 100 },
+                { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 3 },
+                { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 5 },
+                { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 8 },
+                { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 10 },
+                { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 15 },
+                { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 100 },
             ],
         ];
         const STROKE_TC_PARAMS: Partial<Sector> = {
@@ -160,6 +160,11 @@ describe('Sector', () => {
                     ...mixin,
                 })
             ),
+            // Regressions
+            [
+                // AG-11219
+                { innerRadius: 30, outerRadius: 30, startAngle: 0, endAngle: 1, stroke: 'black', strokeWidth: 1 },
+            ],
         ];
 
         it('should render as expected', () => {
@@ -219,12 +224,12 @@ describe('Sector', () => {
             { startAngle: 0, endAngle: Math.PI, cornerRadius: 15 },
             { startAngle: 0, endAngle: Math.PI, cornerRadius: 100 },
 
-            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 3 },
-            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 5 },
-            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 8 },
-            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 10 },
-            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 15 },
-            { startAngle: 0, endAngle: (3 * Math.PI) / 2, cornerRadius: 100 },
+            { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 3 },
+            { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 5 },
+            { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 8 },
+            { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 10 },
+            { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 15 },
+            { startAngle: 0, endAngle: 1.5 * Math.PI, cornerRadius: 100 },
         ]
             .flatMap((s) => [
                 { ...s, innerRadius: 0, outerRadius: 30 },

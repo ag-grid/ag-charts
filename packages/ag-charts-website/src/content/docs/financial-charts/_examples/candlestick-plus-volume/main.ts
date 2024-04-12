@@ -29,8 +29,10 @@ const candlestickOptions: AgCartesianChartOptions = {
     ...commonOptions,
     container: document.getElementById('ohlcChart'),
     title: { text: 'AAPL Stock Price' },
-    rangeButtons: {
-        enabled: true,
+    toolbar: {
+        ranges: {
+            enabled: true,
+        },
     },
     series: [
         {
@@ -79,7 +81,7 @@ const candlestickOptions: AgCartesianChartOptions = {
     ],
 };
 
-const ohlcChart = AgCharts.create(candlestickOptions);
+AgCharts.create(candlestickOptions);
 
 const volumeOptions: AgCartesianChartOptions = {
     ...commonOptions,
@@ -148,4 +150,4 @@ const volumeOptions: AgCartesianChartOptions = {
     },
 };
 
-const volumeChart = AgCharts.create(volumeOptions);
+AgCharts.create(volumeOptions);

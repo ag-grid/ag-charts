@@ -3,7 +3,7 @@ import { Listeners } from '../util/listeners';
 import { ChartUpdateType } from './chartUpdateType';
 import type { ISeries } from './series/seriesTypes';
 
-type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
+export type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
 
 export interface UpdateCompleteEvent {
     type: 'update-complete';

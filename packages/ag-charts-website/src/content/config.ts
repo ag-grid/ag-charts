@@ -72,6 +72,9 @@ const menu = defineCollection({
         charts: z.object({
             items: z.array(level1MenuItem),
         }),
+        misc: z.object({
+            items: z.array(level1MenuItem),
+        }),
     }),
 });
 

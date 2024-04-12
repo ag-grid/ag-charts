@@ -4,10 +4,14 @@ import { hoverAction } from '../src/chart/test/utils';
 import { AgCartesianChartOptions } from '../src/main';
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
+const EXPECTATIONS = {
+    expectedMaxMemoryMB: 270,
+};
+
 describe('multi-series benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('multi-series');
 
-    benchmark('initial load', ctx, async () => {
+    benchmark('initial load', ctx, EXPECTATIONS, async () => {
         await ctx.create();
     });
 
@@ -19,7 +23,7 @@ describe('multi-series benchmark', () => {
             addSeriesNodePoints(ctx, 5, 5);
         });
 
-        benchmark('1x legend toggle', ctx, async () => {
+        benchmark('1x legend toggle', ctx, EXPECTATIONS, async () => {
             ctx.options.series![0].visible = false;
             await ctx.update();
 
@@ -27,7 +31,7 @@ describe('multi-series benchmark', () => {
             await ctx.update();
         });
 
-        benchmark('10x legend toggle', ctx, async () => {
+        benchmark('10x legend toggle', ctx, EXPECTATIONS, async () => {
             for (let i = 0; i < 5; i++) {
                 for (const visible of [false, true]) {
                     ctx.options.series![i].visible = visible;
@@ -36,13 +40,13 @@ describe('multi-series benchmark', () => {
             }
         });
 
-        benchmark('1x datum highlight', ctx, async () => {
+        benchmark('1x datum highlight', ctx, EXPECTATIONS, async () => {
             const point = ctx.nodePositions[0][2];
             await hoverAction(point.x, point.y)(ctx.chart);
             await ctx.waitForUpdate();
         });
 
-        benchmark('15x datum highlight', ctx, async () => {
+        benchmark('15x datum highlight', ctx, EXPECTATIONS, async () => {
             for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
                 for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
                     const point = ctx.nodePositions[seriesIdx][nodeIdx];

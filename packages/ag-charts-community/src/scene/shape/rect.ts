@@ -1,24 +1,24 @@
 import { BBox } from '../bbox';
+import { ExtendedPath2D } from '../extendedPath2D';
 import type { DistantObject } from '../nearest';
-import { Path2D } from '../path2D';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
 
-type CornerRadii = {
+interface CornerRadii {
     topLeft: number;
     topRight: number;
     bottomRight: number;
     bottomLeft: number;
-};
+}
 
-type Corner = {
+interface Corner {
     x0: number;
     y0: number;
     x1: number;
     y1: number;
     cx: number;
     cy: number;
-};
+}
 
 const epsilon = 1e-6;
 
@@ -55,7 +55,7 @@ const cornerEdges = (
     return { leading0, leading1, trailing0, trailing1, leadingClipped, trailingClipped };
 };
 
-const drawCorner = (path: Path2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadius: number, move: boolean) => {
+const drawCorner = (path: ExtendedPath2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadius: number, move: boolean) => {
     if (move) {
         path.moveTo(x0, y0);
     }
@@ -70,7 +70,7 @@ const drawCorner = (path: Path2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadi
 };
 
 const insetCornerRadiusRect = (
-    path: Path2D,
+    path: ExtendedPath2D,
     x: number,
     y: number,
     width: number,
@@ -259,7 +259,7 @@ const insetCornerRadiusRect = (
 export class Rect extends Path implements DistantObject {
     static override readonly className: string = 'Rect';
 
-    readonly borderPath = new Path2D();
+    readonly borderPath = new ExtendedPath2D();
 
     @ScenePathChangeDetection()
     x: number = 0;
@@ -303,21 +303,21 @@ export class Rect extends Path implements DistantObject {
     @ScenePathChangeDetection()
     crisp: boolean = false;
 
-    private borderClipPath?: Path2D;
+    private borderClipPath?: ExtendedPath2D;
 
     private lastUpdatePathStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
     protected override isDirtyPath() {
-        if (this.lastUpdatePathStrokeWidth !== this.strokeWidth) {
-            return true;
-        }
-
-        return !!(this.path.isDirty() || this.borderPath.isDirty());
+        return (
+            this.lastUpdatePathStrokeWidth !== this.strokeWidth ||
+            Boolean(this.path.isDirty() || this.borderPath.isDirty())
+        );
     }
 
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
     private hittester = super.isPointInPath;
+    private distanceCalculator = super.distanceSquared;
 
     /**
      * When the rectangle's width or height is less than a pixel
@@ -341,8 +341,8 @@ export class Rect extends Path implements DistantObject {
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
 
-        path.clear({ trackChanges: true });
-        borderPath.clear({ trackChanges: true });
+        path.clear(true);
+        borderPath.clear(true);
 
         if (crisp) {
             if (w <= pixelSize) {
@@ -404,8 +404,8 @@ export class Rect extends Path implements DistantObject {
                 insetCornerRadiusRect(borderPath, x, y, w, h, cornerRadii, adjustedClipBBox);
             } else {
                 // Skip the fill and just render the stroke.
-                this.borderClipPath = this.borderClipPath ?? new Path2D();
-                this.borderClipPath.clear({ trackChanges: true });
+                this.borderClipPath = this.borderClipPath ?? new ExtendedPath2D();
+                this.borderClipPath.clear(true);
                 this.borderClipPath.rect(x, y, w, h);
                 borderPath.rect(x, y, w, h);
             }
@@ -417,14 +417,17 @@ export class Rect extends Path implements DistantObject {
             insetCornerRadiusRect(path, x, y, w, h, cornerRadii, clipBBox);
         }
 
-        // Path.isPointInPath is expensive, so just use a BBox if the corners aren't rounded.
+        // Path's isPointInPath and distanceSquared are expensive computations,
+        // so just use a BBox if the corners aren't rounded.
         if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
             this.hittester = (hitX: number, hitY: number) => {
                 const point = this.transformPoint(hitX, hitY);
                 return this.getCachedBBox().containsPoint(point.x, point.y);
             };
+            this.distanceSquared = (hitX: number, hitY: number) => this.getCachedBBox().distanceSquared(hitX, hitY);
         } else {
             this.hittester = super.isPointInPath;
+            this.distanceCalculator = super.distanceSquared;
         }
 
         this.effectiveStrokeWidth = strokeWidth;
@@ -445,37 +448,40 @@ export class Rect extends Path implements DistantObject {
         return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
     }
 
-    distanceSquared(x: number, y: number): number {
-        return this.getCachedBBox().distanceSquared(x, y);
+    override distanceSquared(x: number, y: number): number {
+        return this.distanceCalculator(x, y);
     }
 
     protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {
         const { fillOpacity, microPixelEffectOpacity, opacity } = this;
-        const { globalAlpha } = ctx;
-        ctx.globalAlpha = globalAlpha * opacity * fillOpacity * microPixelEffectOpacity;
+        ctx.globalAlpha *= opacity * fillOpacity * microPixelEffectOpacity;
     }
 
     protected override renderStroke(ctx: CanvasRenderingContext2D) {
-        const { stroke, effectiveStrokeWidth, borderPath, borderClipPath, opacity, microPixelEffectOpacity } = this;
+        const { stroke, effectiveStrokeWidth } = this;
 
-        const borderActive = !!stroke && !!effectiveStrokeWidth;
-        if (borderActive) {
-            const { strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin } = this;
+        if (stroke && effectiveStrokeWidth) {
+            const { globalAlpha } = ctx;
+            const {
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                lineCap,
+                lineJoin,
+                borderPath,
+                borderClipPath,
+                opacity,
+                microPixelEffectOpacity,
+            } = this;
+
             if (borderClipPath) {
-                // strokeWidth is larger than width or height, so use clipping to render correctly.
-                // This is the simplest way to achieve the correct rendering due to nuances with ~0
-                // width/height lines in Canvas operations.
-                borderClipPath.draw(ctx);
-                ctx.clip();
+                ctx.clip(borderClipPath.getPath2D());
             }
 
-            borderPath.draw(ctx);
-
-            const { globalAlpha } = ctx;
-            ctx.strokeStyle = stroke!;
-            ctx.globalAlpha = globalAlpha * opacity * strokeOpacity * microPixelEffectOpacity;
-
+            ctx.strokeStyle = stroke;
+            ctx.globalAlpha *= opacity * strokeOpacity * microPixelEffectOpacity;
             ctx.lineWidth = effectiveStrokeWidth;
+
             if (lineDash) {
                 ctx.setLineDash(lineDash);
             }
@@ -489,7 +495,7 @@ export class Rect extends Path implements DistantObject {
                 ctx.lineJoin = lineJoin;
             }
 
-            ctx.stroke();
+            ctx.stroke(borderPath.getPath2D());
             ctx.globalAlpha = globalAlpha;
         }
     }

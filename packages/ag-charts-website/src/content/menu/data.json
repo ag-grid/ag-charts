@@ -137,6 +137,10 @@
                 "title": "Interactivity",
                 "items": [
                     {
+                        "title": "Accessibility",
+                        "path": "accessibility"
+                    },
+                    {
                         "title": "Series Highlighting",
                         "path": "series-highlighting"
                     },
@@ -201,24 +205,6 @@
                         "isEnterprise": true
                     }
                 ]
-            },
-            {
-                "title": "Migration",
-                "feature": false,
-                "items": [
-                    {
-                        "title": "Upgrade to AG Charts 9.2",
-                        "path": "upgrade-to-ag-charts-9-2"
-                    },
-                    {
-                        "title": "Upgrade to AG Charts 9.1",
-                        "path": "upgrade-to-ag-charts-9-1"
-                    },
-                    {
-                        "title": "Upgrade to AG Charts 9",
-                        "path": "upgrade-to-ag-charts-9"
-                    }
-                ]
             }
         ]
     },
@@ -270,6 +256,16 @@
                         "title": "Candlestick",
                         "icon": "chartsCandlestick",
                         "path": "candlestick-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Annotations",
+                        "path": "annotations",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Toolbar",
+                        "path": "toolbar",
                         "isEnterprise": true
                     }
                 ]
@@ -404,6 +400,46 @@
                         "icon": "chartsWaterfall",
                         "path": "waterfall-series",
                         "isEnterprise": true
+                    }
+                ]
+            }
+        ]
+    },
+    "misc": {
+        "items": [
+            {
+                "title": "Migration",
+                "feature": false,
+                "items": [
+                    {
+                        "title": "Upgrade to AG Charts 9.2",
+                        "path": "upgrade-to-ag-charts-9-2"
+                    },
+                    {
+                        "title": "Upgrade to AG Charts 9.1",
+                        "path": "upgrade-to-ag-charts-9-1"
+                    },
+                    {
+                        "title": "Upgrade to AG Charts 9",
+                        "path": "upgrade-to-ag-charts-9"
+                    }
+                ]
+            },
+            {
+                "title": "Other",
+                "feature": false,
+                "items": [
+                    {
+                        "title": "Supported Browsers",
+                        "path": "supported-browsers"
+                    },
+                    {
+                        "title": "Supported Frameworks",
+                        "path": "supported-frameworks"
+                    },
+                    {
+                        "title": "Security",
+                        "path": "security"
                     }
                 ]
             }

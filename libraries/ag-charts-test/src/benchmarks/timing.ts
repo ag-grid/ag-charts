@@ -22,12 +22,14 @@ type TestName = string;
 
 const records: Map<SuiteName, Map<TestName, BenchmarkMeasurement>> = new Map();
 
-export function recordTiming(suitePath: string, name: string, measurement: number | BenchmarkMeasurement) {
+export function recordTiming(suitePath: string, name: string, measurement: BenchmarkMeasurement) {
     suitePath = suitePath.replace(process.cwd(), '');
     if (!records.has(suitePath)) {
         records.set(suitePath, new Map());
     }
-    records.get(suitePath)!.set(name, typeof measurement === 'number' ? { timeMs: measurement } : measurement);
+    records.get(suitePath)?.set(name, measurement);
+
+    return measurement.memory ? getTotalMemoryUsage(measurement.memory) : undefined;
 }
 
 export function logTimings() {

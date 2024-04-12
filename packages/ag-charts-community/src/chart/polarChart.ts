@@ -31,9 +31,9 @@ export class PolarChart extends Chart {
 
         this.hoverRect = shrinkRect;
 
-        this.layoutService.dispatchLayoutComplete({
+        this.ctx.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
-            chart: { width: this.scene.width, height: this.scene.height },
+            chart: { width: this.ctx.scene.width, height: this.ctx.scene.height },
             clipSeries: false,
             series: { rect: fullSeriesRect, paddedRect: shrinkRect, visible: true },
             axes: [],

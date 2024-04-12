@@ -2,6 +2,7 @@ import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
 import { DOCS_TAB_ITEM_ID_PREFIX } from './src/constants';
+import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
     extends: [prism()],
@@ -31,15 +32,7 @@ export default defineMarkdocConfig({
         },
     },
     tags: {
-        /**
-         * External link that opens in a new tab
-         */
-        externalLink: {
-            render: component('./src/components/ExternalLink.astro'),
-            attributes: {
-                href: { type: String, required: true },
-            },
-        },
+        link,
         enterpriseIcon: {
             render: component('./src/components/icon/EnterpriseIcon.astro'),
         },
@@ -63,6 +56,24 @@ export default defineMarkdocConfig({
         },
         idea: {
             render: component('./src/components/alert/Idea'),
+        },
+        image: {
+            render: component('./src/components/image/Image.astro'),
+            attributes: {
+                /**
+                 * Docs page name in `src/content/[pageName]
+                 *
+                 * If not provided, will default to the location of the markdoc file
+                 */
+                pageName: { type: String },
+                imagePath: { type: String, required: true },
+                alt: { type: String, required: true },
+                width: { type: String },
+                height: { type: String },
+                minWidth: { type: String },
+                maxWidth: { type: String },
+                margin: { type: String },
+            },
         },
         imageCaption: {
             render: component('./src/components/image/ImageCaption'),
@@ -119,6 +130,9 @@ export default defineMarkdocConfig({
         },
         oneTrustCookies: {
             render: component('./src/components/OneTrustCookiesDetails.astro'),
+        },
+        br: {
+            render: 'br',
         },
     },
 });

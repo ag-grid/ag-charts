@@ -1,4 +1,3 @@
-import { unique } from '../../util/array';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
 import type { ChartMode } from '../chartMode';
@@ -19,7 +18,7 @@ interface RequestedProcessing<
     id: string;
     opts: DataModelOptions<K, any>;
     data: D[];
-    resultCb: (result: Result<D, K, G>) => void;
+    resolve: (result: Result<D, K, G>) => void;
     reject: (reason?: any) => void;
 }
 
@@ -31,7 +30,7 @@ interface MergedRequests<
     ids: string[];
     opts: DataModelOptions<K, any>;
     data: D[];
-    resultCbs: ((result: Result<D, K, G>) => void)[];
+    resolves: ((result: Result<D, K, G>) => void)[];
     rejects: ((reason?: any) => void)[];
 }
 
@@ -60,7 +59,7 @@ export class DataController {
         }
 
         return new Promise<Result<D, K, G>>((resolve, reject) => {
-            this.requested.push({ id, opts, data, resultCb: resolve, reject });
+            this.requested.push({ id, opts, data, resolve, reject });
         });
     }
 
@@ -81,15 +80,11 @@ export class DataController {
             getWindow<{ processedData: any[] }>().processedData = [];
         }
 
-        const multipleSources = this.hasMultipleDataSources(valid);
         const scopes = this.requested.map(({ id }) => id);
-        for (const { opts, data, resultCbs, rejects, ids } of merged) {
-            const needsValueExtraction =
-                multipleSources ||
-                opts.props.some((p) => (p.type === 'key' || p.type === 'value') && p.useScopedValues);
-
+        const needsValueExtraction = this.hasMultipleDataSources(valid);
+        for (const { opts, data, resolves, rejects, ids } of merged) {
             try {
-                const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
+                const dataModel = new DataModel<any>(opts, this.mode);
                 const processedData = dataModel.processData(data, valid);
 
                 if (this.debug.check()) {
@@ -97,8 +92,8 @@ export class DataController {
                 }
 
                 if (processedData?.partialValidDataCount === 0) {
-                    resultCbs.forEach((callback, requestIdx) =>
-                        callback({
+                    resolves.forEach((resolve, requestIdx) =>
+                        resolve({
                             dataModel,
                             processedData: this.processScopedData(
                                 ids[requestIdx],
@@ -109,7 +104,7 @@ export class DataController {
                         })
                     );
                 } else if (processedData) {
-                    this.splitResult(dataModel, processedData, ids, resultCbs);
+                    this.splitResult(dataModel, processedData, ids, resolves);
                 } else {
                     rejects.forEach((cb) => cb(new Error(`AG Charts - no processed data generated`)));
                 }
@@ -197,13 +192,13 @@ export class DataController {
         dataModel: DataModel<any>,
         processedData: ProcessedData<any>,
         scopes: string[],
-        resultCbs: ((result: Result<any, any, any>) => void)[]
+        resolves: ((result: Result<any, any, any>) => void)[]
     ) {
         for (let i = 0; i < scopes.length; i++) {
             const scope = scopes[i];
-            const resultCb = resultCbs[i];
+            const resolve = resolves[i];
 
-            resultCb({
+            resolve({
                 dataModel,
                 processedData: {
                     ...processedData,
@@ -213,7 +208,7 @@ export class DataController {
         }
     }
 
-    private static groupMatch({ opts, data }: RequestedProcessing<any, any, any>) {
+    private static groupMatch({ data, opts }: RequestedProcessing<any, any, any>) {
         function keys(props: PropertyDefinition<any>[]) {
             return props
                 .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
@@ -224,50 +219,43 @@ export class DataController {
         return ([group]: RequestedProcessing<any, any, any>[]) =>
             (opts.groupByData === false || group.data === data) &&
             group.opts.groupByKeys === opts.groupByKeys &&
-            group.opts.dataVisible === opts.dataVisible &&
             group.opts.groupByFn === opts.groupByFn &&
             keys(group.opts.props) === keys(opts.props);
     }
 
     private static mergeRequests(requests: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
-        function updateKeyValueOpts(prop: PropertyDefinition<any>) {
-            if (prop.type === 'key' || prop.type === 'value') {
-                prop.useScopedValues = unique(prop.scopes ?? []).length > 1;
-            }
-        }
-
         return requests.reduce(
-            (result, { id, data, resultCb, reject, opts: { props, ...opts } }) => {
+            (result, { id, data, resolve, reject, opts: { props, ...opts } }) => {
                 result.ids.push(id);
                 result.rejects.push(reject);
-                result.resultCbs.push(resultCb);
+                result.resolves.push(resolve);
                 result.data ??= data;
                 result.opts ??= { ...opts, props: [] };
 
                 for (const prop of props) {
-                    updateKeyValueOpts(prop);
-                    DataController.createIdsMap(prop);
+                    const clone = { ...prop, scopes: [id] };
+                    DataController.createIdsMap(id, clone);
 
                     const match = result.opts.props.find(
-                        (existing: any) => existing.type === prop.type && DataController.deepEqual(existing, prop)
+                        (existing: any) => existing.type === clone.type && DataController.deepEqual(existing, clone)
                     );
 
                     if (!match) {
-                        result.opts.props.push(prop);
+                        result.opts.props.push(clone);
                         continue;
                     }
 
                     match.scopes ??= [];
-                    match.scopes.push(...(prop.scopes ?? []));
+                    match.scopes.push(...(clone.scopes ?? []));
 
-                    if ((match.type === 'key' || match.type === 'value') && prop.idsMap?.size) {
-                        DataController.mergeIdsMap(prop.idsMap, match.idsMap);
+                    if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
+                        DataController.mergeIdsMap(clone.idsMap, match.idsMap);
                     }
                 }
 
                 return result;
             },
-            { ids: [], rejects: [], resultCbs: [], data: null, opts: null } as any
+            { ids: [], rejects: [], resolves: [], data: null, opts: null } as any
         );
     }
 
@@ -283,21 +271,18 @@ export class DataController {
         }
     }
 
-    private static createIdsMap(prop: PropertyDefinition<any>) {
+    private static createIdsMap(scope: string, prop: PropertyDefinition<any>) {
         if (prop.id == null) return;
         prop.idsMap ??= new Map();
-        if (prop.scopes == null) return;
-        for (const scope of prop.scopes) {
-            if (prop.idsMap.has(scope)) {
-                prop.idsMap.get(scope)!.add(prop.id);
-            } else {
-                prop.idsMap.set(scope, new Set([prop.id]));
-            }
+        if (prop.idsMap.has(scope)) {
+            prop.idsMap.get(scope)!.add(prop.id);
+        } else {
+            prop.idsMap.set(scope, new Set([prop.id]));
         }
     }
 
     // optimized version of deep equality for `mergeRequests` which can potentially loop over 1M times
-    static readonly skipKeys = new Set<string>(['id', 'idsMap', 'type', 'scopes', 'useScopedValues']);
+    static readonly skipKeys = new Set<string>(['id', 'idsMap', 'type', 'scopes']);
     static deepEqual<T>(a: T, b: T): boolean {
         if (a === b) {
             return true;

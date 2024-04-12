@@ -1,69 +1,133 @@
-import type { BBoxProvider } from '../../util/bboxset';
-import { BBoxSet } from '../../util/bboxset';
+import type { BBox } from '../../scene/bbox';
+import { getDocument } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
-import { Logger } from '../../util/logger';
-import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
-import { INTERACTION_TYPES, InteractionState } from './interactionManager';
+import { buildConsumable } from './consumableEvent';
+import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
+import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
+import { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 
-export type RegionName = 'legend' | 'navigator' | 'pagination' | 'root' | 'series' | 'toolbar';
+export type RegionName =
+    | 'title'
+    | 'subtitle'
+    | 'footnote'
+    | 'legend'
+    | 'navigator'
+    | 'pagination'
+    | 'root'
+    | 'series'
+    | 'toolbar';
 
-type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
+const REGION_TAB_ORDERING: RegionName[] = ['title', 'subtitle', 'series', 'legend', 'footnote'];
 
-class RegionListeners extends Listeners<InteractionTypes, RegionHandler<InteractionEvent<InteractionTypes>>> {}
-
-type Region = {
-    name: RegionName;
-    listeners: RegionListeners;
+// This type-map allows the compiler to automatically figure out the parameter type of handlers
+// specifies through the `addListener` method (see the `makeObserver` method).
+type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> } & {
+    [K in KeyNavEventType]: KeyNavEvent<K>;
 };
 
+type RegionEvent = PointerInteractionEvent | KeyNavEvent;
+type RegionHandler = (event: RegionEvent) => void;
+
+class RegionListeners extends Listeners<RegionEvent['type'], RegionHandler> {}
+
+interface BBoxProvider {
+    getCachedBBox(): BBox;
+}
+
+type Region = {
+    readonly properties: RegionProperties;
+    readonly listeners: RegionListeners;
+};
+
+export interface RegionProperties {
+    readonly name: RegionName;
+    readonly bboxproviders: BBoxProvider[];
+    canInteraction(): boolean;
+}
+
 export class RegionManager {
+    private currentTabIndex = 0;
+    private readonly keyNavManager: KeyNavManager;
+    private readonly focusIndicator?: HTMLDivElement;
+
     private currentRegion?: Region;
     private isDragging = false;
     private leftCanvas = false;
 
-    private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
-    private regions: BBoxSet<Region> = new BBoxSet();
+    private regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
 
-    constructor(private readonly interactionManager: InteractionManager) {
+    constructor(
+        private readonly interactionManager: InteractionManager,
+        container: HTMLElement | undefined
+    ) {
+        this.keyNavManager = new KeyNavManager(interactionManager);
         this.destroyFns.push(
-            ...INTERACTION_TYPES.map((eventName) =>
-                interactionManager.addListener(eventName, this.eventHandler, InteractionState.All)
-            )
+            ...POINTER_INTERACTION_TYPES.map((eventName) =>
+                interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
+            ),
+            this.keyNavManager.addListener('blur', this.onNav.bind(this)),
+            this.keyNavManager.addListener('tab', this.onTab.bind(this)),
+            this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
+            this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
+            this.keyNavManager.addListener('submit', this.onNav.bind(this))
         );
+
+        this.focusIndicator = getDocument()?.createElement('div');
+        if (this.focusIndicator !== undefined && container !== undefined) {
+            this.focusIndicator.className = 'ag-charts-focusindicator';
+            this.focusIndicator.style.position = 'absolute';
+            this.focusIndicator.style.border = '2px solid red';
+            this.focusIndicator.style.display = 'none';
+            this.focusIndicator.style.pointerEvents = 'none';
+            this.focusIndicator.style.userSelect = 'none';
+            container.appendChild(this.focusIndicator);
+        }
     }
 
     public destroy() {
         this.destroyFns.forEach((fn) => fn());
 
         this.currentRegion = undefined;
-        for (const region of this.regions) {
+        for (const region of this.regions.values()) {
             region.listeners.destroy();
         }
         this.regions.clear();
+        this.keyNavManager.destroy();
     }
 
-    private pushRegion(name: RegionName, bboxproviders: BBoxProvider[]): Region {
-        const region = { name, listeners: new RegionListeners() };
-        this.regions.add(region, bboxproviders);
-        return region;
+    public addRegionFromProperties(properties: RegionProperties) {
+        const region = { properties, listeners: new RegionListeners() };
+        this.regions.set(properties.name, region);
+        return this.makeObserver(region);
     }
 
     public addRegion(name: RegionName, bboxprovider: BBoxProvider, ...extraProviders: BBoxProvider[]) {
-        return this.makeObserver(this.pushRegion(name, [bboxprovider, ...extraProviders]));
+        return this.addRegionFromProperties({
+            name,
+            bboxproviders: [bboxprovider, ...extraProviders],
+            canInteraction: () => true,
+        });
     }
 
     public getRegion(name: RegionName) {
-        return this.makeObserver(this.findByName(name));
+        return this.makeObserver(this.regions.get(name));
     }
 
-    private findByName(name: RegionName): Region | undefined {
-        for (const region of this.regions) {
-            if (region.name === name) {
-                return region;
+    private find(x: number, y: number): Region[] {
+        // Sort matches by area.
+        // This ensure that we prioritise smaller regions are contained inside larger regions.
+        type Area = number;
+        const matches: [Region, Area][] = [];
+        for (const [_name, region] of this.regions.entries()) {
+            for (const provider of region.properties.bboxproviders) {
+                const bbox = provider.getCachedBBox();
+                if (bbox.containsPoint(x, y)) {
+                    matches.push([region, bbox.width * bbox.height]);
+                }
             }
         }
-        Logger.errorOnce(`unable '${name}' region found`);
+        return matches.sort((a, b) => a[1] - b[1]).map((m) => m[0]);
     }
 
     // This method return a wrapper object that matches the interface of InteractionManager.addListener.
@@ -71,17 +135,17 @@ export class RegionManager {
     private makeObserver(region: Region | undefined) {
         const { interactionManager } = this;
         class ObservableRegionImplementation {
-            addListener<T extends InteractionTypes>(
+            addListener<T extends RegionEvent['type']>(
                 type: T,
-                handler: RegionHandler<InteractionEvent<T>>,
+                handler: (event: TypeInfo[T]) => void,
                 triggeringStates: InteractionState = InteractionState.Default
             ): () => void {
                 return (
-                    region?.listeners.addListener(type, (e) => {
+                    region?.listeners.addListener(type, (e: RegionEvent) => {
                         if (!e.consumed) {
                             const currentState = interactionManager.getState();
                             if (currentState & triggeringStates) {
-                                handler(e as InteractionEvent<T>);
+                                handler(e as TypeInfo[T]);
                             }
                         }
                     }) ?? (() => {})
@@ -91,23 +155,23 @@ export class RegionManager {
         return new ObservableRegionImplementation();
     }
 
-    private checkPointerHistory(targetRegion: Region, event: InteractionEvent<InteractionTypes>): boolean {
+    private checkPointerHistory(targetRegion: Region, event: PointerInteractionEvent): boolean {
         for (const historyEvent of event.pointerHistory) {
             const historyRegion = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY);
-            if (targetRegion.name !== historyRegion?.name) {
+            if (targetRegion.properties.name !== historyRegion?.properties.name) {
                 return false;
             }
         }
         return true;
     }
 
-    private dispatch(region: Region | undefined, event: InteractionEvent<InteractionTypes>) {
+    private dispatch(region: Region | undefined, event: RegionEvent) {
         region?.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
     // RegionManager.processEvent flow, or true if this event already processed by this function.
-    private handleDragging(event: InteractionEvent<InteractionTypes>): boolean {
+    private handleDragging(event: PointerInteractionEvent): boolean {
         const { currentRegion } = this;
 
         switch (event.type) {
@@ -149,7 +213,7 @@ export class RegionManager {
         return false;
     }
 
-    private processEvent(event: InteractionEvent<InteractionTypes>) {
+    private processPointerEvent(event: PointerInteractionEvent) {
         if (this.handleDragging(event)) {
             // We are current dragging, so do not send leave/enter events until dragging is done.
             return;
@@ -157,10 +221,10 @@ export class RegionManager {
 
         const { currentRegion } = this;
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
-        if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
+        if (currentRegion !== undefined && newRegion?.properties.name !== currentRegion.properties.name) {
             this.dispatch(currentRegion, { ...event, type: 'leave' });
         }
-        if (newRegion !== undefined && newRegion.name !== currentRegion?.name) {
+        if (newRegion !== undefined && newRegion.properties.name !== currentRegion?.properties.name) {
             this.dispatch(newRegion, { ...event, type: 'enter' });
         }
         if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
@@ -170,7 +234,77 @@ export class RegionManager {
     }
 
     private pickRegion(x: number, y: number): Region | undefined {
-        const matchingRegions = this.regions.find(x, y);
+        const matchingRegions = this.find(x, y);
         return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
+    }
+
+    private getTabRegion(tabIndex: number): Region | undefined {
+        if (tabIndex >= 0 && tabIndex < REGION_TAB_ORDERING.length) {
+            return this.regions.get(REGION_TAB_ORDERING[tabIndex]);
+        }
+        return undefined;
+    }
+
+    private dispatchTabStart(event: KeyNavEvent<'tab'>): boolean {
+        const { delta, interactionEvent } = event;
+        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({ type: 'tab-start', delta, interactionEvent });
+        const focusedRegion = this.getTabRegion(this.currentTabIndex);
+
+        this.dispatch(focusedRegion, startEvent);
+        return !!startEvent.consumed;
+    }
+
+    private getNextInteractableTabIndex(delta: number): number {
+        const direction = delta < 0 ? -1 : 1;
+        let i = this.currentTabIndex;
+        while (delta !== 0) {
+            const region = this.getTabRegion(i + direction);
+            if (region === undefined) {
+                break;
+            } else if (region.properties.canInteraction()) {
+                delta = delta - direction;
+            }
+            i = i + direction;
+        }
+        return i;
+    }
+
+    private onTab(event: KeyNavEvent<'tab'>) {
+        const consumed = this.dispatchTabStart(event);
+        if (!consumed) {
+            const newTabIndex = this.getNextInteractableTabIndex(event.delta);
+            const newRegion = this.getTabRegion(newTabIndex);
+            const focusedRegion = this.getTabRegion(this.currentTabIndex);
+            this.currentTabIndex = newTabIndex;
+
+            if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
+                this.dispatch(focusedRegion, { ...event, type: 'blur' });
+            }
+            if (newRegion == undefined) {
+                this.updateFocusIndicatorRect(undefined);
+            } else {
+                event.interactionEvent.sourceEvent.preventDefault();
+                this.dispatch(newRegion, event);
+            }
+        }
+    }
+
+    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'submit'>) {
+        const focusedRegion = this.getTabRegion(this.currentTabIndex);
+        this.dispatch(focusedRegion, event);
+    }
+
+    public updateFocusIndicatorRect(rect: BBox | undefined) {
+        if (this.focusIndicator !== undefined) {
+            if (rect === undefined) {
+                this.focusIndicator.style.display = 'none';
+            } else {
+                this.focusIndicator.style.display = 'block';
+                this.focusIndicator.style.width = `${rect.width}px`;
+                this.focusIndicator.style.height = `${rect.height}px`;
+                this.focusIndicator.style.left = `${rect.x}px`;
+                this.focusIndicator.style.top = `${rect.y}px`;
+            }
+        }
     }
 }

@@ -26,8 +26,14 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         return results;
     }
 
-    static selectByClass<TChild extends Node = Node>(node: Node, Class: new () => TChild): TChild[] {
-        return Selection.selectAll(node, (n: Node): n is TChild => n instanceof Class);
+    static selectByClass<TChild extends Node = Node>(
+        node: Node,
+        Class: new () => TChild,
+        ...ExtraClasses: Array<new () => TChild>
+    ): TChild[] {
+        return Selection.selectAll(node, (n: Node): n is TChild => {
+            return n instanceof Class || ExtraClasses.some((C) => n instanceof C);
+        });
     }
 
     static selectByTag<TChild extends Node = Node>(node: Node, tag: number): TChild[] {

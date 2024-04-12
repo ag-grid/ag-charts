@@ -1,4 +1,3 @@
-import type { BBoxProvider } from '../util/bboxset';
 import { createId } from '../util/id';
 import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
@@ -7,17 +6,13 @@ import { Matrix } from './matrix';
 
 export { SceneChangeDetection, RedrawType };
 
-// Work-around for typing issues with Angular 13+ (see AG-6969),
-type OffscreenCanvasRenderingContext2D = any;
-
 export enum PointerEvents {
     All,
     None,
 }
 
 export type RenderContext = {
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+    ctx: CanvasRenderingContext2D;
     devicePixelRatio: number;
     forceRender: boolean | 'dirtyTransform';
     resized: boolean;
@@ -48,7 +43,7 @@ export type ChildNodeCounts = {
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node extends ChangeDetectable implements BBoxProvider {
+export abstract class Node extends ChangeDetectable {
     static _nextSerialNumber = 0;
 
     /** Unique number to allow creation order to be easily determined. */
@@ -245,11 +240,9 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         this.computeTransformMatrix();
         const matrix = Matrix.flyweight(this.matrix);
 
-        let parent = this.parent;
-        while (parent) {
+        for (const parent of this.ancestors()) {
             parent.computeTransformMatrix();
             matrix.preMultiplySelf(parent.matrix);
-            parent = parent.parent;
         }
 
         return matrix;
@@ -371,10 +364,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         }
     }
 
-    findNodes(predicate: (node: Node) => boolean): Node[] {
-        return this.children.flatMap((child) => child.findNodes(predicate));
-    }
-
     private cachedBBox?: BBox;
 
     getCachedBBox(): BBox {
@@ -458,18 +447,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
         if (stats) {
             stats.nodesRendered++;
         }
-    }
-
-    clearBBox(ctx: CanvasRenderingContext2D) {
-        const bbox = this.computeBBox();
-        if (bbox == null) {
-            return;
-        }
-
-        const { x, y, width, height } = bbox;
-        const topLeft = this.transformPoint(x, y);
-        const bottomRight = this.transformPoint(x + width, y + height);
-        ctx.clearRect(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
     }
 
     override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {

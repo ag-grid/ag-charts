@@ -1,43 +1,43 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AgChartsReact } from 'ag-charts-react';
+
 import { AgCartesianChartOptions, time } from 'ag-charts-community';
+import { AgChartsReact } from 'ag-charts-react';
 
 const ChartExample = () => {
     const chartRef = useRef<AgChartsReact>(null);
     const [options, setOptions] = useState<AgCartesianChartOptions>({
-
         autoSize: true,
         data: getData(),
         theme: {
             palette: {
-                fills: ["#ec4d3d", "#4facf2"],
-                strokes: ["#ec4d3d", "#4facf2"],
+                fills: ['#ec4d3d', '#4facf2'],
+                strokes: ['#ec4d3d', '#4facf2'],
             },
             overrides: { area: { series: { fillOpacity: 0.5 } } },
         },
         title: {
-            text: "Simulated CPU Usage",
+            text: 'Simulated CPU Usage',
             fontSize: 18,
         },
         series: [
-            { type: "area", xKey: "time", yKey: "system", stacked: true, yName: "System" },
-            { type: "area", xKey: "time", yKey: "user", stacked: true, yName: "User" },
+            { type: 'area', xKey: 'time', yKey: 'system', stacked: true, yName: 'System' },
+            { type: 'area', xKey: 'time', yKey: 'user', stacked: true, yName: 'User' },
         ],
         axes: [
             {
-                type: "time",
-                position: "bottom",
+                type: 'time',
+                position: 'bottom',
                 nice: false,
                 tick: {
                     interval: time.second.every(5, { snapTo: 0 }),
-                  },
+                },
             },
             {
-                type: "number",
-                position: "left",
+                type: 'number',
+                position: 'left',
                 title: {
-                    text: "Load (%)",
+                    text: 'Load (%)',
                 },
                 min: 0,
                 max: 100,
@@ -45,48 +45,50 @@ const ChartExample = () => {
         ],
     });
 
-
-    const updateData = useCallback(() => {
-        const clone = { ...options };
-
-        const now = Date.now();
-        clone.data = getData();
-
-        setOptions(clone);
-    }, [getData, options])
-
     useEffect(() => {
-        setInterval(updateData, refreshRateInMilliseconds);
-      }, [])
+        const updateData = () => {
+            setOptions((currentOptions) => {
+                const clone = { ...currentOptions };
 
-    return <AgChartsReact
-        ref={chartRef}
-        options={options}
-    />
-        ;
-}
+                clone.data = getData();
 
-let systemLoad = 0
-let userLoad = 0
-const data: any[] = []
-const refreshRateInMilliseconds = 50
-const millisecondsOfData = 30 * 1000
+                return clone;
+            });
+        };
+
+        const interval = setInterval(updateData, refreshRateInMilliseconds);
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
+    return <AgChartsReact ref={chartRef} options={options} />;
+};
+
+let systemLoad = 0;
+let userLoad = 0;
+const data: any[] = [];
+const refreshRateInMilliseconds = 50;
+const millisecondsOfData = 30 * 1000;
+
 function calculateRandomDelta(maxChange: number) {
     return maxChange / 2 - Math.floor(Math.random() * Math.floor(maxChange + 1));
 }
+
 function ensureBounds(load: number, max: number) {
     if (load > max) {
         return max;
-    }
-    else if (load < 0) {
+    } else if (load < 0) {
         return 0;
     }
     return load;
 }
+
 function calculateCpuUsage() {
     systemLoad = ensureBounds(systemLoad + calculateRandomDelta(2), 30);
     userLoad = ensureBounds(userLoad + calculateRandomDelta(4), 70);
 }
+
 function getData() {
     const dataCount = millisecondsOfData / refreshRateInMilliseconds;
     data.shift();

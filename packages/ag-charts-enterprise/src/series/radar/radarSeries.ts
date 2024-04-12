@@ -111,13 +111,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
-            extraProps.push(animationValidation(this));
+            extraProps.push(animationValidation());
         }
 
-        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
+        await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(this, angleKey, false, { id: 'angleValue' }),
-                valueProperty(this, radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
+                valueProperty(angleKey, false, { id: 'angleValue' }),
+                valueProperty(radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
                 ...extraProps,
             ],
         });
@@ -167,8 +167,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return;
         }
 
-        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`).index;
-        const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index;
+        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`);
+        const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`);
         const axisInnerRadius = this.getAxisInnerRadius();
 
         const nodeData = processedData.data.map((group): RadarNodeDatum => {
@@ -571,7 +571,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     protected animateSinglePath(pathNode: _Scene.Path, points: RadarPathPoint[], ratio: number) {
         const { path } = pathNode;
 
-        path.clear({ trackChanges: true });
+        path.clear(true);
 
         const axisInnerRadius = this.getAxisInnerRadius();
         const radiusAxis = this.axes[ChartAxisDirection.Y];
@@ -652,7 +652,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             lineNode.lineDash = this.properties.lineDash;
             lineNode.lineDashOffset = this.properties.lineDashOffset;
 
-            linePath.clear({ trackChanges: true });
+            linePath.clear(true);
 
             linePoints.forEach(({ x, y, moveTo }) => {
                 if (moveTo) {

@@ -1,7 +1,6 @@
-import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
+import type { AgToolbarRangesButtonValue, AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import { RANGES } from '../range-buttons/rangeTypes';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanUpdate, ZoomPanner } from './zoomPanner';
@@ -58,13 +57,11 @@ enum DragState {
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
-        newValue(newValue) {
-            if (newValue) {
+        newValue(enabled) {
+            if (enabled) {
                 this.registerContextMenuActions();
-                this.addToolbarButtons();
-            } else if (this.enabled) {
-                this.removeToolbarButtons();
             }
+            this.toolbarManager?.toggleSection('ranges', Boolean(enabled));
         },
     })
     @Validate(BOOLEAN)
@@ -120,11 +117,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
+    private readonly toolbarManager: _ModuleSupport.ToolbarManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
-    private readonly toolbarManager: _ModuleSupport.ToolbarManager;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -152,11 +149,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.scene = ctx.scene;
         this.cursorManager = ctx.cursorManager;
         this.highlightManager = ctx.highlightManager;
+        this.toolbarManager = ctx.toolbarManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
-        this.toolbarManager = ctx.toolbarManager;
 
         // Add selection zoom method and attach selection rect to root scene
         const selectionRect = new ZoomRect();
@@ -202,20 +199,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.toggleContextMenuActions(zoom);
     }
 
-    private addToolbarButtons() {
-        for (const [range] of RANGES.entries()) {
-            this.toolbarManager.addButton(range, {
-                label: range,
-            });
-        }
-    }
-
-    private removeToolbarButtons() {
-        for (const [range] of RANGES.entries()) {
-            this.toolbarManager.removeButton(range);
-        }
-    }
-
     private toggleContextMenuActions(zoom: DefinedZoomState) {
         if (this.isMinZoom(zoom)) {
             this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
@@ -254,7 +237,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(newZoom);
     }
 
-    private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
+    private onDoubleClick(event: _ModuleSupport.PointerInteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
         const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
@@ -278,7 +261,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
+    private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
         if (!this.enabled || !this.paddedRect) return;
 
         this.panner.stopInteractions();
@@ -297,10 +280,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 this.cursorManager.updateCursor(CURSOR_ID, 'grabbing');
                 newDragState = DragState.Pan;
                 this.panner.start();
-            }
-            // Do not allow selection only if fully zoomed in or when the pankey is pressed
-            else {
+            } else if (this.enableSelecting) {
                 const fullyZoomedIn = this.isMinZoom(definedZoomState(this.zoomManager.getZoom()));
+                // Do not allow selection if fully zoomed in or when the pankey is pressed
                 if (!fullyZoomedIn && !panKeyPressed) {
                     newDragState = DragState.Select;
                 }
@@ -312,7 +294,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
+    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
 
         this.ctx.interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
@@ -385,7 +367,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 
-    private onWheel(event: _ModuleSupport.InteractionEvent<'wheel'>) {
+    private onWheel(event: _ModuleSupport.PointerInteractionEvent<'wheel'>) {
         if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
 
         const currentZoom = this.zoomManager.getZoom();
@@ -485,17 +467,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onToolbarButtonPress(event: _ModuleSupport.ToolbarEvent<'button-pressed'>) {
-        if (!RANGES.has(event.id)) return;
+    private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (event.section !== 'ranges') return;
 
-        const time = RANGES.get(event.id);
-
-        if (typeof time === 'function') {
-            this.rangeX.extendWith(time);
-        } else if (time == null) {
-            this.rangeX.extendAll();
-        } else {
+        const time = event.value as AgToolbarRangesButtonValue;
+        if (typeof time === 'number') {
             this.rangeX.extendToEnd(time);
+        } else if (Array.isArray(time)) {
+            this.rangeX.updateWith(() => time);
+        } else if (typeof time === 'function') {
+            this.rangeX.updateWith(time);
         }
     }
 

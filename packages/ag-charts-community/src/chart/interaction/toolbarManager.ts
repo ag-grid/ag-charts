@@ -1,60 +1,33 @@
-import { StateTracker } from '../../util/stateTracker';
 import { BaseManager } from './baseManager';
 
-type EventTypes = ToolbarVisibility | ToolbarButtonAdded | ToolbarButton;
-type ToolbarVisibility = 'visibility';
-type ToolbarButtonAdded = 'button-added';
-type ToolbarButton = 'button-removed' | 'button-pressed';
+export type ToolbarSection = 'annotations' | 'ranges';
 
-export type ToolbarEvent<T extends EventTypes> = T extends ToolbarVisibility
-    ? ToolbarVisibilityEvent
-    : T extends ToolbarButtonAdded
-      ? ToolbarButtonAddedEvent
-      : ToolbarButtonEvent;
+type EventTypes = ToolbarButtonPressed | ToolbarSectionToggled;
+type ToolbarButtonPressed = 'button-pressed';
+type ToolbarSectionToggled = 'section-toggled';
+
+type ToolbarEvent = ToolbarButtonPressedEvent | ToolbarSectionToggledEvent;
 
 interface Event<T extends EventTypes> {
     type: T;
 }
 
-interface ToolbarVisibilityEvent extends Event<ToolbarVisibility> {
+export interface ToolbarSectionToggledEvent extends Event<ToolbarSectionToggled> {
+    section: ToolbarSection;
     visible: boolean;
 }
 
-interface ToolbarButtonAddedEvent extends Event<ToolbarButtonAdded> {
-    id: string;
-    options: ToolbarButtonOptions;
+export interface ToolbarButtonPressedEvent extends Event<ToolbarButtonPressed> {
+    section: ToolbarSection;
+    value: any;
 }
 
-interface ToolbarButtonEvent extends Event<ToolbarButton> {
-    id: string;
-}
-
-interface ToolbarButtonOptions {
-    label: string;
-}
-
-export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent<EventTypes>> {
-    private visible = new StateTracker(false);
-
-    toggleVisibility(callerId: string, visible?: boolean) {
-        const before = this.visible.stateValue();
-        this.visible.set(callerId, visible);
-        const after = this.visible.stateValue();
-
-        if (after !== before) {
-            this.listeners.dispatch('visibility', { type: 'visibility', visible: after ?? false });
-        }
+export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
+    pressButton(section: ToolbarSection, value: any) {
+        this.listeners.dispatch('button-pressed', { type: 'button-pressed', section, value });
     }
 
-    addButton(id: string, options: { label: string }) {
-        this.listeners.dispatch('button-added', { type: 'button-added', id, options });
-    }
-
-    removeButton(id: string) {
-        this.listeners.dispatch('button-removed', { type: 'button-removed', id });
-    }
-
-    pressButton(id: string) {
-        this.listeners.dispatch('button-pressed', { type: 'button-pressed', id });
+    toggleSection(section: ToolbarSection, visible: boolean) {
+        this.listeners.dispatch('section-toggled', { type: 'section-toggled', section, visible });
     }
 }

@@ -67,7 +67,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (chart.modulesManager.getModule<ChartSync>('sync')?.zoom) {
-                    chart.zoomManager.updateZoom('sync', this.mergeZoom(chart));
+                    chart.ctx.zoomManager.updateZoom('sync', this.mergeZoom(chart));
                 }
             }
         });
@@ -82,8 +82,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
                 if (!event.currentHighlight?.datum) {
-                    chart.highlightManager.updateHighlight(chart.id);
-                    chart.tooltipManager.removeTooltip(chart.id);
+                    chart.ctx.highlightManager.updateHighlight(chart.id);
+                    chart.ctx.tooltipManager.removeTooltip(chart.id);
                     continue;
                 }
 
@@ -120,20 +120,27 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
                     if (
                         matchingNodes.length < 2 &&
-                        matchingNodes[0]?.nodeDatum !== chart.highlightManager.getActiveHighlight()
+                        matchingNodes[0]?.nodeDatum !== chart.ctx.highlightManager.getActiveHighlight()
                     ) {
                         const { series, nodeDatum } = matchingNodes[0] ?? {};
-                        chart.highlightManager.updateHighlight(chart.id, nodeDatum);
+                        chart.ctx.highlightManager.updateHighlight(chart.id, nodeDatum);
 
                         if (nodeDatum) {
                             const offsetX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
                             const offsetY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
-                            const tooltipMeta = TooltipManager.makeTooltipMeta({ offsetX, offsetY }, nodeDatum);
+                            const tooltipMeta = TooltipManager.makeTooltipMeta(
+                                { type: 'hover', offsetX, offsetY },
+                                nodeDatum
+                            );
                             delete tooltipMeta.lastPointerEvent; // remove to prevent triggering TOOLTIP_RECALCULATION
 
-                            chart.tooltipManager.updateTooltip(chart.id, tooltipMeta, series.getTooltipHtml(nodeDatum));
+                            chart.ctx.tooltipManager.updateTooltip(
+                                chart.id,
+                                tooltipMeta,
+                                series.getTooltipHtml(nodeDatum)
+                            );
                         } else {
-                            chart.tooltipManager.removeTooltip(chart.id);
+                            chart.ctx.tooltipManager.removeTooltip(chart.id);
                         }
 
                         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);

@@ -196,23 +196,22 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         // Order here should match `getDatumIdFromData()`.
         if (legendItemKey) {
-            extraKeyProps.push(keyProperty(this, legendItemKey, false, { id: `legendItemKey` }));
+            extraKeyProps.push(keyProperty(legendItemKey, false, { id: `legendItemKey` }));
         } else if (calloutLabelKey) {
-            extraKeyProps.push(keyProperty(this, calloutLabelKey, false, { id: `calloutLabelKey` }));
+            extraKeyProps.push(keyProperty(calloutLabelKey, false, { id: `calloutLabelKey` }));
         } else if (sectorLabelKey) {
-            extraKeyProps.push(keyProperty(this, sectorLabelKey, false, { id: `sectorLabelKey` }));
+            extraKeyProps.push(keyProperty(sectorLabelKey, false, { id: `sectorLabelKey` }));
         }
 
         if (radiusKey) {
             extraProps.push(
-                rangedValueProperty(this, radiusKey, {
+                rangedValueProperty(radiusKey, {
                     id: 'radiusValue',
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
                 }),
-                valueProperty(this, radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
+                valueProperty(radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
                 normalisePropertyTo(
-                    this,
                     { id: 'radiusValue' },
                     [0, 1],
                     1,
@@ -222,27 +221,27 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             );
         }
         if (calloutLabelKey) {
-            extraProps.push(valueProperty(this, calloutLabelKey, false, { id: `calloutLabelValue` }));
+            extraProps.push(valueProperty(calloutLabelKey, false, { id: `calloutLabelValue` }));
         }
         if (sectorLabelKey) {
-            extraProps.push(valueProperty(this, sectorLabelKey, false, { id: `sectorLabelValue` }));
+            extraProps.push(valueProperty(sectorLabelKey, false, { id: `sectorLabelValue` }));
         }
         if (legendItemKey) {
-            extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
+            extraProps.push(valueProperty(legendItemKey, false, { id: `legendItemValue` }));
         }
         if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
             extraProps.push(diff(this.processedData));
         }
-        extraProps.push(animationValidation(this));
+        extraProps.push(animationValidation());
 
         data = data.map((d, idx) => (visible && seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
-                accumulativeValueProperty(this, angleKey, true, { id: `angleValue`, onlyPositive: true }),
-                valueProperty(this, angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
-                normalisePropertyTo(this, { id: 'angleValue' }, [0, 1], 0, 0),
+                accumulativeValueProperty(angleKey, true, { id: `angleValue`, onlyPositive: true }),
+                valueProperty(angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
+                normalisePropertyTo({ id: 'angleValue' }, [0, 1], 0, 0),
                 ...extraProps,
             ],
         });
@@ -274,18 +273,16 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     private getProcessedDataIndexes(dataModel: DataModel<any>) {
-        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`).index;
-        const radiusIdx = this.properties.radiusKey
-            ? dataModel.resolveProcessedDataIndexById(this, `radiusValue`).index
-            : -1;
+        const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`);
+        const radiusIdx = this.properties.radiusKey ? dataModel.resolveProcessedDataIndexById(this, `radiusValue`) : -1;
         const calloutLabelIdx = this.properties.calloutLabelKey
-            ? dataModel.resolveProcessedDataIndexById(this, `calloutLabelValue`).index
+            ? dataModel.resolveProcessedDataIndexById(this, `calloutLabelValue`)
             : -1;
         const sectorLabelIdx = this.properties.sectorLabelKey
-            ? dataModel.resolveProcessedDataIndexById(this, `sectorLabelValue`).index
+            ? dataModel.resolveProcessedDataIndexById(this, `sectorLabelValue`)
             : -1;
         const legendItemIdx = this.properties.legendItemKey
-            ? dataModel.resolveProcessedDataIndexById(this, `legendItemValue`).index
+            ? dataModel.resolveProcessedDataIndexById(this, `legendItemValue`)
             : -1;
 
         return { angleIdx, radiusIdx, calloutLabelIdx, sectorLabelIdx, legendItemIdx };
@@ -442,7 +439,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const midAngle180 = normalizeAngle180(midAngle);
 
         // Split the circle into quadrants like so: ⊗
-        const quadrantStart = (-3 * Math.PI) / 4; // same as `normalizeAngle180(toRadians(-135))`
+        const quadrantStart = -0.75 * Math.PI; // same as `normalizeAngle180(toRadians(-135))`
         const quadrantOffset = midAngle180 - quadrantStart;
         const quadrant = Math.floor(quadrantOffset / (Math.PI / 2));
         const quadrantIndex = mod(quadrant, quadrantTextOpts.length);
@@ -1376,7 +1373,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             return;
         }
 
-        const legendItemIdx = this.dataModel.resolveProcessedDataIndexById(this, `legendItemValue`).index;
+        const legendItemIdx = this.dataModel.resolveProcessedDataIndexById(this, `legendItemValue`);
         this.processedData?.data.forEach(({ values }, datumItemId) => {
             if (values[legendItemIdx] === legendItemName) {
                 this.toggleSeriesItem(datumItemId, enabled);

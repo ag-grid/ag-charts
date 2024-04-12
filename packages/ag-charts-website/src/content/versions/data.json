@@ -5,26 +5,26 @@
         "highlights": [
             {
                 "text": "New Map Series Types",
-                "url": "/react/maps/"
+                "path": "./maps"
             },
             {
                 "text": "Map Series for Geographic Areas",
-                "url": "/react/map-shapes/"
+                "path": "./map-shapes"
             },
             {
                 "text": "Map Series for Routes and Connections",
-                "url": "/react/map-lines/"
+                "path": "./map-lines"
             },
             {
                 "text": "Map Series for Markers and Points of Interest",
-                "url": "/react/map-markers/"
+                "path": "./map-markers"
             },
             {
                 "text": "Rounded Corners for All Bar Series",
-                "url": "/react/bar-series/#corner-radius"
+                "path": "./bar-series/#corner-radius"
             }
         ],
-        "notesUrl": "/javascript/upgrade-to-ag-charts-9-2/"
+        "notesPath": "./upgrade-to-ag-charts-9-2"
     },
     {
         "version": "9.1.0",
@@ -32,18 +32,18 @@
         "highlights": [
             {
                 "text": "Synchronised Charts",
-                "url": "/react/sync/"
+                "path": "./sync"
             },
             {
                 "text": "Mini Chart in Navigator",
-                "url": "/react/navigator/#mini-chart"
+                "path": "./navigator/#mini-chart"
             },
             {
                 "text": "Asynchronous Data Loading",
-                "url": "/react/zoom/#asynchronous-loading"
+                "path": "./zoom/#asynchronous-loading"
             }
         ],
-        "notesUrl": "/javascript/upgrade-to-ag-charts-9-1/"
+        "notesPath": "./upgrade-to-ag-charts-9-1"
     },
     {
         "version": "9.0.0",
@@ -51,29 +51,29 @@
         "highlights": [
             {
                 "text": "New Enterprise Series Types",
-                "url": "/gallery/"
+                "path": "/gallery"
             },
             {
                 "text": "Zoom",
-                "url": "/react/zoom/"
+                "path": "./zoom"
             },
             {
                 "text": "Context Menu",
-                "url": "/react/context-menu/"
+                "path": "./context-menu"
             },
             {
                 "text": "Crosshairs",
-                "url": "/react/axes-crosshairs/"
+                "path": "./axes-crosshairs"
             },
             {
                 "text": "Initial Load and Data Update Animation",
-                "url": "react/animation/"
+                "path": "./animation"
             },
             {
                 "text": "Error Bars",
-                "url": "/react/error-bars/"
+                "path": "./error-bars"
             }
         ],
-        "notesUrl": "/javascript/upgrade-to-ag-charts-9/"
+        "notesPath": "./upgrade-to-ag-charts-9"
     }
 ]

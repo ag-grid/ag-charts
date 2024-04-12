@@ -1,6 +1,8 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 import {
+    DEFAULT_ANNOTATION_BACKGROUND_FILL,
+    DEFAULT_ANNOTATION_STROKE,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
@@ -97,6 +99,9 @@ export class MaterialLight extends ChartTheme {
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             MaterialLight.getWaterfallSeriesDefaultTotalColors().stroke
         );
+
+        result.properties.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_STROKES.BLUE);
+        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
 
         return result;
     }

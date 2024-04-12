@@ -27,6 +27,7 @@ const options: AgCartesianChartOptions = {
             type: 'category',
             position: 'bottom',
             gridLine: {
+                enabled: true,
                 style: [
                     {
                         stroke: 'rgba(219, 219, 219, 1)',

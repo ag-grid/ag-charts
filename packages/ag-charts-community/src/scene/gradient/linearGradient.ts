@@ -10,7 +10,7 @@ export class LinearGradient extends Gradient {
         super(stops);
     }
 
-    createGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | string {
+    createGradient(ctx: CanvasFillStrokeStyles, bbox: BBox): CanvasGradient | string {
         // Gradient 0° angle starts at top according to CSS spec
         const angleOffset = 90;
         const { stops, angle } = this;
@@ -32,7 +32,7 @@ export class LinearGradient extends Gradient {
                 quarteredAngle = radians;
             } else if (radians < Math.PI) {
                 quarteredAngle = Math.PI - radians;
-            } else if (radians < (3 * Math.PI) / 2) {
+            } else if (radians < 1.5 * Math.PI) {
                 quarteredAngle = radians - Math.PI;
             } else {
                 quarteredAngle = 2 * Math.PI - radians;
@@ -41,9 +41,9 @@ export class LinearGradient extends Gradient {
             const l = diagonal * Math.abs(Math.cos(quarteredAngle - diagonalAngle));
             const gradient = ctx.createLinearGradient(cx + cos * l, cy + sin * l, cx - cos * l, cy - sin * l);
 
-            stops.forEach((stop) => {
+            for (const stop of stops) {
                 gradient.addColorStop(stop.offset, stop.color);
-            });
+            }
 
             return gradient;
         }

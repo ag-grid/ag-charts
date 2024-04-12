@@ -5,6 +5,7 @@ export const MAP_THEME_DEFAULTS: _ModuleSupport.ExtensibleTheme<'map-shape' | 'm
         axes: 'xy',
         anchorPointX: 'pointer',
         anchorPointY: 'pointer',
+        deceleration: 0.01,
     },
     legend: {
         enabled: false,

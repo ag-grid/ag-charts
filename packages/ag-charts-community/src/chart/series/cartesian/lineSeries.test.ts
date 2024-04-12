@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { deepClone } from '../../../util/json';
@@ -25,8 +24,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-
-expect.extend({ toMatchImageSnapshot });
 
 const buildLogAxisTestCase = (
     data: any[],
