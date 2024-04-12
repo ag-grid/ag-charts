@@ -1,3 +1,4 @@
+import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
@@ -32,6 +33,7 @@ export default defineMarkdocConfig({
         },
     },
     tags: {
+        kbd,
         link,
         enterpriseIcon: {
             render: component('../../external/ag-website-shared/src/components/icon/EnterpriseIcon', 'EnterpriseIcon'),
