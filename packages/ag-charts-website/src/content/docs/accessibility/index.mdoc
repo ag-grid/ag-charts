@@ -10,45 +10,43 @@ Even if you are not mandated to conform to any particular accessibility standard
 
 Currently the most commonly encountered conformance guidelines are:
 
--   [ADA](https://www.ada.gov/) - US Department of Justice.
--   [Section 508](https://www.section508.gov/) - US federal agencies.
--   [WCAG 2.0](https://www.w3.org/WAI/standards-guidelines/wcag/) - Globally accepted standard.
+-   {% link href="https://www.ada.gov/" isExternal=true %}ADA{% /link %} - US Department of Justice.
+-   {% link href="https://www.section508.gov/" isExternal=true %}Section 508{% /link %} - US federal agencies.
+-   {% link href="https://www.w3.org/WAI/standards-guidelines/wcag/" isExternal=true %}WCAG 2.0{% /link %} - Globally accepted standard.
 
 WCAG 2.0 has 3 levels of conformance; A, AA and AAA (in order of conformance)
 
 As meeting WCAG 2.0 level AA guidelines also meets the ADA and Section 508 standards, it is likely that most organisations will want to target this standard.
 
-## Keyboard navigation
+## Keyboard Navigation
 
-Users who have motor disabilities, as well as visually impaired users, often rely on keyboards for navigation.
-
-It is possible to interact with chart components and navigate through the displayed data without using a mouse.
-
-To do this, all you need to do is to add a `tabindex` to the chart container.
+AG Charts fully supports keyboard navigation as an element of accessibility, allowing interaction with chart elements and navigation through the displayed data without using a mouse.
 
 The following keys are available:
 
--   TAB moves focus between chart components. These are:
-    -   Title
-    -   Subtitle
+-   {% kbd "⇥ Tab" /%} moves focus between chart components. These are:
     -   Series
     -   Legend
     -   Legend pagination control
-    -   Footnote
--   LEFT/RIGHT moves focus between items in a series, or between legend items.
--   UP/DOWN moves focus between series in a chart.  
+-   {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, or between legend items.
+-   {% kbd "↑" /%}{% kbd "↓" /%} moves focus between series in a chart.  
     Please note that datapoints and series are traversed in declared order which may not match the visual display.
--   ENTER or SPACE toggles legend items and triggers click event callbacks.
+-   {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} toggles legend items and triggers click event callbacks.
 
-## Screen Readers (Aria)
+## Screen Readers (ARIA)
 
-Users who are visually impaired, will typically require the assistance of a screen reader to interpret and interact with web based applications.
+Users who are visually impaired will typically require the assistance of a screen reader to interpret and interact with web-based applications.
 
-There are numerous screen readers available, however right now the most popular screen reader for Windows is [JAWS](https://support.freedomscientific.com/Downloads/JAWS) and for MAC users it is the embedded [VoiceOver](https://support.apple.com/en-gb/guide/voiceover/welcome/10) software. Our testing has focused on these screen readers.
+Screen readers for Windows include
+{% link href="https://www.nvaccess.org/download/" isExternal=true %}NVDA{% /link %},
+{% link href="https://support.freedomscientific.com/Downloads/JAWS" isExternal=true %}JAWS{% /link %},
+{% link href="https://support.microsoft.com/en-us/windows/complete-guide-to-narrator-e4397a0d-ef4f-b386-d8ae-c172f109bdb1" isExternal=true %}Windows Narrator{% /link %},
+and Mac users have the built-in {% link href="https://support.apple.com/en-gb/guide/voiceover/welcome/10" isExternal=true %}VoiceOver{% /link %} screen reader.
+Our accessibility testing has focused on these screen readers.
 
-As AG Charts is a canvas based library, it uses an ARIA live tag to announce the details of the focused element.
+AG Charts generates announcements for screen readers via a standards-based accessibility implementation based on the currently focused chart element.
 
-If there is a need to customise these labels, this could be achieved by using the localisation configuration.
+To customise the AG Charts screen reader announcements, modify their default values in the localisation configuration.
 
 ## High Contrast Theme
 
