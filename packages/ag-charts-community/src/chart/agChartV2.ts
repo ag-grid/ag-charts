@@ -53,10 +53,10 @@ export abstract class AgCharts {
     private static licenseKey?: string;
     private static gridContext = false;
 
-    private static licenseCheck(options: AgChartOptions) {
+    private static licenseCheck() {
         if (this.licenseChecked) return;
 
-        this.licenseManager = enterpriseModule.licenseManager?.(options);
+        this.licenseManager = enterpriseModule.licenseManager;
         this.licenseManager?.setLicenseKey(this.licenseKey, this.gridContext);
         this.licenseManager?.validateLicense();
         this.licenseChecked = true;
@@ -71,7 +71,7 @@ export abstract class AgCharts {
     }
 
     public static getLicenseDetails(licenseKey: string) {
-        return enterpriseModule.licenseManager?.({}).getLicenseDetails(licenseKey);
+        return enterpriseModule.licenseManager?.getLicenseDetails(licenseKey);
     }
 
     /**
@@ -85,7 +85,7 @@ export abstract class AgCharts {
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
     public static create(options: AgChartOptions): AgChartInstance {
-        this.licenseCheck(options);
+        this.licenseCheck();
         const chart = AgChartsInternal.createOrUpdate(options);
 
         if (this.licenseManager?.isDisplayWatermark()) {

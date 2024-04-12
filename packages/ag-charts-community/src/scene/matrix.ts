@@ -85,8 +85,9 @@ export class Matrix {
         }
     }
 
-    private static instance = new Matrix();
+    private static instance?: Matrix;
     static flyweight(sourceMatrix: Matrix): Matrix {
+        Matrix.instance ??= new Matrix();
         return Matrix.instance.setElements(sourceMatrix.elements);
     }
 

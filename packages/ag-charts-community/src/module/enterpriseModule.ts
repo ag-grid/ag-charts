@@ -1,5 +1,3 @@
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
-
 export interface LicenseManager {
     setLicenseKey: (key?: string, gridContext?: boolean) => void;
     validateLicense: () => void;
@@ -10,7 +8,7 @@ export interface LicenseManager {
 
 interface EnterpriseModuleOptions {
     isEnterprise: boolean;
-    licenseManager?: (options: AgChartOptions) => LicenseManager;
+    licenseManager?: LicenseManager;
     injectWatermark?: (parentElement: HTMLElement, text: string) => void;
 }
 

@@ -7,4 +7,5 @@ export default {
     },
     moduleFileExtensions: ['ts', 'js', 'html'],
     coverageDirectory: '../../coverage/packages/plugins/ag-charts-generate-chart-thumbnail',
+    testEnvironment: '../../packages/ag-charts-community/jest.jsdom-env.cjs',
 };

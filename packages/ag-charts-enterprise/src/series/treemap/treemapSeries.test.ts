@@ -6,7 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     Chart,
     GALLERY_EXAMPLES,
@@ -24,6 +24,8 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
+
+const { getDocument } = _ModuleSupport;
 
 describe('TreemapSeries', () => {
     setupMockConsole();
@@ -48,7 +50,7 @@ describe('TreemapSeries', () => {
     describe('Series Highlighting', () => {
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
-            data: GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options.data.slice(0, 1),
+            data: GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options.data?.slice(0, 1),
         };
 
         it('should render a complex chart', async () => {
@@ -137,7 +139,7 @@ describe('TreemapSeries', () => {
             const listeners = params.onNodeClick ? { nodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
-                container: document.body,
+                container: getDocument('body'),
                 autoSize: false,
                 series: [
                     {
@@ -198,7 +200,7 @@ describe('TreemapSeries', () => {
 
             // Check click handler
             const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+                (sum: number, series: any) => sum + testParams.getNodeData(series).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -208,7 +210,7 @@ describe('TreemapSeries', () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
                 // Check the tooltip is shown
-                const tooltip = document.querySelector('.ag-chart-tooltip');
+                const tooltip = getDocument().querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(false);
 
@@ -228,7 +230,7 @@ describe('TreemapSeries', () => {
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart);
-            const tooltip = document.querySelector('.ag-chart-tooltip');
+            const tooltip = getDocument().querySelector('.ag-chart-tooltip');
             expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(true);
         });
 
@@ -305,9 +307,9 @@ describe('TreemapSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = series.contentGroup.children.map((group) => group.children[0]);
-                const maxDepth = Math.max(...nodes.map((n) => n.datum.depth ?? -1));
-                return nodes.filter((node) => node.datum.depth === maxDepth);
+                const nodes = series.contentGroup.children.map((group: any) => group.children[0]);
+                const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
+                return nodes.filter((node: any) => node.datum.depth === maxDepth);
             },
             getNodePoint: (item) => {
                 const { x, y, width, height } = item.clipBBox ?? item;

@@ -34,7 +34,7 @@ const benchmarks = glob.sync('packages/ag-charts-community/benchmarks/**/*.test.
 const commonConfig = {
     prettierPath: null,
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
-    testEnvironment: './jest.jsdom-with-timezone.cjs',
+    testEnvironment: './jest.jsdom-env.cjs',
     setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     preset: '../../jest.preset.js',
     transform: {
