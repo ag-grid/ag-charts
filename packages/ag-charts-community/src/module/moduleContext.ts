@@ -3,6 +3,7 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
+import type { AriaAnnouncementService } from '../chart/interaction/ariaAnnouncementServices';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
 import type { CursorManager } from '../chart/interaction/cursorManager';
@@ -34,6 +35,7 @@ export interface ModuleContext {
 
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
+    readonly ariaAnnouncementService: AriaAnnouncementService;
     readonly chartEventManager: ChartEventManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly cursorManager: CursorManager;
