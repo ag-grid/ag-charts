@@ -13,10 +13,11 @@ import type { Point } from '../scene/point';
 import { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
+import styles from '../styles/styles';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { Debug } from '../util/debug';
-import { createElement } from '../util/dom';
+import { createElement, injectStyle } from '../util/dom';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
@@ -277,6 +278,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const container = resources?.container;
 
         this.element = element;
+
+        injectStyle(styles, 'chart');
 
         const root = new Group({ name: 'root' });
         // Prevent the scene from rendering chart components in an invalid state
@@ -543,6 +546,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
+                this.updateThemeClassName();
+            // fallthrough
+
             case ChartUpdateType.UPDATE_DATA:
                 await this.updateData();
                 updateSplits('⬇️');
@@ -618,6 +624,39 @@ export abstract class Chart extends Observable implements AgChartInstance {
             count,
             performUpdateType: ChartUpdateType[performUpdateType],
         });
+    }
+
+    private updateThemeClassName() {
+        const {
+            element,
+            processedOptions: { theme },
+        } = this;
+
+        const themeClassNamePrefix = 'ag-charts-theme-';
+        const validThemeClassNames = [`${themeClassNamePrefix}default`, `${themeClassNamePrefix}default-dark`];
+
+        let themeClassName = validThemeClassNames[0];
+        let isDark = false;
+
+        if (typeof theme === 'string') {
+            themeClassName = theme.replace('ag-', themeClassNamePrefix);
+            isDark = theme.includes('-dark');
+        } else if (typeof theme?.baseTheme === 'string') {
+            themeClassName = theme.baseTheme.replace('ag-', themeClassNamePrefix);
+            isDark = theme.baseTheme.includes('-dark');
+        }
+
+        if (!validThemeClassNames.includes(themeClassName)) {
+            themeClassName = isDark ? validThemeClassNames[1] : validThemeClassNames[0];
+        }
+
+        element.classList.forEach((className) => {
+            if (className.startsWith(themeClassNamePrefix) && className !== themeClassName) {
+                element.classList.remove(className);
+            }
+        });
+
+        element.classList.add(themeClassName);
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
@@ -1497,7 +1536,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
-        const updateType = majorChange ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
+        const updateType = majorChange ? ChartUpdateType.FULL : ChartUpdateType.PERFORM_LAYOUT;
         this.maybeResetAnimations(seriesStatus);
 
         debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType], {

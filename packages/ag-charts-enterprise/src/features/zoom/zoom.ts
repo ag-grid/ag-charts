@@ -61,7 +61,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             if (enabled) {
                 this.registerContextMenuActions();
             }
-            this.toolbarManager?.toggleSection('ranges', Boolean(enabled));
+            this.toolbarManager?.toggleGroup('ranges', Boolean(enabled));
         },
     })
     @Validate(BOOLEAN)
@@ -468,7 +468,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        if (event.section !== 'ranges') return;
+        if (event.group !== 'ranges') return;
 
         const time = event.value as AgToolbarRangesButtonValue;
         if (typeof time === 'number') {

@@ -1,33 +1,37 @@
 import { BaseManager } from './baseManager';
 
-export type ToolbarSection = 'annotations' | 'ranges';
+export type ToolbarGroup = 'annotations' | 'ranges';
 
-type EventTypes = ToolbarButtonPressed | ToolbarSectionToggled;
+type EventTypes = ToolbarButtonPressed | ToolbarGroupToggled;
 type ToolbarButtonPressed = 'button-pressed';
-type ToolbarSectionToggled = 'section-toggled';
+type ToolbarGroupToggled = 'group-toggled';
 
-type ToolbarEvent = ToolbarButtonPressedEvent | ToolbarSectionToggledEvent;
+type ToolbarEvent = ToolbarButtonPressedEvent | ToolbarGroupToggledEvent;
 
 interface Event<T extends EventTypes> {
     type: T;
 }
 
-export interface ToolbarSectionToggledEvent extends Event<ToolbarSectionToggled> {
-    section: ToolbarSection;
+export interface ToolbarGroupToggledEvent extends Event<ToolbarGroupToggled> {
+    group: ToolbarGroup;
     visible: boolean;
 }
 
 export interface ToolbarButtonPressedEvent extends Event<ToolbarButtonPressed> {
-    section: ToolbarSection;
+    group: ToolbarGroup;
     value: any;
 }
 
 export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
-    pressButton(section: ToolbarSection, value: any) {
-        this.listeners.dispatch('button-pressed', { type: 'button-pressed', section, value });
+    constructor(readonly element: HTMLElement) {
+        super();
     }
 
-    toggleSection(section: ToolbarSection, visible: boolean) {
-        this.listeners.dispatch('section-toggled', { type: 'section-toggled', section, visible });
+    pressButton(group: ToolbarGroup, value: any) {
+        this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, value });
+    }
+
+    toggleGroup(group: ToolbarGroup, visible: boolean) {
+        this.listeners.dispatch('group-toggled', { type: 'group-toggled', group, visible });
     }
 }

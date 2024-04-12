@@ -24,7 +24,7 @@ type HoverAddingFn = (datum: AnnotationProperties, node: Annotation, point: Coor
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
-        target.ctx.toolbarManager.toggleSection('annotations', Boolean(enabled));
+        target.ctx.toolbarManager.toggleGroup('annotations', Boolean(enabled));
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
@@ -84,7 +84,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.active = undefined;
         }
 
-        if (event.section !== 'annotations' || !Object.values(AnnotationType).includes(event.value)) return;
+        if (event.group !== 'annotations' || !Object.values(AnnotationType).includes(event.value)) return;
 
         this.ctx.interactionManager.pushState(InteractionState.Annotations);
 
