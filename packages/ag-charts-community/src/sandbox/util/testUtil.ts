@@ -6,7 +6,7 @@ import { mockCanvas } from 'ag-charts-test';
 import { getDocument } from '../../util/dom';
 import { AgCharts } from '../agCharts';
 import type { AgChartOptions } from '../types/agChartsTypes';
-import type { Box } from '../types/commonTypes';
+import type { Frame } from '../types/commonTypes';
 import type { TestInstance } from '../types/testTypes';
 import { mapValues } from './object';
 
@@ -27,7 +27,7 @@ export function setupMockCanvas(width = CanvasWidth, height = CanvasHeight) {
     const mockCtx = new mockCanvas.MockContext(width, height, getDocument());
 
     beforeEach(() => {
-        mockCanvas.setup({ mockCtx, width, height, mockText: true });
+        mockCanvas.setup({ mockCtx, width, height, document: getDocument(), mockText: true });
     });
 
     afterEach(() => {
@@ -40,7 +40,7 @@ export function setupMockCanvas(width = CanvasWidth, height = CanvasHeight) {
 export function expectCanvasToMatchImageSnapshot(
     ctx: mockCanvas.MockContext['ctx'],
     options?: MatchImageSnapshotOptions,
-    bbox?: Box
+    bbox?: Frame
 ) {
     const imageData = extractImageData(ctx, bbox);
     expect(imageData).toMatchImageSnapshot({
@@ -50,7 +50,7 @@ export function expectCanvasToMatchImageSnapshot(
     });
 }
 
-export function extractImageData({ nodeCanvas }: mockCanvas.MockContext['ctx'], bbox?: Box) {
+export function extractImageData({ nodeCanvas }: mockCanvas.MockContext['ctx'], bbox?: Frame) {
     let sourceCanvas = nodeCanvas;
 
     if (bbox) {
