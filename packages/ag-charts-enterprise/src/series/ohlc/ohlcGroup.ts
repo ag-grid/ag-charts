@@ -23,43 +23,43 @@ export class OhlcGroup extends CandlestickBaseGroup<
         ]);
     }
 
-    updateDatumStyles(datum: OhlcNodeDatum, activeStyles: _ModuleSupport.DeepRequired<AgOhlcSeriesItemOptions>) {
-        const {
-            bandwidth,
-            scaledValues: { xValue: axisValue },
-        } = datum;
-        const { openValue, closeValue, highValue, lowValue } = datum.scaledValues;
-
-        const { strokeWidth } = activeStyles;
-
+    updateCoordinates() {
+        const { x, y, yBottom, yHigh, yLow, width } = this;
         const selection = _Scene.Selection.select(this, _Scene.Rect);
         const [body] = selection.selectByTag<_Scene.Line>(GroupTags.Body);
         const [open] = selection.selectByTag<_Scene.Line>(GroupTags.Open);
         const [close] = selection.selectByTag<_Scene.Line>(GroupTags.Close);
 
-        const yHigh = Math.min(highValue, lowValue);
-        const yLow = Math.max(highValue, lowValue);
+        const halfWidth = width / 2;
 
         body.setProperties({
-            x: Math.floor(axisValue + bandwidth / 2),
-            y: yHigh,
+            x1: Math.floor(x + halfWidth),
+            x2: Math.floor(x + halfWidth),
+            y1: yHigh,
             y2: yLow,
         });
 
-        body.setProperties(activeStyles);
-
         open.setProperties({
-            y: Math.round(openValue + strokeWidth / 2),
-            x1: Math.floor(axisValue),
-            x2: Math.floor(axisValue + bandwidth / 2),
+            x1: Math.floor(x),
+            x2: Math.floor(x + halfWidth),
+            y: Math.round(y + open.strokeWidth / 2),
         });
-        open.setProperties(activeStyles);
 
         close.setProperties({
-            y: Math.round(closeValue - strokeWidth / 2),
-            x1: Math.floor(axisValue + bandwidth / 2),
-            x2: Math.floor(axisValue + bandwidth),
+            x1: Math.floor(x + halfWidth),
+            x2: Math.floor(x + width),
+            y: Math.round(yBottom - close.strokeWidth / 2),
         });
+    }
+
+    updateDatumStyles(_datum: OhlcNodeDatum, activeStyles: _ModuleSupport.DeepRequired<AgOhlcSeriesItemOptions>) {
+        const selection = _Scene.Selection.select(this, _Scene.Rect);
+        const [body] = selection.selectByTag<_Scene.Line>(GroupTags.Body);
+        const [open] = selection.selectByTag<_Scene.Line>(GroupTags.Open);
+        const [close] = selection.selectByTag<_Scene.Line>(GroupTags.Close);
+
+        body.setProperties(activeStyles);
+        open.setProperties(activeStyles);
         close.setProperties(activeStyles);
     }
 }

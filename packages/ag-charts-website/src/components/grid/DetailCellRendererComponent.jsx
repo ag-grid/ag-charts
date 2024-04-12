@@ -1,4 +1,4 @@
-import styles from '@design-system/modules/DetailCellRendererComponent.module.scss';
+import styles from '@legacy-design-system/modules/DetailCellRendererComponent.module.scss';
 import React, { forwardRef } from 'react';
 
 const DetailCellRenderer = forwardRef((props, ref) => {

@@ -269,6 +269,10 @@ function calculateStatus<N extends Node, D>(
         return 'added';
     }
 
+    if (diff.removed.has(id)) {
+        return 'removed';
+    }
+
     // NOTE: This function is only called for LIVE scene graph nodes, so returning a status of
     // 'removed' is nonsensical and incorrect.
     return 'updated';

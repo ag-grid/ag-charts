@@ -35,7 +35,7 @@ export class TopologyChart extends Chart {
         this.yAxis = new NumberAxis(this.getModuleContext());
         this.yAxis.position = 'left';
 
-        this.zoomManager.updateAxes([this.xAxis, this.yAxis]);
+        this.ctx.zoomManager.updateAxes([this.xAxis, this.yAxis]);
     }
 
     override async updateData() {
@@ -103,8 +103,8 @@ export class TopologyChart extends Chart {
             const x1 = viewBoxOriginX + viewBoxWidth;
             const y1 = viewBoxOriginY + viewBoxHeight;
 
-            const xZoom = this.zoomManager.getAxisZoom(this.xAxis.id);
-            const yZoom = this.zoomManager.getAxisZoom(this.yAxis.id);
+            const xZoom = this.ctx.zoomManager.getAxisZoom(this.xAxis.id);
+            const yZoom = this.ctx.zoomManager.getAxisZoom(this.yAxis.id);
             const xSpan = (x1 - x0) / (xZoom.max - xZoom.min);
             const xStart = x0 - xSpan * xZoom.min;
             const ySpan = (y1 - y0) / (1 - yZoom.min - (1 - yZoom.max));
@@ -130,9 +130,9 @@ export class TopologyChart extends Chart {
             );
         }
 
-        this.layoutService.dispatchLayoutComplete({
+        this.ctx.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',
-            chart: { width: this.scene.width, height: this.scene.height },
+            chart: { width: this.ctx.scene.width, height: this.ctx.scene.height },
             clipSeries: false,
             series: { rect: fullSeriesRect, paddedRect: shrinkRect, visible: seriesVisible },
             axes: [],

@@ -3,6 +3,7 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
+import type { AriaAnnouncementService } from '../chart/interaction/ariaAnnouncementServices';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
 import type { CursorManager } from '../chart/interaction/cursorManager';
@@ -22,29 +23,30 @@ import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
 export interface ModuleContext {
-    scene: Scene;
+    readonly scene: Scene;
 
-    callbackCache: CallbackCache;
-    gestureDetector: GestureDetector;
+    readonly callbackCache: CallbackCache;
+    readonly gestureDetector: GestureDetector;
 
-    chartService: ChartService;
-    dataService: DataService<any>;
-    layoutService: LayoutService;
-    updateService: UpdateService;
+    readonly chartService: ChartService;
+    readonly dataService: DataService<any>;
+    readonly layoutService: LayoutService;
+    readonly updateService: UpdateService;
 
-    animationManager: AnimationManager;
-    annotationManager: AnnotationManager;
-    chartEventManager: ChartEventManager;
-    contextMenuRegistry: ContextMenuRegistry;
-    cursorManager: CursorManager;
-    highlightManager: HighlightManager;
-    interactionManager: InteractionManager;
-    regionManager: RegionManager;
-    seriesStateManager: SeriesStateManager;
-    syncManager: SyncManager;
-    toolbarManager: ToolbarManager;
-    tooltipManager: TooltipManager;
-    zoomManager: ZoomManager;
+    readonly animationManager: AnimationManager;
+    readonly annotationManager: AnnotationManager;
+    readonly ariaAnnouncementService: AriaAnnouncementService;
+    readonly chartEventManager: ChartEventManager;
+    readonly contextMenuRegistry: ContextMenuRegistry;
+    readonly cursorManager: CursorManager;
+    readonly highlightManager: HighlightManager;
+    readonly interactionManager: InteractionManager;
+    readonly regionManager: RegionManager;
+    readonly seriesStateManager: SeriesStateManager;
+    readonly syncManager: SyncManager;
+    readonly toolbarManager: ToolbarManager;
+    readonly tooltipManager: TooltipManager;
+    readonly zoomManager: ZoomManager;
 }
 
 export interface ModuleContextWithParent<P> extends ModuleContext {

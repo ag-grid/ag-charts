@@ -354,7 +354,7 @@ describe('Chart', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.datum[params.angleKey]],
             getHighlightNode: (chartInstance, series) => {
                 // Returns a highlighted sector
-                const highlightedDatum = chartInstance.highlightManager.getActiveHighlight();
+                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find(
                     (child: any) => child?.datum?.itemId === highlightedDatum.itemId
                 );

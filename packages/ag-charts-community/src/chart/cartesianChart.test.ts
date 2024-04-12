@@ -233,7 +233,7 @@ describe('CartesianChart', () => {
 
             const nodeData: SeriesNodeDataContext<any, any> = seriesImpl['contextNodeData']!;
 
-            const highlightManager = (chart as any).highlightManager;
+            const highlightManager = (chart as any).ctx.highlightManager;
 
             return { chart, nodeData, highlightManager };
         };

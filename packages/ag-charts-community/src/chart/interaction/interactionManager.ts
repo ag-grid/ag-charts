@@ -163,7 +163,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
         element: HTMLElement,
-
         container?: HTMLElement
     ) {
         super();

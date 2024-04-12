@@ -39,7 +39,11 @@ export class BaseProperties<T extends object = object> {
         return listDecoratedProperties(this).every((propertyKey) => {
             const { optional } = extractDecoratedPropertyMetadata(this, propertyKey)!;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return optional || typeof this[propertyKey as keyof TContext] !== 'undefined';
+            const valid = optional || typeof this[propertyKey as keyof TContext] !== 'undefined';
+            if (!valid) {
+                Logger.warnOnce(`[${propertyKey}] is required.`);
+            }
+            return valid;
         });
     }
 

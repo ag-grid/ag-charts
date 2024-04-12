@@ -232,7 +232,11 @@ export class Legend extends BaseProperties {
         this.item.marker.parent = this;
 
         const animationState = InteractionState.Default | InteractionState.Animation;
-        const region = ctx.regionManager.addRegion('legend', this.group);
+        const region = ctx.regionManager.addRegionFromProperties({
+            name: 'legend',
+            bboxproviders: [this.group],
+            canInteraction: () => this.enabled && this.group.visible,
+        });
         this.destroyFns.push(
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
@@ -1061,9 +1065,15 @@ export class Legend extends BaseProperties {
         if (this.focus.mode === 'item') {
             const { node, datum } = this.getFocusedItem();
             this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, node), datum);
+            const label = datum && this.getItemLabel(datum);
+            if (label) {
+                this.ctx.ariaAnnouncementService.announceValue(`Legend item ${label}`);
+            }
         } else if (this.focus.mode === 'page') {
             const button = this.getFocusedPaginationButton();
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
+            const values = { next: 'Next legend page', prev: 'Previous legend page' };
+            this.ctx.ariaAnnouncementService.announceValue(values[this.focus.pageButton]);
         }
     }
 

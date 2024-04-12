@@ -32,6 +32,7 @@ const unitTests = tests.map(pathToGlob).filter((path) => !e2eTests.includes(path
 const benchmarks = glob.sync('packages/ag-charts-community/benchmarks/**/*.test.ts').map(pathToGlob);
 
 const commonConfig = {
+    prettierPath: null,
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
     testEnvironment: './jest.jsdom-with-timezone.cjs',
     setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],

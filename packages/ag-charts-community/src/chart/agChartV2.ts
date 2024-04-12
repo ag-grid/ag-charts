@@ -259,7 +259,7 @@ class AgChartsInternal {
     static async download(proxy: AgChartInstanceProxy, opts?: DownloadOptions) {
         try {
             const clone = await AgChartsInternal.prepareResizedChart(proxy, opts);
-            clone.chart.scene.download(opts?.fileName, opts?.fileFormat);
+            clone.chart.ctx.scene.download(opts?.fileName, opts?.fileFormat);
             clone.destroy();
         } catch (error) {
             Logger.errorOnce(error);
@@ -268,7 +268,7 @@ class AgChartsInternal {
 
     static async getImageDataURL(proxy: AgChartInstanceProxy, opts?: ImageDataUrlOptions): Promise<string> {
         const clone = await AgChartsInternal.prepareResizedChart(proxy, opts);
-        const result = clone.chart.scene.getDataURL(opts?.fileFormat);
+        const result = clone.chart.ctx.scene.getDataURL(opts?.fileFormat);
 
         clone.destroy();
 
@@ -276,8 +276,8 @@ class AgChartsInternal {
     }
 
     private static async prepareResizedChart({ chart }: AgChartInstanceProxy, opts: DownloadOptions = {}) {
-        const width: number = opts.width ?? chart.width ?? chart.scene.canvas.width;
-        const height: number = opts.height ?? chart.height ?? chart.scene.canvas.height;
+        const width: number = opts.width ?? chart.width ?? chart.ctx.scene.canvas.width;
+        const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
 
         const options: ChartExtendedOptions = mergeDefaults(
             {
@@ -293,7 +293,7 @@ class AgChartsInternal {
         );
 
         const cloneProxy = AgChartsInternal.createOrUpdate(options);
-        cloneProxy.chart.zoomManager.updateZoom('agChartV2', chart.zoomManager.getZoom()); // sync zoom
+        cloneProxy.chart.ctx.zoomManager.updateZoom('agChartV2', chart.ctx.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
             if (!series.visible) {
                 cloneProxy.chart.series[index].visible = false; // sync series visibility
