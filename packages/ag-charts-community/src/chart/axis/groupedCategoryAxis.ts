@@ -494,7 +494,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         }
 
         const getTransformBox = (bbox: BBox) => {
-            const matrix = new Matrix();
             const {
                 rotation: axisRotation,
                 translationX,
@@ -502,12 +501,21 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 rotationCenterX,
                 rotationCenterY,
             } = this.getAxisTransform();
-            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-                scalingCenterX: 0,
-                scalingCenterY: 0,
-                rotationCenterX,
-                rotationCenterY,
-            });
+
+            const matrix = new Matrix(
+                Matrix.calculateTransformMatrix(
+                    1,
+                    1,
+                    axisRotation,
+                    translationX,
+                    translationY,
+                    null,
+                    null,
+                    rotationCenterX,
+                    rotationCenterY
+                )
+            );
+
             return matrix.transformBBox(bbox);
         };
 

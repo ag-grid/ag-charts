@@ -410,12 +410,19 @@ export abstract class Node extends ChangeDetectable {
             rotationCenterY,
         } = this;
 
-        Matrix.updateTransformMatrix(matrix, scalingX, scalingY, rotation, translationX, translationY, {
-            scalingCenterX,
-            scalingCenterY,
-            rotationCenterX,
-            rotationCenterY,
-        });
+        matrix.setElements(
+            Matrix.calculateTransformMatrix(
+                scalingX,
+                scalingY,
+                rotation,
+                translationX,
+                translationY,
+                scalingCenterX,
+                scalingCenterY,
+                rotationCenterX,
+                rotationCenterY
+            )
+        );
 
         this.dirtyTransform = false;
     }

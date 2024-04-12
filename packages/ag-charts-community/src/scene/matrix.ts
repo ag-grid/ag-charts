@@ -54,7 +54,7 @@ export class Matrix {
         return this;
     }
 
-    private get identity(): boolean {
+    get isIdentity(): boolean {
         const e = this.elements;
         return e[0] === 1 && e[1] === 0 && e[2] === 0 && e[3] === 1 && e[4] === 0 && e[5] === 0;
     }
@@ -235,7 +235,7 @@ export class Matrix {
         // If the matrix is mostly identity (95% of the time),
         // the `if (this.isIdentity)` check can make this call 3-4 times
         // faster on average: https://jsperf.com/matrix-check-first-vs-always-set
-        if (this.identity) {
+        if (this.isIdentity) {
             return;
         }
 
@@ -248,84 +248,50 @@ export class Matrix {
         return Matrix.instance.setElements(sourceMatrix.elements);
     }
 
-    static updateTransformMatrix(
-        matrix: Matrix,
-        scalingX: number,
-        scalingY: number,
-        rotation: number,
-        translationX: number,
-        translationY: number,
-        opts?: {
-            scalingCenterX?: number | null;
-            scalingCenterY?: number | null;
-            rotationCenterX?: number | null;
-            rotationCenterY?: number | null;
-        }
-    ) {
-        // Assume that centers of scaling and rotation are at the origin.
-        const [bbcx, bbcy] = [0, 0];
-
-        const sx = scalingX;
-        const sy = scalingY;
-        let scx: number;
-        let scy: number;
-
-        if (sx === 1 && sy === 1) {
-            scx = 0;
-            scy = 0;
-        } else {
-            scx = opts?.scalingCenterX == null ? bbcx : opts?.scalingCenterX;
-            scy = opts?.scalingCenterY == null ? bbcy : opts?.scalingCenterY;
-        }
-
-        const r = rotation;
-        const cos = Math.cos(r);
-        const sin = Math.sin(r);
-        let rcx: number;
-        let rcy: number;
-
-        if (r === 0) {
-            rcx = 0;
-            rcy = 0;
-        } else {
-            rcx = opts?.rotationCenterX == null ? bbcx : opts?.rotationCenterX;
-            rcy = opts?.rotationCenterY == null ? bbcy : opts?.rotationCenterY;
-        }
-
-        const tx = translationX;
-        const ty = translationY;
-
-        // The transform matrix `M` is a result of the following transformations:
-        // 1) translate the center of scaling to the origin
-        // 2) scale
-        // 3) translate back
-        // 4) translate the center of rotation to the origin
-        // 5) rotate
-        // 6) translate back
-        // 7) translate
-        //         (7)          (6)             (5)             (4)           (3)           (2)           (1)
-        //     | 1 0 tx |   | 1 0 rcx |   | cos -sin 0 |   | 1 0 -rcx |   | 1 0 scx |   | sx 0 0 |   | 1 0 -scx |
-        // M = | 0 1 ty | * | 0 1 rcy | * | sin  cos 0 | * | 0 1 -rcy | * | 0 1 scy | * | 0 sy 0 | * | 0 1 -scy |
-        //     | 0 0  1 |   | 0 0  1  |   |  0    0  1 |   | 0 0  1   |   | 0 0  1  |   | 0  0 0 |   | 0 0  1   |
-
-        // Translation after steps 1-4 above:
-        const tx4 = scx * (1 - sx) - rcx;
-        const ty4 = scy * (1 - sy) - rcy;
-
-        matrix.setElements([
-            cos * sx,
-            sin * sx,
-            -sin * sy,
-            cos * sy,
-            cos * tx4 - sin * ty4 + rcx + tx,
-            sin * tx4 + cos * ty4 + rcy + ty,
-        ]);
-
-        return matrix;
-    }
-
     static fromContext(ctx: CanvasTransform) {
         const domMatrix = ctx.getTransform();
         return new Matrix([domMatrix.a, domMatrix.b, domMatrix.c, domMatrix.d, domMatrix.e, domMatrix.f]);
+    }
+
+    static calculateTransformMatrix(
+        scaleX: number,
+        scaleY: number,
+        rotation: number,
+        translateX: number,
+        translateY: number,
+        scalePivotX?: number | null,
+        scalePivotY?: number | null,
+        rotationPivotX?: number | null,
+        rotationPivotY?: number | null
+    ): [number, number, number, number, number, number] {
+        let scaleOriginX: number, scaleOriginY: number, rotationOriginX: number, rotationOriginY: number;
+
+        if (scaleX === 1 && scaleY === 1) {
+            scaleOriginX = scaleOriginY = 0;
+        } else {
+            scaleOriginX = scalePivotX ?? 0;
+            scaleOriginY = scalePivotY ?? 0;
+        }
+
+        if (rotation === 0) {
+            rotationOriginX = rotationOriginY = 0;
+        } else {
+            rotationOriginX = rotationPivotX ?? 0;
+            rotationOriginY = rotationPivotY ?? 0;
+        }
+
+        const scaleAdjustX = scaleOriginX * (1 - scaleX) - rotationOriginX;
+        const scaleAdjustY = scaleOriginY * (1 - scaleY) - rotationOriginY;
+        const cosTheta = Math.cos(rotation);
+        const sinTheta = Math.sin(rotation);
+
+        return [
+            cosTheta * scaleX,
+            sinTheta * scaleX,
+            -sinTheta * scaleY,
+            cosTheta * scaleY,
+            cosTheta * scaleAdjustX - sinTheta * scaleAdjustY + rotationOriginX + translateX,
+            sinTheta * scaleAdjustX + cosTheta * scaleAdjustY + rotationOriginY + translateY,
+        ];
     }
 }
