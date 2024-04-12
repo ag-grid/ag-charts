@@ -1091,6 +1091,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private focus = { series: 0, datum: 0 };
     private handleFocus() {
+        const overlayFocus = this.overlays.getFocusInfo();
+        if (overlayFocus !== undefined) {
+            this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
+            this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
+        } else {
+            this.handleSeriesFocus();
+        }
+    }
+
+    private handleSeriesFocus() {
         const { series, focus } = this;
         const visibleSeries = series.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;

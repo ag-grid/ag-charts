@@ -307,7 +307,7 @@ export class RegionManager {
         this.dispatch(focusedRegion, event);
     }
 
-    public updateFocusIndicatorRect(rect: BBox | undefined) {
+    public updateFocusIndicatorRect(rect: { x: number; y: number; width: number; height: number } | undefined) {
         if (this.focusIndicator !== undefined) {
             if (rect === undefined) {
                 this.focusIndicator.style.display = 'none';
