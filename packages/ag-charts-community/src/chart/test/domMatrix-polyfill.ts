@@ -66,12 +66,19 @@ export class DOMMatrix {
     }
 
     private AxB(A: DOMMatrix, B: DOMMatrix, C?: DOMMatrix) {
+        const a = A.a * B.a + A.c * B.b;
+        const b = A.b * B.a + A.d * B.b;
+        const c = A.a * B.c + A.c * B.d;
+        const d = A.b * B.c + A.d * B.d;
+        const e = A.a * B.e + A.c * B.f + A.e;
+        const f = A.b * B.e + A.d * B.f + A.f;
+
         C ??= A;
-        C.a = A.a * B.a + A.c * B.b;
-        C.b = A.b * B.a + A.d * B.b;
-        C.c = A.a * B.c + A.c * B.d;
-        C.d = A.b * B.c + A.d * B.d;
-        C.e = A.a * B.e + A.c * B.f + A.e;
-        C.f = A.b * B.e + A.d * B.f + A.f;
+        C.a = a;
+        C.b = b;
+        C.c = c;
+        C.d = d;
+        C.e = e;
+        C.f = f;
     }
 }
