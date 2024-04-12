@@ -1,5 +1,8 @@
 const { TestEnvironment } = require('jest-environment-jsdom');
 const timezoneMock = require('timezone-mock');
+const { DOMMatrix } = require('./src/chart/test/domMatrix-polyfill');
+const { Path2D, applyPath2DToCanvasRenderingContext } = require('path2d');
+const { CanvasRenderingContext2D } = require('canvas');
 
 /**
  * Timezone-aware jsdom Jest environment. Supports `@timezone` JSDoc
@@ -12,6 +15,11 @@ module.exports = class TimezoneAwareJSDOMEnvironment extends TestEnvironment {
         timezoneMock.register(tz);
 
         super(config, context);
+
+        this.global.DOMMatrix = DOMMatrix;
+        this.global.Path2D = Path2D;
+
+        applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
     }
 
     async teardown() {

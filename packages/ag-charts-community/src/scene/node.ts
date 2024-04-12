@@ -393,9 +393,7 @@ export abstract class Node extends ChangeDetectable {
     }
 
     computeTransformMatrix() {
-        if (!this.dirtyTransform) {
-            return;
-        }
+        if (!this.dirtyTransform) return;
 
         const {
             matrix,
