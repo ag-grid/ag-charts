@@ -3,10 +3,13 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: [
-        { os: 'Windows', share: 88.07 },
-        { os: 'macOS', share: 9.44 },
-        { os: 'Linux', share: 1.87 },
+        { os: 'Windows', share: 0.88 },
+        { os: 'macOS', share: 0.094 },
+        { os: 'Linux', share: 0.187 },
     ],
+    title: {
+        text: 'Desktop Operating Systems',
+    },
     series: [
         {
             type: 'bar',
@@ -18,21 +21,18 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            title: {
-                text: 'Desktop Operating Systems',
-                enabled: false,
+            label: {
+                formatter: ({ value }) => {
+                    return value == 'Windows' ? '== Windows ==' : value;
+                },
             },
         },
         {
             type: 'number',
             position: 'left',
-            title: {
-                text: 'Market Share (%)',
-                enabled: false,
-            },
             label: {
                 formatter: (params) => {
-                    return params.value + '%';
+                    return params.value * 100 + '%';
                 },
             },
         },

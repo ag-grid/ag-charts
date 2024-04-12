@@ -71,12 +71,12 @@ function autoRotation() {
     AgCharts.update(chart, options);
 }
 
-function uniformLabels() {
+function shortLabels() {
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
     AgCharts.update(chart, options);
 }
 
-function irregularLabels() {
+function longLabels() {
     (options.series![0] as AgBarSeriesOptions).xKey = 'country';
     AgCharts.update(chart, options);
 }
