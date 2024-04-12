@@ -88,7 +88,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             return moduleCtx.regionManager.addRegionFromProperties({
                 name: regionName,
                 bboxproviders: [this.node],
-                canInteraction: () => this.enabled && this.node.visible && this.truncated,
+                canInteraction: () => this.enabled && this.node.visible,
             });
         }
     }
