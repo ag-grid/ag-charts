@@ -16,8 +16,7 @@ export class ChartOverlays extends BaseProperties {
         for (const overlay of [this.loading, this.noData, this.noVisibleSeries]) {
             const rect = overlay.getBoundingRect();
             if (rect !== undefined) {
-                const { text = '' } = overlay;
-                return { text, rect };
+                return { text: overlay.getText(), rect };
             }
         }
         return undefined;
