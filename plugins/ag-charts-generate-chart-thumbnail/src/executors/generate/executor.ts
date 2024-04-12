@@ -63,7 +63,6 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
                 try {
                     await generateThumbnail({ example, theme, outputPath, dpi, mockText: false });
                 } catch (e) {
-                    console.error(e);
                     throw new Error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
                 }
             }
