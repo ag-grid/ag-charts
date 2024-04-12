@@ -6,7 +6,6 @@ if (process.env.CI != null) {
 }
 
 module.exports = {
-  parserOptions: { tsconfigRootDir: '../../' },
   extends: ['../../.eslintrc.json', 'plugin:sonarjs/recommended'],
   ignorePatterns: ['!**/*', '.dependency-cruiser.js', '.eslintrc.js'],
   rules: {
