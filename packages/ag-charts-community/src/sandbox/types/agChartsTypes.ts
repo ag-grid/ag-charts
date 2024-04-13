@@ -23,6 +23,34 @@ export interface CommonChartOptions {
 
     axes?: { type: string }[];
     series: { type: string }[];
+
+    // legend?: {
+    //     enabled?: boolean;
+    //     position?: `${Direction}`;
+    //     padding?: DirectionMetrics;
+    //     pointerEvents?: boolean;
+    //     allowEmpty?: boolean;
+    //     item?: {
+    //         padding?: DirectionMetrics;
+    //         marker?: {
+    //             size?: number;
+    //             padding?: DirectionMetrics;
+    //         };
+    //         label?: {};
+    //     };
+    //     pagination?: {};
+    // };
+    //
+    // overlays?: {
+    //     isEmpty?: string | (() => HTMLElement | string);
+    //     isLoading?: string | (() => HTMLElement | string);
+    //     noData?: string | (() => HTMLElement | string);
+    // };
+    //
+    // background?: {
+    //     enabled?: boolean;
+    //     fill?: CssColor | CanvasGradient | CanvasPattern;
+    // };
 }
 
 export interface CartesianChartOptions extends CommonChartOptions {
