@@ -39,17 +39,11 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
     EXTENDS_AXES_DEFAULTS,
     EXTENDS_AXES_GRID_LINE_DEFAULTS,
-    EXTENDS_AXES_LABEL_DEFAULTS,
     EXTENDS_AXES_LINE_DEFAULTS,
     EXTENDS_AXES_TICK_DEFAULTS,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-    EXTENDS_CHART_DEFAULTS,
-    EXTENDS_LEGEND_DEFAULTS,
-    EXTENDS_LEGEND_ITEM_DEFAULTS,
-    EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
     IS_DARK_THEME,
-    OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
@@ -444,15 +438,6 @@ export class ChartTheme {
                 });
                 delete node['__extends__'];
             }
-            if (node['__overrides__']) {
-                const key = node['__overrides__'];
-                const source = extensions.get(key);
-                if (source == null) {
-                    throw new Error(`AG Charts - no template variable provided for: ${key}`);
-                }
-                Object.assign(node, source);
-                delete node['__overrides__'];
-            }
 
             if (isArray(node)) {
                 for (let i = 0; i < node.length; i++) {
@@ -505,17 +490,13 @@ export class ChartTheme {
 
     getTemplateParameters() {
         const extensions = new Map();
-        extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
+
         extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
-        extensions.set(EXTENDS_LEGEND_DEFAULTS, ChartTheme.getChartDefaults().legend);
-        extensions.set(EXTENDS_LEGEND_ITEM_DEFAULTS, ChartTheme.getChartDefaults().legend.item);
-        extensions.set(EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS, ChartTheme.getLegendItemMarkerDefaults());
-        extensions.set(EXTENDS_AXES_LABEL_DEFAULTS, ChartTheme.getAxisDefaults().label);
         extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);
         extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);
         extensions.set(EXTENDS_AXES_GRID_LINE_DEFAULTS, ChartTheme.getAxisDefaults().gridLine);
+
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
-        extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
         extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
 
         const properties = new Map();
