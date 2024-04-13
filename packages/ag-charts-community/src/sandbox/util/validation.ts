@@ -1,6 +1,5 @@
 import { Logger } from '../../util/logger';
 import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from '../../util/type-guards';
-import { stringify } from '../../util/validation';
 import { joinFormatted } from './string';
 
 const descriptionSymbol = Symbol('description');
@@ -21,6 +20,14 @@ export interface Validator extends Function {
     [requiredSymbol]?: boolean;
 }
 
+export interface ValidationError {
+    key: string;
+    path: string;
+    message: string;
+    unknown?: boolean;
+    value?: any;
+}
+
 /**
  * Validates the provided options object against the specified options definitions. Logs warnings for any invalid options encountered.
  * @param options The options object to validate.
@@ -29,25 +36,17 @@ export interface Validator extends Function {
  * @returns A boolean indicating whether the options are valid.
  */
 export function isValid<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path?: string) {
-    const warnings = validate(options, optionsDefs, path);
-    for (const { message } of warnings) {
+    const errors = validate(options, optionsDefs, path);
+    for (const { message } of errors) {
         Logger.warn(message);
     }
-    return warnings.length > 0;
-}
-
-interface ValidationWarning {
-    key: string;
-    path: string;
-    message: string;
-    unknown?: boolean;
-    value?: any;
+    return errors.length > 0;
 }
 
 export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
     const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : path ? `${path}.${key}` : key);
     const optionsKeys = new Set(Object.keys(options));
-    const warnings: ValidationWarning[] = [];
+    const errors: ValidationError[] = [];
 
     for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
         optionsKeys.delete(key);
@@ -59,19 +58,19 @@ export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<
             let description = validatorOrDefs[descriptionSymbol];
             description = description ? `; expecting ${description}` : '';
 
-            warnings.push({
+            errors.push({
                 key,
                 path,
                 value,
-                message: `Option ${extendPath(key)} cannot be set to [${stringify(value)}]${description}, ignoring.`,
+                message: `Option ${extendPath(key)} cannot be set to [${stringifyValue(value)}]${description}, ignoring.`,
             });
         } else {
-            warnings.push(...validate(value, validatorOrDefs, extendPath(key)));
+            errors.push(...validate(value, validatorOrDefs, extendPath(key)));
         }
     }
 
     for (const key of optionsKeys) {
-        warnings.push({
+        errors.push({
             key,
             path,
             unknown: true,
@@ -79,7 +78,20 @@ export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<
         });
     }
 
-    return warnings;
+    return errors;
+}
+
+export function stringifyValue(value: any, maxLength = Infinity): string {
+    if (typeof value === 'number') {
+        if (isNaN(value)) return 'NaN';
+        if (value === Infinity) return 'Infinity';
+        if (value === -Infinity) return '-Infinity';
+    }
+    value = JSON.stringify(value);
+    if (value.length > maxLength) {
+        return `${value.slice(0, maxLength)}... (+${value.length - maxLength} characters)`;
+    }
+    return value;
 }
 
 /**
@@ -163,6 +175,10 @@ export const string = attachDescription(isString, 'a string');
 
 // Numeric type validators with specific conditions.
 export const positiveNumber = attachDescription((value) => isFiniteNumber(value) && value >= 0, 'a positive number');
+export const minOneNumber = attachDescription(
+    (value) => isFiniteNumber(value) && value >= 1,
+    'a number greater than or equal to one'
+);
 export const ratio = attachDescription(
     (value) => isFiniteNumber(value) && value >= 0 && value <= 1,
     'a number between 0 and 1 inclusive'
@@ -179,7 +195,7 @@ export function union(...allowed: any[]) {
     if (isObject(allowed[0])) {
         allowed = Object.values(allowed[0]);
     }
-    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`);
+    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`, 6);
     return attachDescription((value: any) => allowed.includes(value), `a keyword such as ${keywords}`);
 }
 
