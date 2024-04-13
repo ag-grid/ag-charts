@@ -3,6 +3,7 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
+    callback,
     instanceOf,
     object,
     optionsDefs,
@@ -16,7 +17,7 @@ import { themeOptionsDef } from './testDefs';
 
 export const chartOptionsDef: OptionsDefs<AgChartOptions> = {
     container: required(instanceOf(HTMLElement)),
-    data: required(arrayOf(object)),
+    data: required(or(arrayOf(object), callback)),
 
     theme: or(string, optionsDefs(themeOptionsDef, 'a theme object')),
 
@@ -34,8 +35,20 @@ export const chartOptionsDef: OptionsDefs<AgChartOptions> = {
     subtitle: captionOptionsDef,
     footnote: captionOptionsDef,
 
+    // basic type validation, should also be validated by the module
     axes: arrayOf(object),
     series: required(arrayOf(object)),
+
+    // overlays: {
+    //     isEmpty: or(string, callback),
+    //     isLoading: or(string, callback),
+    //     noData: or(string, callback),
+    // },
+    //
+    // background: {
+    //     enabled: boolean,
+    //     fill: or(string, instanceOf(CanvasGradient), instanceOf(CanvasPattern)),
+    // },
 
     // dynamically generated
     // axes: [{ type: constant('number'), position: union(Direction) }],

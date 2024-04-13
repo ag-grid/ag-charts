@@ -184,7 +184,7 @@ export const numberMax = (max: number, inclusive = true) =>
         (value) => isFiniteNumber(value) && (value < max || (inclusive && value === max)),
         `a number less than ${inclusive ? 'or equal to ' : ''}${max}`
     );
-export const numberBetween = (min: number, max: number) =>
+export const numberRange = (min: number, max: number) =>
     attachDescription(
         (value) => isFiniteNumber(value) && value >= min && value <= max,
         `a number between ${min} and ${max} inclusive`
@@ -192,8 +192,8 @@ export const numberBetween = (min: number, max: number) =>
 
 export const positiveNumber = numberMin(0);
 export const minOneNumber = numberMin(1);
-export const ratio = numberBetween(0, 1);
-export const degree = numberBetween(0, 360);
+export const ratio = numberRange(0, 1);
+export const degree = numberRange(0, 360);
 
 /**
  * Creates a validator for a union of allowed values.

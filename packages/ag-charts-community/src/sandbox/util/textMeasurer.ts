@@ -36,6 +36,8 @@ export class TextMeasurer {
         }
     }
 
+    // TODO: add a draw method that copies text from the corresponding ctx
+
     // Measures the dimensions of the provided text, handling multiline if needed.
     measureText(text: string) {
         const ctx = TextMeasurer.ctxMap.get(this.font)!;

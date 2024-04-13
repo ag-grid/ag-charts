@@ -26,7 +26,7 @@ const ThemeStrokes = {
     Red: '#a82529',
 };
 
-const defaultVars = new ThemeVariables({
+export const defaultVars = new ThemeVariables({
     fontFamily: 'Verdana, sans-serif',
 
     'fontSize:Small': 12,
