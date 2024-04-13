@@ -174,15 +174,26 @@ export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
 
 // Numeric type validators with specific conditions.
-export const positiveNumber = attachDescription((value) => isFiniteNumber(value) && value >= 0, 'a positive number');
-export const minOneNumber = attachDescription(
-    (value) => isFiniteNumber(value) && value >= 1,
-    'a number greater than or equal to one'
-);
-export const ratio = attachDescription(
-    (value) => isFiniteNumber(value) && value >= 0 && value <= 1,
-    'a number between 0 and 1 inclusive'
-);
+export const numberMin = (min: number, inclusive = true) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && (value > min || (inclusive && value === min)),
+        `a number greater than ${inclusive ? 'or equal to ' : ''}${min}`
+    );
+export const numberMax = (max: number, inclusive = true) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && (value < max || (inclusive && value === max)),
+        `a number less than ${inclusive ? 'or equal to ' : ''}${max}`
+    );
+export const numberBetween = (min: number, max: number) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && value >= min && value <= max,
+        `a number between ${min} and ${max} inclusive`
+    );
+
+export const positiveNumber = numberMin(0);
+export const minOneNumber = numberMin(1);
+export const ratio = numberBetween(0, 1);
+export const degree = numberBetween(0, 360);
 
 /**
  * Creates a validator for a union of allowed values.
