@@ -1,4 +1,5 @@
-import { ThemeDefinition, ThemeVariables } from './themeDefinition';
+import { ThemeDefinition } from './themeDefinition';
+import { ThemeVariables } from './themeVariables';
 
 const ThemeFills = {
     Blue: '#5090dc',
@@ -26,7 +27,7 @@ const ThemeStrokes = {
     Red: '#a82529',
 };
 
-export const defaultVars = new ThemeVariables({
+export const themeVars = new ThemeVariables({
     fontFamily: 'Verdana, sans-serif',
 
     'fontSize:Small': 12,
@@ -62,33 +63,33 @@ export const defaultVars = new ThemeVariables({
     'waterfall:neutralStroke': ThemeStrokes.Gray,
 });
 
-export const AgDefaultTheme = new ThemeDefinition('ag-default', defaultVars, {
+export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
     stage: {
         allowEmpty: false,
         padding: [20],
         title: {
             enabled: false,
             text: 'Title',
-            color: defaultVars.use('labelColor'),
-            fontSize: defaultVars.use('fontSize:Large'),
-            fontFamily: defaultVars.use('fontFamily'),
+            color: themeVars.use('labelColor'),
+            fontSize: themeVars.use('fontSize:Large'),
+            fontFamily: themeVars.use('fontFamily'),
             wrapping: 'hyphenate',
         },
         subtitle: {
             enabled: false,
             text: 'Subtitle',
-            color: defaultVars.use('labelColor:Muted'),
-            fontSize: defaultVars.use('fontSize:Medium'),
-            fontFamily: defaultVars.use('fontFamily'),
+            color: themeVars.use('labelColor:Muted'),
+            fontSize: themeVars.use('fontSize:Medium'),
+            fontFamily: themeVars.use('fontFamily'),
             wrapping: 'hyphenate',
             indent: 20,
         },
         footnote: {
             enabled: false,
             text: 'Footnote',
-            color: defaultVars.use('labelColor:Muted'),
-            fontSize: defaultVars.use('fontSize:Medium'),
-            fontFamily: defaultVars.use('fontFamily'),
+            color: themeVars.use('labelColor:Muted'),
+            fontSize: themeVars.use('fontSize:Medium'),
+            fontFamily: themeVars.use('fontFamily'),
             wrapping: 'hyphenate',
             indent: 20,
         },
@@ -100,9 +101,9 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', defaultVars, {
                 padding: [8, 16],
                 marker: { size: 15, padding: [8] },
                 label: {
-                    color: defaultVars.use('labelColor'),
-                    fontSize: defaultVars.use('fontSize:Small'),
-                    fontFamily: defaultVars.use('fontFamily'),
+                    color: themeVars.use('labelColor'),
+                    fontSize: themeVars.use('fontSize:Small'),
+                    fontFamily: themeVars.use('fontFamily'),
                 },
             },
             pagination: {},
