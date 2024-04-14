@@ -15,5 +15,10 @@ export const themeOptionsDef: OptionsDefs<PlainObject> = {
         'ag-vivid-dark'
     ),
 
-    defaults: {},
+    variables: {},
+    overrides: {},
+    axesDefaults: {},
+    axisTypeDefaults: {},
+    seriesDefaults: {},
+    seriesTypeDefaults: {},
 };

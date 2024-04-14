@@ -27,15 +27,15 @@ const ThemeStrokes = {
 };
 
 export const AgDefaultDarkTheme = AgDefaultTheme.createVariant('ag-default-dark', {
-    'label:color': '#fff',
-    'label:mutedColor': '#7d91a0',
+    'text:color': '#fff',
+    'text:mutedColor': '#7d91a0',
+
+    'background:color': '#192232',
+
+    'axis:gridColor': '#545a6e',
 
     'annotation:fill': ThemeFills.Blue,
     'annotation:stroke': ThemeStrokes.Blue,
-
-    'axisGrid:color': '#545a6e',
-    'crossLine:color': '#fff',
-    'background:color': '#192232',
 
     'palette:fills': Object.values(ThemeFills),
     'palette:strokes': Object.values(ThemeStrokes),

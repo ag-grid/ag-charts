@@ -35,15 +35,15 @@ export const themeVars = new ThemeVariables({
     'font:sizeMedium': 13,
     'font:sizeLarge': 17,
 
-    'label:color': '#464646',
-    'label:invertColor': '#fff',
-    'label:mutedColor': '#8c8c8c',
+    'text:color': '#464646',
+    'text:invertColor': '#fff',
+    'text:mutedColor': '#8c8c8c',
 
-    'axisGrid:color': '#e0eaf1',
-    'axisLine:color': '#c3c3c3',
-    'crossLine:color': '#464646',
     'background:color': '#fff',
     'shadow:color': '#00000080',
+
+    'axis:gridColor': '#e0eaf1',
+    'axis:lineColor': '#c3c3c3',
 
     'hierarchy:fills': ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad'],
     'hierarchy:strokes': ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096'],
@@ -71,7 +71,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
         title: {
             enabled: false,
             text: 'Title',
-            color: themeVars.use('label:color'),
+            color: themeVars.use('text:color'),
             fontSize: themeVars.use('font:sizeLarge'),
             fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
@@ -79,7 +79,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
         subtitle: {
             enabled: false,
             text: 'Subtitle',
-            color: themeVars.use('label:mutedColor'),
+            color: themeVars.use('text:mutedColor'),
             fontSize: themeVars.use('font:sizeMedium'),
             fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
@@ -88,7 +88,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
         footnote: {
             enabled: false,
             text: 'Footnote',
-            color: themeVars.use('label:mutedColor'),
+            color: themeVars.use('text:mutedColor'),
             fontSize: themeVars.use('font:sizeMedium'),
             fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
@@ -107,7 +107,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
                 padding: [8, 16],
                 marker: { size: 15, padding: [8] },
                 label: {
-                    color: themeVars.use('label:color'),
+                    color: themeVars.use('text:color'),
                     fontSize: themeVars.use('font:sizeSmall'),
                     fontFamily: themeVars.use('font:family'),
                 },
@@ -123,33 +123,33 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
         title: {
             enabled: false,
             text: 'Axis Title',
-            color: themeVars.use('label:color'),
+            color: themeVars.use('text:color'),
             fontSize: themeVars.use('font:sizeMedium'),
             fontFamily: themeVars.use('font:family'),
             indent: 25,
         },
         label: {
             padding: [5],
-            color: themeVars.use('label:color'),
+            color: themeVars.use('text:color'),
             fontSize: themeVars.use('font:sizeSmall'),
             fontFamily: themeVars.use('font:family'),
             avoidCollisions: true,
         },
-        line: { enabled: true, thickness: 1, color: themeVars.use('axisLine:color') },
-        tick: { enabled: true, thickness: 1, color: themeVars.use('axisLine:color') },
-        gridLine: { enabled: true, style: [{ stroke: themeVars.use('axisGrid:color'), lineDash: [] }] },
+        line: { enabled: true, thickness: 1, color: themeVars.use('axis:lineColor') },
+        tick: { enabled: true, thickness: 1, color: themeVars.use('axis:lineColor') },
+        gridLine: { enabled: true, style: [{ stroke: themeVars.use('axis:gridColor'), lineDash: [] }] },
 
         // should be in a separate module
         crossLines: {
             enabled: false,
-            fill: themeVars.use('crossLine:color'),
-            stroke: themeVars.use('crossLine:color'),
+            fill: themeVars.use('text:color'),
+            stroke: themeVars.use('text:color'),
             fillOpacity: 0.1,
             strokeWidth: 1,
             label: {
                 enabled: false,
                 padding: [5],
-                color: themeVars.use('label:color'),
+                color: themeVars.use('text:color'),
                 fontSize: themeVars.use('font:sizeSmall'),
                 fontFamily: themeVars.use('font:family'),
             },

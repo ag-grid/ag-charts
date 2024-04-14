@@ -13,7 +13,7 @@ import {
     string,
 } from '../util/validation';
 import { captionOptionsDef, directionMetricsOptionsDef } from './commonOptionsDefs';
-import { themeOptionsDef } from './testDefs';
+import { themeOptionsDef } from './themeOptionsDef';
 
 export const chartOptionsDef: OptionsDefs<AgChartOptions> = {
     container: required(instanceOf(HTMLElement)),
