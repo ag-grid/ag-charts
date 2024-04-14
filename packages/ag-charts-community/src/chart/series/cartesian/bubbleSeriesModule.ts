@@ -30,11 +30,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
-            },
+            tooltip: { position: { type: 'node' } },
             marker: {
                 __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
                 maxSize: 30,
@@ -42,8 +38,6 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             },
             label: {
                 enabled: false,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,

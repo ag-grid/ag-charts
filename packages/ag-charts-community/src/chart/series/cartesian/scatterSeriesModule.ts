@@ -30,19 +30,13 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
-            },
+            tooltip: { position: { type: 'node' } },
             marker: {
                 __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
                 fillOpacity: 0.8,
             },
             label: {
                 enabled: false,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,

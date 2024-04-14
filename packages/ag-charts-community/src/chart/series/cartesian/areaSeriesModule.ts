@@ -33,11 +33,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             nodeClickRange: 'nearest',
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
-            },
+            tooltip: { position: { type: 'node' } },
             fillOpacity: 0.8,
             strokeOpacity: 1,
             strokeWidth: 0,
@@ -59,21 +55,14 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             },
             label: {
                 enabled: false,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
-                formatter: undefined,
             },
         },
     },
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);
-        return {
-            fill: marker.fill,
-            stroke: marker.stroke,
-            marker,
-        };
+        return { fill: marker.fill, stroke: marker.stroke, marker };
     },
 };
