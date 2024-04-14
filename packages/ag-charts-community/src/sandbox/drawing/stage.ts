@@ -1,12 +1,12 @@
 import { createElement } from '../../util/dom';
-import type { IStage, SceneEventMap } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
+import type { IStage, StageEventMap } from './drawingTypes';
 
 export class Stage implements IStage {
     static ElementClassName = 'ag-chart-wrapper'; // ag-charts-stage
     static ElementStyle = { position: 'relative', userSelect: 'none' };
 
-    readonly events = new EventEmitter<SceneEventMap>();
+    readonly events = new EventEmitter<StageEventMap>();
 
     readonly canvas: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D;

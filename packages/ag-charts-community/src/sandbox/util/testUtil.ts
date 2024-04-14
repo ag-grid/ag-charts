@@ -5,17 +5,15 @@ import { mockCanvas } from 'ag-charts-test';
 
 import { getDocument } from '../../util/dom';
 import { AgCharts, type ChartInstance } from '../agCharts';
-import type { ChartOptions } from '../chart/chartOptions';
-import type { AgChartOptions } from '../chart/chartTypes';
-import type { Stage } from '../render/stage';
-import type { IChart } from '../types';
+import type { AgChartOptions, IChart, IChartOptions } from '../chart/chartTypes';
+import type { IStage } from '../drawing/drawingTypes';
 import type { Frame } from '../types/commonTypes';
 import { mapValues } from './object';
 
 export interface TestInstance<T extends AgChartOptions> extends Omit<ChartInstance<T>, 'chart' | 'options' | 'scene'> {
     chart: IChart<T>;
-    options: ChartOptions<T>;
-    stage: Stage;
+    options: IChartOptions<T>;
+    stage: IStage;
 }
 
 const CanvasWidth = 800;

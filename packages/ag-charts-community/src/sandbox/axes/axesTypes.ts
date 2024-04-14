@@ -1,4 +1,8 @@
+import type { IModule } from '../modules/modulesTypes';
 import type { Direction } from '../types/enums';
+
+export interface IAxis extends IModule {}
+export interface IScale {}
 
 export interface ChartAxisOptions<T extends string> {
     type: T;

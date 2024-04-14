@@ -1,4 +1,4 @@
-import type { IAxis } from '../types';
+import type { IAxis } from './axesTypes';
 
 export abstract class BaseAxis implements IAxis {}
 

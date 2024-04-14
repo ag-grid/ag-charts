@@ -1,14 +1,13 @@
 import { DataPipeline } from '../data/dataPipeline';
 import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
+import type { IStage } from '../drawing/drawingTypes';
 import { moduleRegistry } from '../modules/moduleRegistry';
 import type { SeriesModule } from '../modules/modulesTypes';
-import type { Stage } from '../render/stage';
-import type { ChartEventMap, IChart, IScale } from '../types';
 import { EventEmitter } from '../util/eventEmitter';
 import { PipelinePhase, PipelineQueue } from '../util/pipelineQueue';
 import { SizeObserver } from '../util/resizeObserver';
 import type { ChartOptions } from './chartOptions';
-import type { AgChartOptions } from './chartTypes';
+import type { AgChartOptions, ChartEventMap, IChart } from './chartTypes';
 
 export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
     static DefaultAxes?: object[];
@@ -26,7 +25,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
     protected series?: any[];
 
     constructor(
-        public readonly stage: Stage,
+        public readonly stage: IStage,
         public options: ChartOptions<T>
     ) {
         this.setOptions(options);
@@ -49,10 +48,6 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
     }
 
     remove() {}
-
-    protected determineScale(): IScale {
-        return null as any;
-    }
 
     protected processData() {
         const { fullOptions } = this.options;

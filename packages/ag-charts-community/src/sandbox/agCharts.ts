@@ -2,12 +2,11 @@ import { getWindow } from '../util/dom';
 import { hasConstrainedCanvasMemory } from '../util/userAgent';
 import { CartesianChart } from './chart/cartesianChart';
 import { ChartOptions } from './chart/chartOptions';
-import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './chart/chartTypes';
+import type { AgChartOptions, DownloadOptions, IChart, IChartOptions, ImageUrlOptions } from './chart/chartTypes';
 import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
-import { Stage } from './render/stage';
-import type { IChart, IChartOptions } from './types';
+import { Stage } from './drawing/stage';
 import { ChartType } from './types/enums';
 
 type IChartConstructor = new (stage: Stage, options: IChartOptions<any>) => IChart<any>;
@@ -37,7 +36,7 @@ export abstract class AgCharts {
 
 export class ChartInstance<T extends AgChartOptions> {
     private chart: IChart<T>;
-    private options: ChartOptions<T>;
+    private options: IChartOptions<T>;
     private readonly stage: Stage;
 
     constructor(options: T) {

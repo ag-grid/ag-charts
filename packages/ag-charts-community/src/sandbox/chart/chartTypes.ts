@@ -1,5 +1,6 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
 import type { CartesianChartAxes, PolarChartAxes } from '../axes/axesTypes';
+import type { IStage } from '../drawing/drawingTypes';
 import type {
     CartesianChartSeries,
     HierarchyChartSeries,
@@ -7,6 +8,32 @@ import type {
     TopologyChartSeries,
 } from '../series/seriesTypes';
 import type { DirectionMetrics, SeriesAreaOptions } from '../types/commonTypes';
+import type { ChartType } from '../types/enums';
+import type { EventEmitter } from '../util/eventEmitter';
+import type { PipelineQueue } from '../util/pipelineQueue';
+
+export interface IChartOptions<T extends AgChartOptions> {
+    fullOptions: T;
+    userOptions: Partial<T>;
+    lastOptions?: IChartOptions<T>;
+    optionsDiff: Partial<T> | null;
+    readonly chartType: ChartType;
+    validate(options: Partial<T>): boolean;
+}
+
+export interface IChart<T extends AgChartOptions> {
+    events: EventEmitter<ChartEventMap<T>>;
+    options: IChartOptions<T>;
+    stage: IStage;
+    pipeline: PipelineQueue;
+    setOptions(options: IChartOptions<T>): void;
+    waitForUpdate(): Promise<void>;
+    remove(): void;
+}
+
+export interface ChartEventMap<T extends AgChartOptions> {
+    change: IChartOptions<T>;
+}
 
 export type AgChartOptions = CartesianChartOptions | PolarChartOptions | HierarchyChartOptions | TopologyChartOptions;
 

@@ -1,7 +1,15 @@
-import type { CartesianChartAxes, CartesianCoordinate, PolarChartAxes, PolarCoordinate } from '../axes/axesTypes';
-import type { IAxis, IModule, ISeries } from '../types';
+import type {
+    CartesianChartAxes,
+    CartesianCoordinate,
+    IAxis,
+    PolarChartAxes,
+    PolarCoordinate,
+} from '../axes/axesTypes';
+import type { ISeries } from '../series/seriesTypes';
 import type { ChartType } from '../types/enums';
 import type { OptionsDefs } from '../util/validation';
+
+export interface IModule {}
 
 export type Module =
     | AxisModule<any>
