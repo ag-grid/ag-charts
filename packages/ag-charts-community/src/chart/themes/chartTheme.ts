@@ -240,64 +240,55 @@ export class ChartTheme {
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
 
         if (overrides) {
-            const applyOverrides = (
-                seriesTypes: string[],
-                overrideOpts: AgChartThemeOverrides[keyof AgChartThemeOverrides]
-            ) => {
-                if (!overrideOpts) return;
-                for (const s of seriesTypes) {
-                    const seriesType = s as keyof AgChartThemeOverrides;
-                    defaults[seriesType] = mergeDefaults(overrideOpts, defaults[seriesType]);
-                }
-            };
-            for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
-                const cleanedCommon = { ...overrides.common };
-                for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
-                    if (!commonOptions.includes(commonKey)) {
-                        delete cleanedCommon[commonKey];
-                    }
-                }
-                applyOverrides(seriesTypes, cleanedCommon);
-            }
-
-            chartTypes.seriesTypes.forEach((s) => {
-                const seriesType = s as keyof AgChartThemeOverrides;
-                if (overrides[seriesType]) {
-                    defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
-                }
-            });
+            this.mergeOverrides(defaults, overrides);
         }
 
         this.config = Object.freeze(this.templateTheme(defaults));
         this.palette = mergeDefaults(palette, this.getPalette());
     }
 
-    private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        Object.entries(CHART_TYPE_CONFIG).forEach(([nextType, { seriesTypes }]) => {
-            const typeDefaults = chartDefaults.get(nextType as ChartType) as any;
+    private mergeOverrides(defaults: AgChartThemeOverrides, overrides: AgChartThemeOverrides) {
+        for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
+            const cleanedCommon = { ...overrides.common };
+            for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
+                if (!commonOptions.includes(commonKey)) {
+                    delete cleanedCommon[commonKey];
+                }
+            }
+            if (!cleanedCommon) continue;
+            for (const s of seriesTypes) {
+                const seriesType = s as keyof AgChartThemeOverrides;
+                defaults[seriesType] = mergeDefaults(cleanedCommon, defaults[seriesType]);
+            }
+        }
 
-            seriesTypes.forEach((seriesType) => {
-                const alias = seriesType as keyof AgChartThemeOverrides;
-                config[alias] ||= deepClone(typeDefaults);
-            });
+        chartTypes.seriesTypes.forEach((s) => {
+            const seriesType = s as keyof AgChartThemeOverrides;
+            if (overrides[seriesType]) {
+                defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
+            }
         });
+    }
 
+    private createChartConfigPerChartType(config: AgChartThemeOverrides) {
+        for (const [nextType, { seriesTypes }] of Object.entries(CHART_TYPE_CONFIG)) {
+            const typeDefaults = chartDefaults.get(nextType as ChartType) as any;
+            for (const seriesType of seriesTypes) {
+                config[seriesType as keyof AgChartThemeOverrides] ||= deepClone(typeDefaults);
+            }
+        }
         return config;
     }
 
     private getDefaults(): AgChartThemeOverrides {
-        const getChartTypeDefaults = (chartType: ChartType) => {
-            return {
+        const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
+            const result: Record<string, { series?: {}; axes?: {} }> = {};
+            const chartTypeDefaults = {
                 axes: {},
                 ...legendRegistry.getThemeTemplates(),
                 ...ChartTheme.getChartDefaults(),
                 ...chartDefaults.get(chartType),
             };
-        };
-
-        const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
-            const chartTypeDefaults = getChartTypeDefaults(chartType) as any;
-            const result: Record<string, { series?: {}; axes?: {} }> = {};
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
                     seriesRegistry.getThemeTemplate(seriesType),
