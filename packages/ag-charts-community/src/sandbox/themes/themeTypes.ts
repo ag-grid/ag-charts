@@ -1,5 +1,8 @@
+type BuiltInThemeType = 'default' | 'material' | 'polychroma' | 'sheets' | 'vivid';
+
 export type ValidValue = boolean | number | string | ValidValue[];
 export type ThemeVars<T extends string> = { [K in T]?: ValidValue };
+export type ThemeName = `ag-${BuiltInThemeType}` | `ag-${BuiltInThemeType}-dark`;
 
 export interface IThemeDefinition<T extends string> {
     readonly themeName: string;

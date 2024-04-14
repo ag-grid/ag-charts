@@ -27,11 +27,11 @@ const ThemeStrokes = {
 };
 
 export const AgPolychromaTheme = AgDefaultTheme.createVariant('ag-polychroma', {
-    'annotation:Fill': ThemeFills.Blue,
-    'annotation:Stroke': ThemeStrokes.Blue,
+    'annotation:fill': ThemeFills.Blue,
+    'annotation:stroke': ThemeStrokes.Blue,
 
-    'palette:Fills': Object.values(ThemeFills),
-    'palette:Strokes': Object.values(ThemeStrokes),
+    'palette:fills': Object.values(ThemeFills),
+    'palette:strokes': Object.values(ThemeStrokes),
 
     'diverging:colorRange': [ThemeFills.Blue, ThemeFills.Red],
 

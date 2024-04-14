@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { ThemeDefinition } from './themeDefinition';
 import { ThemeVariables } from './themeVariables';
 
@@ -28,30 +29,30 @@ const ThemeStrokes = {
 };
 
 export const themeVars = new ThemeVariables({
-    fontFamily: 'Verdana, sans-serif',
+    'font:family': 'Verdana, sans-serif',
 
-    'fontSize:Small': 12,
-    'fontSize:Medium': 13,
-    'fontSize:Large': 17,
+    'font:sizeSmall': 12,
+    'font:sizeMedium': 13,
+    'font:sizeLarge': 17,
 
-    labelColor: '#464646',
-    'labelColor:Invert': '#fff',
-    'labelColor:Muted': '#8c8c8c',
+    'label:color': '#464646',
+    'label:invertColor': '#fff',
+    'label:mutedColor': '#8c8c8c',
 
-    axisGridColor: '#e0eaf1',
-    axisLineColor: '#c3c3c3',
-    crossLineColor: '#464646',
-    backgroundColor: '#fff',
-    shadowColor: '#00000080',
+    'axisGrid:color': '#e0eaf1',
+    'axisLine:color': '#c3c3c3',
+    'crossLine:color': '#464646',
+    'background:color': '#fff',
+    'shadow:color': '#00000080',
 
-    'hierarchy:Fills': ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad'],
-    'hierarchy:Strokes': ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096'],
+    'hierarchy:fills': ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad'],
+    'hierarchy:strokes': ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096'],
 
-    'annotation:Fill': ThemeFills.Blue,
-    'annotation:Stroke': ThemeStrokes.Blue,
+    'annotation:fill': ThemeFills.Blue,
+    'annotation:stroke': ThemeStrokes.Blue,
 
-    'palette:Fills': Object.values(ThemeFills),
-    'palette:Strokes': Object.values(ThemeStrokes),
+    'palette:fills': Object.values(ThemeFills),
+    'palette:strokes': Object.values(ThemeStrokes),
 
     'diverging:colorRange': [ThemeFills.Orange, ThemeFills.Yellow, ThemeFills.Green],
 
@@ -64,34 +65,39 @@ export const themeVars = new ThemeVariables({
 });
 
 export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
-    stage: {
+    chart: {
         allowEmpty: false,
         padding: [20],
         title: {
             enabled: false,
             text: 'Title',
-            color: themeVars.use('labelColor'),
-            fontSize: themeVars.use('fontSize:Large'),
-            fontFamily: themeVars.use('fontFamily'),
+            color: themeVars.use('label:color'),
+            fontSize: themeVars.use('font:sizeLarge'),
+            fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
         },
         subtitle: {
             enabled: false,
             text: 'Subtitle',
-            color: themeVars.use('labelColor:Muted'),
-            fontSize: themeVars.use('fontSize:Medium'),
-            fontFamily: themeVars.use('fontFamily'),
+            color: themeVars.use('label:mutedColor'),
+            fontSize: themeVars.use('font:sizeMedium'),
+            fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
             indent: 20,
         },
         footnote: {
             enabled: false,
             text: 'Footnote',
-            color: themeVars.use('labelColor:Muted'),
-            fontSize: themeVars.use('fontSize:Medium'),
-            fontFamily: themeVars.use('fontFamily'),
+            color: themeVars.use('label:mutedColor'),
+            fontSize: themeVars.use('font:sizeMedium'),
+            fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
             indent: 20,
+        },
+        tooltip: {
+            enabled: true,
+            range: 'nearest',
+            delay: 0,
         },
         legend: {
             enabled: true,
@@ -101,9 +107,9 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
                 padding: [8, 16],
                 marker: { size: 15, padding: [8] },
                 label: {
-                    color: themeVars.use('labelColor'),
-                    fontSize: themeVars.use('fontSize:Small'),
-                    fontFamily: themeVars.use('fontFamily'),
+                    color: themeVars.use('label:color'),
+                    fontSize: themeVars.use('font:sizeSmall'),
+                    fontFamily: themeVars.use('font:family'),
                 },
             },
             pagination: {},
@@ -113,10 +119,51 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
             fill: '#fff',
         },
     },
-    axes: {},
-    tooltip: {
-        enabled: true,
-        range: 'nearest',
-        delay: 0,
+    axis: {
+        title: {
+            enabled: false,
+            text: 'Axis Title',
+            color: themeVars.use('label:color'),
+            fontSize: themeVars.use('font:sizeMedium'),
+            fontFamily: themeVars.use('font:family'),
+            indent: 25,
+        },
+        label: {
+            padding: [5],
+            color: themeVars.use('label:color'),
+            fontSize: themeVars.use('font:sizeSmall'),
+            fontFamily: themeVars.use('font:family'),
+            avoidCollisions: true,
+        },
+        line: { enabled: true, thickness: 1, color: themeVars.use('axisLine:color') },
+        tick: { enabled: true, thickness: 1, color: themeVars.use('axisLine:color') },
+        gridLine: { enabled: true, style: [{ stroke: themeVars.use('axisGrid:color'), lineDash: [] }] },
+
+        // should be in a separate module
+        crossLines: {
+            enabled: false,
+            fill: themeVars.use('crossLine:color'),
+            stroke: themeVars.use('crossLine:color'),
+            fillOpacity: 0.1,
+            strokeWidth: 1,
+            label: {
+                enabled: false,
+                padding: [5],
+                color: themeVars.use('label:color'),
+                fontSize: themeVars.use('font:sizeSmall'),
+                fontFamily: themeVars.use('font:family'),
+            },
+        },
+    },
+    series: {
+        visible: true,
+        showInLegend: true,
+        tooltip: { enabled: true },
+        highlightStyle: {
+            item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 2 },
+            series: { dimOpacity: 1 },
+            text: { color: 'black' },
+        },
+        nodeClickRange: 'exact',
     },
 });

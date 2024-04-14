@@ -27,23 +27,23 @@ const ThemeStrokes = {
 };
 
 export const AgDefaultDarkTheme = AgDefaultTheme.createVariant('ag-default-dark', {
-    labelColor: '#fff',
-    'labelColor:Muted': '#7d91a0',
+    'label:color': '#fff',
+    'label:mutedColor': '#7d91a0',
 
-    'annotation:Fill': ThemeFills.Blue,
-    'annotation:Stroke': ThemeStrokes.Blue,
+    'annotation:fill': ThemeFills.Blue,
+    'annotation:stroke': ThemeStrokes.Blue,
 
     axisGridColor: '#545a6e',
     crossLineColor: '#fff',
     backgroundColor: '#192232',
 
-    'palette:Fills': Object.values(ThemeFills),
-    'palette:Strokes': Object.values(ThemeStrokes),
+    'palette:fills': Object.values(ThemeFills),
+    'palette:strokes': Object.values(ThemeStrokes),
 
     'diverging:colorRange': [ThemeFills.Orange, ThemeFills.Yellow, ThemeFills.Green],
 
-    'hierarchy:Fills': ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80'],
-    'hierarchy:Strokes': ['#192834', '#3b5164', '#496275', '#577287', '#668399'],
+    'hierarchy:fills': ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80'],
+    'hierarchy:strokes': ['#192834', '#3b5164', '#496275', '#577287', '#668399'],
 
     'waterfall:positiveFill': ThemeFills.Blue,
     'waterfall:positiveStroke': ThemeStrokes.Blue,
