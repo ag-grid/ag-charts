@@ -76,18 +76,7 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
 
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
->((r, { commonOptions }) => [...r, ...commonOptions], []);
-
-export function resolvePartialPalette(
-    partialPalette: Partial<AgChartThemePalette> | null | undefined,
-    basePalette: AgChartThemePalette
-): AgChartThemePalette | null {
-    if (partialPalette == null) return null;
-    return {
-        fills: partialPalette.fills ?? basePalette.fills,
-        strokes: partialPalette.strokes ?? basePalette.strokes,
-    };
-}
+>((r, { commonOptions }) => r.concat(commonOptions), []);
 
 export class ChartTheme {
     readonly palette: AgChartThemePalette;
@@ -246,15 +235,11 @@ export class ChartTheme {
         'grouped-category': ChartTheme.getAxisDefaults(),
     };
 
-    constructor(options?: AgChartTheme) {
-        options = deepClone(options ?? {}) as AgChartThemeOptions;
-        const { overrides = null, palette = null } = options;
-
+    constructor(options: AgChartTheme = {}) {
+        const { overrides, palette } = deepClone(options) as AgChartThemeOptions;
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
 
         if (overrides) {
-            const { common } = overrides;
-
             const applyOverrides = (
                 seriesTypes: string[],
                 overrideOpts: AgChartThemeOverrides[keyof AgChartThemeOverrides]
@@ -266,7 +251,7 @@ export class ChartTheme {
                 }
             };
             for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
-                const cleanedCommon = { ...common };
+                const cleanedCommon = { ...overrides.common };
                 for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
                     if (!commonOptions.includes(commonKey)) {
                         delete cleanedCommon[commonKey];
@@ -283,10 +268,8 @@ export class ChartTheme {
             });
         }
 
-        const basePalette = this.getPalette();
-        this.palette = resolvePartialPalette(palette, basePalette) ?? basePalette;
-
         this.config = Object.freeze(this.templateTheme(defaults));
+        this.palette = mergeDefaults(palette, this.getPalette());
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
