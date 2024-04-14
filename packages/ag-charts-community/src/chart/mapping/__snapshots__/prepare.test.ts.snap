@@ -701,6 +701,16 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#c16068",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -715,6 +725,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -728,9 +739,14 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#c16068",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "male",
       "yName": "Male cattle",
@@ -739,6 +755,16 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#a2bf8a",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -753,6 +779,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -766,9 +793,14 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a2bf8a",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "female",
       "yName": "Female cattle",
@@ -1782,6 +1814,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -1796,6 +1838,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1809,12 +1852,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "largeHousehold",
       "yName": "Large household appliances",
@@ -1823,6 +1869,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -1837,6 +1893,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1850,12 +1907,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "smallHousehold",
       "yName": "Small household appliances",
@@ -1864,6 +1924,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -1878,6 +1948,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1891,12 +1962,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "itTelecomms",
       "yName": "IT and telecomms equipment",
@@ -1905,6 +1979,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -1919,6 +2003,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1932,12 +2017,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "consumer",
       "yName": "Consumer equipment",
@@ -1946,6 +2034,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -1960,6 +2058,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1973,12 +2072,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a69400",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "tools",
       "yName": "Electrical and electronic tools",
@@ -1987,6 +2089,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2001,6 +2113,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2014,12 +2127,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#603c88",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "displays",
       "yName": "Display equipment",
@@ -2028,6 +2144,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2042,6 +2168,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2055,12 +2182,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#575757",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "cooling",
       "yName": "Cooling appliances containing refrigerants",
@@ -2069,6 +2199,16 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#bd5aa7",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2083,6 +2223,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2096,12 +2237,15 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#7d2f6d",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "quarter",
       "yKey": "gasLampsLed",
       "yName": "Gas discharge lamps and LED light sources",
@@ -3788,6 +3932,16 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -3802,6 +3956,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -3815,9 +3970,14 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "earnings",
     },
@@ -4099,6 +4259,11 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "highlightStyle": {
         "item": {
           "fill": "#0ab9ff",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
         },
       },
       "label": {
@@ -4115,6 +4280,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -4128,9 +4294,14 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "job",
       "yKey": "change",
     },
@@ -5029,6 +5200,11 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#19A0AA",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -5047,6 +5223,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -5060,9 +5237,14 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#19A0AA",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "month",
       "yKey": "menDelta",
       "yName": "Male",
@@ -5072,6 +5254,11 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#F15F36",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -5090,6 +5277,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -5103,9 +5291,14 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#F15F36",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "month",
       "yKey": "womenDelta",
       "yName": "Female",
@@ -5399,6 +5592,11 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -5418,6 +5616,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -5431,9 +5630,14 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "total",
       "yName": "Annual growth in total pay",
@@ -5443,6 +5647,11 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(226, 188, 34, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -5462,6 +5671,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -5475,9 +5685,14 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "rgba(226, 188, 34, 0.9)",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "regular",
       "yName": "Annual growth in regular pay",
@@ -5775,6 +5990,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -5796,6 +6013,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 0,
@@ -5809,9 +6027,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "16-24",
     },
@@ -5821,6 +6044,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -5842,6 +6067,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 1,
@@ -5855,9 +6081,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "25-34",
     },
@@ -5867,6 +6098,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -5888,6 +6121,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 2,
@@ -5901,9 +6135,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "35-44",
     },
@@ -5913,6 +6152,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -5934,6 +6175,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 3,
@@ -5947,9 +6189,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "45-54",
     },
@@ -5959,6 +6206,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -5980,6 +6229,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 4,
@@ -5993,9 +6243,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a69400",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "55-64",
     },
@@ -6005,6 +6260,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6026,6 +6283,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 5,
@@ -6039,9 +6297,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#603c88",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "65-74",
     },
@@ -6051,6 +6314,8 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6072,6 +6337,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 6,
@@ -6085,9 +6351,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#575757",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "75+",
     },
@@ -8591,6 +8862,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#00c851",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -8610,6 +8886,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "seriesGrouping": {
         "groupCount": 1,
@@ -8624,9 +8901,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#006428",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "area",
       "yKey": "usedInLast3Months",
       "yName": "Used in last 3 months",
@@ -8636,6 +8918,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ffbb33",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -8655,6 +8942,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "seriesGrouping": {
         "groupCount": 1,
@@ -8669,9 +8957,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#996500",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "area",
       "yKey": "usedOver3MonthsAgo",
       "yName": "Used over 3 months ago",
@@ -8681,6 +8974,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ff4444",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -8700,6 +8998,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "seriesGrouping": {
         "groupCount": 1,
@@ -8714,9 +9013,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a10000",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "area",
       "yKey": "neverUsed",
       "yName": "Never used",
@@ -9015,6 +9319,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#f1c40f",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -9033,6 +9342,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9047,9 +9357,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#f39c12",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "white",
       "yName": "White",
@@ -9059,6 +9374,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#e67e22",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -9077,6 +9397,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9091,9 +9412,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#d35400",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "mixed",
       "yName": "Mixed",
@@ -9103,6 +9429,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#2ecc71",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -9121,6 +9452,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9135,9 +9467,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#27ae60",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "asian",
       "yName": "Asian",
@@ -9147,6 +9484,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#3498db",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -9165,6 +9507,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9179,9 +9522,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2980b9",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "black",
       "yName": "Black",
@@ -9191,6 +9539,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#9b59b6",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -9209,6 +9562,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9223,9 +9577,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#8e44ad",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "chinese",
       "yName": "Chinese",
@@ -9235,6 +9594,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#34495e",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -9253,6 +9617,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9267,9 +9632,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2c3e50",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "other",
       "yName": "Other",
@@ -10093,6 +10463,16 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#0084e7",
       "fillOpacity": 1,
+      "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
+        "series": {
+          "dimOpacity": 1,
+        },
+      },
       "label": {
         "color": "#eeeeee",
         "enabled": true,
@@ -10107,6 +10487,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -10120,12 +10501,15 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "year",
       "yKey": "visitors",
     },
@@ -12209,6 +12593,11 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12228,6 +12617,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12241,9 +12631,14 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "ownerOccupied",
       "yName": "Owner occupied",
@@ -12253,6 +12648,11 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12272,6 +12672,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12285,9 +12686,14 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "privateRented",
       "yName": "Private rented",
@@ -12297,6 +12703,11 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12316,6 +12727,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12329,9 +12741,14 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "localAuthority",
       "yName": "Local authority",
@@ -12341,6 +12758,11 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12360,6 +12782,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12373,9 +12796,14 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#18859e",
       "strokeWidth": 0,
+      "tooltip": {
+        "enabled": true,
+      },
       "type": "bar",
+      "visible": true,
       "xKey": "type",
       "yKey": "housingAssociation",
       "yName": "Housing association",
@@ -12661,6 +13089,11 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#5BC0EB",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12680,6 +13113,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12693,12 +13127,15 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#4086a4",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "station",
       "yKey": "early",
       "yName": "Early",
@@ -12708,6 +13145,11 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FDE74C",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12727,6 +13169,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12740,12 +13183,15 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#b1a235",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "station",
       "yKey": "morningPeak",
       "yName": "Morning peak",
@@ -12755,6 +13201,11 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#9BC53D",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12774,6 +13225,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12787,12 +13239,15 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "station",
       "yKey": "interPeak",
       "yName": "Between peak",
@@ -12802,6 +13257,11 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#E55934",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12821,6 +13281,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12834,12 +13295,15 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#a03e24",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "station",
       "yKey": "afternoonPeak",
       "yName": "Afternoon peak",
@@ -12849,6 +13313,11 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FA7921",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "#ffffff54",
+          "stroke": "#0006",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -12868,6 +13337,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
+      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -12881,12 +13351,15 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
+      "showInLegend": true,
       "stroke": "#af5517",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
+      "visible": true,
       "xKey": "station",
       "yKey": "evening",
       "yName": "Evening",
