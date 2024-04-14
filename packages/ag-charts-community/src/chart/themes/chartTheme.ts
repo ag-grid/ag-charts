@@ -58,6 +58,7 @@ type ChartTypeConfig = {
     seriesTypes: string[];
     commonOptions: (keyof AgCommonThemeableChartOptions)[];
 };
+
 const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get cartesian(): ChartTypeConfig {
         return { seriesTypes: chartTypes.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
@@ -72,6 +73,7 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
         return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
     },
 };
+
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => [...r, ...commonOptions], []);
@@ -98,10 +100,6 @@ export class ChartTheme {
 
     private static getAxisDefaults(overrideDefaults?: object) {
         return mergeDefaults(overrideDefaults, {
-            top: {},
-            right: {},
-            bottom: {},
-            left: {},
             title: {
                 enabled: false,
                 text: 'Axis Title',
@@ -130,12 +128,7 @@ export class ChartTheme {
             },
             gridLine: {
                 enabled: true,
-                style: [
-                    {
-                        stroke: DEFAULT_AXIS_GRID_COLOUR,
-                        lineDash: [],
-                    },
-                ],
+                style: [{ stroke: DEFAULT_AXIS_GRID_COLOUR, lineDash: [] }],
             },
             crossLines: {
                 enabled: false,
@@ -156,60 +149,25 @@ export class ChartTheme {
 
     private static getSeriesDefaults() {
         return {
-            tooltip: {
-                enabled: true,
-            },
             visible: true,
             showInLegend: true,
             highlightStyle: {
-                item: {
-                    fill: 'rgba(255,255,255, 0.33)',
-                    stroke: `rgba(0, 0, 0, 0.4)`,
-                    strokeWidth: 2,
-                },
-                series: {
-                    dimOpacity: 1,
-                },
-                text: {
-                    color: 'black',
-                },
+                item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 2 },
+                series: { dimOpacity: 1 },
             },
             nodeClickRange: 'exact' as InteractionRange,
+            tooltip: { enabled: true },
         };
     }
 
     private static getCartesianSeriesMarkerDefaults() {
-        return {
-            enabled: true,
-            shape: 'circle',
-            size: 7,
-            strokeWidth: 1,
-        };
-    }
-
-    private static getLegendItemMarkerDefaults() {
-        return {
-            size: 15,
-            padding: 8,
-        };
-    }
-
-    private static getCaptionWrappingDefaults() {
-        return 'hyphenate' as const;
+        return { enabled: true, shape: 'circle', size: 7, strokeWidth: 1 };
     }
 
     private static getChartDefaults() {
         return {
-            background: {
-                visible: true,
-                fill: DEFAULT_BACKGROUND_COLOUR,
-            },
-            padding: {
-                top: 20,
-                right: 20,
-                bottom: 20,
-                left: 20,
-            },
+            background: { visible: true, fill: DEFAULT_BACKGROUND_COLOUR },
+            padding: { top: 20, right: 20, bottom: 20, left: 20 },
             title: {
                 enabled: false,
                 text: 'Title',
@@ -217,7 +175,7 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
-                wrapping: ChartTheme.getCaptionWrappingDefaults(),
+                wrapping: 'hyphenate',
             },
             subtitle: {
                 enabled: false,
@@ -226,7 +184,7 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
-                wrapping: ChartTheme.getCaptionWrappingDefaults(),
+                wrapping: 'hyphenate',
             },
             footnote: {
                 enabled: false,
@@ -235,7 +193,7 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
-                wrapping: ChartTheme.getCaptionWrappingDefaults(),
+                wrapping: 'hyphenate',
             },
             legend: {
                 position: POSITION.BOTTOM,
@@ -244,7 +202,7 @@ export class ChartTheme {
                 item: {
                     paddingX: 16,
                     paddingY: 8,
-                    marker: ChartTheme.getLegendItemMarkerDefaults(),
+                    marker: { size: 15, padding: 8 },
                     toggleSeriesVisible: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
@@ -254,21 +212,11 @@ export class ChartTheme {
                 },
                 reverseOrder: false,
                 pagination: {
-                    marker: {
-                        size: 12,
-                    },
-                    activeStyle: {
-                        fill: DEFAULT_LABEL_COLOUR,
-                    },
-                    inactiveStyle: {
-                        fill: DEFAULT_MUTED_LABEL_COLOUR,
-                    },
-                    highlightStyle: {
-                        fill: DEFAULT_LABEL_COLOUR,
-                    },
-                    label: {
-                        color: DEFAULT_LABEL_COLOUR,
-                    },
+                    marker: { size: 12 },
+                    activeStyle: { fill: DEFAULT_LABEL_COLOUR },
+                    inactiveStyle: { fill: DEFAULT_MUTED_LABEL_COLOUR },
+                    highlightStyle: { fill: DEFAULT_LABEL_COLOUR },
+                    label: { color: DEFAULT_LABEL_COLOUR },
                 },
             },
             tooltip: {
@@ -278,46 +226,23 @@ export class ChartTheme {
                 delay: 0,
             },
             overlays: {
-                loading: {
-                    darkTheme: IS_DARK_THEME,
-                },
-                noData: {
-                    darkTheme: IS_DARK_THEME,
-                },
-                noVisibleSeries: {
-                    darkTheme: IS_DARK_THEME,
-                },
+                loading: { darkTheme: IS_DARK_THEME },
+                noData: { darkTheme: IS_DARK_THEME },
+                noVisibleSeries: { darkTheme: IS_DARK_THEME },
             },
             listeners: {},
         };
     }
 
     private static readonly cartesianAxisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
-            line: {
-                enabled: false,
-            },
-        }),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
-            base: 10,
-            line: {
-                enabled: false,
-            },
-        }),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({ line: { enabled: false } }),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({ base: 10, line: { enabled: false } }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0.1,
-            label: {
-                autoRotate: true,
-            },
-            gridLine: {
-                enabled: false,
-            },
+            label: { autoRotate: true },
+            gridLine: { enabled: false },
         }),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({
-            gridLine: {
-                enabled: false,
-            },
-        }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
         'grouped-category': ChartTheme.getAxisDefaults(),
     };
 

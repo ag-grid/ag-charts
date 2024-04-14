@@ -212,15 +212,12 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -266,15 +263,12 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -320,15 +314,12 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -785,15 +776,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1131,16 +1119,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1186,16 +1171,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1241,16 +1223,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1296,16 +1275,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1351,16 +1327,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1406,16 +1379,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1461,16 +1431,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2414,15 +2381,12 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2731,15 +2695,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2785,15 +2746,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2839,15 +2797,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2893,15 +2848,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3240,16 +3192,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3304,16 +3253,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3368,16 +3314,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3432,16 +3375,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3496,16 +3436,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -4467,15 +4404,12 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -4782,15 +4716,12 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6446,16 +6377,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6501,16 +6429,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6556,16 +6481,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6611,16 +6533,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6666,16 +6585,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6721,16 +6637,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6776,16 +6689,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6831,16 +6741,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6886,16 +6793,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6941,16 +6845,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6996,16 +6897,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7051,16 +6949,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7106,16 +7001,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7161,16 +7053,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7216,16 +7105,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7271,16 +7157,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7641,15 +7524,12 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7958,16 +7838,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8029,16 +7906,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8100,16 +7974,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8171,16 +8042,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8242,16 +8110,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8313,16 +8178,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8384,16 +8246,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9717,15 +9576,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9781,15 +9637,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9845,15 +9698,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9909,15 +9759,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10475,16 +10322,13 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
       ],
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
+          "fill": "#ffffff54",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "innerLabels": [
@@ -10776,16 +10620,13 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10831,16 +10672,13 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11090,16 +10928,13 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       ],
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
+          "fill": "#ffffff54",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "lineDash": [
@@ -11362,15 +11197,12 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11676,15 +11508,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11746,15 +11575,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11816,15 +11642,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11886,15 +11709,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11956,15 +11776,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12026,15 +11843,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
