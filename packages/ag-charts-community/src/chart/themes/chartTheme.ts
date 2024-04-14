@@ -39,17 +39,11 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
     EXTENDS_AXES_DEFAULTS,
     EXTENDS_AXES_GRID_LINE_DEFAULTS,
-    EXTENDS_AXES_LABEL_DEFAULTS,
     EXTENDS_AXES_LINE_DEFAULTS,
     EXTENDS_AXES_TICK_DEFAULTS,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-    EXTENDS_CHART_DEFAULTS,
-    EXTENDS_LEGEND_DEFAULTS,
-    EXTENDS_LEGEND_ITEM_DEFAULTS,
-    EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
     IS_DARK_THEME,
-    OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
@@ -64,6 +58,7 @@ type ChartTypeConfig = {
     seriesTypes: string[];
     commonOptions: (keyof AgCommonThemeableChartOptions)[];
 };
+
 const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get cartesian(): ChartTypeConfig {
         return { seriesTypes: chartTypes.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
@@ -78,20 +73,10 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
         return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
     },
 };
+
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
->((r, { commonOptions }) => [...r, ...commonOptions], []);
-
-export function resolvePartialPalette(
-    partialPalette: Partial<AgChartThemePalette> | null | undefined,
-    basePalette: AgChartThemePalette
-): AgChartThemePalette | null {
-    if (partialPalette == null) return null;
-    return {
-        fills: partialPalette.fills ?? basePalette.fills,
-        strokes: partialPalette.strokes ?? basePalette.strokes,
-    };
-}
+>((r, { commonOptions }) => r.concat(commonOptions), []);
 
 export class ChartTheme {
     readonly palette: AgChartThemePalette;
@@ -104,10 +89,6 @@ export class ChartTheme {
 
     private static getAxisDefaults(overrideDefaults?: object) {
         return mergeDefaults(overrideDefaults, {
-            top: {},
-            right: {},
-            bottom: {},
-            left: {},
             title: {
                 enabled: false,
                 text: 'Axis Title',
@@ -136,12 +117,7 @@ export class ChartTheme {
             },
             gridLine: {
                 enabled: true,
-                style: [
-                    {
-                        stroke: DEFAULT_AXIS_GRID_COLOUR,
-                        lineDash: [],
-                    },
-                ],
+                style: [{ stroke: DEFAULT_AXIS_GRID_COLOUR, lineDash: [] }],
             },
             crossLines: {
                 enabled: false,
@@ -162,60 +138,25 @@ export class ChartTheme {
 
     private static getSeriesDefaults() {
         return {
-            tooltip: {
-                enabled: true,
-            },
             visible: true,
             showInLegend: true,
             highlightStyle: {
-                item: {
-                    fill: 'rgba(255,255,255, 0.33)',
-                    stroke: `rgba(0, 0, 0, 0.4)`,
-                    strokeWidth: 2,
-                },
-                series: {
-                    dimOpacity: 1,
-                },
-                text: {
-                    color: 'black',
-                },
+                item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 2 },
+                series: { dimOpacity: 1 },
             },
             nodeClickRange: 'exact' as InteractionRange,
+            tooltip: { enabled: true },
         };
     }
 
     private static getCartesianSeriesMarkerDefaults() {
-        return {
-            enabled: true,
-            shape: 'circle',
-            size: 7,
-            strokeWidth: 1,
-        };
-    }
-
-    private static getLegendItemMarkerDefaults() {
-        return {
-            size: 15,
-            padding: 8,
-        };
-    }
-
-    private static getCaptionWrappingDefaults() {
-        return 'hyphenate' as const;
+        return { enabled: true, shape: 'circle', size: 7, strokeWidth: 1 };
     }
 
     private static getChartDefaults() {
         return {
-            background: {
-                visible: true,
-                fill: DEFAULT_BACKGROUND_COLOUR,
-            },
-            padding: {
-                top: 20,
-                right: 20,
-                bottom: 20,
-                left: 20,
-            },
+            background: { visible: true, fill: DEFAULT_BACKGROUND_COLOUR },
+            padding: { top: 20, right: 20, bottom: 20, left: 20 },
             title: {
                 enabled: false,
                 text: 'Title',
@@ -223,7 +164,7 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
-                wrapping: ChartTheme.getCaptionWrappingDefaults(),
+                wrapping: 'hyphenate',
             },
             subtitle: {
                 enabled: false,
@@ -232,7 +173,7 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
-                wrapping: ChartTheme.getCaptionWrappingDefaults(),
+                wrapping: 'hyphenate',
             },
             footnote: {
                 enabled: false,
@@ -241,7 +182,7 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
-                wrapping: ChartTheme.getCaptionWrappingDefaults(),
+                wrapping: 'hyphenate',
             },
             legend: {
                 position: POSITION.BOTTOM,
@@ -250,7 +191,7 @@ export class ChartTheme {
                 item: {
                     paddingX: 16,
                     paddingY: 8,
-                    marker: ChartTheme.getLegendItemMarkerDefaults(),
+                    marker: { size: 15, padding: 8 },
                     toggleSeriesVisible: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
@@ -260,21 +201,11 @@ export class ChartTheme {
                 },
                 reverseOrder: false,
                 pagination: {
-                    marker: {
-                        size: 12,
-                    },
-                    activeStyle: {
-                        fill: DEFAULT_LABEL_COLOUR,
-                    },
-                    inactiveStyle: {
-                        fill: DEFAULT_MUTED_LABEL_COLOUR,
-                    },
-                    highlightStyle: {
-                        fill: DEFAULT_LABEL_COLOUR,
-                    },
-                    label: {
-                        color: DEFAULT_LABEL_COLOUR,
-                    },
+                    marker: { size: 12 },
+                    activeStyle: { fill: DEFAULT_LABEL_COLOUR },
+                    inactiveStyle: { fill: DEFAULT_MUTED_LABEL_COLOUR },
+                    highlightStyle: { fill: DEFAULT_LABEL_COLOUR },
+                    label: { color: DEFAULT_LABEL_COLOUR },
                 },
             },
             tooltip: {
@@ -284,118 +215,80 @@ export class ChartTheme {
                 delay: 0,
             },
             overlays: {
-                loading: {
-                    darkTheme: IS_DARK_THEME,
-                },
-                noData: {
-                    darkTheme: IS_DARK_THEME,
-                },
-                noVisibleSeries: {
-                    darkTheme: IS_DARK_THEME,
-                },
+                loading: { darkTheme: IS_DARK_THEME },
+                noData: { darkTheme: IS_DARK_THEME },
+                noVisibleSeries: { darkTheme: IS_DARK_THEME },
             },
             listeners: {},
         };
     }
 
     private static readonly cartesianAxisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
-            line: {
-                enabled: false,
-            },
-        }),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
-            base: 10,
-            line: {
-                enabled: false,
-            },
-        }),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({ line: { enabled: false } }),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({ base: 10, line: { enabled: false } }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0.1,
-            label: {
-                autoRotate: true,
-            },
-            gridLine: {
-                enabled: false,
-            },
+            label: { autoRotate: true },
+            gridLine: { enabled: false },
         }),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({
-            gridLine: {
-                enabled: false,
-            },
-        }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
         'grouped-category': ChartTheme.getAxisDefaults(),
     };
 
-    constructor(options?: AgChartTheme) {
-        options = deepClone(options ?? {}) as AgChartThemeOptions;
-        const { overrides = null, palette = null } = options;
-
+    constructor(options: AgChartTheme = {}) {
+        const { overrides, palette } = deepClone(options) as AgChartThemeOptions;
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
 
         if (overrides) {
-            const { common } = overrides;
-
-            const applyOverrides = (
-                seriesTypes: string[],
-                overrideOpts: AgChartThemeOverrides[keyof AgChartThemeOverrides]
-            ) => {
-                if (!overrideOpts) return;
-                for (const s of seriesTypes) {
-                    const seriesType = s as keyof AgChartThemeOverrides;
-                    defaults[seriesType] = mergeDefaults(overrideOpts, defaults[seriesType]);
-                }
-            };
-            for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
-                const cleanedCommon = { ...common };
-                for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
-                    if (!commonOptions.includes(commonKey)) {
-                        delete cleanedCommon[commonKey];
-                    }
-                }
-                applyOverrides(seriesTypes, cleanedCommon);
-            }
-
-            chartTypes.seriesTypes.forEach((s) => {
-                const seriesType = s as keyof AgChartThemeOverrides;
-                if (overrides[seriesType]) {
-                    defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
-                }
-            });
+            this.mergeOverrides(defaults, overrides);
         }
 
-        const basePalette = this.getPalette();
-        this.palette = resolvePartialPalette(palette, basePalette) ?? basePalette;
-
         this.config = Object.freeze(this.templateTheme(defaults));
+        this.palette = mergeDefaults(palette, this.getPalette());
+    }
+
+    private mergeOverrides(defaults: AgChartThemeOverrides, overrides: AgChartThemeOverrides) {
+        for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
+            const cleanedCommon = { ...overrides.common };
+            for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
+                if (!commonOptions.includes(commonKey)) {
+                    delete cleanedCommon[commonKey];
+                }
+            }
+            if (!cleanedCommon) continue;
+            for (const s of seriesTypes) {
+                const seriesType = s as keyof AgChartThemeOverrides;
+                defaults[seriesType] = mergeDefaults(cleanedCommon, defaults[seriesType]);
+            }
+        }
+
+        chartTypes.seriesTypes.forEach((s) => {
+            const seriesType = s as keyof AgChartThemeOverrides;
+            if (overrides[seriesType]) {
+                defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
+            }
+        });
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        Object.entries(CHART_TYPE_CONFIG).forEach(([nextType, { seriesTypes }]) => {
+        for (const [nextType, { seriesTypes }] of Object.entries(CHART_TYPE_CONFIG)) {
             const typeDefaults = chartDefaults.get(nextType as ChartType) as any;
-
-            seriesTypes.forEach((seriesType) => {
-                const alias = seriesType as keyof AgChartThemeOverrides;
-                config[alias] ||= deepClone(typeDefaults);
-            });
-        });
-
+            for (const seriesType of seriesTypes) {
+                config[seriesType as keyof AgChartThemeOverrides] ||= deepClone(typeDefaults);
+            }
+        }
         return config;
     }
 
     private getDefaults(): AgChartThemeOverrides {
-        const getChartTypeDefaults = (chartType: ChartType) => {
-            return {
+        const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
+            const result: Record<string, { series?: {}; axes?: {} }> = {};
+            const chartTypeDefaults = {
                 axes: {},
                 ...legendRegistry.getThemeTemplates(),
                 ...ChartTheme.getChartDefaults(),
                 ...chartDefaults.get(chartType),
             };
-        };
-
-        const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
-            const chartTypeDefaults = getChartTypeDefaults(chartType) as any;
-            const result: Record<string, { series?: {}; axes?: {} }> = {};
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
                     seriesRegistry.getThemeTemplate(seriesType),
@@ -443,15 +336,6 @@ export class ChartTheme {
                     }
                 });
                 delete node['__extends__'];
-            }
-            if (node['__overrides__']) {
-                const key = node['__overrides__'];
-                const source = extensions.get(key);
-                if (source == null) {
-                    throw new Error(`AG Charts - no template variable provided for: ${key}`);
-                }
-                Object.assign(node, source);
-                delete node['__overrides__'];
             }
 
             if (isArray(node)) {
@@ -505,17 +389,13 @@ export class ChartTheme {
 
     getTemplateParameters() {
         const extensions = new Map();
-        extensions.set(EXTENDS_CHART_DEFAULTS, ChartTheme.getChartDefaults());
+
         extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
-        extensions.set(EXTENDS_LEGEND_DEFAULTS, ChartTheme.getChartDefaults().legend);
-        extensions.set(EXTENDS_LEGEND_ITEM_DEFAULTS, ChartTheme.getChartDefaults().legend.item);
-        extensions.set(EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS, ChartTheme.getLegendItemMarkerDefaults());
-        extensions.set(EXTENDS_AXES_LABEL_DEFAULTS, ChartTheme.getAxisDefaults().label);
         extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);
         extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);
         extensions.set(EXTENDS_AXES_GRID_LINE_DEFAULTS, ChartTheme.getAxisDefaults().gridLine);
+
         extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
-        extensions.set(OVERRIDE_SERIES_LABEL_DEFAULTS, {});
         extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
 
         const properties = new Map();
