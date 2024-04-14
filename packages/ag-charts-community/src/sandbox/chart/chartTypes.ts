@@ -1,7 +1,12 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
-import type { CartesianChartAxes, PolarChartAxes } from './axisTypes';
-import type { DirectionMetrics, SeriesAreaOptions } from './commonTypes';
-import type { CartesianChartSeries, HierarchyChartSeries, PolarChartSeries, TopologyChartSeries } from './seriesTypes';
+import type { CartesianChartAxes, PolarChartAxes } from '../axes/axesTypes';
+import type {
+    CartesianChartSeries,
+    HierarchyChartSeries,
+    PolarChartSeries,
+    TopologyChartSeries,
+} from '../series/seriesTypes';
+import type { DirectionMetrics, SeriesAreaOptions } from '../types/commonTypes';
 
 export type AgChartOptions = CartesianChartOptions | PolarChartOptions | HierarchyChartOptions | TopologyChartOptions;
 

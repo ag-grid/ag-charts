@@ -51,7 +51,7 @@ export interface StrokeOptions {
 export interface FontOptions {
     fontFamily?: string;
     fontSize?: PixelSize;
-    fontStyle?: 'normal' | 'italic' | 'oblique';
+    fontStyle?: string;
     fontWeight?: 'normal' | 'bold' | number;
 }
 

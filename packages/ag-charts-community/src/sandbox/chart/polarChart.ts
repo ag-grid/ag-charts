@@ -1,7 +1,7 @@
+import { type PolarChartAxes, PolarCoordinate } from '../axes/axesTypes';
 import type { PolarAxis } from '../axes/baseAxis';
-import type { PolarChartOptions } from '../types/agChartsTypes';
-import { type PolarChartAxes, PolarCoordinate } from '../types/axisTypes';
 import { BaseChart } from './baseChart';
+import type { PolarChartOptions } from './chartTypes';
 
 export class PolarChart extends BaseChart<PolarChartOptions> {
     static override DefaultAxes: PolarChartAxes[] = [{ type: 'angle-category' }, { type: 'radius-category' }];

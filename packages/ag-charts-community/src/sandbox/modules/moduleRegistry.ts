@@ -1,4 +1,4 @@
-import type { Module, ModuleType } from '../types/moduleTypes';
+import type { Module, ModuleType } from './modulesTypes';
 
 export class ModuleRegistry {
     private readonly modules = new Map<string, Module>();

@@ -1,8 +1,8 @@
+import { type CartesianChartAxes, CartesianCoordinate } from '../axes/axesTypes';
 import type { CartesianAxis } from '../axes/baseAxis';
-import type { CartesianChartOptions } from '../types/agChartsTypes';
-import { type CartesianChartAxes, CartesianCoordinate } from '../types/axisTypes';
 import { Direction } from '../types/enums';
 import { BaseChart } from './baseChart';
+import type { CartesianChartOptions } from './chartTypes';
 
 export class CartesianChart extends BaseChart<CartesianChartOptions> {
     static override DefaultAxes: CartesianChartAxes[] = [

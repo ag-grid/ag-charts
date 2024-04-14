@@ -1,4 +1,4 @@
-import type { AgChartOptions } from '../types/agChartsTypes';
+import type { AgChartOptions } from '../chart/chartTypes';
 import {
     type OptionsDefs,
     arrayOf,

@@ -1,6 +1,6 @@
 import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
+import type { CommonSeriesOptions } from '../series/seriesTypes';
 import type { DirectionMetrics, FontOptions } from '../types/commonTypes';
-import type { CommonSeriesOptions } from '../types/seriesTypes';
 import {
     type OptionsDefs,
     boolean,

@@ -1,4 +1,4 @@
-import type { AgChartOptions } from './types/agChartsTypes';
+import type { AgChartOptions } from './chart/chartTypes';
 import type { ChartType } from './types/enums';
 import type { EventEmitter } from './util/eventEmitter';
 import type { PipelineQueue } from './util/pipelineQueue';

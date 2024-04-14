@@ -4,11 +4,19 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { mockCanvas } from 'ag-charts-test';
 
 import { getDocument } from '../../util/dom';
-import { AgCharts } from '../agCharts';
-import type { AgChartOptions } from '../types/agChartsTypes';
+import { AgCharts, type ChartInstance } from '../agCharts';
+import type { ChartOptions } from '../chart/chartOptions';
+import type { AgChartOptions } from '../chart/chartTypes';
+import type { Stage } from '../render/stage';
+import type { IChart } from '../types';
 import type { Frame } from '../types/commonTypes';
-import type { TestInstance } from '../types/testTypes';
 import { mapValues } from './object';
+
+export interface TestInstance<T extends AgChartOptions> extends Omit<ChartInstance<T>, 'chart' | 'options' | 'scene'> {
+    chart: IChart<T>;
+    options: ChartOptions<T>;
+    stage: Stage;
+}
 
 const CanvasWidth = 800;
 const CanvasHeight = 600;

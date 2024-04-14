@@ -2,12 +2,12 @@ import { getWindow } from '../util/dom';
 import { hasConstrainedCanvasMemory } from '../util/userAgent';
 import { CartesianChart } from './chart/cartesianChart';
 import { ChartOptions } from './chart/chartOptions';
+import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './chart/chartTypes';
 import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
 import { Stage } from './render/stage';
 import type { IChart, IChartOptions } from './types';
-import type { AgChartOptions, DownloadOptions, ImageUrlOptions } from './types/agChartsTypes';
 import { ChartType } from './types/enums';
 
 type IChartConstructor = new (stage: Stage, options: IChartOptions<any>) => IChart<any>;

@@ -1,14 +1,14 @@
 import { DataPipeline } from '../data/dataPipeline';
 import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import { moduleRegistry } from '../modules/moduleRegistry';
+import type { SeriesModule } from '../modules/modulesTypes';
 import type { Stage } from '../render/stage';
 import type { ChartEventMap, IChart, IScale } from '../types';
-import type { AgChartOptions } from '../types/agChartsTypes';
-import type { SeriesModule } from '../types/moduleTypes';
 import { EventEmitter } from '../util/eventEmitter';
 import { PipelinePhase, PipelineQueue } from '../util/pipelineQueue';
 import { SizeObserver } from '../util/resizeObserver';
 import type { ChartOptions } from './chartOptions';
+import type { AgChartOptions } from './chartTypes';
 
 export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
     static DefaultAxes?: object[];

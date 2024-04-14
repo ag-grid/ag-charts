@@ -1,4 +1,4 @@
-import type { Direction } from './enums';
+import type { Direction } from '../types/enums';
 
 export interface ChartAxisOptions<T extends string> {
     type: T;

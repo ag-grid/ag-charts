@@ -1,7 +1,7 @@
+import type { CartesianSeriesModule } from '../modules/modulesTypes';
 import { BarSeries } from '../series/barSeries';
+import type { BarSeriesOptions } from '../series/seriesTypes';
 import { ChartType } from '../types/enums';
-import type { CartesianSeriesModule } from '../types/moduleTypes';
-import type { BarSeriesOptions } from '../types/seriesTypes';
 import { boolean, number, required, string, union } from '../util/validation';
 import { commonSeriesOptionsDefs } from './commonOptionsDefs';
 

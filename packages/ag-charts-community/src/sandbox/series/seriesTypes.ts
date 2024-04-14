@@ -1,4 +1,4 @@
-import type { DirectionType } from './enums';
+import type { DirectionType } from '../types/enums';
 
 export interface ChartSeries<T extends string> extends CommonSeriesOptions {
     type: T;
