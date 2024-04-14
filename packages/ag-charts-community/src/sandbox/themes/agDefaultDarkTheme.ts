@@ -33,9 +33,9 @@ export const AgDefaultDarkTheme = AgDefaultTheme.createVariant('ag-default-dark'
     'annotation:fill': ThemeFills.Blue,
     'annotation:stroke': ThemeStrokes.Blue,
 
-    axisGridColor: '#545a6e',
-    crossLineColor: '#fff',
-    backgroundColor: '#192232',
+    'axisGrid:color': '#545a6e',
+    'crossLine:color': '#fff',
+    'background:color': '#192232',
 
     'palette:fills': Object.values(ThemeFills),
     'palette:strokes': Object.values(ThemeStrokes),
