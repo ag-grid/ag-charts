@@ -7,7 +7,7 @@ import { BOOLEAN, Validate } from '../../util/validation';
 import type { ToolbarGroup } from '../interaction/toolbarManager';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
-import { TOOLBAR_ALIGNMENTS, TOOLBAR_POSITIONS, type ToolbarPosition } from './toolbarTypes';
+import { TOOLBAR_ALIGNMENTS, TOOLBAR_POSITIONS, ToolbarButton, type ToolbarPosition } from './toolbarTypes';
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
@@ -68,7 +68,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         );
     }
 
-    private onGroupButtonsChanged(group: ToolbarGroup, buttons: ToolbarGroupProperties['buttons']) {
+    private onGroupButtonsChanged(group: ToolbarGroup, buttons?: Array<ToolbarButton>) {
         const align = this[group].align ?? 'start';
         const position = this[group].position ?? 'top';
         const toolbar = this.elements.fixed[position as ToolbarPosition];
@@ -170,12 +170,23 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private createButtonElement(group: ToolbarGroup, options: { label: string; value: any }) {
+    private createButtonElement(group: ToolbarGroup, options: ToolbarButton) {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.classList.toggle(styles.modifiers.button.hidden, !this[group].enabled);
         button.dataset.toolbarGroup = group;
-        button.innerHTML = options.label;
+
+        let inner = '';
+
+        if (options.icon != null) {
+            inner = `<span class="${styles.elements.icon}">${options.icon}</span>`;
+        }
+
+        if (options.label != null) {
+            inner = `${inner}<span class="${styles.elements.label}">${options.label}</span>`;
+        }
+
+        button.innerHTML = inner;
         button.onclick = this.onButtonPress.bind(this, group, options.value);
 
         this.destroyFns.push(() => button.remove());

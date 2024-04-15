@@ -14,8 +14,11 @@ export interface AgToolbarGroup extends Toggleable {
 }
 
 export interface AgToolbarButton {
+    /** SVG icon to display on the button. */
+    icon?: string;
     /** Text label to display on the button. */
-    label: string;
+    label?: string;
+    /** Value provided to caller when the button is pressed. */
     value: any;
 }
 

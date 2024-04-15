@@ -1,7 +1,7 @@
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validation';
-import type { ToolbarAlignment, ToolbarPosition } from './toolbarTypes';
+import type { ToolbarAlignment, ToolbarButton, ToolbarPosition } from './toolbarTypes';
 
 export class ToolbarGroupProperties extends BaseProperties {
     @ObserveChanges<ToolbarGroupProperties>((target) => {
@@ -29,11 +29,11 @@ export class ToolbarGroupProperties extends BaseProperties {
         target.onButtonsChange(target.buttons);
     })
     @Validate(ARRAY, { optional: true })
-    buttons?: [{ label: string; value: any }];
+    buttons?: Array<ToolbarButton>;
 
     constructor(
         private readonly onChange: (enabled?: boolean) => void,
-        private readonly onButtonsChange: (buttons?: [{ label: string; value: any }]) => void
+        private readonly onButtonsChange: (buttons?: Array<ToolbarButton>) => void
     ) {
         super();
     }

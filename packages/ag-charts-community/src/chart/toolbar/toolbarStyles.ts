@@ -4,6 +4,8 @@ export const elements = {
     start: `${block}__start`,
     center: `${block}__center`,
     end: `${block}__end`,
+    icon: `${block}__icon`,
+    label: `${block}__label`,
 };
 export const modifiers = {
     top: `${block}--top`,
@@ -90,4 +92,17 @@ export const css = `
 .${elements.button}:hover {
     background: var(--ag-charts-hover-color);
 }
+
+.${elements.button} svg {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    fill: none;
+    stroke: var(--ag-charts-header-foreground-color);
+}
+
+.${elements.icon} + .${elements.label} {
+    margin-left: var(--ag-charts-size);
+}
+
 `;
