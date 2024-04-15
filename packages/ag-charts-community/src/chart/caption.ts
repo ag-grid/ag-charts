@@ -19,8 +19,6 @@ import {
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
-import type { KeyNavEvent } from './interaction/keyNavManager';
-import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
