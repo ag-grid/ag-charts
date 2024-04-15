@@ -6,7 +6,6 @@ import type {
     AgChartInstance,
     AgChartOptions,
 } from '../options/agChartOptions';
-import { createElement, getDocument } from '../util/dom';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
@@ -40,8 +39,8 @@ describe('AgChartV2', () => {
     let container: HTMLElement;
 
     beforeEach(() => {
-        container = createElement('div');
-        getDocument('body').append(container);
+        container = document.createElement('div');
+        document.body.append(container);
     });
 
     afterEach(() => {
@@ -49,7 +48,7 @@ describe('AgChartV2', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        getDocument('body').removeChild(container);
+        document.body.removeChild(container);
     });
 
     const compare = async () => {

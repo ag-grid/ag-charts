@@ -6,7 +6,6 @@ import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
-import { getDocument } from '../util/dom';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
@@ -179,7 +178,7 @@ describe('Chart', () => {
             chart = await createChartPreset({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
                 // Check the tooltip is shown
-                const tooltip = getDocument().querySelector('.ag-chart-tooltip');
+                const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(false);
 
@@ -199,7 +198,7 @@ describe('Chart', () => {
             // Check the tooltip is hidden
             await hoverAction(0, 0)(chart);
             await waitForChartStability(chart);
-            const tooltip = getDocument().querySelector('.ag-chart-tooltip');
+            const tooltip = document.querySelector('.ag-chart-tooltip');
             expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(true);
         });
 

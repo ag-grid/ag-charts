@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import {
-    type AgCartesianChartOptions,
-    type AgChartOptions,
-    type AgPolarChartOptions,
-    type InteractionRange,
-    _ModuleSupport,
+import type {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgPolarChartOptions,
+    InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
@@ -25,8 +24,6 @@ import { ukData } from '../map-test/ukData';
 // @ts-expect-error
 import ukTopology from '../map-test/ukTopology';
 import type { MapMarkerSeries } from './mapMarkerSeries';
-
-const { getDocument } = _ModuleSupport;
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {
     data: ukData,
@@ -95,7 +92,7 @@ describe('MapMarkerSeries', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as MapMarkerSeries;
-            const node = seriesImpl['contextNodeData']?.nodeData[i];
+            const node = seriesImpl['contextNodeData'].nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
@@ -141,7 +138,7 @@ describe('MapMarkerSeries', () => {
             const listeners = params.onNodeClick ? { nodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
-                container: getDocument('body'),
+                container: document.body,
                 autoSize: false,
                 series: [
                     {
@@ -203,7 +200,7 @@ describe('MapMarkerSeries', () => {
 
             // Check click handler
             const nodeCount = chartInstance.series.reduce(
-                (sum: number, series: any) => sum + testParams.getNodeData(series).length,
+                (sum, series) => sum + testParams.getNodeData(series).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -213,7 +210,7 @@ describe('MapMarkerSeries', () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
                 // Check the tooltip is shown
-                const tooltip = getDocument().querySelector('.ag-chart-tooltip');
+                const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(false);
 
@@ -233,7 +230,7 @@ describe('MapMarkerSeries', () => {
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart);
-            const tooltip = getDocument().querySelector('.ag-chart-tooltip');
+            const tooltip = document.querySelector('.ag-chart-tooltip');
             expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(true);
         });
 

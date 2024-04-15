@@ -2,7 +2,6 @@ import { beforeAll, describe, expect, it } from '@jest/globals';
 
 import { ChartOptions } from '../../module/optionsModule';
 import type { AgCartesianChartOptions, AgChartOptions, AgLineSeriesOptions } from '../../options/agChartOptions';
-import { createElement } from '../../util/dom';
 import { registerInbuiltModules } from '../factory/registerInbuiltModules';
 import { setupModules } from '../factory/setupModules';
 import * as examples from '../test/examples';
@@ -276,7 +275,7 @@ describe('prepare', () => {
             'for %s it should prepare options as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = example.options;
-                options.container = createElement('div');
+                options.container = document.createElement('div');
 
                 const preparedOptions = prepareOptions(options);
 
@@ -302,7 +301,7 @@ describe('prepare', () => {
 
         it('should merge combo-chart series overrides as expected', () => {
             const options = COMBO_CHART_EXAMPLE;
-            options.container = createElement('div');
+            options.container = document.createElement('div');
 
             const preparedOptions = prepareOptions(options);
 
@@ -314,7 +313,7 @@ describe('prepare', () => {
         it('should merge complex theme setups as expected', () => {
             const options = COMPLEX_THEME_SCENARIO;
 
-            options.container = createElement('div');
+            options.container = document.createElement('div');
 
             const preparedOptions = prepareOptions(options);
 
@@ -328,7 +327,7 @@ describe('prepare', () => {
 
         it('should use default theme options when `enabled` is set to `false` on an options object', () => {
             const options = ENABLED_FALSE_OPTIONS;
-            options.container = createElement('div');
+            options.container = document.createElement('div');
 
             const preparedOptions = prepareOptions(options);
             const theme = new ChartTheme();

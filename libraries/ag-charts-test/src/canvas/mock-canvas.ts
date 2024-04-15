@@ -50,14 +50,14 @@ export class MockContext {
 export function setup(opts: {
     width?: number;
     height?: number;
-    document: Document;
+    document?: Document;
     mockCtx?: MockContext;
     mockText?: boolean;
 }) {
     const {
-        document,
         width = 800,
         height = 600,
+        document = window.document,
         mockCtx = new MockContext(width, height, document),
         mockText = false,
     } = opts;

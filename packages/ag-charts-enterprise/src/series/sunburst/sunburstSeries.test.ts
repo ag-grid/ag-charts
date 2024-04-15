@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import {
-    type AgCartesianChartOptions,
-    type AgChartOptions,
-    type AgPolarChartOptions,
-    type InteractionRange,
-    _ModuleSupport,
+import type {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgPolarChartOptions,
+    InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
@@ -25,8 +24,6 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
-
-const { getDocument } = _ModuleSupport;
 
 describe('SunburstSeries', () => {
     setupMockConsole();
@@ -139,7 +136,7 @@ describe('SunburstSeries', () => {
             const listeners = params.onNodeClick ? { nodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
-                container: getDocument('body'),
+                container: document.body,
                 autoSize: false,
                 series: [
                     {
@@ -199,7 +196,7 @@ describe('SunburstSeries', () => {
 
             // Check click handler
             const nodeCount = chartInstance.series.reduce(
-                (sum: number, series: any) => sum + testParams.getNodeData(series).length,
+                (sum, series) => sum + testParams.getNodeData(series).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -209,7 +206,7 @@ describe('SunburstSeries', () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
                 // Check the tooltip is shown
-                const tooltip = getDocument().querySelector('.ag-chart-tooltip');
+                const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(false);
 
@@ -229,7 +226,7 @@ describe('SunburstSeries', () => {
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart);
-            const tooltip = getDocument().querySelector('.ag-chart-tooltip');
+            const tooltip = document.querySelector('.ag-chart-tooltip');
             expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(true);
         });
 
@@ -306,9 +303,9 @@ describe('SunburstSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = series.contentGroup.children.map((group: any) => group.children[0]);
-                const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
-                return nodes.filter((node: any) => node.datum.depth === maxDepth);
+                const nodes = series.contentGroup.children.map((group) => group.children[0]);
+                const maxDepth = Math.max(...nodes.map((n) => n.datum.depth ?? -1));
+                return nodes.filter((node) => node.datum.depth === maxDepth);
             },
             getNodePoint: (item) => {
                 const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = item;

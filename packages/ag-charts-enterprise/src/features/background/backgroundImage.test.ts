@@ -34,7 +34,7 @@ describe('BackgroundImage', () => {
             height?: number;
             bottom?: number;
         }) => {
-            const image = new BackgroundImage();
+            const image = new BackgroundImage({ document });
 
             Object.assign(image, params);
 
