@@ -82,7 +82,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     private truncated = false;
 
     private getOrAddRegion(moduleCtx: ModuleContext, regionName: 'root' | 'title' | 'subtitle' | 'footnote') {
-        if (regionName === 'root') {
+        if (regionName === undefined) {
             return moduleCtx.regionManager.getRegion('root');
         } else {
             return moduleCtx.regionManager.addRegionFromProperties({
@@ -99,12 +99,6 @@ export class Caption extends BaseProperties implements CaptionLike {
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
         ];
-        if (regionName !== 'root') {
-            destroyFns.push(
-                region.addListener('tab', (event) => this.handleFocus(moduleCtx, event)),
-                region.addListener('blur', (event) => this.handleBlur(moduleCtx, event))
-            );
-        }
 
         return joinFunctions(...destroyFns);
     }
@@ -144,16 +138,6 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     handleMouseLeave(moduleCtx: ModuleContext, _event: PointerInteractionEvent<'leave'>) {
-        moduleCtx.tooltipManager.removeTooltip(this.id);
-    }
-
-    handleFocus(moduleCtx: ModuleContext, _event: KeyNavEvent<'tab'>) {
-        this.updateTooltip(moduleCtx, makeKeyboardPointerEvent(moduleCtx.regionManager, this.node));
-        moduleCtx.ariaAnnouncementService.announceValue(this.text ?? '');
-    }
-
-    handleBlur(moduleCtx: ModuleContext, _event: KeyNavEvent<'blur'>) {
-        moduleCtx.regionManager.updateFocusIndicatorRect(undefined);
         moduleCtx.tooltipManager.removeTooltip(this.id);
     }
 }
