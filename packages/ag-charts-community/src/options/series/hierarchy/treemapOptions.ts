@@ -50,18 +50,16 @@ export interface AgTreemapSeriesGroupLayout<TDatum> {
 export interface AgTreemapSeriesGroupHighlightStyle<TDatum> extends AgTreemapSeriesGroupStyle {
     /** Options for the label in a group. */
     label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
-    /** Apply rounded corners to each group. */
-    cornerRadius?: PixelSize;
 }
 
 export interface AgTreemapSeriesGroupOptions<TDatum>
     extends AgTreemapSeriesGroupStyle,
-        AgTreemapSeriesGroupLayout<TDatum> {}
-
-export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {
-    /** Apply rounded corners to each tile. */
+        AgTreemapSeriesGroupLayout<TDatum> {
+    /** Apply rounded corners to each group. */
     cornerRadius?: PixelSize;
 }
+
+export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 
 export interface AgTreemapSeriesTileLayout<TDatum> {
     /** Options for the label in a tile. */
@@ -87,7 +85,10 @@ export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeri
 
 export interface AgTreemapSeriesTileOptions<TDatum>
     extends AgTreemapSeriesTileStyle,
-        AgTreemapSeriesTileLayout<TDatum> {}
+        AgTreemapSeriesTileLayout<TDatum> {
+    /** Apply rounded corners to each tile. */
+    cornerRadius?: PixelSize;
+}
 
 export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle {
     /** Options for the label in a tile. */
