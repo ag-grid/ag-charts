@@ -92,7 +92,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
     }
 
-    private dispatch(type: KeyNavEventType, delta: number, interactionEvent: KeyNavEvent['interactionEvent']) {
+    private dispatch(type: KeyNavEventType, delta: number, interactionEvent: InteractionEvent) {
         const event = buildConsumable({ type, delta, interactionEvent });
         dispatchTypedConsumable(this.listeners, type, event);
     }
