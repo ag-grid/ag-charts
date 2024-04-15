@@ -1,7 +1,7 @@
 import type { TextAlign } from '../../options/agChartOptions';
 import type { BBox } from '../../scene/bbox';
-import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
+import { calcLineHeight } from '../../util/textWrap';
 import { Caption } from '../caption';
 import type { LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
@@ -41,7 +41,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
         const updateCaption = (caption: Caption) => {
             const defaultCaptionHeight = shrinkRect.height / 10;
-            const captionLineHeight = caption.lineHeight ?? caption.fontSize * Text.defaultLineHeightRatio;
+            const captionLineHeight = caption.lineHeight ?? calcLineHeight(caption.fontSize);
             const maxWidth = shrinkRect.width;
             const maxHeight = Math.max(captionLineHeight, defaultCaptionHeight);
             caption.computeTextWrap(maxWidth, maxHeight);

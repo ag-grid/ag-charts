@@ -13,10 +13,19 @@ import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeomet
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { AutoSizedLabel, formatSingleLabel } from '../util/labelFormatter';
+import { formatSingleLabel } from '../util/labelFormatter';
 import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } from './mapShapeSeriesProperties';
 
-const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
+const {
+    getMissCount,
+    createDatumId,
+    calcLineHeight,
+    DataModelSeries,
+    SeriesNodePickMode,
+    valueProperty,
+    Validate,
+    EllipsisChar,
+} = _ModuleSupport;
 const { ColorScale } = _Scale;
 const { Group, Selection, Text, PointerEvents } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
@@ -217,8 +226,7 @@ export class MapShapeSeries
 
         const baseSize = Text.getTextSize(String(labelText), font);
         const numLines = labelText.split('\n').length;
-        const aspectRatio =
-            (baseSize.width + 2 * padding) / (numLines * AutoSizedLabel.lineHeight(label.fontSize) + 2 * padding);
+        const aspectRatio = (baseSize.width + 2 * padding) / (numLines * calcLineHeight(label.fontSize) + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&
@@ -274,7 +282,7 @@ export class MapShapeSeries
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
         // FIXME - formatSingleLabel should never return an ellipsis
-        if (text === Text.ellipsis) return;
+        if (text === EllipsisChar) return;
 
         // Only shift horizontally if necessary
         const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;

@@ -2,8 +2,8 @@ import type { OverflowStrategy, TextWrap } from '../options/chart/types';
 import { TextMeasurer, type TextSizeProperties } from '../scene/shape/text';
 
 // The default line spacing for document editors is usually 1.15
-const DefaultLineHeightRatio = 1.15;
-const EllipsisChar = '\u2026';
+export const DefaultLineHeightRatio = 1.15;
+export const EllipsisChar = '\u2026';
 
 export function calcLineHeight(fontSize: number): number {
     return Math.ceil(fontSize * DefaultLineHeightRatio);

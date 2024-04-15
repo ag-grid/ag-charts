@@ -5,10 +5,6 @@ const { Logger } = _Util;
 const { Text, Label } = _Scene;
 
 class BaseAutoSizedLabel<FormatterParams> extends Label<FormatterParams> {
-    static lineHeight(fontSize: number): number {
-        return Math.ceil(fontSize * Text.defaultLineHeightRatio);
-    }
-
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'on-space';
 
@@ -311,7 +307,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
     };
 
     return maximumValueSatisfying<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const lineHeight = AutoSizedLabel.lineHeight(fontSize);
+        const lineHeight = calcLineHeight(fontSize);
         const allowTruncation = fontSize === minimumFontSize;
         const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
         const availableWidth = sizeFitting.width - sizeAdjust;

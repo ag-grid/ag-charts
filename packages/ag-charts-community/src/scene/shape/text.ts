@@ -17,8 +17,6 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
-const ellipsis = '\u2026';
-
 function SceneFontChangeDetection(opts?: { redraw?: RedrawType; changeCb?: (t: any) => any }) {
     const { redraw = RedrawType.MAJOR, changeCb } = opts ?? {};
 
@@ -28,9 +26,6 @@ function SceneFontChangeDetection(opts?: { redraw?: RedrawType; changeCb?: (t: a
 export class Text extends Shape {
     static readonly className = 'Text';
 
-    // The default line spacing for document editors is usually 1.15
-    static defaultLineHeightRatio = 1.15;
-
     static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
         textAlign: 'start' as CanvasTextAlign,
         fontStyle: undefined,
@@ -39,8 +34,6 @@ export class Text extends Shape {
         fontFamily: 'sans-serif',
         textBaseline: 'alphabetic' as CanvasTextBaseline,
     });
-
-    static ellipsis = ellipsis;
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     x: number = 0;
