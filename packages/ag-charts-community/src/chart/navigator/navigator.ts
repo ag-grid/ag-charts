@@ -160,7 +160,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (this.dragging != null) {
-            this.ctx.zoomManager.fireZoomPanStartEvent();
+            this.ctx.zoomManager.fireZoomPanStartEvent('navigator');
         }
     }
 
