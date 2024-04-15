@@ -192,6 +192,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
     @Validate(BOOLEAN)
     autoSize;
 
+    /** NOTE: This is exposed for use by Integrated charts only. */
+    get canvasElement() {
+        return this.ctx.scene.canvas.element;
+    }
+
+    /** NOTE: This is exposed for use by Integrated charts only. */
+    getCanvasDataURL(fileFormat?: string) {
+        return this.ctx.scene.getDataURL(fileFormat);
+    }
+
     private _lastAutoSize?: [number, number];
     private _firstAutoSize = true;
 
