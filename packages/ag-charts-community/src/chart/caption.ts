@@ -82,7 +82,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     private truncated = false;
 
     private getOrAddRegion(moduleCtx: ModuleContext, regionName: 'root' | 'title' | 'subtitle' | 'footnote') {
-        if (regionName === undefined) {
+        if (regionName === 'root') {
             return moduleCtx.regionManager.getRegion('root');
         } else {
             return moduleCtx.regionManager.addRegionFromProperties({
