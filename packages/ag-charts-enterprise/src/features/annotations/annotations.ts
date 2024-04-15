@@ -62,17 +62,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
 
+        const region = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
-            ctx.interactionManager.addListener('hover', this.onHover.bind(this), All),
-            ctx.interactionManager.addListener('click', this.onClick.bind(this), Default | AnnotationsState),
-            ctx.interactionManager.addListener('drag-start', this.onClick.bind(this), All),
-            ctx.interactionManager.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
-            ctx.interactionManager.addListener(
-                'drag-end',
-                this.onDragEnd.bind(this),
-                Default | ZoomDrag | AnnotationsState
-            ),
+            region.addListener('hover', this.onHover.bind(this), All),
+            region.addListener('click', this.onClick.bind(this), All),
+            region.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
+            region.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
         );
@@ -339,10 +335,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         },
     };
 
-    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click' | 'drag-start'>) {
+    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
         if (this.addingStep == null) {
             this.onClickSelecting();
-        } else if (_ModuleSupport.InteractionManager.isPointerEvent('click', event)) {
+        } else {
             this.onClickAdding(event);
         }
     }
@@ -398,8 +394,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
             [AddingStep.End]: (node, point) => {
                 this.annotationData?.at(-1)?.set({ end: point });
-                this.addingStep = undefined;
                 node?.toggleHandles(true);
+                this.addingStep = undefined;
+                this.ctx.cursorManager.updateCursor('annotations');
                 this.ctx.interactionManager.popState(InteractionState.Annotations);
             },
         },
@@ -440,6 +437,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 node?.toggleHandles(true);
                 this.addingStep = undefined;
+                this.ctx.cursorManager.updateCursor('annotations');
                 this.ctx.interactionManager.popState(InteractionState.Annotations);
             },
         },
@@ -493,12 +491,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (addingStep != null) return;
 
         interactionManager.popState(InteractionState.Annotations);
+        cursorManager.updateCursor('annotations');
 
         if (active == null) return;
 
         annotations.nodes()[active].stopDragging();
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
-        cursorManager.updateCursor('annotations');
     }
 
     private convertLine(datum: AnnotationProperties | AnnotationLinePointsProperties) {
