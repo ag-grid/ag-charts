@@ -6,6 +6,7 @@ import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
+import { wrapText } from '../util/textWrap';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -117,7 +118,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             this.node.text = text;
             return;
         }
-        const { text: wrappedText, truncated } = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
+        const { text: wrappedText, truncated } = wrapText(text ?? '', maxWidth, maxHeight, this, wrapping);
         this.node.text = wrappedText;
         this.truncated = truncated;
     }

@@ -1,6 +1,6 @@
 import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
+const { Validate, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY, wrapLines, calcLineHeight } = _ModuleSupport;
 const { Logger } = _Util;
 const { Text, Label } = _Scene;
 
@@ -190,8 +190,8 @@ export function formatStackedLabels<Meta, FormatterParams>(
     return maximumValueSatisfying<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const labelLineHeight = AutoSizedLabel.lineHeight(labelFontSize);
-        const secondaryLabelLineHeight = AutoSizeableSecondaryLabel.lineHeight(secondaryLabelFontSize);
+        const labelLineHeight = calcLineHeight(labelFontSize);
+        const secondaryLabelLineHeight = calcLineHeight(secondaryLabelFontSize);
         const sizeFitting = sizeFittingHeight(
             labelLineHeight + secondaryLabelLineHeight + heightAdjust,
             allowTruncation
@@ -205,7 +205,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
 
         if (label == null || label.fontSize !== labelFontSize) {
             labelTextSizeProps.fontSize = labelFontSize;
-            const { lines: labelLines } = Text.wrapLines(
+            const { lines: labelLines } = wrapLines(
                 labelValue,
                 availableWidth,
                 availableHeight,
@@ -241,7 +241,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
 
         if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
             secondaryLabelTextSizeProps.fontSize = secondaryLabelFontSize;
-            const { lines: secondaryLabelLines } = Text.wrapLines(
+            const { lines: secondaryLabelLines } = wrapLines(
                 secondaryLabelValue,
                 availableWidth,
                 availableHeight,
@@ -322,7 +322,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
         }
 
         textSizeProps.fontSize = fontSize;
-        const { lines } = Text.wrapLines(
+        const { lines } = wrapLines(
             value,
             availableWidth,
             availableHeight,

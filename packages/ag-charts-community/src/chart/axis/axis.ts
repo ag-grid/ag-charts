@@ -36,6 +36,7 @@ import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
+import { wrapText } from '../../util/textWrap';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -52,8 +53,7 @@ import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import type { TickCount, TickInterval } from './axisTick';
-import type { AxisTick } from './axisTick';
+import type { AxisTick, TickCount, TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
@@ -1373,7 +1373,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         tickData.ticks.forEach((tickDatum) => {
-            const { text } = Text.wrap(
+            const { text } = wrapText(
                 tickDatum.tickLabel,
                 maxWidth ?? defaultMaxWidth,
                 maxHeight ?? defaultMaxHeight,

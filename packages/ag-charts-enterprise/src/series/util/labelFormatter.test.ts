@@ -1,4 +1,4 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
     formatLabels,
@@ -8,17 +8,17 @@ import {
     maximumValueSatisfying,
 } from './labelFormatter';
 
+const { wrapLines: _wrapLines } = _ModuleSupport;
 const { Text } = _Scene;
 
 describe('label formatter', () => {
-    let wrapLines: jest.SpyInstance<ReturnType<typeof Text.wrapLines>, Parameters<typeof Text.wrapLines>> = undefined!;
+    const wrapLines: jest.SpyInstance<ReturnType<typeof _wrapLines>, Parameters<typeof _wrapLines>> = undefined!;
     let computeBBox: jest.SpyInstance<
         ReturnType<typeof Text.prototype.computeBBox>,
         Parameters<typeof Text.prototype.computeBBox>
     > = undefined!;
 
     beforeEach(() => {
-        wrapLines = jest.spyOn(Text, 'wrapLines');
         computeBBox = jest.spyOn(Text.prototype, 'computeBBox');
     });
 

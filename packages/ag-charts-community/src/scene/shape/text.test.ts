@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import type { TextWrap } from '../../options/chart/types';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { wrapText } from '../../util/textWrap';
 import type { LayersManager } from '../layersManager';
 import { Text } from './text';
 
@@ -272,7 +273,7 @@ describe('Text', () => {
                     } else if (breakWord) {
                         wrapping = 'always';
                     }
-                    textNode.text = Text.wrap(
+                    textNode.text = wrapText(
                         textNode.text ?? '',
                         maxWidth,
                         truncate ? maxHeight : Infinity,
@@ -304,19 +305,19 @@ describe('Text', () => {
         const font = BASE_OPTIONS;
 
         it('should handle all text wrapping options for a small box', () => {
-            expect(Text.wrap(exampleString, 50, 50, font, 'on-space', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'never', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'hyphenate', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'always', 'hide').text).toBe('');
+            expect(wrapText(exampleString, 50, 50, font, 'on-space', 'hide').text).toBe('');
+            expect(wrapText(exampleString, 50, 50, font, 'never', 'hide').text).toBe('');
+            expect(wrapText(exampleString, 50, 50, font, 'hyphenate', 'hide').text).toBe('');
+            expect(wrapText(exampleString, 50, 50, font, 'always', 'hide').text).toBe('');
         });
 
         it('should handle all text wrapping options for a tall box', () => {
-            expect(Text.wrap(exampleString, 50, 1000, font, 'on-space', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 1000, font, 'never', 'hide').text).toBe('');
+            expect(wrapText(exampleString, 50, 1000, font, 'on-space', 'hide').text).toBe('');
+            expect(wrapText(exampleString, 50, 1000, font, 'never', 'hide').text).toBe('');
 
             // The word is broken here, so does not overflow
-            expect(Text.wrap(exampleString, 50, 1000, font, 'hyphenate', 'hide').text).not.toBe('');
-            expect(Text.wrap(exampleString, 50, 1000, font, 'always', 'hide').text).not.toBe('');
+            expect(wrapText(exampleString, 50, 1000, font, 'hyphenate', 'hide').text).not.toBe('');
+            expect(wrapText(exampleString, 50, 1000, font, 'always', 'hide').text).not.toBe('');
         });
     });
 
