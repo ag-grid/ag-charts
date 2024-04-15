@@ -26,6 +26,10 @@ export class Overlay extends BaseProperties {
         super();
     }
 
+    getBoundingRect(): { x: number; y: number; width: number; height: number } | undefined {
+        return this.element?.getBoundingClientRect();
+    }
+
     getText() {
         return this.text ?? this.defaultText;
     }
