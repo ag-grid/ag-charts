@@ -1,7 +1,7 @@
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validation';
-import type { ToolbarPosition } from './toolbarTypes';
+import type { ToolbarAlignment, ToolbarPosition } from './toolbarTypes';
 
 export class ToolbarGroupProperties extends BaseProperties {
     @ObserveChanges<ToolbarGroupProperties>((target) => {
@@ -9,6 +9,12 @@ export class ToolbarGroupProperties extends BaseProperties {
     })
     @Validate(BOOLEAN)
     enabled?: boolean;
+
+    @ObserveChanges<ToolbarGroupProperties>((target) => {
+        target.onChange(target.enabled);
+    })
+    @Validate(UNION(['start', 'middle', 'end']), { optional: true })
+    align: ToolbarAlignment = 'start';
 
     @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onChange(target.enabled);

@@ -4,7 +4,6 @@ export default `
 [class^='ag-charts']:after,
 [class^='ag-charts']:before {
     box-sizing: border-box;
-    margin: 0;
     outline: none;
 }
 
