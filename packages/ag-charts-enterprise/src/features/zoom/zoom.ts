@@ -177,7 +177,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
-            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
+            ctx.zoomManager.addListener('zoom-change', (e) => this.onZoomChange(e)),
+            ctx.zoomManager.addListener('zoom-pan-start', (e) => this.onZoomPanStart(e)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event))
         );
     }
@@ -290,7 +291,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         if ((this.dragState = newDragState) !== DragState.None) {
-            this.zoomManager.fireZoomPanStartEvent();
+            this.zoomManager.fireZoomPanStartEvent('zoom');
         }
     }
 
@@ -588,8 +589,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onZoomChange() {
+    private onZoomChange(e: _ModuleSupport.ZoomChangeEvent) {
+        if (e.callerId !== 'zoom') {
+            this.panner.stopInteractions();
+        }
         this.toggleContextMenuActions(definedZoomState(this.zoomManager.getZoom()));
+    }
+
+    onZoomPanStart(e: _ModuleSupport.ZoomPanStartEvent): void {
+        if (e.callerId !== 'zoom') {
+            this.panner.stopInteractions();
+        }
     }
 
     private onPanUpdate(e: ZoomPanUpdate) {

@@ -134,10 +134,10 @@ export class ZoomPanner {
     }
 
     private updateCoords(x: number, y: number) {
-        if (!this.coords) {
-            this.coords = { x1: x, y1: y, x2: x, y2: y };
-        } else {
+        if (this.coords) {
             this.coords = { x1: this.coords.x2, y1: this.coords.y2, x2: x, y2: y };
+        } else {
+            this.coords = { x1: x, y1: y, x2: x, y2: y };
         }
     }
 
