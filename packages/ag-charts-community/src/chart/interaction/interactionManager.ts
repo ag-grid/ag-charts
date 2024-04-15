@@ -303,10 +303,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return [event.type];
 
             case 'mousedown':
+                if (!this.isEventOverElement(event)) {
+                    return [];
+                }
                 this.mouseDown = true;
                 this.recordDown(event);
                 return [dragStart];
             case 'touchstart':
+                if (!this.isEventOverElement(event)) {
+                    return [];
+                }
                 this.touchDown = true;
                 this.recordDown(event);
                 return [dragStart];
