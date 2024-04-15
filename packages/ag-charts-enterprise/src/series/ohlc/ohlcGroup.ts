@@ -24,11 +24,22 @@ export class OhlcGroup extends CandlestickBaseGroup<
     }
 
     updateCoordinates() {
-        const { x, y, yBottom, yHigh, yLow, width } = this;
+        const { x, y, yBottom, yHigh, yLow, width, height } = this;
         const selection = _Scene.Selection.select(this, _Scene.Rect);
         const [body] = selection.selectByTag<_Scene.Line>(GroupTags.Body);
         const [open] = selection.selectByTag<_Scene.Line>(GroupTags.Open);
         const [close] = selection.selectByTag<_Scene.Line>(GroupTags.Close);
+
+        if (width === 0 || height === 0) {
+            body.visible = false;
+            open.visible = false;
+            close.visible = false;
+            return;
+        }
+
+        body.visible = true;
+        open.visible = true;
+        close.visible = true;
 
         const halfWidth = width / 2;
 
@@ -42,13 +53,13 @@ export class OhlcGroup extends CandlestickBaseGroup<
         open.setProperties({
             x1: Math.floor(x),
             x2: Math.floor(x + halfWidth),
-            y: Math.round(y + open.strokeWidth / 2),
+            y: Math.round(y),
         });
 
         close.setProperties({
             x1: Math.floor(x + halfWidth),
             x2: Math.floor(x + width),
-            y: Math.round(yBottom - close.strokeWidth / 2),
+            y: Math.round(yBottom),
         });
     }
 

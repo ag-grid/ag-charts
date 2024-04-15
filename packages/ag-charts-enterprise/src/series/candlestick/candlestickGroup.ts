@@ -72,11 +72,22 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
     updateCoordinates() {
         const { x, y, yBottom, yHigh, yLow, width, height } = this;
         const selection = _Scene.Selection.select(this, _Scene.Rect);
-        const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
+        const [body] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
         const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
         const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
 
-        rect.setProperties({
+        if (width === 0 || height === 0) {
+            body.visible = false;
+            lowWick.visible = false;
+            highWick.visible = false;
+            return;
+        }
+
+        body.visible = true;
+        lowWick.visible = true;
+        highWick.visible = true;
+
+        body.setProperties({
             x,
             y,
             width,
@@ -118,7 +129,7 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
         wickStyles.strokeWidth ??= 1;
 
         const selection = _Scene.Selection.select(this, _Scene.Rect);
-        const [rect] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
+        const [body] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
         const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
         const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
 
@@ -126,7 +137,7 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
             wickStyles.strokeWidth = bandwidth;
         }
 
-        rect.setProperties({
+        body.setProperties({
             fill,
             fillOpacity,
             strokeWidth,
