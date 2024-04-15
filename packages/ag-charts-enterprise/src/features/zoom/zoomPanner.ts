@@ -4,7 +4,6 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
 import { constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
 
-const { RATIO, Validate } = _ModuleSupport;
 export interface ZoomPanUpdate {
     type: 'update';
     deltaX: number;
@@ -20,7 +19,6 @@ interface ZoomCoordHistory {
 const maxZoomCoords = 16;
 
 export class ZoomPanner {
-    @Validate(RATIO)
     deceleration: number = 1;
 
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
