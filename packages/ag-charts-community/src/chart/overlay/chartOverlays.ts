@@ -12,6 +12,16 @@ export class ChartOverlays extends BaseProperties {
     @Validate(OBJECT)
     readonly noVisibleSeries = new Overlay('ag-chart-no-visible-series', 'No visible series');
 
+    getFocusInfo(): { text: string; rect: { x: number; y: number; width: number; height: number } } | undefined {
+        for (const overlay of [this.loading, this.noData, this.noVisibleSeries]) {
+            const rect = overlay.getBoundingRect();
+            if (rect !== undefined) {
+                return { text: overlay.getText(), rect };
+            }
+        }
+        return undefined;
+    }
+
     public destroy() {
         this.loading.removeElement();
         this.noData.removeElement();

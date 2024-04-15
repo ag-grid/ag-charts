@@ -15,11 +15,13 @@ export interface AxisZoomState {
 
 export interface ZoomChangeEvent extends AxisZoomState {
     type: 'zoom-change';
+    callerId: string;
     axes: Record<string, ZoomState | undefined>;
 }
 
 export interface ZoomPanStartEvent {
     type: 'zoom-pan-start';
+    callerId: string;
 }
 
 export type ChartAxisLike = {
@@ -84,17 +86,17 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
             axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
         });
 
-        this.applyChanges();
+        this.applyChanges(callerId);
     }
 
     public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {
         this.axisZoomManagers.get(axisId)?.updateZoom(callerId, newZoom);
-        this.applyChanges();
+        this.applyChanges(callerId);
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
-    public fireZoomPanStartEvent() {
-        this.listeners.dispatch('zoom-pan-start', { type: 'zoom-pan-start' });
+    public fireZoomPanStartEvent(callerId: string) {
+        this.listeners.dispatch('zoom-pan-start', { type: 'zoom-pan-start', callerId });
     }
 
     public getZoom(): AxisZoomState | undefined {
@@ -130,7 +132,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
         return axes;
     }
 
-    private applyChanges() {
+    private applyChanges(callerId: string) {
         const changed = Array.from(this.axisZoomManagers.values(), (axis) => axis.applyChanges()).some(Boolean);
 
         if (!changed) {
@@ -142,7 +144,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
             axes[axisId] = axis.getZoom();
         }
 
-        this.listeners.dispatch('zoom-change', { type: 'zoom-change', ...this.getZoom(), axes });
+        this.listeners.dispatch('zoom-change', { type: 'zoom-change', ...this.getZoom(), axes, callerId });
     }
 }
 
