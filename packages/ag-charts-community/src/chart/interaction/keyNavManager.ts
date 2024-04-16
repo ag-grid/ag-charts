@@ -9,7 +9,7 @@ import type {
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
-export type KeyNavEventType = 'blur' | 'focus' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
+export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
@@ -94,7 +94,8 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             this.isMouseBlurred = true;
         } else {
             const delta = guessDirection(this.container, event.sourceEvent.relatedTarget);
-            this.dispatch('focus', delta, event);
+            this.dispatch('browserfocus', delta, event);
+            this.dispatch('tab', 0, event);
         }
     }
 

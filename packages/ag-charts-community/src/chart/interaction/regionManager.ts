@@ -68,7 +68,7 @@ export class RegionManager {
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
             ),
             this.keyNavManager.addListener('blur', this.onNav.bind(this)),
-            this.keyNavManager.addListener('focus', this.onFocus.bind(this)),
+            this.keyNavManager.addListener('browserfocus', this.onFocus.bind(this)),
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
@@ -280,7 +280,7 @@ export class RegionManager {
         }
     }
 
-    private onFocus(event: KeyNavEvent<'focus'>) {
+    private onFocus(event: KeyNavEvent<'browserfocus'>) {
         const { delta, interactionEvent } = event;
         const newIndex =
             delta > 0
