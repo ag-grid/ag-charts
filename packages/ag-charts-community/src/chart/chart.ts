@@ -14,6 +14,7 @@ import { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import styles from '../styles/styles';
+import { setAriaLabel } from '../util/ariaUtil';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { Debug } from '../util/debug';
@@ -386,6 +387,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this.ctx;
     }
 
+    getAriaLabel(): string {
+        return [this.title.text, this.subtitle.text, this.footnote.text].filter((v) => v).join('. ');
+    }
+
     resetAnimations() {
         this.chartAnimationPhase = 'initial';
 
@@ -586,6 +591,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const { seriesRect } = this;
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
+                setAriaLabel(this.ctx.scene.canvas.container, this.getAriaLabel());
 
                 updateSplits('🤔');
             // fallthrough

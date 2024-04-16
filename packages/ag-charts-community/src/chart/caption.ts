@@ -19,8 +19,6 @@ import {
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
-import type { KeyNavEvent } from './interaction/keyNavManager';
-import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
@@ -99,12 +97,6 @@ export class Caption extends BaseProperties implements CaptionLike {
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
         ];
-        if (regionName !== 'root') {
-            destroyFns.push(
-                region.addListener('tab', (event) => this.handleFocus(moduleCtx, event)),
-                region.addListener('blur', (event) => this.handleBlur(moduleCtx, event))
-            );
-        }
 
         return joinFunctions(...destroyFns);
     }
@@ -144,16 +136,6 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     handleMouseLeave(moduleCtx: ModuleContext, _event: PointerInteractionEvent<'leave'>) {
-        moduleCtx.tooltipManager.removeTooltip(this.id);
-    }
-
-    handleFocus(moduleCtx: ModuleContext, _event: KeyNavEvent<'tab'>) {
-        this.updateTooltip(moduleCtx, makeKeyboardPointerEvent(moduleCtx.regionManager, this.node));
-        moduleCtx.ariaAnnouncementService.announceValue(this.text ?? '');
-    }
-
-    handleBlur(moduleCtx: ModuleContext, _event: KeyNavEvent<'blur'>) {
-        moduleCtx.regionManager.updateFocusIndicatorRect(undefined);
         moduleCtx.tooltipManager.removeTooltip(this.id);
     }
 }
