@@ -7,7 +7,7 @@ import type {
     KeyInteractionEvent,
 } from './interactionManager';
 
-export type KeyNavEventType = 'blur' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
+export type KeyNavEventType = 'blur' | 'focus' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
@@ -15,13 +15,36 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = Consumabl
     interactionEvent: InteractionEvent;
 };
 
+function getTabIndex(obj: { tabIndex?: unknown } | undefined | null): number | undefined {
+    if (obj?.tabIndex != null && typeof obj.tabIndex === 'number') {
+        return obj.tabIndex;
+    }
+    return undefined;
+}
+
+function guessDirection(
+    container: HTMLElement | undefined,
+    relatedTarget: (EventTarget & { tabIndex?: unknown }) | null
+): -1 | 1 {
+    // Try to guess whether this 'focus' event comes from a TAB or Shift+TAB:
+    const currIndex = getTabIndex(container);
+    const prevIndex = getTabIndex(relatedTarget);
+    if (currIndex !== undefined && prevIndex !== undefined) {
+        return currIndex < prevIndex ? -1 : 1;
+    }
+    return 1;
+}
+
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isFocused: boolean = false;
 
-    constructor(interactionManager: InteractionManager) {
+    constructor(
+        interactionManager: InteractionManager,
+        private readonly container: HTMLElement | undefined
+    ) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('blur', (e) => this.onBlur(e)),
@@ -40,8 +63,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
+        const delta = guessDirection(this.container, event.sourceEvent.relatedTarget);
         this.isFocused = true;
-        this.dispatch('tab', 0, event);
+        this.dispatch('focus', delta, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
@@ -68,7 +92,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
     }
 
-    private dispatch(type: KeyNavEventType, delta: number, interactionEvent: KeyNavEvent['interactionEvent']) {
+    private dispatch(type: KeyNavEventType, delta: number, interactionEvent: InteractionEvent) {
         const event = buildConsumable({ type, delta, interactionEvent });
         dispatchTypedConsumable(this.listeners, type, event);
     }
