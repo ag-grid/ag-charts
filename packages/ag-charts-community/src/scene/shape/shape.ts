@@ -6,11 +6,13 @@ import { Node, RedrawType, SceneChangeDetection } from '../node';
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
-type CanvasContext = CanvasFillStrokeStyles &
+export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
     CanvasShadowStyles &
     CanvasPathDrawingStyles &
-    CanvasDrawPath;
+    CanvasDrawPath &
+    CanvasTransform &
+    CanvasState;
 
 const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((.*?)deg,\s*(.*?)\s*\)$/i;
 
@@ -147,10 +149,14 @@ export abstract class Shape extends Node {
             this.applyFill(ctx);
             this.applyFillAlpha(ctx);
             this.applyShadow(ctx);
-            path ? ctx.fill(path) : ctx.fill();
+            this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
         }
         ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+    }
+
+    protected executeFill(ctx: CanvasContext, path?: Path2D) {
+        path ? ctx.fill(path) : ctx.fill();
     }
 
     protected applyFill(ctx: CanvasContext) {
@@ -195,9 +201,13 @@ export abstract class Shape extends Node {
                 ctx.lineJoin = this.lineJoin;
             }
 
-            path ? ctx.stroke(path) : ctx.stroke();
+            this.executeStroke(ctx, path);
             ctx.globalAlpha = globalAlpha;
         }
+    }
+
+    protected executeStroke(ctx: CanvasContext, path?: Path2D) {
+        path ? ctx.stroke(path) : ctx.stroke();
     }
 
     override containsPoint(x: number, y: number): boolean {
