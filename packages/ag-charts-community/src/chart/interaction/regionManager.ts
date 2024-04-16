@@ -47,7 +47,7 @@ export interface RegionProperties {
 
 export class RegionManager {
     private currentTabIndex = 0;
-    private readonly keyNavManager: KeyNavManager;
+    public readonly keyNavManager: KeyNavManager;
     private readonly focusIndicator?: HTMLDivElement;
 
     private currentRegion?: Region;
