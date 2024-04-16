@@ -7,6 +7,7 @@ import type {
     KeyInteractionEvent,
     PointerInteractionEvent,
 } from './interactionManager';
+import { InteractionState } from './interactionManager';
 
 export type KeyNavEventType = 'blur' | 'focus' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
 
@@ -50,15 +51,15 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     ) {
         super();
         this.destroyFns.push(
-            interactionManager.addListener('drag-start', (e) => this.onClickStart(e)),
-            interactionManager.addListener('click', (e) => this.onClickStop(e)),
-            interactionManager.addListener('drag-end', (e) => this.onClickStop(e)),
+            interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
+            interactionManager.addListener('click', (e) => this.onClickStop(e), InteractionState.All),
+            interactionManager.addListener('drag-end', (e) => this.onClickStop(e), InteractionState.All),
             interactionManager.addListener('wheel', (e) => this.mouseBlur(e)),
             interactionManager.addListener('hover', (e) => this.mouseBlur(e)),
 
-            interactionManager.addListener('blur', (e) => this.onBlur(e)),
-            interactionManager.addListener('focus', (e) => this.onFocus(e)),
-            interactionManager.addListener('keydown', (e) => this.onKeyDown(e))
+            interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
+            interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
+            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
     }
 
