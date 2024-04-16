@@ -154,7 +154,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
     ];
 
-    private stateQueue: InteractionState = InteractionState.Default;
+    private stateQueue: InteractionState = InteractionState.Default | InteractionState.Animation;
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
@@ -303,10 +303,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return [event.type];
 
             case 'mousedown':
+                if (!this.isEventOverElement(event)) {
+                    return [];
+                }
                 this.mouseDown = true;
                 this.recordDown(event);
                 return [dragStart];
             case 'touchstart':
+                if (!this.isEventOverElement(event)) {
+                    return [];
+                }
                 this.touchDown = true;
                 this.recordDown(event);
                 return [dragStart];

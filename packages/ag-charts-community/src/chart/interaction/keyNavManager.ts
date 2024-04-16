@@ -5,9 +5,11 @@ import type {
     InteractionEvent,
     InteractionManager,
     KeyInteractionEvent,
+    PointerInteractionEvent,
 } from './interactionManager';
+import { InteractionState } from './interactionManager';
 
-export type KeyNavEventType = 'blur' | 'focus' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
+export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
@@ -39,7 +41,9 @@ function guessDirection(
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
-    private isFocused: boolean = false;
+    private hasBrowserFocus: boolean = false;
+    private isMouseBlurred: boolean = false;
+    private isClicking: boolean = false;
 
     constructor(
         interactionManager: InteractionManager,
@@ -47,9 +51,15 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     ) {
         super();
         this.destroyFns.push(
-            interactionManager.addListener('blur', (e) => this.onBlur(e)),
-            interactionManager.addListener('focus', (e) => this.onFocus(e)),
-            interactionManager.addListener('keydown', (e) => this.onKeyDown(e))
+            interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
+            interactionManager.addListener('click', (e) => this.onClickStop(e), InteractionState.All),
+            interactionManager.addListener('drag-end', (e) => this.onClickStop(e), InteractionState.All),
+            interactionManager.addListener('wheel', (e) => this.mouseBlur(e)),
+            interactionManager.addListener('hover', (e) => this.mouseBlur(e)),
+
+            interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
+            interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
+            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
     }
 
@@ -57,19 +67,48 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         super.destroy();
     }
 
+    private onClickStart(_event: PointerInteractionEvent<'drag-start'>) {
+        this.isClicking = true;
+    }
+
+    private onClickStop(_event: PointerInteractionEvent<'drag-end' | 'click'>) {
+        this.isClicking = false;
+    }
+
+    private mouseBlur(event: PointerInteractionEvent<'wheel' | 'hover'>) {
+        if (!this.isMouseBlurred && this.hasBrowserFocus) {
+            this.dispatch('blur', 0, event);
+        }
+        this.isMouseBlurred = true;
+    }
+
     private onBlur(event: FocusInteractionEvent<'blur'>) {
-        this.isFocused = false;
+        this.hasBrowserFocus = false;
+        this.isMouseBlurred = false;
         this.dispatch('blur', 0, event);
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
-        const delta = guessDirection(this.container, event.sourceEvent.relatedTarget);
-        this.isFocused = true;
-        this.dispatch('focus', delta, event);
+        this.hasBrowserFocus = true;
+        if (this.isClicking) {
+            this.isMouseBlurred = true;
+        } else {
+            const delta = guessDirection(this.container, event.sourceEvent.relatedTarget);
+            this.dispatch('browserfocus', delta, event);
+            this.dispatch('tab', 0, event);
+        }
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
-        if (!this.isFocused) return;
+        if (!this.hasBrowserFocus) return;
+
+        if (this.isMouseBlurred) {
+            if (!this.isClicking) {
+                this.dispatch('tab', 0, event);
+                this.isMouseBlurred = false;
+            }
+            return;
+        }
 
         switch (event.sourceEvent.code) {
             case 'Tab':
