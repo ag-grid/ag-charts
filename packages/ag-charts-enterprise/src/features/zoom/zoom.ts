@@ -1,4 +1,4 @@
-import type { AgToolbarRangesButtonValue, AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
@@ -34,6 +34,7 @@ const {
     ActionOnSet,
     ChartAxisDirection,
     ChartUpdateType,
+    ToolbarManager,
     Validate,
     ProxyProperty,
     round: sharedRound,
@@ -470,15 +471,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        if (event.group !== 'ranges') return;
-
-        const time = event.value as AgToolbarRangesButtonValue;
-        if (typeof time === 'number') {
-            this.rangeX.extendToEnd(time);
-        } else if (Array.isArray(time)) {
-            this.rangeX.updateWith(() => time);
-        } else if (typeof time === 'function') {
-            this.rangeX.updateWith(time);
+        if (ToolbarManager.isGroup('ranges', event)) {
+            const time = event.value;
+            if (typeof time === 'number') {
+                this.rangeX.extendToEnd(time);
+            } else if (Array.isArray(time)) {
+                this.rangeX.updateWith(() => time);
+            } else if (typeof time === 'function') {
+                this.rangeX.updateWith(time);
+            }
         }
     }
 

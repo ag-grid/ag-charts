@@ -1,3 +1,4 @@
+import type { AgToolbarOptions } from '../../options/chart/toolbarOptions';
 import { BaseManager } from './baseManager';
 
 export type ToolbarGroup = 'annotations' | 'ranges';
@@ -17,12 +18,19 @@ export interface ToolbarGroupToggledEvent extends Event<ToolbarGroupToggled> {
     visible: boolean;
 }
 
-export interface ToolbarButtonPressedEvent extends Event<ToolbarButtonPressed> {
+export interface ToolbarButtonPressedEvent<T = any> extends Event<ToolbarButtonPressed> {
     group: ToolbarGroup;
-    value: any;
+    value: T;
 }
 
 export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
+    static isGroup<T extends ToolbarGroup>(
+        group: T,
+        event: ToolbarEvent
+    ): event is ToolbarButtonPressedEvent<NonNullable<NonNullable<AgToolbarOptions[T]>['buttons']>[number]['value']> {
+        return event.group === group;
+    }
+
     constructor(readonly element: HTMLElement) {
         super();
     }

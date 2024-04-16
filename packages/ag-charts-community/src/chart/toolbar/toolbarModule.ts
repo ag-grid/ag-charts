@@ -9,6 +9,7 @@ const YEAR = DAY * 365;
 const annotations: AgToolbarOptions['annotations'] = {
     enabled: false,
     position: 'left',
+    align: 'start',
     buttons: [
         { label: 'Li', value: 'line' },
         { label: 'PCh', value: 'parallel-channel' },
@@ -18,6 +19,7 @@ const annotations: AgToolbarOptions['annotations'] = {
 const ranges: AgToolbarOptions['ranges'] = {
     enabled: false,
     position: 'top',
+    align: 'start',
     buttons: [
         { label: '1m', value: MONTH },
         { label: '3m', value: 3 * MONTH },

@@ -7,7 +7,7 @@ import { BOOLEAN, Validate } from '../../util/validation';
 import type { ToolbarGroup } from '../interaction/toolbarManager';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
-import { TOOLBAR_POSITIONS, type ToolbarPosition } from './toolbarTypes';
+import { TOOLBAR_ALIGNMENTS, TOOLBAR_POSITIONS, ToolbarButton, type ToolbarPosition } from './toolbarTypes';
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
@@ -25,8 +25,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private margin = 10;
     private readonly container: HTMLElement;
     private elements: {
-        fixed: Record<ToolbarPosition, HTMLDivElement>;
-        floating?: Record<'top' | 'bottom', HTMLDivElement>;
+        fixed: Record<ToolbarPosition, HTMLElement>;
+        floating?: Record<'top' | 'bottom', HTMLElement>;
     };
 
     private positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
@@ -68,13 +68,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         );
     }
 
-    private onGroupButtonsChanged(group: ToolbarGroup, buttons: ToolbarGroupProperties['buttons']) {
+    private onGroupButtonsChanged(group: ToolbarGroup, buttons?: Array<ToolbarButton>) {
+        const align = this[group].align ?? 'start';
         const position = this[group].position ?? 'top';
         const toolbar = this.elements.fixed[position as ToolbarPosition];
 
         for (const options of buttons ?? []) {
             const button = this.createButtonElement(group, options);
-            toolbar.appendChild(button);
+            const parent = toolbar.getElementsByClassName(styles.elements[align]).item(0);
+            parent?.appendChild(button);
         }
     }
 
@@ -94,7 +96,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const buttons = this.elements.fixed[this[group].position].children;
         for (let i = 0; i < buttons.length; i++) {
             const child = buttons[i];
-            if (!(child instanceof HTMLDivElement)) continue;
+            if (!(child instanceof HTMLElement)) continue;
             if (child.dataset.toolbarGroup === group) {
                 child.classList.toggle(styles.modifiers.button.hidden, !enabled);
             }
@@ -160,14 +162,31 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private renderToolbar(position: ToolbarPosition = 'top') {
         const element = this.elements.fixed[position];
         element.classList.add(styles.block, styles.modifiers[position]);
+
+        for (const align of TOOLBAR_ALIGNMENTS) {
+            const alignmentElement = createElement('div');
+            alignmentElement.classList.add(styles.elements[align]);
+            element.appendChild(alignmentElement);
+        }
     }
 
-    private createButtonElement(group: ToolbarGroup, options: { label: string; value: any }) {
+    private createButtonElement(group: ToolbarGroup, options: ToolbarButton) {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.classList.toggle(styles.modifiers.button.hidden, !this[group].enabled);
         button.dataset.toolbarGroup = group;
-        button.innerHTML = options.label;
+
+        let inner = '';
+
+        if (options.icon != null) {
+            inner = `<span class="${styles.elements.icon}">${options.icon}</span>`;
+        }
+
+        if (options.label != null) {
+            inner = `${inner}<span class="${styles.elements.label}">${options.label}</span>`;
+        }
+
+        button.innerHTML = inner;
         button.onclick = this.onButtonPress.bind(this, group, options.value);
 
         this.destroyFns.push(() => button.remove());

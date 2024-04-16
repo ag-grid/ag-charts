@@ -1,6 +1,11 @@
 export const block = 'ag-charts-toolbar';
 export const elements = {
     button: `${block}__button`,
+    start: `${block}__start`,
+    center: `${block}__center`,
+    end: `${block}__end`,
+    icon: `${block}__icon`,
+    label: `${block}__label`,
 };
 export const modifiers = {
     top: `${block}--top`,
@@ -21,7 +26,7 @@ export const css = `
     border-right: var(--ag-charts-borders);
     border-color: var(--ag-charts-border-color);
     display: flex;
-    overflow: hidden;
+    flex-wrap: wrap;
     position: absolute;
     visibility: hidden;
 }
@@ -38,6 +43,26 @@ export const css = `
     width: var(--ag-charts-header-height);
 }
 
+.${elements.start}, .${elements.center}, .${elements.end} {
+    display: flex;
+    flex-direction: inherit;
+    flex-wrap: inherit;
+}
+
+.${modifiers.top} .${elements.center},
+.${modifiers.top} .${elements.end},
+.${modifiers.bottom} .${elements.center},
+.${modifiers.bottom} .${elements.end} {
+    margin-left: auto;
+}
+
+.${modifiers.left} .${elements.center},
+.${modifiers.left} .${elements.end},
+.${modifiers.right} .${elements.center},
+.${modifiers.right} .${elements.end} {
+    margin-top: auto;
+}
+
 .${elements.button} {
     align-items: center;
     color: var(--ag-charts-header-foreground-color);
@@ -45,11 +70,18 @@ export const css = `
     font-weight: 500;
     height: 100%;
     justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.${modifiers.top} .${elements.button},
+.${modifiers.bottom} .${elements.button} {
     min-width: var(--ag-charts-header-height);
     padding: 0 var(--ag-charts-horizontal-padding);
 }
 
-.${modifiers.left} .${elements.button}, .${modifiers.right} .${elements.button} {
+.${modifiers.left} .${elements.button},
+.${modifiers.right} .${elements.button} {
     height: 48px;
 }
 
@@ -60,4 +92,17 @@ export const css = `
 .${elements.button}:hover {
     background: var(--ag-charts-hover-color);
 }
+
+.${elements.button} svg {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    fill: none;
+    stroke: var(--ag-charts-header-foreground-color);
+}
+
+.${elements.icon} + .${elements.label} {
+    margin-left: var(--ag-charts-size);
+}
+
 `;
