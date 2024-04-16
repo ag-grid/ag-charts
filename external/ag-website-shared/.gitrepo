@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:ag-grid/ag-website-shared.git
 	branch = latest
-	commit = 345d88c5a2fd404aa33e9baa201a5fde2b94f757
+	commit = 3e6a442bac3e96039a7de900ebbbbd51c02ac4b5
 	parent = 3a3b896f397b11ad9d0201a50bfa4f8bab1d671e
 	method = rebase
 	cmdver = 0.4.6
