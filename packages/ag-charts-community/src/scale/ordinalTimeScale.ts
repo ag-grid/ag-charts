@@ -50,16 +50,23 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const { index } = this;
 
         const isReversed = values[0] > values[n - 1];
-
         values.forEach((value, i) => {
-            const nextValue = this.toDomain(
-                dateToNumber(values[i + 1]) + (isReversed ? 1 : -1) || dateToNumber(value) + (isReversed ? -1 : 1)
-            );
+            if (i === 0) {
+                const e1 = value;
+                const e0 = this.toDomain(dateToNumber(e1) + (isReversed ? 1 : -1));
+                const dateRange = isReversed ? [e1, e0] : [e0, e1];
+                index.set(dateRange, i);
+            }
 
-            const dateRange = isReversed ? [nextValue, value] : [value, nextValue];
+            const e0 = this.toDomain(dateToNumber(value) + (isReversed ? -1 : 1));
+            const e1 = values[i + 1];
 
-            if (index.get(dateRange) === undefined) {
-                index.set(dateRange, domain.push(value) - 1);
+            const dateRange = isReversed ? [e1, e0] : [e0, e1];
+
+            domain.push(value);
+
+            if (e1 !== undefined && index.get(dateRange) === undefined) {
+                index.set(dateRange, i + 1);
             }
         });
 
@@ -86,31 +93,78 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         }
 
         const [t0, t1] = [dateToNumber(this.domain[0]), dateToNumber(this.domain.at(-1))];
-
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
 
         let ticks;
         if (interval !== undefined) {
-            const [r0, r1] = this.range;
-            const availableRange = Math.abs(r1 - r0);
-            ticks = TimeScale.getTicksForInterval({ start, stop, interval, availableRange });
+            ticks = this.getTicksForInterval({ start, stop, interval });
         }
 
-        ticks ??= TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+        ticks ??= this.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
 
         // max one tick per band
         const tickPositions = new Set<number>();
-        ticks = ticks.filter((tick) => {
+        return ticks.filter((tick) => {
             const position = this.convert(tick);
-            if (tickPositions.has(position)) {
+            if (isNaN(position) || tickPositions.has(position)) {
                 return false;
             }
             tickPositions.add(position);
             return true;
         });
+    }
+
+    private getDefaultTicks({
+        start,
+        stop,
+        tickCount,
+        minTickCount,
+        maxTickCount,
+    }: {
+        start: number;
+        stop: number;
+        tickCount: number;
+        minTickCount: number;
+        maxTickCount: number;
+    }) {
+        const tickInterval = TimeScale.getTickInterval({
+            start,
+            stop,
+            count: tickCount,
+            minCount: minTickCount,
+            maxCount: maxTickCount,
+        });
+
+        if (!tickInterval) {
+            return [];
+        }
+
+        const tickEvery = Math.ceil(this.domain.length / maxTickCount);
+        const ticks: Date[] = [];
+        for (const [dateRange, index] of this.index.entries()) {
+            if (index % tickEvery > 0) {
+                continue;
+            }
+            const e0 = dateToNumber(dateRange[0]);
+            ticks.push(tickInterval.ceil(e0));
+        }
 
         return ticks;
+    }
+
+    private getTicksForInterval({
+        start,
+        stop,
+        interval,
+    }: {
+        start: number;
+        stop: number;
+        interval: number | TimeInterval;
+    }) {
+        const [r0, r1] = this.range;
+        const availableRange = Math.abs(r1 - r0);
+        return TimeScale.getTicksForInterval({ start, stop, interval, availableRange }) ?? [];
     }
 
     override convert(d: Date): number {
