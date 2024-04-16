@@ -210,7 +210,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         let inner = '';
 
         if (options.icon != null) {
-            inner = `<span class="${styles.elements.icon}">${options.icon}</span>`;
+            inner = `<span class="ag-charts-icon ag-charts-icon-${options.icon} ${styles.elements.icon}"></span>`;
         }
 
         if (options.label != null) {

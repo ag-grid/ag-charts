@@ -21,7 +21,7 @@ export const modifiers = {
 
 export const css = `
 .${block} {
-    background: var(--ag-charts-header-background-color);
+    background: var(--ag-charts-toolbar-background-color);
     border-bottom: var(--ag-charts-borders-critical);
     border-top: var(--ag-charts-borders-critical);
     border-left: var(--ag-charts-borders);
@@ -39,14 +39,14 @@ export const css = `
 
 .${modifiers.top}, .${modifiers.bottom} {
     flex-direction: row;
-    height: var(--ag-charts-header-height);
-    padding: 0 var(--ag-charts-horizontal-padding);
+    height: var(--ag-charts-toolbar-height);
+    padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers.left}, .${modifiers.right} {
     flex-direction: column;
-    padding: var(--ag-charts-horizontal-padding) 0;
-    width: var(--ag-charts-header-height);
+    padding: var(--ag-charts-toolbar-padding) 0;
+    width: var(--ag-charts-toolbar-height);
 }
 
 .${elements.start}, .${elements.center}, .${elements.end} {
@@ -71,7 +71,7 @@ export const css = `
 
 .${elements.button} {
     align-items: center;
-    color: var(--ag-charts-header-foreground-color);
+    color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
     font-weight: 500;
     height: 100%;
@@ -82,7 +82,7 @@ export const css = `
 
 .${modifiers.top} .${elements.button},
 .${modifiers.bottom} .${elements.button} {
-    min-width: var(--ag-charts-header-height);
+    min-width: var(--ag-charts-toolbar-height);
     padding: 0 var(--ag-charts-horizontal-padding);
 }
 
@@ -99,13 +99,6 @@ export const css = `
     background: var(--ag-charts-hover-color);
 }
 
-.${elements.button} svg {
-    display: inline-block;
-    width: 1.5em;
-    height: 1.5em;
-    fill: none;
-    stroke: var(--ag-charts-header-foreground-color);
-}
 
 .${elements.icon} + .${elements.label} {
     margin-left: var(--ag-charts-size);
