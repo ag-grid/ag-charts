@@ -1,4 +1,4 @@
-import { setAriaLabel, setAriaLive, setAriaRole } from '../../util/ariaUtil';
+import { setAttribute } from '../../util/attributeUtil';
 import { getDocument } from '../../util/dom';
 
 export class AriaAnnouncementService {
@@ -7,8 +7,8 @@ export class AriaAnnouncementService {
     private static createAnnouncer(): HTMLElement {
         const e = getDocument().createElement('div');
         e.classList.add('ag-charts-aria-announcer');
-        setAriaRole(e, 'status');
-        setAriaLive(e, 'polite');
+        setAttribute(e, 'role', 'status');
+        setAttribute(e, 'aria-live', 'polite');
         return e;
     }
 
@@ -21,7 +21,7 @@ export class AriaAnnouncementService {
     }
 
     public announceValue(value: string): void {
-        setAriaLabel(this.liveElem, value);
+        setAttribute(this.liveElem, 'aria-label', value);
     }
 
     public announceHtml(html: string): void {
