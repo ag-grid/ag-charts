@@ -1135,6 +1135,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.lastInteractionEvent = keyboardEvent;
             const html = focusedSeries.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
+            this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
             this.ctx.ariaAnnouncementService.announceHtml(html);
         }
