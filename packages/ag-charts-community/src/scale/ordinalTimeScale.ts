@@ -146,8 +146,8 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
             if (index % tickEvery > 0) {
                 continue;
             }
-            const e0 = dateToNumber(dateRange[0]);
-            ticks.push(tickInterval.ceil(e0));
+            const e1 = dateToNumber(dateRange[1]);
+            ticks.push(tickInterval.floor(e1));
         }
 
         return ticks;
