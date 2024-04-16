@@ -193,6 +193,4 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
      * __Important:__ Make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default).
      */
     container?: HTMLElement | null;
-    /** HTML tabIndex to apply to chart canvas to allow keyboard navigation. Defaults to 0. */
-    tabIndex?: number;
 }

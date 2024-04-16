@@ -33,7 +33,7 @@ import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
-import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -192,9 +192,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     })
     @Validate(BOOLEAN)
     autoSize;
-
-    @Validate(NUMBER)
-    tabIndex?: number;
 
     /** NOTE: This is exposed for use by Integrated charts only. */
     get canvasElement() {
@@ -680,7 +677,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private updateTabIndex() {
-        this.ctx.scene.canvas.element.tabIndex = this.keyboard.enabled ? this.tabIndex ?? 0 : -1;
+        const { enabled, tabIndex } = this.keyboard;
+        this.ctx.scene.canvas.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
