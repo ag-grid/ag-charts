@@ -11,7 +11,6 @@ export const RANGE_BAR_SERIES_THEME = {
             fontFamily: _Theme.DEFAULT_FONT_FAMILY,
             color: _Theme.DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             placement: 'inside' as const,
-            __overrides__: _Theme.OVERRIDE_SERIES_LABEL_DEFAULTS,
         },
     },
     axes: {

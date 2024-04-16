@@ -30,11 +30,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
-            tooltip: {
-                position: {
-                    type: 'node',
-                },
-            },
+            tooltip: { position: { type: 'node' } },
             strokeWidth: 2,
             strokeOpacity: 1,
             lineDash: [0],
@@ -47,12 +43,9 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             },
             label: {
                 enabled: false,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
-                formatter: undefined,
             },
         },
     },
@@ -67,9 +60,6 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     },
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);
-        return {
-            stroke: marker.fill,
-            marker,
-        };
+        return { stroke: marker.fill, marker };
     },
 };

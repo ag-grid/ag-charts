@@ -212,15 +212,12 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -228,9 +225,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -266,15 +260,12 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -282,9 +273,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -320,15 +308,12 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -336,9 +321,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -714,15 +696,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -730,9 +709,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -771,15 +748,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -787,9 +761,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -825,15 +797,12 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -841,9 +810,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1173,16 +1139,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1190,9 +1153,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1228,16 +1188,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1245,9 +1202,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1283,16 +1237,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1300,9 +1251,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1338,16 +1286,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1355,9 +1300,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1393,16 +1335,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1410,9 +1349,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1448,16 +1384,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1465,9 +1398,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1503,16 +1433,13 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1520,9 +1447,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -1861,15 +1785,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1877,9 +1798,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -1919,15 +1838,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1935,9 +1851,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -1977,15 +1891,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -1993,9 +1904,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -2035,15 +1944,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2051,9 +1957,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -2093,15 +1997,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2109,9 +2010,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -2151,15 +2050,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2167,9 +2063,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -2209,15 +2103,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2225,9 +2116,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -2267,15 +2156,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2283,9 +2169,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -2596,15 +2480,12 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2612,8 +2493,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
       },
       "marker": {
         "enabled": true,
@@ -2915,15 +2794,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2931,9 +2807,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -2969,15 +2842,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -2985,9 +2855,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -3023,15 +2890,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3039,9 +2903,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -3077,15 +2938,12 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3093,9 +2951,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -3426,16 +3281,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3443,9 +3295,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -3490,16 +3339,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3507,9 +3353,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -3554,16 +3397,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3571,9 +3411,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -3618,16 +3455,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3635,9 +3469,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -3682,16 +3513,13 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fillOpacity": 0.6,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -3699,9 +3527,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -4041,15 +3866,12 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -4057,9 +3879,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -4371,14 +4191,11 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "highlightStyle": {
         "item": {
           "fill": "#0ab9ff",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -4386,7 +4203,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "bold",
         "formatter": [Function],
         "placement": "inside",
@@ -4692,15 +4508,12 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -4708,8 +4521,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
       },
       "marker": {
         "enabled": true,
@@ -5009,15 +4820,12 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5025,8 +4833,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
       },
       "labelKey": "city",
       "labelName": "City",
@@ -5328,15 +5134,12 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5344,9 +5147,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -5385,15 +5186,12 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5401,9 +5199,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -5728,16 +5524,13 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5745,9 +5538,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -5786,16 +5577,13 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -5803,9 +5591,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6133,16 +5919,13 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6150,9 +5933,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6190,16 +5971,13 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6207,9 +5985,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6247,16 +6023,13 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6264,9 +6037,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6304,16 +6075,13 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6321,9 +6089,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6361,16 +6127,13 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6378,9 +6141,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6418,16 +6179,13 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6435,9 +6193,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6475,16 +6231,13 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6492,9 +6245,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -6814,16 +6565,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6831,9 +6579,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -6869,16 +6614,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6886,9 +6628,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -6924,16 +6663,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6941,9 +6677,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -6979,16 +6712,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -6996,9 +6726,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7034,16 +6761,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7051,9 +6775,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7089,16 +6810,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7106,9 +6824,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7144,16 +6859,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7161,9 +6873,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7199,16 +6908,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7216,9 +6922,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7254,16 +6957,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7271,9 +6971,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7309,16 +7006,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7326,9 +7020,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7364,16 +7055,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7381,9 +7069,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7419,16 +7104,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7436,9 +7118,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7474,16 +7153,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7491,9 +7167,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7529,16 +7202,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7546,9 +7216,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7584,16 +7251,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7601,9 +7265,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -7639,16 +7300,13 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -7656,9 +7314,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8011,15 +7666,12 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8027,9 +7679,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8330,16 +7979,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8347,9 +7993,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8401,16 +8044,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8418,9 +8058,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8472,16 +8109,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8489,9 +8123,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8543,16 +8174,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8560,9 +8188,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8614,16 +8239,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8631,9 +8253,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8685,16 +8304,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8702,9 +8318,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -8756,16 +8369,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -8773,9 +8383,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -9107,16 +8714,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9124,9 +8728,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9166,16 +8768,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9183,9 +8782,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9225,16 +8822,13 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9242,9 +8836,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9575,15 +9167,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9591,9 +9180,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9633,15 +9220,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9649,9 +9233,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9691,15 +9273,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9707,9 +9286,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9749,15 +9326,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9765,9 +9339,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9807,15 +9379,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9823,9 +9392,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -9865,15 +9432,12 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -9881,9 +9445,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -10221,15 +9783,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10237,9 +9796,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -10285,15 +9841,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10301,9 +9854,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -10349,15 +9899,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10365,9 +9912,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -10413,15 +9957,12 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10429,9 +9970,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -10754,15 +10292,12 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -10770,7 +10305,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
         "formatter": [Function],
         "placement": "inside",
@@ -11000,16 +10534,13 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
       ],
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
+          "fill": "#ffffff54",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "innerLabels": [
@@ -11301,16 +10832,13 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11318,9 +10846,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -11356,16 +10881,13 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11373,9 +10895,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -11617,16 +11136,13 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       ],
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
+          "fill": "#ffffff54",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "lineDash": [
@@ -11889,15 +11405,12 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -11905,8 +11418,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
       },
       "marker": {
         "enabled": true,
@@ -12205,15 +11716,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12221,9 +11729,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -12275,15 +11780,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12291,9 +11793,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -12345,15 +11844,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12361,9 +11857,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -12415,15 +11908,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12431,9 +11921,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -12485,15 +11972,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12501,9 +11985,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -12555,15 +12036,12 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.2,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12571,9 +12049,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
-        "fontWeight": undefined,
-        "formatter": undefined,
       },
       "lineDash": [
         0,
@@ -12927,16 +12402,13 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -12944,9 +12416,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -12985,16 +12455,13 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13002,9 +12469,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -13043,16 +12508,13 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13060,9 +12522,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -13101,16 +12561,13 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13118,9 +12575,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -13437,16 +12892,13 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13454,9 +12906,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -13496,16 +12946,13 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13513,9 +12960,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -13555,16 +13000,13 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13572,9 +13014,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -13614,16 +13054,13 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13631,9 +13068,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [
@@ -13673,16 +13108,13 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "rgba(255,255,255, 0.33)",
-          "stroke": "rgba(0, 0, 0, 0.4)",
+          "fill": "#ffffff54",
+          "stroke": "#0006",
           "strokeWidth": 2,
         },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
-        },
-        "text": {
-          "color": "black",
         },
       },
       "label": {
@@ -13690,9 +13122,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-        "fontStyle": undefined,
         "fontWeight": "normal",
-        "formatter": undefined,
         "placement": "inside",
       },
       "lineDash": [

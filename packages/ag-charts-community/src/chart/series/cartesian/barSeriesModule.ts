@@ -40,12 +40,10 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             lineDashOffset: 0,
             label: {
                 enabled: false,
-                fontStyle: undefined,
                 fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-                formatter: undefined,
                 placement: 'inside',
             },
             shadow: {

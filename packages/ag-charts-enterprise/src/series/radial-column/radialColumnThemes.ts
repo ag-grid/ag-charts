@@ -11,7 +11,6 @@ export const RADIAL_COLUMN_SERIES_THEME = {
             fontSize: 12,
             fontFamily: _Theme.DEFAULT_FONT_FAMILY,
             color: _Theme.DEFAULT_LABEL_COLOUR,
-            __overrides__: _Theme.OVERRIDE_SERIES_LABEL_DEFAULTS,
         },
     },
     axes: {

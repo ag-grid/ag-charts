@@ -36,12 +36,9 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             lineDashOffset: 0,
             label: {
                 enabled: false,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-                formatter: undefined,
             },
             shadow: {
                 enabled: false,
