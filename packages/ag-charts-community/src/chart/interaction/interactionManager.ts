@@ -154,7 +154,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
     ];
 
-    private stateQueue: InteractionState = InteractionState.Default;
+    private stateQueue: InteractionState = InteractionState.Default | InteractionState.Animation;
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
