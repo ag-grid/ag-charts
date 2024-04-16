@@ -1,15 +1,16 @@
 ---
 import { getEntry } from 'astro:content';
 import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
-import SiteHeader from '@components/site-header/SiteHeader.astro';
+import SiteHeader from '@ag-website-shared/components/site-header/SiteHeader.astro';
 import '@design-system/design-system.scss';
 import { Footer } from '@components/footer/Footer';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { ApiTopBar } from '@components/top-bar/ApiTopBar';
 import { getIsProduction, getIsStaging } from '@utils/env';
-import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch } from '@utils/framework';
+import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch, replaceDynamicFrameworkPath } from '@utils/framework';
 import Plausible from '../components/Plausible.astro';
+import { FRAMEWORKS } from '@constants';
 
 export interface Props {
     title?: string;
@@ -39,6 +40,21 @@ const isProduction = getIsProduction();
 const isStaging = getIsStaging();
 const menuData = await getEntry('menu', 'data');
 const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
+const apiPaths = menuData.data.api.items.flatMap(({ path }) => {
+    const pathWithBaseUrl = urlWithBaseUrl(path);
+
+    if (isDynamicFrameworkPath(pathWithBaseUrl)) {
+        return FRAMEWORKS.map((framework) => ({
+            title: 'API',
+            path: replaceDynamicFrameworkPath({ dynamicFrameworkPath: pathWithBaseUrl, framework }),
+        }));
+    }
+
+    return {
+        title: 'API',
+        path: urlWithBaseUrl(path),
+    };
+});
 const canonicalUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
 const socialImage = urlWithBaseUrl('/images/ag-charts-social.png');
 
@@ -58,6 +74,9 @@ const isApiLayout = apiMenuItems.some((item) => {
     }
     return currentPath.startsWith(itemPath);
 });
+
+const lightModeCSSUrl = `url("${urlWithBaseUrl('/images/sun.svg')}")`;
+const darkModeCSSUrl = `url("${urlWithBaseUrl('/images/moon.svg')}")`;
 ---
 
 <!doctype html>
@@ -113,6 +132,15 @@ const isApiLayout = apiMenuItems.some((item) => {
 
         {isStaging && <Plausible domain="charts-staging.ag-grid.com" />}
         
+        <style lang="scss" define:vars={{ lightModeCSSUrl, darkModeCSSUrl }}>
+            :root {
+                --dark-icon: var(--darkModeCSSUrl);
+            }
+
+            html[data-dark-mode='true'] {
+                --dark-icon: var(--lightModeCSSUrl);
+            }
+        </style>
     </head>
     <body>
         <script is:inline>
@@ -131,7 +159,7 @@ const isApiLayout = apiMenuItems.some((item) => {
             height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>}
 
         <div class="mainContainer">
-            {!hideHeader && <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav}/>}
+            {!hideHeader && <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav} apiPaths={apiPaths}/>}
             { isApiLayout && (
                 // Update page scroll offset when API top bar is sticky
                 <style>
