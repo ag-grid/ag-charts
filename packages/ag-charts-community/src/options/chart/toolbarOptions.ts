@@ -7,11 +7,14 @@ export interface AgToolbarOptions extends Toggleable {
 
 export interface AgToolbarGroup extends Toggleable {
     /** Alignment of the toolbar group. */
-    align?: 'start' | 'middle' | 'end';
+    align?: AgToolbarGroupAlignment;
     /** Position of the toolbar group on the outside of the chart. */
-    position?: 'top' | 'left' | 'right' | 'bottom';
+    position?: AgToolbarGroupPosition;
     buttons?: AgToolbarButton[];
 }
+
+export type AgToolbarGroupAlignment = 'start' | 'middle' | 'end';
+export type AgToolbarGroupPosition = 'top' | 'left' | 'right' | 'bottom';
 
 export interface AgToolbarButton {
     /** SVG icon to display on the button. */
@@ -30,8 +33,10 @@ export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
     // TODO: fix docs to use this type - AgAnnotation['type']
     /** An annotation type. */
-    value: 'line' | 'parallel-channel';
+    value: AgToolbarAnnotationsButtonValue;
 }
+
+export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

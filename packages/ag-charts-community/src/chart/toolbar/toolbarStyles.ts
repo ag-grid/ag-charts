@@ -12,6 +12,8 @@ export const modifiers = {
     right: `${block}--right`,
     bottom: `${block}--bottom`,
     left: `${block}--left`,
+    hidden: `${block}--hidden`,
+    preventFlash: `${block}--prevent-flash`,
     button: {
         hidden: `${elements.button}--hidden`,
     },
@@ -28,6 +30,10 @@ export const css = `
     display: flex;
     flex-wrap: wrap;
     position: absolute;
+}
+
+.${modifiers.hidden},
+.${modifiers.preventFlash} {
     visibility: hidden;
 }
 

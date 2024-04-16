@@ -3,31 +3,40 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import { createElement, injectStyle } from '../../util/dom';
+import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
-import type { ToolbarGroup } from '../interaction/toolbarManager';
+import type { ToolbarGroupToggledEvent } from '../interaction/toolbarManager';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
-import { TOOLBAR_ALIGNMENTS, TOOLBAR_POSITIONS, ToolbarButton, type ToolbarPosition } from './toolbarTypes';
+import {
+    TOOLBAR_ALIGNMENTS,
+    TOOLBAR_GROUPS,
+    TOOLBAR_POSITIONS,
+    type ToolbarButton,
+    type ToolbarGroup,
+    type ToolbarPosition,
+} from './toolbarTypes';
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
+    @ObserveChanges<Toolbar>((target) => {
+        target.toggleVisibilities();
+    })
     @Validate(BOOLEAN)
     public enabled = true;
 
     public annotations = new ToolbarGroupProperties(
-        this.toggleGroup.bind(this, 'annotations'),
+        this.onGroupChanged.bind(this, 'annotations'),
         this.onGroupButtonsChanged.bind(this, 'annotations')
     );
     public ranges = new ToolbarGroupProperties(
-        this.toggleGroup.bind(this, 'ranges'),
+        this.onGroupChanged.bind(this, 'ranges'),
         this.onGroupButtonsChanged.bind(this, 'ranges')
     );
 
     private margin = 10;
     private readonly container: HTMLElement;
-    private elements: {
-        fixed: Record<ToolbarPosition, HTMLElement>;
-        floating?: Record<'top' | 'bottom', HTMLElement>;
-    };
+
+    private fixed: Record<ToolbarPosition, HTMLElement>;
 
     private positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
         top: new Set(),
@@ -36,95 +45,105 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         left: new Set(),
     };
 
+    private groupCallers: Record<ToolbarGroup, number> = {
+        annotations: 0,
+        ranges: 0,
+    };
+
+    private groupButtons: Record<ToolbarGroup, Array<HTMLButtonElement>> = {
+        annotations: [],
+        ranges: [],
+    };
+
     constructor(private readonly ctx: ModuleContext) {
         super();
 
         this.container = ctx.toolbarManager.element;
-        this.elements = {
-            fixed: {
-                top: this.container.appendChild(createElement('div')),
-                right: this.container.appendChild(createElement('div')),
-                bottom: this.container.appendChild(createElement('div')),
-                left: this.container.appendChild(createElement('div')),
-            },
+        this.fixed = {
+            top: this.container.appendChild(createElement('div')),
+            right: this.container.appendChild(createElement('div')),
+            bottom: this.container.appendChild(createElement('div')),
+            left: this.container.appendChild(createElement('div')),
         };
 
-        injectStyle(styles.css, 'toolbar');
+        injectStyle(styles.css, styles.block);
 
         this.renderToolbar('top');
         this.renderToolbar('right');
         this.renderToolbar('bottom');
         this.renderToolbar('left');
 
-        this.toggleToolbarVisibility('top', false);
-        this.toggleToolbarVisibility('right', false);
-        this.toggleToolbarVisibility('bottom', false);
-        this.toggleToolbarVisibility('left', false);
+        this.toggleVisibilities();
 
         this.destroyFns.push(
-            ctx.toolbarManager.addListener('group-toggled', (event) => {
-                this.toggleGroup(event.group, event.visible);
-            })
+            ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
+            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
         );
     }
 
+    private onGroupChanged(group: ToolbarGroup) {
+        if (this[group] == null) return;
+
+        for (const position of TOOLBAR_POSITIONS) {
+            if (this[group].enabled && this[group].position === position) {
+                this.positions[position].add(group);
+            } else {
+                this.positions[position].delete(group);
+            }
+        }
+
+        this.toggleVisibilities();
+    }
+
     private onGroupButtonsChanged(group: ToolbarGroup, buttons?: Array<ToolbarButton>) {
+        if (!this.enabled) return;
+
         const align = this[group].align ?? 'start';
         const position = this[group].position ?? 'top';
-        const toolbar = this.elements.fixed[position as ToolbarPosition];
+        const toolbar = this.fixed[position as ToolbarPosition];
 
         for (const options of buttons ?? []) {
             const button = this.createButtonElement(group, options);
             const parent = toolbar.getElementsByClassName(styles.elements[align]).item(0);
             parent?.appendChild(button);
+            this.groupButtons[group].push(button);
         }
     }
 
-    private toggleGroup(group: ToolbarGroup, enabled?: boolean) {
-        if (this[group] == null) return;
-
+    private onLayoutComplete() {
         for (const position of TOOLBAR_POSITIONS) {
-            if (enabled && this[group].position === position) {
-                this.positions[position].add(group);
-            } else {
-                this.positions[position].delete(group);
-            }
+            this.fixed[position].classList.remove(styles.modifiers.preventFlash);
+        }
+    }
 
-            this.toggleToolbarVisibility(position, this.positions[position].size > 0);
+    private onGroupToggled(event: ToolbarGroupToggledEvent) {
+        const { group, visible } = event;
+
+        if (visible) {
+            this.groupCallers[group] += 1;
+        } else {
+            this.groupCallers[group] = Math.max(0, this.groupCallers[group] - 1);
         }
 
-        const buttons = this.elements.fixed[this[group].position].children;
-        for (let i = 0; i < buttons.length; i++) {
-            const child = buttons[i];
-            if (!(child instanceof HTMLElement)) continue;
-            if (child.dataset.toolbarGroup === group) {
-                child.classList.toggle(styles.modifiers.button.hidden, !enabled);
-            }
-        }
+        this.toggleVisibilities();
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        const {
-            container,
-            elements: { fixed },
-            margin,
-        } = this;
+        const { fixed, margin } = this;
 
-        container.style.visibility = 'visible';
-
-        if (fixed.top.style.visibility !== 'hidden') {
+        if (!fixed.top.classList.contains(styles.modifiers.hidden)) {
             shrinkRect.shrink(fixed.top.offsetHeight + margin * 2, 'top');
         }
 
-        if (fixed.right.style.visibility !== 'hidden') {
+        if (!fixed.right.classList.contains(styles.modifiers.hidden)) {
             shrinkRect.shrink(fixed.right.offsetWidth + margin, 'right');
         }
 
-        if (fixed.bottom.style.visibility !== 'hidden') {
+        if (!fixed.bottom.classList.contains(styles.modifiers.hidden)) {
             shrinkRect.shrink(fixed.bottom.offsetHeight + margin * 2, 'bottom');
         }
 
-        if (fixed.left.style.visibility !== 'hidden') {
+        if (!fixed.left.classList.contains(styles.modifiers.hidden)) {
             shrinkRect.shrink(fixed.left.offsetWidth + margin, 'left');
         }
 
@@ -132,10 +151,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        const {
-            elements: { fixed },
-            margin,
-        } = this;
+        const { fixed, margin } = this;
         const { seriesRect } = opts;
 
         fixed.top.style.top = `${seriesRect.y - fixed.top.offsetHeight - margin * 2}px`;
@@ -155,13 +171,29 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         fixed.left.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
     }
 
-    private toggleToolbarVisibility(position: ToolbarPosition = 'top', visible = true) {
-        this.elements.fixed[position].style.visibility = visible ? 'visible' : 'hidden';
+    private toggleVisibilities() {
+        if (this.fixed == null) return;
+
+        const isGroupVisible = (group: ToolbarGroup) => this[group].enabled && this.groupCallers[group] > 0;
+
+        for (const position of TOOLBAR_POSITIONS) {
+            const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
+            this.fixed[position].classList.toggle(styles.modifiers.hidden, !visible);
+        }
+
+        for (const group of TOOLBAR_GROUPS) {
+            if (this[group] == null) continue;
+
+            const visible = isGroupVisible(group);
+            for (const button of this.groupButtons[group]) {
+                button.classList.toggle(styles.modifiers.button.hidden, !visible);
+            }
+        }
     }
 
     private renderToolbar(position: ToolbarPosition = 'top') {
-        const element = this.elements.fixed[position];
-        element.classList.add(styles.block, styles.modifiers[position]);
+        const element = this.fixed[position];
+        element.classList.add(styles.block, styles.modifiers[position], styles.modifiers.preventFlash);
 
         for (const align of TOOLBAR_ALIGNMENTS) {
             const alignmentElement = createElement('div');
@@ -173,7 +205,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private createButtonElement(group: ToolbarGroup, options: ToolbarButton) {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
-        button.classList.toggle(styles.modifiers.button.hidden, !this[group].enabled);
         button.dataset.toolbarGroup = group;
 
         let inner = '';

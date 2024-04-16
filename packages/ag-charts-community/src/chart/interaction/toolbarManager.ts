@@ -1,7 +1,6 @@
 import type { AgToolbarOptions } from '../../options/chart/toolbarOptions';
+import type { ToolbarGroup } from '../toolbar/toolbarTypes';
 import { BaseManager } from './baseManager';
-
-export type ToolbarGroup = 'annotations' | 'ranges';
 
 type EventTypes = ToolbarButtonPressed | ToolbarGroupToggled;
 type ToolbarButtonPressed = 'button-pressed';
