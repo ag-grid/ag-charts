@@ -8,7 +8,7 @@ export class AriaAnnouncementService {
         const e = getDocument().createElement('div');
         e.classList.add('ag-charts-aria-announcer');
         setAttribute(e, 'role', 'status');
-        setAttribute(e, 'aria-live', 'polite');
+        setAttribute(e, 'aria-live', 'assertive');
         return e;
     }
 
