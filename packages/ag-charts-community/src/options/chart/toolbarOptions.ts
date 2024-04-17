@@ -3,6 +3,7 @@ import type { Toggleable } from '../series/cartesian/commonOptions';
 export interface AgToolbarOptions extends Toggleable {
     annotations?: AgToolbarAnnotationsGroup;
     ranges?: AgToolbarRangesGroup;
+    zoom?: AgToolbarZoomGroup;
 }
 
 export interface AgToolbarGroup extends Toggleable {
@@ -13,7 +14,7 @@ export interface AgToolbarGroup extends Toggleable {
     buttons?: AgToolbarButton[];
 }
 
-export type AgToolbarGroupAlignment = 'start' | 'middle' | 'end';
+export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
 export type AgToolbarGroupPosition = 'top' | 'left' | 'right' | 'bottom';
 
 export interface AgToolbarButton {
@@ -25,7 +26,7 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName = 'arrows' | 'asc' | 'desc';
+export type AgIconName = 'arrows' | 'asc' | 'desc' | 'first' | 'last' | 'left' | 'right';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
@@ -54,3 +55,21 @@ export type AgToolbarRangesButtonValue =
     | number
     | [Date | number, Date | number]
     | ((start: Date | number, end: Date | number) => [Date | number, Date | number]);
+
+/* Zoom */
+export interface AgToolbarZoomGroup extends AgToolbarGroup {
+    buttons?: AgToolbarZoomButton[];
+}
+
+export interface AgToolbarZoomButton extends AgToolbarButton {
+    value: AgToolbarZoomButtonValue;
+}
+
+export type AgToolbarZoomButtonValue =
+    | 'reset-zoom'
+    | 'zoom-in'
+    | 'zoom-out'
+    | 'pan-left'
+    | 'pan-right'
+    | 'start'
+    | 'end';

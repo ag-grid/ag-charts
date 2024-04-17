@@ -445,6 +445,42 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -934,6 +970,42 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -1578,6 +1650,42 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -2283,6 +2391,42 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "class": "my-tooltip",
@@ -2592,6 +2736,42 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -3076,6 +3256,42 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -3665,6 +3881,42 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -3989,6 +4241,42 @@ by Occupation",
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -4300,6 +4588,42 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -4618,6 +4942,42 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -4928,6 +5288,42 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -5323,6 +5719,42 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -5712,6 +6144,42 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -6358,6 +6826,42 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -7469,6 +7973,42 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -7773,6 +8313,42 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -8511,6 +9087,42 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -8960,6 +9572,42 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -9579,6 +10227,42 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -10090,6 +10774,42 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -10402,6 +11122,42 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -11009,6 +11765,42 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -11505,6 +12297,42 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -12200,6 +13028,42 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "enabled": false,
       "position": "top",
     },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -12684,6 +13548,42 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,
@@ -13249,6 +14149,42 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "asc",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "desc",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "first",
+          "value": "start",
+        },
+        {
+          "icon": "last",
+          "value": "end",
+        },
+        {
+          "icon": "arrows",
+          "label": "Reset",
+          "value": "reset-zoom",
         },
       ],
       "enabled": false,

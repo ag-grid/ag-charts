@@ -11,19 +11,26 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 toolbar: {
     ranges: {
         enabled: true,
-    }
+    },
+    zoom: {
+        enabled: true,
+    },
 }
 ```
 
-## Positions
+## Positions & Alignment
 
 {% chartExampleRunner title="Toolbar" name="toolbar-positions" type="generated" /%}
 
 ```ts
 toolbar: {
     ranges: {
-        position: 'left',
+        align: 'center',
     },
+    zoom: {
+        position: 'right',
+        align: 'start',
+    }
 }
 ```
 
@@ -70,6 +77,18 @@ toolbar: {
     }
 }
 ```
+
+### Zoom
+
+```ts
+toolbar: {
+    zoom: {
+        enabled: true,
+    }
+}
+```
+
+[Further reading on Zoom](./zoom/).
 
 ## API Reference
 
