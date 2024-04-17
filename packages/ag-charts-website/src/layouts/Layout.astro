@@ -3,7 +3,7 @@ import { getEntry } from 'astro:content';
 import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
 import SiteHeader from '@ag-website-shared/components/site-header/SiteHeader.astro';
 import '@design-system/design-system.scss';
-import { Footer } from '@components/footer/Footer';
+import { Footer } from '@ag-website-shared/components/footer/Footer';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { ApiTopBar } from '@components/top-bar/ApiTopBar';
@@ -175,7 +175,7 @@ const darkModeCSSUrl = `url("${urlWithBaseUrl('/images/moon.svg')}")`;
 
             <slot />
         </div>
-        {!hideFooter && <Footer path={path} footerItems={footerItems} />}
+        {!hideFooter && <Footer footerItems={footerItems} />}
 
         <style lang="scss">
             @use 'design-system' as *;
