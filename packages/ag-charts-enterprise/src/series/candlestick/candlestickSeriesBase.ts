@@ -103,6 +103,13 @@ export abstract class CandlestickSeriesBase<
         });
     }
 
+    protected override animateEmptyUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<TItemShapeGroup, TNodeDatum>) {
+        const animationFns = prepareCandlestickAnimationFunctions();
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], animationFns);
+    }
+
     protected override animateWaitingUpdateReady({
         datumSelection,
     }: _ModuleSupport.CartesianAnimationData<TItemShapeGroup, TNodeDatum>) {
