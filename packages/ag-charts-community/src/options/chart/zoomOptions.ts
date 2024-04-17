@@ -97,7 +97,7 @@ export interface AgZoomOptions {
      */
     scrollingStep?: Ratio;
     /**
-     * When set to a value less than 1, dragging and releasing will continue to pan in the direction of the drag and gradually slowing down.
+     * Rate of deceleration of panning when dragging and releasing a zoomed chart. A value of 1 will cause the panning to stop immediately when released.
      * Typical values are between 0.01 for a short pan duration, and 0.002 for a long pan duration.
      * Default: `1`
      */
