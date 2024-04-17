@@ -89,7 +89,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const n = this.domain.length;
         if (isFinite(maxTickCount) && n <= maxTickCount) {
             tickCount = Math.max(1, n - 1);
-            minTickCount = Math.max(1, n - 1);
+            minTickCount = Math.max(1, n);
         }
 
         const [t0, t1] = [dateToNumber(this.domain[0]), dateToNumber(this.domain.at(-1))];
