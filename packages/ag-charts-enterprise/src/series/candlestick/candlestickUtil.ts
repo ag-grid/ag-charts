@@ -34,9 +34,12 @@ export function prepareCandlestickAnimationFunctions() {
     ) => {
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
 
-        if (status === 'added' && datum != null) {
-            const { x, yLow, yHigh, width } = getCoordinates(datum);
-            const collapsedY = datum.itemId === 'up' ? yLow : yHigh;
+        if (status === 'unknown' || (status === 'added' && datum != null)) {
+            const { x, y, yLow, yHigh, width, height } = getCoordinates(datum);
+            let collapsedY = datum.itemId === 'up' ? yLow : yHigh;
+            if (status === 'unknown') {
+                collapsedY = y + height / 2;
+            }
             return {
                 x,
                 y: collapsedY,
@@ -99,6 +102,6 @@ function getCoordinates(datum: CandlestickNodeDatum) {
         yHigh,
         yLow,
         width: bandwidth,
-        height: yBottom - y,
+        height: Math.max(yBottom - y, 0.001), // This is to differentiate between animation setting height 0 and data values resulting in height 0
     };
 }
