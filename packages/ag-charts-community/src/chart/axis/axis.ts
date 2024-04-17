@@ -1062,8 +1062,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         // `ticks instanceof NumericTicks` doesn't work here, so we feature detect.
         this.fractionDigits = (rawTicks as any).fractionDigits >= 0 ? (rawTicks as any).fractionDigits : 0;
-        // When the scale domain or the ticks change, the label format may change
-        this.onLabelFormatChange(rawTicks, this.label.format);
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
@@ -1075,15 +1073,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
         const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
 
-        for (let i = start; i < end; i++) {
-            const rawTick = rawTicks[i];
-            const translationY = scale.convert(rawTick) + halfBandwidth;
+        const filteredTicks = rawTicks.slice(start, end);
+        // When the scale domain or the ticks change, the label format may change
+        this.onLabelFormatChange(filteredTicks, this.label.format);
+
+        for (let i = 0; i < filteredTicks.length; i++) {
+            const tick = filteredTicks[i];
+            const translationY = scale.convert(tick) + halfBandwidth;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
             if (range.length > 0 && !this.inRange(translationY, 0, 0.001)) continue;
 
-            const tickLabel = this.formatTick(rawTick, i);
+            const tickLabel = this.formatTick(tick, start + i);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             let tickId = tickLabel;
@@ -1095,7 +1097,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 tickIdCounts.set(tickId, 1);
             }
 
-            ticks.push({ tick: rawTick, tickId, tickLabel, translationY: Math.floor(translationY) });
+            ticks.push({ tick, tickId, tickLabel, translationY: Math.floor(translationY) });
 
             if (tickLabel === '' || tickLabel == null) {
                 continue;
