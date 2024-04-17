@@ -562,6 +562,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
                 this.updateThemeClassName();
+                this.updateTabIndex();
             // fallthrough
 
             case ChartUpdateType.UPDATE_DATA:
@@ -673,6 +674,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
 
         element.classList.add(themeClassName);
+    }
+
+    private updateTabIndex() {
+        const { enabled, tabIndex } = this.keyboard;
+        this.ctx.scene.canvas.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
