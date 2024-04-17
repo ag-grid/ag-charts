@@ -22,11 +22,10 @@ export const modifiers = {
 export const css = `
 .${block} {
     background: var(--ag-charts-toolbar-background-color);
-    border-bottom: var(--ag-charts-borders-critical);
-    border-top: var(--ag-charts-borders-critical);
-    border-left: var(--ag-charts-borders);
-    border-right: var(--ag-charts-borders);
-    border-color: var(--ag-charts-border-color);
+    border-bottom: var(--ag-charts-toolbar-border-critical);
+    border-top: var(--ag-charts-toolbar-border-critical);
+    border-left: var(--ag-charts-toolbar-border);
+    border-right: var(--ag-charts-toolbar-border);
     display: flex;
     flex-wrap: wrap;
     position: absolute;
@@ -83,7 +82,7 @@ export const css = `
 .${modifiers.top} .${elements.button},
 .${modifiers.bottom} .${elements.button} {
     min-width: var(--ag-charts-toolbar-height);
-    padding: 0 var(--ag-charts-horizontal-padding);
+    padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers.left} .${elements.button},
@@ -96,7 +95,7 @@ export const css = `
 }
 
 .${elements.button}:hover {
-    background: var(--ag-charts-hover-color);
+    background: var(--ag-charts-toolbar-hover-color);
 }
 
 
