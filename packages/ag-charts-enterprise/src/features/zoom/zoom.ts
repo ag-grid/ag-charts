@@ -490,21 +490,31 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onToolbarButtonPressZoom(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         if (!ToolbarManager.isGroup('zoom', event)) return;
 
-        if (event.value === 'reset-zoom') {
-            this.updateZoom(this.getResetZoom());
-            return;
-        }
-
         const oldZoom = definedZoomState(this.zoomManager.getZoom());
-        const scale = event.value === 'zoom-in' ? 1 - this.scrollingStep : 1 + this.scrollingStep;
-
-        const anchorPointX = this.anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : this.anchorPointX;
-        const anchorPointY = this.anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : this.anchorPointY;
-
         let zoom = definedZoomState(oldZoom);
-        zoom = scaleZoom(zoom, this.isScalingX() ? scale : 1, this.isScalingY() ? scale : 1);
-        zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, anchorPointX);
-        zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, anchorPointY);
+
+        switch (event.value) {
+            case 'reset-zoom':
+                zoom = this.getResetZoom();
+                break;
+
+            case 'pan-left':
+            case 'pan-right':
+                zoom = translateZoom(zoom, event.value === 'pan-left' ? -this.scrollingStep : this.scrollingStep, 0);
+                break;
+
+            case 'zoom-in':
+            case 'zoom-out':
+                const scale = event.value === 'zoom-in' ? 1 - this.scrollingStep : 1 + this.scrollingStep;
+
+                const anchorPointX = this.anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : this.anchorPointX;
+                const anchorPointY = this.anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : this.anchorPointY;
+
+                zoom = scaleZoom(zoom, this.isScalingX() ? scale : 1, this.isScalingY() ? scale : 1);
+                zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, anchorPointX);
+                zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, anchorPointY);
+                break;
+        }
 
         this.updateZoom(constrainZoom(zoom));
     }

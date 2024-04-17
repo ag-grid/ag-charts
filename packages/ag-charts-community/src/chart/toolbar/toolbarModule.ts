@@ -40,13 +40,21 @@ const zoom: AgToolbarOptions['zoom'] = {
             value: 'zoom-in',
         },
         {
+            icon: 'desc',
+            value: 'zoom-out',
+        },
+        {
+            icon: 'left',
+            value: 'pan-left',
+        },
+        {
+            icon: 'right',
+            value: 'pan-right',
+        },
+        {
             icon: 'arrows',
             label: 'Reset',
             value: 'reset-zoom',
-        },
-        {
-            icon: 'desc',
-            value: 'zoom-out',
         },
     ],
 };
