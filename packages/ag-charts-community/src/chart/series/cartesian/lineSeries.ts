@@ -362,7 +362,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return [];
         }
 
-        const { yKey, yName, stroke, strokeOpacity, strokeWidth, lineDash, title, marker, visible } = this.properties;
+        const { yKey, yName, stroke, strokeOpacity, strokeWidth, lineDash, title, marker, visible, legendItemName } =
+            this.properties;
 
         const color0 = 'rgba(0, 0, 0, 0)';
         return [
@@ -370,10 +371,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 legendType: 'category',
                 id: this.id,
                 itemId: yKey,
+                legendItemName,
                 seriesId: this.id,
                 enabled: visible,
                 label: {
-                    text: title ?? yName ?? yKey,
+                    text: legendItemName ?? title ?? yName ?? yKey,
                 },
                 marker: {
                     shape: marker.shape,
