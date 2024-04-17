@@ -65,6 +65,10 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'touchend',
     'touchcancel',
     'wheel',
+    'blur',
+    'focus',
+    'keydown',
+    'keyup',
 ];
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
@@ -158,8 +162,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
-        element: HTMLElement,
-        container?: HTMLElement
+        element: HTMLElement
     ) {
         super();
 
@@ -178,12 +181,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
-        }
-
-        if (container) {
-            for (const type of ['blur', 'focus', 'keydown', 'keyup']) {
-                container.addEventListener(type, this.eventHandler);
-            }
         }
 
         injectStyle(CSS, 'interactionManager');

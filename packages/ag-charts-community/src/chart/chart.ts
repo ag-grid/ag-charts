@@ -314,14 +314,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
-        const interactiveContainer = container ?? options.userOptions.container ?? undefined;
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             syncManager: new SyncManager(this),
             element,
-            interactiveContainer,
             updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
@@ -679,7 +677,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private updateTabIndex() {
         const { enabled, tabIndex } = this.keyboard;
-        this.ctx.scene.canvas.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
+        this.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {

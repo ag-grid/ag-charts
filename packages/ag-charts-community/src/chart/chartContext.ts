@@ -57,12 +57,11 @@ export class ChartContext implements ModuleContext {
             scene: Scene;
             syncManager: SyncManager;
             element: HTMLElement;
-            interactiveContainer: HTMLElement | undefined;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
         }
     ) {
-        const { scene, syncManager, element, interactiveContainer, updateCallback, updateMutex } = vars;
+        const { scene, syncManager, element, updateCallback, updateMutex } = vars;
         this.chartService = chart;
         this.scene = scene;
         this.syncManager = syncManager;
@@ -74,8 +73,8 @@ export class ChartContext implements ModuleContext {
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(chart.keyboard, element, interactiveContainer);
-        this.regionManager = new RegionManager(this.interactionManager, element, interactiveContainer);
+        this.interactionManager = new InteractionManager(chart.keyboard, element);
+        this.regionManager = new RegionManager(this.interactionManager, element);
         this.toolbarManager = new ToolbarManager(element);
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
