@@ -1062,11 +1062,19 @@ export abstract class CartesianSeries<
         return result;
     }
 
-    public override pickFocus(focus: { readonly datum: number }): { node: Node; datum: TDatum; datumIndex: number } {
+    public override pickFocus(focus: {
+        readonly datum: number;
+    }): { bbox: BBox; datum: TDatum; datumIndex: number } | undefined {
         const datumNodes = (this.opts.hasMarkers ? this.markerGroup : this.dataNodeGroup).children;
-        const datumIndex = clamp(0, focus.datum, datumNodes.length - 1);
-        const node = datumNodes[datumIndex];
-        const datum = node.datum;
-        return { node, datum, datumIndex };
+        if (datumNodes.length === 0) {
+        } else {
+            const datumIndex = clamp(0, focus.datum, datumNodes.length - 1);
+            const node = datumNodes[datumIndex];
+            const datum = node.datum;
+            const bbox = node.computeTransformedBBox();
+            if (bbox !== undefined) {
+                return { bbox, datum, datumIndex };
+            }
+        }
     }
 }

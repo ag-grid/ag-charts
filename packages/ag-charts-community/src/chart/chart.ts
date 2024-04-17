@@ -1141,11 +1141,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const focusedSeries = visibleSeries[focus.series];
 
         // Update focused datum:
-        const { node, datum, datumIndex } = focusedSeries.pickFocus(focus);
+        const pick = focusedSeries.pickFocus(focus);
+        if (pick === undefined) return;
+
+        const { bbox, datum, datumIndex } = pick;
         focus.datum = datumIndex;
 
         // Update user interaction/interface:
-        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.regionManager, node);
+        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.regionManager, bbox);
         if (keyboardEvent !== undefined) {
             this.lastInteractionEvent = keyboardEvent;
             const html = focusedSeries.getTooltipHtml(datum);
