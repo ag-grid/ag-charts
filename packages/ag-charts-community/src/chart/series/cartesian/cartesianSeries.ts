@@ -1071,8 +1071,7 @@ export abstract class CartesianSeries<
         }
 
         const datumIndex = clamp(0, focus.datum, nodeData.length - 1);
-        const node = nodeData[datumIndex];
-        const datum = node.datum;
+        const datum = nodeData[datumIndex];
         const bbox = this.computeFocusBounds(datumIndex);
         if (bbox !== undefined) {
             return { bbox, datum, datumIndex };
