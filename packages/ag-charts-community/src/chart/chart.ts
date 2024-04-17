@@ -591,7 +591,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const { seriesRect } = this;
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
-                setAttribute(this.ctx.scene.canvas.container, 'aria-label', this.getAriaLabel());
+                setAttribute(this.element, 'aria-label', this.getAriaLabel());
 
                 updateSplits('🤔');
             // fallthrough
