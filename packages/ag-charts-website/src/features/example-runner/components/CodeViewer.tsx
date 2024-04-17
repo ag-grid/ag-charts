@@ -25,7 +25,7 @@ const ExtensionMap = {
     json: 'js',
 };
 
-function stripOutDarkModeCode(files: FileContents) {
+export function stripOutDarkModeCode(files: FileContents) {
     const mainFiles = ['main.js', 'main.ts', 'index.tsx', 'index.jsx', 'app.component.ts'];
     mainFiles.forEach((mainFile) => {
         if (files[mainFile]) {
