@@ -25,10 +25,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isMouseBlurred: boolean = false;
     private isClicking: boolean = false;
 
-    constructor(
-        interactionManager: InteractionManager,
-        private readonly element: HTMLElement | undefined
-    ) {
+    constructor(interactionManager: InteractionManager) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
