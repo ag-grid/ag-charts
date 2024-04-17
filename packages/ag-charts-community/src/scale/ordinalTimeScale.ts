@@ -185,11 +185,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
             }
 
             const tick = isReversed ? tickInterval.ceil(dateRange[0]) : tickInterval.floor(dateRange[1]);
-            if (index === 0) {
-                ticks.unshift(tick);
-            } else {
-                ticks.push(tick);
-            }
+            ticks.splice(index, 0, tick);
         }
 
         return ticks;
