@@ -43,7 +43,7 @@ describe('BulletSeries', () => {
         const getTooltipHtml = (): string => {
             const series = (chart as any)['series'][0];
             const datum = (chart as any)['series'][0].contextNodeData?.nodeData[0];
-            return series.getTooltipHtml(datum);
+            return series.getTooltipHtml(datum).html;
         };
 
         const hoverOnBullet = async () => {
