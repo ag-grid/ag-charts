@@ -4,6 +4,7 @@ export interface ScaleConvertParams {
 
 interface ScaleTickFormatParams {
     ticks?: any[];
+    domain?: any[];
     specifier?: any;
 }
 

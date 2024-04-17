@@ -372,7 +372,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected labelFormatter?: (datum: any) => string;
-    protected onLabelFormatChange(ticks: any[], format?: string) {
+    protected onLabelFormatChange(ticks: any[], _domain: any[], format?: string) {
         const { scale, fractionDigits } = this;
         const logScale = scale instanceof LogScale;
 
@@ -1075,7 +1075,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const filteredTicks = rawTicks.slice(start, end);
         // When the scale domain or the ticks change, the label format may change
-        this.onLabelFormatChange(filteredTicks, this.label.format);
+        this.onLabelFormatChange(filteredTicks, rawTicks, this.label.format);
 
         for (let i = 0; i < filteredTicks.length; i++) {
             const tick = filteredTicks[i];
