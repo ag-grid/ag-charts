@@ -1,5 +1,32 @@
 [
     {
+        "version": "9.3.0",
+        "date": "April 30th 2024",
+        "highlights": [
+            {
+                "text": "Accessibility",
+                "path": "./accessibility"
+            },
+            {
+                "text": "Candlestick Series Type",
+                "path": "./candlestick-series"
+            },
+            {
+                "text": "OHLC Series Type",
+                "path": "./ohlc-series"
+            },
+            {
+                "text": "Ordinal Time Axis",
+                "path": "./axes-types/#ordinal-time"
+            },
+            {
+                "text": "Zoom Buttons",
+                "path": "./toolbar"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-9-3"
+    },
+    {
         "version": "9.2.0",
         "date": "March 20th 2024",
         "highlights": [
