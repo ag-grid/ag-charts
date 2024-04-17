@@ -21,7 +21,7 @@ export default `
         --ag-header-background-color,
         color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-foreground-color) 2%)
     );
-    --ag-charts-toolbar-height: var(--ag-header-height, 48px);
+    --ag-charts-toolbar-size: var(--ag-header-height, 48px);
     --ag-charts-toolbar-padding: calc(var(--ag-charts-size) * 2);
     --ag-charts-toolbar-border: var(--ag-charts-border, solid 1px) var(--ag-charts-border-color);
     --ag-charts-toolbar-border-critical: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);

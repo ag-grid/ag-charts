@@ -38,20 +38,21 @@ export const css = `
 
 .${modifiers.top}, .${modifiers.bottom} {
     flex-direction: row;
-    height: var(--ag-charts-toolbar-height);
+    height: var(--ag-charts-toolbar-size);
     padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers.left}, .${modifiers.right} {
     flex-direction: column;
     padding: var(--ag-charts-toolbar-padding) 0;
-    width: var(--ag-charts-toolbar-height);
+    width: var(--ag-charts-toolbar-size);
 }
 
 .${elements.start}, .${elements.center}, .${elements.end} {
     display: flex;
     flex-direction: inherit;
     flex-wrap: inherit;
+    max-width: 100%;
 }
 
 .${modifiers.top} .${elements.center},
@@ -81,13 +82,15 @@ export const css = `
 
 .${modifiers.top} .${elements.button},
 .${modifiers.bottom} .${elements.button} {
-    min-width: var(--ag-charts-toolbar-height);
+    min-width: var(--ag-charts-toolbar-size);
     padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers.left} .${elements.button},
 .${modifiers.right} .${elements.button} {
-    height: 48px;
+    height: var(--ag-charts-toolbar-size);
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .${modifiers.button.hidden} {
