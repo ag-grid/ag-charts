@@ -101,6 +101,11 @@ export const css = `
     background: var(--ag-charts-toolbar-hover-color);
 }
 
+.${elements.button}:disabled {
+    background: var(--ag-charts-toolbar-disabled-background-color);
+    color: var(--ag-charts-toolbar-disabled-foreground-color);
+}
+
 
 .${elements.icon} + .${elements.label} {
     margin-left: var(--ag-charts-size);

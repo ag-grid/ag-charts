@@ -29,6 +29,14 @@ export default `
         --ag-row-hover-color,
         color-mix(in srgb, transparent, var(--ag-charts-active-color) 12%)
     );
+    --ag-charts-toolbar-disabled-foreground-color: var(
+        --ag-disabled-foreground-color,
+        color-mix(in srgb, transparent, var(--ag-charts-toolbar-foreground-color) 50%)
+    );
+    --ag-charts-toolbar-disabled-background-color: var(
+        --ag-input-disabled-background-color,
+        color-mix(in srgb, var(--ag-charts-toolbar-background-color), var(--ag-charts-toolbar-foreground-color) 6%)
+    );
 
     /* Icons */
     --ag-charts-icon-font-family: 'agChartsDefault';

@@ -5,7 +5,7 @@ import type { BBox } from '../../scene/bbox';
 import { createElement, injectStyle } from '../../util/dom';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
-import type { ToolbarGroupToggledEvent } from '../interaction/toolbarManager';
+import type { ToolbarButtonToggledEvent, ToolbarGroupToggledEvent } from '../interaction/toolbarManager';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
@@ -82,6 +82,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
 
         this.destroyFns.push(
+            ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
         );
@@ -121,6 +122,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private onLayoutComplete() {
         for (const position of TOOLBAR_POSITIONS) {
             this.fixed[position].classList.remove(styles.modifiers.preventFlash);
+        }
+    }
+
+    private onButtonToggled(event: ToolbarButtonToggledEvent) {
+        const { group, value, enabled } = event;
+
+        for (const button of this.groupButtons[group]) {
+            if (button.dataset.toolbarValue !== `${value}`) continue;
+            button.disabled = !enabled;
         }
     }
 
@@ -214,6 +224,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.dataset.toolbarGroup = group;
+
+        if (typeof options.value === 'string' || typeof options.value === 'number') {
+            button.dataset.toolbarValue = `${options.value}`;
+        }
 
         let inner = '';
 

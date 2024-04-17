@@ -222,6 +222,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
+    private toggleToolbarButtons(zoom: DefinedZoomState) {
+        const isMaxZoom = this.isMaxZoom(zoom);
+        const isMinZoom = this.isMinZoom(zoom);
+
+        this.toolbarManager.toggleButton('zoom', 'pan-left', zoom.x.min > UNIT.min);
+        this.toolbarManager.toggleButton('zoom', 'pan-right', zoom.x.max < UNIT.max);
+        this.toolbarManager.toggleButton('zoom', 'zoom-out', !isMaxZoom);
+        this.toolbarManager.toggleButton('zoom', 'zoom-in', !isMinZoom);
+    }
+
     private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
         if (!rangeZoom) return;
 
@@ -500,7 +510,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
             case 'pan-left':
             case 'pan-right':
-                zoom = translateZoom(zoom, event.value === 'pan-left' ? -this.scrollingStep : this.scrollingStep, 0);
+                zoom = translateZoom(zoom, event.value === 'pan-left' ? -dx(zoom) : dx(zoom), 0);
                 break;
 
             case 'zoom-in':
@@ -627,15 +637,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onZoomChange(e: _ModuleSupport.ZoomChangeEvent) {
-        if (e.callerId !== 'zoom') {
+    private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
+        if (event.callerId !== 'zoom') {
             this.panner.stopInteractions();
         }
-        this.toggleContextMenuActions(definedZoomState(this.zoomManager.getZoom()));
+        const zoom = definedZoomState(this.zoomManager.getZoom());
+        this.toggleContextMenuActions(zoom);
+        this.toggleToolbarButtons(zoom);
     }
 
-    onZoomPanStart(e: _ModuleSupport.ZoomPanStartEvent): void {
-        if (e.callerId !== 'zoom') {
+    onZoomPanStart(event: _ModuleSupport.ZoomPanStartEvent): void {
+        if (event.callerId === 'zoom') {
             this.panner.stopInteractions();
         }
     }
