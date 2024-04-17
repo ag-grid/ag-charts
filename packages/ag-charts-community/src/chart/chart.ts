@@ -366,6 +366,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
+            ctx.regionManager.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
             ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
@@ -1075,6 +1076,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.resetPointer();
             this.update(ChartUpdateType.SCENE_RENDER);
             this.ctx.cursorManager.updateCursor('chart');
+        }
+    }
+
+    private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
+        if (event.delta > 0) {
+            this.focus.datum = 0;
+            this.focus.series = 0;
+        } else {
+            this.focus.datum = Infinity;
+            this.focus.series = Infinity;
         }
     }
 

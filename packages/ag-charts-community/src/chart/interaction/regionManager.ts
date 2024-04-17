@@ -17,7 +17,7 @@ export type RegionName =
     | 'series'
     | 'toolbar';
 
-const REGION_TAB_ORDERING: RegionName[] = ['series', 'legend', 'footnote'];
+const REGION_TAB_ORDERING: RegionName[] = ['series', 'legend'];
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
@@ -47,7 +47,7 @@ export interface RegionProperties {
 
 export class RegionManager {
     private currentTabIndex = 0;
-    private readonly keyNavManager: KeyNavManager;
+    public readonly keyNavManager: KeyNavManager;
     private readonly focusIndicator?: HTMLDivElement;
 
     private currentRegion?: Region;
@@ -285,7 +285,7 @@ export class RegionManager {
         const newIndex =
             delta > 0
                 ? this.getNextInteractableTabIndex(-1, 1)
-                : this.getNextInteractableTabIndex(REGION_TAB_ORDERING.length - 1, -1);
+                : this.getNextInteractableTabIndex(REGION_TAB_ORDERING.length, -1);
         this.currentTabIndex = newIndex ?? 0;
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         if (focusedRegion) {
