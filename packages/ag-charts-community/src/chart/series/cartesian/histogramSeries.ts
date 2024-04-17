@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
+import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -19,7 +20,12 @@ import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Series, SeriesNodePickMatch, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
+import {
+    collapsedStartingBarPosition,
+    computeBarFocusBounds,
+    prepareBarAnimationFunctions,
+    resetBarSelectionsFn,
+} from './barUtil';
 import {
     type CartesianAnimationData,
     CartesianSeries,
@@ -541,5 +547,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
     protected isLabelEnabled() {
         return this.properties.label.enabled;
+    }
+
+    protected computeFocusBounds(datumIndex: number): BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

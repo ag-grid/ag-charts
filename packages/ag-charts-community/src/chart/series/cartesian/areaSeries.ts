@@ -3,6 +3,7 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
@@ -42,7 +43,13 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import {
+    computeMarkerFocusBounds,
+    markerFadeInAnimation,
+    markerSwipeScaleInAnimation,
+    resetMarkerFn,
+    resetMarkerPositionFn,
+} from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
@@ -725,5 +732,9 @@ export class AreaSeries extends CartesianSeries<
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    protected computeFocusBounds(datumIndex: number): BBox | undefined {
+        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

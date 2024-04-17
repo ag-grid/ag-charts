@@ -29,7 +29,7 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
-import type { RectConfig } from './barUtil';
+import { RectConfig, computeBarFocusBounds } from './barUtil';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -571,5 +571,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     protected isLabelEnabled() {
         return this.properties.label.enabled;
+    }
+
+    protected computeFocusBounds(datumIndex: number): BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

@@ -1,5 +1,3 @@
-import type { AgSeriesMarkerOptions } from 'packages/ag-charts-community/src/options/agChartOptions';
-
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
@@ -1067,50 +1065,19 @@ export abstract class CartesianSeries<
     public override pickFocus(focus: {
         readonly datum: number;
     }): { bbox: BBox; datum: TDatum; datumIndex: number } | undefined {
-        const datumNodes = (this.opts.hasMarkers ? this.markerGroup : this.dataNodeGroup).children;
-        if (datumNodes.length === 0) {
-            if (this.opts.hasMarkers) {
-                // If this series uses markers but has them disabled, then this.markerGroup will be empty.
-                // Therefore, we'll need to manually compute the BBox here:
-                return this.pickInvisibleMarkerFocus(focus);
-            }
-        } else {
-            const datumIndex = clamp(0, focus.datum, datumNodes.length - 1);
-            const node = datumNodes[datumIndex];
-            const datum = node.datum;
-            const bbox = node.computeTransformedBBox();
-            if (bbox !== undefined) {
-                return { bbox, datum, datumIndex };
-            }
-        }
-    }
-
-    private pickInvisibleMarkerFocus(focus: {
-        readonly datum: number;
-    }): { bbox: BBox; datum: TDatum; datumIndex: number } | undefined {
-        const propertiesWithMarkers: TProps & { marker?: AgSeriesMarkerOptions<unknown, unknown> } = this.properties;
-        const { marker } = propertiesWithMarkers;
-        if (marker?.enabled !== false) {
-            return undefined;
-        }
-
         const nodeData = this.contextNodeData?.nodeData;
         if (nodeData === undefined || nodeData.length === 0) {
             return undefined;
         }
 
         const datumIndex = clamp(0, focus.datum, nodeData.length - 1);
-        const datum = this.contextNodeData?.nodeData[datumIndex];
-        const midPoint = datum?.midPoint;
-        if (datum === undefined || midPoint === undefined) {
-            return undefined;
+        const node = nodeData[datumIndex];
+        const datum = node.datum;
+        const bbox = this.computeFocusBounds(datumIndex);
+        if (bbox !== undefined) {
+            return { bbox, datum, datumIndex };
         }
-
-        const { size = 8, strokeWidth = 1 } = marker;
-        const diameter = size + strokeWidth;
-        const radius = diameter / 2;
-        const { x, y } = this.markerGroup.inverseTransformPoint(midPoint.x - radius, midPoint.y - radius);
-        const bbox = new BBox(x, y, diameter, diameter);
-        return { bbox, datum, datumIndex };
     }
+
+    protected abstract computeFocusBounds(datumIndex: number): BBox | undefined;
 }

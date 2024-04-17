@@ -3,6 +3,7 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -30,7 +31,13 @@ import {
 } from './cartesianSeries';
 import { LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
-import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import {
+    computeMarkerFocusBounds,
+    markerFadeInAnimation,
+    markerSwipeScaleInAnimation,
+    resetMarkerFn,
+    resetMarkerPositionFn,
+} from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
@@ -499,5 +506,9 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    protected computeFocusBounds(datumIndex: number): BBox | undefined {
+        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

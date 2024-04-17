@@ -79,4 +79,8 @@ export class OhlcSeries extends CandlestickSeriesBase<
 
         return highlighted ? mergeDefaults(this.properties.highlightStyle.item, activeStyles) : activeStyles;
     }
+
+    protected computeFocusBounds(_datumIndex: number): _Scene.BBox | undefined {
+        return undefined; // TODO
+    }
 }

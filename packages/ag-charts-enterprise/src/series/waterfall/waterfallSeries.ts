@@ -26,6 +26,7 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     isFiniteNumber,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
@@ -871,4 +872,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override onDataChange() {}
+
+    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    }
 }

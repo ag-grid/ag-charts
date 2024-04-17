@@ -5,6 +5,7 @@ import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../opti
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
+import type { Node } from '../../../scene/node';
 import type { Rect } from '../../../scene/shape/rect';
 import { isNegative } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
@@ -293,4 +294,14 @@ function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection,
 
 export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBox, opacity }: AnimatableBarDatum) {
     return { x, y, width, height, clipBBox, opacity };
+}
+
+export function computeBarFocusBounds(
+    datum: { x: number; y: number; width: number; height: number } | undefined,
+    barGroup: Node
+): BBox | undefined {
+    if (datum === undefined) return undefined;
+
+    const { x, y, width, height } = datum;
+    return barGroup.inverseTransformBBox(new BBox(x, y, width, height));
 }

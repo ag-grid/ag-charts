@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
+import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
@@ -26,7 +27,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 
@@ -384,5 +385,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    protected computeFocusBounds(datumIndex: number): BBox | undefined {
+        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

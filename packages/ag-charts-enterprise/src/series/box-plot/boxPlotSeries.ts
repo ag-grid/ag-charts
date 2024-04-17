@@ -18,6 +18,7 @@ const {
     animationValidation,
     convertValuesToScaleByDefs,
     isFiniteNumber,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { motion } = _Scene;
 const { ContinuousScale } = _Scale;
@@ -218,6 +219,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 midPoint,
+                focusRect: { x: midPoint.x, y: midPoint.y, width: bandwidth, height },
             });
         });
 
@@ -439,5 +441,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             }
         }
         return activeStyles;
+    }
+
+    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex].focusRect, this.contentGroup);
     }
 }

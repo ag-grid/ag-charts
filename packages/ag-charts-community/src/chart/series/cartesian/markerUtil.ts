@@ -1,7 +1,9 @@
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
+import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
@@ -147,4 +149,17 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
     };
 
     return { fromFn, toFn };
+}
+
+export function computeMarkerFocusBounds(
+    datum: { point?: Readonly<SizedPoint> } | undefined,
+    markerGroup: Node
+): BBox | undefined {
+    if (datum === undefined || datum.point === undefined) return undefined;
+
+    const { x: pointX, y: pointY, size } = datum.point;
+    const diameter = size ?? 8;
+    const radius = diameter / 2;
+    const { x, y } = markerGroup.inverseTransformPoint(pointX - radius, pointY - radius);
+    return new BBox(x, y, diameter, diameter);
 }
