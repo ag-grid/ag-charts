@@ -77,15 +77,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
-        if (!this.hasBrowserFocus) return;
+        if (!this.hasBrowserFocus || this.isClicking) return;
 
-        if (this.isMouseBlurred) {
-            if (!this.isClicking) {
-                this.dispatch('tab', 0, event);
-                this.isMouseBlurred = false;
-            }
-            return;
-        }
+        this.isMouseBlurred = false;
 
         switch (event.sourceEvent.code) {
             case 'Tab':
