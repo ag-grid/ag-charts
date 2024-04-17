@@ -47,7 +47,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
 
     constructor(
         interactionManager: InteractionManager,
-        private readonly container: HTMLElement | undefined
+        private readonly element: HTMLElement | undefined
     ) {
         super();
         this.destroyFns.push(
@@ -93,7 +93,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         if (this.isClicking) {
             this.isMouseBlurred = true;
         } else {
-            const delta = guessDirection(this.container, event.sourceEvent.relatedTarget);
+            const delta = guessDirection(this.element, event.sourceEvent.relatedTarget);
             this.dispatch('browserfocus', delta, event);
             this.dispatch('tab', 0, event);
         }
