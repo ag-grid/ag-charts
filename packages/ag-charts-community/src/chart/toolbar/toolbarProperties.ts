@@ -22,9 +22,6 @@ export class ToolbarGroupProperties extends BaseProperties {
     @Validate(UNION(['top', 'right', 'bottom', 'left']), { optional: true })
     position: ToolbarPosition = 'top';
 
-    @Validate(BOOLEAN, { optional: true })
-    floating = false;
-
     @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onButtonsChange(target.buttons);
     })

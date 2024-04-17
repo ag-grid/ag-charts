@@ -12,6 +12,8 @@ export const modifiers = {
     right: `${block}--right`,
     bottom: `${block}--bottom`,
     left: `${block}--left`,
+    hidden: `${block}--hidden`,
+    preventFlash: `${block}--prevent-flash`,
     button: {
         hidden: `${elements.button}--hidden`,
     },
@@ -19,34 +21,38 @@ export const modifiers = {
 
 export const css = `
 .${block} {
-    background: var(--ag-charts-header-background-color);
-    border-bottom: var(--ag-charts-borders-critical);
-    border-top: var(--ag-charts-borders-critical);
-    border-left: var(--ag-charts-borders);
-    border-right: var(--ag-charts-borders);
-    border-color: var(--ag-charts-border-color);
+    background: var(--ag-charts-toolbar-background-color);
+    border-bottom: var(--ag-charts-toolbar-border-critical);
+    border-top: var(--ag-charts-toolbar-border-critical);
+    border-left: var(--ag-charts-toolbar-border);
+    border-right: var(--ag-charts-toolbar-border);
     display: flex;
     flex-wrap: wrap;
     position: absolute;
+}
+
+.${modifiers.hidden},
+.${modifiers.preventFlash} {
     visibility: hidden;
 }
 
 .${modifiers.top}, .${modifiers.bottom} {
     flex-direction: row;
-    height: var(--ag-charts-header-height);
-    padding: 0 var(--ag-charts-horizontal-padding);
+    height: var(--ag-charts-toolbar-size);
+    padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers.left}, .${modifiers.right} {
     flex-direction: column;
-    padding: var(--ag-charts-horizontal-padding) 0;
-    width: var(--ag-charts-header-height);
+    padding: var(--ag-charts-toolbar-padding) 0;
+    width: var(--ag-charts-toolbar-size);
 }
 
 .${elements.start}, .${elements.center}, .${elements.end} {
     display: flex;
     flex-direction: inherit;
     flex-wrap: inherit;
+    max-width: 100%;
 }
 
 .${modifiers.top} .${elements.center},
@@ -65,7 +71,7 @@ export const css = `
 
 .${elements.button} {
     align-items: center;
-    color: var(--ag-charts-header-foreground-color);
+    color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
     font-weight: 500;
     height: 100%;
@@ -76,13 +82,15 @@ export const css = `
 
 .${modifiers.top} .${elements.button},
 .${modifiers.bottom} .${elements.button} {
-    min-width: var(--ag-charts-header-height);
-    padding: 0 var(--ag-charts-horizontal-padding);
+    min-width: var(--ag-charts-toolbar-size);
+    padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers.left} .${elements.button},
 .${modifiers.right} .${elements.button} {
-    height: 48px;
+    height: var(--ag-charts-toolbar-size);
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .${modifiers.button.hidden} {
@@ -90,16 +98,9 @@ export const css = `
 }
 
 .${elements.button}:hover {
-    background: var(--ag-charts-hover-color);
+    background: var(--ag-charts-toolbar-hover-color);
 }
 
-.${elements.button} svg {
-    display: inline-block;
-    width: 1.5em;
-    height: 1.5em;
-    fill: none;
-    stroke: var(--ag-charts-header-foreground-color);
-}
 
 .${elements.icon} + .${elements.label} {
     margin-left: var(--ag-charts-size);
