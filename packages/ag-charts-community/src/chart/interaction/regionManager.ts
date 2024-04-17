@@ -61,7 +61,7 @@ export class RegionManager {
         private readonly interactionManager: InteractionManager,
         element: HTMLElement
     ) {
-        this.keyNavManager = new KeyNavManager(interactionManager, element);
+        this.keyNavManager = new KeyNavManager(interactionManager);
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)

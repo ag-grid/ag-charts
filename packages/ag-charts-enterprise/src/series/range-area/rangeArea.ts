@@ -22,6 +22,7 @@ const {
     diff,
     updateClipPath,
     isFiniteNumber,
+    computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent } = _Util;
@@ -653,5 +654,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         super.animateWaitingUpdateReady(animationData);
         this.updateAreaPaths(paths, contextData);
+    }
+
+    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

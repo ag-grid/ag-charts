@@ -17,26 +17,6 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = Consumabl
     interactionEvent: InteractionEvent;
 };
 
-function getTabIndex(obj: { tabIndex?: unknown } | undefined | null): number | undefined {
-    if (obj?.tabIndex != null && typeof obj.tabIndex === 'number') {
-        return obj.tabIndex;
-    }
-    return undefined;
-}
-
-function guessDirection(
-    container: HTMLElement | undefined,
-    relatedTarget: (EventTarget & { tabIndex?: unknown }) | null
-): -1 | 1 {
-    // Try to guess whether this 'focus' event comes from a TAB or Shift+TAB:
-    const currIndex = getTabIndex(container);
-    const prevIndex = getTabIndex(relatedTarget);
-    if (currIndex !== undefined && prevIndex !== undefined) {
-        return currIndex < prevIndex ? -1 : 1;
-    }
-    return 1;
-}
-
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
@@ -45,10 +25,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isMouseBlurred: boolean = false;
     private isClicking: boolean = false;
 
-    constructor(
-        interactionManager: InteractionManager,
-        private readonly element: HTMLElement | undefined
-    ) {
+    constructor(interactionManager: InteractionManager) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
@@ -71,11 +48,12 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         this.isClicking = true;
     }
 
-    private onClickStop(_event: PointerInteractionEvent<'drag-end' | 'click'>) {
+    private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click'>) {
         this.isClicking = false;
+        this.mouseBlur(event);
     }
 
-    private mouseBlur(event: PointerInteractionEvent<'wheel' | 'hover'>) {
+    private mouseBlur(event: PointerInteractionEvent) {
         if (!this.isMouseBlurred && this.hasBrowserFocus) {
             this.dispatch('blur', 0, event);
         }
@@ -93,8 +71,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         if (this.isClicking) {
             this.isMouseBlurred = true;
         } else {
-            const delta = guessDirection(this.element, event.sourceEvent.relatedTarget);
-            this.dispatch('browserfocus', delta, event);
+            this.dispatch('browserfocus', 1, event);
             this.dispatch('tab', 0, event);
         }
     }

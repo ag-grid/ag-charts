@@ -18,4 +18,6 @@ export interface BoxPlotNodeDatum
         readonly lengthRatio: Ratio;
     };
     readonly whisker: Readonly<StrokeOptions & LineDashOptions>;
+
+    readonly focusRect: { x: number; y: number; width: number; height: number };
 }

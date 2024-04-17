@@ -14,6 +14,7 @@ const {
     seriesLabelFadeInAnimation,
     valueProperty,
     createDatumId,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
 const { ContinuousScale, OrdinalTimeScale } = _Scale;
@@ -417,5 +418,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
+    }
+
+    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

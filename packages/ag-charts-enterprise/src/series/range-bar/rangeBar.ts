@@ -23,6 +23,7 @@ const {
     animationValidation,
     createDatumId,
     isFiniteNumber,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -592,4 +593,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override onDataChange() {}
+
+    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    }
 }

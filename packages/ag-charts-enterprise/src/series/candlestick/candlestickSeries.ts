@@ -111,4 +111,8 @@ export class CandlestickSeries extends CandlestickSeriesBase<
     ): AgCandlestickSeriesFormatterParams<CandlestickNodeDatum> {
         return params;
     }
+
+    protected computeFocusBounds(_datumIndex: number): _Scene.BBox | undefined {
+        return undefined; // TODO
+    }
 }
