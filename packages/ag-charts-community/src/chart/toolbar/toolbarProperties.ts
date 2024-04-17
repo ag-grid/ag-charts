@@ -13,7 +13,7 @@ export class ToolbarGroupProperties extends BaseProperties {
     @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onChange(target.enabled);
     })
-    @Validate(UNION(['start', 'middle', 'end']), { optional: true })
+    @Validate(UNION(['start', 'center', 'end']), { optional: true })
     align: ToolbarAlignment = 'start';
 
     @ObserveChanges<ToolbarGroupProperties>((target) => {

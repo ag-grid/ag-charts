@@ -30,6 +30,27 @@ const ranges: AgToolbarOptions['ranges'] = {
     ],
 };
 
+const zoom: AgToolbarOptions['zoom'] = {
+    enabled: false,
+    position: 'top',
+    align: 'end',
+    buttons: [
+        {
+            icon: 'asc',
+            value: 'zoom-in',
+        },
+        {
+            icon: 'arrows',
+            label: 'Reset',
+            value: 'reset-zoom',
+        },
+        {
+            icon: 'desc',
+            value: 'zoom-out',
+        },
+    ],
+};
+
 export const ToolbarModule: Module = {
     type: 'root',
     optionsKey: 'toolbar',
@@ -41,6 +62,7 @@ export const ToolbarModule: Module = {
             enabled: true,
             annotations,
             ranges,
+            zoom,
         },
     },
 };

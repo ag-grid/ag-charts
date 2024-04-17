@@ -23,8 +23,11 @@ const options: AgCartesianChartOptions = {
     },
     toolbar: {
         ranges: {
-            enabled: true,
-            position: 'left',
+            align: 'center',
+        },
+        zoom: {
+            position: 'right',
+            align: 'start',
         },
     },
     tooltip: {

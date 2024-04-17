@@ -32,6 +32,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.onGroupChanged.bind(this, 'ranges'),
         this.onGroupButtonsChanged.bind(this, 'ranges')
     );
+    public zoom = new ToolbarGroupProperties(
+        this.onGroupChanged.bind(this, 'zoom'),
+        this.onGroupButtonsChanged.bind(this, 'zoom')
+    );
 
     private margin = 10;
     private readonly container: HTMLElement;
@@ -48,11 +52,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private groupCallers: Record<ToolbarGroup, number> = {
         annotations: 0,
         ranges: 0,
+        zoom: 0,
     };
 
     private groupButtons: Record<ToolbarGroup, Array<HTMLButtonElement>> = {
         annotations: [],
         ranges: [],
+        zoom: [],
     };
 
     constructor(private readonly ctx: ModuleContext) {
@@ -108,6 +114,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             parent?.appendChild(button);
             this.groupButtons[group].push(button);
         }
+
+        this.toggleVisibilities();
     }
 
     private onLayoutComplete() {

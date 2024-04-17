@@ -18,6 +18,8 @@ import {
     dx,
     dy,
     pointToRatio,
+    scaleZoom,
+    scaleZoomAxisWithAnchor,
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
     translateZoom,
@@ -49,6 +51,9 @@ const CONTEXT_PAN_ACTION_ID = 'pan-action';
 const CURSOR_ID = 'zoom-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';
 
+const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
+const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
+
 enum DragState {
     None,
     Axis,
@@ -63,6 +68,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 this.registerContextMenuActions();
             }
             this.toolbarManager?.toggleGroup('ranges', Boolean(enabled));
+            this.toolbarManager?.toggleGroup('zoom', Boolean(enabled));
         },
     })
     @Validate(BOOLEAN)
@@ -99,10 +105,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public minVisibleItemsY = 2;
 
     @Validate(ANCHOR_CORD)
-    public anchorPointX: AgZoomAnchorPoint = 'end';
+    public anchorPointX: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_X;
 
     @Validate(ANCHOR_CORD)
-    public anchorPointY: AgZoomAnchorPoint = 'middle';
+    public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
     public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
     public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
@@ -243,24 +249,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDoubleClick(event: _ModuleSupport.PointerInteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
-        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
-        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? UNIT;
-
-        const { min: minX, max: maxX } = x;
-        const { min: minY, max: maxY } = y;
+        const { x, y } = this.getResetZoom();
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
-            const axisZoom = direction === ChartAxisDirection.X ? { min: minX, max: maxX } : { min: minY, max: maxY };
+            const axisZoom = direction === ChartAxisDirection.X ? x : y;
             this.updateAxisZoom(id, direction, axisZoom);
         } else if (
             this.paddedRect?.containsPoint(event.offsetX, event.offsetY) &&
             this.highlightManager.getActivePicked() == null
         ) {
-            this.updateZoom({
-                x: { min: minX, max: maxX },
-                y: { min: minY, max: maxY },
-            });
+            this.updateZoom({ x, y });
         }
     }
 
@@ -471,16 +470,43 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        if (ToolbarManager.isGroup('ranges', event)) {
-            const time = event.value;
-            if (typeof time === 'number') {
-                this.rangeX.extendToEnd(time);
-            } else if (Array.isArray(time)) {
-                this.rangeX.updateWith(() => time);
-            } else if (typeof time === 'function') {
-                this.rangeX.updateWith(time);
-            }
+        this.onToolbarButtonPressRanges(event);
+        this.onToolbarButtonPressZoom(event);
+    }
+
+    private onToolbarButtonPressRanges(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (!ToolbarManager.isGroup('ranges', event)) return;
+
+        const time = event.value;
+        if (typeof time === 'number') {
+            this.rangeX.extendToEnd(time);
+        } else if (Array.isArray(time)) {
+            this.rangeX.updateWith(() => time);
+        } else if (typeof time === 'function') {
+            this.rangeX.updateWith(time);
         }
+    }
+
+    private onToolbarButtonPressZoom(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (!ToolbarManager.isGroup('zoom', event)) return;
+
+        if (event.value === 'reset-zoom') {
+            this.updateZoom(this.getResetZoom());
+            return;
+        }
+
+        const oldZoom = definedZoomState(this.zoomManager.getZoom());
+        const scale = event.value === 'zoom-in' ? 1 - this.scrollingStep : 1 + this.scrollingStep;
+
+        const anchorPointX = this.anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : this.anchorPointX;
+        const anchorPointY = this.anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : this.anchorPointY;
+
+        let zoom = definedZoomState(oldZoom);
+        zoom = scaleZoom(zoom, this.isScalingX() ? scale : 1, this.isScalingY() ? scale : 1);
+        zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, anchorPointX);
+        zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, anchorPointY);
+
+        this.updateZoom(constrainZoom(zoom));
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -701,5 +727,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (d < minRatio) return;
 
         this.zoomManager.updateAxisZoom('zoom', axisId, partialZoom);
+    }
+
+    private getResetZoom() {
+        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
+        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? UNIT;
+
+        return { x, y };
     }
 }

@@ -25,6 +25,9 @@ const options: AgCartesianChartOptions = {
         ranges: {
             enabled: true,
         },
+        zoom: {
+            enabled: true,
+        },
     },
     tooltip: {
         enabled: true,
