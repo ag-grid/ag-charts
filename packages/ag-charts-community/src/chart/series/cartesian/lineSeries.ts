@@ -130,7 +130,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        const { xKey, yKey, xName, yName, marker, label, connectMissingData } = this.properties;
+        const { xKey, yKey, xName, yName, marker, label, connectMissingData, legendItemName } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -165,7 +165,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
                 const labelText = this.getLabelText(
                     label,
-                    { value: yDatum, datum, xKey, yKey, xName, yName },
+                    { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
                     (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
                 );
 
