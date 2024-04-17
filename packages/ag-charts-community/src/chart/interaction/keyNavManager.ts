@@ -71,11 +71,12 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         this.isClicking = true;
     }
 
-    private onClickStop(_event: PointerInteractionEvent<'drag-end' | 'click'>) {
+    private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click'>) {
         this.isClicking = false;
+        this.mouseBlur(event);
     }
 
-    private mouseBlur(event: PointerInteractionEvent<'wheel' | 'hover'>) {
+    private mouseBlur(event: PointerInteractionEvent) {
         if (!this.isMouseBlurred && this.hasBrowserFocus) {
             this.dispatch('blur', 0, event);
         }
