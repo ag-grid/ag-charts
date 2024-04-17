@@ -14,9 +14,9 @@ import { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import styles from '../styles/styles';
-import { setAriaLabel } from '../util/ariaUtil';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
+import { setAttribute } from '../util/attributeUtil';
 import { Debug } from '../util/debug';
 import { createElement, injectStyle } from '../util/dom';
 import { createId } from '../util/id';
@@ -591,7 +591,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const { seriesRect } = this;
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
-                setAriaLabel(this.ctx.scene.canvas.container, this.getAriaLabel());
+                setAttribute(this.element, 'aria-label', this.getAriaLabel());
 
                 updateSplits('🤔');
             // fallthrough
