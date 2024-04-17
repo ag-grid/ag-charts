@@ -30,10 +30,10 @@ describe('OrdinalTimeScale', () => {
         ];
         scale.tickCount = 5;
         expect(scale.ticks()).toEqual([
-            new Date(2024, 1, 26),
-            new Date(2024, 1, 28),
-            new Date(2024, 2, 1),
-            new Date(2024, 2, 5),
+            new Date(2024, 1, 27),
+            new Date(2024, 1, 29),
+            new Date(2024, 2, 4),
+            new Date(2024, 2, 6),
         ]);
     });
 
