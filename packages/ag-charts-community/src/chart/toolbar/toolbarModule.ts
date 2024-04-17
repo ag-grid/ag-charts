@@ -52,6 +52,14 @@ const zoom: AgToolbarOptions['zoom'] = {
             value: 'pan-right',
         },
         {
+            icon: 'first',
+            value: 'start',
+        },
+        {
+            icon: 'last',
+            value: 'end',
+        },
+        {
             icon: 'arrows',
             label: 'Reset',
             value: 'reset-zoom',

@@ -226,6 +226,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const isMaxZoom = this.isMaxZoom(zoom);
         const isMinZoom = this.isMinZoom(zoom);
 
+        this.toolbarManager.toggleButton('zoom', 'start', zoom.x.min > UNIT.min);
+        this.toolbarManager.toggleButton('zoom', 'end', zoom.x.max < UNIT.max);
         this.toolbarManager.toggleButton('zoom', 'pan-left', zoom.x.min > UNIT.min);
         this.toolbarManager.toggleButton('zoom', 'pan-right', zoom.x.max < UNIT.max);
         this.toolbarManager.toggleButton('zoom', 'zoom-out', !isMaxZoom);
@@ -506,6 +508,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         switch (event.value) {
             case 'reset-zoom':
                 zoom = this.getResetZoom();
+                break;
+
+            case 'start':
+                zoom.x.max = dx(zoom);
+                zoom.x.min = 0;
+                break;
+
+            case 'end':
+                zoom.x.min = UNIT.max - dx(zoom);
+                zoom.x.max = UNIT.max;
                 break;
 
             case 'pan-left':
