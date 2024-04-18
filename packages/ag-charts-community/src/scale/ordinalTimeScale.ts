@@ -99,7 +99,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     override ticks(): Date[] {
-        if (!this.domain || this.domain.length < 2) {
+        if (!this.domain) {
             return [];
         }
 
