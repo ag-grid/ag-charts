@@ -16,7 +16,7 @@ const isDebugPage = (page: string) => {
  * Test pages for integration testing
  */
 export const isTestPage = (page: string) => {
-    return page.endsWith('-test/') || page.endsWith('-test');
+    return page.endsWith('-test/') || page.endsWith('-test') || page.endsWith('/benchmarks');
 };
 
 const filterIgnoredPages = (page: string) => {
