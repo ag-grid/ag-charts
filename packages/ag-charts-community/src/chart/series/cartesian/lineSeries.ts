@@ -22,7 +22,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
-import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
 import {
@@ -509,7 +509,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         return new Group();
     }
 
-    protected computeFocusBounds(datumIndex: number): BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

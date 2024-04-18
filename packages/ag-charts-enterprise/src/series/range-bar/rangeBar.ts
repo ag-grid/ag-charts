@@ -594,7 +594,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override onDataChange() {}
 
-    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
     }
 }

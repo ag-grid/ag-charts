@@ -656,7 +656,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         this.updateAreaPaths(paths, contextData);
     }
 
-    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
         return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }

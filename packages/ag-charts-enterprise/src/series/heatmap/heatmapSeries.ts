@@ -499,11 +499,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return { inner: 0, outer: 0 };
     }
 
-    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
         const datum = this.contextNodeData?.nodeData[datumIndex];
         if (datum === undefined) return undefined;
         const { width, height } = datum;
         const { x, y } = datum.midPoint;
-        return computeBarFocusBounds({ x, y, width, height }, this.contentGroup);
+        return computeBarFocusBounds({ x, y, width, height }, this.contentGroup, seriesRect);
     }
 }

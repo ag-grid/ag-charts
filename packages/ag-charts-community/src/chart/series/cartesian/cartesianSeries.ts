@@ -1064,19 +1064,20 @@ export abstract class CartesianSeries<
         return result;
     }
 
-    public override pickFocus(opts: PickFocusInputs) : PickFocusOutputs<TDatum> | undefined {
+    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
         const nodeData = this.contextNodeData?.nodeData;
         if (nodeData === undefined || nodeData.length === 0) {
             return undefined;
         }
 
+        const { seriesRect } = opts;
         const datumIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
         const datum = nodeData[datumIndex];
-        const bbox = this.computeFocusBounds(datumIndex);
+        const bbox = this.computeFocusBounds({ datumIndex, seriesRect });
         if (bbox !== undefined) {
             return { bbox, datum, datumIndex };
         }
     }
 
-    protected abstract computeFocusBounds(datumIndex: number): BBox | undefined;
+    protected abstract computeFocusBounds(opts: PickFocusInputs): BBox | undefined;
 }
