@@ -392,7 +392,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             .map((caption) => caption.text)
             .join('. ');
         const nSeries = this.series.length ?? 0;
-        return `chart. ${nSeries} series. ${captionText}`;
+        return `chart, ${nSeries} series, ${captionText}`;
     }
 
     resetAnimations() {
@@ -596,7 +596,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const { seriesRect } = this;
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
-                setAttribute(this.element, 'aria-label', this.getAriaLabel());
+                setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
+                setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
 
                 updateSplits('🤔');
             // fallthrough
