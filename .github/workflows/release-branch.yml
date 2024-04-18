@@ -6,7 +6,7 @@ on:
             version:
                 type: string
                 required: true
-                default: '9.2.0'
+                default: '9.3.0'
             type:
                 type: 'choice'
                 required: true
