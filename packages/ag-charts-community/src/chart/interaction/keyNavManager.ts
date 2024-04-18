@@ -33,6 +33,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             interactionManager.addListener('drag-end', (e) => this.onClickStop(e), InteractionState.All),
             interactionManager.addListener('wheel', (e) => this.mouseBlur(e)),
             interactionManager.addListener('hover', (e) => this.mouseBlur(e)),
+            interactionManager.addListener('drag', (e) => this.mouseBlur(e)),
 
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
