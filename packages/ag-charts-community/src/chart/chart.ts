@@ -596,8 +596,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const { seriesRect } = this;
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
-                setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
-                setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
 
                 updateSplits('🤔');
             // fallthrough
@@ -684,6 +682,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private updateTabIndex() {
         const { enabled, tabIndex } = this.keyboard;
         this.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
+
+        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
+        setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
