@@ -964,7 +964,6 @@ export class Legend extends BaseProperties {
     private onBlur(_event: KeyNavEvent<'blur'>) {
         this.doMouseExit();
         this.focus.mode = 'item';
-        this.focus.index = 0;
         this.ctx.regionManager.updateFocusIndicatorRect(undefined);
     }
 
