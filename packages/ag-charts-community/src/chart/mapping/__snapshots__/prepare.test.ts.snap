@@ -121,6 +121,9 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "text": "Source: Northern Ireland Statistics and Research Agency",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": true,
     "item": {
@@ -639,6 +642,9 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "text": "Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": true,
     "item": {
@@ -1122,6 +1128,9 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "spacing": 20,
     "text": "Source: HM Revenue & Customs",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -1801,6 +1810,9 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "spacing": 20,
     "text": "Source: Environmental Agency",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -2536,6 +2548,9 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "text": "Source: US Geological Survey",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -2884,6 +2899,9 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "spacing": 20,
     "text": "Source: US Geological Survey",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -3406,6 +3424,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -4027,6 +4048,9 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -4387,6 +4411,9 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -4744,6 +4771,9 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "text": "Footnote",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -5092,6 +5122,9 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "text": "Source: Simple Maps",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -5438,6 +5471,9 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "spacing": 20,
     "text": "Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -5864,6 +5900,9 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -6295,6 +6334,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -6980,6 +7022,9 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "spacing": 20,
     "text": "Source: Department for Environment, Food and Rural Affairs",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -8118,6 +8163,9 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "text": "Footnote",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -8464,6 +8512,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -9235,6 +9286,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": true,
     "item": {
@@ -9723,6 +9777,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "spacing": 20,
     "text": "Source: Department for Education",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -10377,6 +10434,9 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": true,
     "item": {
@@ -10921,6 +10981,9 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -11190,6 +11253,9 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
     "spacing": 20,
     "text": "Source: Home Office",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "item": {
@@ -11499,6 +11565,9 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -11828,6 +11897,9 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -12108,6 +12180,9 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "spacing": 20,
     "text": "Source: Statistics Online Computational Resource",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -12453,6 +12528,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -13175,6 +13253,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "text": "Source: Ministry of Housing, Communities & Local Government",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": true,
     "item": {
@@ -13700,6 +13781,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "spacing": 20,
     "text": "Source: Transport for London",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
