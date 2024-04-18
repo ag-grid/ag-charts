@@ -89,4 +89,11 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         // data-point).
         return [0, 0];
     }
+
+    override formatDatum(datum: Date): string {
+        const formatter = this.scale.tickFormat({
+            specifier: '%m/%d/%y, %H:%M:%S',
+        });
+        return this.moduleCtx.callbackCache.call(formatter, datum) ?? String(datum);
+    }
 }
