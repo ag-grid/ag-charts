@@ -71,5 +71,5 @@ export type AgToolbarZoomButtonValue =
     | 'zoom-out'
     | 'pan-left'
     | 'pan-right'
-    | 'start'
-    | 'end';
+    | 'pan-start'
+    | 'pan-end';

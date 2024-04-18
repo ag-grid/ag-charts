@@ -53,11 +53,11 @@ const zoom: AgToolbarOptions['zoom'] = {
         },
         {
             icon: 'first',
-            value: 'start',
+            value: 'pan-start',
         },
         {
             icon: 'last',
-            value: 'end',
+            value: 'pan-end',
         },
         {
             icon: 'arrows',
