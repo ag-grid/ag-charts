@@ -247,6 +247,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.dataset.toolbarValue = `${options.value}`;
         }
 
+        if (options.tooltip) {
+            button.title = options.tooltip;
+        }
+
         let inner = '';
 
         if (options.icon != null) {

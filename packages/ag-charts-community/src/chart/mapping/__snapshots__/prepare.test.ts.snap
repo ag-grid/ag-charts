@@ -450,31 +450,38 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -980,31 +987,38 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -1660,31 +1674,38 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -2396,31 +2417,38 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -2746,31 +2774,38 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -3266,31 +3301,38 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -3886,31 +3928,38 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -4246,31 +4295,38 @@ by Occupation",
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -4598,31 +4654,38 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -4947,31 +5010,38 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -5298,31 +5368,38 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -5724,31 +5801,38 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -6154,31 +6238,38 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -6836,31 +6927,38 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -7978,31 +8076,38 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -8323,31 +8428,38 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -9092,31 +9204,38 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -9582,31 +9701,38 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -10232,31 +10358,38 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -10779,31 +10912,38 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -11132,31 +11272,38 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -11770,31 +11917,38 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -12307,31 +12461,38 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -13033,31 +13194,38 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -13558,31 +13726,38 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
@@ -14159,31 +14334,38 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "buttons": [
         {
           "icon": "asc",
+          "tooltip": "Zoom in",
           "value": "zoom-in",
         },
         {
           "icon": "desc",
+          "tooltip": "Zoom out",
           "value": "zoom-out",
         },
         {
           "icon": "left",
+          "tooltip": "Pan left",
           "value": "pan-left",
         },
         {
           "icon": "right",
+          "tooltip": "Pan right",
           "value": "pan-right",
         },
         {
           "icon": "first",
+          "tooltip": "Pan to the start",
           "value": "pan-start",
         },
         {
           "icon": "last",
+          "tooltip": "Pan to the end",
           "value": "pan-end",
         },
         {
           "icon": "arrows",
           "label": "Reset",
+          "tooltip": "Reset the zoom",
           "value": "reset-zoom",
         },
       ],
