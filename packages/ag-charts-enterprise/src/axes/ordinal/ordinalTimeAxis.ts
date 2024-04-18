@@ -44,12 +44,12 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_Scale.OrdinalT
         return { domain, clipped: false };
     }
 
-    protected override onLabelFormatChange(ticks: any[], format?: string) {
+    protected override onLabelFormatChange(ticks: any[], domain: any[], format?: string) {
         if (format) {
-            super.onLabelFormatChange(ticks, format);
+            super.onLabelFormatChange(ticks, domain, format);
         } else {
             // For time axis labels to look nice, even if date format wasn't set.
-            this.labelFormatter = this.scale.tickFormat({ ticks });
+            this.labelFormatter = this.scale.tickFormat({ ticks, domain });
         }
     }
 }

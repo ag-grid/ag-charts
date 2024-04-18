@@ -205,8 +205,16 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
      * the {@link TimeLocaleObject.format} method.
      * If no specifier is provided, this method returns the default time format function.
      */
-    tickFormat({ ticks, specifier }: { ticks?: any[]; specifier?: string }): (date: Date) => string {
-        return specifier == null ? defaultTimeTickFormat(ticks) : buildFormatter(specifier);
+    tickFormat({
+        ticks,
+        domain,
+        specifier,
+    }: {
+        ticks?: any[];
+        domain?: any[];
+        specifier?: string;
+    }): (date: Date) => string {
+        return specifier == null ? defaultTimeTickFormat(ticks, domain) : buildFormatter(specifier);
     }
 
     override invert(y: number): Date {
