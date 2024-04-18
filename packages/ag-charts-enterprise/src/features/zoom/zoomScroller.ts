@@ -1,6 +1,6 @@
-import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { DefinedZoomState } from './zoomTypes';
+import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
     constrainZoom,
     definedZoomState,
@@ -14,22 +14,19 @@ import {
 export class ZoomScroller {
     update(
         event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
-        step: number,
-        anchorPointX: AgZoomAnchorPoint,
-        anchorPointY: AgZoomAnchorPoint,
-        isScalingX: boolean,
-        isScalingY: boolean,
+        props: ZoomProperties,
         bbox: _Scene.BBox,
-        currentZoom?: _ModuleSupport.AxisZoomState
+        oldZoom: DefinedZoomState
     ): DefinedZoomState {
-        const oldZoom = definedZoomState(currentZoom);
         const sourceEvent = event.sourceEvent as WheelEvent;
+
+        const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         // Scale the zoom bounding box
         const dir = event.deltaY;
         let newZoom = definedZoomState(oldZoom);
-        newZoom.x.max += isScalingX ? step * dir * dx(oldZoom) : 0;
-        newZoom.y.max += isScalingY ? step * dir * dy(oldZoom) : 0;
+        newZoom.x.max += isScalingX ? scrollingStep * dir * dx(oldZoom) : 0;
+        newZoom.y.max += isScalingY ? scrollingStep * dir * dy(oldZoom) : 0;
 
         if ((anchorPointX === 'pointer' && isScalingX) || (anchorPointY === 'pointer' && isScalingY)) {
             newZoom = this.scaleZoomToPointer(sourceEvent, isScalingX, isScalingY, bbox, oldZoom, newZoom);
