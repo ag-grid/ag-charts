@@ -17,12 +17,14 @@ import {
     definedZoomState,
     dx,
     dy,
+    isZoomEqual,
     pointToRatio,
     scaleZoom,
     scaleZoomAxisWithAnchor,
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
     translateZoom,
+    unitZoomState,
 } from './zoomUtils';
 
 type PinchEvent = _ModuleSupport.PinchEvent;
@@ -226,6 +228,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private toggleToolbarButtons(zoom: DefinedZoomState) {
         const isMaxZoom = this.isMaxZoom(zoom);
         const isMinZoom = this.isMinZoom(zoom);
+        const isResetZoom = isZoomEqual(zoom, this.getResetZoom());
 
         this.toolbarManager.toggleButton('zoom', 'start', zoom.x.min > UNIT.min);
         this.toolbarManager.toggleButton('zoom', 'end', zoom.x.max < UNIT.max);
@@ -233,6 +236,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.toolbarManager.toggleButton('zoom', 'pan-right', zoom.x.max < UNIT.max);
         this.toolbarManager.toggleButton('zoom', 'zoom-out', !isMaxZoom);
         this.toolbarManager.toggleButton('zoom', 'zoom-in', !isMinZoom);
+        this.toolbarManager.toggleButton('zoom', 'reset-zoom', !isResetZoom);
     }
 
     private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
@@ -718,7 +722,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMaxZoom(zoom: DefinedZoomState): boolean {
-        return zoom.x.min === UNIT.min && zoom.x.max === UNIT.max && zoom.y.min === UNIT.min && zoom.y.max === UNIT.max;
+        return isZoomEqual(zoom, unitZoomState());
     }
 
     private updateZoom(zoom: DefinedZoomState) {
