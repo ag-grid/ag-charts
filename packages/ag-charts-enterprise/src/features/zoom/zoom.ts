@@ -142,9 +142,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private minRatioX = 0;
     private minRatioY = 0;
 
-    // TODO: This will become an option soon, and I don't want to delete my code in the meantime
-    private enableSecondaryAxis = false;
-
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -215,9 +212,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { x, y } = this.getResetZoom();
 
         if (hoveredAxis) {
-            const { id, direction } = hoveredAxis;
+            const { direction } = hoveredAxis;
             const axisZoom = direction === ChartAxisDirection.X ? x : y;
-            this.updateAxisZoom(id, direction, axisZoom);
+            this.updateAxisZoom(direction, axisZoom);
         } else if (
             paddedRect?.containsPoint(event.offsetX, event.offsetY) &&
             highlightManager.getActivePicked() == null
@@ -296,7 +293,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? anchorPointX : anchorPointY;
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
-                this.updateAxisZoom(axisId, direction, newZoom);
+                this.updateAxisZoom(direction, newZoom);
                 break;
 
             case DragState.Pan:
@@ -390,8 +387,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             event.sourceEvent.preventDefault();
 
             const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
-                this.updateAxisZoom(axisId, direction, newZoom);
+            for (const { direction, zoom: newZoom } of Object.values(newZooms)) {
+                this.updateAxisZoom(direction, newZoom);
             }
             return;
         }
@@ -552,8 +549,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
 
-        for (const [panAxisId, { direction: panDirection, zoom: panZoom }] of Object.entries(newZooms)) {
-            this.updateAxisZoom(panAxisId, panDirection, panZoom);
+        for (const { direction: panDirection, zoom: panZoom } of Object.values(newZooms)) {
+            this.updateAxisZoom(panDirection, panZoom);
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
@@ -621,31 +618,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateAxisZoom(
-        axisId: string,
         direction: _ModuleSupport.ChartAxisDirection,
         partialZoom: _ModuleSupport.ZoomState | undefined
     ) {
-        const {
-            enableSecondaryAxis,
-            ctx: { zoomManager },
-        } = this;
-
         if (!partialZoom) return;
 
-        if (!enableSecondaryAxis) {
-            const fullZoom = this.getZoom();
-            fullZoom[direction] = partialZoom;
-            this.updateZoom(fullZoom);
-            return;
-        }
-
-        const d = partialZoom.max - partialZoom.min;
-        const minRatio = direction === ChartAxisDirection.X ? this.minRatioX : this.minRatioY;
-
-        // Discard the zoom update if it would take us below the min ratio
-        if (d < minRatio) return;
-
-        zoomManager.updateAxisZoom('zoom', axisId, partialZoom);
+        const fullZoom = this.getZoom();
+        fullZoom[direction] = partialZoom;
+        this.updateZoom(fullZoom);
     }
 
     private getZoom() {
