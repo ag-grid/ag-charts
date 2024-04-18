@@ -985,7 +985,9 @@ export class Legend extends BaseProperties {
             event.interactionEvent.sourceEvent.preventDefault();
         };
         if (this.focus.mode === 'item' && event.delta === 1) {
-            this.focus.index = 0;
+            // If the user is on the first page then put the initial focus on the next button (index: 1),
+            // because the previous button (index: 0) will be grayed out.
+            this.focus.index = this.pagination.currentPage === 0 ? 1 : 0;
             consumeTabStart('page');
         } else if (this.focus.mode === 'page' && event.delta === -1) {
             const nPerPage = this.getColumnCount() * this.getRowCount();
@@ -1002,6 +1004,7 @@ export class Legend extends BaseProperties {
         } else if (this.focus.mode === 'page') {
             if (event.delta < 0) this.focus.index = 0;
             if (event.delta > 0) this.focus.index = 1;
+            this.updateFocus();
         }
     }
 
@@ -1009,8 +1012,8 @@ export class Legend extends BaseProperties {
         if (this.focus.mode === 'item') {
             this.doClick(this.getFocusedItem().datum);
         } else if (this.focus.mode === 'page') {
-            if (this.focus.index === 0) this.pagination.clickNext();
-            if (this.focus.index === 1) this.pagination.clickPrevious();
+            if (this.focus.index === 0) this.pagination.clickPrevious();
+            if (this.focus.index === 1) this.pagination.clickNext();
         }
     }
 
@@ -1047,16 +1050,9 @@ export class Legend extends BaseProperties {
         return { node, datum };
     }
 
-    private getFocusedPaginationButton(): Marker {
-        const { focus, pagination } = this;
-        if (focus.mode !== 'page') {
-            Logger.error(`getFocusedPaginationItem() should be called only when focus.mode is 'page'`);
-        }
-        return focus.index === 0 ? pagination.nextButton : pagination.previousButton;
-    }
-
     private updateFocus() {
-        if (this.focus.mode === 'item') {
+        const { focus, pagination } = this;
+        if (focus.mode === 'item') {
             const { node, datum } = this.getFocusedItem();
             const bbox = node?.computeTransformedBBox();
             this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, bbox), datum);
@@ -1064,11 +1060,11 @@ export class Legend extends BaseProperties {
             if (label) {
                 this.ctx.ariaAnnouncementService.announceValue(`Legend item ${label}`);
             }
-        } else if (this.focus.mode === 'page') {
-            const button = this.getFocusedPaginationButton();
+        } else if (focus.mode === 'page') {
+            const button = focus.index === 0 ? pagination.previousButton : pagination.nextButton
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
-            const values = ['Next legend page', 'Previous legend page'];
-            this.ctx.ariaAnnouncementService.announceValue(values[this.focus.index]);
+            const values = ['Previous legend page','Next legend page', ];
+            this.ctx.ariaAnnouncementService.announceValue(values[focus.index]);
         }
     }
 
