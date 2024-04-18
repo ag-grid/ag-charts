@@ -1390,7 +1390,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting arbitrary values between the ticks.
     formatDatum(datum: any): string {
-        return this.datumFormatter()(datum);
+        return String(datum);
     }
 
     datumFormatter(index: number = 0): (datum: any) => string {
@@ -1506,7 +1506,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) =>
-                specifier ? this.scale.tickFormat?.({ specifier }) : this.datumFormatter(),
+                specifier ? this.scale.tickFormat?.({ specifier }) : this.formatDatum,
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),
             scaleInvert: (val) => this.scale.invert?.(val),

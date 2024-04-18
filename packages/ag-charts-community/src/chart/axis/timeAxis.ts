@@ -75,4 +75,11 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         // automatically expand domain by 1 in forward direction
         return reverse ? [1, 0] : [0, 1];
     }
+
+    override formatDatum(datum: Date): string {
+        const formatter = this.scale.tickFormat({
+            specifier: '%m/%d/%y, %H:%M:%S',
+        });
+        return this.moduleCtx.callbackCache.call(formatter, datum) ?? String(datum);
+    }
 }
