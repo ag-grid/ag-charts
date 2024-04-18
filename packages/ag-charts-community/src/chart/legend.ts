@@ -41,7 +41,6 @@ import type { KeyNavEvent } from './interaction/keyNavManager';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
-import type { Marker } from './marker/marker';
 import { MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
