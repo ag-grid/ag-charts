@@ -261,7 +261,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         ];
     }
 
-    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): string {
+    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent {
         const {
             xKey,
             minKey,
@@ -283,7 +283,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!xAxis || !yAxis || !this.properties.isValid()) return '';
+        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
 
         const title = _Util.sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [

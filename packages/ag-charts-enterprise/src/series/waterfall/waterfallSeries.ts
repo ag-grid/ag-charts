@@ -611,12 +611,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: WaterfallNodeDatum): string {
+    getTooltipHtml(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent {
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
         if (!this.properties.isValid() || !categoryAxis || !valueAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { id: seriesId } = this;

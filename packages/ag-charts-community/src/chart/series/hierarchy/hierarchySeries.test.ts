@@ -1,5 +1,6 @@
 import type { BBox } from '../../../scene/bbox';
 import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { TooltipContent } from '../../tooltip/tooltip';
 import type { SeriesNodeDataContext } from '../series';
 import type { SeriesTooltip } from '../seriesTooltip';
 import { HierarchySeries } from './hierarchySeries';
@@ -24,7 +25,7 @@ class ExampleHierarchySeries extends HierarchySeries<any, any> {
         throw new Error('Method not implemented.');
     }
 
-    override getTooltipHtml(_seriesDatum: any): string {
+    override getTooltipHtml(_seriesDatum: any): TooltipContent {
         throw new Error('Method not implemented.');
     }
 

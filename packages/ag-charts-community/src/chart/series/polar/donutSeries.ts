@@ -27,6 +27,7 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
 import { SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
@@ -1242,9 +1243,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return pickByMatchingAngle(this, point);
     }
 
-    getTooltipHtml(nodeDatum: DonutNodeDatum): string {
+    getTooltipHtml(nodeDatum: DonutNodeDatum): TooltipContent {
         if (!this.properties.isValid()) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const {

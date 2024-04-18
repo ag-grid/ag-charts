@@ -517,12 +517,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): string {
+    getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { id: seriesId } = this;

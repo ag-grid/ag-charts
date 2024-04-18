@@ -462,7 +462,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: RangeBarNodeDatum): string {
+    getTooltipHtml(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             ctx: { callbackCache },
@@ -472,7 +472,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yAxis = this.getValueAxis();
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, fill, strokeWidth, formatter, tooltip } =

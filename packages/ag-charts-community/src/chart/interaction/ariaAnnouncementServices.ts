@@ -23,10 +23,4 @@ export class AriaAnnouncementService {
     public announceValue(value: string): void {
         setAttribute(this.liveElem, 'aria-label', value);
     }
-
-    public announceHtml(html: string): void {
-        const tmp = getDocument().createElement('div');
-        tmp.innerHTML = html;
-        this.announceValue(tmp.textContent ?? '');
-    }
 }

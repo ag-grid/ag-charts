@@ -24,6 +24,7 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -455,7 +456,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    getTooltipHtml(nodeDatum: BarNodeDatum): string {
+    getTooltipHtml(nodeDatum: BarNodeDatum): TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -465,7 +466,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yAxis = this.getValueAxis();
 
         if (!processedData || !this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup } = this.properties;

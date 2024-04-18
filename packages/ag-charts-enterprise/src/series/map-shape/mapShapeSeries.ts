@@ -631,7 +631,7 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): string {
+    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -640,7 +640,7 @@ export class MapShapeSeries
         } = this;
 
         if (!processedData || !properties.isValid()) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const {

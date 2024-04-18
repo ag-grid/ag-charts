@@ -403,12 +403,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: HeatmapNodeDatum): string {
+    getTooltipHtml(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, colorKey, xName, yName, colorName, stroke, strokeWidth, colorRange, formatter, tooltip } =

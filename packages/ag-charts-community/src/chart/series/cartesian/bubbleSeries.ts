@@ -16,6 +16,7 @@ import { createDatumId } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
 import type { SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -281,12 +282,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
     }
 
-    getTooltipHtml(nodeDatum: BubbleNodeDatum): string {
+    getTooltipHtml(nodeDatum: BubbleNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, marker, tooltip } = this.properties;

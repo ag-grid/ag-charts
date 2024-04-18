@@ -495,7 +495,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return result ?? {};
     }
 
-    override getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
+    override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
         const { id: seriesId } = this;
         const {
             tooltip,
@@ -508,7 +508,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         } = this.properties;
         const { datum, depth } = node;
         if (datum == null || depth == null) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const title = labelKey != null ? datum[labelKey] : undefined;
@@ -517,7 +517,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const color = format?.fill ?? node.fill;
 
         if (!tooltip.renderer && !title) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const contentArray: string[] = [];

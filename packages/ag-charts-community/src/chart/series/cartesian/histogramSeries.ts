@@ -18,6 +18,7 @@ import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from 
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
 import { Series, SeriesNodePickMatch, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import {
@@ -449,12 +450,12 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return findQuadtreeMatch(this, point);
     }
 
-    getTooltipHtml(nodeDatum: HistogramNodeDatum): string {
+    getTooltipHtml(nodeDatum: HistogramNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, xName, yName, fill: color, aggregation, tooltip } = this.properties;

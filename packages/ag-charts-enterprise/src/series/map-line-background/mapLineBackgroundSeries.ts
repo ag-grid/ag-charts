@@ -194,7 +194,7 @@ export class MapLineBackgroundSeries
         return [];
     }
 
-    override getTooltipHtml(): string {
-        return '';
+    override getTooltipHtml(): _ModuleSupport.TooltipContent {
+        return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
     }
 }
