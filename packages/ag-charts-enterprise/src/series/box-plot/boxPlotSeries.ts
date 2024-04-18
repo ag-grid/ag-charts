@@ -443,7 +443,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return activeStyles;
     }
 
-    protected computeFocusBounds(datumIndex: number): _Scene.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex].focusRect, this.contentGroup);
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeBarFocusBounds(
+            this.contextNodeData?.nodeData[datumIndex].focusRect,
+            this.contentGroup,
+            seriesRect
+        );
     }
 }

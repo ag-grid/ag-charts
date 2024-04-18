@@ -112,7 +112,7 @@ export class CandlestickSeries extends CandlestickSeriesBase<
         return params;
     }
 
-    protected computeFocusBounds(_datumIndex: number): _Scene.BBox | undefined {
+    protected computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
         return undefined; // TODO
     }
 }

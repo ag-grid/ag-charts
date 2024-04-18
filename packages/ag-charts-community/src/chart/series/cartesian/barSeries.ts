@@ -25,7 +25,13 @@ import {
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import {
+    PickFocusInputs,
+    SeriesNodePickMode,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
@@ -574,7 +580,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         return this.properties.label.enabled;
     }
 
-    protected computeFocusBounds(datumIndex: number): BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    protected computeFocusBounds({ datumIndex, seriesRect }: PickFocusInputs): BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
     }
 }

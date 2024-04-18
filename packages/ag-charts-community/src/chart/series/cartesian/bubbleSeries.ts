@@ -17,7 +17,7 @@ import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
-import type { SeriesNodeEventTypes } from '../series';
+import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
@@ -388,7 +388,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return new Group();
     }
 
-    protected computeFocusBounds(datumIndex: number): BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
     }
 }
