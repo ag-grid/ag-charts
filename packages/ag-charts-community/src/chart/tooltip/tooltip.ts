@@ -1,4 +1,5 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
+import { setAttribute } from '../../util/attributeUtil';
 import { createElement, getDocument, getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { Bounds, calculatePlacement } from '../../util/placement';
@@ -156,6 +157,7 @@ export class Tooltip extends BaseProperties {
         super();
 
         this.element = createElement('div', DEFAULT_TOOLTIP_CLASS);
+        setAttribute(this.element, 'aria-hidden', true);
 
         this.root = getDocument('body');
         this.root.appendChild(this.element);

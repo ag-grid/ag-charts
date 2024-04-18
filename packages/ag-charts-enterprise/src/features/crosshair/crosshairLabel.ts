@@ -3,6 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createElement, injectStyle } =
     _ModuleSupport;
+const { setAttribute } = _Util;
 const { BBox } = _Scene;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
@@ -97,6 +98,7 @@ export class CrosshairLabel extends BaseProperties {
 
         this.element = createElement('div');
         this.element.classList.add(DEFAULT_LABEL_CLASS);
+        setAttribute(this.element, 'aria-hidden', true);
         labelRoot.appendChild(this.element);
 
         injectStyle(defaultLabelCss, 'crosshairLabel');
