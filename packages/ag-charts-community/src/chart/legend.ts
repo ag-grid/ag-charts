@@ -1059,9 +1059,9 @@ export class Legend extends BaseProperties {
                 this.ctx.ariaAnnouncementService.announceValue(`Legend item ${label}`);
             }
         } else if (focus.mode === 'page') {
-            const button = focus.index === 0 ? pagination.previousButton : pagination.nextButton
+            const button = focus.index === 0 ? pagination.previousButton : pagination.nextButton;
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
-            const values = ['Previous legend page','Next legend page', ];
+            const values = ['Previous legend page', 'Next legend page'];
             this.ctx.ariaAnnouncementService.announceValue(values[focus.index]);
         }
     }
