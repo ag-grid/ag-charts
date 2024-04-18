@@ -1,5 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`OrdinalTimeScale should create nice ticks 1`] = `
+[
+  2024-02-27T00:00:00.000Z,
+  2024-02-29T00:00:00.000Z,
+  2024-03-04T00:00:00.000Z,
+  2024-03-06T00:00:00.000Z,
+]
+`;
+
+exports[`OrdinalTimeScale should create ticks matching the data domain if the domain length is smaller than maxTickCount 1`] = `
+[
+  2024-02-26T00:00:00.000Z,
+  2024-02-27T00:00:00.000Z,
+  2024-02-28T00:00:00.000Z,
+  2024-02-29T00:00:00.000Z,
+  2024-03-01T00:00:00.000Z,
+  2024-03-04T00:00:00.000Z,
+  2024-03-05T00:00:00.000Z,
+  2024-03-06T00:00:00.000Z,
+]
+`;
+
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every 2 days case 1`] = `
 [
   2024-02-26T00:00:00.000Z,
@@ -140,5 +162,13 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
   2020-01-01T00:00:00.000Z,
   2022-01-01T00:00:00.000Z,
   2023-01-01T00:00:00.000Z,
+]
+`;
+
+exports[`OrdinalTimeScale should extend the domain to create nice ticks matching the data domain 1`] = `
+[
+  2023-01-01T00:00:00.000Z,
+  2024-01-01T00:00:00.000Z,
+  2025-01-01T00:00:00.000Z,
 ]
 `;

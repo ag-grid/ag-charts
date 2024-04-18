@@ -29,6 +29,8 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     protected override index: Map<Date[], number> = new Map<Date[], number>();
 
+    private medianInterval?: number;
+
     /**
      * Contains unique datums only. Since `{}` is used in place of `Map`
      * for IE11 compatibility, the datums are converted `toString` before
@@ -38,42 +40,62 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override set domain(values: Date[]) {
         this.invalid = true;
 
-        const domain: Date[] = [];
-
-        const n = values.length;
-        if (n === 0) {
-            this._domain = domain;
+        if (values.length === 0) {
+            this._domain = [];
             return;
         }
 
-        this.index = new Map<Date[], number>();
-        const { index } = this;
-
-        const isReversed = values[0] > values[n - 1];
-        values.forEach((value, i) => {
-            if (i === 0) {
-                const e1 = value;
-                const e0 = this.toDomain(dateToNumber(e1) + (isReversed ? 1 : -1));
-                const dateRange = isReversed ? [e1, e0] : [e0, e1];
-                index.set(dateRange, i);
-            }
-
-            const e0 = this.toDomain(dateToNumber(value) + (isReversed ? -1 : 1));
-            const e1 = values[i + 1];
-
-            const dateRange = isReversed ? [e1, e0] : [e0, e1];
-
-            domain.push(value);
-
-            if (e1 !== undefined && index.get(dateRange) === undefined) {
-                index.set(dateRange, i + 1);
-            }
-        });
+        const domain = this.updateIndex(values);
 
         this._domain = domain;
     }
     override get domain(): Date[] {
         return this._domain;
+    }
+
+    updateIndex(values: Date[]) {
+        this.index = new Map<Date[], number>();
+        const { index } = this;
+
+        const domain: Date[] = [];
+        const extents: number[] = [];
+        const isReversed = values[0] > values.at(-1)!;
+        const indexShift = isReversed ? 0 : 1;
+        values.forEach((value, i) => {
+            const nextValue = values[i + 1];
+            const e0 = isReversed ? value : this.toDomain(dateToNumber(value) + 1);
+            const e1 = isReversed ? this.toDomain(dateToNumber(nextValue) + 1) : nextValue;
+
+            const dateRange = isReversed ? [e1, e0] : [e0, e1];
+
+            domain.push(value);
+
+            if (nextValue !== undefined && index.get(dateRange) === undefined) {
+                extents.push(Math.abs(dateToNumber(e1) - dateToNumber(e0)));
+                index.set(dateRange, i + indexShift);
+            }
+        });
+
+        // extend the first or last band by the median extent of each band
+        extents.sort((a, b) => a - b);
+        const bands = extents.length;
+        const middleIndex = Math.floor(bands / 2);
+        this.medianInterval =
+            bands > 2 && bands % 2 === 0
+                ? (extents[middleIndex - 1] + extents[middleIndex + 1]) / 2
+                : extents[middleIndex];
+
+        const intervalIndex = Math.max(0, TimeScale.getIntervalIndex(this.medianInterval) - 1);
+        const [countableTimeInterval, step] = TimeScale.tickIntervals[intervalIndex];
+        const interval = countableTimeInterval.every(step);
+
+        const i = isReversed ? values.length - 1 : 0;
+        const e1 = values[i];
+        const e0 = interval.floor(values[i]);
+        const dateRange = [e0, e1];
+        index.set(dateRange, i);
+
+        return domain;
     }
 
     override ticks(): Date[] {
@@ -83,25 +105,35 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
         this.refresh();
 
-        const { interval, maxTickCount } = this;
-        let { tickCount, minTickCount } = this;
-
-        const n = this.domain.length;
-        if (isFinite(maxTickCount) && n <= maxTickCount) {
-            tickCount = Math.max(1, n - 1);
-            minTickCount = Math.max(1, n - 1);
-        }
-
         const [t0, t1] = [dateToNumber(this.domain[0]), dateToNumber(this.domain.at(-1))];
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
+        const isReversed = t0 > t1;
 
         let ticks;
-        if (interval !== undefined) {
-            ticks = this.getTicksForInterval({ start, stop, interval });
+        if (this.interval !== undefined) {
+            ticks = this.getTicksForInterval({ start, stop, interval: this.interval });
         }
 
-        ticks ??= this.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+        const n = this.domain.length;
+        const { maxTickCount, tickCount } = this;
+        let { minTickCount } = this;
+        let medianInterval;
+        if (isFinite(maxTickCount) && n <= maxTickCount) {
+            // Produce a tick for each band using the median interval to find a default tick interval as data intervals can be irregular
+            minTickCount = Math.max(1, n);
+            medianInterval = this.medianInterval;
+        }
+
+        ticks ??= this.getDefaultTicks({
+            start,
+            stop,
+            tickCount,
+            minTickCount,
+            maxTickCount,
+            isReversed,
+            interval: medianInterval,
+        });
 
         // max one tick per band
         const tickPositions = new Set<number>();
@@ -121,12 +153,16 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         tickCount,
         minTickCount,
         maxTickCount,
+        isReversed,
+        interval,
     }: {
         start: number;
         stop: number;
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
+        isReversed: boolean;
+        interval?: number;
     }) {
         const tickInterval = TimeScale.getTickInterval({
             start,
@@ -134,6 +170,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
             count: tickCount,
             minCount: minTickCount,
             maxCount: maxTickCount,
+            target: interval,
         });
 
         if (!tickInterval) {
@@ -146,8 +183,9 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
             if (index % tickEvery > 0) {
                 continue;
             }
-            const e1 = dateToNumber(dateRange[1]);
-            ticks.push(tickInterval.floor(e1));
+
+            const tick = isReversed ? tickInterval.ceil(dateRange[0]) : tickInterval.floor(dateRange[1]);
+            ticks.splice(index, 0, tick);
         }
 
         return ticks;
