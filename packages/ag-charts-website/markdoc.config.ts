@@ -1,5 +1,6 @@
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
+import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
@@ -37,6 +38,7 @@ export default defineMarkdocConfig({
         link,
         tabs,
         tabItem,
+        videoSection,
         enterpriseIcon: {
             render: component('../../external/ag-website-shared/src/components/icon/EnterpriseIcon', 'EnterpriseIcon'),
         },
@@ -105,14 +107,6 @@ export default defineMarkdocConfig({
                 hideHeader: { type: 'Boolean' },
                 hideRequired: { type: 'Boolean' },
                 specialTypes: { type: 'Object' },
-            },
-        },
-        videoSection: {
-            render: component('./src/components/video-section/VideoSection'),
-            attributes: {
-                id: { type: String, required: true },
-                title: { type: String },
-                header: { type: Boolean },
             },
         },
         oneTrustCookies: {
