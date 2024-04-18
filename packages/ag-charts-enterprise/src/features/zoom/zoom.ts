@@ -64,11 +64,12 @@ enum DragState {
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
-            if (enabled) {
-                this.registerContextMenuActions();
-            }
             this.toolbarManager?.toggleGroup('ranges', Boolean(enabled));
             this.toolbarManager?.toggleGroup('zoom', Boolean(enabled));
+            if (enabled) {
+                this.registerContextMenuActions();
+                this.toggleToolbarButtons(definedZoomState(this.zoomManager?.getZoom()));
+            }
         },
     })
     @Validate(BOOLEAN)
