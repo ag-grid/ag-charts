@@ -1,7 +1,8 @@
 type AttributeTypeMap = {
-    role: 'status';
+    role: 'status' | 'figure';
     'aria-live': 'assertive' | 'polite';
     'aria-label': string;
+    'aria-hidden': boolean;
 };
 
 export function setAttribute<A extends keyof AttributeTypeMap>(
@@ -12,6 +13,6 @@ export function setAttribute<A extends keyof AttributeTypeMap>(
     if (value === undefined || value === '') {
         e?.removeAttribute(qualifiedName);
     } else {
-        e?.setAttribute(qualifiedName, value);
+        e?.setAttribute(qualifiedName, value.toString());
     }
 }

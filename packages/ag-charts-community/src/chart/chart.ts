@@ -387,7 +387,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     getAriaLabel(): string {
-        return [this.title.text, this.subtitle.text, this.footnote.text].filter((v) => v).join('. ');
+        const captionText = [this.title, this.subtitle, this.footnote]
+            .filter((caption) => caption.enabled && caption.text)
+            .map((caption) => caption.text)
+            .join('. ');
+        const nSeries = this.series.length ?? 0;
+        return `chart, ${nSeries} series, ${captionText}`;
     }
 
     resetAnimations() {
@@ -591,7 +596,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const { seriesRect } = this;
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
-                setAttribute(this.element, 'aria-label', this.getAriaLabel());
 
                 updateSplits('🤔');
             // fallthrough
@@ -678,6 +682,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private updateTabIndex() {
         const { enabled, tabIndex } = this.keyboard;
         this.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
+
+        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
+        setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {

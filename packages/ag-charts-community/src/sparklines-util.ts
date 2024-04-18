@@ -1,4 +1,5 @@
 export * from './util/angle';
+export * from './util/attributeUtil';
 export * from './util/equal';
 export * from './util/id';
 export * from './util/json';
