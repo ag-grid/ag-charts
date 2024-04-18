@@ -38,6 +38,10 @@ export default `
         color-mix(in srgb, var(--ag-charts-toolbar-background-color), var(--ag-charts-toolbar-foreground-color) 6%)
     );
 
+    /* Focus Indicator */
+    --ag-charts-focus-border: var(--ag-input-focus-border-color, solid 2px) var(--ag-input-focus-border-color, red);
+    --ag-charts-focus-border-shadow: var(--ag-input-focus-box-shadow, none);
+
     /* Icons */
     --ag-charts-icon-font-family: 'agChartsDefault';
     --ag-charts-icon-font-weight: normal;

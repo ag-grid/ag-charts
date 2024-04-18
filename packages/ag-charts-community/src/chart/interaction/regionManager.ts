@@ -1,7 +1,8 @@
 import type { BBox } from '../../scene/bbox';
-import { getDocument } from '../../util/dom';
+import { getDocument, injectStyle } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import { buildConsumable } from './consumableEvent';
+import * as focusStyles from './focusStyles';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
@@ -74,14 +75,12 @@ export class RegionManager {
             this.keyNavManager.addListener('submit', this.onNav.bind(this))
         );
 
+        injectStyle(focusStyles.css, focusStyles.block);
         this.focusIndicator = getDocument()?.createElement('div');
         if (this.focusIndicator !== undefined && element !== undefined) {
-            this.focusIndicator.className = 'ag-charts-focusindicator';
-            this.focusIndicator.style.position = 'absolute';
-            this.focusIndicator.style.border = '2px solid red';
-            this.focusIndicator.style.display = 'none';
-            this.focusIndicator.style.pointerEvents = 'none';
-            this.focusIndicator.style.userSelect = 'none';
+            this.focusIndicator.classList.add(focusStyles.block);
+            this.focusIndicator.classList.add(focusStyles.elements.indicator);
+            this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
             element.appendChild(this.focusIndicator);
         }
     }
@@ -320,17 +319,18 @@ export class RegionManager {
         this.dispatch(focusedRegion, event);
     }
 
-    public updateFocusIndicatorRect(rect: { x: number; y: number; width: number; height: number } | undefined) {
-        if (this.focusIndicator !== undefined) {
-            if (rect === undefined) {
-                this.focusIndicator.style.display = 'none';
-            } else {
-                this.focusIndicator.style.display = 'block';
-                this.focusIndicator.style.width = `${rect.width}px`;
-                this.focusIndicator.style.height = `${rect.height}px`;
-                this.focusIndicator.style.left = `${rect.x}px`;
-                this.focusIndicator.style.top = `${rect.y}px`;
-            }
+    public updateFocusIndicatorRect(rect?: { x: number; y: number; width: number; height: number }) {
+        if (this.focusIndicator == null) return;
+
+        if (rect == null) {
+            this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
+            return;
         }
+
+        this.focusIndicator.classList.remove(focusStyles.modifiers.hidden);
+        this.focusIndicator.style.width = `${rect.width}px`;
+        this.focusIndicator.style.height = `${rect.height}px`;
+        this.focusIndicator.style.left = `${rect.x}px`;
+        this.focusIndicator.style.top = `${rect.y}px`;
     }
 }
