@@ -246,8 +246,8 @@ export class Legend extends BaseProperties {
             region.addListener('blur', (e) => this.onBlur(e)),
             region.addListener('tab', (e) => this.onTab(e)),
             region.addListener('tab-start', (e) => this.onTabStart(e)),
-            region.addListener('nav-vert', (e) => this.onNavVert(e)),
-            region.addListener('nav-hori', (e) => this.onNavHori(e)),
+            region.addListener('nav-vert', (e) => this.onNav(e)),
+            region.addListener('nav-hori', (e) => this.onNav(e)),
             region.addListener('submit', (e) => this.onSubmit(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
@@ -959,12 +959,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private focus: { mode: 'item' | 'page'; pageButton: 'next' | 'prev'; row: number; column: number } = {
-        mode: 'item',
-        pageButton: 'next',
-        row: 0,
-        column: 0,
-    };
+    private focus: { mode: 'item' | 'page'; index: number } = { mode: 'item', index: 0 };
 
     private onBlur(_event: KeyNavEvent<'blur'>) {
         this.doMouseExit();
@@ -982,6 +977,7 @@ export class Legend extends BaseProperties {
         // Consuming the 'tab-start' event prevents to RegionManager from dispatch 'tab' events.
         const consumeTabStart = (newMode: Legend['focus']['mode']) => {
             this.focus.mode = newMode;
+            this.focus.index = 0;
             this.updateFocus();
             event.consume();
             event.interactionEvent.consume();
@@ -994,25 +990,14 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private onNavVert(event: KeyNavEvent<'nav-vert'>) {
+    private onNav(event: KeyNavEvent<'nav-vert' | 'nav-hori'>) {
         if (this.focus.mode === 'item') {
-            const newRow = this.focus.row + event.delta;
-            const maxRow = Math.max(this.getRowCount() - 1, 0);
-            this.focus.row = clamp(0, newRow, maxRow);
-            this.updateFocus();
-        }
-    }
-
-    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
-        if (this.focus.mode === 'item') {
-            const newCol = this.focus.column + event.delta;
-            const maxCol = Math.max(this.getColumnCount() - 1, 0);
-            this.focus.column = clamp(0, newCol, maxCol);
+            const newIndex = this.focus.index + event.delta;
+            this.focus.index = clamp(0, newIndex, this.data.length);
             this.updateFocus();
         } else if (this.focus.mode === 'page') {
-            if (event.delta < 0) this.focus.pageButton = 'prev';
-            if (event.delta > 0) this.focus.pageButton = 'next';
-            this.updateFocus();
+            if (event.delta < 0) this.focus.index = 0;
+            if (event.delta > 0) this.focus.index = 1;
         }
     }
 
@@ -1020,11 +1005,8 @@ export class Legend extends BaseProperties {
         if (this.focus.mode === 'item') {
             this.doClick(this.getFocusedItem().datum);
         } else if (this.focus.mode === 'page') {
-            if (this.focus.pageButton === 'next') this.pagination.clickNext();
-            if (this.focus.pageButton === 'prev') this.pagination.clickPrevious();
-            // Reset the item focus (row/col indices might be out-of-bounds in this new page):
-            this.focus.row = 0;
-            this.focus.column = 0;
+            if (this.focus.index === 0) this.pagination.clickNext();
+            if (this.focus.index === 1) this.pagination.clickPrevious();
         }
     }
 
@@ -1034,12 +1016,20 @@ export class Legend extends BaseProperties {
             return { node: undefined, datum: undefined };
         }
 
-        const { row, column } = this.focus;
-        const nodeIndex = this.pages[this.pagination.currentPage].columns[column].indices[row];
+        const { index } = this.focus;
+        const nCol = this.getColumnCount();
+        const nRow = this.getRowCount();
+        const nPerPage = nCol * nRow;
+
+        const ipage = Math.floor(index / nPerPage);
+        const irow = Math.floor((index % nPerPage) / nCol);
+        const icol = (index % nPerPage) % nCol;
+        const nodeIndex = this.pages[ipage].columns[icol].indices[irow];
         if (nodeIndex < 0) {
             Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
             return { node: undefined, datum: undefined };
         }
+        this.pagination.setPage(ipage);
 
         const node = this.itemSelection.nodes()[nodeIndex];
         const data = this.data;
@@ -1058,7 +1048,7 @@ export class Legend extends BaseProperties {
         if (focus.mode !== 'page') {
             Logger.error(`getFocusedPaginationItem() should be called only when focus.mode is 'page'`);
         }
-        return focus.pageButton === 'next' ? pagination.nextButton : pagination.previousButton;
+        return focus.index === 0 ? pagination.nextButton : pagination.previousButton;
     }
 
     private updateFocus() {
@@ -1073,8 +1063,8 @@ export class Legend extends BaseProperties {
         } else if (this.focus.mode === 'page') {
             const button = this.getFocusedPaginationButton();
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
-            const values = { next: 'Next legend page', prev: 'Previous legend page' };
-            this.ctx.ariaAnnouncementService.announceValue(values[this.focus.pageButton]);
+            const values = ['Next legend page', 'Previous legend page'];
+            this.ctx.ariaAnnouncementService.announceValue(values[this.focus.index]);
         }
     }
 

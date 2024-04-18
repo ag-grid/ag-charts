@@ -3,6 +3,7 @@ import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
+import { clamp } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
 import { ActionOnSet } from '../../util/proxy';
 import {
@@ -322,6 +323,14 @@ export class Pagination extends BaseProperties {
     public clickPrevious() {
         this.decrementPage();
         this.onPaginationChanged();
+    }
+
+    public setPage(pageNumber: number) {
+        pageNumber = clamp(0, pageNumber, this.totalPages - 1);
+        if (this.currentPage !== pageNumber) {
+            this.currentPage = pageNumber;
+            this.onPaginationChanged();
+        }
     }
 
     private onPaginationClick(event: PointerInteractionEvent<'click'>) {
