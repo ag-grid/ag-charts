@@ -34,6 +34,7 @@ const menuItemBase = {
     frameworks: z.array(z.enum(FRAMEWORKS as any)).optional(),
     isEnterprise: z.boolean().optional(),
     feature: z.boolean().optional(),
+    hidden: z.boolean().optional(),
 };
 
 const level3MenuItem = z.object({

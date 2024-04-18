@@ -263,6 +263,11 @@ function MenuGroupPagesNavigation({
     const [topLevelSeriesItem] = menuData[menuGroupKey].items;
     const chartsMenuItems = topLevelSeriesItem.items;
 
+    const isHidden = (i: { hidden?: boolean; items?: any[] }): boolean => {
+        return i.hidden === true || (i.items?.every(isHidden) ?? false);
+    };
+    if (chartsMenuItems?.every(isHidden)) return;
+
     return (
         <ul
             className={classnames(
@@ -274,20 +279,22 @@ function MenuGroupPagesNavigation({
             )}
         >
             <MenuHeader title={topLevelSeriesItem.title} />
-            {chartsMenuItems?.map((menuItem) => {
-                const { title, path } = menuItem;
-                const isActive = menuItem === activeTopLevelMenuItem;
+            {chartsMenuItems
+                ?.filter((menuItem) => !isHidden(menuItem))
+                .map((menuItem) => {
+                    const { title, path } = menuItem;
+                    const isActive = menuItem === activeTopLevelMenuItem;
 
-                return (
-                    <NavItemContainer
-                        key={`${title}-${path}`}
-                        framework={framework}
-                        menuItem={menuItem}
-                        isActive={isActive}
-                        activeMenuItem={activeMenuItem}
-                    />
-                );
-            })}
+                    return (
+                        <NavItemContainer
+                            key={`${title}-${path}`}
+                            framework={framework}
+                            menuItem={menuItem}
+                            isActive={isActive}
+                            activeMenuItem={activeMenuItem}
+                        />
+                    );
+                })}
         </ul>
     );
 }
@@ -352,14 +359,14 @@ export function PagesNavigation({
                     menuGroupKey="maps"
                     className={styles.menuGroupTypesNav}
                 />
-                {/* <MenuGroupPagesNavigation
+                <MenuGroupPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
                     menuGroupKey="financialCharts"
                     className={styles.menuGroupTypesNav}
-                /> */}
+                />
                 <MenuGroupPagesNavigation
                     menuData={menuData}
                     framework={framework}
