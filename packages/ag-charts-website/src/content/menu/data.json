@@ -312,12 +312,6 @@
                         "path": "combination-series"
                     },
                     {
-                        "title": "Candlestick",
-                        "icon": "chartsCandlestick",
-                        "path": "candlestick-series",
-                        "isEnterprise": true
-                    },
-                    {
                         "title": "Box Plot",
                         "icon": "chartsBoxPlot",
                         "path": "box-plot-series",
@@ -327,6 +321,12 @@
                         "title": "Bullet",
                         "icon": "chartsBullet",
                         "path": "bullet-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Candlestick",
+                        "icon": "chartsCandlestick",
+                        "path": "candlestick-series",
                         "isEnterprise": true
                     },
                     {

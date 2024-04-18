@@ -32,13 +32,15 @@ In this configuration:
 -   `closeKey` maps to the close value.
 -   `highKey` maps to the high/max value.
 
-Note the orientation of a Candlestick is vertical.
-
 ## Customisation
 
 {% chartExampleRunner title="Candlestick Customisations" name="candlestick-customisations" type="generated" /%}
 
 Series items are customised via the `item` configuration object.
+
+Data items with a closing value higher than the opening value are considered as `up`, and those with a closing value lower than the opening value are `down`.
+
+The properties `item.up` and `item.down` control the display of rising and falling series items.
 
 Candlestick wicks inherit series item styles but can be individually customised. Here, the `wick` property on `item.up` and `item.down` is used to customise the wick line styles of the rising and falling candlestick items.
 
@@ -66,8 +68,6 @@ series: [
     },
 ],
 ```
-
-In this configuration `up` and `down` change rising/falling series items.
 
 ## API Reference
 
