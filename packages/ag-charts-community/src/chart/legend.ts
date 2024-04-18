@@ -977,15 +977,17 @@ export class Legend extends BaseProperties {
         // Consuming the 'tab-start' event prevents to RegionManager from dispatch 'tab' events.
         const consumeTabStart = (newMode: Legend['focus']['mode']) => {
             this.focus.mode = newMode;
-            this.focus.index = 0;
             this.updateFocus();
             event.consume();
             event.interactionEvent.consume();
             event.interactionEvent.sourceEvent.preventDefault();
         };
         if (this.focus.mode === 'item' && event.delta === 1) {
+            this.focus.index = 0;
             consumeTabStart('page');
         } else if (this.focus.mode === 'page' && event.delta === -1) {
+            const nPerPage = this.getColumnCount() * this.getRowCount();
+            this.focus.index = this.pagination.currentPage * nPerPage;
             consumeTabStart('item');
         }
     }
