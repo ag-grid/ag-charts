@@ -59,6 +59,10 @@ export type SeriesNodePickMatch = {
     distance: number;
 };
 
+export type PickFocusInputs = { readonly datumIndex: number; readonly seriesRect?: Readonly<BBox> };
+
+export type PickFocusOutputs<TDatum> = { datumIndex: number; bbox: BBox; datum: TDatum };
+
 function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
@@ -765,9 +769,7 @@ export abstract class Series<
         return resize;
     }
 
-    public pickFocus(_focus: {
-        readonly datum: number;
-    }): { bbox: BBox; datum: TDatum; datumIndex: number } | undefined {
+    public pickFocus(_opts: PickFocusInputs) : PickFocusOutputs<TDatum> | undefined {
         return undefined;
     }
 }

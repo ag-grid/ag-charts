@@ -1132,7 +1132,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private handleSeriesFocus() {
-        const { series, focus } = this;
+        const { series, seriesRect, focus } = this;
         const visibleSeries = series.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;
 
@@ -1141,7 +1141,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const focusedSeries = visibleSeries[focus.series];
 
         // Update focused datum:
-        const pick = focusedSeries.pickFocus(focus);
+        const pick = focusedSeries.pickFocus({ datumIndex: focus.datum, seriesRect });
         if (pick === undefined) return;
 
         const { bbox, datum, datumIndex } = pick;

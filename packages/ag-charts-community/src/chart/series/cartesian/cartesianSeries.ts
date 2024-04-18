@@ -26,6 +26,8 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
 import type {
+    PickFocusInputs,
+    PickFocusOutputs,
     SeriesConstructorOpts,
     SeriesDirectionKeysMapping,
     SeriesNodeDataContext,
@@ -1062,15 +1064,13 @@ export abstract class CartesianSeries<
         return result;
     }
 
-    public override pickFocus(focus: {
-        readonly datum: number;
-    }): { bbox: BBox; datum: TDatum; datumIndex: number } | undefined {
+    public override pickFocus(opts: PickFocusInputs) : PickFocusOutputs<TDatum> | undefined {
         const nodeData = this.contextNodeData?.nodeData;
         if (nodeData === undefined || nodeData.length === 0) {
             return undefined;
         }
 
-        const datumIndex = clamp(0, focus.datum, nodeData.length - 1);
+        const datumIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
         const datum = nodeData[datumIndex];
         const bbox = this.computeFocusBounds(datumIndex);
         if (bbox !== undefined) {
