@@ -769,7 +769,7 @@ export abstract class Series<
         return resize;
     }
 
-    public pickFocus(_opts: PickFocusInputs) : PickFocusOutputs<TDatum> | undefined {
+    public pickFocus(_opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
         return undefined;
     }
 }
