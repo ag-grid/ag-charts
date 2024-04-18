@@ -565,8 +565,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
-                this.updateThemeClassName();
-                this.updateTabIndex();
+                this.updateDOM();
             // fallthrough
 
             case ChartUpdateType.UPDATE_DATA:
@@ -679,12 +678,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add(themeClassName);
     }
 
-    private updateTabIndex() {
+    private updateDOM() {
+        this.updateThemeClassName();
+
         const { enabled, tabIndex } = this.keyboard;
         this.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
 
-        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
         setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
+        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
