@@ -130,6 +130,13 @@ export interface AgChartSyncOptions {
     zoom?: boolean;
 }
 
+export interface AgKeyboardOptions {
+    /** Enables or disables the keyboard navigation feature. It is implicitly enabled when configuration options are provided; otherwise, it defaults to `false`. */
+    enabled?: boolean;
+    /** Allows override of the default tabIndex of 0 used by the chart */
+    tabIndex?: number;
+}
+
 export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
@@ -171,6 +178,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     contextMenu?: AgContextMenuOptions;
     /** Configuration for the toolbar. */
     toolbar?: AgToolbarOptions;
+    /** Keyboard navigation options. */
+    keyboard?: AgKeyboardOptions;
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */

@@ -157,6 +157,7 @@ export class ChartTheme {
         return {
             background: { visible: true, fill: DEFAULT_BACKGROUND_COLOUR },
             padding: { top: 20, right: 20, bottom: 20, left: 20 },
+            keyboard: { enabled: true },
             title: {
                 enabled: false,
                 text: 'Title',
