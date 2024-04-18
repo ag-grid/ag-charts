@@ -815,6 +815,9 @@ export class Legend extends BaseProperties {
                 }
             }
 
+            const name: string = datum.legendItemName ?? datum.label.text;
+            const status: string = newEnabled ? 'enabled' : 'disabled';
+            this.ctx.ariaAnnouncementService.announceValue(`series ${name} ${status}`);
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -1012,6 +1015,9 @@ export class Legend extends BaseProperties {
         } else if (this.focus.mode === 'page') {
             if (this.focus.index === 0) this.pagination.clickPrevious();
             if (this.focus.index === 1) this.pagination.clickNext();
+            this.ctx.ariaAnnouncementService.announceValue(
+                `Legend page ${this.pagination.currentPage + 1} of ${this.pages.length}`
+            );
         }
     }
 
@@ -1056,13 +1062,15 @@ export class Legend extends BaseProperties {
             this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, bbox), datum);
             const label = datum && this.getItemLabel(datum);
             if (label) {
-                this.ctx.ariaAnnouncementService.announceValue(`Legend item ${label}`);
+                this.ctx.ariaAnnouncementService.announceValue(
+                    `Legend item ${focus.index} of ${this.data.length}, ${label}, button`
+                );
             }
         } else if (focus.mode === 'page') {
             const button = focus.index === 0 ? pagination.previousButton : pagination.nextButton;
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
-            const values = ['Previous legend page', 'Next legend page'];
-            this.ctx.ariaAnnouncementService.announceValue(values[focus.index]);
+            const value = ['Previous legend page', 'Next legend page'][focus.index];
+            this.ctx.ariaAnnouncementService.announceValue(`${value}, button`);
         }
     }
 
