@@ -22,6 +22,8 @@ export interface AgToolbarButton {
     icon?: AgIconName;
     /** Text label to display on the button. */
     label?: string;
+    /** Tooltip text to display on hover over the button. */
+    tooltip?: string;
     /** Value provided to caller when the button is pressed. */
     value: any;
 }
@@ -71,5 +73,5 @@ export type AgToolbarZoomButtonValue =
     | 'zoom-out'
     | 'pan-left'
     | 'pan-right'
-    | 'start'
-    | 'end';
+    | 'pan-start'
+    | 'pan-end';

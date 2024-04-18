@@ -19,6 +19,7 @@ import {
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @ObserveChanges<Toolbar>((target) => {
+        target.processPendingEvents();
         target.toggleVisibilities();
     })
     @Validate(BOOLEAN)
@@ -60,6 +61,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         ranges: [],
         zoom: [],
     };
+
+    private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -128,6 +131,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
         const { group, value, enabled } = event;
 
+        if (this.groupButtons[group].length === 0) {
+            this.pendingButtonToggledEvents.push(event);
+            return;
+        }
+
         for (const button of this.groupButtons[group]) {
             if (button.dataset.toolbarValue !== `${value}`) continue;
             button.disabled = !enabled;
@@ -144,6 +152,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         this.toggleVisibilities();
+    }
+
+    private processPendingEvents() {
+        const pendingButtonToggledEvents = (this.pendingButtonToggledEvents ?? []).slice();
+
+        for (const event of pendingButtonToggledEvents) {
+            this.onButtonToggled(event);
+        }
+
+        this.pendingButtonToggledEvents = [];
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
@@ -227,6 +245,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         if (typeof options.value === 'string' || typeof options.value === 'number') {
             button.dataset.toolbarValue = `${options.value}`;
+        }
+
+        if (options.tooltip) {
+            button.title = options.tooltip;
         }
 
         let inner = '';

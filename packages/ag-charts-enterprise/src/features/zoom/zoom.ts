@@ -17,12 +17,14 @@ import {
     definedZoomState,
     dx,
     dy,
+    isZoomEqual,
     pointToRatio,
     scaleZoom,
     scaleZoomAxisWithAnchor,
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
     translateZoom,
+    unitZoomState,
 } from './zoomUtils';
 
 type PinchEvent = _ModuleSupport.PinchEvent;
@@ -64,11 +66,12 @@ enum DragState {
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
-            if (enabled) {
-                this.registerContextMenuActions();
-            }
             this.toolbarManager?.toggleGroup('ranges', Boolean(enabled));
             this.toolbarManager?.toggleGroup('zoom', Boolean(enabled));
+            if (enabled) {
+                this.registerContextMenuActions();
+                this.toggleToolbarButtons(definedZoomState(this.zoomManager?.getZoom()));
+            }
         },
     })
     @Validate(BOOLEAN)
@@ -225,13 +228,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private toggleToolbarButtons(zoom: DefinedZoomState) {
         const isMaxZoom = this.isMaxZoom(zoom);
         const isMinZoom = this.isMinZoom(zoom);
+        const isResetZoom = isZoomEqual(zoom, this.getResetZoom());
 
-        this.toolbarManager.toggleButton('zoom', 'start', zoom.x.min > UNIT.min);
-        this.toolbarManager.toggleButton('zoom', 'end', zoom.x.max < UNIT.max);
+        this.toolbarManager.toggleButton('zoom', 'pan-start', zoom.x.min > UNIT.min);
+        this.toolbarManager.toggleButton('zoom', 'pan-end', zoom.x.max < UNIT.max);
         this.toolbarManager.toggleButton('zoom', 'pan-left', zoom.x.min > UNIT.min);
         this.toolbarManager.toggleButton('zoom', 'pan-right', zoom.x.max < UNIT.max);
         this.toolbarManager.toggleButton('zoom', 'zoom-out', !isMaxZoom);
         this.toolbarManager.toggleButton('zoom', 'zoom-in', !isMinZoom);
+        this.toolbarManager.toggleButton('zoom', 'reset-zoom', !isResetZoom);
     }
 
     private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
@@ -510,12 +515,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 zoom = this.getResetZoom();
                 break;
 
-            case 'start':
+            case 'pan-start':
                 zoom.x.max = dx(zoom);
                 zoom.x.min = 0;
                 break;
 
-            case 'end':
+            case 'pan-end':
                 zoom.x.min = UNIT.max - dx(zoom);
                 zoom.x.max = UNIT.max;
                 break;
@@ -717,7 +722,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMaxZoom(zoom: DefinedZoomState): boolean {
-        return zoom.x.min === UNIT.min && zoom.x.max === UNIT.max && zoom.y.min === UNIT.min && zoom.y.max === UNIT.max;
+        return isZoomEqual(zoom, unitZoomState());
     }
 
     private updateZoom(zoom: DefinedZoomState) {

@@ -10,5 +10,6 @@ export const TOOLBAR_POSITIONS: ToolbarPosition[] = ['top', 'right', 'bottom', '
 export interface ToolbarButton {
     icon?: string;
     label?: string;
+    tooltip?: string;
     value: any;
 }
