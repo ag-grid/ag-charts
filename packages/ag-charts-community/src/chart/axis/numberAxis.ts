@@ -60,4 +60,12 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
 
         return ticks;
     }
+
+    override formatDatum(datum: number): string {
+        if (typeof datum === 'number') {
+            return datum.toFixed(2);
+        } else {
+            return String(datum);
+        }
+    }
 }
