@@ -79,7 +79,6 @@ export class RegionManager {
         this.focusIndicator = getDocument()?.createElement('div');
         if (this.focusIndicator !== undefined && element !== undefined) {
             this.focusIndicator.classList.add(focusStyles.block);
-            this.focusIndicator.classList.add(focusStyles.elements.indicator);
             this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
             element.appendChild(this.focusIndicator);
         }

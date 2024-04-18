@@ -1,7 +1,4 @@
 export const block = 'ag-charts-focus';
-export const elements = {
-    indicator: `${block}__indicator`,
-};
 export const modifiers = {
     hidden: `${block}--hidden`,
 };
