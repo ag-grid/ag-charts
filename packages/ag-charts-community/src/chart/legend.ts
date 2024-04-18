@@ -993,7 +993,7 @@ export class Legend extends BaseProperties {
     private onNav(event: KeyNavEvent<'nav-vert' | 'nav-hori'>) {
         if (this.focus.mode === 'item') {
             const newIndex = this.focus.index + event.delta;
-            this.focus.index = clamp(0, newIndex, this.data.length);
+            this.focus.index = clamp(0, newIndex, this.data.length - 1);
             this.updateFocus();
         } else if (this.focus.mode === 'page') {
             if (event.delta < 0) this.focus.index = 0;
