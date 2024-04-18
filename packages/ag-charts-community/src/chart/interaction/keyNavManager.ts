@@ -54,10 +54,12 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private mouseBlur(event: PointerInteractionEvent) {
-        if (!this.isMouseBlurred && this.hasBrowserFocus) {
+        if (!this.hasBrowserFocus) return;
+
+        if (!this.isMouseBlurred) {
             this.dispatch('blur', 0, event);
+            this.isMouseBlurred = true;
         }
-        this.isMouseBlurred = true;
     }
 
     private onBlur(event: FocusInteractionEvent<'blur'>) {
