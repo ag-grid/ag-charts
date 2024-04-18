@@ -1,8 +1,8 @@
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
+import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
-import { DOCS_TAB_ITEM_ID_PREFIX } from './src/constants';
 import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
@@ -35,6 +35,8 @@ export default defineMarkdocConfig({
     tags: {
         kbd,
         link,
+        tabs,
+        tabItem,
         enterpriseIcon: {
             render: component('../../external/ag-website-shared/src/components/icon/EnterpriseIcon', 'EnterpriseIcon'),
         },
@@ -103,23 +105,6 @@ export default defineMarkdocConfig({
                 hideHeader: { type: 'Boolean' },
                 hideRequired: { type: 'Boolean' },
                 specialTypes: { type: 'Object' },
-            },
-        },
-        tabs: {
-            render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
-            attributes: {
-                omitFromOverview: { type: Boolean, default: false },
-                tabItemIdPrefix: {
-                    type: String,
-                    default: DOCS_TAB_ITEM_ID_PREFIX,
-                },
-            },
-        },
-        tabItem: {
-            render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),
-            attributes: {
-                id: { type: String, required: true },
-                label: { type: String },
             },
         },
         videoSection: {

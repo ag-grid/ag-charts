@@ -1,5 +1,5 @@
+import { navigate, useHistory, useLocation } from '@ag-website-shared/utils/navigation';
 import styles from '@legacy-design-system/modules/ApiReferencePage.module.scss';
-import { navigate, useHistory, useLocation } from '@utils/navigation';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
