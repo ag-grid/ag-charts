@@ -131,9 +131,13 @@ export interface AgChartSyncOptions {
 }
 
 export interface AgKeyboardOptions {
-    /** Enables or disables the keyboard navigation feature. It is implicitly enabled when configuration options are provided; otherwise, it defaults to `false`. */
+    /** Toggles the keyboard navigation feature.
+     * Default: `true`
+     */
     enabled?: boolean;
-    /** Allows override of the default tabIndex of 0 used by the chart */
+    /** Allows setting the tabIndex of the chart canvas.
+     * Default: `0`
+     */
     tabIndex?: number;
 }
 

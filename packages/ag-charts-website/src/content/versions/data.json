@@ -21,7 +21,7 @@
             },
             {
                 "text": "Zoom Buttons",
-                "path": "./toolbar"
+                "path": "./zoom/#buttons"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-9-3"
