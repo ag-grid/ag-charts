@@ -303,9 +303,6 @@ export function computeBarFocusBounds(
 ): BBox | undefined {
     if (datum === undefined) return undefined;
 
-    // TODO: clip box
-    seriesRect;
-
     const { x, y, width, height } = datum;
-    return barGroup.inverseTransformBBox(new BBox(x, y, width, height));
+    return barGroup.inverseTransformBBox(new BBox(x, y, width, height)).clip(seriesRect);
 }

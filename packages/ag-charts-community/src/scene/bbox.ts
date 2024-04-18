@@ -86,6 +86,20 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         return nearestSquared(x, y, boxes);
     }
 
+    clip(clipRect: BBox | undefined): BBox {
+        if (clipRect === undefined) return this;
+
+        const x1 = Math.max(this.x, clipRect.x);
+        const y1 = Math.max(this.y, clipRect.y);
+        const x2 = Math.min(this.x + this.width, clipRect.x + clipRect.width);
+        const y2 = Math.min(this.y + this.height, clipRect.y + clipRect.height);
+        this.x = x1;
+        this.y = y1;
+        this.width = Math.max(0, x2 - x1);
+        this.height = Math.max(0, y2 - y1);
+        return this;
+    }
+
     shrink(amounts: Partial<Padding>): this;
     shrink(amount: number, position?: ShrinkOrGrowPosition): this;
     shrink(amount: number | Partial<Padding>, position?: ShrinkOrGrowPosition) {
