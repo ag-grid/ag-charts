@@ -315,6 +315,9 @@ export class RegionManager {
 
     private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'submit'>) {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
+        if (event.type !== 'blur') {
+            event.interactionEvent.sourceEvent.preventDefault();
+        }
         this.dispatch(focusedRegion, event);
     }
 
