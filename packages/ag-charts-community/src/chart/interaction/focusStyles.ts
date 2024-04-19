@@ -1,10 +1,22 @@
 export const block = 'ag-charts-focus';
+export const elements = {
+    wrapper: `${block}__wrapper`,
+    indicator: `${block}__indicator`,
+};
 export const modifiers = {
     hidden: `${block}--hidden`,
 };
 
 export const css = `
-.${block} {
+.${block}.${elements.wrapper} {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    overflow: hidden;
+}
+
+.${block}.${elements.indicator} {
     position: absolute;
     display: block;
     pointer-events: none;

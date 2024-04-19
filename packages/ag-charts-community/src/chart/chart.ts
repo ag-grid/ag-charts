@@ -618,6 +618,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await ctx.scene.render({ debugSplitTimes: splits, extraDebugStats });
+                this.ctx.regionManager.updateFocusWrapperRect();
                 this.extraDebugStats = {};
                 for (const key in splits) {
                     delete splits[key];
