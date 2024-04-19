@@ -1,3 +1,4 @@
+import type { AgToolbarZoomGroup } from './toolbarOptions';
 import type { Ratio } from './types';
 
 export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
@@ -22,6 +23,8 @@ export interface AgZoomRatio {
     end?: number;
 }
 
+export interface AgZoomButtons extends Omit<AgToolbarZoomGroup, 'align' | 'position'> {}
+
 export interface AgZoomOptions {
     /**
      * The anchor point for the x-axis about which to zoom into when scrolling.
@@ -38,8 +41,16 @@ export interface AgZoomOptions {
      * Default: `x`
      */
     axes?: AgZoomAxes;
+    /** A set of buttons to perform common zoom actions. */
+    buttons?: AgZoomButtons;
     /**
-     *  Set to `true` to enable the zoom module.
+     * Rate of deceleration of panning when dragging and releasing a zoomed chart. A value of 1 will cause the panning to stop immediately when released.
+     * Typical values are between 0.01 for a short pan duration, and 0.002 for a long pan duration.
+     * Default: `1`
+     */
+    deceleration?: Ratio;
+    /**
+     * Set to `true` to enable the zoom module.
      * Default: `false`
      */
     enabled?: boolean;
@@ -96,10 +107,4 @@ export interface AgZoomOptions {
      * Default: `0.1`
      */
     scrollingStep?: Ratio;
-    /**
-     * Rate of deceleration of panning when dragging and releasing a zoomed chart. A value of 1 will cause the panning to stop immediately when released.
-     * Typical values are between 0.01 for a short pan duration, and 0.002 for a long pan duration.
-     * Default: `1`
-     */
-    deceleration?: Ratio;
 }

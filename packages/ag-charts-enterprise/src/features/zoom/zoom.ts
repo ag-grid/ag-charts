@@ -1,4 +1,10 @@
-import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
+import type {
+    AgToolbarGroupAlignment,
+    AgToolbarGroupPosition,
+    AgToolbarZoomButton,
+    AgZoomAnchorPoint,
+    _Scene,
+} from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
@@ -29,9 +35,11 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 
 const {
+    ARRAY,
     BOOLEAN,
     NUMBER,
     RATIO,
+    STRING,
     UNION,
     ActionOnSet,
     ChartAxisDirection,
@@ -55,9 +63,35 @@ enum DragState {
     Select,
 }
 
+class ZoomButtonsProperties extends _ModuleSupport.BaseProperties {
+    @_ModuleSupport.ObserveChanges<ZoomButtonsProperties>((target) => {
+        target.onChange();
+    })
+    @Validate(BOOLEAN)
+    enabled?: boolean = false;
+
+    @_ModuleSupport.ObserveChanges<ZoomButtonsProperties>((target) => {
+        target.onChange();
+    })
+    @Validate(ARRAY, { optional: true })
+    buttons?: Array<AgToolbarZoomButton>;
+
+    @Validate(STRING)
+    position?: AgToolbarGroupPosition = 'floating-bottom';
+
+    @Validate(STRING)
+    align?: AgToolbarGroupAlignment = 'center';
+
+    constructor(private readonly onChange: () => void) {
+        super();
+    }
+}
+
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
+            if (!this.contextMenu || !this.toolbar) return;
+
             const zoom = this.getZoom();
             const props = this.getModuleProperties();
             this.contextMenu.registerActions(enabled, zoom, props, this.paddedRect);
@@ -69,6 +103,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     @Validate(BOOLEAN)
     public enableAxisDragging = true;
+
+    @_ModuleSupport.ObserveChanges<Zoom>((target, buttons: ZoomButtonsProperties) => {
+        if (!buttons) return;
+        target.ctx.toolbarManager.proxyGroupOptions('zoom', buttons.toJson());
+    })
+    public buttons = new ZoomButtonsProperties(() => {
+        if (!this.buttons) return;
+        this.ctx.toolbarManager.proxyGroupOptions('zoom', {
+            enabled: this.buttons.enabled,
+            buttons: this.buttons.buttons,
+        });
+    });
 
     @Validate(BOOLEAN)
     public enableDoubleClickToReset = true;
@@ -168,8 +214,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
-            ctx.zoomManager.addListener('zoom-change', (e) => this.onZoomChange(e)),
-            ctx.zoomManager.addListener('zoom-pan-start', (e) => this.onZoomPanStart(e)),
+            ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
+            ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event))
         );
     }
