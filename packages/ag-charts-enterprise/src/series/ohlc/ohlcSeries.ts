@@ -7,7 +7,7 @@ import {
 } from 'ag-charts-community';
 
 import { CandlestickSeriesBase } from '../candlestick/candlestickSeriesBase';
-import { resetCandlestickSelectionsFn } from '../candlestick/candlestickUtil';
+import { computeCandleFocusBounds, resetCandlestickSelectionsFn } from '../candlestick/candlestickUtil';
 import { OhlcGroup } from './ohlcGroup';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 import type { OhlcNodeDatum } from './ohlcTypes';
@@ -80,7 +80,7 @@ export class OhlcSeries extends CandlestickSeriesBase<
         return highlighted ? mergeDefaults(this.properties.highlightStyle.item, activeStyles) : activeStyles;
     }
 
-    protected computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return undefined; // TODO
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeCandleFocusBounds(this, opts);
     }
 }
