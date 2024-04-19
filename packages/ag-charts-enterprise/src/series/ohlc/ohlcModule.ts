@@ -23,19 +23,36 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     ],
     themeTemplate: OHLC_SERIES_THEME,
     groupable: false,
-    paletteFactory: ({ takeColors, colorsCount }) => {
+    paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
         const {
             strokes: [stroke],
         } = takeColors(colorsCount);
-        return {
-            item: {
-                up: {
-                    stroke,
-                },
-                down: {
-                    stroke,
-                },
-            },
+        const { strokes: DEFAULT_STROKES } = themeTemplateParameters.properties.get(
+            _Theme.DEFAULT_COLOURS
+        ) as unknown as {
+            fills: { [key: string]: string };
+            strokes: { [key: string]: string };
         };
+        return userPalette
+            ? {
+                  item: {
+                      up: {
+                          stroke,
+                      },
+                      down: {
+                          stroke,
+                      },
+                  },
+              }
+            : {
+                  item: {
+                      up: {
+                          stroke: DEFAULT_STROKES.GREEN,
+                      },
+                      down: {
+                          stroke: DEFAULT_STROKES.RED,
+                      },
+                  },
+              };
     },
 };

@@ -3,6 +3,7 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
@@ -46,6 +47,12 @@ const palette: AgChartThemePalette = {
 };
 
 export class PolychromaLight extends ChartTheme {
+    protected static override getDefaultColors() {
+        return {
+            fills: POLYCHROMA_LIGHT_FILLS,
+            strokes: POLYCHROMA_LIGHT_STROKES,
+        };
+    }
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
             fill: POLYCHROMA_LIGHT_FILLS.BLUE,
@@ -79,6 +86,7 @@ export class PolychromaLight extends ChartTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
+        result.properties.set(DEFAULT_COLOURS, PolychromaLight.getDefaultColors());
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             PolychromaLight.getWaterfallSeriesDefaultPositiveColors()

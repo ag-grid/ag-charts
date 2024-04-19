@@ -6,6 +6,7 @@ import {
     DEFAULT_ANNOTATION_STROKE,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_COLOURS,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_HIERARCHY_FILLS,
@@ -56,6 +57,16 @@ const palette: AgChartThemePalette = {
 };
 
 export class DarkTheme extends ChartTheme {
+    protected static override getDefaultColors(): {
+        fills: { [key: string]: string };
+        strokes: { [key: string]: string };
+    } {
+        return {
+            fills: DEFAULT_DARK_FILLS,
+            strokes: DEFAULT_DARK_STROKES,
+        };
+    }
+
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
             fill: DEFAULT_DARK_FILLS.BLUE,
@@ -90,6 +101,7 @@ export class DarkTheme extends ChartTheme {
         const result = super.getTemplateParameters();
 
         result.properties.set(IS_DARK_THEME, true);
+        result.properties.set(DEFAULT_COLOURS, DarkTheme.getDefaultColors());
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             DarkTheme.getWaterfallSeriesDefaultPositiveColors()
