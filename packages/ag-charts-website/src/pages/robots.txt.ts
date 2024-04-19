@@ -1,12 +1,12 @@
 import { SITE_URL } from '@constants';
-import { getIsProduction } from '@utils/env';
+import { getIsDev, getIsProduction } from '@utils/env';
 import { pathJoin } from '@utils/pathJoin';
 import { getSitemapIgnorePaths } from '@utils/sitemapPages';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import type { APIContext } from 'astro';
 
 // Disallow the entire site on dev
-const devRobotsTxt = () => 'User-agent: * Disallow: /';
+const disallowAllRobotsTxt = () => 'User-agent: * Disallow: /';
 
 const productionRobotsTxt = (disallowPaths: string[] = []) => `User-agent: *
 ${disallowPaths
@@ -18,11 +18,11 @@ ${disallowPaths
 Sitemap: ${pathJoin(SITE_URL, urlWithBaseUrl('/sitemap-index.xml'))}
 `;
 
-export async function GET(context: APIContext) {
-    const isProduction = getIsProduction();
+export async function GET(_context: APIContext) {
+    const disallowAll = !getIsDev() && !getIsProduction();
 
     const ignorePaths = await getSitemapIgnorePaths();
-    const output = isProduction ? productionRobotsTxt(ignorePaths) : devRobotsTxt();
+    const output = disallowAll ? disallowAllRobotsTxt() : productionRobotsTxt(ignorePaths);
 
     return new Response(output, {
         status: 200,

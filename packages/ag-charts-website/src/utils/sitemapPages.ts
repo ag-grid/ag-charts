@@ -68,6 +68,18 @@ const getTestPages = async () => {
     return docsTestPages.concat(urlWithBaseUrl('/gallery-test'));
 };
 
+const getHiddenPages = async () => {
+    const pages = await getCollection('docs');
+    const docsHiddenPages = getDocsPages(pages)
+        .filter(({ props }) => props.page.data.hidden)
+        .map((p) => {
+            const { framework, pageName } = p.params;
+            return getExamplePageUrl({ framework, path: pageName });
+        });
+
+    return docsHiddenPages;
+};
+
 const getIgnoredPages = () => {
     return [urlWithBaseUrl('/404')];
 };
@@ -79,6 +91,7 @@ export async function getSitemapIgnorePaths() {
         getTestPages(),
         getDebugPageUrls(),
         getIgnoredPages(),
+        getHiddenPages(),
     ]);
 
     return paths.flat();

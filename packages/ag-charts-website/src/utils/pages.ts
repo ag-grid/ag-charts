@@ -3,12 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import fs from 'fs/promises';
 import glob from 'glob';
 
-import {
-    DEV_FILE_BASE_PATH,
-    SITE_BASE_URL,
-    TYPESCRIPT_INTERNAL_FRAMEWORKS,
-    USE_PUBLISHED_PACKAGES,
-} from '../constants';
+import { SITE_BASE_URL, TYPESCRIPT_INTERNAL_FRAMEWORKS, USE_PUBLISHED_PACKAGES } from '../constants';
 import { getIsDev } from './env';
 import { pathJoin } from './pathJoin';
 import { urlWithBaseUrl } from './urlWithBaseUrl';
