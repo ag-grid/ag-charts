@@ -1,0 +1,72 @@
+---
+title: 'OHLC Series'
+enterprise: true
+---
+
+An OHLC Series shows open and close data with horizontal tick lines, and high and low ranges with a vertical line.
+
+## Simple OHLC
+
+{% chartExampleRunner title="Simple OHLC" name="simple-ohlc" type="generated" /%}
+
+To create an OHLC Series, use the `ohlc` series type.
+
+```js
+series: [
+    {
+        type: 'ohlc',
+        xKey: 'date',
+        lowKey: 'low',
+        openKey: 'open',
+        closeKey: 'close',
+        highKey: 'high',
+    },
+],
+```
+
+In this configuration:
+
+-   `xKey` sets the ohlc's x value.
+-   `lowKey` maps to the low/min value.
+-   `openKey` maps to the open value.
+-   `closeKey` maps to the close value.
+-   `highKey` maps to the high/max value.
+
+## Customisation
+
+{% chartExampleRunner title="OHLC Customisations" name="ohlc-customisations" type="generated" /%}
+
+Series items are customised via the `item` configuration object.
+
+Data items with a closing value higher than the opening value are considered as `up`, and those with a closing value lower than the opening value are `down`.
+
+The properties `item.up` and `item.down` control the display of rising and falling series items.
+
+```js
+series: [
+    {
+        type: 'ohlc',
+        // ...
+            item: {
+                up: {
+                    stroke: '#5090dc',
+                    strokeWidth: 2,
+                },
+                down: {
+                    stroke: '#5090dc',
+                    strokeWidth: 2,
+                },
+            },
+    },
+],
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgOhlcSeriesOptions" label="OHLC Series" %}
+{% apiReference id="AgOhlcSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

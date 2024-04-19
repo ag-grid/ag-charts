@@ -333,6 +333,12 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "OHLC",
+                        "icon": "chartsCandlestick",
+                        "path": "ohlc-series",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Heatmap",
                         "icon": "chartsHeatmap",
                         "path": "heatmap-series",
