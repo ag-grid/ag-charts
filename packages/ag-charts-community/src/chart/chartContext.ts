@@ -74,7 +74,7 @@ export class ChartContext implements ModuleContext {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(chart.keyboard, element);
-        this.regionManager = new RegionManager(this.interactionManager, element);
+        this.regionManager = new RegionManager(this.interactionManager, this.scene.canvas.element, element);
         this.toolbarManager = new ToolbarManager(element);
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();

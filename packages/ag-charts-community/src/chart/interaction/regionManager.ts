@@ -49,7 +49,8 @@ export interface RegionProperties {
 export class RegionManager {
     private currentTabIndex = 0;
     public readonly keyNavManager: KeyNavManager;
-    private readonly focusIndicator?: HTMLDivElement;
+    private readonly focusWrapper: HTMLDivElement;
+    private readonly focusIndicator: HTMLDivElement;
 
     private currentRegion?: Region;
     private isDragging = false;
@@ -60,6 +61,7 @@ export class RegionManager {
 
     constructor(
         private readonly interactionManager: InteractionManager,
+        private readonly canvasElement: HTMLCanvasElement,
         element: HTMLElement
     ) {
         this.keyNavManager = new KeyNavManager(interactionManager);
@@ -76,12 +78,14 @@ export class RegionManager {
         );
 
         injectStyle(focusStyles.css, focusStyles.block);
-        this.focusIndicator = getDocument()?.createElement('div');
-        if (this.focusIndicator !== undefined && element !== undefined) {
-            this.focusIndicator.classList.add(focusStyles.block);
-            this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
-            element.appendChild(this.focusIndicator);
-        }
+        this.focusWrapper = getDocument().createElement('div');
+        this.focusIndicator = getDocument().createElement('div');
+        this.focusWrapper.appendChild(this.focusIndicator);
+        element.appendChild(this.focusWrapper);
+
+        const { block, elements, modifiers } = focusStyles;
+        this.focusWrapper.classList.add(block, elements.wrapper);
+        this.focusIndicator.classList.add(block, elements.indicator, modifiers.hidden);
     }
 
     public destroy() {
@@ -322,13 +326,18 @@ export class RegionManager {
         this.dispatch(focusedRegion, event);
     }
 
-    public updateFocusIndicatorRect(rect?: { x: number; y: number; width: number; height: number }) {
-        if (this.focusIndicator == null) return;
+    public updateFocusWrapperRect() {
+        this.focusWrapper.style.width = this.canvasElement.style.width;
+        this.focusWrapper.style.height = this.canvasElement.style.height;
+    }
 
+    public updateFocusIndicatorRect(rect?: { x: number; y: number; width: number; height: number }) {
         if (rect == null) {
             this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
             return;
         }
+
+        this.updateFocusWrapperRect();
 
         this.focusIndicator.classList.remove(focusStyles.modifiers.hidden);
         this.focusIndicator.style.width = `${rect.width}px`;
