@@ -3,6 +3,7 @@ import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
@@ -45,6 +46,13 @@ const palette: AgChartThemePalette = {
 };
 
 export class PolychromaDark extends DarkTheme {
+    protected static override getDefaultColors() {
+        return {
+            fills: POLYCHROMA_DARK_FILLS,
+            strokes: POLYCHROMA_DARK_STROKES,
+        };
+    }
+
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
             fill: POLYCHROMA_DARK_FILLS.BLUE,
@@ -78,6 +86,7 @@ export class PolychromaDark extends DarkTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
+        result.properties.set(DEFAULT_COLOURS, PolychromaDark.getDefaultColors());
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             PolychromaDark.getWaterfallSeriesDefaultPositiveColors()

@@ -3,6 +3,7 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
@@ -43,6 +44,13 @@ const palette: AgChartThemePalette = {
 };
 
 export class VividLight extends ChartTheme {
+    protected static override getDefaultColors() {
+        return {
+            fills: VIVID_FILLS,
+            strokes: VIVID_STROKES,
+        };
+    }
+
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
             fill: VIVID_FILLS.BLUE,
@@ -76,6 +84,7 @@ export class VividLight extends ChartTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
+        result.properties.set(DEFAULT_COLOURS, VividLight.getDefaultColors());
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             VividLight.getWaterfallSeriesDefaultPositiveColors()

@@ -14,7 +14,7 @@ import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
 import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
-import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
+import { DEFAULT_FILLS, DEFAULT_STROKES, DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_HANDLE_FILL,
@@ -22,6 +22,7 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_COLOURS,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_FONT_FAMILY,
@@ -358,6 +359,13 @@ export class ChartTheme {
         return deepClone(themeInstance);
     }
 
+    protected static getDefaultColors(): DefaultColors {
+        return {
+            fills: DEFAULT_FILLS,
+            strokes: DEFAULT_STROKES,
+        };
+    }
+
     protected static getWaterfallSeriesDefaultPositiveColors() {
         return {
             fill: DEFAULT_FILLS.BLUE,
@@ -419,6 +427,7 @@ export class ChartTheme {
         properties.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         properties.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
+        properties.set(DEFAULT_COLOURS, ChartTheme.getDefaultColors());
         properties.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
         properties.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
         properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());

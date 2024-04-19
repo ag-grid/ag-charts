@@ -3,6 +3,7 @@ import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
@@ -42,6 +43,13 @@ const palette: AgChartThemePalette = {
 };
 
 export class VividDark extends DarkTheme {
+    protected static override getDefaultColors() {
+        return {
+            fills: VIVID_DARK_FILLS,
+            strokes: VIVID_DARK_STROKES,
+        };
+    }
+
     protected static override getWaterfallSeriesDefaultPositiveColors() {
         return {
             fill: VIVID_DARK_FILLS.BLUE,
@@ -75,6 +83,7 @@ export class VividDark extends DarkTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
+        result.properties.set(DEFAULT_COLOURS, VividDark.getDefaultColors());
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             VividDark.getWaterfallSeriesDefaultPositiveColors()
