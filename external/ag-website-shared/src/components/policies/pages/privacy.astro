@@ -10,7 +10,12 @@ interface Props {
 const { name } = Astro.props;
 ---
 
-<Layout title={`${name} Privacy`} showSearchBar={true}>
+<Layout
+    title={`${name}: Privacy Policy`}
+    description="We take your privacy very seriously at AG Grid. This page outlines our privacy policy which we have updated in light of GDPR."
+    showSearchBar={true}
+    showDocsNav={false}
+>
     <div class:list={styles.policyPage}>
         <section class="layout-grid">
             <div class="layout-max-width-small">

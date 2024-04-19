@@ -10,7 +10,12 @@ interface Props {
 const { name } = Astro.props;
 ---
 
-<Layout title={`${name} Cookies`} showSearchBar={true}>
+<Layout
+    title={`${name}: Cookies Policy`}
+    description="This page outlines our policy in relation to the cookies that we collect on our website."
+    showSearchBar={true}
+    showDocsNav={false}
+>
     <div class:list={styles.policyPage}>
         <section class="layout-grid">
             <div class="layout-max-width-small">
