@@ -28,10 +28,7 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
         const { fills, strokes } = takeColors(colorsCount);
         const { fills: DEFAULT_FILLS, strokes: DEFAULT_STROKES } = properties.get(
             _Theme.DEFAULT_COLOURS
-        ) as unknown as {
-            fills: { [key: string]: string };
-            strokes: { [key: string]: string };
-        };
+        ) as unknown as _ModuleSupport.DefaultColors;
         return {
             item: {
                 up: {

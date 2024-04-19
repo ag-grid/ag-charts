@@ -1,5 +1,6 @@
 import type { AgChartThemeOptions, AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
+import type { DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_HANDLE_FILL,
@@ -57,10 +58,7 @@ const palette: AgChartThemePalette = {
 };
 
 export class DarkTheme extends ChartTheme {
-    protected static override getDefaultColors(): {
-        fills: { [key: string]: string };
-        strokes: { [key: string]: string };
-    } {
+    protected static override getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_DARK_FILLS,
             strokes: DEFAULT_DARK_STROKES,

@@ -29,10 +29,7 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
         } = takeColors(colorsCount);
         const { strokes: DEFAULT_STROKES } = themeTemplateParameters.properties.get(
             _Theme.DEFAULT_COLOURS
-        ) as unknown as {
-            fills: { [key: string]: string };
-            strokes: { [key: string]: string };
-        };
+        ) as unknown as _ModuleSupport.DefaultColors;
         return {
             item: {
                 up: {
