@@ -25,15 +25,15 @@ const options: AgChartOptions = {
             closeKey: 'close',
             item: {
                 up: {
-                    fill: '#45ba45',
-                    stroke: 'black',
+                    fill: 'transparent',
+                    stroke: '#2b5c95',
                     wick: {
                         strokeWidth: 2,
                     },
                 },
                 down: {
-                    fill: '#ba4545',
-                    stroke: 'black',
+                    fill: '#5090dc',
+                    stroke: '#2b5c95',
                     wick: {
                         strokeWidth: 2,
                     },
