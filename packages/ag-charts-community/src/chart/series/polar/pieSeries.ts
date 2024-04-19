@@ -119,7 +119,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
 
-    private nodeData: PieNodeDatum[] = [];
     private angleScale: LinearScale;
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.

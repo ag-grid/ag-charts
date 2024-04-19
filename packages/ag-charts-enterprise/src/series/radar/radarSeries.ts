@@ -53,8 +53,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
 
-    protected nodeData: RadarNodeDatum[] = [];
-
     protected resetInvalidToZero: boolean = false;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

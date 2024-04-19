@@ -71,8 +71,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     protected override readonly NodeEvent = RadialBarSeriesNodeEvent;
 
-    protected nodeData: RadialBarNodeDatum[] = [];
-
     private groupScale = new BandScale<string>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
