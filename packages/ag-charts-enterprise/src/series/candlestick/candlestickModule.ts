@@ -32,30 +32,17 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
             fills: { [key: string]: string };
             strokes: { [key: string]: string };
         };
-        return userPalette
-            ? {
-                  item: {
-                      up: {
-                          fill: 'transparent',
-                          stroke: strokes[0],
-                      },
-                      down: {
-                          fill: fills[0],
-                          stroke: strokes[0],
-                      },
-                  },
-              }
-            : {
-                  item: {
-                      up: {
-                          fill: DEFAULT_FILLS.GREEN,
-                          stroke: DEFAULT_STROKES.GREEN,
-                      },
-                      down: {
-                          fill: DEFAULT_FILLS.RED,
-                          stroke: DEFAULT_STROKES.RED,
-                      },
-                  },
-              };
+        return {
+            item: {
+                up: {
+                    fill: userPalette ? 'transparent' : DEFAULT_FILLS.GREEN,
+                    stroke: userPalette ? strokes[0] : DEFAULT_STROKES.GREEN,
+                },
+                down: {
+                    fill: userPalette ? fills[0] : DEFAULT_FILLS.RED,
+                    stroke: userPalette ? strokes[0] : DEFAULT_STROKES.RED,
+                },
+            },
+        };
     },
 };

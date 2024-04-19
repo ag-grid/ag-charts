@@ -33,26 +33,15 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
             fills: { [key: string]: string };
             strokes: { [key: string]: string };
         };
-        return userPalette
-            ? {
-                  item: {
-                      up: {
-                          stroke,
-                      },
-                      down: {
-                          stroke,
-                      },
-                  },
-              }
-            : {
-                  item: {
-                      up: {
-                          stroke: DEFAULT_STROKES.GREEN,
-                      },
-                      down: {
-                          stroke: DEFAULT_STROKES.RED,
-                      },
-                  },
-              };
+        return {
+            item: {
+                up: {
+                    stroke: userPalette ? stroke : DEFAULT_STROKES.GREEN,
+                },
+                down: {
+                    stroke: userPalette ? stroke : DEFAULT_STROKES.RED,
+                },
+            },
+        };
     },
 };
