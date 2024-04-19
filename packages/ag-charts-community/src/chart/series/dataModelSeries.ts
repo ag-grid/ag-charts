@@ -1,9 +1,11 @@
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import type { BBox } from '../../scene/bbox';
+import { clamp } from '../../util/number';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
-import type { SeriesNodeDataContext } from './series';
+import type { PickFocusInputs, PickFocusOutputs, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
@@ -59,6 +61,25 @@ export abstract class DataModelSeries<
     protected checkProcessedDataAnimatable() {
         if (!this.isProcessedDataAnimatable()) {
             this.ctx.animationManager.skipCurrentBatch();
+        }
+    }
+
+    protected abstract computeFocusBounds(opts: PickFocusInputs): BBox | undefined;
+
+    protected abstract getNodeData(): TDatum[] | undefined;
+
+    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+        const nodeData = this.getNodeData();
+        if (nodeData === undefined || nodeData.length === 0) {
+            return undefined;
+        }
+
+        const { seriesRect } = opts;
+        const datumIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
+        const datum = nodeData[datumIndex];
+        const bbox = this.computeFocusBounds({ datumIndex, seriesRect });
+        if (bbox !== undefined) {
+            return { bbox, datum, datumIndex };
         }
     }
 }

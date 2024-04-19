@@ -14,7 +14,6 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
-import { clamp } from '../../../util/number';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -26,8 +25,6 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
 import type {
-    PickFocusInputs,
-    PickFocusOutputs,
     SeriesConstructorOpts,
     SeriesDirectionKeysMapping,
     SeriesNodeDataContext,
@@ -151,6 +148,10 @@ export abstract class CartesianSeries<
     private _contextNodeData?: TContext;
     get contextNodeData() {
         return this._contextNodeData;
+    }
+
+    public override getNodeData(): TDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
     }
 
     protected override readonly NodeEvent = CartesianSeriesNodeEvent;
@@ -1063,21 +1064,4 @@ export abstract class CartesianSeries<
 
         return result;
     }
-
-    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
-        const nodeData = this.contextNodeData?.nodeData;
-        if (nodeData === undefined || nodeData.length === 0) {
-            return undefined;
-        }
-
-        const { seriesRect } = opts;
-        const datumIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
-        const datum = nodeData[datumIndex];
-        const bbox = this.computeFocusBounds({ datumIndex, seriesRect });
-        if (bbox !== undefined) {
-            return { bbox, datum, datumIndex };
-        }
-    }
-
-    protected abstract computeFocusBounds(opts: PickFocusInputs): BBox | undefined;
 }

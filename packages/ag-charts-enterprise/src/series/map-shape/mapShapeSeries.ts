@@ -56,6 +56,10 @@ export class MapShapeSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
+    protected override getNodeData(): MapShapeNodeDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
+    }
+
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
     }
@@ -696,5 +700,9 @@ export class MapShapeSeries
                 ...this.getModuleTooltipParams(),
             }
         );
+    }
+
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return undefined; // TODO
     }
 }

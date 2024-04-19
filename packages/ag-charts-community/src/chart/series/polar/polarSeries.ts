@@ -11,7 +11,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
-import { SeriesNodePickMode } from '../series';
+import { PickFocusInputs, SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
@@ -42,6 +42,10 @@ export abstract class PolarSeries<
     protected itemGroup = this.contentGroup.appendChild(new Group());
     public getItemNodes(): TNode[] {
         return this.itemGroup.children as TNode[];
+    }
+
+    protected override getNodeData(): TDatum[] | undefined {
+        return undefined; // TODO
     }
 
     protected itemSelection: Selection<TNode, TDatum> = Selection.select(
@@ -223,5 +227,9 @@ export abstract class PolarSeries<
 
     private getAnimationData(seriesRect?: BBox) {
         return { seriesRect };
+    }
+
+    protected computeFocusBounds(_opts: PickFocusInputs): BBox | undefined {
+        return undefined; // TODO
     }
 }
