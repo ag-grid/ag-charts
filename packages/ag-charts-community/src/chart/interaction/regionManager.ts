@@ -245,12 +245,8 @@ export class RegionManager {
     }
 
     private dispatchTabStart(event: KeyNavEvent<'tab'>): boolean {
-        const { delta, sourceEvent } = event;
-        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({
-            type: 'tab-start',
-            delta,
-            sourceEvent,
-        });
+        const { delta, interactionEvent } = event;
+        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({ type: 'tab-start', delta, interactionEvent });
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
 
         this.dispatch(focusedRegion, startEvent);
@@ -282,7 +278,7 @@ export class RegionManager {
     }
 
     private onFocus(event: KeyNavEvent<'browserfocus'>) {
-        const { delta, sourceEvent } = event;
+        const { delta, interactionEvent } = event;
         const newIndex =
             delta > 0
                 ? this.getNextInteractableTabIndex(-1, 1)
@@ -290,7 +286,7 @@ export class RegionManager {
         this.currentTabIndex = newIndex ?? 0;
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         if (focusedRegion) {
-            this.dispatch(focusedRegion, buildConsumable({ type: 'tab', delta, sourceEvent }));
+            this.dispatch(focusedRegion, buildConsumable({ type: 'tab', delta, interactionEvent }));
         }
     }
 
@@ -311,7 +307,7 @@ export class RegionManager {
             if (newRegion === undefined || !newRegion.properties.canInteraction()) {
                 this.updateFocusIndicatorRect(undefined);
             } else {
-                event.sourceEvent.consume();
+                event.interactionEvent.sourceEvent.preventDefault();
                 this.dispatch(newRegion, event);
             }
         }
