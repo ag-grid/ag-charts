@@ -14,7 +14,7 @@ export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'n
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
     delta: number;
-    sourceEvent: InteractionEvent;
+    sourceEvent?: InteractionEvent;
 };
 
 // The purpose of this class is to decouple keyboard input events configuration with

@@ -300,24 +300,25 @@ export class RegionManager {
 
     private onTab(event: KeyNavEvent<'tab'>) {
         const consumed = this.dispatchTabStart(event);
-        if (!consumed) {
-            this.validateCurrentTabIndex();
-            const newTabIndex = this.getNextInteractableTabIndex(this.currentTabIndex, event.delta);
-            const newRegion = this.getTabRegion(newTabIndex);
-            const focusedRegion = this.getTabRegion(this.currentTabIndex);
-            if (newTabIndex !== undefined) {
-                this.currentTabIndex = newTabIndex;
-            }
+        if (consumed) return;
 
-            if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
-                this.dispatch(focusedRegion, { ...event, type: 'blur' });
-            }
-            if (newRegion === undefined || !newRegion.properties.canInteraction()) {
-                this.updateFocusIndicatorRect(undefined);
-            } else {
-                event.sourceEvent.consume();
-                this.dispatch(newRegion, event);
-            }
+        this.validateCurrentTabIndex();
+        const newTabIndex = this.getNextInteractableTabIndex(this.currentTabIndex, event.delta);
+        const newRegion = this.getTabRegion(newTabIndex);
+        const focusedRegion = this.getTabRegion(this.currentTabIndex);
+        if (newTabIndex !== undefined) {
+            this.currentTabIndex = newTabIndex;
+        }
+
+        if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
+            // Build a distinct consumable event, since we don't care about consumed status of blur.
+            const blurEvent = buildConsumable({ type: 'blur' as const, delta: event.delta });
+            this.dispatch(focusedRegion, blurEvent);
+        }
+        if (newRegion === undefined || !newRegion.properties.canInteraction()) {
+            this.updateFocusIndicatorRect(undefined);
+        } else {
+            this.dispatch(newRegion, event);
         }
     }
 
