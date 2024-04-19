@@ -969,8 +969,9 @@ export class Legend extends BaseProperties {
         this.ctx.regionManager.updateFocusIndicatorRect(undefined);
     }
 
-    private onTab(_event: KeyNavEvent<'tab'>) {
+    private onTab(event: KeyNavEvent<'tab'>) {
         this.updateFocus();
+        event.consume();
     }
 
     private onTabStart(event: KeyNavEvent<'tab-start'>) {
@@ -982,8 +983,6 @@ export class Legend extends BaseProperties {
             this.focus.mode = newMode;
             this.updateFocus();
             event.consume();
-            event.interactionEvent.consume();
-            event.interactionEvent.sourceEvent.preventDefault();
         };
         if (this.focus.mode === 'item' && event.delta === 1) {
             // If the user is on the first page then put the initial focus on the next button (index: 1),
@@ -1002,10 +1001,12 @@ export class Legend extends BaseProperties {
             const newIndex = this.focus.index + event.delta;
             this.focus.index = clamp(0, newIndex, this.data.length - 1);
             this.updateFocus();
+            event.consume();
         } else if (this.focus.mode === 'page') {
             if (event.delta < 0) this.focus.index = 0;
             if (event.delta > 0) this.focus.index = 1;
             this.updateFocus();
+            event.consume();
         }
     }
 
