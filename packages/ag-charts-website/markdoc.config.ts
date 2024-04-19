@@ -1,4 +1,5 @@
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
+import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
 import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
@@ -36,6 +37,7 @@ export default defineMarkdocConfig({
     tags: {
         kbd,
         link,
+        oneTrustCookies,
         tabs,
         tabItem,
         videoSection,
@@ -108,9 +110,6 @@ export default defineMarkdocConfig({
                 hideRequired: { type: 'Boolean' },
                 specialTypes: { type: 'Object' },
             },
-        },
-        oneTrustCookies: {
-            render: component('./src/components/OneTrustCookiesDetails.astro'),
         },
         br: {
             render: 'br',
