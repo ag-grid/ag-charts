@@ -2,7 +2,7 @@
 import Layout from '@layouts/Layout.astro';
 import { getEntry } from 'astro:content';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/PagesNavigationFromLocalStorage';
+import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/components/PagesNavigationFromLocalStorage';
 
 const menuEntry = await getEntry('menu', 'data');
 ---
