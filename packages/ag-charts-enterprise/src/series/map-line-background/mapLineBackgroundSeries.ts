@@ -2,6 +2,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
+import { computeGeoFocusBounds } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineBackgroundNodeDatum, MapLineBackgroundSeriesProperties } from './mapLineBackgroundSeriesProperties';
 
@@ -54,12 +55,12 @@ export class MapLineBackgroundSeries
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapLineBackgroundNodeDatum> = Selection.select(
+    public datumSelection: _Scene.Selection<GeoGeometry, MapLineBackgroundNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
 
-    private contextNodeData?: MapLineNodeDataContext;
+    public contextNodeData?: MapLineNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -202,7 +203,7 @@ export class MapLineBackgroundSeries
         return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
     }
 
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return undefined; // TODO
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeGeoFocusBounds(this, opts);
     }
 }

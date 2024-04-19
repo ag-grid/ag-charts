@@ -10,6 +10,7 @@ import {
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
+import { computeGeoFocusBounds } from '../map-util/mapUtil';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -73,7 +74,7 @@ export class MapShapeSeries
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
+    public datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
         this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum> = Selection.select(
@@ -85,7 +86,7 @@ export class MapShapeSeries
         () => this.nodeFactory()
     );
 
-    private contextNodeData?: MapShapeNodeDataContext;
+    public contextNodeData?: MapShapeNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -702,7 +703,7 @@ export class MapShapeSeries
         );
     }
 
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return undefined; // TODO
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeGeoFocusBounds(this, opts);
     }
 }
