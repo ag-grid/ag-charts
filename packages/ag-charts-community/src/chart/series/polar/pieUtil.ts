@@ -172,10 +172,10 @@ export function computeSectorFocusBounds(series: SectorSeries, opts: PickFocusIn
         { radius: datum.outerRadius, angle: datum.startAngle },
         { radius: datum.outerRadius, angle: datum.endAngle },
     ];
-    const rightAngles = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+    const rightAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
     for (const rightAngle of rightAngles) {
         if (isBetweenAngles(rightAngle, datum.startAngle, datum.endAngle)) {
-            pointVars.push({radius: datum.outerRadius, angle: rightAngle});
+            pointVars.push({ radius: datum.outerRadius, angle: rightAngle });
         }
     }
     const points = pointVars.map(({ radius, angle }) => displacePointFromVector(centerX, centerY, radius, angle));
