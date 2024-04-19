@@ -1,7 +1,12 @@
+import { br } from '@ag-website-shared/markdoc/tags/br';
+import { enterpriseIcon } from '@ag-website-shared/markdoc/tags/enterpriseIcon';
+import { idea } from '@ag-website-shared/markdoc/tags/idea';
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
+import { note } from '@ag-website-shared/markdoc/tags/note';
 import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
 import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
+import { warning } from '@ag-website-shared/markdoc/tags/warning';
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
@@ -14,10 +19,7 @@ export default defineMarkdocConfig({
             ...nodes.heading, // Preserve default anchor link generation
             render: component('./src/components/Heading.astro'),
         },
-        link: {
-            ...nodes.link,
-            render: component('./src/components/Link.astro'),
-        },
+        link,
     },
     functions: {
         isFramework: {
@@ -41,9 +43,11 @@ export default defineMarkdocConfig({
         tabs,
         tabItem,
         videoSection,
-        enterpriseIcon: {
-            render: component('../../external/ag-website-shared/src/components/icon/EnterpriseIcon', 'EnterpriseIcon'),
-        },
+        br,
+        note,
+        warning,
+        idea,
+        enterpriseIcon,
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),
             attributes: {
@@ -55,15 +59,6 @@ export default defineMarkdocConfig({
         },
         featureComparator: {
             render: component('./src/components/featureComparator/FeatureComparator.astro'),
-        },
-        note: {
-            render: component('../../external/ag-website-shared/src/components/alert/Note'),
-        },
-        warning: {
-            render: component('../../external/ag-website-shared/src/components/alert/Warning'),
-        },
-        idea: {
-            render: component('../../external/ag-website-shared/src/components/alert/Idea'),
         },
         image: {
             render: component('./src/components/image/Image.astro'),
@@ -110,9 +105,6 @@ export default defineMarkdocConfig({
                 hideRequired: { type: 'Boolean' },
                 specialTypes: { type: 'Object' },
             },
-        },
-        br: {
-            render: 'br',
         },
     },
 });
