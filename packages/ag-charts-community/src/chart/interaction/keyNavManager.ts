@@ -14,7 +14,7 @@ export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'n
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
     delta: number;
-    interactionEvent: InteractionEvent;
+    sourceEvent: InteractionEvent;
 };
 
 // The purpose of this class is to decouple keyboard input events configuration with
@@ -106,7 +106,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private dispatch(type: KeyNavEventType, delta: number, interactionEvent: InteractionEvent) {
-        const event = buildConsumable({ type, delta, interactionEvent });
+        const event = buildConsumable({ type, delta, sourceEvent: interactionEvent });
         dispatchTypedConsumable(this.listeners, type, event);
     }
 }

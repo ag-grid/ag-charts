@@ -12,12 +12,17 @@ type TypedListener<TType extends string, TEvent extends TypedConsumableEvent<TTy
     (event: TEvent) => void
 >;
 
-export function buildConsumable<T>(obj: T): T & ConsumableEvent {
+export function buildConsumable<T>(obj: T & { sourceEvent?: Event | ConsumableEvent }): T & ConsumableEvent {
     const builtEvent = {
         ...obj,
         consumed: false,
         consume() {
             builtEvent.consumed = true;
+            if (obj.sourceEvent instanceof Event) {
+                obj.sourceEvent?.preventDefault();
+            } else {
+                obj.sourceEvent?.consume();
+            }
         },
     };
     return builtEvent;

@@ -1095,23 +1095,27 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private onBlur(_event: KeyNavEvent<'blur'>): void {
+    private onBlur(event: KeyNavEvent<'blur'>): void {
         this.ctx.regionManager.updateFocusIndicatorRect(undefined);
         this.resetPointer();
+        event.consume();
     }
 
-    private onTab(_event: KeyNavEvent<'tab'>): void {
+    private onTab(event: KeyNavEvent<'tab'>): void {
         this.handleFocus();
+        event.consume();
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
         this.focus.series += event.delta;
         this.handleFocus();
+        event.consume();
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
         this.focus.datum += event.delta;
         this.handleFocus();
+        event.consume();
     }
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
@@ -1131,11 +1135,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private focus = { series: 0, datum: 0 };
     private handleFocus() {
         const overlayFocus = this.overlays.getFocusInfo();
-        if (overlayFocus !== undefined) {
+        if (overlayFocus == null) {
+            this.handleSeriesFocus();
+        } else {
             this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
-        } else {
-            this.handleSeriesFocus();
         }
     }
 
