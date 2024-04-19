@@ -67,3 +67,14 @@ export function angleBetween(angle0: number, angle1: number) {
     angle1 = normalizeAngle360(angle1);
     return angle1 - angle0 + (angle0 > angle1 ? 2 * Math.PI : 0);
 }
+
+export function displacePointFromVector(
+    centerX: number,
+    centerY: number,
+    radius: number,
+    angle: number
+): { x: number; y: number } {
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    return { x, y };
+}

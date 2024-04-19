@@ -20,6 +20,7 @@ const {
     animationValidation,
     isFiniteNumber,
     SeriesNodePickMode,
+    computeSectorFocusBounds,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -72,8 +73,6 @@ export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Sector | _Scene.RadialColumnShape,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, RadialColumnSeriesBaseProperties<any>, ItemPathType> {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
-
-    protected nodeData: RadialColumnNodeDatum[] = [];
 
     private groupScale = new BandScale<string>();
 
@@ -552,5 +551,9 @@ export abstract class RadialColumnSeriesBase<
 
     override computeLabelsBBox() {
         return null;
+    }
+
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeSectorFocusBounds(this, opts);
     }
 }

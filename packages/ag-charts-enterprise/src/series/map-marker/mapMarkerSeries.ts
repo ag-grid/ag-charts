@@ -58,6 +58,10 @@ export class MapMarkerSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
+    public override getNodeData(): MapMarkerNodeDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
+    }
+
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
     }
@@ -820,5 +824,9 @@ export class MapMarkerSeries
                 ...this.getModuleTooltipParams(),
             }
         );
+    }
+
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return undefined; // TODO
     }
 }

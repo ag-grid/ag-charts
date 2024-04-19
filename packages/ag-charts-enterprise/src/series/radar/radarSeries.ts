@@ -13,6 +13,7 @@ const {
     resetMarkerFn,
     animationValidation,
     isFiniteNumber,
+    computeMarkerFocusBounds,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -52,8 +53,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
-
-    protected nodeData: RadarNodeDatum[] = [];
 
     protected resetInvalidToZero: boolean = false;
 
@@ -664,5 +663,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             lineNode.checkPathDirty();
         }
+    }
+
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this.nodeData[datumIndex], this.contentGroup);
     }
 }
