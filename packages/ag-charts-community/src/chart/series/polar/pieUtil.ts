@@ -162,6 +162,9 @@ export function computeSectorFocusBounds(series: SectorSeries, opts: PickFocusIn
 
     const { centerX, centerY } = series;
 
+    // To calculate the bbox of the sector, we find the min & max X/Y coords of
+    // 1) the points of the straight lines of the sector and
+    // 2) the points on the top/right/left/bottom of the outer arc (if the sector passes through these).
     const datum = nodeData[opts.datumIndex];
     const pointVars: { radius: number; angle: number }[] = [
         { radius: datum.innerRadius, angle: datum.startAngle },
@@ -169,6 +172,12 @@ export function computeSectorFocusBounds(series: SectorSeries, opts: PickFocusIn
         { radius: datum.outerRadius, angle: datum.startAngle },
         { radius: datum.outerRadius, angle: datum.endAngle },
     ];
+    const rightAngles = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+    for (const rightAngle of rightAngles) {
+        if (isBetweenAngles(rightAngle, datum.startAngle, datum.endAngle)) {
+            pointVars.push({radius: datum.outerRadius, angle: rightAngle});
+        }
+    }
     const points = pointVars.map(({ radius, angle }) => displacePointFromVector(centerX, centerY, radius, angle));
     const xs = points.map((p) => p.x);
     const ys = points.map((p) => p.y);
