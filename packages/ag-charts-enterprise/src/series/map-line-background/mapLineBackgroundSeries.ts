@@ -32,7 +32,7 @@ export class MapLineBackgroundSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
-    protected override getNodeData(): MapLineBackgroundNodeDatum[] | undefined {
+    public override getNodeData(): MapLineBackgroundNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
     }
 

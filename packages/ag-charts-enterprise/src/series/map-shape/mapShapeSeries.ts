@@ -56,7 +56,7 @@ export class MapShapeSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
-    protected override getNodeData(): MapShapeNodeDatum[] | undefined {
+    public override getNodeData(): MapShapeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
     }
 

@@ -66,7 +66,7 @@ export abstract class DataModelSeries<
 
     protected abstract computeFocusBounds(opts: PickFocusInputs): BBox | undefined;
 
-    protected abstract getNodeData(): TDatum[] | undefined;
+    public abstract getNodeData(): TDatum[] | undefined;
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
         const nodeData = this.getNodeData();

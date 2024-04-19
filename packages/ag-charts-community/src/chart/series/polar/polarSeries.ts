@@ -44,7 +44,7 @@ export abstract class PolarSeries<
         return this.itemGroup.children as TNode[];
     }
 
-    protected override getNodeData(): TDatum[] | undefined {
+    public override getNodeData(): TDatum[] | undefined {
         return undefined; // TODO
     }
 
