@@ -10,7 +10,7 @@ import { CandlestickGroup } from './candlestickGroup';
 import { CandlestickSeriesBase } from './candlestickSeriesBase';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeDatum } from './candlestickTypes';
-import { resetCandlestickSelectionsFn } from './candlestickUtil';
+import { computeCandleFocusBounds, resetCandlestickSelectionsFn } from './candlestickUtil';
 
 const { extractDecoratedProperties, mergeDefaults } = _ModuleSupport;
 export class CandlestickSeries extends CandlestickSeriesBase<
@@ -112,7 +112,7 @@ export class CandlestickSeries extends CandlestickSeriesBase<
         return params;
     }
 
-    protected computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return undefined; // TODO
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeCandleFocusBounds(this, opts);
     }
 }

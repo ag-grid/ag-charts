@@ -3,7 +3,7 @@ import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 import type { CandlestickBaseGroup } from './candlestickGroup';
 import type { CandlestickNodeBaseDatum, CandlestickNodeDatum } from './candlestickTypes';
 
-const { NODE_UPDATE_STATE_TO_PHASE_MAPPING } = _ModuleSupport;
+const { computeBarFocusBounds, NODE_UPDATE_STATE_TO_PHASE_MAPPING } = _ModuleSupport;
 
 export type AnimatableCandlestickGroupDatum = {
     x?: number;
@@ -104,4 +104,25 @@ function getCoordinates(datum: CandlestickNodeDatum) {
         width: bandwidth,
         height: Math.max(yBottom - y, 0.001), // This is to differentiate between animation setting height 0 and data values resulting in height 0
     };
+}
+
+type AbstractCandlestickSeries = {
+    getNodeData(): CandlestickNodeBaseDatum[] | undefined;
+    contentGroup: _Scene.Group;
+};
+
+export function computeCandleFocusBounds(
+    series: AbstractCandlestickSeries,
+    opts: _ModuleSupport.PickFocusInputs
+): _Scene.BBox | undefined {
+    const candleDatum = series.getNodeData()?.at(opts.datumIndex);
+    const datum = !candleDatum
+        ? undefined
+        : {
+              x: candleDatum.scaledValues.xValue,
+              y: candleDatum.scaledValues.highValue,
+              width: candleDatum.bandwidth,
+              height: candleDatum.scaledValues.lowValue - candleDatum.scaledValues.highValue,
+          };
+    return computeBarFocusBounds(datum, series.contentGroup, opts.seriesRect);
 }
