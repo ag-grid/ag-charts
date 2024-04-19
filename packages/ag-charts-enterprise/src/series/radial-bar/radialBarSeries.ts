@@ -20,6 +20,7 @@ const {
     seriesLabelFadeOutAnimation,
     animationValidation,
     isFiniteNumber,
+    computeSectorFocusBounds,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -537,5 +538,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
+    }
+
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeSectorFocusBounds(this, opts);
     }
 }

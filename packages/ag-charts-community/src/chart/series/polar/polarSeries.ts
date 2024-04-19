@@ -11,7 +11,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
-import { PickFocusInputs, SeriesNodePickMode } from '../series';
+import { SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
@@ -228,9 +228,5 @@ export abstract class PolarSeries<
 
     private getAnimationData(seriesRect?: BBox) {
         return { seriesRect };
-    }
-
-    protected computeFocusBounds(_opts: PickFocusInputs): BBox | undefined {
-        return undefined; // TODO
     }
 }

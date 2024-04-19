@@ -1,9 +1,10 @@
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
+import { BBox } from '../../../scene/bbox';
 import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
-import { isBetweenAngles, toRadians } from '../../../util/angle';
+import { displacePointFromVector, isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Circle } from '../../marker/circle';
-import type { SeriesNodePickMatch } from '../series';
+import type { PickFocusInputs, SeriesNodePickMatch } from '../series';
 
 type AnimatableSectorDatum = {
     radius: number;
@@ -120,17 +121,26 @@ export function resetPieSelectionsFn(_node: Sector, datum: AnimatableSectorDatum
     };
 }
 
+type SectorVariables = {
+    readonly innerRadius: number;
+    readonly outerRadius: number;
+    readonly startAngle: number;
+    readonly endAngle: number;
+};
+type SectorSceneNode = SectorVariables & { readonly datum: any };
+type SectorNodeDatum = SectorVariables;
 type SectorSeries = {
     centerX: number;
     centerY: number;
-    getItemNodes(): Sector[];
+    getItemNodes(): SectorSceneNode[];
+    getNodeData(): SectorNodeDatum[] | undefined;
 };
 
 export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesNodePickMatch | undefined {
     const dy = point.y - series.centerY;
     const dx = point.x - series.centerX;
     const angle = Math.atan2(dy, dx);
-    const sectors: Sector[] = series.getItemNodes();
+    const sectors: SectorSceneNode[] = series.getItemNodes();
     for (const sector of sectors) {
         if (isBetweenAngles(angle, sector.startAngle, sector.endAngle)) {
             const radius = Math.sqrt(dx * dx + dy * dy);
@@ -144,4 +154,28 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
         }
     }
     return undefined;
+}
+
+export function computeSectorFocusBounds(series: SectorSeries, opts: PickFocusInputs): BBox | undefined {
+    const nodeData = series.getNodeData();
+    if (nodeData === undefined) return undefined;
+
+    const { centerX, centerY } = series;
+
+    const datum = nodeData[opts.datumIndex];
+    const pointVars: { radius: number; angle: number }[] = [
+        { radius: datum.innerRadius, angle: datum.startAngle },
+        { radius: datum.innerRadius, angle: datum.endAngle },
+        { radius: datum.outerRadius, angle: datum.startAngle },
+        { radius: datum.outerRadius, angle: datum.endAngle },
+    ];
+    const points = pointVars.map(({ radius, angle }) => displacePointFromVector(centerX, centerY, radius, angle));
+    const xs = points.map((p) => p.x);
+    const ys = points.map((p) => p.y);
+
+    const x = Math.min(...xs);
+    const y = Math.min(...ys);
+    const width = Math.max(...xs) - x;
+    const height = Math.max(...ys) - y;
+    return new BBox(x, y, width, height);
 }
