@@ -2,11 +2,10 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
-import { computeGeoFocusBounds } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapShapeBackgroundNodeDatum, MapShapeBackgroundSeriesProperties } from './mapShapeBackgroundSeriesProperties';
 
-const { clamp, createDatumId, Series, SeriesNodePickMode, Validate } = _ModuleSupport;
+const { createDatumId, Series, SeriesNodePickMode, Validate } = _ModuleSupport;
 const { Selection, Group, PointerEvents } = _Scene;
 const { Logger } = _Util;
 
@@ -52,12 +51,12 @@ export class MapShapeBackgroundSeries
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    public datumSelection: _Scene.Selection<GeoGeometry, MapShapeBackgroundNodeDatum> = Selection.select(
+    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeBackgroundNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
 
-    public contextNodeData?: MapShapeBackgroundNodeDataContext;
+    private contextNodeData?: MapShapeBackgroundNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -201,22 +200,7 @@ export class MapShapeBackgroundSeries
         return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
     }
 
-    public override pickFocus(
-        opts: _ModuleSupport.PickFocusInputs
-    ): _ModuleSupport.PickFocusOutputs<MapShapeBackgroundNodeDatum> | undefined {
-        const nodeData = this.contextNodeData?.nodeData;
-        if (nodeData === undefined || nodeData.length === 0) {
-            return undefined;
-        }
-
-        const { seriesRect } = opts;
-        const datumIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
-        const datum = nodeData[datumIndex];
-        const bbox = computeGeoFocusBounds(this, { datumIndex, seriesRect });
-        if (bbox !== undefined) {
-            return { bbox, datum, datumIndex };
-        }
-
+    public override pickFocus(_opts: _ModuleSupport.PickFocusInputs) {
         return undefined;
     }
 }
