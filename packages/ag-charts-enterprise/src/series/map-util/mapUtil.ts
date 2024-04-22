@@ -1,5 +1,7 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import type { GeoGeometry } from './geoGeometry';
+
 type AnimatableMapMarkerDatum = {
     scalingX: number;
     scalingY: number;
@@ -30,4 +32,25 @@ export function prepareMapMarkerAnimationFunctions() {
     };
 
     return { fromFn, toFn };
+}
+
+type SomeMapSeries<TDatum> = {
+    contextNodeData?: { nodeData: TDatum[] };
+    datumSelection: _Scene.Selection<GeoGeometry, TDatum>;
+};
+
+export function computeGeoFocusBounds<TDatum>(
+    series: SomeMapSeries<TDatum>,
+    opts: _ModuleSupport.PickFocusInputs
+): _Scene.BBox | undefined {
+    const datum = series.contextNodeData?.nodeData[opts.datumIndex];
+    if (datum === undefined) return undefined;
+
+    for (const node of series.datumSelection.nodes()) {
+        if (node.datum === datum) {
+            return node.computeTransformedBBox();
+        }
+    }
+
+    return undefined;
 }

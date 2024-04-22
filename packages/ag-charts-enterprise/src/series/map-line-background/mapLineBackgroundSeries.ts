@@ -203,6 +203,6 @@ export class MapLineBackgroundSeries
     }
 
     protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return undefined; // TODO
+        return undefined;
     }
 }

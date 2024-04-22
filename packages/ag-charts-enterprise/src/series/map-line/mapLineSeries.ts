@@ -10,6 +10,7 @@ import {
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
 import { lineStringCenter } from '../map-util/lineStringUtil';
+import { computeGeoFocusBounds } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -52,7 +53,7 @@ export class MapLineSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(this.contentGroup, () =>
+    public datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(this.contentGroup, () =>
         this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
@@ -64,7 +65,7 @@ export class MapLineSeries
         () => this.nodeFactory()
     );
 
-    private contextNodeData?: MapLineNodeDataContext;
+    public contextNodeData?: MapLineNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -635,7 +636,7 @@ export class MapLineSeries
         );
     }
 
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return undefined; // TODO
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeGeoFocusBounds(this, opts);
     }
 }

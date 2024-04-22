@@ -199,4 +199,8 @@ export class MapShapeBackgroundSeries
     override getTooltipHtml(): _ModuleSupport.TooltipContent {
         return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
     }
+
+    public override pickFocus(_opts: _ModuleSupport.PickFocusInputs) {
+        return undefined;
+    }
 }
