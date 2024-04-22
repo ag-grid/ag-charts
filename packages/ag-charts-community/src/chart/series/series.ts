@@ -59,7 +59,11 @@ export type SeriesNodePickMatch = {
     distance: number;
 };
 
-export type PickFocusInputs = { readonly datumIndex: number; readonly seriesRect?: Readonly<BBox> };
+export type PickFocusInputs = {
+    readonly datumIndex: number;
+    readonly datumIndexDelta: number;
+    readonly seriesRect?: Readonly<BBox>;
+};
 
 export type PickFocusOutputs<TDatum> = { datumIndex: number; bbox: BBox; datum: TDatum };
 
