@@ -36,6 +36,7 @@ export const css = `
     border-right: var(--ag-charts-toolbar-border);
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     position: absolute;
 }
 
@@ -90,7 +91,7 @@ export const css = `
 
 .${modifiers[ToolbarPosition.FloatingTop]} .${elements.group},
 .${modifiers[ToolbarPosition.FloatingBottom]} .${elements.group} {
-    gap: 1em;
+    gap: var(--ag-charts-toolbar-gap);
 }
 
 .${elements.button} {
@@ -98,18 +99,17 @@ export const css = `
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
     font-weight: 500;
-    height: 100%;
     justify-content: center;
     margin: 0;
-    padding: 0;
+    padding: var(--ag-charts-button-padding);
+    border-radius: var(--ag-charts-button-radius);
+    transition: background-color .25s ease-in-out;
 }
 
 .${modifiers[ToolbarPosition.Top]} .${elements.button},
 .${modifiers[ToolbarPosition.Bottom]} .${elements.button},
 .${modifiers[ToolbarPosition.FloatingTop]} .${elements.button},
 .${modifiers[ToolbarPosition.FloatingBottom]} .${elements.button} {
-    min-width: var(--ag-charts-toolbar-size);
-    padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers[ToolbarPosition.Left]} .${elements.button},
@@ -138,6 +138,9 @@ export const css = `
     color: var(--ag-charts-toolbar-disabled-foreground-color);
 }
 
+.${elements.button}:not([disabled]) {
+  cursor: pointer;
+}
 
 .${elements.icon} + .${elements.label} {
     margin-left: var(--ag-charts-size);
