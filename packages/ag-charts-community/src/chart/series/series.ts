@@ -61,7 +61,7 @@ export type SeriesNodePickMatch = {
 
 export type PickFocusInputs = {
     readonly datumIndex: number;
-    readonly datumDelta: number;
+    readonly datumIndexDelta: number;
     readonly seriesRect?: Readonly<BBox>;
 };
 

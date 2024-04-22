@@ -84,11 +84,11 @@ export abstract class DataModelSeries<
             return undefined;
         }
 
-        const { datumDelta, seriesRect } = opts;
+        const { datumIndexDelta, seriesRect } = opts;
         const datumIndex = this.computeFocusDatumIndex(opts, nodeData, derivedSeries.seriesItemEnabled);
 
         const datum = nodeData[datumIndex];
-        const bbox = this.computeFocusBounds({ datumIndex, datumDelta, seriesRect });
+        const bbox = this.computeFocusBounds({ datumIndex, datumIndexDelta, seriesRect });
         if (bbox !== undefined) {
             return { bbox, datum, datumIndex };
         }
@@ -111,7 +111,7 @@ export abstract class DataModelSeries<
 
         // Search forward or backwards depending on the delta direction.
         let datumIndex: number = opts.datumIndex;
-        if (opts.datumDelta >= 0) {
+        if (opts.datumIndexDelta >= 0) {
             while (datumIndex < seriesItemEnabled.length && !seriesItemEnabled[datumIndex]) {
                 datumIndex++;
             }
@@ -126,7 +126,7 @@ export abstract class DataModelSeries<
         if (datumIndex >= 0 && datumIndex < seriesItemEnabled.length) {
             return datumIndex;
         } else {
-            return opts.datumIndex - opts.datumDelta;
+            return opts.datumIndex - opts.datumIndexDelta;
         }
     }
 }

@@ -1134,17 +1134,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private focus = { series: 0, datum: 0 };
-    private handleFocus(datumDelta?: number) {
+    private handleFocus(datumIndexDelta?: number) {
         const overlayFocus = this.overlays.getFocusInfo();
         if (overlayFocus == null) {
-            this.handleSeriesFocus(datumDelta ?? 0);
+            this.handleSeriesFocus(datumIndexDelta ?? 0);
         } else {
             this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
 
-    private handleSeriesFocus(datumDelta: number) {
+    private handleSeriesFocus(datumIndexDelta: number) {
         const { series, seriesRect, focus } = this;
         const visibleSeries = series.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;
@@ -1154,7 +1154,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const focusedSeries = visibleSeries[focus.series];
 
         // Update focused datum:
-        const pick = focusedSeries.pickFocus({ datumIndex: focus.datum, datumDelta, seriesRect });
+        const pick = focusedSeries.pickFocus({ datumIndex: focus.datum, datumIndexDelta, seriesRect });
         if (pick === undefined) return;
 
         const { bbox, datum, datumIndex } = pick;
