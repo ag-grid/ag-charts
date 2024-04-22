@@ -2,7 +2,6 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
@@ -104,10 +103,10 @@ export class AreaSeries extends CartesianSeries<
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const ids = [
             `area-stack-${groupIndex}-yValues`,
@@ -143,7 +142,7 @@ export class AreaSeries extends CartesianSeries<
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                keyProperty(xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(yKey, isContinuousY, { id: `yValueRaw`, ...common }),
                 ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'current', {
                     id: `yValueEnd`,
@@ -226,7 +225,7 @@ export class AreaSeries extends CartesianSeries<
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
-        const { isContinuousY } = this.isContinuous();
+        const { isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 

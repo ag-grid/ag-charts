@@ -76,7 +76,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || this.data == null || !this.visible) return;
 
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
         const { xKey, yKey, sizeKey, labelKey, colorDomain, colorRange, colorKey, marker } = this.properties;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [

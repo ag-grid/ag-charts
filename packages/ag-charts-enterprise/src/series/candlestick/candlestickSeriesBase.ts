@@ -30,7 +30,7 @@ const {
 } = _ModuleSupport;
 
 const { sanitizeHtml, Logger } = _Util;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
+const { ContinuousScale } = _Scale;
 
 class CandlestickSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -135,8 +135,8 @@ export abstract class CandlestickSeriesBase<
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.getCategoryAxis()?.scale;
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const yScale = this.getValueAxis()?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const extraProps = [];
         if (animationEnabled) {
@@ -147,7 +147,7 @@ export abstract class CandlestickSeriesBase<
         }
         if (openKey) {
             extraProps.push(
-                valueProperty(openKey, true, {
+                valueProperty(openKey, isContinuousY, {
                     id: `openValue`,
                     invalidValue: undefined,
                     missingValue: undefined,
@@ -157,10 +157,10 @@ export abstract class CandlestickSeriesBase<
 
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                valueProperty(closeKey, true, { id: `closeValue` }),
-                valueProperty(highKey, true, { id: `highValue` }),
-                valueProperty(lowKey, true, { id: `lowValue` }),
+                keyProperty(xKey, isContinuousX, { id: `xValue` }),
+                valueProperty(closeKey, isContinuousY, { id: `closeValue` }),
+                valueProperty(highKey, isContinuousY, { id: `highValue` }),
+                valueProperty(lowKey, isContinuousY, { id: `lowValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],

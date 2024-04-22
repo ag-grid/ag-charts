@@ -3,7 +3,6 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
-import { ContinuousScale } from '../../../scale/continuousScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
@@ -78,7 +77,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const { xKey, yKey } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const props: DataModelOptions<any, false>['props'] = [];
 
@@ -96,11 +98,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             }
         }
 
-        const xScale = this.axes[ChartAxisDirection.X]?.scale;
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
-
         props.push(
-            valueProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+            valueProperty(xKey, isContinuousX, { id: 'xValue' }),
             valueProperty(yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 

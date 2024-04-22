@@ -100,7 +100,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { xKey, yKey, colorRange, colorKey } = this.properties;
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [

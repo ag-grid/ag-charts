@@ -62,7 +62,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || this.data == null || !this.visible) return;
 
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
         const { xKey, yKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {

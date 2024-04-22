@@ -103,7 +103,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, yLowKey, yHighKey } = this.properties;
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const extraProps = [];
         const animationEnabled = !this.ctx.animationManager.isSkipped();
