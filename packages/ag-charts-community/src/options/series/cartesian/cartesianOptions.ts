@@ -154,6 +154,10 @@ export interface AgCartesianAxesTheme {
     category?: AgCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to time axes. */
     time?: AgTimeAxisThemeOptions;
+    /** This extends the common axis configuration with options specific to ordinal-time axes. */
+    'ordinal-time'?: AgOrdinalTimeAxisThemeOptions;
+    /** This extends the common axis configuration with options specific to grouped-category axes. */
+    'grouped-category'?: AgGroupedCategoryAxisThemeOptions;
 }
 
 export interface AgNumberAxisThemeOptions
