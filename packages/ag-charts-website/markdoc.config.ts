@@ -1,3 +1,6 @@
+import { isFramework } from '@ag-website-shared/markdoc/functions/isFramework';
+import { isNotJavascriptFramework } from '@ag-website-shared/markdoc/functions/isNotJavascriptFramework';
+import { heading } from '@ag-website-shared/markdoc/nodes/heading';
 import { br } from '@ag-website-shared/markdoc/tags/br';
 import { enterpriseIcon } from '@ag-website-shared/markdoc/tags/enterpriseIcon';
 import { idea } from '@ag-website-shared/markdoc/tags/idea';
@@ -7,7 +10,7 @@ import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
 import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
 import { warning } from '@ag-website-shared/markdoc/tags/warning';
-import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
 import { link } from './src/utils/markdoc/tags/link';
@@ -15,26 +18,12 @@ import { link } from './src/utils/markdoc/tags/link';
 export default defineMarkdocConfig({
     extends: [prism()],
     nodes: {
-        heading: {
-            ...nodes.heading, // Preserve default anchor link generation
-            render: component('./src/components/Heading.astro'),
-        },
+        heading,
         link,
     },
     functions: {
-        isFramework: {
-            transform(parameters, context) {
-                const pageFramework = context.variables?.framework;
-                const [framework] = Object.values(parameters);
-                return framework === pageFramework;
-            },
-        },
-        isNotJavascriptFramework: {
-            transform(_, context) {
-                const pageFramework = context.variables?.framework;
-                return pageFramework !== 'javascript';
-            },
-        },
+        isFramework,
+        isNotJavascriptFramework,
     },
     tags: {
         kbd,

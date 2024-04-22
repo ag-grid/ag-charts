@@ -1,5 +1,5 @@
+import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import { navigate, scrollIntoViewById } from '@ag-website-shared/utils/navigation';
-import { LinkIcon } from '@components/link-icon/LinkIcon';
 import styles from '@legacy-design-system/modules/ApiReference.module.scss';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
