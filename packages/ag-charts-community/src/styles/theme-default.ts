@@ -37,6 +37,11 @@ export default `
         --ag-input-disabled-background-color,
         color-mix(in srgb, var(--ag-charts-toolbar-background-color), var(--ag-charts-toolbar-foreground-color) 6%)
     );
+    --ag-charts-toolbar-gap: var(--ag-charts-size);
+
+    /* Buttons */
+    --ag-charts-button-padding: var(--ag-charts-size);
+    --ag-charts-button-radius: var(--ag-border-radius, 4px);
 
     /* Focus Indicator */
     --ag-charts-focus-border: solid 2px var(--ag-input-focus-border-color, var(--ag-charts-active-color));
