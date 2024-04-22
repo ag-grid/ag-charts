@@ -2,12 +2,17 @@ import type { AgToolbarOptions } from '../../options/chart/toolbarOptions';
 import type { ToolbarGroup } from '../toolbar/toolbarTypes';
 import { BaseManager } from './baseManager';
 
-type EventTypes = ToolbarButtonPressed | ToolbarButtonToggled | ToolbarGroupToggled;
+type EventTypes = ToolbarButtonPressed | ToolbarButtonToggled | ToolbarGroupToggled | ToolbarProxyGroupOptions;
 type ToolbarButtonPressed = 'button-pressed';
 type ToolbarButtonToggled = 'button-toggled';
 type ToolbarGroupToggled = 'group-toggled';
+type ToolbarProxyGroupOptions = 'proxy-group-options';
 
-type ToolbarEvent = ToolbarButtonPressedEvent | ToolbarButtonToggledEvent | ToolbarGroupToggledEvent;
+type ToolbarEvent =
+    | ToolbarButtonPressedEvent
+    | ToolbarButtonToggledEvent
+    | ToolbarGroupToggledEvent
+    | ToolbarProxyGroupOptionsEvent;
 type ToolbarEventButtonValue<T extends ToolbarGroup> = NonNullable<
     NonNullable<AgToolbarOptions[T]>['buttons']
 >[number]['value'];
@@ -32,6 +37,11 @@ export interface ToolbarButtonToggledEvent<T = any> extends Event<ToolbarButtonT
     enabled: boolean;
 }
 
+export interface ToolbarProxyGroupOptionsEvent extends Event<ToolbarProxyGroupOptions> {
+    group: ToolbarGroup;
+    options: Partial<NonNullable<AgToolbarOptions[ToolbarGroup]>>;
+}
+
 export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
     static isGroup<T extends ToolbarGroup>(
         group: T,
@@ -54,5 +64,9 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
 
     toggleButton<T extends ToolbarGroup>(group: T, value: ToolbarEventButtonValue<T>, enabled: boolean) {
         this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, value, enabled });
+    }
+
+    proxyGroupOptions<T extends ToolbarGroup>(group: T, options: Partial<AgToolbarOptions[T]>) {
+        this.listeners.dispatch('proxy-group-options', { type: 'proxy-group-options', group, options });
     }
 }

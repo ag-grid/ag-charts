@@ -15,7 +15,7 @@ export interface AgToolbarGroup extends Toggleable {
 }
 
 export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
-export type AgToolbarGroupPosition = 'top' | 'left' | 'right' | 'bottom';
+export type AgToolbarGroupPosition = 'top' | 'left' | 'right' | 'bottom' | 'floating-top' | 'floating-bottom';
 
 export interface AgToolbarButton {
     /** Icon to display on the button. */
