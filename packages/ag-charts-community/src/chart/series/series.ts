@@ -631,7 +631,7 @@ export abstract class Series<
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
         const match = this.contentGroup.pickNode(point.x, point.y);
-        if (match && match.datum.valid !== false) {
+        if (match && match.datum.missing !== true) {
             return { datum: match.datum, distance: 0 };
         }
 
@@ -646,7 +646,7 @@ export abstract class Series<
 
     protected pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
         const match = nearestSquared(point.x, point.y, items);
-        if (match.nearest !== undefined && match.nearest.datum.valid !== false) {
+        if (match.nearest !== undefined && match.nearest.datum.missing !== true) {
             return { datum: match.nearest.datum, distance: Math.sqrt(match.distanceSquared) };
         }
         return undefined;

@@ -535,7 +535,7 @@ export abstract class CartesianSeries<
 
     protected *datumNodesIter(): Iterable<TNode> {
         for (const { node } of this.datumSelection) {
-            if (node.datum.valid === false) continue;
+            if (node.datum.missing === true) continue;
 
             yield node;
         }
@@ -575,15 +575,16 @@ export abstract class CartesianSeries<
             match = markerGroup?.pickNode(x, y);
         }
 
-        if (match && match.datum.valid !== false) {
+        if (match && match.datum.missing !== true) {
             return { datum: match.datum, distance: 0 };
         }
 
         for (const mod of this.moduleMap.modules()) {
             const { datum } = mod.pickNodeExact(point) ?? {};
-            if (datum !== undefined && datum.valid !== false) {
-                return { datum, distance: 0 };
-            }
+            if (datum == null) continue;
+            if (datum?.missing === true) continue;
+
+            return { datum, distance: 0 };
         }
     }
 
@@ -664,7 +665,7 @@ export abstract class CartesianSeries<
         let closestDatum: SeriesNodeDatum | undefined;
 
         for (const datum of contextNodeData.nodeData) {
-            const { point: { x: datumX = NaN, y: datumY = NaN } = {}, valid } = datum;
+            const { point: { x: datumX = NaN, y: datumY = NaN } = {}, missing: valid } = datum;
             if (isNaN(datumX) || isNaN(datumY) || valid === false) {
                 continue;
             }
