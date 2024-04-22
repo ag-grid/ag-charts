@@ -1,5 +1,5 @@
 import { ContinuousScale } from '../../scale/continuousScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
@@ -20,16 +20,21 @@ export abstract class DataModelSeries<
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
 
-    protected isContinuous(): { isContinuousX: boolean; isContinuousY: boolean } {
-        const xScale = this.axes[ChartAxisDirection.X]?.scale;
-        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
+    protected isContinuous({ xScale, yScale }: { xScale?: Scale<any, any, any>; yScale?: Scale<any, any, any> }): {
+        isContinuousX: boolean;
+        isContinuousY: boolean;
+    } {
+        const isContinuousX = ContinuousScale.is(xScale);
+        const isContinuousY = ContinuousScale.is(yScale);
         return { isContinuousX, isContinuousY };
     }
 
     private getModulePropertyDefinitions() {
-        return this.moduleMap.mapModules((mod) => mod.getPropertyDefinitions(this.isContinuous())).flat();
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        return this.moduleMap
+            .mapModules((mod) => mod.getPropertyDefinitions(this.isContinuous({ xScale, yScale })))
+            .flat();
     }
 
     // Request data, but with message dispatching to series-options (modules).

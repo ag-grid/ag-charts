@@ -7,7 +7,6 @@ import type {
     FontWeight,
 } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import { OrdinalTimeScale } from '../../../scale/ordinalTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -133,10 +132,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
 
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
@@ -157,7 +153,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                keyProperty(xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
                 ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,

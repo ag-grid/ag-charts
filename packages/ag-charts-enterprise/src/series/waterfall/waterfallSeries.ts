@@ -30,7 +30,7 @@ const {
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
+const { ContinuousScale } = _Scale;
 
 type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
     readonly text: string;
@@ -140,44 +140,43 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
         });
 
-        const xScale = this.getCategoryAxis()?.scale;
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
-
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
             extraProps.push(animationValidation());
         }
 
+        const xScale = this.getCategoryAxis()?.scale;
+        const yScale = this.getValueAxis()?.scale;
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                accumulativeValueProperty(yKey, true, {
+                keyProperty(xKey, isContinuousX, { id: `xValue` }),
+                accumulativeValueProperty(yKey, isContinuousY, {
                     ...propertyDefinition,
                     id: `yCurrent`,
                 }),
-                accumulativeValueProperty(yKey, true, {
+                accumulativeValueProperty(yKey, isContinuousY, {
                     ...propertyDefinition,
                     missingValue: 0,
                     id: `yCurrentTotal`,
                 }),
-                accumulativeValueProperty(yKey, true, {
+                accumulativeValueProperty(yKey, isContinuousY, {
                     ...propertyDefinition,
                     id: `yCurrentPositive`,
                     validation: positiveNumber,
                 }),
-                accumulativeValueProperty(yKey, true, {
+                accumulativeValueProperty(yKey, isContinuousY, {
                     ...propertyDefinition,
                     id: `yCurrentNegative`,
                     validation: negativeNumber,
                 }),
-                trailingAccumulatedValueProperty(yKey, true, {
+                trailingAccumulatedValueProperty(yKey, isContinuousY, {
                     ...propertyDefinition,
                     id: `yPrevious`,
                 }),
-                valueProperty(yKey, true, { id: `yRaw` }), // Raw value pass-through.
+                valueProperty(yKey, isContinuousY, { id: `yRaw` }), // Raw value pass-through.
                 valueProperty('totalType', false, {
                     id: `totalTypeValue`,
                     missingValue: undefined,

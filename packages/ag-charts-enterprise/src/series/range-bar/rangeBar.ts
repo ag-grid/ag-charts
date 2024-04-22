@@ -27,7 +27,7 @@ const {
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
+const { ContinuousScale } = _Scale;
 
 type Bounds = {
     x: number;
@@ -131,11 +131,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const extraProps = [];
         if (!this.ctx.animationManager.isSkipped()) {
@@ -148,7 +144,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                keyProperty(xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
                 valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),

@@ -17,7 +17,6 @@ const {
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
 const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -96,11 +95,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
 
         const extraProps = [];
 
@@ -119,7 +114,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         // types and future compatibility (we may decide to support multiple datum at some point).
         await this.requestDataModel<any, any, true>(dataController, this.data.slice(0, 1), {
             props: [
-                keyProperty(valueKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
+                keyProperty(valueKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(valueKey, isContinuousY, { id: 'value' }),
                 ...extraProps,
             ],
