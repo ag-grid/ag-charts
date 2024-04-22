@@ -114,7 +114,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = truncated;
     }
 
-    private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent | undefined) {
+    private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined) {
         if (event !== undefined && this.enabled && this.node.visible && this.truncated) {
             const { offsetX, offsetY } = event;
             moduleCtx.tooltipManager.updateTooltip(

@@ -69,7 +69,7 @@ import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './s
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
-import { Tooltip, TooltipPointerEvent } from './tooltip/tooltip';
+import { Tooltip, TooltipEventType, TooltipPointerEvent } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -1172,8 +1172,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private lastInteractionEvent?: TooltipPointerEvent;
-    private static isHoverEvent(event: TooltipPointerEvent | undefined): event is TooltipPointerEvent<'hover'> {
+    private lastInteractionEvent?: TooltipPointerEvent<'hover' | 'keyboard'>;
+    private static isHoverEvent(
+        event: TooltipPointerEvent<TooltipEventType> | undefined
+    ): event is TooltipPointerEvent<'hover'> {
         return event !== undefined && event.type === 'hover';
     }
     private pointerScheduler = debouncedAnimationFrame(() => {
@@ -1189,7 +1191,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.handlePointer(this.lastInteractionEvent, false);
         this.lastInteractionEvent = undefined;
     });
-    protected handlePointer(event: TooltipPointerEvent, redisplay: boolean) {
+    protected handlePointer(event: TooltipPointerEvent<'hover' | 'keyboard'>, redisplay: boolean) {
         // Ignored "pointer event" that comes from a keyboard. We don't need to worry about finding out
         // which datum to use in the highlight & tooltip because the keyboard just navigates through the
         // data directly.
