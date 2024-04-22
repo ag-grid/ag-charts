@@ -2,6 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
+import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
@@ -13,6 +14,7 @@ import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
@@ -336,7 +338,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         const { xKey, yKey, xName, yName, strokeWidth, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue } = nodeDatum;
+        const { datum, xValue, yValue, itemId } = nodeDatum;
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
         const title = sanitizeHtml(this.properties.title ?? yName);
@@ -353,6 +355,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,
@@ -360,7 +363,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 title,
                 color,
                 seriesId: this.id,
-                ...this.getModuleTooltipParams(),
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
     }

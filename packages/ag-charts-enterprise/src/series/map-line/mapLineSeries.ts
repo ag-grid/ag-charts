@@ -592,7 +592,7 @@ export class MapLineSeries
             formatter,
             tooltip,
         } = properties;
-        const { datum, stroke, idValue, colorValue, sizeValue, labelValue } = nodeDatum;
+        const { datum, stroke, idValue, colorValue, sizeValue, labelValue, itemId } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
@@ -631,6 +631,14 @@ export class MapLineSeries
                 idKey,
                 title,
                 color,
+                itemId,
+                sizeKey,
+                colorKey,
+                colorName,
+                idName,
+                labelKey,
+                labelName,
+                sizeName,
                 ...this.getModuleTooltipParams(),
             }
         );

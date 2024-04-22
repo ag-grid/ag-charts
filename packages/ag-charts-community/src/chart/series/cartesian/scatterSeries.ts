@@ -1,4 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
@@ -9,6 +10,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
+import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -259,7 +261,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         }
 
         const { xKey, yKey, labelKey, xName, yName, labelName, title = yName, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue, label } = nodeDatum;
+        const { datum, xValue, yValue, label, itemId } = nodeDatum;
 
         const baseStyle = mergeDefaults(
             { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
@@ -287,6 +289,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,
@@ -296,7 +299,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 title,
                 color,
                 seriesId: this.id,
-                ...this.getModuleTooltipParams(),
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
     }

@@ -590,7 +590,7 @@ export class AreaSeries extends CartesianSeries<
     getTooltipHtml(nodeDatum: MarkerSelectionDatum): TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
         const { xKey, xName, yName, tooltip, marker } = this.properties;
-        const { yKey, xValue, yValue, datum } = nodeDatum;
+        const { yKey, xValue, yValue, datum, itemId } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -618,6 +618,7 @@ export class AreaSeries extends CartesianSeries<
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,

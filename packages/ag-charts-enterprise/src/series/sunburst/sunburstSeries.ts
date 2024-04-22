@@ -505,6 +505,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             secondaryLabelKey,
             sizeKey,
             sizeName = sizeKey,
+            childrenKey,
         } = this.properties;
         const { datum, depth } = node;
         if (datum == null || depth == null) {
@@ -556,6 +557,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             title,
             color,
             seriesId,
+            childrenKey,
+            colorName,
+            itemId: undefined,
+            sizeName,
         });
     }
 

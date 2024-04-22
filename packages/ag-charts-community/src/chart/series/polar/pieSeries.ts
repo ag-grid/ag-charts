@@ -1254,6 +1254,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             datum,
             angleValue,
             sectorFormat: { fill: color },
+            itemId,
         } = nodeDatum;
 
         const title = sanitizeHtml(this.properties.title?.text);
@@ -1268,6 +1269,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             },
             {
                 datum,
+                itemId,
                 title,
                 color,
                 seriesId: this.id,
@@ -1279,6 +1281,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 calloutLabelName: this.properties.calloutLabelName,
                 sectorLabelKey: this.properties.sectorLabelKey,
                 sectorLabelName: this.properties.sectorLabelName,
+                legendItemKey: this.properties.legendItemKey,
             }
         );
     }

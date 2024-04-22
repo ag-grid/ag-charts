@@ -454,7 +454,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { id: seriesId, axes, dataModel } = this;
         const { angleKey, angleName, radiusKey, radiusName, fill, stroke, strokeWidth, formatter, tooltip } =
             this.properties;
-        const { angleValue, radiusValue, datum } = nodeDatum;
+        const { angleValue, radiusValue, datum, itemId } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -482,7 +482,19 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         return tooltip.toTooltipHtml(
             { title, backgroundColor: fill, content },
-            { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
+            {
+                seriesId,
+                datum,
+                color,
+                title,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+                angleValue,
+                itemId,
+                radiusValue,
+            }
         );
     }
 

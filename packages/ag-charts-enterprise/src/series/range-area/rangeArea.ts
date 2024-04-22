@@ -549,7 +549,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
-            { seriesId, itemId, datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, color }
+            {
+                seriesId,
+                itemId,
+                datum,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+                color,
+                title,
+                yHighValue,
+                yLowValue,
+            }
         );
     }
 

@@ -278,7 +278,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
     override getTooltipHtml(nodeDatum: BulletNodeDatum): _ModuleSupport.TooltipContent {
         const { valueKey, valueName, targetKey, targetName } = this.properties;
         const axis = this.getValueAxis();
-        const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum } = nodeDatum;
+        const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum, itemId } = nodeDatum;
 
         if (valueKey === undefined || valueValue === undefined || axis === undefined) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
@@ -297,7 +297,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         return this.properties.tooltip.toTooltipHtml(
             { title, content, backgroundColor: this.properties.fill },
-            { datum, title, seriesId: this.id, valueKey, valueName, targetKey, targetName }
+            { datum, itemId, title, seriesId: this.id, valueKey, valueName, targetKey, targetName, color: undefined }
         );
     }
 

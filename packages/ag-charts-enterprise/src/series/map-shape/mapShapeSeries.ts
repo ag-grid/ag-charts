@@ -661,7 +661,7 @@ export class MapShapeSeries
             formatter,
             tooltip,
         } = properties;
-        const { datum, fill, idValue, colorValue, labelValue } = nodeDatum;
+        const { datum, fill, idValue, colorValue, labelValue, itemId } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
@@ -698,6 +698,12 @@ export class MapShapeSeries
                 idKey,
                 title,
                 color,
+                colorKey,
+                colorName,
+                idName,
+                itemId,
+                labelKey,
+                labelName,
                 ...this.getModuleTooltipParams(),
             }
         );

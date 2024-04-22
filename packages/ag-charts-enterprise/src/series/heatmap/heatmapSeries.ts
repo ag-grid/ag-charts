@@ -421,7 +421,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ctx: { callbackCache },
         } = this;
 
-        const { datum, xValue, yValue, colorValue } = nodeDatum;
+        const { datum, xValue, yValue, colorValue, itemId } = nodeDatum;
         const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
 
         let format: AgHeatmapSeriesFormat | undefined;
@@ -465,6 +465,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 title,
                 color,
                 colorKey,
+                colorName,
+                itemId,
             }
         );
     }

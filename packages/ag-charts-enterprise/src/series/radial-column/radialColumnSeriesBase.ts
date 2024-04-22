@@ -467,7 +467,7 @@ export abstract class RadialColumnSeriesBase<
         const { id: seriesId, axes, dataModel } = this;
         const { angleKey, radiusKey, angleName, radiusName, fill, stroke, strokeWidth, formatter, tooltip } =
             this.properties;
-        const { angleValue, radiusValue, datum } = nodeDatum;
+        const { angleValue, radiusValue, datum, itemId } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -495,7 +495,19 @@ export abstract class RadialColumnSeriesBase<
 
         return tooltip.toTooltipHtml(
             { title, backgroundColor: fill, content },
-            { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
+            {
+                seriesId,
+                datum,
+                color,
+                title,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+                angleValue,
+                itemId,
+                radiusValue,
+            }
         );
     }
 

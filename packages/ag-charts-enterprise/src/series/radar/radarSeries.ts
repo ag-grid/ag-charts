@@ -358,7 +358,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const { id: seriesId } = this;
         const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
-        const { datum, angleValue, radiusValue } = nodeDatum;
+        const { datum, angleValue, radiusValue, itemId } = nodeDatum;
 
         const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
         const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
@@ -383,7 +383,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
-            { datum, angleKey, angleName, radiusKey, radiusName, title, color, seriesId }
+            {
+                datum,
+                angleKey,
+                angleName,
+                radiusKey,
+                radiusName,
+                title,
+                color,
+                seriesId,
+                itemId,
+            }
         );
     }
 

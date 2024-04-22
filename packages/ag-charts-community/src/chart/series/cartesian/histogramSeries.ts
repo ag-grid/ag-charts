@@ -470,6 +470,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             aggregatedValue,
             frequency,
             domain: [rangeMin, rangeMax],
+            itemId,
         } = nodeDatum;
         const title = `${sanitizeHtml(xName ?? xKey)}: ${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`;
         let content = yKey
@@ -491,6 +492,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 domain: nodeDatum.domain,
                 frequency: nodeDatum.frequency,
             },
+            itemId,
             xKey,
             xName,
             yKey,

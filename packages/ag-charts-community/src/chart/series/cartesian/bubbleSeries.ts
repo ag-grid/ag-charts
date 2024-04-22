@@ -310,6 +310,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             yValue,
             sizeValue,
             label: { text: labelText },
+            itemId,
         } = nodeDatum;
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
@@ -330,6 +331,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,

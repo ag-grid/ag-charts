@@ -1,6 +1,11 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
+import type {
+    AgBarSeriesStyle,
+    AgErrorBoundSeriesTooltipRendererParams,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../../scale/ordinalTimeScale';
 import { BBox } from '../../../scene/bbox';
@@ -12,6 +17,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -476,8 +482,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup } = this.properties;
-        const { xValue, yValue, datum } = nodeDatum;
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup, legendItemName } =
+            this.properties;
+        const { xValue, yValue, datum, itemId } = nodeDatum;
 
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
@@ -506,6 +513,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             { title, content, backgroundColor: color },
             {
                 seriesId,
+                itemId,
                 datum,
                 xKey,
                 yKey,
@@ -514,7 +522,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 stackGroup,
                 title,
                 color,
-                ...this.getModuleTooltipParams(),
+                legendItemName,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
     }
