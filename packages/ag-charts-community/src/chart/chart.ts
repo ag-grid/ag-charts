@@ -56,7 +56,7 @@ import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
-import { makeKeyboardPointerEvent } from './keyboardUtil';
+import { makeKeyboardClickEvent, makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
@@ -111,7 +111,9 @@ export interface ChartSpecialOverrides {
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
-type PointerEvent = PointerOffsets & Pick<Partial<PointerInteractionEvent>, 'pointerHistory'>;
+type PointerOffsetsAndHistory = PointerOffsets & { pointerHistory?: PointerOffsets[] };
+
+type ClickEvent<T extends 'click' | 'dblclick'> = PointerOffsetsAndHistory & { type: T; sourceEvent: Event };
 
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
@@ -364,6 +366,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
+            seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
             ctx.regionManager.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
             ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
@@ -1119,6 +1122,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         event.consume();
     }
 
+    private onSubmit(event: KeyNavEvent<'submit'>): void {
+        const clickEvent = makeKeyboardClickEvent(this.ctx.regionManager, event);
+        this.onClick(clickEvent);
+    }
+
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
         this.ctx.tooltipManager.removeTooltip(this.id);
 
@@ -1266,7 +1274,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    protected handlePointerNode(event: PointerEvent) {
+    protected handlePointerNode(event: PointerOffsetsAndHistory) {
         const found = this.checkSeriesNodeRange(event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.ctx.cursorManager.updateCursor('chart', 'pointer');
@@ -1286,7 +1294,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    protected onClick(event: PointerInteractionEvent<'click'>) {
+    protected onClick(event: ClickEvent<'click'>) {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
@@ -1297,7 +1305,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
+    protected onDoubleClick(event: ClickEvent<'dblclick'>) {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
@@ -1308,18 +1316,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {
+    private checkSeriesNodeClick(event: ClickEvent<'click'>): boolean {
         return this.checkSeriesNodeRange(event, (series, datum) => series.fireNodeClickEvent(event.sourceEvent, datum));
     }
 
-    private checkSeriesNodeDoubleClick(event: PointerInteractionEvent<'dblclick'>): boolean {
+    private checkSeriesNodeDoubleClick(event: ClickEvent<'dblclick'>): boolean {
         return this.checkSeriesNodeRange(event, (series, datum) =>
             series.fireNodeDoubleClickEvent(event.sourceEvent, datum)
         );
     }
 
     private checkSeriesNodeRange(
-        event: PointerEvent,
+        event: PointerOffsetsAndHistory,
         callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
