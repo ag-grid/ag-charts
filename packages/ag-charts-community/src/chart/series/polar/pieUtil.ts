@@ -142,6 +142,8 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
     const angle = Math.atan2(dy, dx);
     const sectors: SectorSceneNode[] = series.getItemNodes();
     for (const sector of sectors) {
+        if (sector.datum.missing === true) continue;
+
         if (isBetweenAngles(angle, sector.startAngle, sector.endAngle)) {
             const radius = Math.sqrt(dx * dx + dy * dy);
             let distance = 0;

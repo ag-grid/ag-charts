@@ -17,7 +17,9 @@ const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
-interface HeatmapNodeDatum extends Required<_ModuleSupport.CartesianSeriesNodeDatum> {
+interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
+    readonly point: Readonly<_Scene.SizedPoint>;
+    midPoint: Readonly<_Scene.Point>;
     readonly width: number;
     readonly height: number;
     readonly fill: string;
