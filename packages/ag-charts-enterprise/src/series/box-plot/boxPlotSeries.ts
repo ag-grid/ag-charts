@@ -277,8 +277,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             q3Name,
             maxName,
             tooltip,
+            fill,
         } = this.properties;
-        const { datum } = nodeDatum as { datum: any };
+        const { datum, itemId } = nodeDatum;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -298,12 +299,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             .map(([key, name, axis]) => _Util.sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
             .join(title ? '<br/>' : ', ');
 
-        const { fill } = this.getFormattedStyles(nodeDatum);
+        const { fill: formatFill } = this.getFormattedStyles(nodeDatum);
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: fill },
             {
                 seriesId: this.id,
+                itemId,
                 datum,
                 fill,
                 xKey,
@@ -318,6 +320,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 medianName,
                 q3Name,
                 maxName,
+                yName,
+                title,
+                color: fill ?? formatFill,
             }
         );
     }

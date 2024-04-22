@@ -530,6 +530,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             color,
             seriesId,
             itemId,
+            title,
+            yHighValue,
+            yLowValue,
         });
     }
 

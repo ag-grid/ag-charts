@@ -718,6 +718,7 @@ export class TreemapSeries<
             secondaryLabelKey,
             sizeKey,
             sizeName = sizeKey,
+            childrenKey,
         } = this.properties;
         const isLeaf = node.children.length === 0;
         const interactive = isLeaf || this.properties.group.interactive;
@@ -770,6 +771,10 @@ export class TreemapSeries<
             title,
             color,
             seriesId,
+            childrenKey,
+            colorName,
+            itemId: undefined,
+            sizeName,
         });
     }
 }

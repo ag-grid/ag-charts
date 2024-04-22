@@ -663,7 +663,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
-            { seriesId, itemId, datum, xKey, yKey, xName, yName, color }
+            { seriesId, itemId, datum, xKey, yKey, xName, yName, color, title }
         );
     }
 

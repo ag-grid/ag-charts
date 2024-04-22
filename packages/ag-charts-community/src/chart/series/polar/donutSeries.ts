@@ -1256,6 +1256,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             datum,
             angleValue,
             sectorFormat: { fill: color },
+            itemId,
         } = nodeDatum;
 
         const title = sanitizeHtml(this.properties.title?.text);
@@ -1270,6 +1271,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             },
             {
                 datum,
+                itemId,
                 title,
                 color,
                 seriesId: this.id,
@@ -1281,6 +1283,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 calloutLabelName: this.properties.calloutLabelName,
                 sectorLabelKey: this.properties.sectorLabelKey,
                 sectorLabelName: this.properties.sectorLabelName,
+                legendItemKey: this.properties.legendItemKey,
             }
         );
     }

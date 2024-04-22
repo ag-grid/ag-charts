@@ -770,8 +770,10 @@ export class MapMarkerSeries
             labelName,
             formatter,
             tooltip,
+            latitudeName,
+            longitudeName,
         } = properties;
-        const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue } = nodeDatum;
+        const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue, itemId } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
@@ -821,6 +823,16 @@ export class MapMarkerSeries
                 longitudeKey,
                 title,
                 color,
+                colorKey,
+                colorName,
+                idName,
+                itemId,
+                labelKey,
+                labelName,
+                latitudeName,
+                longitudeName,
+                sizeKey,
+                sizeName,
                 ...this.getModuleTooltipParams(),
             }
         );

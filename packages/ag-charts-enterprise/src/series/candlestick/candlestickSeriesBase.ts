@@ -341,7 +341,7 @@ export abstract class CandlestickSeriesBase<
             lowName,
             tooltip,
         } = this.properties;
-        const { datum } = nodeDatum;
+        const { datum, itemId } = nodeDatum;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -385,6 +385,10 @@ export abstract class CandlestickSeriesBase<
                 closeName,
                 highName,
                 lowName,
+                title,
+                color: styles.fill,
+                fill: styles.fill,
+                itemId,
             }
         );
     }
