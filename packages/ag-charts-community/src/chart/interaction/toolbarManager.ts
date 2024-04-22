@@ -67,6 +67,6 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
     }
 
     proxyGroupOptions<T extends ToolbarGroup>(group: T, options: Partial<AgToolbarOptions[T]>) {
-        this.listeners.dispatchAlwaysResolve('proxy-group-options', { type: 'proxy-group-options', group, options });
+        this.listeners.dispatch('proxy-group-options', { type: 'proxy-group-options', group, options });
     }
 }

@@ -9,7 +9,6 @@ export type Listener<H extends Handler> = {
 
 export class Listeners<EventType extends string, EventHandler extends Handler> {
     protected readonly registeredListeners: Map<EventType, Listener<EventHandler>[]> = new Map();
-    protected pendingDispatches: Array<{ eventType: EventType; params: Parameters<EventHandler> }> = [];
 
     public addListener(eventType: EventType, handler: EventHandler) {
         const record = { symbol: Symbol(eventType), handler };
@@ -18,12 +17,6 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
             this.registeredListeners.get(eventType)!.push(record);
         } else {
             this.registeredListeners.set(eventType, [record]);
-        }
-
-        for (const pending of this.pendingDispatches) {
-            if (pending.eventType === eventType) {
-                this.dispatch(eventType, ...pending.params);
-            }
         }
 
         return () => this.removeListener(record.symbol);
@@ -50,21 +43,6 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
                 Logger.errorOnce(e);
             }
         }
-    }
-
-    /**
-     * Ensure the event is always dispatched. If there are no listeners ready, save the event as pending and dispatch
-     * to listeners as soon as they are added.
-     */
-    public dispatchAlwaysResolve(eventType: EventType, ...params: Parameters<EventHandler>): void {
-        if (this.getListenersByType(eventType).length === 0) {
-            this.pendingDispatches.push({ eventType, params });
-            return;
-        }
-
-        this.pendingDispatches = this.pendingDispatches.filter((pending) => pending.eventType !== eventType);
-
-        this.dispatch(eventType, ...params);
     }
 
     public dispatchWrapHandlers(
