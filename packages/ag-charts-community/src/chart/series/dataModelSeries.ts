@@ -109,21 +109,24 @@ export abstract class DataModelSeries<
             );
         }
 
+        // Search forward or backwards depending on the delta direction.
         let datumIndex: number = opts.datumIndex;
-        // Find first visible datum by search forwards then backwards.
-        while (datumIndex < seriesItemEnabled.length && !seriesItemEnabled[datumIndex]) {
-            datumIndex++;
-        }
-        if (datumIndex === seriesItemEnabled.length) {
-            datumIndex = opts.datumIndex - 1;
+        if (opts.datumDelta >= 0) {
+            while (datumIndex < seriesItemEnabled.length && !seriesItemEnabled[datumIndex]) {
+                datumIndex++;
+            }
+        } else {
             while (datumIndex >= 0 && !seriesItemEnabled[datumIndex]) {
                 datumIndex--;
             }
-            if (datumIndex === -1) {
-                Logger.error(`invalid state: no enabled datum found`);
-            }
         }
 
-        return datumIndex;
+        // datumIndex can be equal to -1 or seriesItemEnabled.length if opts.datumIndex is the first or
+        // last enabled datum. If that's the case, then reverse the keyboard delta to stay on this datum.
+        if (datumIndex >= 0 && datumIndex < seriesItemEnabled.length) {
+            return datumIndex;
+        } else {
+            return opts.datumIndex - opts.datumDelta;
+        }
     }
 }

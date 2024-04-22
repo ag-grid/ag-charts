@@ -1115,7 +1115,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
         this.focus.datum += event.delta;
-        this.handleFocus();
+        this.handleFocus(event.delta);
         event.consume();
     }
 
@@ -1134,17 +1134,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private focus = { series: 0, datum: 0 };
-    private handleFocus() {
+    private handleFocus(datumDelta?: number) {
         const overlayFocus = this.overlays.getFocusInfo();
         if (overlayFocus == null) {
-            this.handleSeriesFocus();
+            this.handleSeriesFocus(datumDelta ?? 0);
         } else {
             this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
 
-    private handleSeriesFocus() {
+    private handleSeriesFocus(datumDelta: number) {
         const { series, seriesRect, focus } = this;
         const visibleSeries = series.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;
@@ -1154,7 +1154,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const focusedSeries = visibleSeries[focus.series];
 
         // Update focused datum:
-        const pick = focusedSeries.pickFocus({ datumIndex: focus.datum, seriesRect });
+        const pick = focusedSeries.pickFocus({ datumIndex: focus.datum, datumDelta, seriesRect });
         if (pick === undefined) return;
 
         const { bbox, datum, datumIndex } = pick;
