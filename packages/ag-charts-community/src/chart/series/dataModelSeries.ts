@@ -84,11 +84,11 @@ export abstract class DataModelSeries<
             return undefined;
         }
 
-        const { seriesRect } = opts;
+        const { datumDelta, seriesRect } = opts;
         const datumIndex = this.computeFocusDatumIndex(opts, nodeData, derivedSeries.seriesItemEnabled);
 
         const datum = nodeData[datumIndex];
-        const bbox = this.computeFocusBounds({ datumIndex, seriesRect });
+        const bbox = this.computeFocusBounds({ datumIndex, datumDelta, seriesRect });
         if (bbox !== undefined) {
             return { bbox, datum, datumIndex };
         }
