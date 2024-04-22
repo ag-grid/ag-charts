@@ -6,6 +6,7 @@ import type {
     LabelPlacement,
 } from '../../../options/agChartOptions';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import type { SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import {
     COLOR_STRING_ARRAY,
@@ -22,7 +23,8 @@ import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
-export interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
+export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
+    readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;

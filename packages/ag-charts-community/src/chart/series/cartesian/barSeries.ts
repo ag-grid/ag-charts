@@ -355,6 +355,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     bottomLeftCornerRadius: !isUpward,
                     clipBBox,
                     label: labelDatum,
+                    valid: yRawValue != null,
                 };
                 context.nodeData.push(nodeData);
                 context.labelData.push(nodeData);
