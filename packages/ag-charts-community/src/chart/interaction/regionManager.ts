@@ -312,7 +312,8 @@ export class RegionManager {
 
         if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
             // Build a distinct consumable event, since we don't care about consumed status of blur.
-            const blurEvent = buildConsumable({ type: 'blur' as const, delta: event.delta });
+            const { delta, sourceEvent } = event;
+            const blurEvent = buildConsumable({ type: 'blur' as const, delta, sourceEvent });
             this.dispatch(focusedRegion, blurEvent);
         }
         if (newRegion === undefined || !newRegion.properties.canInteraction()) {
