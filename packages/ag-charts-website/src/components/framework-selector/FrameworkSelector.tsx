@@ -1,6 +1,7 @@
 import fwLogos from '@ag-website-shared/images/fw-logos';
-import styles from '@legacy-design-system/modules/FrameworkSelector.module.scss';
 import classnames from 'classnames';
+
+import styles from './FrameworkSelector.module.scss';
 
 /**
  * Allow users to choose which framework they wish to see documentation for

@@ -9,13 +9,13 @@ import {
     type JsonUnionType,
     buildModel,
 } from '@features/api-explorer/utils/model';
-import styles from '@legacy-design-system/modules/Options.module.scss';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { type ReactNode, useState } from 'react';
 
 import { convertMarkdown, deepClone, formatJsDocString, formatJson, inferType, isXAxisNumeric } from '../utils/utils';
 import { PresetEditor, getPrimitiveEditor, getPrimitivePropertyEditor } from './Editors';
+import styles from './Options.module.scss';
 
 const FunctionDefinition = ({ definition }: { definition: JsonFunction }) => {
     const lines = [`function ${definition.tsType};`];

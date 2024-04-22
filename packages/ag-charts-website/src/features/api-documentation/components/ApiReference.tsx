@@ -1,7 +1,6 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import Code from '@components/Code';
-import styles from '@legacy-design-system/modules/ApiReference.module.scss';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties } from 'react';
@@ -19,6 +18,7 @@ import {
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
+import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
 import { PropertyTitle, PropertyType } from './Properies';
 

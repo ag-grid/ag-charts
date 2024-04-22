@@ -2,12 +2,12 @@ import type { InternalFramework } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import Code from '@components/Code';
 import type { ExampleType, FileContents } from '@features/example-generator/types';
-import styles from '@legacy-design-system/modules/CodeViewer.module.scss';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 
 import { CodeOptions } from './CodeOptions';
+import styles from './CodeViewer.module.scss';
 
 export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';

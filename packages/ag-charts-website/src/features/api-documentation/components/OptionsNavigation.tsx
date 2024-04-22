@@ -1,6 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { navigate, scrollIntoView, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
-import styles from '@legacy-design-system/modules/OptionsNavigation.module.scss';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
@@ -16,6 +15,7 @@ import {
     processMembers,
 } from '../apiReferenceHelpers';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
+import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
 
 export const SelectionContext = createContext<{

@@ -1,9 +1,9 @@
-import styles from '@legacy-design-system/modules/GalleryExampleImage.module.scss';
 import classNames from 'classnames';
 import { type FunctionComponent, useEffect, useState } from 'react';
 
 import { type BaseThemeName, useTheme } from '../../../utils/hooks/useTheme';
 import { getExampleImageUrl } from '../utils/urlPaths';
+import styles from './GalleryExampleImage.module.scss';
 
 interface Props {
     label: string;

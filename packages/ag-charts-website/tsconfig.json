@@ -9,7 +9,7 @@
       "@astro/*": ["src/astro/*"],
       "@components/*": ["src/components/*"],
       "@design-system/*": ["../../external/ag-website-shared/src/design-system/*"],
-      "@legacy-design-system/*": ["src/legacy-design-system/*"],
+      "@pages-styles/*": ["src/pages-styles/*"],
       "@features/*": ["src/features/*"],
       "@images/*": ["src/images/*"],
       "@layouts/*": ["src/layouts/*"],

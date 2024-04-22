@@ -1,9 +1,9 @@
-import styles from '@legacy-design-system/modules/GalleryExampleLink.module.scss';
 import classnames from 'classnames';
 import { type FunctionComponent } from 'react';
 
 import { getPageUrl } from '../utils/urlPaths';
 import { GalleryExampleImage } from './GalleryExampleImage';
+import styles from './GalleryExampleLink.module.scss';
 
 interface Props {
     label: string;

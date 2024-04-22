@@ -1,5 +1,6 @@
-import styles from '@legacy-design-system/modules/Quotes.module.scss';
 import classNames from 'classnames';
+
+import styles from './Quotes.module.scss';
 
 function filterAndSortByKey(data: QuotesData, sortKey: keyof QuotesDataItem) {
     return Object.values(data)

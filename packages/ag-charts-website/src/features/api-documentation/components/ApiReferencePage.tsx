@@ -1,17 +1,16 @@
 import { navigate, useHistory, useLocation } from '@ag-website-shared/utils/navigation';
-import styles from '@legacy-design-system/modules/ApiReferencePage.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
 import { useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
-import { SITE_BASE_URL } from 'src/constants';
 
 import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
 import type { PageTitle } from '../apiReferenceHelpers';
 import type { NavigationData, SpecialTypesMap } from '../apiReferenceHelpers';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
+import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation, SelectionContext } from './OptionsNavigation';
 import { PropertyType } from './Properies';
 
