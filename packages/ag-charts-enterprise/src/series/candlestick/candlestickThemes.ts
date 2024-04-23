@@ -10,6 +10,7 @@ export const CANDLESTICK_SERIES_THEME = {
         },
         direction: 'vertical',
     },
+    animation: { enabled: false },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: {
