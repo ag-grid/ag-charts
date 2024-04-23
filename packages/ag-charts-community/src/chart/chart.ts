@@ -56,7 +56,7 @@ import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
-import { makeKeyboardClickEvent, makeKeyboardPointerEvent } from './keyboardUtil';
+import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
@@ -113,7 +113,7 @@ export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 type PointerOffsetsAndHistory = PointerOffsets & { pointerHistory?: PointerOffsets[] };
 
-type ClickEvent<T extends 'click' | 'dblclick'> = PointerOffsetsAndHistory & { type: T; sourceEvent: Event };
+type ChartFocusData = { series?: Series<any, any>; seriesIndex: number; datum: any; datumIndex: number };
 
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
@@ -1091,11 +1091,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
         if (event.delta > 0) {
-            this.focus.datum = 0;
-            this.focus.series = 0;
+            this.focus.datum = undefined;
+            this.focus.series = undefined;
+            this.focus.datumIndex = 0;
+            this.focus.seriesIndex = 0;
         } else {
-            this.focus.datum = Infinity;
-            this.focus.series = Infinity;
+            this.focus.datum = undefined;
+            this.focus.series = undefined;
+            this.focus.datumIndex = Infinity;
+            this.focus.seriesIndex = Infinity;
         }
     }
 
@@ -1111,20 +1115,28 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
-        this.focus.series += event.delta;
+        this.focus.seriesIndex += event.delta;
         this.handleFocus();
         event.consume();
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
-        this.focus.datum += event.delta;
+        this.focus.datumIndex += event.delta;
         this.handleFocus(event.delta);
         event.consume();
     }
 
     private onSubmit(event: KeyNavEvent<'submit'>): void {
-        const clickEvent = makeKeyboardClickEvent(this.ctx.regionManager, event);
-        this.onClick(clickEvent);
+        const { series, datum } = this.focus;
+        const sourceEvent = event.sourceEvent.sourceEvent;
+        if (series !== undefined && datum !== undefined) {
+            series.fireNodeClickEvent(sourceEvent, datum);
+        } else {
+            this.fireEvent<AgChartClickEvent>({
+                type: 'click',
+                event: sourceEvent,
+            });
+        }
     }
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
@@ -1141,7 +1153,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private focus = { series: 0, datum: 0 };
+    private focus: ChartFocusData = { series: undefined, seriesIndex: 0, datumIndex: 0, datum: undefined };
     private handleFocus(datumIndexDelta?: number) {
         const overlayFocus = this.overlays.getFocusInfo();
         if (overlayFocus == null) {
@@ -1158,21 +1170,22 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (visibleSeries.length === 0) return;
 
         // Update focused series:
-        focus.series = clamp(0, focus.series, visibleSeries.length - 1);
-        const focusedSeries = visibleSeries[focus.series];
+        focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
+        focus.series = visibleSeries[focus.seriesIndex];
 
         // Update focused datum:
-        const pick = focusedSeries.pickFocus({ datumIndex: focus.datum, datumIndexDelta, seriesRect });
+        const pick = focus.series.pickFocus({ datumIndex: focus.datumIndex, datumIndexDelta, seriesRect });
         if (pick === undefined) return;
 
         const { bbox, datum, datumIndex } = pick;
-        focus.datum = datumIndex;
+        focus.datumIndex = datumIndex;
+        focus.datum = datum;
 
         // Update user interaction/interface:
         const keyboardEvent = makeKeyboardPointerEvent(this.ctx.regionManager, bbox);
         if (keyboardEvent !== undefined) {
             this.lastInteractionEvent = keyboardEvent;
-            const html = focusedSeries.getTooltipHtml(datum);
+            const html = focus.series.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
@@ -1294,7 +1307,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    protected onClick(event: ClickEvent<'click'>) {
+    protected onClick(event: PointerInteractionEvent<'click'>) {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
@@ -1305,7 +1318,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    protected onDoubleClick(event: ClickEvent<'dblclick'>) {
+    protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             return;
@@ -1316,11 +1329,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private checkSeriesNodeClick(event: ClickEvent<'click'>): boolean {
+    private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {
         return this.checkSeriesNodeRange(event, (series, datum) => series.fireNodeClickEvent(event.sourceEvent, datum));
     }
 
-    private checkSeriesNodeDoubleClick(event: ClickEvent<'dblclick'>): boolean {
+    private checkSeriesNodeDoubleClick(event: PointerInteractionEvent<'dblclick'>): boolean {
         return this.checkSeriesNodeRange(event, (series, datum) =>
             series.fireNodeDoubleClickEvent(event.sourceEvent, datum)
         );
