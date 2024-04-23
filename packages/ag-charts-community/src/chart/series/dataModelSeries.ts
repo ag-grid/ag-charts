@@ -122,13 +122,13 @@ export abstract class DataModelSeries<
 
         // Search forward or backwards depending on the delta direction.
         let datumIndex: number = clamp(0, opts.datumIndex, nodeData.length - 1);
-        if (opts.datumIndexDelta >= 0) {
-            while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
-                datumIndex++;
-            }
-        } else {
+        if (opts.datumIndexDelta <= 0) {
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
                 datumIndex--;
+            }
+        }else {
+            while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
+                datumIndex++;
             }
         }
 
