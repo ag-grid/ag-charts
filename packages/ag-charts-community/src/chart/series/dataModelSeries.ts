@@ -2,6 +2,7 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Logger } from '../../util/logger';
+import { clamp } from '../../util/number';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
@@ -120,7 +121,7 @@ export abstract class DataModelSeries<
         };
 
         // Search forward or backwards depending on the delta direction.
-        let datumIndex: number = opts.datumIndex;
+        let datumIndex: number = clamp(0, opts.datumIndex, nodeData.length - 1);
         if (opts.datumIndexDelta >= 0) {
             while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
                 datumIndex++;
