@@ -100,7 +100,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         } else if (i === TimeScale.tickIntervals.length) {
             const y0 = start / durationYear;
             const y1 = stop / durationYear;
-            step = tickStep(y0, y1, tickCount, minCount, maxCount);
+            step = target === undefined ? tickStep(y0, y1, tickCount, minCount, maxCount) : 1;
             countableTimeInterval = timeYear;
         } else {
             const diff0 = targetInterval - TimeScale.tickIntervals[i - 1][2];
