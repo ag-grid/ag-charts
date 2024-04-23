@@ -21,18 +21,15 @@ const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
 
 export class ZoomContextMenu {
+    public rect?: _Scene.BBox;
+
     constructor(
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly updateZoom: (zoom: DefinedZoomState) => void
     ) {}
 
-    public registerActions(
-        enabled: boolean | undefined,
-        zoom: DefinedZoomState,
-        props: ZoomProperties,
-        rect?: _Scene.BBox
-    ) {
+    public registerActions(enabled: boolean | undefined, zoom: DefinedZoomState, props: ZoomProperties) {
         if (!enabled) return;
 
         const { contextMenuRegistry } = this;
@@ -40,12 +37,12 @@ export class ZoomContextMenu {
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
             label: 'Zoom to here',
-            action: (params) => this.onZoomToHere(params, props, rect),
+            action: (params) => this.onZoomToHere(params, props),
         });
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
             label: 'Pan to here',
-            action: (params) => this.onPanToHere(params, props, rect),
+            action: (params) => this.onPanToHere(params, props),
         });
 
         this.toggleActions(zoom, props);
@@ -67,7 +64,8 @@ export class ZoomContextMenu {
         }
     }
 
-    private onZoomToHere({ event }: ContextMenuActionParams, props: ZoomProperties, rect?: _Scene.BBox) {
+    private onZoomToHere({ event }: ContextMenuActionParams, props: ZoomProperties) {
+        const { rect } = this;
         const { enabled, isScalingX, isScalingY, minRatioX, minRatioY } = props;
 
         if (!enabled || !rect || !event || !event.target) return;
@@ -92,7 +90,8 @@ export class ZoomContextMenu {
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onPanToHere({ event }: ContextMenuActionParams, props: ZoomProperties, rect?: _Scene.BBox) {
+    private onPanToHere({ event }: ContextMenuActionParams, props: ZoomProperties) {
+        const { rect } = this;
         const { enabled } = props;
 
         if (!enabled || !rect || !event || !event.target) return;

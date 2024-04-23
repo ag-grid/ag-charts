@@ -93,8 +93,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             if (!this.contextMenu || !this.toolbar) return;
 
             const zoom = this.getZoom();
-            const props = this.getModuleProperties();
-            this.contextMenu.registerActions(enabled, zoom, props, this.paddedRect);
+            const props = this.getModuleProperties({ enabled });
+            this.contextMenu.registerActions(enabled, zoom, props);
             this.toolbar.toggle(enabled, zoom, props);
         },
     })
@@ -512,6 +512,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
+        this.contextMenu.rect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
 
         if (!axes) return;
