@@ -1054,7 +1054,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getFocusedItem(): { nodeIndex: number, node?: MarkerLabel; datum?: CategoryLegendDatum } {
+    private getFocusedItem(): { nodeIndex: number; node?: MarkerLabel; datum?: CategoryLegendDatum } {
         if (this.focus.mode !== 'item') {
             Logger.error(`getFocusedItem() should be called only when focus.mode is 'item'`);
             return { nodeIndex: -1, node: undefined, datum: undefined };
