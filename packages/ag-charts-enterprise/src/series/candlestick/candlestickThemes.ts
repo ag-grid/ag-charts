@@ -8,6 +8,7 @@ export const CANDLESTICK_SERIES_THEME = {
                 strokeWidth: 3,
             },
         },
+        direction: 'vertical',
     },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
