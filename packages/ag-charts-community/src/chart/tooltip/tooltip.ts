@@ -75,12 +75,13 @@ export function toTooltipHtml(
         ? `<div class="${DEFAULT_TOOLTIP_CLASS}-title"
         style="color: ${color}; background-color: ${backgroundColor}">${title}</div>`
         : '';
+    const titleAria = title ? `${title}: ` : '';
 
     const contentHtml = content ? `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>` : '';
 
     return {
         html: `${titleHtml}${contentHtml}`,
-        ariaLabel: `${title}: ${content}`,
+        ariaLabel: `${titleAria}${content}`,
     };
 }
 export class TooltipPosition extends BaseProperties {
