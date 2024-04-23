@@ -1054,17 +1054,17 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getFocusedItem(): { node?: MarkerLabel; datum?: CategoryLegendDatum } {
+    private getFocusedItem(): { nodeIndex: number, node?: MarkerLabel; datum?: CategoryLegendDatum } {
         if (this.focus.mode !== 'item') {
             Logger.error(`getFocusedItem() should be called only when focus.mode is 'item'`);
-            return { node: undefined, datum: undefined };
+            return { nodeIndex: -1, node: undefined, datum: undefined };
         }
         this.maybeChangeFocusPage();
 
         const nodeIndex = this.getNodeIndexFromFocusIndex();
         if (nodeIndex < 0) {
             Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
-            return { node: undefined, datum: undefined };
+            return { nodeIndex: -1, node: undefined, datum: undefined };
         }
 
         const node = this.itemSelection.nodes()[nodeIndex];
@@ -1076,19 +1076,19 @@ export class Legend extends BaseProperties {
             Logger.error(`Cannot access datum[${nodeIndex}]`);
         }
 
-        return { node, datum };
+        return { nodeIndex, node, datum };
     }
 
     private updateFocus() {
         const { focus, pagination } = this;
         if (focus.mode === 'item') {
-            const { node, datum } = this.getFocusedItem();
+            const { nodeIndex, node, datum } = this.getFocusedItem();
             const bbox = node?.computeTransformedBBox();
             this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, bbox), datum);
             const label = datum && this.getItemLabel(datum);
             if (label) {
                 this.ctx.ariaAnnouncementService.announceValue(
-                    `Legend item ${focus.index} of ${this.data.length}, ${label}, button`
+                    `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, button`
                 );
             }
         } else if (focus.mode === 'page') {
