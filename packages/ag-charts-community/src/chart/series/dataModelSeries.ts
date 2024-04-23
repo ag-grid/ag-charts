@@ -2,7 +2,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Logger } from '../../util/logger';
-import { clamp } from '../../util/number';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
@@ -104,31 +103,33 @@ export abstract class DataModelSeries<
         nodeData: TDatum[],
         seriesItemEnabled: readonly boolean[] | undefined
     ): number {
-        if (seriesItemEnabled === undefined) {
-            return clamp(0, opts.datumIndex, nodeData.length - 1);
-        }
-
-        if (nodeData.length !== seriesItemEnabled.length) {
+        if (nodeData.length !== seriesItemEnabled?.length) {
             Logger.error(
-                `invalid state: nodeData.length (${nodeData.length} !== seriesItemEnabled.length ($seriesItemEnabled.length})`
+                `invalid state: nodeData.length (${nodeData.length} !== seriesItemEnabled.length (${seriesItemEnabled?.length})`
             );
         }
+        const isDatumEnabled = (datumIndex: number): boolean => {
+            return (
+                nodeData[datumIndex].missing === false &&
+                (seriesItemEnabled === undefined || seriesItemEnabled[datumIndex])
+            );
+        };
 
         // Search forward or backwards depending on the delta direction.
         let datumIndex: number = opts.datumIndex;
         if (opts.datumIndexDelta >= 0) {
-            while (datumIndex < seriesItemEnabled.length && !seriesItemEnabled[datumIndex]) {
+            while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
                 datumIndex++;
             }
         } else {
-            while (datumIndex >= 0 && !seriesItemEnabled[datumIndex]) {
+            while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
                 datumIndex--;
             }
         }
 
         // datumIndex can be equal to -1 or seriesItemEnabled.length if opts.datumIndex is the first or
         // last enabled datum. If that's the case, then reverse the keyboard delta to stay on this datum.
-        if (datumIndex >= 0 && datumIndex < seriesItemEnabled.length) {
+        if (datumIndex >= 0 && datumIndex < nodeData.length) {
             return datumIndex;
         } else {
             return opts.datumIndex - opts.datumIndexDelta;
