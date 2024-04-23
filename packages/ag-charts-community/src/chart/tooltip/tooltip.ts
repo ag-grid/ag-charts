@@ -56,6 +56,20 @@ export type TooltipContent = {
 
 export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', ariaLabel: '' };
 
+function toAccessibleText(inputHtml: string): string {
+    const lineConverter = (_match: unknown, offset: number, str: string) => {
+        if (offset === 0 || str[offset - 1] !== '.') {
+            return '. ';
+        }
+        return ' ';
+    };
+    return inputHtml
+        .replace(/<br\s*\/?>/g, lineConverter)
+        .replace(/<\/p\s+>/g, lineConverter)
+        .replace(/<\/li\s*\/>/g, lineConverter)
+        .replace(/<[^>]+>/g, '');
+}
+
 export function toTooltipHtml(
     input: string | AgTooltipRendererResult,
     defaults?: AgTooltipRendererResult
@@ -75,12 +89,13 @@ export function toTooltipHtml(
         ? `<div class="${DEFAULT_TOOLTIP_CLASS}-title"
         style="color: ${color}; background-color: ${backgroundColor}">${title}</div>`
         : '';
+    const titleAria = title ? `${title}: ` : '';
 
     const contentHtml = content ? `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>` : '';
 
     return {
         html: `${titleHtml}${contentHtml}`,
-        ariaLabel: `${title}: ${content}`,
+        ariaLabel: toAccessibleText(`${titleAria}${content}`),
     };
 }
 export class TooltipPosition extends BaseProperties {
