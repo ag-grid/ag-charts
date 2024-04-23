@@ -33,7 +33,7 @@ class BoxPlotSeriesNodeEvent<
     readonly q3Key?: string;
     readonly maxKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.minKey = series.properties.minKey;

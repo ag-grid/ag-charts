@@ -46,7 +46,7 @@ class HeatmapSeriesNodeEvent<
 > extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
     readonly colorKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: HeatmapNodeDatum, series: HeatmapSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: HeatmapNodeDatum, series: HeatmapSeries) {
         super(type, nativeEvent, datum, series);
         this.colorKey = series.properties.colorKey;
     }

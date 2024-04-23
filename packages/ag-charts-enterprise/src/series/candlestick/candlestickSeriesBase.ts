@@ -43,7 +43,7 @@ class CandlestickSeriesNodeEvent<
 
     constructor(
         type: TEvent,
-        nativeEvent: MouseEvent,
+        nativeEvent: Event,
         datum: CandlestickNodeBaseDatum,
         series: CandlestickSeriesBase<
             CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,

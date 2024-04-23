@@ -32,7 +32,7 @@ class RadialBarSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadialBarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadialBarNodeDatum, series: RadialBarSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RadialBarNodeDatum, series: RadialBarSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;

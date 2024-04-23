@@ -180,7 +180,8 @@ export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContex
 
 interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
-    readonly event: MouseEvent;
+    // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
+    readonly event: Event;
     readonly datum: unknown;
     readonly seriesId: string;
 }
@@ -190,7 +191,7 @@ export interface INodeEventConstructor<
     TSeries extends Series<TDatum, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > {
-    new (type: TEvent, event: MouseEvent, { datum }: TDatum, series: TSeries): INodeEvent<TEvent>;
+    new (type: TEvent, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<TEvent>;
 }
 
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
@@ -201,7 +202,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
 
     constructor(
         readonly type: TEvent,
-        readonly event: MouseEvent,
+        readonly event: Event,
         { datum }: TDatum,
         series: ISeries<TDatum, unknown>
     ) {
@@ -689,15 +690,15 @@ export abstract class Series<
 
     abstract getLabelData(): PointLabelDatum[];
 
-    fireNodeClickEvent(event: MouseEvent, datum: TDatum): void {
+    fireNodeClickEvent(event: Event, datum: TDatum): void {
         this.fireEvent(new this.NodeEvent('nodeClick', event, datum, this));
     }
 
-    fireNodeDoubleClickEvent(event: MouseEvent, datum: TDatum): void {
+    fireNodeDoubleClickEvent(event: Event, datum: TDatum): void {
         this.fireEvent(new this.NodeEvent('nodeDoubleClick', event, datum, this));
     }
 
-    createNodeContextMenuActionEvent(event: MouseEvent, datum: TDatum): INodeEvent {
+    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent {
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
     }
 

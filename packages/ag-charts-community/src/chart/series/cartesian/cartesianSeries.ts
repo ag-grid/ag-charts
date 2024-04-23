@@ -85,7 +85,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
     readonly yKey?: string;
     constructor(
         type: TEvent,
-        nativeEvent: MouseEvent,
+        nativeEvent: Event,
         datum: SeriesNodeDatum,
         series: ISeries<SeriesNodeDatum, { xKey?: string; yKey?: string }>
     ) {

@@ -49,7 +49,7 @@ class RangeAreaSeriesNodeEvent<
     readonly yLowKey?: string;
     readonly yHighKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeAreaMarkerDatum, series: RangeAreaSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RangeAreaMarkerDatum, series: RangeAreaSeries) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
