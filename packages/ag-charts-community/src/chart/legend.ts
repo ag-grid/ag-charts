@@ -601,20 +601,26 @@ export class Legend extends BaseProperties {
         return { maxPageWidth, maxPageHeight, pages, paginationBBox, paginationVertical };
     }
 
-    private getRowCount(): number {
-        if (this.pages.length > 0 && this.pages[0].columns.length > 0) {
-            return this.pages[0].columns[0].indices.length;
-        } else {
-            return 0;
+    private getPageItemCount(pageNumber: number): number {
+        let count = 0;
+        for (const col of this.pages[pageNumber].columns) {
+            count += col.indices.length;
         }
+        return count;
     }
 
-    private getColumnCount(): number {
-        if (this.pages.length > 0) {
-            return this.pages[0].columns.length;
-        } else {
-            return 0;
+    private getNodeIndexFromFocusIndex(): number {
+        const { index } = this.focus;
+        const page = this.pages[this.pagination.currentPage];
+        let itemCount: number = 0;
+        for (const col of page.columns) {
+            if (index < itemCount + col.indices.length) {
+                return col.indices[index - itemCount];
+            } else {
+                itemCount += col.indices.length;
+            }
         }
+        return -1;
     }
 
     private updatePositions(pageNumber: number = 0) {
@@ -635,7 +641,7 @@ export class Legend extends BaseProperties {
         let y = 0;
 
         const columnCount = columns.length;
-        const rowCount = this.getRowCount();
+        const rowCount = columns[0].indices.length;
         const horizontal = this.getOrientation() === 'horizontal';
 
         const itemHeight = columns[0].bboxes[0].height + paddingY;
@@ -993,8 +999,7 @@ export class Legend extends BaseProperties {
             this.focus.index = this.pagination.currentPage === 0 ? 1 : 0;
             consumeTabStart('page');
         } else if (this.focus.mode === 'page' && event.delta === -1) {
-            const nPerPage = this.getColumnCount() * this.getRowCount();
-            this.focus.index = this.pagination.currentPage * nPerPage;
+            this.focus.index = 0;
             consumeTabStart('item');
         }
     }
@@ -1002,7 +1007,8 @@ export class Legend extends BaseProperties {
     private onNav(event: KeyNavEvent<'nav-vert' | 'nav-hori'>) {
         if (this.focus.mode === 'item') {
             const newIndex = this.focus.index + event.delta;
-            this.focus.index = clamp(0, newIndex, this.data.length - 1);
+            const pageItemCount = this.getPageItemCount(this.pagination.currentPage);
+            this.focus.index = clamp(-1, newIndex, pageItemCount);
             this.updateFocus();
             event.consume();
         } else if (this.focus.mode === 'page') {
@@ -1025,26 +1031,41 @@ export class Legend extends BaseProperties {
         }
     }
 
+    private maybeChangeFocusPage() {
+        // Update the current page by going left or right (or staying on the same page).
+        const oldPage = this.pagination.currentPage;
+        const oldPageItemCount = this.getPageItemCount(oldPage);
+        if (this.focus.index === -1) {
+            this.pagination.setPage(oldPage - 1);
+        } else if (this.focus.index === oldPageItemCount) {
+            this.pagination.setPage(oldPage + 1);
+        } else {
+            return;
+        }
+
+        // Update the current index of the focused item on this update-to-date page.
+        const { currentPage } = this.pagination;
+        if (oldPage === currentPage) {
+            this.focus.index = clamp(0, this.focus.index, oldPageItemCount - 1);
+        } else if (this.focus.index === -1) {
+            this.focus.index = this.getPageItemCount(currentPage) - 1;
+        } else {
+            this.focus.index = 0;
+        }
+    }
+
     private getFocusedItem(): { node?: MarkerLabel; datum?: CategoryLegendDatum } {
         if (this.focus.mode !== 'item') {
             Logger.error(`getFocusedItem() should be called only when focus.mode is 'item'`);
             return { node: undefined, datum: undefined };
         }
+        this.maybeChangeFocusPage();
 
-        const { index } = this.focus;
-        const nCol = this.getColumnCount();
-        const nRow = this.getRowCount();
-        const nPerPage = nCol * nRow;
-
-        const ipage = Math.floor(index / nPerPage);
-        const irow = Math.floor((index % nPerPage) / nCol);
-        const icol = (index % nPerPage) % nCol;
-        const nodeIndex = this.pages[ipage].columns[icol].indices[irow];
+        const nodeIndex = this.getNodeIndexFromFocusIndex();
         if (nodeIndex < 0) {
             Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
             return { node: undefined, datum: undefined };
         }
-        this.pagination.setPage(ipage);
 
         const node = this.itemSelection.nodes()[nodeIndex];
         const data = this.data;
