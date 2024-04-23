@@ -103,7 +103,7 @@ export abstract class DataModelSeries<
         nodeData: TDatum[],
         seriesItemEnabled: readonly boolean[] | undefined
     ): number {
-        if (nodeData.length !== seriesItemEnabled?.length) {
+        if (seriesItemEnabled && nodeData.length !== seriesItemEnabled.length) {
             Logger.error(
                 `invalid state: nodeData.length (${nodeData.length} !== seriesItemEnabled.length (${seriesItemEnabled?.length})`
             );
