@@ -896,7 +896,10 @@ export class Legend extends BaseProperties {
         this.doHover(event, datum);
     }
 
-    private doHover(event: TooltipPointerEvent | undefined, datum: CategoryLegendDatum | undefined) {
+    private doHover(
+        event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined,
+        datum: CategoryLegendDatum | undefined
+    ) {
         const {
             item: { toggleSeriesVisible },
             listeners,
