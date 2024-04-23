@@ -149,29 +149,44 @@ export abstract class RadialColumnSeriesBase<
 
         const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
 
+        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(angleKey, false, { id: 'angleValue' }),
-                valueProperty(radiusKey, true, {
+                keyProperty(angleKey, angleScaleType, { id: 'angleValue' }),
+                valueProperty(radiusKey, radiusScaleType, {
                     id: 'radiusValue-raw',
                     invalidValue: null,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(radiusKey, true, 'normal', 'current', {
-                    id: `radiusValue-end`,
-                    rangeId: `radiusValue-range`,
-                    invalidValue: null,
-                    groupId: stackGroupId,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
-                ...groupAccumulativeValueProperty(radiusKey, true, 'trailing', 'current', {
-                    id: `radiusValue-start`,
-                    invalidValue: null,
-                    groupId: stackGroupTrailingId,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
+                ...groupAccumulativeValueProperty(
+                    radiusKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `radiusValue-end`,
+                        rangeId: `radiusValue-range`,
+                        invalidValue: null,
+                        groupId: stackGroupId,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    radiusScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    radiusKey,
+                    'trailing',
+                    'current',
+                    {
+                        id: `radiusValue-start`,
+                        invalidValue: null,
+                        groupId: stackGroupTrailingId,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    radiusScaleType
+                ),
                 ...extraProps,
             ],
         });

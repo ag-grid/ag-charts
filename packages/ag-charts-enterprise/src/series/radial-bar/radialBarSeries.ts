@@ -137,29 +137,44 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
 
+        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(radiusKey, false, { id: 'radiusValue' }),
-                valueProperty(angleKey, true, {
+                keyProperty(radiusKey, radiusScaleType, { id: 'radiusValue' }),
+                valueProperty(angleKey, angleScaleType, {
                     id: 'angleValue-raw',
                     invalidValue: null,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(angleKey, true, 'normal', 'current', {
-                    id: `angleValue-end`,
-                    rangeId: `angleValue-range`,
-                    invalidValue: null,
-                    groupId: stackGroupId,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
-                ...groupAccumulativeValueProperty(angleKey, true, 'trailing', 'current', {
-                    id: `angleValue-start`,
-                    invalidValue: null,
-                    groupId: stackGroupTrailingId,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
+                ...groupAccumulativeValueProperty(
+                    angleKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `angleValue-end`,
+                        rangeId: `angleValue-range`,
+                        invalidValue: null,
+                        groupId: stackGroupId,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    angleScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    angleKey,
+                    'trailing',
+                    'current',
+                    {
+                        id: `angleValue-start`,
+                        invalidValue: null,
+                        groupId: stackGroupTrailingId,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    angleScaleType
+                ),
                 ...extraProps,
             ],
         });

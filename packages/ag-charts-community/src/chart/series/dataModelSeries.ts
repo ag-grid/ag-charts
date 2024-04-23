@@ -19,20 +19,23 @@ export abstract class DataModelSeries<
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
 
-    protected isContinuous({ xScale, yScale }: { xScale?: Scale<any, any, any>; yScale?: Scale<any, any, any> }): {
-        isContinuousX: boolean;
-        isContinuousY: boolean;
-    } {
+    protected getScaleInformation({
+        xScale,
+        yScale,
+    }: {
+        xScale?: Scale<any, any, any>;
+        yScale?: Scale<any, any, any>;
+    }) {
         const isContinuousX = ContinuousScale.is(xScale);
         const isContinuousY = ContinuousScale.is(yScale);
-        return { isContinuousX, isContinuousY };
+        return { isContinuousX, isContinuousY, xScaleType: xScale?.type, yScaleType: yScale?.type };
     }
 
     private getModulePropertyDefinitions() {
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         return this.moduleMap
-            .mapModules((mod) => mod.getPropertyDefinitions(this.isContinuous({ xScale, yScale })))
+            .mapModules((mod) => mod.getPropertyDefinitions(this.getScaleInformation({ xScale, yScale })))
             .flat();
     }
 

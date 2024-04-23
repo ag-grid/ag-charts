@@ -95,12 +95,12 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
 
         if (targetKey !== undefined) {
-            extraProps.push(valueProperty(targetKey, isContinuousY, { id: 'target' }));
+            extraProps.push(valueProperty(targetKey, yScaleType, { id: 'target' }));
         }
 
         if (!this.ctx.animationManager.isSkipped()) {
@@ -114,8 +114,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         // types and future compatibility (we may decide to support multiple datum at some point).
         await this.requestDataModel<any, any, true>(dataController, this.data.slice(0, 1), {
             props: [
-                keyProperty(valueKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(valueKey, isContinuousY, { id: 'value' }),
+                keyProperty(valueKey, xScaleType, { id: 'xValue' }),
+                valueProperty(valueKey, yScaleType, { id: 'value' }),
                 ...extraProps,
             ],
             groupByKeys: true,

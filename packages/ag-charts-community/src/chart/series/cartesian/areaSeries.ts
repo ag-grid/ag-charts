@@ -106,7 +106,7 @@ export class AreaSeries extends CartesianSeries<
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const ids = [
             `area-stack-${groupIndex}-yValues`,
@@ -142,33 +142,63 @@ export class AreaSeries extends CartesianSeries<
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(yKey, isContinuousY, { id: `yValueRaw`, ...common }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'current', {
-                    id: `yValueEnd`,
-                    ...common,
-                    groupId: ids[0],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'current', {
-                    id: `yValueStart`,
-                    ...common,
-                    groupId: ids[1],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'last', {
-                    id: `yValuePreviousEnd`,
-                    ...common,
-                    groupId: ids[2],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'last', {
-                    id: `yValuePreviousStart`,
-                    ...common,
-                    groupId: ids[3],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
-                    id: `yValueCumulative`,
-                    ...common,
-                    groupId: ids[4],
-                }),
+                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'current',
+                    {
+                        id: `yValueEnd`,
+                        ...common,
+                        groupId: ids[0],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'current',
+                    {
+                        id: `yValueStart`,
+                        ...common,
+                        groupId: ids[1],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'last',
+                    {
+                        id: `yValuePreviousEnd`,
+                        ...common,
+                        groupId: ids[2],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'last',
+                    {
+                        id: `yValuePreviousStart`,
+                        ...common,
+                        groupId: ids[3],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `yValueCumulative`,
+                        ...common,
+                        groupId: ids[4],
+                    },
+                    yScaleType
+                ),
                 ...extraProps,
             ],
             groupByKeys: true,
@@ -225,7 +255,7 @@ export class AreaSeries extends CartesianSeries<
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
-        const { isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 

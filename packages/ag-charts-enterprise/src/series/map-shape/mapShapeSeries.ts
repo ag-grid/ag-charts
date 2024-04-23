@@ -143,16 +143,19 @@ export class MapShapeSeries
             featureById.set(property, feature);
         });
 
+        const colorScaleType = this.colorScale.type;
+        const mercatorScaleType = this.scale?.type;
+
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
-                valueProperty(idKey, false, {
+                valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
+                valueProperty(idKey, mercatorScaleType, {
                     id: 'featureValue',
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum),
                 }),
-                ...(labelKey ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
 

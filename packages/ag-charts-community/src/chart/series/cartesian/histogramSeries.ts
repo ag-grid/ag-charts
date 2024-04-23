@@ -141,7 +141,11 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
         const { xKey, yKey, areaPlot, aggregation } = this.properties;
 
-        const props: PropertyDefinition<any>[] = [keyProperty(xKey, true), SORT_DOMAIN_GROUPS];
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { xScaleType, yScaleType } = this.getScaleInformation({ yScale, xScale });
+
+        const props: PropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
         if (yKey) {
             let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg');
 
@@ -155,7 +159,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             if (areaPlot) {
                 aggProp = area('groupAgg', aggProp);
             }
-            props.push(valueProperty(yKey, true, { invalidValue: undefined }), aggProp);
+            props.push(valueProperty(yKey, yScaleType, { invalidValue: undefined }), aggProp);
         } else {
             let aggProp = groupCount('groupAgg');
 

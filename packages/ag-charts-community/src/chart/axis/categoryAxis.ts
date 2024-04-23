@@ -18,7 +18,7 @@ export class CategoryAxis<
     S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
 > extends CartesianAxis<S> {
     static readonly className: string = 'CategoryAxis';
-    static readonly type: string = 'category' as const;
+    static readonly type: 'category' | 'ordinal-time' = 'category';
 
     private _paddingOverrideEnabled = false;
 

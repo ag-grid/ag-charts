@@ -194,13 +194,17 @@ export class MapMarkerSeries
             featureById.set(property, feature);
         });
 
+        const sizeScaleType = this.sizeScale.type;
+        const colorScaleType = this.colorScale.type;
+        const mercatorScaleType = this.scale?.type;
+
         const hasLatLon = latitudeKey != null && longitudeKey != null;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...(idKey != null
                     ? [
-                          valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
-                          valueProperty(idKey, false, {
+                          valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
+                          valueProperty(idKey, mercatorScaleType, {
                               id: 'featureValue',
                               includeProperty: false,
                               processor: () => (datum) => featureById.get(datum),
@@ -209,13 +213,13 @@ export class MapMarkerSeries
                     : []),
                 ...(hasLatLon
                     ? [
-                          valueProperty(latitudeKey, false, { id: 'latValue' }),
-                          valueProperty(longitudeKey, false, { id: 'lonValue' }),
+                          valueProperty(latitudeKey, mercatorScaleType, { id: 'latValue' }),
+                          valueProperty(longitudeKey, mercatorScaleType, { id: 'lonValue' }),
                       ]
                     : []),
-                ...(labelKey ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
-                ...(sizeKey ? [valueProperty(sizeKey, true, { id: 'sizeValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
 
