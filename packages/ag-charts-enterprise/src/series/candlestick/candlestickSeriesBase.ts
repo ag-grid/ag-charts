@@ -106,7 +106,7 @@ export abstract class CandlestickSeriesBase<
     protected override animateEmptyUpdateReady({
         datumSelection,
     }: _ModuleSupport.CartesianAnimationData<TItemShapeGroup, TNodeDatum>) {
-        const animationFns = prepareCandlestickAnimationFunctions();
+        const animationFns = prepareCandlestickAnimationFunctions(true);
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], animationFns);
     }
 
@@ -116,7 +116,7 @@ export abstract class CandlestickSeriesBase<
         const { processedData } = this;
         const difference = processedData?.reduced?.diff;
 
-        const animationFns = prepareCandlestickAnimationFunctions();
+        const animationFns = prepareCandlestickAnimationFunctions(false);
         motion.fromToMotion(
             this.id,
             'datums',

@@ -22,7 +22,7 @@ export function resetCandlestickSelectionsFn(
     return getCoordinates(datum);
 }
 
-export function prepareCandlestickAnimationFunctions() {
+export function prepareCandlestickAnimationFunctions(initial: boolean) {
     const fromFn: _ModuleSupport.FromToMotionPropFn<
         CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
         AnimatableCandlestickGroupDatum,
@@ -32,7 +32,7 @@ export function prepareCandlestickAnimationFunctions() {
         datum: CandlestickNodeBaseDatum,
         status: _ModuleSupport.NodeUpdateState
     ) => {
-        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
+        const phase = initial ? 'initial' : NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
 
         if (status === 'unknown' || (status === 'added' && datum != null)) {
             const { x, y, yLow, yHigh, width, height } = getCoordinates(datum);
