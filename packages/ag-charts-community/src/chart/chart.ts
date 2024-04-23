@@ -1099,10 +1099,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private onBlur(event: KeyNavEvent<'blur'>): void {
+    private onBlur(_event: KeyNavEvent<'blur'>): void {
         this.ctx.regionManager.updateFocusIndicatorRect(undefined);
         this.resetPointer();
-        event.consume();
+        // Do not consume blur events to allow the browser-focus to leave the canvas element.
     }
 
     private onTab(event: KeyNavEvent<'tab'>): void {
