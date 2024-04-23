@@ -3,12 +3,7 @@ import { getDocument, injectStyle } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import { buildConsumable } from './consumableEvent';
 import * as focusStyles from './focusStyles';
-import type {
-    InteractionManager,
-    PointerInteractionEvent,
-    PointerInteractionTypes,
-    PointerOffsets,
-} from './interactionManager';
+import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 
@@ -56,7 +51,6 @@ export class RegionManager {
     public readonly keyNavManager: KeyNavManager;
     private readonly focusWrapper: HTMLDivElement;
     private readonly focusIndicator: HTMLDivElement;
-    private readonly focusClickOffsets: PointerOffsets = { offsetX: 0, offsetY: 0 };
 
     private currentRegion?: Region;
     private isDragging = false;
@@ -352,12 +346,5 @@ export class RegionManager {
         this.focusIndicator.style.height = `${rect.height}px`;
         this.focusIndicator.style.left = `${rect.x}px`;
         this.focusIndicator.style.top = `${rect.y}px`;
-
-        this.focusClickOffsets.offsetX = rect.x + rect.width / 2;
-        this.focusClickOffsets.offsetY = rect.y + rect.height / 2;
-    }
-
-    public getKeyboardPointer(): PointerOffsets {
-        return this.focusClickOffsets;
     }
 }

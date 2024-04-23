@@ -34,7 +34,7 @@ class RadarSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadarNodeDatum, series: RadarSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RadarNodeDatum, series: RadarSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;

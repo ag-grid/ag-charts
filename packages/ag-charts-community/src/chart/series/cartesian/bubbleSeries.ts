@@ -35,7 +35,7 @@ type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 class BubbleSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeEvent<TEvent> {
     readonly sizeKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: BubbleNodeDatum, series: BubbleSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: BubbleNodeDatum, series: BubbleSeries) {
         super(type, nativeEvent, datum, series);
         this.sizeKey = series.properties.sizeKey;
     }

@@ -80,7 +80,7 @@ class RangeBarSeriesNodeEvent<
     readonly yLowKey?: string;
     readonly yHighKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeBarNodeDatum, series: RangeBarSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RangeBarNodeDatum, series: RangeBarSeries) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;

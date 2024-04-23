@@ -47,7 +47,7 @@ class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends S
     readonly radiusKey?: string;
     readonly calloutLabelKey?: string;
     readonly sectorLabelKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: PieNodeDatum, series: PieSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: PieNodeDatum, series: PieSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;

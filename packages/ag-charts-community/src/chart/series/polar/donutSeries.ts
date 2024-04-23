@@ -50,7 +50,7 @@ class DonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends
     readonly radiusKey?: string;
     readonly calloutLabelKey?: string;
     readonly sectorLabelKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: DonutNodeDatum, series: DonutSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: DonutNodeDatum, series: DonutSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;

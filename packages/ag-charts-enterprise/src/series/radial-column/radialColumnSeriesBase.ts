@@ -32,12 +32,7 @@ class RadialColumnSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadialColumnNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: MouseEvent,
-        datum: RadialColumnNodeDatum,
-        series: RadialColumnSeriesBase<any>
-    ) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RadialColumnNodeDatum, series: RadialColumnSeriesBase<any>) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
