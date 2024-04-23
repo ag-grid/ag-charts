@@ -2,7 +2,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Logger } from '../../util/logger';
-import { clamp } from '../../util/number';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
