@@ -55,6 +55,13 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => Number(value).toLocaleString(),
             },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) => ({
+                        text: Number(value.toFixed(0)).toLocaleString(),
+                    }),
+                },
+            },
         },
     ],
 };
