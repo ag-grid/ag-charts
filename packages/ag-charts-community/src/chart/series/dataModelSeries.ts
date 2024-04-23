@@ -126,7 +126,7 @@ export abstract class DataModelSeries<
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
                 datumIndex--;
             }
-        }else {
+        } else {
             while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
                 datumIndex++;
             }
