@@ -21,15 +21,15 @@ const options: AgCartesianChartOptions = {
             start: new Date(2023, 10, 26),
         },
     },
-    toolbar: {
-        ranges: {
-            align: 'center',
-        },
-        zoom: {
-            position: 'right',
-            align: 'start',
-        },
-    },
+    // toolbar: {
+    //     ranges: {
+    //         align: 'center',
+    //     },
+    //     zoom: {
+    //         position: 'right',
+    //         align: 'start',
+    //     },
+    // },
     tooltip: {
         enabled: true,
     },

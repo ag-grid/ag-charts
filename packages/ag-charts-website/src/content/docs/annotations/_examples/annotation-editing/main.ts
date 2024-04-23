@@ -44,11 +44,11 @@ const options: AgChartOptions = {
     annotations: {
         enabled: true,
     },
-    toolbar: {
-        annotations: {
-            enabled: true,
-        },
-    },
+    // toolbar: {
+    //     annotations: {
+    //         enabled: true,
+    //     },
+    // },
 };
 
 AgCharts.create(options);
