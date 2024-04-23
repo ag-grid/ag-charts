@@ -81,7 +81,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const extraProps = [];
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
@@ -92,12 +92,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(minKey, isContinuousY, { id: `minValue` }),
-                valueProperty(q1Key, isContinuousY, { id: `q1Value` }),
-                valueProperty(medianKey, isContinuousY, { id: `medianValue` }),
-                valueProperty(q3Key, isContinuousY, { id: `q3Value` }),
-                valueProperty(maxKey, isContinuousY, { id: `maxValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(minKey, yScaleType, { id: `minValue` }),
+                valueProperty(q1Key, yScaleType, { id: `q1Value` }),
+                valueProperty(medianKey, yScaleType, { id: `medianValue` }),
+                valueProperty(q3Key, yScaleType, { id: `q3Value` }),
+                valueProperty(maxKey, yScaleType, { id: `maxValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],

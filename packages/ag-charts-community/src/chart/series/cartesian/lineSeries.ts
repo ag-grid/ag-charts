@@ -80,7 +80,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const props: DataModelOptions<any, false>['props'] = [];
 
@@ -89,7 +89,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         // is updated. If this is a static chart, we can instead not bother with identifying datum and
         // automatically garbage collect the marker selection.
         if (!isContinuousX) {
-            props.push(keyProperty(xKey, isContinuousX, { id: 'xKey' }));
+            props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
         }
         if (animationEnabled) {
             props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
@@ -99,8 +99,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         props.push(
-            valueProperty(xKey, isContinuousX, { id: 'xValue' }),
-            valueProperty(yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
+            valueProperty(xKey, xScaleType, { id: 'xValue' }),
+            valueProperty(yKey, yScaleType, { id: 'yValue', invalidValue: undefined })
         );
 
         await this.requestDataModel<any>(dataController, this.data, { props });

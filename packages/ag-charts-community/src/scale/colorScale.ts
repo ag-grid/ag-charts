@@ -45,6 +45,7 @@ const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
 };
 
 export class ColorScale implements Scale<number, string, number> {
+    readonly type = 'color';
     protected invalid = true;
 
     @Invalidating

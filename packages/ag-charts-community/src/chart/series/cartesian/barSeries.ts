@@ -132,7 +132,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
 
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
@@ -153,25 +153,37 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
-                    id: `yValue-end`,
-                    rangeId: `yValue-range`,
-                    invalidValue: null,
-                    missingValue: 0,
-                    groupId: stackGroupName,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'trailing', 'current', {
-                    id: `yValue-start`,
-                    invalidValue: null,
-                    missingValue: 0,
-                    groupId: stackGroupTrailingName,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
+                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                valueProperty(yKey, yScaleType, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `yValue-end`,
+                        rangeId: `yValue-range`,
+                        invalidValue: null,
+                        missingValue: 0,
+                        groupId: stackGroupName,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'trailing',
+                    'current',
+                    {
+                        id: `yValue-start`,
+                        invalidValue: null,
+                        missingValue: 0,
+                        groupId: stackGroupTrailingName,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    yScaleType
+                ),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],

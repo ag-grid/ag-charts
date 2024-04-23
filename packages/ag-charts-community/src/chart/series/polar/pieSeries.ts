@@ -198,12 +198,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         // Order here should match `getDatumIdFromData()`.
         if (legendItemKey) {
-            extraKeyProps.push(keyProperty(legendItemKey, false, { id: `legendItemKey` }));
+            extraKeyProps.push(keyProperty(legendItemKey, 'band', { id: `legendItemKey` }));
         } else if (calloutLabelKey) {
-            extraKeyProps.push(keyProperty(calloutLabelKey, false, { id: `calloutLabelKey` }));
+            extraKeyProps.push(keyProperty(calloutLabelKey, 'band', { id: `calloutLabelKey` }));
         } else if (sectorLabelKey) {
-            extraKeyProps.push(keyProperty(sectorLabelKey, false, { id: `sectorLabelKey` }));
+            extraKeyProps.push(keyProperty(sectorLabelKey, 'band', { id: `sectorLabelKey` }));
         }
+
+        const radiusScaleType = this.radiusScale.type;
+        const angleScaleType = this.radiusScale.type;
 
         if (radiusKey) {
             extraProps.push(
@@ -212,7 +215,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
                 }),
-                valueProperty(radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
+                valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw` }), // Raw value pass-through.
                 normalisePropertyTo(
                     { id: 'radiusValue' },
                     [0, 1],
@@ -223,13 +226,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             );
         }
         if (calloutLabelKey) {
-            extraProps.push(valueProperty(calloutLabelKey, false, { id: `calloutLabelValue` }));
+            extraProps.push(valueProperty(calloutLabelKey, 'band', { id: `calloutLabelValue` }));
         }
         if (sectorLabelKey) {
-            extraProps.push(valueProperty(sectorLabelKey, false, { id: `sectorLabelValue` }));
+            extraProps.push(valueProperty(sectorLabelKey, 'band', { id: `sectorLabelValue` }));
         }
         if (legendItemKey) {
-            extraProps.push(valueProperty(legendItemKey, false, { id: `legendItemValue` }));
+            extraProps.push(valueProperty(legendItemKey, 'band', { id: `legendItemValue` }));
         }
         if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
             extraProps.push(diff(this.processedData));
@@ -241,8 +244,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
-                accumulativeValueProperty(angleKey, true, { id: `angleValue`, onlyPositive: true }),
-                valueProperty(angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
+                accumulativeValueProperty(angleKey, angleScaleType, { id: `angleValue`, onlyPositive: true }),
+                valueProperty(angleKey, angleScaleType, { id: `angleRaw` }), // Raw value pass-through.
                 normalisePropertyTo({ id: 'angleValue' }, [0, 1], 0, 0),
                 ...extraProps,
             ],

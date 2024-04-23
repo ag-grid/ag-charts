@@ -113,10 +113,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             extraProps.push(animationValidation());
         }
 
+        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(angleKey, false, { id: 'angleValue' }),
-                valueProperty(radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
+                valueProperty(angleKey, angleScaleType, { id: 'angleValue' }),
+                valueProperty(radiusKey, radiusScaleType, { id: 'radiusValue', invalidValue: undefined }),
                 ...extraProps,
             ],
         });

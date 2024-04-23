@@ -93,18 +93,18 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     private getUnstackPropertyDefinition(opts: PropertyDefinitionOpts) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
-        const { isContinuousX, isContinuousY } = opts;
+        const { xScaleType, yScaleType } = opts;
 
         if (yLowerKey != null && yUpperKey != null) {
             props.push(
-                valueProperty(yLowerKey, isContinuousY, { id: `${yErrorsID}-lower` }),
-                valueProperty(yUpperKey, isContinuousY, { id: `${yErrorsID}-upper` })
+                valueProperty(yLowerKey, yScaleType, { id: `${yErrorsID}-lower` }),
+                valueProperty(yUpperKey, yScaleType, { id: `${yErrorsID}-upper` })
             );
         }
         if (xLowerKey != null && xUpperKey != null) {
             props.push(
-                valueProperty(xLowerKey, isContinuousX, { id: `${xErrorsID}-lower` }),
-                valueProperty(xUpperKey, isContinuousX, { id: `${xErrorsID}-upper` })
+                valueProperty(xLowerKey, xScaleType, { id: `${xErrorsID}-lower` }),
+                valueProperty(xUpperKey, xScaleType, { id: `${xErrorsID}-upper` })
             );
         }
         return props;
@@ -114,7 +114,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { cartesianSeries } = this;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
-        const { isContinuousX, isContinuousY } = opts;
+        const { xScaleType, yScaleType } = opts;
 
         const groupIndex = cartesianSeries.seriesGrouping?.groupIndex ?? cartesianSeries.id;
         const groupOpts = {
@@ -123,26 +123,32 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             separateNegative: true,
             ...(cartesianSeries.visible ? {} : { forceValue: 0 }),
         };
-        const makeErrorProperty = (key: string, continuous: boolean, id: string, type: 'lower' | 'upper') => {
-            return groupAccumulativeValueProperty(key, continuous, 'normal', 'current', {
-                id: `${id}-${type}`,
-                groupId: `errorGroup-${groupIndex}-${type}`,
-                ...groupOpts,
-            });
+        const makeErrorProperty = (key: string, id: string, type: 'lower' | 'upper', scaleType?: _Scale.ScaleType) => {
+            return groupAccumulativeValueProperty(
+                key,
+                'normal',
+                'current',
+                {
+                    id: `${id}-${type}`,
+                    groupId: `errorGroup-${groupIndex}-${type}`,
+                    ...groupOpts,
+                },
+                scaleType
+            );
         };
-        const pushErrorProperties = (lowerKey: string, upperKey: string, continuous: boolean, id: string) => {
+        const pushErrorProperties = (lowerKey: string, upperKey: string, id: string, scaleType?: _Scale.ScaleType) => {
             props.push(
-                ...makeErrorProperty(lowerKey, continuous, id, 'lower'),
-                ...makeErrorProperty(upperKey, continuous, id, 'upper')
+                ...makeErrorProperty(lowerKey, id, 'lower', scaleType),
+                ...makeErrorProperty(upperKey, id, 'upper', scaleType)
             );
         };
 
         if (yLowerKey != null && yUpperKey != null) {
-            pushErrorProperties(yLowerKey, yUpperKey, isContinuousY, yErrorsID);
+            pushErrorProperties(yLowerKey, yUpperKey, yErrorsID, yScaleType);
         }
 
         if (xLowerKey != null && xUpperKey != null) {
-            pushErrorProperties(xLowerKey, xUpperKey, isContinuousX, xErrorsID);
+            pushErrorProperties(xLowerKey, xUpperKey, xErrorsID, xScaleType);
         }
 
         return props;

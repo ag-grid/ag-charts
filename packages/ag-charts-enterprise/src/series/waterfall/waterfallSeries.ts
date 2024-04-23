@@ -148,36 +148,36 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue` }),
-                accumulativeValueProperty(yKey, isContinuousY, {
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yCurrent`,
                 }),
-                accumulativeValueProperty(yKey, isContinuousY, {
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     missingValue: 0,
                     id: `yCurrentTotal`,
                 }),
-                accumulativeValueProperty(yKey, isContinuousY, {
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yCurrentPositive`,
                     validation: positiveNumber,
                 }),
-                accumulativeValueProperty(yKey, isContinuousY, {
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yCurrentNegative`,
                     validation: negativeNumber,
                 }),
-                trailingAccumulatedValueProperty(yKey, isContinuousY, {
+                trailingAccumulatedValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yPrevious`,
                 }),
-                valueProperty(yKey, isContinuousY, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty('totalType', false, {
+                valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
+                valueProperty('totalType', 'band', {
                     id: `totalTypeValue`,
                     missingValue: undefined,
                     validation: totalTypeValue,

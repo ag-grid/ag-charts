@@ -64,18 +64,19 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const colorScaleType = this.colorScale.type;
         const { xKey, yKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xKey-raw' }),
-                keyProperty(yKey, isContinuousY, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(labelKey, false, { id: `labelKey-raw` })] : []),
-                valueProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(yKey, isContinuousY, { id: `yValue` }),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
-                ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
+                keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
+                keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
+                valueProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(yKey, yScaleType, { id: `yValue` }),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
             ],
         });
 

@@ -7,6 +7,7 @@ import type {
     AgSeriesMarkerStyle,
     ISeriesMarker,
 } from '../../options/series/markerOptions';
+import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
@@ -67,7 +68,7 @@ export type PickFocusInputs = {
 
 export type PickFocusOutputs<TDatum> = { datumIndex: number; bbox: BBox; datum: TDatum };
 
-function basicContinuousCheckDatumValidation(value: any) {
+export function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
@@ -75,23 +76,47 @@ function basicDiscreteCheckDatumValidation(value: any) {
     return value != null;
 }
 
-export function keyProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+function getValidationFn(scaleType?: ScaleType) {
+    switch (scaleType) {
+        case 'number':
+        case 'log':
+        case 'ordinal-time':
+        case 'time':
+        case 'color':
+            return basicContinuousCheckDatumValidation;
+        default:
+            return basicDiscreteCheckDatumValidation;
+    }
+}
+
+function getValueType(scaleType?: ScaleType) {
+    switch (scaleType) {
+        case 'number':
+        case 'log':
+        case 'time':
+        case 'color':
+            return 'range';
+        default:
+            return 'category';
+    }
+}
+export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'key',
-        valueType: continuous ? 'range' : 'category',
-        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        valueType: getValueType(scaleType),
+        validation: getValidationFn(scaleType),
         ...opts,
     };
     return result;
 }
 
-export function valueProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'value',
-        valueType: continuous ? 'range' : 'category',
-        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        valueType: getValueType(scaleType),
+        validation: getValidationFn(scaleType),
         ...opts,
     };
     return result;
@@ -114,12 +139,12 @@ export function rangedValueProperty<K>(
 
 export function accumulativeValueProperty<K>(
     propName: K,
-    continuous: boolean,
+    scaleType?: ScaleType,
     opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
 ) {
     const { onlyPositive, ...defOpts } = opts;
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, continuous, defOpts),
+        ...valueProperty(propName, scaleType, defOpts),
         processor: accumulatedValue(onlyPositive),
     };
     return result;
@@ -127,11 +152,11 @@ export function accumulativeValueProperty<K>(
 
 export function trailingAccumulatedValueProperty<K>(
     propName: K,
-    continuous: boolean,
+    scaleType?: ScaleType,
     opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, continuous, opts),
+        ...valueProperty(propName, scaleType, opts),
         processor: trailingAccumulatedValue(),
     };
     return result;
@@ -139,13 +164,13 @@ export function trailingAccumulatedValueProperty<K>(
 
 export function groupAccumulativeValueProperty<K>(
     propName: K,
-    continuous: boolean,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
     sum: 'current' | 'last' = 'current',
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
+    scaleType?: ScaleType
 ) {
     return [
-        valueProperty(propName, continuous, opts),
+        valueProperty(propName, scaleType, opts),
         accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
         ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
     ];

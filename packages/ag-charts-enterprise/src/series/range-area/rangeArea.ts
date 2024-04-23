@@ -105,7 +105,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { xKey, yLowKey, yHighKey } = this.properties;
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -118,9 +118,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
-                valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: undefined }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: undefined }),
                 ...extraProps,
             ],
         });

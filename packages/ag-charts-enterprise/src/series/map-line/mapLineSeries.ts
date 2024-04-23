@@ -121,17 +121,21 @@ export class MapLineSeries
             featureById.set(property, feature);
         });
 
+        const sizeScaleType = this.sizeScale.type;
+        const colorScaleType = this.colorScale.type;
+        const mercatorScaleType = this.scale?.type;
+
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
-                valueProperty(idKey, false, {
+                valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
+                valueProperty(idKey, mercatorScaleType, {
                     id: 'featureValue',
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum),
                 }),
-                ...(labelKey != null ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
-                ...(sizeKey != null ? [valueProperty(sizeKey, true, { id: 'sizeValue' })] : []),
-                ...(colorKey != null ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey != null ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(sizeKey != null ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
+                ...(colorKey != null ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
 

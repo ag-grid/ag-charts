@@ -131,7 +131,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
         if (!this.ctx.animationManager.isSkipped()) {
@@ -144,9 +144,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
-                valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
+                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, ...visibleProps }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],

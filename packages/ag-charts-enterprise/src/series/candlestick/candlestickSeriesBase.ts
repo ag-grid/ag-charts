@@ -136,7 +136,7 @@ export abstract class CandlestickSeriesBase<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-        const { isContinuousX, isContinuousY } = this.isContinuous({ xScale, yScale });
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
         if (animationEnabled) {
@@ -147,7 +147,7 @@ export abstract class CandlestickSeriesBase<
         }
         if (openKey) {
             extraProps.push(
-                valueProperty(openKey, isContinuousY, {
+                valueProperty(openKey, yScaleType, {
                     id: `openValue`,
                     invalidValue: undefined,
                     missingValue: undefined,
@@ -157,10 +157,10 @@ export abstract class CandlestickSeriesBase<
 
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(closeKey, isContinuousY, { id: `closeValue` }),
-                valueProperty(highKey, isContinuousY, { id: `highValue` }),
-                valueProperty(lowKey, isContinuousY, { id: `lowValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(closeKey, yScaleType, { id: `closeValue` }),
+                valueProperty(highKey, yScaleType, { id: `highValue` }),
+                valueProperty(lowKey, yScaleType, { id: `lowValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
