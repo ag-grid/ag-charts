@@ -9,13 +9,15 @@ const options: AgCartesianChartOptions = {
         buttons: {
             buttons: [
                 {
-                    icon: 'desc',
+                    icon: 'zoom-out',
                     tooltip: 'Zoom out',
+                    label: 'Zoom out',
                     value: 'zoom-out',
                 },
                 {
-                    icon: 'asc',
+                    icon: 'zoom-in',
                     tooltip: 'Zoom in',
+                    label: 'Zoom in',
                     value: 'zoom-in',
                 },
             ],
@@ -24,26 +26,21 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    navigator: {},
     axes: [
         {
             type: 'number',
             position: 'left',
-            tick: {
-                minSpacing: 80,
-                maxSpacing: 120,
-            },
         },
         {
-            type: 'number',
+            type: 'time',
             position: 'bottom',
             nice: false,
             label: {
                 autoRotate: false,
             },
             tick: {
-                minSpacing: 80,
-                maxSpacing: 120,
+                minSpacing: 50,
+                maxSpacing: 200,
             },
         },
     ],
@@ -51,8 +48,8 @@ const options: AgCartesianChartOptions = {
     series: [
         {
             type: 'line',
-            xKey: 'year',
-            yKey: 'spending',
+            xKey: 'time',
+            yKey: 'price',
         },
     ],
 };

@@ -28,7 +28,7 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName = 'arrows' | 'asc' | 'desc' | 'first' | 'last' | 'left' | 'right';
+export type AgIconName = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset-zoom' | 'zoom-in' | 'zoom-out';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {

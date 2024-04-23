@@ -18,27 +18,27 @@ export const ZoomModule: _ModuleSupport.Module = {
                 enabled: true,
                 buttons: [
                     {
-                        icon: 'desc',
+                        icon: 'zoom-out',
                         tooltip: 'Zoom out',
                         value: 'zoom-out',
                     },
                     {
-                        icon: 'asc',
+                        icon: 'zoom-in',
                         tooltip: 'Zoom in',
                         value: 'zoom-in',
                     },
                     {
-                        icon: 'left',
+                        icon: 'pan-left',
                         tooltip: 'Pan left',
                         value: 'pan-left',
                     },
                     {
-                        icon: 'right',
+                        icon: 'pan-right',
                         tooltip: 'Pan right',
                         value: 'pan-right',
                     },
                     {
-                        icon: 'arrows',
+                        icon: 'reset-zoom',
                         tooltip: 'Reset the zoom',
                         value: 'reset-zoom',
                     },

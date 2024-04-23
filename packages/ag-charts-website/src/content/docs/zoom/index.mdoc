@@ -186,20 +186,20 @@ When both the zoom and [Context Menu](./context-menu/) are enabled, additional z
 
 {% chartExampleRunner title="Zoom Buttons" name="zoom-buttons" type="generated" /%}
 
-A set of zoom buttons are enabled by default. In this example, the set of buttons has been changed to just the zoom in and out actions.
+A set of zoom buttons are enabled by default. In this example, the set of buttons has been changed to just the zoom in and out actions with additional labels.
 
 ```ts
 zoom: {
     buttons: {
         buttons: [
             {
-                icon: 'desc',
-                tooltip: 'Zoom out',
+                icon: 'zoom-out',
+                label: 'Zoom out',
                 value: 'zoom-out',
             },
             {
-                icon: 'asc',
-                tooltip: 'Zoom in',
+                icon: 'zoom-in',
+                label: 'Zoom in',
                 value: 'zoom-in',
             },
         ],

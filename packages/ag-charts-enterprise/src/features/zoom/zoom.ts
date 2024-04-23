@@ -104,16 +104,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableAxisDragging = true;
 
-    @_ModuleSupport.ObserveChanges<Zoom>((target, buttons: ZoomButtonsProperties) => {
-        if (!buttons) return;
-        target.ctx.toolbarManager.proxyGroupOptions('zoom', buttons.toJson());
-    })
     public buttons = new ZoomButtonsProperties(() => {
         if (!this.buttons) return;
-        this.ctx.toolbarManager.proxyGroupOptions('zoom', {
-            enabled: this.buttons.enabled,
-            buttons: this.buttons.buttons,
-        });
+        this.ctx.toolbarManager.proxyGroupOptions('zoom', this.buttons.toJson());
     });
 
     @Validate(BOOLEAN)
