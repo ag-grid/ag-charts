@@ -29,6 +29,7 @@ export const modifiers = {
 
 export const css = `
 .${block} {
+    align-items: center;
     background: var(--ag-charts-toolbar-background-color);
     border-bottom: var(--ag-charts-toolbar-border-critical);
     border-top: var(--ag-charts-toolbar-border-critical);
@@ -36,14 +37,20 @@ export const css = `
     border-right: var(--ag-charts-toolbar-border);
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    opacity: 1;
     position: absolute;
+    transform: translateY(0);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .${modifiers.hidden},
-.${modifiers.preventFlash},
-.${modifiers.floatingHidden} {
+.${modifiers.preventFlash} {
     visibility: hidden;
+}
+
+.${modifiers.floatingHidden} {
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
 }
 
 .${modifiers[ToolbarPosition.Top]},
@@ -51,6 +58,7 @@ export const css = `
     flex-direction: row;
     height: var(--ag-charts-toolbar-size);
     padding: 0 var(--ag-charts-toolbar-padding);
+    width: 100%;
 }
 
 .${modifiers[ToolbarPosition.Left]},
@@ -67,6 +75,7 @@ export const css = `
     flex-direction: row;
     height: var(--ag-charts-toolbar-size);
     padding: 0 var(--ag-charts-toolbar-padding);
+    width: 100%;
 }
 
 .${elements.group} {
@@ -96,20 +105,15 @@ export const css = `
 
 .${elements.button} {
     align-items: center;
+    border-radius: var(--ag-charts-button-radius);
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
+    font-size: 14px;
     font-weight: 500;
     justify-content: center;
     margin: 0;
     padding: var(--ag-charts-button-padding);
-    border-radius: var(--ag-charts-button-radius);
     transition: background-color .25s ease-in-out;
-}
-
-.${modifiers[ToolbarPosition.Top]} .${elements.button},
-.${modifiers[ToolbarPosition.Bottom]} .${elements.button},
-.${modifiers[ToolbarPosition.FloatingTop]} .${elements.button},
-.${modifiers[ToolbarPosition.FloatingBottom]} .${elements.button} {
 }
 
 .${modifiers[ToolbarPosition.Left]} .${elements.button},
@@ -139,11 +143,21 @@ export const css = `
 }
 
 .${elements.button}:not([disabled]) {
-  cursor: pointer;
+    cursor: pointer;
+}
+
+.${elements.icon} {
+    height: 1.2em;
+    width: 1.2em;
 }
 
 .${elements.icon} + .${elements.label} {
     margin-left: var(--ag-charts-size);
+}
+
+.${elements.icon},
+.${elements.label} {
+    pointer-events: none;
 }
 
 `;

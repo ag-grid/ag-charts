@@ -36,37 +36,37 @@ const zoom: AgToolbarOptions['zoom'] = {
     align: 'end',
     buttons: [
         {
-            icon: 'asc',
-            tooltip: 'Zoom in',
-            value: 'zoom-in',
-        },
-        {
-            icon: 'desc',
+            icon: 'zoom-out',
             tooltip: 'Zoom out',
             value: 'zoom-out',
         },
         {
-            icon: 'left',
+            icon: 'zoom-in',
+            tooltip: 'Zoom in',
+            value: 'zoom-in',
+        },
+        {
+            icon: 'pan-left',
             tooltip: 'Pan left',
             value: 'pan-left',
         },
         {
-            icon: 'right',
+            icon: 'pan-right',
             tooltip: 'Pan right',
             value: 'pan-right',
         },
         {
-            icon: 'first',
+            icon: 'pan-start',
             tooltip: 'Pan to the start',
             value: 'pan-start',
         },
         {
-            icon: 'last',
+            icon: 'pan-end',
             tooltip: 'Pan to the end',
             value: 'pan-end',
         },
         {
-            icon: 'arrows',
+            icon: 'reset-zoom',
             tooltip: 'Reset the zoom',
             value: 'reset-zoom',
         },

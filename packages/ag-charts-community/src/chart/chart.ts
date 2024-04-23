@@ -292,8 +292,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.element = element;
 
-        injectStyle(styles, 'chart');
-
         const root = new Group({ name: 'root' });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
@@ -1613,6 +1611,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             miniChart.axes = [];
         }
 
+        injectStyle(styles, 'chart');
         this.ctx.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);

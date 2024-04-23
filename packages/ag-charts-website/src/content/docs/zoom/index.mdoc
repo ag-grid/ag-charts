@@ -182,6 +182,31 @@ When both the zoom and [Context Menu](./context-menu/) are enabled, additional z
 
 {% chartExampleRunner title="Zoom Context Menu" name="zoom-context-menu" type="generated" /%}
 
+## Buttons
+
+{% chartExampleRunner title="Zoom Buttons" name="zoom-buttons" type="generated" /%}
+
+A set of zoom buttons are enabled by default. In this example, the set of buttons has been changed to just the zoom in and out actions with additional labels.
+
+```ts
+zoom: {
+    buttons: {
+        buttons: [
+            {
+                icon: 'zoom-out',
+                label: 'Zoom out',
+                value: 'zoom-out',
+            },
+            {
+                icon: 'zoom-in',
+                label: 'Zoom in',
+                value: 'zoom-in',
+            },
+        ],
+    }
+}
+```
+
 ## Asynchronous Loading
 
 Use the `dataSource` option to asynchronously load in new data as the chart is zoomed.

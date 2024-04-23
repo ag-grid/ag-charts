@@ -5,7 +5,7 @@ import type { BBox } from '../../scene/bbox';
 import { createElement, injectStyle } from '../../util/dom';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
-import type { PointerInteractionEvent } from '../interaction/interactionManager';
+import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type {
     ToolbarButtonToggledEvent,
     ToolbarGroupToggledEvent,
@@ -44,7 +44,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     );
 
     private margin = 10;
-    private floatingDetectionRange = 50;
+    private floatingDetectionRange = 28;
     private readonly container: HTMLElement;
 
     private elements: Record<ToolbarPosition, HTMLElement>;
@@ -99,7 +99,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
 
         this.destroyFns.push(
-            ctx.interactionManager.addListener('hover', this.onHover.bind(this)),
+            ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
+            ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
@@ -108,22 +109,49 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onHover(event: PointerInteractionEvent<'hover'>) {
-        if (!this.enabled) return;
+        const {
+            enabled,
+            elements,
+            floatingDetectionRange,
+            ctx: { scene },
+        } = this;
+        const {
+            offsetY,
+            sourceEvent: { target },
+        } = event;
 
-        const { elements, floatingDetectionRange } = this;
-        const { offsetY, sourceEvent } = event;
+        if (!enabled) return;
 
-        const bottomDetectionY = elements[ToolbarPosition.FloatingBottom].offsetTop - floatingDetectionRange;
+        const bottom = elements[ToolbarPosition.FloatingBottom];
+        const top = elements[ToolbarPosition.FloatingTop];
+
+        const bottomDetectionY = bottom.offsetTop - floatingDetectionRange;
         const bottomVisible =
-            offsetY > bottomDetectionY || sourceEvent.target === elements[ToolbarPosition.FloatingBottom];
-        elements[ToolbarPosition.FloatingBottom].classList.toggle(styles.modifiers.floatingHidden, !bottomVisible);
+            (offsetY > bottomDetectionY && offsetY < scene.canvas.element.offsetHeight) || target === bottom;
+        bottom.classList.toggle(styles.modifiers.floatingHidden, !bottomVisible);
 
-        const topDetectionY =
-            elements[ToolbarPosition.FloatingTop].offsetTop +
-            elements[ToolbarPosition.FloatingTop].offsetHeight +
-            floatingDetectionRange;
-        const topVisible = offsetY < topDetectionY || sourceEvent.target === elements[ToolbarPosition.FloatingTop];
-        elements[ToolbarPosition.FloatingTop].classList.toggle(styles.modifiers.floatingHidden, !topVisible);
+        const topDetectionY = top.offsetTop + top.offsetHeight + floatingDetectionRange;
+        const topVisible = (offsetY > 0 && offsetY < topDetectionY) || target === top;
+        top.classList.toggle(styles.modifiers.floatingHidden, !topVisible);
+    }
+
+    private onLeave(event: PointerInteractionEvent<'leave'>) {
+        const {
+            enabled,
+            elements,
+            ctx: { scene },
+        } = this;
+        const {
+            sourceEvent: { target },
+        } = event;
+
+        if (!enabled || target !== scene.canvas.element) return;
+
+        const bottom = elements[ToolbarPosition.FloatingBottom];
+        const top = elements[ToolbarPosition.FloatingTop];
+
+        bottom.classList.add(styles.modifiers.floatingHidden);
+        top.classList.add(styles.modifiers.floatingHidden);
     }
 
     private onGroupChanged(group: ToolbarGroup) {
@@ -267,9 +295,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.left.style.left = `${margin}px`;
         elements.left.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
 
-        elements[ToolbarPosition.FloatingTop].style.top = `${seriesRect.y + margin * 4}px`;
+        elements[ToolbarPosition.FloatingTop].style.top = `${seriesRect.y + margin}px`;
         elements[ToolbarPosition.FloatingBottom].style.top =
-            `${seriesRect.y + seriesRect.height - elements.top.offsetHeight - margin * 4}px`;
+            `${seriesRect.y + seriesRect.height - elements[ToolbarPosition.FloatingTop].offsetHeight - margin}px`;
     }
 
     private toggleVisibilities() {
@@ -327,7 +355,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         let inner = '';
 
         if (options.icon != null) {
-            inner = `<span class="ag-charts-icon ag-charts-icon-${options.icon} ${styles.elements.icon}"></span>`;
+            inner = `<span class="ag-charts-icon-${options.icon} ${styles.elements.icon}"></span>`;
         }
 
         if (options.label != null) {
