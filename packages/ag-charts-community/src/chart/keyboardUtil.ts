@@ -16,7 +16,7 @@ export function makeKeyboardPointerEvent(
 }
 
 export function makeKeyboardClickEvent(regionManager: RegionManager, event: KeyNavEvent<'submit'>) {
-    const type: 'click' = 'click';
+    const type = 'click' as const;
     const sourceEvent: Event = event.sourceEvent.sourceEvent;
     return { type, sourceEvent, ...regionManager.getKeyboardPointer() };
 }
