@@ -109,8 +109,9 @@ export abstract class DataModelSeries<
             );
         }
         const isDatumEnabled = (datumIndex: number): boolean => {
+            const nodeDatum = nodeData[datumIndex];
             return (
-                nodeData[datumIndex].missing === false &&
+                (nodeDatum.missing === undefined || nodeDatum.missing === false) &&
                 (seriesItemEnabled === undefined || seriesItemEnabled[datumIndex])
             );
         };
