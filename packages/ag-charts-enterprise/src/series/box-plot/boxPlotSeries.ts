@@ -221,7 +221,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 midPoint,
-                focusRect: { x: midPoint.x, y: midPoint.y, width: bandwidth, height },
+                focusRect: { x: midPoint.x - bandwidth / 2, y: midPoint.y - height / 2, width: bandwidth, height },
             });
         });
 
