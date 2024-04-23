@@ -665,8 +665,8 @@ export abstract class CartesianSeries<
         let closestDatum: SeriesNodeDatum | undefined;
 
         for (const datum of contextNodeData.nodeData) {
-            const { point: { x: datumX = NaN, y: datumY = NaN } = {}, missing: valid } = datum;
-            if (isNaN(datumX) || isNaN(datumY) || valid === false) {
+            const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
+            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) {
                 continue;
             }
 

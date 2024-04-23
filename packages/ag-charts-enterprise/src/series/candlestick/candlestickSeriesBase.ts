@@ -85,7 +85,7 @@ export abstract class CandlestickSeriesBase<
     ) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             directionKeys: {
                 x: ['xKey'],
                 y: ['lowKey', 'highKey', 'openKey', 'closeKey'],
