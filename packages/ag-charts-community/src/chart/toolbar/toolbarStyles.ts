@@ -75,6 +75,7 @@ export const css = `
     flex-direction: row;
     height: var(--ag-charts-toolbar-size);
     padding: 0 var(--ag-charts-toolbar-padding);
+    pointer-events: none;
     width: 100%;
 }
 
@@ -113,6 +114,7 @@ export const css = `
     justify-content: center;
     margin: 0;
     padding: var(--ag-charts-button-padding);
+    pointer-events: all;
     transition: background-color .25s ease-in-out;
 }
 

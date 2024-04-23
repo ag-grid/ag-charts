@@ -141,14 +141,24 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             elements,
             ctx: { scene },
         } = this;
-        const {
-            sourceEvent: { target },
-        } = event;
+        const { relatedTarget, target } = event.sourceEvent as MouseEvent;
 
-        if (!enabled || target !== scene.canvas.element) return;
+        if (!enabled) return;
 
         const bottom = elements[ToolbarPosition.FloatingBottom];
         const top = elements[ToolbarPosition.FloatingTop];
+
+        let isButton = false;
+        for (const group of TOOLBAR_GROUPS) {
+            for (const button of this.groupButtons[group]) {
+                if (button === relatedTarget) {
+                    isButton = true;
+                    break;
+                }
+            }
+        }
+
+        if (target !== scene.canvas.element || isButton) return;
 
         bottom.classList.add(styles.modifiers.floatingHidden);
         top.classList.add(styles.modifiers.floatingHidden);
