@@ -5,9 +5,7 @@ set -eu
 RELEASE=$1
 echo "Preparing release branch ${RELEASE}"
 
-git fetch origin latest
 git switch ${RELEASE}
-git merge origin/latest
 NEW_VERSION=$(node ./tools/calculate-next-version.js)
 ./tools/bump-versions.sh ${NEW_VERSION}
 git commit -a -m "Release prep for ${NEW_VERSION}"
