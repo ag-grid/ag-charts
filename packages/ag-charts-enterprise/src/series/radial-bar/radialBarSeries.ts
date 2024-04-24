@@ -268,7 +268,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             }
         };
 
-        const nodeData = processedData.data.map((group, index): RadialBarNodeDatum => {
+        const nodeData: RadialBarNodeDatum[] = [];
+        const context = { itemId: radiusKey, nodeData, labelData: nodeData };
+        if (!this.visible) return context;
+
+        processedData.data.forEach((group, index) => {
             const { datum, keys, values, aggValues } = group;
 
             const radiusDatum = keys[0];
@@ -303,7 +307,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
             const clipSector = new SectorBox(startAngle, endAngle, innerRadius, outerRadius);
 
-            return {
+            nodeData.push({
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
@@ -318,10 +322,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 clipSector,
                 reversed,
                 index,
-            };
+            });
         });
 
-        return { itemId: radiusKey, nodeData, labelData: nodeData };
+        return context;
     }
 
     async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {

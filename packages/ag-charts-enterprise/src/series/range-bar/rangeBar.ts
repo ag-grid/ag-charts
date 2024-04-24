@@ -208,7 +208,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(data && visible && xAxis && yAxis && dataModel)) {
+        if (!(data && xAxis && yAxis && dataModel)) {
             return;
         }
 
@@ -227,6 +227,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!visible) return context;
 
         const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`);
         const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`);

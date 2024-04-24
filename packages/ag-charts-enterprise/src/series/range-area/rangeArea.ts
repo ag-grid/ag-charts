@@ -210,6 +210,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!this.visible) return context;
 
         const fillHighPoints = fillData.points;
         const fillLowPoints: RadarAreaPoint[] = [];

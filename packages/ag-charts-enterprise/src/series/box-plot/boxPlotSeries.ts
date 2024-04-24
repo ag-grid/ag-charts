@@ -141,7 +141,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && visible && xAxis && yAxis)) {
+        if (!(dataModel && xAxis && yAxis)) {
             return;
         }
 
@@ -163,6 +163,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
         const { groupScale, processedData } = this;
         const isVertical = this.isVertical();
+
+        const context = {
+            itemId: xKey,
+            nodeData,
+            labelData: [],
+            scales: this.calculateScaling(),
+            visible: this.visible,
+        };
+
+        if (!visible) return context;
 
         processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
@@ -232,7 +242,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             });
         });
 
-        return { itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible };
+        return context;
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

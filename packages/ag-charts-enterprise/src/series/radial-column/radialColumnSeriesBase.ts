@@ -281,7 +281,11 @@ export abstract class RadialColumnSeriesBase<
             }
         };
 
-        const nodeData = processedData.data.map((group, index, data): RadialColumnNodeDatum => {
+        const nodeData: RadialColumnNodeDatum[] = [];
+        const context = { itemId: radiusKey, nodeData, labelData: nodeData };
+        if (!this.visible) return context;
+
+        processedData.data.forEach((group, index, data) => {
             const { datum, keys, values, aggValues } = group;
 
             const angleDatum = keys[0];
@@ -320,7 +324,7 @@ export abstract class RadialColumnSeriesBase<
 
             const columnWidth = this.getColumnWidth(startAngle, endAngle);
 
-            return {
+            nodeData.push({
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
@@ -339,7 +343,7 @@ export abstract class RadialColumnSeriesBase<
                 axisOuterRadius,
                 columnWidth,
                 index,
-            };
+            });
         });
 
         return { itemId: radiusKey, nodeData, labelData: nodeData };
