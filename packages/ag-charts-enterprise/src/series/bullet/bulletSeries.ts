@@ -183,6 +183,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!this.visible) return context;
+
         for (const { datum, values } of processedData.data) {
             if (!Array.isArray(datum) || datum.length < 1) {
                 continue;

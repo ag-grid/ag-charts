@@ -234,11 +234,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     async createNodeData() {
         const { data, dataModel, smallestDataInterval } = this;
-        const { visible, line } = this.properties;
+        const { line } = this.properties;
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
-        if (!(data && visible && categoryAxis && valueAxis && dataModel)) {
+        if (!(data && categoryAxis && valueAxis && dataModel)) {
             return;
         }
 
@@ -264,6 +264,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!this.visible) return context;
 
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);

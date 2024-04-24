@@ -214,7 +214,7 @@ export abstract class CandlestickSeriesBase<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && visible && xAxis && yAxis)) {
+        if (!(dataModel && xAxis && yAxis)) {
             return;
         }
 
@@ -231,6 +231,15 @@ export abstract class CandlestickSeriesBase<
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
         const { groupScale, processedData } = this;
+
+        const context = {
+            itemId: xKey,
+            nodeData,
+            labelData: [],
+            scales: this.calculateScaling(),
+            visible: this.visible,
+        };
+        if (!visible) return context;
 
         processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, openValue, closeValue, highValue, lowValue } = dataModel.resolveProcessedDataDefsValues(
@@ -311,7 +320,7 @@ export abstract class CandlestickSeriesBase<
             });
         });
 
-        return { itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible };
+        return context;
     }
 
     private getSeriesItemType(isRising: boolean): AgCandlestickSeriesItemType {
