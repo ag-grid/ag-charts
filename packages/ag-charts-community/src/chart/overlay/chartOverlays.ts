@@ -14,9 +14,8 @@ export class ChartOverlays extends BaseProperties {
 
     getFocusInfo(): { text: string; rect: { x: number; y: number; width: number; height: number } } | undefined {
         for (const overlay of [this.loading, this.noData, this.noVisibleSeries]) {
-            const rect = overlay.getBoundingRect();
-            if (rect !== undefined) {
-                return { text: overlay.getText(), rect };
+            if (overlay.focusBox !== undefined) {
+                return { text: overlay.getText(), rect: overlay.focusBox };
             }
         }
         return undefined;
