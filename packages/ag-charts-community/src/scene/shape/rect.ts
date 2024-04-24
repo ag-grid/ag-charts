@@ -400,8 +400,15 @@ export class Rect extends Path implements DistantObject {
 
                 // Clipping not needed in this case; fill to center of stroke.
                 this.borderClipPath = undefined;
-                insetCornerRadiusRect(path, x, y, w, h, cornerRadii, adjustedClipBBox);
-                insetCornerRadiusRect(borderPath, x, y, w, h, cornerRadii, adjustedClipBBox);
+
+                if (
+                    w > 0 &&
+                    h > 0 &&
+                    (adjustedClipBBox == null || (adjustedClipBBox?.width > 0 && adjustedClipBBox?.height > 0))
+                ) {
+                    insetCornerRadiusRect(path, x, y, w, h, cornerRadii, adjustedClipBBox);
+                    insetCornerRadiusRect(borderPath, x, y, w, h, cornerRadii, adjustedClipBBox);
+                }
             } else {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new ExtendedPath2D();
