@@ -7,6 +7,7 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     useGrouping: true,
+    maximumFractionDigits: 0,
 });
 
 const options: AgChartOptions = {
@@ -25,7 +26,7 @@ const options: AgChartOptions = {
             tooltip: {
                 renderer: ({ datum, title }) => ({
                     title,
-                    content: `GDP: ${numberFormatter.format(datum.gdp)}`,
+                    content: `GDP: ${numberFormatter.format(datum.gdp)} million`,
                 }),
             },
         },
@@ -40,7 +41,7 @@ const options: AgChartOptions = {
             },
             label: {
                 fontSize: 9,
-                formatter: ({ value }) => `$${Math.floor(+value / 1e6)}M`,
+                formatter: ({ value }) => `$${Math.floor(+value / 1e6)}T`,
             },
         },
     },
