@@ -17,6 +17,14 @@ const {
 } = _ModuleSupport;
 const { Logger } = _Util;
 
+interface ChartLike {
+    ctx: {
+        updateService: {
+            update: (type: _ModuleSupport.ChartUpdateType, options: { skipSync: boolean }) => void;
+        };
+    };
+}
+
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
 
@@ -44,8 +52,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         super();
     }
 
-    private updateChart(chart: any, updateType = ChartUpdateType.UPDATE_DATA) {
-        chart.updateService.update(updateType, { skipSync: true });
+    private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
+        chart.ctx.updateService.update(updateType, { skipSync: true });
     }
 
     private updateSiblings(groupId?: string) {
