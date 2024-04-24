@@ -368,7 +368,6 @@ jobs:
 
     sonarqube:
         runs-on: ubuntu-latest
-        if: ! startsWith(github.ref, 'refs/head/b')
         steps:
             - uses: actions/checkout@v3
               with:
@@ -382,21 +381,3 @@ jobs:
               env:
                   SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
                   SONAR_HOST_URL: https://sonarcloud.io
-
-    sonarqube-next:
-        runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/head/b')
-        steps:
-            - uses: actions/checkout@v3
-              with:
-                  # Disabling shallow clones is recommended for improving the relevancy of reporting
-                  fetch-depth: 0
-            - name: SonarQube Scan
-              uses: sonarsource/sonarqube-scan-action@master
-              with:
-                  args: >
-                      -Dsonar.qualitygate.wait=true
-              env:
-                  SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
-                  SONAR_HOST_URL: https://sonarcloud.io
-                  SONAR_PROJECT_KEY: ag-charts-community-next
