@@ -31,7 +31,7 @@ import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMa
 import type { AgMapShapeBackgroundThemeableOptions } from '../series/topology/mapShapeBackgroundOptions';
 import type { AgMapShapeSeriesThemeableOptions } from '../series/topology/mapShapeOptions';
 import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
-// import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
+import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { CssColor } from './types';
 
@@ -172,7 +172,7 @@ export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPo
 
 export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptions {
     axes?: AgCommonThemeableAxisOptions;
-    // annotations?: AgAnnotationsThemeableOptions;
+    annotations?: AgAnnotationsThemeableOptions;
 }
 
 export interface AgChartThemeOverrides {

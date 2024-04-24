@@ -41,9 +41,9 @@ const options: AgChartOptions = {
             },
         },
     ],
-    // annotations: {
-    //     enabled: true,
-    // },
+    annotations: {
+        enabled: true,
+    },
     // toolbar: {
     //     annotations: {
     //         enabled: true,
