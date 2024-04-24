@@ -45,8 +45,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         super.destroy();
     }
 
-    private onClickStart(_event: PointerInteractionEvent<'drag-start'>) {
+    private onClickStart(event: PointerInteractionEvent<'drag-start'>) {
         this.isClicking = true;
+        this.mouseBlur(event);
     }
 
     private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click'>) {
