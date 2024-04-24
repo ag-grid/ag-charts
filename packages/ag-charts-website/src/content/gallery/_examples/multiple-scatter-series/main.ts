@@ -29,9 +29,10 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: The World Happiness Report 2018',
     },
-    series: Object.entries(getData()).map(([_, data]) => ({
+    series: Object.entries(getData()).map(([continent, data]) => ({
         data,
         type: 'scatter',
+        title: continent,
         xKey: 'gdpPerCapita',
         xName: 'GDP Per Capita',
         yKey: 'lifeSatisfaction',
