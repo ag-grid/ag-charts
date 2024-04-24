@@ -334,7 +334,7 @@
                     },
                     {
                         "title": "OHLC",
-                        "icon": "chartsCandlestick",
+                        "icon": "chartsOHLC",
                         "path": "ohlc-series",
                         "isEnterprise": true
                     },
