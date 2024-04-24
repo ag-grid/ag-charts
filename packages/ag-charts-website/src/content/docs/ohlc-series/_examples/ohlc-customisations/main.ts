@@ -51,9 +51,7 @@ const options: AgChartOptions = {
             },
             crosshair: {
                 label: {
-                    renderer: ({ value }) => ({
-                        text: Number(value.toFixed(0)).toLocaleString(),
-                    }),
+                    format: ',f',
                 },
             },
         },
