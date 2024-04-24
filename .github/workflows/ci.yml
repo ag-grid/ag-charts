@@ -84,7 +84,7 @@ jobs:
                     echo "NX_BASE=latest-success" >> $GITHUB_ENV
                     echo "type=latest" >> $GITHUB_OUTPUT
                     git fetch origin latest-success
-                  elif [[ ${branch} =~ 'b[0-9]\..+' ]]
+                  elif [[ ${branch} =~ 'b[0-9]\..+' ]] ; then
                     # Release
                     echo "base=${branch}" >> $GITHUB_OUTPUT
                     echo "NX_BASE=${branch}" >> $GITHUB_ENV
