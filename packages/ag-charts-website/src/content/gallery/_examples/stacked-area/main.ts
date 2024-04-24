@@ -18,7 +18,14 @@ const options: AgChartOptions = {
         text: 'Source: Department for Digital, Culture, Media & Sport',
     },
     series: [
-        { type: 'area', xKey: 'date', stacked: true, yKey: 'Science Museum', yName: 'Science Museum' },
+        {
+            type: 'area',
+            xKey: 'date',
+            stacked: true,
+            yKey: 'Science Museum',
+            yName: 'Science Museum',
+            tooltip,
+        },
         {
             type: 'area',
             xKey: 'date',
