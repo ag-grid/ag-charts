@@ -2,9 +2,9 @@ name: CI
 
 on:
     push:
-        branches: [latest, b*]
+        branches: [latest, b9.3.0]
     pull_request:
-        branches: [latest, b*]
+        branches: [latest, b9.3.0]
     workflow_dispatch:
         inputs:
             clean_checkout:
@@ -399,4 +399,4 @@ jobs:
               env:
                   SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
                   SONAR_HOST_URL: https://sonarcloud.io
-                  SONAR_PROJECT_KEY: ag-charts-community-latest
+                  SONAR_PROJECT_KEY: ag-charts-community-next
