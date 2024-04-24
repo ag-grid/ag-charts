@@ -362,7 +362,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private isEventOverElement(event: SupportedEvent) {
-        return event.target === this.element || (event.target as any)?.parentElement === this.element;
+        return (
+            event.target === this.element ||
+            (event.target as any)?.parentElement === this.element ||
+            (event.target as any)?.parentElement?.parentElement === this.element
+        );
     }
 
     private static readonly NULL_COORDS: Coords = {
