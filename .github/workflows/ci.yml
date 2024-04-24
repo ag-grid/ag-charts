@@ -77,14 +77,25 @@ jobs:
             - name: Nx Affected SHA Setup
               id: nx_config
               run: |
-                  if [[ $(git branch --show-current) == 'latest' ]] ; then
+                  branch=$(git branch --show-current)
+                  if [[ ${branch} == 'latest' ]] ; then
+                    # Latest
                     echo "base=latest-success" >> $GITHUB_OUTPUT
                     echo "NX_BASE=latest-success" >> $GITHUB_ENV
+                    echo "type=latest" >> $GITHUB_OUTPUT
+                    git fetch origin latest-success
+                  elif [[ ${branch} =~ 'b[0-9]\..+' ]]
+                    # Release
+                    echo "base=${branch}" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                    echo "type=release" >> $GITHUB_OUTPUT
                   else
+                    # PR
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
                     echo "NX_BASE=origin/latest" >> $GITHUB_ENV
+                    echo "type=pr" >> $GITHUB_OUTPUT
+                    git fetch origin latest
                   fi
-                  git fetch origin latest-success latest
             - name: Cache node_modules
               if: github.event.inputs.clean_checkout != 'true'
               id: cache
@@ -149,11 +160,11 @@ jobs:
 
             - name: nx lint
               id: lint
-              if: github.ref == 'refs/heads/latest' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
+              if: steps.nx_config.type != 'pr' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
             - name: nx lint (diff)
               id: lint_diff
-              if: github.ref != 'refs/heads/latest' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
+              if: steps.nx_config.type == 'pr' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
               env:
                   ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
