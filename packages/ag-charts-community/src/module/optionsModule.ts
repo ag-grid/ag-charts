@@ -263,19 +263,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    protected processAnnotationsOptions(options: T, annotationsThemes: any) {
+    protected processAnnotationsOptions(options: T, _annotationsThemes: any) {
         if (!isAgCartesianChartOptions(options)) return;
 
-        if (options.annotations == null) return;
+        // if (options.annotations == null) return;
 
-        this.annotationThemes = annotationsThemes;
+        // this.annotationThemes = annotationsThemes;
 
-        const processedAnnotations = options.annotations.initial?.map((annotation) => {
-            const annotationTheme = annotationsThemes[annotation.type];
-            return mergeDefaults(annotation, annotationTheme);
-        });
+        // const processedAnnotations = options.annotations.initial?.map((annotation) => {
+        //     const annotationTheme = annotationsThemes[annotation.type];
+        //     return mergeDefaults(annotation, annotationTheme);
+        // });
 
-        options.annotations.initial = processedAnnotations;
+        // options.annotations.initial = processedAnnotations;
     }
 
     protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {
