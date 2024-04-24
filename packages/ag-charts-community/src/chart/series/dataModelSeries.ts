@@ -94,6 +94,9 @@ export abstract class DataModelSeries<
 
         const { datumIndexDelta, seriesRect } = opts;
         const datumIndex = this.computeFocusDatumIndex(opts, nodeData, derivedSeries.seriesItemEnabled);
+        if (datumIndex === undefined) {
+            return undefined;
+        }
 
         const datum = nodeData[datumIndex];
         const bbox = this.computeFocusBounds({ datumIndex, datumIndexDelta, seriesRect });
@@ -106,7 +109,7 @@ export abstract class DataModelSeries<
         opts: PickFocusInputs,
         nodeData: TDatum[],
         seriesItemEnabled: readonly boolean[] | undefined
-    ): number {
+    ): number | undefined {
         if (seriesItemEnabled && nodeData.length !== seriesItemEnabled.length) {
             Logger.error(
                 `invalid state: nodeData.length (${nodeData.length} !== seriesItemEnabled.length (${seriesItemEnabled?.length})`
@@ -119,25 +122,42 @@ export abstract class DataModelSeries<
                 (seriesItemEnabled === undefined || seriesItemEnabled[datumIndex])
             );
         };
-
-        // Search forward or backwards depending on the delta direction.
-        let datumIndex: number = clamp(0, opts.datumIndex, nodeData.length - 1);
-        if (opts.datumIndexDelta <= 0) {
+        const searchBackward = (datumIndex: number): number | undefined => {
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
                 datumIndex--;
             }
-        } else {
+            return datumIndex === -1 ? undefined : datumIndex;
+        };
+        const searchForward = (datumIndex: number): number | undefined => {
             while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
                 datumIndex++;
             }
+            return datumIndex === nodeData.length ? undefined : datumIndex;
+        };
+
+        // Search forward or backwards depending on the delta direction.
+        let datumIndex: number | undefined;
+        const clampedIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
+        if (opts.datumIndexDelta < 0) {
+            datumIndex = searchBackward(clampedIndex);
+        } else if (opts.datumIndexDelta > 0) {
+            datumIndex = searchForward(clampedIndex);
+        } /* opts.datumIndexDelta === 0 */ else {
+            datumIndex ??= searchForward(clampedIndex);
+            datumIndex ??= searchBackward(clampedIndex);
         }
 
-        // datumIndex can be equal to -1 or seriesItemEnabled.length if opts.datumIndex is the first or
-        // last enabled datum. If that's the case, then reverse the keyboard delta to stay on this datum.
-        if (datumIndex >= 0 && datumIndex < nodeData.length) {
-            return datumIndex;
+        if (datumIndex === undefined) {
+            if (opts.datumIndexDelta === 0) {
+                return undefined;
+            } else {
+                // If datumIndex is undefined, then this datum is the first or last enabled datum.
+                // last enabled datum. If that's the case, then reverse the keyboard delta to stay on
+                // this datum.
+                return opts.datumIndex - opts.datumIndexDelta;
+            }
         } else {
-            return opts.datumIndex - opts.datumIndexDelta;
+            return datumIndex;
         }
     }
 }
