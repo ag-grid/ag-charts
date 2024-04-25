@@ -7,9 +7,9 @@ import { AnimationBatch } from './animationBatch';
 import { BaseManager } from './baseManager';
 import { InteractionManager, InteractionState } from './interactionManager';
 
-type AnimationEventType = 'animation-frame';
+type AnimationEventType = 'animation-frame' | 'animation-start' | 'animation-stop';
 
-interface AnimationEvent {
+export interface AnimationEvent {
     type: AnimationEventType;
     deltaMs: number;
 }
@@ -232,9 +232,17 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 this.scheduleAnimationFrame(onAnimationFrame);
             } else {
                 this.batch.stop();
+                this.listeners.dispatch('animation-stop', {
+                    type: 'animation-stop',
+                    deltaMs: this.batch.consumedTimeMs,
+                });
             }
         };
 
+        this.listeners.dispatch('animation-start', {
+            type: 'animation-start',
+            deltaMs: 0,
+        });
         this.scheduleAnimationFrame(onAnimationFrame);
     }
 
