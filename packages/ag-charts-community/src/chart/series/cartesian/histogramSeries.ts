@@ -137,7 +137,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     override async processData(dataController: DataController) {
-        if (!this.visible) return;
+        if (!this.visible) {
+            this.processedData = undefined;
+            this.animationState.transition('updateData');
+        }
 
         const { xKey, yKey, areaPlot, aggregation } = this.properties;
 
@@ -236,7 +239,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.visible || !xAxis || !yAxis || !processedData || processedData.type !== 'grouped') {
+        if (!xAxis || !yAxis) {
             return;
         }
 
@@ -253,6 +256,15 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         } = this.properties.label;
 
         const nodeData: HistogramNodeDatum[] = [];
+        const context = {
+            itemId: this.properties.yKey ?? this.id,
+            nodeData,
+            labelData: nodeData,
+            scales: this.calculateScaling(),
+            animationValid: true,
+            visible: this.visible,
+        };
+        if (!this.visible || !processedData || processedData.type !== 'grouped') return context;
 
         processedData.data.forEach((group) => {
             const {
@@ -335,14 +347,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             });
         });
 
-        return {
-            itemId: this.properties.yKey ?? this.id,
-            nodeData,
-            labelData: nodeData,
-            scales: this.calculateScaling(),
-            animationValid: true,
-            visible: this.visible,
-        };
+        return context;
     }
 
     protected override nodeFactory() {
