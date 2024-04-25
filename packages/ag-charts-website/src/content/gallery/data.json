@@ -450,6 +450,21 @@
         ],
         [
             {
+                "title": "Candlestick",
+                "seriesName": "candlestick",
+                "icon": "chartsCandlestick",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Candlestick",
+                        "description": "",
+                        "name": "candlestick"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Radar Line",
                 "seriesName": "radar-line",
                 "icon": "chartsRadar",

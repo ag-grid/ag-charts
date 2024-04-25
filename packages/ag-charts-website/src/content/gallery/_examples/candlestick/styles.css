@@ -1,0 +1,10 @@
+.ag-chart-tooltip {
+    box-shadow: none;
+    background-color: transparent;
+    border: 0;
+}
+
+.tooltip .ag-chart-tooltip-content {
+    background-color: transparent;
+    border: 0;
+}
