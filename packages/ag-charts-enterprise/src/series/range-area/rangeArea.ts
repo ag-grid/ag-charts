@@ -674,7 +674,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         this.updateAreaPaths(paths, contextData);
     }
 
-    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
+        const { xKey, yLowKey, yHighKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yLowKey, yHighKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

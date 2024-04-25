@@ -14,6 +14,7 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
+import { KeyNavManager } from './interaction/keyNavManager';
 import { RegionManager } from './interaction/regionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { ToolbarManager } from './interaction/toolbarManager';
@@ -44,6 +45,7 @@ export class ChartContext implements ModuleContext {
     cursorManager: CursorManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
+    keyNavManager: KeyNavManager;
     regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
     syncManager: SyncManager;
@@ -74,7 +76,13 @@ export class ChartContext implements ModuleContext {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(chart.keyboard, element);
-        this.regionManager = new RegionManager(this.interactionManager, this.scene.canvas.element, element);
+        this.keyNavManager = new KeyNavManager(this.interactionManager);
+        this.regionManager = new RegionManager(
+            this.interactionManager,
+            this.keyNavManager,
+            this.scene.canvas.element,
+            element
+        );
         this.toolbarManager = new ToolbarManager(element);
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
@@ -94,6 +102,7 @@ export class ChartContext implements ModuleContext {
         // chart.ts handles the destruction of the scene and zoomManager.
         this.tooltipManager.destroy();
         this.regionManager.destroy();
+        this.keyNavManager.destroy();
         this.interactionManager.destroy();
         this.animationManager.stop();
         this.animationManager.destroy();

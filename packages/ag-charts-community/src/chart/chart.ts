@@ -360,14 +360,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
             ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
-            seriesRegion.addListener('blur', (event) => this.onBlur(event)),
+            seriesRegion.addListener('blur', () => this.onBlur()),
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
-            ctx.regionManager.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
+            ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
             ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
+            ctx.animationManager.addListener('animation-start', () => this.onBlur()),
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -1101,7 +1102,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private onBlur(_event: KeyNavEvent<'blur'>): void {
+    private onBlur(): void {
         this.ctx.regionManager.updateFocusIndicatorRect(undefined);
         this.resetPointer();
         // Do not consume blur events to allow the browser-focus to leave the canvas element.
