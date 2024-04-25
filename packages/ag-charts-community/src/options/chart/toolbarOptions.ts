@@ -28,7 +28,7 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset-zoom' | 'zoom-in' | 'zoom-out';
+export type AgIconName = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset' | 'zoom-in' | 'zoom-out';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
@@ -68,7 +68,7 @@ export interface AgToolbarZoomButton extends AgToolbarButton {
 }
 
 export type AgToolbarZoomButtonValue =
-    | 'reset-zoom'
+    | 'reset'
     | 'zoom-in'
     | 'zoom-out'
     | 'pan-left'

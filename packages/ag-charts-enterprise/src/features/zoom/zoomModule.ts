@@ -38,9 +38,9 @@ export const ZoomModule: _ModuleSupport.Module = {
                         value: 'pan-right',
                     },
                     {
-                        icon: 'reset-zoom',
+                        icon: 'reset',
                         tooltip: 'Reset the zoom',
-                        value: 'reset-zoom',
+                        value: 'reset',
                     },
                 ],
             },

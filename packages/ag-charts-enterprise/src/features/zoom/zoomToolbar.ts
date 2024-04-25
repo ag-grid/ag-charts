@@ -46,7 +46,7 @@ export class ZoomToolbar {
         toolbarManager.toggleButton('zoom', 'pan-right', zoom.x.max < UNIT.max);
         toolbarManager.toggleButton('zoom', 'zoom-out', !isMaxZoom);
         toolbarManager.toggleButton('zoom', 'zoom-in', !isMinZoom);
-        toolbarManager.toggleButton('zoom', 'reset-zoom', !isResetZoom);
+        toolbarManager.toggleButton('zoom', 'reset', !isResetZoom);
     }
 
     public onButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
@@ -83,7 +83,7 @@ export class ZoomToolbar {
         let zoom = definedZoomState(oldZoom);
 
         switch (event.value) {
-            case 'reset-zoom':
+            case 'reset':
                 zoom = this.getResetZoom();
                 break;
 
