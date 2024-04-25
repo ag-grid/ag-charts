@@ -678,7 +678,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         }
     }
 
-    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeMarkerFocusBounds(this.nodeData[datumIndex], this.contentGroup);
+    public getFormattedMarkerStyle(datum: RadarNodeDatum) {
+        const { angleKey, radiusKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, { datum, angleKey, radiusKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

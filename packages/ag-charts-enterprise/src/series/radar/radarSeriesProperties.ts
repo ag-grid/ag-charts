@@ -16,6 +16,7 @@ export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
         textAlign: CanvasTextAlign;
         textBaseline: CanvasTextBaseline;
     };
+    readonly point: Readonly<_Scene.SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
 }

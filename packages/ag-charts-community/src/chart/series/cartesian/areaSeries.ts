@@ -771,7 +771,12 @@ export class AreaSeries extends CartesianSeries<
         return new Group();
     }
 
-    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
-        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
+        const { xKey, yKey } = datum;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }
