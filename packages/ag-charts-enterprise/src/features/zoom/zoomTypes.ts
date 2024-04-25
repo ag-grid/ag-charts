@@ -23,6 +23,7 @@ export interface ZoomProperties {
     anchorPointX: AgZoomAnchorPoint;
     anchorPointY: AgZoomAnchorPoint;
     enabled: boolean;
+    independentAxes: boolean;
     isScalingX: boolean;
     isScalingY: boolean;
     minRatioX: number;
