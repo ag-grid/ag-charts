@@ -511,7 +511,13 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         return new Group();
     }
 
-    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
-        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    public getFormattedMarkerStyle(nodeDatum: LineNodeDatum) {
+        const { xKey, yKey } = this.properties;
+        const { datum } = nodeDatum;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

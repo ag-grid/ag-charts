@@ -738,7 +738,7 @@ export abstract class Series<
         return defaultFormatter(params.value);
     }
 
-    protected getMarkerStyle<TParams>(
+    public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TDatum, TParams>,
         params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()

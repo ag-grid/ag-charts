@@ -394,7 +394,20 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return new Group();
     }
 
-    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
-        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    public getFormattedMarkerStyle(nodeDatum: BubbleNodeDatum) {
+        const { datum } = nodeDatum;
+        const { xKey, yKey, sizeKey, labelKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, {
+            datum,
+            xKey,
+            yKey,
+            sizeKey,
+            labelKey,
+            highlighted: false,
+        });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

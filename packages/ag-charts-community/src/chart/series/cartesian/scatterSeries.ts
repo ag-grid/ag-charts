@@ -352,7 +352,13 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return new Group();
     }
 
-    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
-        return computeMarkerFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup);
+    public getFormattedMarkerStyle(nodeDatum: ScatterNodeDatum) {
+        const { xKey, yKey, labelKey } = this.properties;
+        const { datum } = nodeDatum;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, labelKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }
