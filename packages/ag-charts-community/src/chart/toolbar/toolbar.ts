@@ -17,6 +17,7 @@ import {
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_GROUPS,
     TOOLBAR_POSITIONS,
+    type ToolbarAlignment,
     type ToolbarButton,
     type ToolbarGroup,
     ToolbarPosition,
@@ -56,6 +57,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.FloatingTop]: new Set(),
         [ToolbarPosition.FloatingBottom]: new Set(),
+    };
+
+    private positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
+        [ToolbarPosition.Top]: {},
+        [ToolbarPosition.Right]: {},
+        [ToolbarPosition.Bottom]: {},
+        [ToolbarPosition.Left]: {},
+        [ToolbarPosition.FloatingTop]: {},
+        [ToolbarPosition.FloatingBottom]: {},
     };
 
     private groupCallers: Record<ToolbarGroup, number> = {
@@ -119,20 +129,25 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             offsetY,
             sourceEvent: { target },
         } = event;
+        const { FloatingBottom, FloatingTop } = ToolbarPosition;
 
         if (!enabled) return;
 
-        const bottom = elements[ToolbarPosition.FloatingBottom];
-        const top = elements[ToolbarPosition.FloatingTop];
+        const bottom = elements[FloatingBottom];
+        const top = elements[FloatingTop];
 
         const bottomDetectionY = bottom.offsetTop - floatingDetectionRange;
         const bottomVisible =
             (offsetY > bottomDetectionY && offsetY < scene.canvas.element.offsetHeight) || target === bottom;
-        bottom.classList.toggle(styles.modifiers.floatingHidden, !bottomVisible);
 
         const topDetectionY = top.offsetTop + top.offsetHeight + floatingDetectionRange;
         const topVisible = (offsetY > 0 && offsetY < topDetectionY) || target === top;
+
+        bottom.classList.toggle(styles.modifiers.floatingHidden, !bottomVisible);
         top.classList.toggle(styles.modifiers.floatingHidden, !topVisible);
+
+        this.translateFloatingElements(FloatingBottom, bottomVisible);
+        this.translateFloatingElements(FloatingTop, topVisible);
     }
 
     private onLeave(event: PointerInteractionEvent<'leave'>) {
@@ -142,26 +157,20 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx: { scene },
         } = this;
         const { relatedTarget, target } = event.sourceEvent as MouseEvent;
+        const { FloatingBottom, FloatingTop } = ToolbarPosition;
 
-        if (!enabled) return;
+        if (!enabled || target !== scene.canvas.element) return;
 
-        const bottom = elements[ToolbarPosition.FloatingBottom];
-        const top = elements[ToolbarPosition.FloatingTop];
+        const isTargetButton = TOOLBAR_GROUPS.some((group) =>
+            this.groupButtons[group].some((button) => button === relatedTarget)
+        );
+        if (isTargetButton) return;
 
-        let isButton = false;
-        for (const group of TOOLBAR_GROUPS) {
-            for (const button of this.groupButtons[group]) {
-                if (button === relatedTarget) {
-                    isButton = true;
-                    break;
-                }
-            }
-        }
+        elements[FloatingBottom].classList.add(styles.modifiers.floatingHidden);
+        elements[FloatingTop].classList.add(styles.modifiers.floatingHidden);
 
-        if (target !== scene.canvas.element || isButton) return;
-
-        bottom.classList.add(styles.modifiers.floatingHidden);
-        top.classList.add(styles.modifiers.floatingHidden);
+        this.translateFloatingElements(FloatingBottom, false);
+        this.translateFloatingElements(FloatingTop, false);
     }
 
     private onGroupChanged(group: ToolbarGroup) {
@@ -235,11 +244,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const align = this[group].align ?? 'start';
         const position = this[group].position ?? 'top';
-        const toolbar = this.elements[position as ToolbarPosition];
+        const parent = this.positionAlignments[position][align];
 
         for (const options of buttons ?? []) {
             const button = this.createButtonElement(group, options);
-            const parent = toolbar.getElementsByClassName(styles.modifiers.group[align]).item(0);
             parent?.appendChild(button);
             this.groupButtons[group].push(button);
         }
@@ -288,6 +296,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
         const { elements, margin } = this;
         const { seriesRect } = opts;
+        const { FloatingBottom, FloatingTop } = ToolbarPosition;
 
         elements.top.style.top = `${seriesRect.y - elements.top.offsetHeight - margin * 2}px`;
         elements.top.style.left = `${margin}px`;
@@ -305,9 +314,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.left.style.left = `${margin}px`;
         elements.left.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
 
-        elements[ToolbarPosition.FloatingTop].style.top = `${seriesRect.y + margin}px`;
-        elements[ToolbarPosition.FloatingBottom].style.top =
-            `${seriesRect.y + seriesRect.height - elements[ToolbarPosition.FloatingTop].offsetHeight - margin}px`;
+        elements[FloatingTop].style.top = `${seriesRect.y}px`;
+        elements[FloatingTop].style.paddingTop = `${margin}px`;
+
+        elements[FloatingBottom].style.top =
+            `${seriesRect.y + seriesRect.height - elements[FloatingBottom].offsetHeight}px`;
+        elements[FloatingBottom].style.paddingBottom = `${margin}px`;
     }
 
     private toggleVisibilities() {
@@ -334,6 +346,23 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
+    private translateFloatingElements(
+        position: ToolbarPosition.FloatingBottom | ToolbarPosition.FloatingTop,
+        visible: boolean
+    ) {
+        const { elements, margin, positionAlignments } = this;
+
+        const element = elements[position];
+        const alignments = Object.values(positionAlignments[position]);
+
+        for (const align of alignments) {
+            align.style.transform =
+                visible && align.style.transform !== ''
+                    ? 'translateY(0)'
+                    : `translateY(${element.offsetHeight + margin}px)`;
+        }
+    }
+
     private renderToolbar(position = ToolbarPosition.Top) {
         const element = this.elements[position];
         element.classList.add(styles.block, styles.modifiers[position], styles.modifiers.preventFlash);
@@ -344,8 +373,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const align of TOOLBAR_ALIGNMENTS) {
             const alignmentElement = createElement('div');
-            alignmentElement.classList.add(styles.elements.group, styles.modifiers.group[align]);
+            alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
             element.appendChild(alignmentElement);
+            this.positionAlignments[position][align] = alignmentElement;
         }
     }
 
