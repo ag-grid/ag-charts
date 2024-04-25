@@ -28,6 +28,7 @@ export function preparePieSeriesAnimationFunctions(
     const scale: [number, number] = [scaleFn.convert(0), scaleFn.convert(1)];
     const oldScale: [number, number] = [oldScaleFn.convert(0), oldScaleFn.convert(1)];
     const rotation = Math.PI / -2 + toRadians(rotationDegrees);
+    const phase = initialLoad ? 'initial' : 'update';
 
     const scaleToNewRadius = ({ radius }: AnimatableSectorDatum) => {
         return { innerRadius: scale[0], outerRadius: scale[0] + (scale[1] - scale[0]) * radius };
@@ -71,7 +72,7 @@ export function preparePieSeriesAnimationFunctions(
             stroke = sect.stroke ?? stroke;
         }
 
-        return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke, phase: 'initial' };
+        return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke, phase };
     };
     const toFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
         _sect: Sector,
@@ -101,7 +102,7 @@ export function preparePieSeriesAnimationFunctions(
     };
 
     const innerCircleFromFn: FromToMotionPropFn<Circle, any, { radius: number }> = (node, _) => {
-        return { size: node.previousDatum?.radius ?? node.size ?? 0, phase: 'initial' };
+        return { size: node.previousDatum?.radius ?? node.size ?? 0, phase };
     };
     const innerCircleToFn: FromToMotionPropFn<Circle, any, { radius: number }> = (_, datum) => {
         return { size: datum.radius ?? 0 };
