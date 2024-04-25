@@ -352,9 +352,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return new Group();
     }
 
-    public getFormattedMarkerStyle(nodeDatum: ScatterNodeDatum) {
+    public getFormattedMarkerStyle(datum: ScatterNodeDatum) {
         const { xKey, yKey, labelKey } = this.properties;
-        const { datum } = nodeDatum;
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, labelKey, highlighted: true });
     }
 

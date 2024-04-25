@@ -771,8 +771,8 @@ export class AreaSeries extends CartesianSeries<
         return new Group();
     }
 
-    public getFormattedMarkerStyle(nodeDatum: MarkerSelectionDatum) {
-        const { datum, xKey, yKey } = nodeDatum;
+    public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
+        const { xKey, yKey } = datum;
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
     }
 

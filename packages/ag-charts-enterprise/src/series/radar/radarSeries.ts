@@ -678,9 +678,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         }
     }
 
-    public getFormattedMarkerStyle(nodeDatum: RadarNodeDatum) {
+    public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;
-        const { datum } = nodeDatum;
         return this.getMarkerStyle(this.properties.marker, { datum, angleKey, radiusKey, highlighted: true });
     }
 

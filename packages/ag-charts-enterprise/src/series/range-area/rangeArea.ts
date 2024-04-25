@@ -674,9 +674,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         this.updateAreaPaths(paths, contextData);
     }
 
-    public getFormattedMarkerStyle(nodeDatum: RangeAreaMarkerDatum) {
+    public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
         const { xKey, yLowKey, yHighKey } = this.properties;
-        const { datum } = nodeDatum;
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yLowKey, yHighKey, highlighted: true });
     }
 

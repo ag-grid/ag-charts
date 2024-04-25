@@ -511,9 +511,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         return new Group();
     }
 
-    public getFormattedMarkerStyle(nodeDatum: LineNodeDatum) {
+    public getFormattedMarkerStyle(datum: LineNodeDatum) {
         const { xKey, yKey } = this.properties;
-        const { datum } = nodeDatum;
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
     }
 

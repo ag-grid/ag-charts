@@ -394,8 +394,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return new Group();
     }
 
-    public getFormattedMarkerStyle(nodeDatum: BubbleNodeDatum) {
-        const { datum } = nodeDatum;
+    public getFormattedMarkerStyle(datum: BubbleNodeDatum) {
         const { xKey, yKey, sizeKey, labelKey } = this.properties;
         return this.getMarkerStyle(this.properties.marker, {
             datum,
