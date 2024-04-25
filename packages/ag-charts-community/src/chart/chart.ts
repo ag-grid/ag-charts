@@ -365,7 +365,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
-            ctx.regionManager.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
+            ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
             ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
