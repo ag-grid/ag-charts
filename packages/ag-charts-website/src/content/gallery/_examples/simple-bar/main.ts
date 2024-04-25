@@ -21,7 +21,6 @@ const options: AgChartOptions = {
             type: 'bar',
             xKey: 'year',
             yKey: 'visitors',
-            cornerRadius: 15,
             label: {
                 formatter: ({ value }) => formatNumber(value),
             },

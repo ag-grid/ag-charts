@@ -18,16 +18,13 @@ export class Overlay extends BaseProperties {
     darkTheme = false;
 
     private element?: HTMLElement;
+    public focusBox?: { x: number; y: number; width: number; height: number };
 
     constructor(
         protected className: string,
         protected defaultText: string
     ) {
         super();
-    }
-
-    getBoundingRect(): { x: number; y: number; width: number; height: number } | undefined {
-        return this.element?.getBoundingClientRect();
     }
 
     getText() {
@@ -37,6 +34,7 @@ export class Overlay extends BaseProperties {
     getElement(animationManager: AnimationManager | undefined, rect: BBox) {
         this.element ??= createElement('div', DEFAULT_OVERLAY_CLASS, { position: 'absolute' });
         this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
+        this.focusBox = rect;
 
         const element = this.element;
 
@@ -107,5 +105,6 @@ export class Overlay extends BaseProperties {
         }
 
         this.element = undefined;
+        this.focusBox = undefined;
     }
 }

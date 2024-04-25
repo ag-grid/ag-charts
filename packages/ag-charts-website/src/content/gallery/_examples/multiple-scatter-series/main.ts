@@ -32,10 +32,11 @@ const options: AgChartOptions = {
     series: Object.entries(getData()).map(([continent, data]) => ({
         data,
         type: 'scatter',
+        title: continent,
         xKey: 'gdpPerCapita',
         xName: 'GDP Per Capita',
         yKey: 'lifeSatisfaction',
-        yName: continent,
+        yName: 'Happiness',
         labelKey: 'country',
         labelName: 'Country',
         label: {},
