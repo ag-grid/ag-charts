@@ -5,7 +5,7 @@ import { buildConsumable } from './consumableEvent';
 import * as focusStyles from './focusStyles';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
-import { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
+import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 
 export type RegionName =
     | 'title'
@@ -48,7 +48,6 @@ export interface RegionProperties {
 
 export class RegionManager {
     private currentTabIndex = 0;
-    public readonly keyNavManager: KeyNavManager;
     private readonly focusWrapper: HTMLDivElement;
     private readonly focusIndicator: HTMLDivElement;
 
@@ -61,10 +60,10 @@ export class RegionManager {
 
     constructor(
         private readonly interactionManager: InteractionManager,
+        private readonly keyNavManager: KeyNavManager,
         private readonly canvasElement: HTMLCanvasElement,
         element: HTMLElement
     ) {
-        this.keyNavManager = new KeyNavManager(interactionManager);
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
@@ -96,7 +95,6 @@ export class RegionManager {
             region.listeners.destroy();
         }
         this.regions.clear();
-        this.keyNavManager.destroy();
     }
 
     public addRegionFromProperties(properties: RegionProperties) {

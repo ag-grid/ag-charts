@@ -25,6 +25,10 @@ export class AnimationBatch {
         return this.controllers.size;
     }
 
+    get consumedTimeMs() {
+        return this.animationTimeConsumed;
+    }
+
     isActive() {
         return this.controllers.size > 0;
     }
