@@ -24,6 +24,6 @@ export class AriaAnnouncementService {
 
     public announceValue(value: string): void {
         this.debug(`AriaAnnouncementService - announceValue: ${value}`);
-        setAttribute(this.liveElem, 'aria-label', value);
+        this.liveElem.textContent = value;
     }
 }
