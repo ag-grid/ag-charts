@@ -347,6 +347,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             });
         });
 
+        // AG-11323 Sort bins from left-to-right for intuitive keyboard navigation.
+        nodeData.sort((a, b) => a.x - b.x);
+
         return context;
     }
 
