@@ -26,6 +26,7 @@ const {
     SeriesNodePickMode,
     Layers,
     valueProperty,
+    computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
 const { Group, Selection, Text, getMarker } = _Scene;
@@ -842,7 +843,61 @@ export class MapMarkerSeries
         );
     }
 
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return undefined; // TODO
+    public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
+        const {
+            id: seriesId,
+            properties,
+            ctx: { callbackCache },
+        } = this;
+        const { datum, point } = markerDatum;
+        const {
+            idKey,
+            latitudeKey,
+            longitudeKey,
+            labelKey,
+            sizeKey,
+            colorKey,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            formatter,
+        } = properties;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+        const params: _Util.RequireOptional<AgSeriesMarkerFormatterParams<MapMarkerNodeDatum>> &
+            _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys> = {
+            seriesId,
+            datum: datum.datum,
+            itemId: datum.itemId,
+            size: point.size,
+            idKey,
+            latitudeKey,
+            longitudeKey,
+            labelKey,
+            sizeKey,
+            colorKey,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            highlighted: true,
+        };
+        if (formatter !== undefined) {
+            const style: AgSeriesMarkerStyle | undefined = callbackCache.call(
+                formatter,
+                params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
+                    _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
+            );
+            if (style !== undefined && style.size !== undefined) {
+                return { size: style.size };
+            }
+        }
+
+        return { size: markerDatum.point.size };
+    }
+
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }
