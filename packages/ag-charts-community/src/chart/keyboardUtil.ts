@@ -4,9 +4,13 @@ import type { TooltipPointerEvent } from './tooltip/tooltip';
 
 export function makeKeyboardPointerEvent(
     regionManager: RegionManager,
-    bbox: BBox | undefined
+    pick: { bbox: BBox | undefined; showFocusBox: boolean }
 ): TooltipPointerEvent<'keyboard'> | undefined {
-    regionManager.updateFocusIndicatorRect(bbox);
+    const { bbox, showFocusBox } = pick;
+    if (showFocusBox) {
+        regionManager.updateFocusIndicatorRect(pick.bbox);
+    }
+
     if (bbox !== undefined) {
         const { x: offsetX, y: offsetY } = bbox.computeCenter();
         return { type: 'keyboard', offsetX, offsetY };

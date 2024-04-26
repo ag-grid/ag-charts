@@ -1084,7 +1084,7 @@ export class Legend extends BaseProperties {
         if (focus.mode === 'item') {
             const { nodeIndex, node, datum } = this.getFocusedItem();
             const bbox = node?.computeTransformedBBox();
-            this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, bbox), datum);
+            this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, { bbox, showFocusBox: true }), datum);
             const label = datum && this.getItemLabel(datum);
             if (label) {
                 this.ctx.ariaAnnouncementService.announceValue(

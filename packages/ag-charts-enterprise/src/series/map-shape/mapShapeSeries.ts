@@ -97,6 +97,7 @@ export class MapShapeSeries
         });
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
+        this.showFocusBox = false;
     }
 
     setChartTopology(topology: any): void {
