@@ -19,6 +19,7 @@ export abstract class DataModelSeries<
 > extends Series<TDatum, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
+    protected showFocusBox: boolean = true;
 
     protected getScaleInformation({
         xScale,
@@ -98,10 +99,11 @@ export abstract class DataModelSeries<
             return undefined;
         }
 
+        const { showFocusBox } = this;
         const datum = nodeData[datumIndex];
         const bbox = this.computeFocusBounds({ datumIndex, datumIndexDelta, seriesRect });
         if (bbox !== undefined) {
-            return { bbox, datum, datumIndex };
+            return { bbox, showFocusBox, datum, datumIndex };
         }
     }
 

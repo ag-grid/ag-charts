@@ -67,7 +67,12 @@ export type PickFocusInputs = {
     readonly seriesRect?: Readonly<BBox>;
 };
 
-export type PickFocusOutputs<TDatum> = { datumIndex: number; bbox: BBox; datum: TDatum };
+export type PickFocusOutputs<TDatum> = {
+    datumIndex: number;
+    datum: TDatum;
+    bbox: BBox;
+    showFocusBox: boolean;
+};
 
 export function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
