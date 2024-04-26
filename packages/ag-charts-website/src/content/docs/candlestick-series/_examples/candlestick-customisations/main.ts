@@ -39,6 +39,17 @@ const options: AgChartOptions = {
                     },
                 },
             },
+            tooltip: {
+                renderer: ({ datum, xKey, openKey, highKey, lowKey, closeKey }) => {
+                    return {
+                        title: `<b>${datum[xKey].toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</b>`,
+                        content: `<b>O</b> ${datum[openKey].toLocaleString()}</br><b>H</b> ${datum[
+                            highKey
+                        ].toLocaleString()}<br/><b>L</b> ${datum[lowKey].toLocaleString()}
+                           <br/><b>C</b> ${datum[closeKey].toLocaleString()}`,
+                    };
+                },
+            },
         },
     ],
     axes: [
