@@ -3,6 +3,7 @@ import type {
     AgToolbarGroupPosition,
     AgToolbarZoomButton,
     AgZoomAnchorPoint,
+    AgZoomButtons,
     _Scene,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
@@ -63,7 +64,7 @@ enum DragState {
     Select,
 }
 
-class ZoomButtonsProperties extends _ModuleSupport.BaseProperties {
+class ZoomButtonsProperties extends _ModuleSupport.BaseProperties<AgZoomButtons> {
     @_ModuleSupport.ObserveChanges<ZoomButtonsProperties>((target) => {
         target.onChange();
     })
@@ -90,12 +91,7 @@ class ZoomButtonsProperties extends _ModuleSupport.BaseProperties {
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
-            if (!this.contextMenu || !this.toolbar) return;
-
-            const zoom = this.getZoom();
-            const props = this.getModuleProperties({ enabled });
-            this.contextMenu.registerActions(enabled, zoom, props);
-            this.toolbar.toggle(enabled, zoom, props);
+            this.onEnabledChange(enabled);
         },
     })
     @Validate(BOOLEAN)
@@ -104,10 +100,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableAxisDragging = true;
 
-    public buttons = new ZoomButtonsProperties(() => {
-        if (!this.buttons) return;
-        this.ctx.toolbarManager.proxyGroupOptions('zoom', this.buttons.toJson());
-    });
+    public buttons = new ZoomButtonsProperties(() => this.onZoomButtonsChange(this.enabled));
 
     @Validate(BOOLEAN)
     public enableDoubleClickToReset = true;
@@ -211,6 +204,23 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event))
         );
+    }
+
+    private onEnabledChange(enabled: boolean) {
+        if (!this.contextMenu || !this.toolbar) return;
+
+        const zoom = this.getZoom();
+        const props = this.getModuleProperties({ enabled });
+        this.contextMenu.registerActions(enabled, zoom, props);
+        this.onZoomButtonsChange(enabled);
+        this.toolbar.toggle(enabled, zoom, props);
+    }
+
+    private onZoomButtonsChange(zoomEnabled: boolean) {
+        if (!this.buttons) return;
+        const buttonsJson = this.buttons.toJson();
+        buttonsJson.enabled &&= zoomEnabled;
+        this.ctx.toolbarManager.proxyGroupOptions('zoom', buttonsJson);
     }
 
     private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {

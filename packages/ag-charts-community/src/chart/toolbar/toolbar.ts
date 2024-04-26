@@ -1,6 +1,7 @@
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
+import type { AgToolbarGroupPosition } from '../../options/agChartOptions';
 import type { BBox } from '../../scene/bbox';
 import { createElement, injectStyle } from '../../util/dom';
 import { ObserveChanges } from '../../util/proxy';
@@ -219,19 +220,22 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         this.groupProxied.add(group);
 
-        this.createGroup(group);
+        this.createGroup(group, options.enabled, options.position);
         this.createGroupButtons(group, options.buttons);
         this.toggleGroup(group, options.enabled);
 
         this[group].set(options);
     }
 
-    private createGroup(group: ToolbarGroup) {
-        for (const position of TOOLBAR_POSITIONS) {
-            if (this[group].enabled && this[group].position === position) {
-                this.positions[position].add(group);
+    private createGroup(group: ToolbarGroup, enabled?: boolean, position?: AgToolbarGroupPosition) {
+        enabled ??= this[group].enabled;
+        position ??= this[group].position;
+
+        for (const pos of TOOLBAR_POSITIONS) {
+            if (enabled && position === pos) {
+                this.positions[pos].add(group);
             } else {
-                this.positions[position].delete(group);
+                this.positions[pos].delete(group);
             }
         }
     }
