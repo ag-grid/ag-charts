@@ -295,6 +295,9 @@ export abstract class RadialColumnSeriesBase<
             const outerRadiusDatum = values[radiusEndIndex];
             const radiusRange = aggValues?.[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
             const negative = isPositive === radiusAxisReversed;
+            if (innerRadiusDatum === undefined || outerRadiusDatum === undefined) {
+                return;
+            }
 
             let startAngle: number;
             let endAngle: number;
