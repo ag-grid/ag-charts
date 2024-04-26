@@ -113,7 +113,13 @@ export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 type PointerOffsetsAndHistory = PointerOffsets & { pointerHistory?: PointerOffsets[] };
 
-type ChartFocusData = { series?: Series<any, any>; seriesIndex: number; datum: any; datumIndex: number };
+type ChartFocusData = {
+    hasFocus: boolean;
+    series?: Series<any, any>;
+    seriesIndex: number;
+    datum: any;
+    datumIndex: number;
+};
 
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
@@ -368,7 +374,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
             ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
-            ctx.animationManager.addListener('animation-start', () => this.onBlur()),
+            ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -1102,15 +1108,23 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    private onAnimationStart() {
+        if (this.focus.hasFocus) {
+            this.onBlur();
+        }
+    }
+
     private onBlur(): void {
         this.ctx.regionManager.updateFocusIndicatorRect(undefined);
         this.resetPointer();
+        this.focus.hasFocus = false;
         // Do not consume blur events to allow the browser-focus to leave the canvas element.
     }
 
     private onTab(event: KeyNavEvent<'tab'>): void {
         this.handleFocus();
         event.consume();
+        this.focus.hasFocus = true;
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
@@ -1152,8 +1166,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private focus: ChartFocusData = { series: undefined, seriesIndex: 0, datumIndex: 0, datum: undefined };
+    private focus: ChartFocusData = {
+        hasFocus: false,
+        series: undefined,
+        seriesIndex: 0,
+        datumIndex: 0,
+        datum: undefined,
+    };
+
     private handleFocus(datumIndexDelta?: number) {
+        this.focus.hasFocus = true;
         const overlayFocus = this.overlays.getFocusInfo();
         if (overlayFocus == null) {
             this.handleSeriesFocus(datumIndexDelta ?? 0);

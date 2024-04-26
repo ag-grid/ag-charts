@@ -821,9 +821,8 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            const name: string = datum.legendItemName ?? datum.label.text;
-            const status: string = newEnabled ? 'enabled' : 'disabled';
-            this.ctx.ariaAnnouncementService.announceValue(`series ${name} ${status}`);
+            const status: string = newEnabled ? 'visible' : 'hidden';
+            this.ctx.ariaAnnouncementService.announceValue(`${status}`);
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -1083,12 +1082,15 @@ export class Legend extends BaseProperties {
         const { focus, pagination } = this;
         if (focus.mode === 'item') {
             const { nodeIndex, node, datum } = this.getFocusedItem();
+            if (datum === undefined) return;
+
             const bbox = node?.computeTransformedBBox();
             this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, { bbox, showFocusBox: true }), datum);
             const label = datum && this.getItemLabel(datum);
             if (label) {
+                const visibility = datum.enabled ? 'visible' : 'hidden';
                 this.ctx.ariaAnnouncementService.announceValue(
-                    `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, button`
+                    `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, ${visibility}`
                 );
             }
         } else if (focus.mode === 'page') {
