@@ -74,7 +74,6 @@ export class MapLineSeries
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
-        this.showFocusBox = false;
     }
 
     setChartTopology(topology: any): void {
