@@ -383,6 +383,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.dataset.toolbarGroup = group;
+        button.tabIndex = -1;
 
         if (typeof options.value === 'string' || typeof options.value === 'number') {
             button.dataset.toolbarValue = `${options.value}`;
