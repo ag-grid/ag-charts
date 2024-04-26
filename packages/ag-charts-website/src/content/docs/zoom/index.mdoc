@@ -28,7 +28,7 @@ If `axis[].tick.maxSpacing` is provided, the axis ticks and labels will update w
 
 ## Scrolling
 
-This allows zooming by using the mouse wheel or trackpad, as shown in the above example and is enabled by default. To disable use `enableScrolling: false`.
+This allows zooming by using the mouse wheel or trackpad, as shown in the above example and is enabled by default. To disable, use `enableScrolling: false`.
 
 ### Anchor Point
 
@@ -80,7 +80,7 @@ zoom: {
 
 ## Panning
 
-This is enabled by default and allows users to click and drag to move around a zoomed chart. To disable use `enablePanning: false`.
+This is enabled by default and allows users to click and drag to move around a zoomed chart. To disable, use `enablePanning: false`.
 
 If [zoom by selecting](#selecting) is enabled, clicking and dragging will no longer pan by default. Instead the user will need to hold down a key to switch to panning mode.
 
@@ -115,7 +115,7 @@ zoom: {
 
 ## Dragging an Axis
 
-By default, a user can click and drag on any axis to change the zoom of that axis. This ignores the `axes` property and is enabled by default for all axes. To disable use `enableAxisDragging: false`.
+By default, a user can click and drag on any axis to change the zoom of that axis. This ignores the `axes` property and is enabled by default for all axes. To disable, use `enableAxisDragging: false`.
 
 In the example below, we have two series, each attached to a different y-axis. Dragging one of the y-axes will zoom both of them.
 
@@ -123,7 +123,7 @@ In the example below, we have two series, each attached to a different y-axis. D
 
 ## Double-Click to Reset
 
-This allows users to reset the zoom by double-clicking in an empty space in the chart area, and is enabled by default. To disable use `enableDoubleClickToReset: false`.
+This allows users to reset the zoom by double-clicking in an empty space in the chart area, and is enabled by default. To disable, use `enableDoubleClickToReset: false`.
 
 ## Minimum Visible Items
 
@@ -184,28 +184,70 @@ When both the zoom and [Context Menu](./context-menu/) are enabled, additional z
 
 ## Buttons
 
+Zoom buttons are enabled by default. These will appear when the mouse is hovered near the bottom of a chart which has zoom enabled.
+To disable, use `zoom.buttons.enabled: false`.
+
 {% chartExampleRunner title="Zoom Buttons" name="zoom-buttons" type="generated" /%}
 
-A set of zoom buttons are enabled by default. In this example, the set of buttons has been changed to just the zoom in and out actions with additional labels.
+Hover near the bottom of the above example to see the default zoom buttons.
+
+-   **Zoom out**: Zooms the chart out by one [step](#scrolling-step).
+-   **Zoom in**: Zooms the chart in by one [step](#scrolling-step).
+-   **Pan left**: Pans the chart to the left by one viewport width.
+-   **Pan right**: Pans the chart to the right by one viewport width.
+-   **Reset**: Resets the zoom to the original level and position. Equivalent to [Double-Click to Reset](#double-click-to-reset).
+
+### Customisation
+
+It is possible to customise the visibility and order of buttons, as well as modifying the icon, label text and tooltip for each.
+
+{% chartExampleRunner title="Customised Zoom Buttons" name="zoom-custom-buttons" type="generated" /%}
 
 ```ts
 zoom: {
     buttons: {
         buttons: [
-            {
-                icon: 'zoom-out',
-                label: 'Zoom out',
-                value: 'zoom-out',
-            },
-            {
-                icon: 'zoom-in',
-                label: 'Zoom in',
-                value: 'zoom-in',
-            },
+        {
+            icon: 'pan-start',
+            tooltip: 'Pan to Start',
+            value: 'pan-start',
+        },
+        {
+            icon: 'zoom-in',
+            tooltip: 'Decrease Visible Range',
+            value: 'zoom-in',
+            label: 'In',
+        },
+        {
+            icon: 'zoom-out',
+            tooltip: 'Increase Visible Range',
+            value: 'zoom-out',
+            label: 'Out',
+        },
+        {
+            icon: 'pan-end',
+            tooltip: 'Pan to End',
+            value: 'pan-end',
+        },
+        {
+            tooltip: 'Undo all Zoom',
+            value: 'reset-zoom',
+            label: 'Reset',
+        },
         ],
     }
 }
 ```
+
+In the above example:
+
+-   The pan-left and pan-right buttons are not shown.
+-   Additional buttons are added to enable panning to the start and end of the x-axis.
+-   All the buttons have custom tooltip text.
+-   The order of the zoom-in and zoom-out buttons is swapped and they have a label as well as an icon.
+-   The reset button has only a label and no icon.
+
+For more information see the [API Reference section](#reference-AgZoomOptions-buttons-buttons).
 
 ## Asynchronous Loading
 
