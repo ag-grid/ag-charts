@@ -121,7 +121,8 @@ export class CrosshairLabel extends BaseProperties {
         left = limit(containerBounds.x + 1, left, maxLeft);
         top = limit(containerBounds.y, top, maxTop);
 
-        element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+        element.style.top = `${Math.round(top)}px`;
+        element.style.left = `${Math.round(left)}px`;
 
         this.toggle(true);
     }
