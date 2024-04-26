@@ -3,6 +3,7 @@ export default `
     display: block;
     /* speak: none; */
     mask-size: contain;
+    mask-repeat: no-repeat;
     background-color: currentColor;
 }
 
