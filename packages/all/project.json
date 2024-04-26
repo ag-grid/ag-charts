@@ -70,7 +70,26 @@
     },
     "dev": {
       "executor": "nx:run-commands",
-      "dependsOn": ["dev:setup"],
+      "dependsOn": ["dev:setup", "ag-charts-website:generate-examples", "ag-charts-website:generate-thumbnails"],
+      "inputs": [],
+      "outputs": [],
+      "options": {
+        "parallel": true,
+        "commands": ["{projectRoot}/watch.sh", "nx run ag-charts-website:dev"]
+      },
+      "configurations": {
+        "windows": {
+          "commands": [
+            {
+              "command": "nx run ag-charts-website:dev --configuration watch"
+            }
+          ]
+        }
+      }
+    },
+    "dev:minimal": {
+      "executor": "nx:run-commands",
+      "dependsOn": [],
       "inputs": [],
       "outputs": [],
       "options": {
