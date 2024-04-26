@@ -31,35 +31,13 @@ const options: AgChartOptions = {
             tooltip: {
                 renderer: ({ datum, openKey, highKey, lowKey, closeKey }) => {
                     return {
-                        content: `<b>0</b>${datum[openKey].toLocaleString()} <b>H</b>${datum[
+                        content: `<b>O</b>${datum[openKey].toLocaleString()} <b>H</b>${datum[
                             highKey
                         ].toLocaleString()} <b>L</b>${datum[lowKey].toLocaleString()}
                          <b>C</b>${datum[closeKey].toLocaleString()}
                          <br/><b>Volume: </b>${datum['volume'].toLocaleString()}`,
                     };
                 },
-            },
-        },
-        {
-            type: 'bar',
-            xKey: 'date',
-            xName: 'Date',
-            yKey: 'volume',
-            yName: 'Volume',
-            fillOpacity: 0.5,
-            showInLegend: false,
-            formatter: ({ datum }) => {
-                const openValue = datum['open'];
-                const closeValue = datum['close'];
-                const rising = closeValue > openValue;
-
-                return {
-                    fill: rising ? 'green' : 'red',
-                    stroke: rising ? 'green' : 'red',
-                };
-            },
-            tooltip: {
-                enabled: false,
             },
         },
     ],
@@ -70,7 +48,6 @@ const options: AgChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
-            keys: ['date'],
             line: {
                 enabled: false,
             },
@@ -88,7 +65,6 @@ const options: AgChartOptions = {
                     });
                 },
             },
-            paddingInner: 0.4,
             crossLines: [
                 {
                     type: 'range',
@@ -118,7 +94,6 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
-            keys: ['open', 'high', 'close', 'low'],
             tick: {
                 width: 0,
                 interval: 500,
@@ -130,18 +105,6 @@ const options: AgChartOptions = {
                 label: {
                     format: `,f`,
                 },
-            },
-        },
-        {
-            type: 'number',
-            position: 'left',
-            keys: ['volume'],
-            max: 50000000000,
-            label: {
-                enabled: false,
-            },
-            crosshair: {
-                enabled: false,
             },
         },
     ],
