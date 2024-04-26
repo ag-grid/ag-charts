@@ -47,12 +47,12 @@ export class BaseProperties<T extends object = object> {
         });
     }
 
-    toJson<J>(this: J) {
+    toJson<J>(this: J): T {
         return listDecoratedProperties(this).reduce<Record<string, any>>((object, propertyKey) => {
             const propertyValue = this[propertyKey as keyof J];
             object[propertyKey] = isProperties(propertyValue) ? propertyValue.toJson() : propertyValue;
             return object;
-        }, {});
+        }, {}) as T;
     }
 }
 
