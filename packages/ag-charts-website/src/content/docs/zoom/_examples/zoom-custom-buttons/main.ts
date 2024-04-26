@@ -32,7 +32,7 @@ const options: AgCartesianChartOptions = {
                 },
                 {
                     tooltip: 'Undo all Zoom',
-                    value: 'reset-zoom',
+                    value: 'reset',
                     label: 'Reset',
                 },
             ],
