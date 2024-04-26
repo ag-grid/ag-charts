@@ -889,7 +889,7 @@ export class MapMarkerSeries
                 params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
                     _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
             );
-            if (style !== undefined && style.size !== undefined) {
+            if (style?.size !== undefined) {
                 return { size: style.size };
             }
         }
