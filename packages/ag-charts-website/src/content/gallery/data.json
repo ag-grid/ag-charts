@@ -459,6 +459,16 @@
                         "title": "Candlestick",
                         "description": "",
                         "name": "candlestick"
+                    },
+                    {
+                        "title": "Hollow Candlesticks",
+                        "description": "",
+                        "name": "candlestick-hollow"
+                    },
+                    {
+                        "title": "OHLC",
+                        "description": "",
+                        "name": "ohlc"
                     }
                 ]
             }
