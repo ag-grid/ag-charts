@@ -9,7 +9,7 @@ export const modifiers = {
 
 export const css = `
 .${block}.${elements.wrapper} {
-    position: absolute;
+    position: relative;
     display: block;
     pointer-events: none;
     user-select: none;
