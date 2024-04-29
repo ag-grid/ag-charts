@@ -39,12 +39,14 @@ export function isBetweenAngles(targetAngle: number, startAngle: number, endAngl
     // wraps (0 or 2π). The logic is different if the path wraps or doesn't
     const t = normalizeAngle360(targetAngle);
     const a0 = normalizeAngle360(startAngle);
-    const a1 = normalizeAngle360Inclusive(endAngle);
+    const a1 = normalizeAngle360(endAngle);
 
-    if (a0 <= a1) {
+    if (a0 < a1) {
         return a0 <= t && t <= a1; // clockwise no wrapping
-    } else {
+    } else if (a0 > a1) {
         return a0 <= t || t <= a1; // clockwise with wrapping
+    } else {
+        return true; // input angles of a 360-spin
     }
 }
 
