@@ -11,6 +11,7 @@ interface CanvasOptions {
     height?: number;
     pixelRatio?: number;
     position?: 'absolute';
+    insertAsFirstChild?: boolean;
 }
 
 /**
@@ -34,10 +35,12 @@ export class HdpiCanvas {
     width: number = 600;
     height: number = 300;
     pixelRatio: number;
+    insertAsFirstChild: boolean;
 
     constructor(options: CanvasOptions) {
-        const { width, height, pixelRatio, position } = options;
+        const { width, height, pixelRatio, position, insertAsFirstChild } = options;
 
+        this.insertAsFirstChild = insertAsFirstChild ?? false;
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
@@ -104,8 +107,12 @@ export class HdpiCanvas {
     }
 
     private onContainerChange(newValue?: HTMLElement, oldValue?: HTMLElement) {
-        if (newValue !== oldValue) {
-            this.element.parentNode?.removeChild(this.element);
+        if (newValue === oldValue) return;
+
+        this.element.parentNode?.removeChild(this.element);
+        if (this.insertAsFirstChild && this.container?.firstChild) {
+            this.container?.insertBefore(this.element, this.container.firstChild);
+        } else {
             this.container?.appendChild(this.element);
         }
     }
