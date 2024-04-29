@@ -35,7 +35,8 @@ const menuEntry = await getEntry('menu', 'data');
 const appendSeoToDescription = `Download AG Charts today: The best ${getFrameworkDisplayText(
     currentFramework
 )} charts in the world.`;
-const description = page.data.description || `${getFirstParagraphText(page.body)} ${appendSeoToDescription}`;
+const description =
+    page.data.description || `${getFirstParagraphText(page.body, currentFramework)} ${appendSeoToDescription}`;
 ---
 
 <Layout
