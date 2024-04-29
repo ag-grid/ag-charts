@@ -10,10 +10,8 @@ export function getFirstParagraphText(markdocContent: string, currentFramework: 
         }
 
         if (node.type === 'tag') {
-            if (node.tag === 'if') {
-                if (node.annotations[0].value.parameters[0] === currentFramework) {
-                    return findFirstParagraph(node.children[0]);
-                }
+            if (node.tag === 'if' && node.annotations[0].value.name === 'isFramework') {
+                return findFirstParagraph(node.children[0]);
             }
 
             if (node.tag === 'videoSection') {
