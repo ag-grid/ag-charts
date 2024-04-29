@@ -88,7 +88,7 @@ export abstract class RadialColumnSeriesBase<
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 ...animationResetFns,
                 label: resetLabelFn,

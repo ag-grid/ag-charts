@@ -84,7 +84,7 @@ export abstract class PolarSeries<
 
     constructor({
         useLabelLayer = false,
-        pickModes = [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+        pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
         animationResetFns,
         ...opts
