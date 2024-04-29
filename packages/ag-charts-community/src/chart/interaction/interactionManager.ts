@@ -65,6 +65,10 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'touchend',
     'touchcancel',
     'wheel',
+    'blur',
+    'focus',
+    'keydown',
+    'keyup',
 ];
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
@@ -154,12 +158,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
     ];
 
-    private stateQueue: InteractionState = InteractionState.Default;
+    private stateQueue: InteractionState = InteractionState.Default | InteractionState.Animation;
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
-        element: HTMLElement,
-        container?: HTMLElement
+        element: HTMLElement
     ) {
         super();
 
@@ -178,12 +181,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
-        }
-
-        if (container) {
-            for (const type of ['blur', 'focus', 'keydown', 'keyup']) {
-                container.addEventListener(type, this.eventHandler);
-            }
         }
 
         injectStyle(CSS, 'interactionManager');
@@ -303,10 +300,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return [event.type];
 
             case 'mousedown':
+                if (!this.isEventOverElement(event)) {
+                    return [];
+                }
                 this.mouseDown = true;
                 this.recordDown(event);
                 return [dragStart];
             case 'touchstart':
+                if (!this.isEventOverElement(event)) {
+                    return [];
+                }
                 this.touchDown = true;
                 this.recordDown(event);
                 return [dragStart];
@@ -359,7 +362,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private isEventOverElement(event: SupportedEvent) {
-        return event.target === this.element || (event.target as any)?.parentElement === this.element;
+        return (
+            event.target === this.element ||
+            (event.target as any)?.parentElement === this.element ||
+            (event.target as any)?.parentElement?.parentElement === this.element
+        );
     }
 
     private static readonly NULL_COORDS: Coords = {

@@ -1,8 +1,12 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
+import type {
+    AgBarSeriesStyle,
+    AgErrorBoundSeriesTooltipRendererParams,
+    FontStyle,
+    FontWeight,
+} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import { OrdinalTimeScale } from '../../../scale/ordinalTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -12,6 +16,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -24,12 +29,19 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import {
+    PickFocusInputs,
+    SeriesNodePickMode,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
-import type { RectConfig } from './barUtil';
+import { RectConfig, computeBarFocusBounds } from './barUtil';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -120,10 +132,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
 
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
@@ -144,25 +153,37 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
-                    id: `yValue-end`,
-                    rangeId: `yValue-range`,
-                    invalidValue: null,
-                    missingValue: 0,
-                    groupId: stackGroupName,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'trailing', 'current', {
-                    id: `yValue-start`,
-                    invalidValue: null,
-                    missingValue: 0,
-                    groupId: stackGroupTrailingName,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
+                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                valueProperty(yKey, yScaleType, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `yValue-end`,
+                        rangeId: `yValue-range`,
+                        invalidValue: null,
+                        missingValue: 0,
+                        groupId: stackGroupName,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'trailing',
+                    'current',
+                    {
+                        id: `yValue-start`,
+                        invalidValue: null,
+                        missingValue: 0,
+                        groupId: stackGroupTrailingName,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    yScaleType
+                ),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -348,6 +369,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     bottomLeftCornerRadius: !isUpward,
                     clipBBox,
                     label: labelDatum,
+                    missing: yRawValue == null,
                 };
                 context.nodeData.push(nodeData);
                 context.labelData.push(nodeData);
@@ -455,7 +477,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    getTooltipHtml(nodeDatum: BarNodeDatum): string {
+    getTooltipHtml(nodeDatum: BarNodeDatum): TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -465,11 +487,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yAxis = this.getValueAxis();
 
         if (!processedData || !this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup } = this.properties;
-        const { xValue, yValue, datum } = nodeDatum;
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup, legendItemName } =
+            this.properties;
+        const { xValue, yValue, datum, itemId } = nodeDatum;
 
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
@@ -498,6 +521,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             { title, content, backgroundColor: color },
             {
                 seriesId,
+                itemId,
                 datum,
                 xKey,
                 yKey,
@@ -506,7 +530,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 stackGroup,
                 title,
                 color,
-                ...this.getModuleTooltipParams(),
+                legendItemName,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
     }
@@ -571,5 +596,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     protected isLabelEnabled() {
         return this.properties.label.enabled;
+    }
+
+    protected computeFocusBounds({ datumIndex, seriesRect }: PickFocusInputs): BBox | undefined {
+        const datumBox = this.contextNodeData?.nodeData[datumIndex].clipBBox;
+        return computeBarFocusBounds(datumBox, this.contentGroup, seriesRect);
     }
 }

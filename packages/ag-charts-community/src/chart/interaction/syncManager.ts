@@ -1,5 +1,6 @@
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
+import type { UpdateService } from '../updateService';
 import { BaseManager } from './baseManager';
 import type { HighlightManager } from './highlightManager';
 import type { TooltipManager } from './tooltipManager';
@@ -27,6 +28,7 @@ type ChartLike = {
     ctx: {
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;
+        updateService: UpdateService;
         zoomManager: ZoomManager;
     };
     waitForDataProcess(timeout?: number): Promise<void>;

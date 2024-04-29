@@ -265,7 +265,11 @@ const processIndexForFramework = async (framework) => {
             const breadcrumb = breadcrumbPrefix + item.title;
             // console.log(`=== Walking ${breadcrumb}...`);
 
-            if (item.path && !exclusions.some((exclusion) => exclusion === item.path.replace(/\//g, ''))) {
+            if (
+                item.path &&
+                !item.hidden &&
+                !exclusions.some((exclusion) => exclusion === item.path.replace(/\//g, ''))
+            ) {
                 const newRecords = await createRecords(
                     browser,
                     item.path,

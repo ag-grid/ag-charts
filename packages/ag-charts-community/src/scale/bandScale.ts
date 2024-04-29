@@ -11,7 +11,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return value instanceof BandScale;
     }
 
-    readonly type: string = 'band';
+    readonly type: 'band' | 'ordinal-time' = 'band';
 
     protected invalid = true;
 

@@ -6,7 +6,7 @@ import { ContinuousScale } from './continuousScale';
  * Maps continuous domain to a continuous range.
  */
 export class LinearScale extends ContinuousScale<number> {
-    readonly type = 'linear';
+    readonly type = 'number';
 
     public constructor() {
         super([0, 1], [0, 1]);

@@ -2,7 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { ContinuousScale } from '../../../scale/continuousScale';
+import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
@@ -25,7 +25,14 @@ import { animationValidation, diff, normaliseGroupTo } from '../../data/processo
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import {
+    PickFocusInputs,
+    SeriesNodePickMode,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
@@ -42,7 +49,13 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import {
+    computeMarkerFocusBounds,
+    markerFadeInAnimation,
+    markerSwipeScaleInAnimation,
+    resetMarkerFn,
+    resetMarkerPositionFn,
+} from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
@@ -90,10 +103,10 @@ export class AreaSeries extends CartesianSeries<
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const ids = [
             `area-stack-${groupIndex}-yValues`,
@@ -129,33 +142,63 @@ export class AreaSeries extends CartesianSeries<
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(yKey, isContinuousY, { id: `yValueRaw`, ...common }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'current', {
-                    id: `yValueEnd`,
-                    ...common,
-                    groupId: ids[0],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'current', {
-                    id: `yValueStart`,
-                    ...common,
-                    groupId: ids[1],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window', 'last', {
-                    id: `yValuePreviousEnd`,
-                    ...common,
-                    groupId: ids[2],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'window-trailing', 'last', {
-                    id: `yValuePreviousStart`,
-                    ...common,
-                    groupId: ids[3],
-                }),
-                ...groupAccumulativeValueProperty(yKey, isContinuousY, 'normal', 'current', {
-                    id: `yValueCumulative`,
-                    ...common,
-                    groupId: ids[4],
-                }),
+                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'current',
+                    {
+                        id: `yValueEnd`,
+                        ...common,
+                        groupId: ids[0],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'current',
+                    {
+                        id: `yValueStart`,
+                        ...common,
+                        groupId: ids[1],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'last',
+                    {
+                        id: `yValuePreviousEnd`,
+                        ...common,
+                        groupId: ids[2],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'last',
+                    {
+                        id: `yValuePreviousStart`,
+                        ...common,
+                        groupId: ids[3],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `yValueCumulative`,
+                        ...common,
+                        groupId: ids[4],
+                    },
+                    yScaleType
+                ),
                 ...extraProps,
             ],
             groupByKeys: true,
@@ -212,7 +255,7 @@ export class AreaSeries extends CartesianSeries<
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
-        const { isContinuousY } = this.isContinuous();
+        const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
@@ -573,16 +616,16 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: MarkerSelectionDatum): string {
+    getTooltipHtml(nodeDatum: MarkerSelectionDatum): TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
         const { xKey, xName, yName, tooltip, marker } = this.properties;
-        const { yKey, xValue, yValue, datum } = nodeDatum;
+        const { yKey, xValue, yValue, datum, itemId } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(yValue)) || !dataModel) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const xString = xAxis.formatDatum(xValue);
@@ -604,6 +647,7 @@ export class AreaSeries extends CartesianSeries<
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,
@@ -725,5 +769,14 @@ export class AreaSeries extends CartesianSeries<
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
+        const { xKey, yKey } = datum;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

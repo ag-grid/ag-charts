@@ -10,6 +10,7 @@ import {
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
+import { computeGeoFocusBounds } from '../map-util/mapUtil';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -56,6 +57,10 @@ export class MapShapeSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
+    public override getNodeData(): MapShapeNodeDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
+    }
+
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
     }
@@ -69,7 +74,7 @@ export class MapShapeSeries
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
+    public datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
         this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum> = Selection.select(
@@ -81,7 +86,7 @@ export class MapShapeSeries
         () => this.nodeFactory()
     );
 
-    private contextNodeData?: MapShapeNodeDataContext;
+    public contextNodeData?: MapShapeNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -92,6 +97,7 @@ export class MapShapeSeries
         });
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
+        this.showFocusBox = false;
     }
 
     setChartTopology(topology: any): void {
@@ -138,16 +144,19 @@ export class MapShapeSeries
             featureById.set(property, feature);
         });
 
+        const colorScaleType = this.colorScale.type;
+        const mercatorScaleType = this.scale?.type;
+
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
-                valueProperty(idKey, false, {
+                valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
+                valueProperty(idKey, mercatorScaleType, {
                     id: 'featureValue',
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum),
                 }),
-                ...(labelKey ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
 
@@ -631,7 +640,7 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): string {
+    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -640,7 +649,7 @@ export class MapShapeSeries
         } = this;
 
         if (!processedData || !properties.isValid()) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const {
@@ -656,7 +665,7 @@ export class MapShapeSeries
             formatter,
             tooltip,
         } = properties;
-        const { datum, fill, idValue, colorValue, labelValue } = nodeDatum;
+        const { datum, fill, idValue, colorValue, labelValue, itemId } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
@@ -693,8 +702,18 @@ export class MapShapeSeries
                 idKey,
                 title,
                 color,
+                colorKey,
+                colorName,
+                idName,
+                itemId,
+                labelKey,
+                labelName,
                 ...this.getModuleTooltipParams(),
             }
         );
+    }
+
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeGeoFocusBounds(this, opts);
     }
 }

@@ -290,6 +290,140 @@ const ORDINAL_TIME_AXIS_TIME_STAMP_DATA: AgCartesianChartOptions = {
     ],
 };
 
+const ORDINAL_TIME_AXIS_YEARLY_DATA: AgCartesianChartOptions = {
+    // yearly data not aligned with the start of the year (1st of January)
+    data: [
+        {
+            x: new Date(2023, 3, 5),
+            y: 10,
+        },
+        {
+            x: new Date(2024, 3, 5),
+            y: 10,
+        },
+        {
+            x: new Date(2025, 3, 5),
+            y: 10,
+        },
+    ],
+    axes: [
+        {
+            type: 'ordinal-time',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+    series: [
+        {
+            type: 'line',
+            xKey: 'x',
+            yKey: 'y',
+        },
+    ],
+};
+const ORDINAL_TIME_AXIS_TIME_ZONE_OFFSET_DATA: AgCartesianChartOptions = {
+    // yearly data with time zone offset
+    data: [
+        {
+            quarter: 1577836800000, // 1 Jan 2020
+            iphone: 140,
+            mac: 16,
+            ipad: 14,
+            wearables: 12,
+            services: 20,
+        },
+        {
+            quarter: 1580515200000, //1 Feb 2020
+            iphone: 124,
+            mac: 20,
+            ipad: 14,
+            wearables: 12,
+            services: 30,
+        },
+        {
+            quarter: 1583020800000, //1 Mar 2020
+            iphone: 112,
+            mac: 20,
+            ipad: 18,
+            wearables: 14,
+            services: 36,
+        },
+        {
+            quarter: 1585695600000, //1 Apr 2020
+            iphone: 118,
+            mac: 24,
+            ipad: 14,
+            wearables: 14,
+            services: 36,
+        },
+    ],
+    axes: [
+        {
+            type: 'ordinal-time',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'iPhone',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'mac',
+            yName: 'Mac',
+        },
+    ],
+};
+const ORDINAL_TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: AgCartesianChartOptions = {
+    ...ORDINAL_TIME_AXIS_TIME_ZONE_OFFSET_DATA,
+    // Monthly data with missing value for April, May, June
+    data: [
+        {
+            quarter: 1577836800000, // 1 Jan 2020
+            iphone: 140,
+            mac: 16,
+            ipad: 14,
+            wearables: 12,
+            services: 20,
+        },
+        {
+            quarter: 1580515200000, //1 Feb 2020
+            iphone: 124,
+            mac: 20,
+            ipad: 14,
+            wearables: 12,
+            services: 30,
+        },
+        {
+            quarter: 1583020800000, //1 Mar 2020
+            iphone: 112,
+            mac: 20,
+            ipad: 18,
+            wearables: 14,
+            services: 36,
+        },
+        {
+            quarter: 1593561600000, //1 July 2020
+            iphone: 118,
+            mac: 24,
+            ipad: 14,
+            wearables: 14,
+            services: 36,
+        },
+    ],
+};
+
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
@@ -354,6 +488,30 @@ const EXAMPLES: Record<string, TestCase> = {
             assertions: cartesianChartAssertions({
                 axisTypes: ['ordinal-time', 'number'],
                 seriesTypes: ['bar'],
+            }),
+        },
+        ORDINAL_TIME_AXIS_YEARLY_DATA: {
+            options: ORDINAL_TIME_AXIS_YEARLY_DATA,
+            compare: ['ordinal-time'],
+            assertions: cartesianChartAssertions({
+                axisTypes: ['ordinal-time', 'number'],
+                seriesTypes: ['line'],
+            }),
+        },
+        ORDINAL_TIME_AXIS_TIME_ZONE_OFFSET_DATA: {
+            options: ORDINAL_TIME_AXIS_TIME_ZONE_OFFSET_DATA,
+            compare: ['ordinal-time'],
+            assertions: cartesianChartAssertions({
+                axisTypes: ['ordinal-time', 'number'],
+                seriesTypes: ['bar', 'bar'],
+            }),
+        },
+        ORDINAL_TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: {
+            options: ORDINAL_TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA,
+            compare: ['ordinal-time'],
+            assertions: cartesianChartAssertions({
+                axisTypes: ['ordinal-time', 'number'],
+                seriesTypes: ['bar', 'bar'],
             }),
         },
     }),

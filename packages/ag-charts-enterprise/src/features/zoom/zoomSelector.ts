@@ -1,7 +1,7 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ZoomRect } from './scenes/zoomRect';
-import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
+import type { DefinedZoomState, ZoomCoords, ZoomProperties } from './zoomTypes';
 import { constrainZoom, definedZoomState, multiplyZoom, pointToRatio, scaleZoom, translateZoom } from './zoomUtils';
 
 // "Re-rewind, when the crowd say..."
@@ -16,25 +16,13 @@ export class ZoomSelector {
 
     update(
         event: _ModuleSupport.PointerInteractionEvent<'drag' | 'hover'>,
-        minRatioX: number,
-        minRatioY: number,
-        isScalingX: boolean,
-        isScalingY: boolean,
+        props: ZoomProperties,
         bbox?: _Scene.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): void {
         this.rect.visible = true;
 
-        this.updateCoords(
-            event.offsetX,
-            event.offsetY,
-            minRatioX,
-            minRatioY,
-            isScalingX,
-            isScalingY,
-            bbox,
-            currentZoom
-        );
+        this.updateCoords(event.offsetX, event.offsetY, props, bbox, currentZoom);
         this.updateRect(bbox);
     }
 
@@ -71,10 +59,7 @@ export class ZoomSelector {
     private updateCoords(
         x: number,
         y: number,
-        minRatioX: number,
-        minRatioY: number,
-        isScalingX: boolean,
-        isScalingY: boolean,
+        props: ZoomProperties,
         bbox?: _Scene.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): void {
@@ -87,6 +72,8 @@ export class ZoomSelector {
         this.coords.y2 = y;
 
         if (!bbox) return;
+
+        const { isScalingX, isScalingY, minRatioX, minRatioY } = props;
 
         // Ensure the selection is always at the same aspect ratio, using the width as the source of truth for the size
         // of the selection and limit it to the minimum dimensions.

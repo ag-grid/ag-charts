@@ -4,6 +4,7 @@ import type {
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
 } from '../../../options/agChartOptions';
+import type { SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { COLOR_STRING_ARRAY, LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
@@ -13,7 +14,8 @@ import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
-export interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
+export interface ScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+    readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
     readonly marker: MarkerConstructor;

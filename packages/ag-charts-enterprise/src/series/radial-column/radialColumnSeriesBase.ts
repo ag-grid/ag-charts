@@ -20,6 +20,7 @@ const {
     animationValidation,
     isFiniteNumber,
     SeriesNodePickMode,
+    computeSectorFocusBounds,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -31,12 +32,7 @@ class RadialColumnSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadialColumnNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: MouseEvent,
-        datum: RadialColumnNodeDatum,
-        series: RadialColumnSeriesBase<any>
-    ) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RadialColumnNodeDatum, series: RadialColumnSeriesBase<any>) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
@@ -72,8 +68,6 @@ export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Sector | _Scene.RadialColumnShape,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, RadialColumnSeriesBaseProperties<any>, ItemPathType> {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
-
-    protected nodeData: RadialColumnNodeDatum[] = [];
 
     private groupScale = new BandScale<string>();
 
@@ -150,29 +144,44 @@ export abstract class RadialColumnSeriesBase<
 
         const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
 
+        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(angleKey, false, { id: 'angleValue' }),
-                valueProperty(radiusKey, true, {
+                keyProperty(angleKey, angleScaleType, { id: 'angleValue' }),
+                valueProperty(radiusKey, radiusScaleType, {
                     id: 'radiusValue-raw',
                     invalidValue: null,
                     ...visibleProps,
                 }),
-                ...groupAccumulativeValueProperty(radiusKey, true, 'normal', 'current', {
-                    id: `radiusValue-end`,
-                    rangeId: `radiusValue-range`,
-                    invalidValue: null,
-                    groupId: stackGroupId,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
-                ...groupAccumulativeValueProperty(radiusKey, true, 'trailing', 'current', {
-                    id: `radiusValue-start`,
-                    invalidValue: null,
-                    groupId: stackGroupTrailingId,
-                    separateNegative: true,
-                    ...visibleProps,
-                }),
+                ...groupAccumulativeValueProperty(
+                    radiusKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `radiusValue-end`,
+                        rangeId: `radiusValue-range`,
+                        invalidValue: null,
+                        groupId: stackGroupId,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    radiusScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    radiusKey,
+                    'trailing',
+                    'current',
+                    {
+                        id: `radiusValue-start`,
+                        invalidValue: null,
+                        groupId: stackGroupTrailingId,
+                        separateNegative: true,
+                        ...visibleProps,
+                    },
+                    radiusScaleType
+                ),
                 ...extraProps,
             ],
         });
@@ -272,7 +281,11 @@ export abstract class RadialColumnSeriesBase<
             }
         };
 
-        const nodeData = processedData.data.map((group, index, data): RadialColumnNodeDatum => {
+        const nodeData: RadialColumnNodeDatum[] = [];
+        const context = { itemId: radiusKey, nodeData, labelData: nodeData };
+        if (!this.visible) return context;
+
+        processedData.data.forEach((group, index, data) => {
             const { datum, keys, values, aggValues } = group;
 
             const angleDatum = keys[0];
@@ -282,6 +295,9 @@ export abstract class RadialColumnSeriesBase<
             const outerRadiusDatum = values[radiusEndIndex];
             const radiusRange = aggValues?.[radiusRangeIndex][isPositive ? 1 : 0] ?? 0;
             const negative = isPositive === radiusAxisReversed;
+            if (innerRadiusDatum === undefined || outerRadiusDatum === undefined) {
+                return;
+            }
 
             let startAngle: number;
             let endAngle: number;
@@ -311,7 +327,7 @@ export abstract class RadialColumnSeriesBase<
 
             const columnWidth = this.getColumnWidth(startAngle, endAngle);
 
-            return {
+            nodeData.push({
                 series: this,
                 datum,
                 point: { x, y, size: 0 },
@@ -330,7 +346,7 @@ export abstract class RadialColumnSeriesBase<
                 axisOuterRadius,
                 columnWidth,
                 index,
-            };
+            });
         });
 
         return { itemId: radiusKey, nodeData, labelData: nodeData };
@@ -464,17 +480,17 @@ export abstract class RadialColumnSeriesBase<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
-    getTooltipHtml(nodeDatum: RadialColumnNodeDatum): string {
+    getTooltipHtml(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
         const { angleKey, radiusKey, angleName, radiusName, fill, stroke, strokeWidth, formatter, tooltip } =
             this.properties;
-        const { angleValue, radiusValue, datum } = nodeDatum;
+        const { angleValue, radiusValue, datum, itemId } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !(xAxis && yAxis && isNumber(radiusValue)) || !dataModel) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const angleString = xAxis.formatDatum(angleValue);
@@ -496,7 +512,19 @@ export abstract class RadialColumnSeriesBase<
 
         return tooltip.toTooltipHtml(
             { title, backgroundColor: fill, content },
-            { seriesId, datum, color, title, angleKey, radiusKey, angleName, radiusName }
+            {
+                seriesId,
+                datum,
+                color,
+                title,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+                angleValue,
+                itemId,
+                radiusValue,
+            }
         );
     }
 
@@ -552,5 +580,9 @@ export abstract class RadialColumnSeriesBase<
 
     override computeLabelsBBox() {
         return null;
+    }
+
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeSectorFocusBounds(this, opts);
     }
 }

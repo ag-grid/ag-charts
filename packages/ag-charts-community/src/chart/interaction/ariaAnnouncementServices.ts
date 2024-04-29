@@ -1,13 +1,16 @@
+import { setAttribute } from '../../util/attributeUtil';
+import { Debug } from '../../util/debug';
 import { getDocument } from '../../util/dom';
 
 export class AriaAnnouncementService {
     private readonly liveElem: HTMLElement;
+    private readonly debug = Debug.create(true, 'aria');
 
     private static createAnnouncer(): HTMLElement {
         const e = getDocument().createElement('div');
         e.classList.add('ag-charts-aria-announcer');
-        e.setAttribute('role', 'status');
-        e.setAttribute('aria-live', 'polite');
+        setAttribute(e, 'role', 'status');
+        setAttribute(e, 'aria-live', 'assertive');
         return e;
     }
 
@@ -20,12 +23,7 @@ export class AriaAnnouncementService {
     }
 
     public announceValue(value: string): void {
-        this.liveElem.setAttribute('aria-label', value);
-    }
-
-    public announceHtml(html: string): void {
-        const tmp = getDocument().createElement('div');
-        tmp.innerHTML = html;
-        this.announceValue(tmp.textContent ?? '');
+        this.debug(`AriaAnnouncementService - announceValue: ${value}`);
+        this.liveElem.textContent = value;
     }
 }

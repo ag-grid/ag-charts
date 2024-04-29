@@ -1,9 +1,9 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { openPlunker } from '@features/plunkr/utils/plunkr';
-import styles from '@legacy-design-system/modules/Launcher.module.scss';
 import { doOnEnter } from '@utils/doOnEnter';
 
 import { getJavascriptContent, getPlunkrHtml } from '../utils/templates';
+import styles from './Launcher.module.scss';
 
 interface Props {
     options: {};

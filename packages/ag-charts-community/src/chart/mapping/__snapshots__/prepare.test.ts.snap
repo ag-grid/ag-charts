@@ -121,6 +121,9 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "text": "Source: Northern Ireland Statistics and Research Agency",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": true,
     "item": {
@@ -399,6 +402,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -414,6 +418,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -438,6 +443,48 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -600,6 +647,9 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "spacing": 20,
     "text": "Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -891,6 +941,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -906,6 +957,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -930,6 +982,48 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -1046,6 +1140,9 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "spacing": 20,
     "text": "Source: HM Revenue & Customs",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -1533,6 +1630,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -1548,6 +1646,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -1572,6 +1671,48 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -1687,6 +1828,9 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "spacing": 20,
     "text": "Source: Environmental Agency",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -2231,6 +2375,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -2246,6 +2391,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -2270,6 +2416,48 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -2383,6 +2571,9 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "spacing": 20,
     "text": "Source: US Geological Survey",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -2543,6 +2734,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -2558,6 +2750,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -2582,6 +2775,48 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -2694,6 +2929,9 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "spacing": 20,
     "text": "Source: US Geological Survey",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -3025,6 +3263,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -3040,6 +3279,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -3064,6 +3304,48 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -3178,6 +3460,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -3607,6 +3892,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -3622,6 +3908,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -3646,6 +3933,48 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -3760,6 +4089,9 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -3929,6 +4261,7 @@ by Occupation",
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -3944,6 +4277,7 @@ by Occupation",
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -3968,6 +4302,48 @@ by Occupation",
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -4082,6 +4458,9 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -4243,6 +4622,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -4258,6 +4638,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -4282,6 +4663,48 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -4401,6 +4824,9 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "spacing": 20,
     "text": "Footnote",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -4554,6 +4980,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -4569,6 +4996,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -4593,6 +5021,48 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -4711,6 +5181,9 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "spacing": 20,
     "text": "Source: Simple Maps",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -4867,6 +5340,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -4882,6 +5356,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -4906,6 +5381,48 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -5020,6 +5537,9 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "spacing": 20,
     "text": "Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -5255,6 +5775,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -5270,6 +5791,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -5294,6 +5816,48 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -5408,6 +5972,9 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -5647,6 +6214,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -5662,6 +6230,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -5686,6 +6255,48 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -5801,6 +6412,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -6291,6 +6905,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -6306,6 +6921,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -6330,6 +6946,48 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -6448,6 +7106,9 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "spacing": 20,
     "text": "Source: Department for Environment, Food and Rural Affairs",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -7395,6 +8056,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -7410,6 +8072,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -7434,6 +8097,48 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -7547,6 +8252,9 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "spacing": 20,
     "text": "Footnote",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -7702,6 +8410,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -7717,6 +8426,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -7741,6 +8451,48 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -7856,6 +8608,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -8433,6 +9188,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -8448,6 +9204,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -8472,6 +9229,48 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -8588,6 +9387,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -8885,6 +9687,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -8900,6 +9703,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -8924,6 +9728,48 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -9039,6 +9885,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "spacing": 20,
     "text": "Source: Department for Education",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -9497,6 +10346,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -9512,6 +10362,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -9536,6 +10387,48 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -9654,6 +10547,9 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -10006,6 +10902,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -10021,6 +10918,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -10045,6 +10943,48 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -10160,6 +11100,9 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -10321,6 +11264,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -10336,6 +11280,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -10360,6 +11305,48 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -10392,6 +11379,9 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
     "spacing": 20,
     "text": "Source: Home Office",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "item": {
@@ -10702,6 +11692,9 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "text": "Source: Department for Business, Energy & Industrial Strategy",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": true,
     "item": {
@@ -10921,6 +11914,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -10936,6 +11930,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -10960,6 +11955,48 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -10991,6 +12028,9 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "spacing": 20,
     "text": "Source: Office for National Statistics",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": false,
@@ -11273,6 +12313,9 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "text": "Source: Statistics Online Computational Resource",
     "wrapping": "hyphenate",
   },
+  "keyboard": {
+    "enabled": true,
+  },
   "legend": {
     "enabled": false,
     "item": {
@@ -11420,6 +12463,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -11435,6 +12479,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -11459,6 +12504,48 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -11579,6 +12666,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -12108,6 +13198,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -12123,6 +13214,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -12147,6 +13239,48 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -12262,6 +13396,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "spacing": 20,
     "text": "Source: Ministry of Housing, Communities & Local Government",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -12595,6 +13732,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -12610,6 +13748,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -12634,6 +13773,48 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,
@@ -12750,6 +13931,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "spacing": 20,
     "text": "Source: Transport for London",
     "wrapping": "hyphenate",
+  },
+  "keyboard": {
+    "enabled": true,
   },
   "legend": {
     "enabled": true,
@@ -13158,6 +14342,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
   },
   "toolbar": {
     "annotations": {
+      "align": "start",
       "buttons": [
         {
           "label": "Li",
@@ -13173,6 +14358,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     },
     "enabled": true,
     "ranges": {
+      "align": "start",
       "buttons": [
         {
           "label": "1m",
@@ -13197,6 +14383,48 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         {
           "label": "All",
           "value": [Function],
+        },
+      ],
+      "enabled": false,
+      "position": "top",
+    },
+    "zoom": {
+      "align": "end",
+      "buttons": [
+        {
+          "icon": "zoom-out",
+          "tooltip": "Zoom out",
+          "value": "zoom-out",
+        },
+        {
+          "icon": "zoom-in",
+          "tooltip": "Zoom in",
+          "value": "zoom-in",
+        },
+        {
+          "icon": "pan-left",
+          "tooltip": "Pan left",
+          "value": "pan-left",
+        },
+        {
+          "icon": "pan-right",
+          "tooltip": "Pan right",
+          "value": "pan-right",
+        },
+        {
+          "icon": "pan-start",
+          "tooltip": "Pan to the start",
+          "value": "pan-start",
+        },
+        {
+          "icon": "pan-end",
+          "tooltip": "Pan to the end",
+          "value": "pan-end",
+        },
+        {
+          "icon": "reset",
+          "tooltip": "Reset the zoom",
+          "value": "reset",
         },
       ],
       "enabled": false,

@@ -372,7 +372,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected labelFormatter?: (datum: any) => string;
-    protected onLabelFormatChange(ticks: any[], format?: string) {
+    protected onLabelFormatChange(ticks: any[], _domain: any[], format?: string) {
         const { scale, fractionDigits } = this;
         const logScale = scale instanceof LogScale;
 
@@ -673,6 +673,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         const getTransformBox = (bbox: BBox) => {
+            const matrix = new Matrix();
             const {
                 rotation: axisRotation,
                 translationX,
@@ -680,21 +681,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 rotationCenterX,
                 rotationCenterY,
             } = this.getAxisTransform();
-
-            const matrix = new Matrix(
-                Matrix.calculateTransformMatrix(
-                    1,
-                    1,
-                    axisRotation,
-                    translationX,
-                    translationY,
-                    null,
-                    null,
-                    rotationCenterX,
-                    rotationCenterY
-                )
-            );
-
+            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
+                scalingCenterX: 0,
+                scalingCenterY: 0,
+                rotationCenterX,
+                rotationCenterY,
+            });
             return matrix.transformBBox(bbox);
         };
 
@@ -989,7 +981,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelX: number,
         textProps: TextSizeProperties
     ): boolean {
-        labelMatrix.setElements(Matrix.calculateTransformMatrix(1, 1, rotation, 0, 0));
+        Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
         const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
         const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
@@ -1070,8 +1062,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         // `ticks instanceof NumericTicks` doesn't work here, so we feature detect.
         this.fractionDigits = (rawTicks as any).fractionDigits >= 0 ? (rawTicks as any).fractionDigits : 0;
-        // When the scale domain or the ticks change, the label format may change
-        this.onLabelFormatChange(rawTicks, this.label.format);
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
@@ -1083,15 +1073,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
         const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
 
-        for (let i = start; i < end; i++) {
-            const rawTick = rawTicks[i];
-            const translationY = scale.convert(rawTick) + halfBandwidth;
+        const filteredTicks = rawTicks.slice(start, end);
+        // When the scale domain or the ticks change, the label format may change
+        this.onLabelFormatChange(filteredTicks, rawTicks, this.label.format);
+
+        for (let i = 0; i < filteredTicks.length; i++) {
+            const tick = filteredTicks[i];
+            const translationY = scale.convert(tick) + halfBandwidth;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
             if (range.length > 0 && !this.inRange(translationY, 0, 0.001)) continue;
 
-            const tickLabel = this.formatTick(rawTick, i);
+            const tickLabel = this.formatTick(tick, start + i);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             let tickId = tickLabel;
@@ -1103,7 +1097,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 tickIdCounts.set(tickId, 1);
             }
 
-            ticks.push({ tick: rawTick, tickId, tickLabel, translationY: Math.floor(translationY) });
+            ticks.push({ tick, tickId, tickLabel, translationY: Math.floor(translationY) });
 
             if (tickLabel === '' || tickLabel == null) {
                 continue;
@@ -1410,7 +1404,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting arbitrary values between the ticks.
     formatDatum(datum: any): string {
-        return this.datumFormatter()(datum);
+        return String(datum);
     }
 
     datumFormatter(index: number = 0): (datum: any) => string {
@@ -1527,7 +1521,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) =>
-                specifier ? this.scale.tickFormat?.({ specifier }) : this.datumFormatter(),
+                specifier ? this.scale.tickFormat?.({ specifier }) : this.formatDatum,
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),
             scaleInvert: (val) => this.scale.invert?.(val),

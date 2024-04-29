@@ -1,43 +1,43 @@
+import { isFramework } from '@ag-website-shared/markdoc/functions/isFramework';
+import { isNotJavascriptFramework } from '@ag-website-shared/markdoc/functions/isNotJavascriptFramework';
+import { heading } from '@ag-website-shared/markdoc/nodes/heading';
+import { br } from '@ag-website-shared/markdoc/tags/br';
+import { enterpriseIcon } from '@ag-website-shared/markdoc/tags/enterpriseIcon';
+import { idea } from '@ag-website-shared/markdoc/tags/idea';
+import { image } from '@ag-website-shared/markdoc/tags/image';
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
-import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+import { note } from '@ag-website-shared/markdoc/tags/note';
+import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
+import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
+import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
+import { warning } from '@ag-website-shared/markdoc/tags/warning';
+import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
 
 import prism from './plugins/prism';
-import { DOCS_TAB_ITEM_ID_PREFIX } from './src/constants';
 import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
     extends: [prism()],
     nodes: {
-        heading: {
-            ...nodes.heading, // Preserve default anchor link generation
-            render: component('./src/components/Heading.astro'),
-        },
-        link: {
-            ...nodes.link,
-            render: component('./src/components/Link.astro'),
-        },
+        heading,
+        link,
     },
     functions: {
-        isFramework: {
-            transform(parameters, context) {
-                const pageFramework = context.variables?.framework;
-                const [framework] = Object.values(parameters);
-                return framework === pageFramework;
-            },
-        },
-        isNotJavascriptFramework: {
-            transform(_, context) {
-                const pageFramework = context.variables?.framework;
-                return pageFramework !== 'javascript';
-            },
-        },
+        isFramework,
+        isNotJavascriptFramework,
     },
     tags: {
         kbd,
         link,
-        enterpriseIcon: {
-            render: component('../../external/ag-website-shared/src/components/icon/EnterpriseIcon', 'EnterpriseIcon'),
-        },
+        oneTrustCookies,
+        tabs,
+        tabItem,
+        videoSection,
+        br,
+        note,
+        warning,
+        idea,
+        enterpriseIcon,
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),
             attributes: {
@@ -50,33 +50,7 @@ export default defineMarkdocConfig({
         featureComparator: {
             render: component('./src/components/featureComparator/FeatureComparator.astro'),
         },
-        note: {
-            render: component('../../external/ag-website-shared/src/components/alert/Note'),
-        },
-        warning: {
-            render: component('../../external/ag-website-shared/src/components/alert/Warning'),
-        },
-        idea: {
-            render: component('../../external/ag-website-shared/src/components/alert/Idea'),
-        },
-        image: {
-            render: component('./src/components/image/Image.astro'),
-            attributes: {
-                /**
-                 * Docs page name in `src/content/[pageName]
-                 *
-                 * If not provided, will default to the location of the markdoc file
-                 */
-                pageName: { type: String },
-                imagePath: { type: String, required: true },
-                alt: { type: String, required: true },
-                width: { type: String },
-                height: { type: String },
-                minWidth: { type: String },
-                maxWidth: { type: String },
-                margin: { type: String },
-            },
-        },
+        image,
         imageCaption: {
             render: component('./src/components/image/ImageCaption'),
             attributes: {
@@ -104,37 +78,6 @@ export default defineMarkdocConfig({
                 hideRequired: { type: 'Boolean' },
                 specialTypes: { type: 'Object' },
             },
-        },
-        tabs: {
-            render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
-            attributes: {
-                omitFromOverview: { type: Boolean, default: false },
-                tabItemIdPrefix: {
-                    type: String,
-                    default: DOCS_TAB_ITEM_ID_PREFIX,
-                },
-            },
-        },
-        tabItem: {
-            render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),
-            attributes: {
-                id: { type: String, required: true },
-                label: { type: String },
-            },
-        },
-        videoSection: {
-            render: component('./src/components/video-section/VideoSection'),
-            attributes: {
-                id: { type: String, required: true },
-                title: { type: String },
-                header: { type: Boolean },
-            },
-        },
-        oneTrustCookies: {
-            render: component('./src/components/OneTrustCookiesDetails.astro'),
-        },
-        br: {
-            render: 'br',
         },
     },
 });

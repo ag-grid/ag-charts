@@ -14,7 +14,6 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
-import { clamp } from '../../../util/number';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -86,7 +85,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
     readonly yKey?: string;
     constructor(
         type: TEvent,
-        nativeEvent: MouseEvent,
+        nativeEvent: Event,
         datum: SeriesNodeDatum,
         series: ISeries<SeriesNodeDatum, { xKey?: string; yKey?: string }>
     ) {
@@ -149,6 +148,10 @@ export abstract class CartesianSeries<
     private _contextNodeData?: TContext;
     get contextNodeData() {
         return this._contextNodeData;
+    }
+
+    public override getNodeData(): TDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
     }
 
     protected override readonly NodeEvent = CartesianSeriesNodeEvent;
@@ -532,6 +535,8 @@ export abstract class CartesianSeries<
 
     protected *datumNodesIter(): Iterable<TNode> {
         for (const { node } of this.datumSelection) {
+            if (node.datum.missing === true) continue;
+
             yield node;
         }
     }
@@ -570,15 +575,16 @@ export abstract class CartesianSeries<
             match = markerGroup?.pickNode(x, y);
         }
 
-        if (match) {
+        if (match && match.datum.missing !== true) {
             return { datum: match.datum, distance: 0 };
-        } else {
-            for (const mod of this.moduleMap.modules()) {
-                const { datum } = mod.pickNodeExact(point) ?? {};
-                if (datum !== undefined) {
-                    return { datum, distance: 0 };
-                }
-            }
+        }
+
+        for (const mod of this.moduleMap.modules()) {
+            const { datum } = mod.pickNodeExact(point) ?? {};
+            if (datum == null) continue;
+            if (datum?.missing === true) continue;
+
+            return { datum, distance: 0 };
         }
     }
 
@@ -659,8 +665,8 @@ export abstract class CartesianSeries<
         let closestDatum: SeriesNodeDatum | undefined;
 
         for (const datum of contextNodeData.nodeData) {
-            const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
-            if (isNaN(datumX) || isNaN(datumY)) {
+            const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
+            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) {
                 continue;
             }
 
@@ -1060,13 +1066,5 @@ export abstract class CartesianSeries<
         }
 
         return result;
-    }
-
-    public override pickFocus(focus: { readonly datum: number }): { node: Node; datum: TDatum; datumIndex: number } {
-        const datumNodes = (this.opts.hasMarkers ? this.markerGroup : this.dataNodeGroup).children;
-        const datumIndex = clamp(0, focus.datum, datumNodes.length - 1);
-        const node = datumNodes[datumIndex];
-        const datum = node.datum;
-        return { node, datum, datumIndex };
     }
 }

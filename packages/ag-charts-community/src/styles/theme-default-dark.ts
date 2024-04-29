@@ -9,11 +9,8 @@ export default `
         color-mix(in srgb, transparent, var(--ag-charts-active-color) 20%)
     );
 
-    --ag-charts-header-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));
-
-    /* Shadow */
-    --ag-charts-card-shadow: var(--ag-card-shadow, 0 1px 20px 1px black);
-    --ag-charts-popup-shadow: var(--ag-popup-shadow, 0 1px 6px rgba(0, 0, 0, 0.5));
+    /* Toolbar */
+    --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));
 }
 
 `;

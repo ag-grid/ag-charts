@@ -16,4 +16,5 @@ export interface BaseModule<T extends ChartTypes = ChartTypes> {
     packageType: 'community' | 'enterprise';
     chartTypes: T[];
     identifier?: string;
+    dependencies?: string[];
 }

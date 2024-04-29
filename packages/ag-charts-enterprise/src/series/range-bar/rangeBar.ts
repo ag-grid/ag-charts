@@ -23,10 +23,11 @@ const {
     animationValidation,
     createDatumId,
     isFiniteNumber,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
+const { ContinuousScale } = _Scale;
 
 type Bounds = {
     x: number;
@@ -79,7 +80,7 @@ class RangeBarSeriesNodeEvent<
     readonly yLowKey?: string;
     readonly yHighKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeBarNodeDatum, series: RangeBarSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RangeBarNodeDatum, series: RangeBarSeries) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
@@ -130,11 +131,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
         if (!this.ctx.animationManager.isSkipped()) {
@@ -147,9 +144,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
-                valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
+                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, ...visibleProps }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -211,7 +208,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(data && visible && xAxis && yAxis && dataModel)) {
+        if (!(data && xAxis && yAxis && dataModel)) {
             return;
         }
 
@@ -230,6 +227,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!visible) return context;
 
         const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`);
         const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`);
@@ -461,7 +459,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: RangeBarNodeDatum): string {
+    getTooltipHtml(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             ctx: { callbackCache },
@@ -471,7 +469,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yAxis = this.getValueAxis();
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, fill, strokeWidth, formatter, tooltip } =
@@ -529,6 +527,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             color,
             seriesId,
             itemId,
+            title,
+            yHighValue,
+            yLowValue,
         });
     }
 
@@ -592,4 +593,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override onDataChange() {}
+
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
+    }
 }

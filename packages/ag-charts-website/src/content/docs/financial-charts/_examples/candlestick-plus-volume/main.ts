@@ -29,11 +29,11 @@ const candlestickOptions: AgCartesianChartOptions = {
     ...commonOptions,
     container: document.getElementById('ohlcChart'),
     title: { text: 'AAPL Stock Price' },
-    toolbar: {
-        ranges: {
-            enabled: true,
-        },
-    },
+    // toolbar: {
+    //     ranges: {
+    //         enabled: true,
+    //     },
+    // },
     series: [
         {
             type: 'candlestick',

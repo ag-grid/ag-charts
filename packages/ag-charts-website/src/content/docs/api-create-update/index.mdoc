@@ -19,6 +19,11 @@ We expect the options supplied to `AgCharts.update()` to be the full configurati
 to, not a partial configuration. Use `AgCharts.updateDelta()` to apply partial updates.
 {% /note %}
 
+{% warning %}
+We expect immutable data for `data` elements, as this enables efficient change detection. If `data`
+elements are mutated in-place, we cannot guarantee to detect the changes.
+{% /warning %}
+
 `AgCharts` has the following API:
 
 {% apiReference id="AgChartInterface" include=["create", "update"] hideHeader=true hideRequired=true /%}

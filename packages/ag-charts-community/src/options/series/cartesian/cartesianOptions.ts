@@ -1,4 +1,4 @@
-import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
+// import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
     AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
@@ -43,7 +43,7 @@ export interface AgBaseCartesianChartOptions {
     /** Series configurations. */
     series?: AgCartesianSeriesOptions[];
     /** Annotations configurations. */
-    annotations?: AgAnnotationsOptions;
+    // annotations?: AgAnnotationsOptions;
 }
 
 export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {
@@ -154,6 +154,10 @@ export interface AgCartesianAxesTheme {
     category?: AgCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to time axes. */
     time?: AgTimeAxisThemeOptions;
+    /** This extends the common axis configuration with options specific to ordinal-time axes. */
+    'ordinal-time'?: AgOrdinalTimeAxisThemeOptions;
+    /** This extends the common axis configuration with options specific to grouped-category axes. */
+    'grouped-category'?: AgGroupedCategoryAxisThemeOptions;
 }
 
 export interface AgNumberAxisThemeOptions

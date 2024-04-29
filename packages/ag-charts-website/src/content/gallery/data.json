@@ -450,6 +450,31 @@
         ],
         [
             {
+                "title": "Candlestick",
+                "seriesName": "candlestick",
+                "icon": "chartsCandlestick",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Candlestick",
+                        "description": "",
+                        "name": "candlestick"
+                    },
+                    {
+                        "title": "Hollow Candlesticks",
+                        "description": "",
+                        "name": "candlestick-hollow"
+                    },
+                    {
+                        "title": "OHLC",
+                        "description": "",
+                        "name": "ohlc"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Radar Line",
                 "seriesName": "radar-line",
                 "icon": "chartsRadar",

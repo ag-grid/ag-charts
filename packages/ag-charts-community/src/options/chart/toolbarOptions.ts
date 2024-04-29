@@ -3,32 +3,47 @@ import type { Toggleable } from '../series/cartesian/commonOptions';
 export interface AgToolbarOptions extends Toggleable {
     annotations?: AgToolbarAnnotationsGroup;
     ranges?: AgToolbarRangesGroup;
+    zoom?: AgToolbarZoomGroup;
 }
 
 export interface AgToolbarGroup extends Toggleable {
-    /** Position of the toolbar section on the outside of the chart. */
-    position?: 'top' | 'left' | 'right' | 'bottom';
-    // floating?: boolean;
+    /** Alignment of the toolbar group. */
+    align?: AgToolbarGroupAlignment;
+    /** Position of the toolbar group on the outside of the chart. */
+    position?: AgToolbarGroupPosition;
     buttons?: AgToolbarButton[];
 }
 
+export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
+export type AgToolbarGroupPosition = 'top' | 'left' | 'right' | 'bottom' | 'floating-top' | 'floating-bottom';
+
 export interface AgToolbarButton {
+    /** Icon to display on the button. */
+    icon?: AgIconName;
     /** Text label to display on the button. */
-    label: string;
+    label?: string;
+    /** Tooltip text to display on hover over the button. */
+    tooltip?: string;
+    /** Value provided to caller when the button is pressed. */
     value: any;
 }
 
+export type AgIconName = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset' | 'zoom-in' | 'zoom-out';
+
+/* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
     buttons?: AgToolbarAnnotationsButton[];
 }
 
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
-    // TODO: fix docs to use this type
-    // value: AgAnnotation['type'];
+    // TODO: fix docs to use this type - AgAnnotation['type']
     /** An annotation type. */
-    value: 'line' | 'parallel-channel';
+    value: AgToolbarAnnotationsButtonValue;
 }
 
+export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel';
+
+/* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {
     buttons?: AgToolbarRangesButton[];
 }
@@ -42,3 +57,21 @@ export type AgToolbarRangesButtonValue =
     | number
     | [Date | number, Date | number]
     | ((start: Date | number, end: Date | number) => [Date | number, Date | number]);
+
+/* Zoom */
+export interface AgToolbarZoomGroup extends AgToolbarGroup {
+    buttons?: AgToolbarZoomButton[];
+}
+
+export interface AgToolbarZoomButton extends AgToolbarButton {
+    value: AgToolbarZoomButtonValue;
+}
+
+export type AgToolbarZoomButtonValue =
+    | 'reset'
+    | 'zoom-in'
+    | 'zoom-out'
+    | 'pan-left'
+    | 'pan-right'
+    | 'pan-start'
+    | 'pan-end';

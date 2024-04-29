@@ -7,13 +7,13 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-export interface RangeAreaMarkerDatum
-    extends Required<Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>> {
+export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
     readonly yLowValue: number;
     readonly yHighValue: number;
+    readonly point: Readonly<_Scene.SizedPoint>;
 }
 
 const { DropShadow, Label } = _Scene;

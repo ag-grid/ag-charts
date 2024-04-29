@@ -23,3 +23,5 @@ export const DEFAULT_STROKES = {
     BROWN: '#4f3508',
     RED: '#a82529',
 };
+
+export type DefaultColors = { fills: { [key: string]: string }; strokes: { [key: string]: string } };

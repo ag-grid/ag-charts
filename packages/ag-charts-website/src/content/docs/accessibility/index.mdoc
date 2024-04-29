@@ -31,7 +31,17 @@ The following keys are available:
 -   {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, or between legend items.
 -   {% kbd "↑" /%}{% kbd "↓" /%} moves focus between series in a chart.  
     Please note that datapoints and series are traversed in declared order which may not match the visual display.
--   {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} toggles legend items and triggers click event callbacks.
+-   {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} toggles legend items and triggers any click listeners for the focused item.
+
+{% chartExampleRunner title="Keyboard Navigation" name="keyboard-navigation" type="generated" /%}
+
+In this example:
+
+-   Focusing on the top input box and pressing TAB will move focus into the chart.
+-   Pressing TAB will move focus through the chart components.
+-   The arrow keys move focus around within the chart components as described above.
+-   Pressing TAB after all the chart components will move focus to the element below the chart.
+-   SHIFT+TAB will move focus into, around and out of the chart in reverse order.
 
 ## Screen Readers (ARIA)
 
@@ -46,10 +56,18 @@ Our accessibility testing has focused on these screen readers.
 
 AG Charts generates announcements for screen readers via a standards-based accessibility implementation based on the currently focused chart element.
 
-To customise the AG Charts screen reader announcements, modify their default values in the localisation configuration.
-
 ## High Contrast Theme
 
 For users that are visually impaired due to colour deficiencies, care should be taken to provide enough contrast between adjacent colours. Additionally, when using charts it is common to use red and green to denote negative and positive values, however this can pose difficulties for people suffering from colour blindness.
 
 To create a high contrast theme, please check out the [Themes](./themes/) documentation for details.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="KeyboardNavigationOptions" label="Keyboard Navigation" %}
+{% apiReference id="AgKeyboardOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

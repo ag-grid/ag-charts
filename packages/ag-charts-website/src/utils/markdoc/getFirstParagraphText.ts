@@ -9,7 +9,7 @@ export function getFirstParagraphText(markdocContent: string) {
         }
 
         // Handle VideoSection
-        for (let child of node.children || []) {
+        for (const child of node.children || []) {
             const found: boolean = findFirstParagraph(child);
             if (found) {
                 return found;

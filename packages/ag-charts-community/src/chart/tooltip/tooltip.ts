@@ -1,4 +1,5 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
+import { setAttribute } from '../../util/attributeUtil';
 import { createElement, getDocument, getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { Bounds, calculatePlacement } from '../../util/placement';
@@ -32,11 +33,14 @@ type TooltipPositionType =
     | 'bottom-right'
     | 'bottom-left';
 
-export type TooltipPointerEvent<T extends 'hover' | 'keyboard' = 'hover' | 'keyboard'> = PointerOffsets & { type: T };
+export type TooltipEventType = 'hover' | 'keyboard';
+export type TooltipPointerEvent<T extends TooltipEventType> = PointerOffsets & {
+    type: T;
+};
 
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
-    lastPointerEvent?: TooltipPointerEvent;
+    lastPointerEvent?: TooltipPointerEvent<TooltipEventType>;
     position?: {
         type?: TooltipPositionType;
         xOffset?: number;
@@ -45,9 +49,33 @@ export type TooltipMeta = PointerOffsets & {
     enableInteraction?: boolean;
 };
 
-export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?: AgTooltipRendererResult): string {
+export type TooltipContent = {
+    html: string;
+    ariaLabel: string;
+};
+
+export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', ariaLabel: '' };
+
+function toAccessibleText(inputHtml: string): string {
+    const lineConverter = (_match: unknown, offset: number, str: string) => {
+        if (offset === 0 || str[offset - 1] !== '.') {
+            return '. ';
+        }
+        return ' ';
+    };
+    return inputHtml
+        .replace(/<br\s*\/?>/g, lineConverter)
+        .replace(/<\/p\s+>/g, lineConverter)
+        .replace(/<\/li\s*\/>/g, lineConverter)
+        .replace(/<[^>]+>/g, '');
+}
+
+export function toTooltipHtml(
+    input: string | AgTooltipRendererResult,
+    defaults?: AgTooltipRendererResult
+): TooltipContent {
     if (typeof input === 'string') {
-        return input;
+        return { html: input, ariaLabel: input };
     }
 
     const {
@@ -61,10 +89,14 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
         ? `<div class="${DEFAULT_TOOLTIP_CLASS}-title"
         style="color: ${color}; background-color: ${backgroundColor}">${title}</div>`
         : '';
+    const titleAria = title ? `${title}: ` : '';
 
     const contentHtml = content ? `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>` : '';
 
-    return `${titleHtml}${contentHtml}`;
+    return {
+        html: `${titleHtml}${contentHtml}`,
+        ariaLabel: toAccessibleText(`${titleAria}${content}`),
+    };
 }
 export class TooltipPosition extends BaseProperties {
     @Validate(
@@ -143,6 +175,7 @@ export class Tooltip extends BaseProperties {
         super();
 
         this.element = createElement('div', DEFAULT_TOOLTIP_CLASS);
+        setAttribute(this.element, 'aria-hidden', true);
 
         this.root = getDocument('body');
         this.root.appendChild(this.element);
@@ -160,11 +193,11 @@ export class Tooltip extends BaseProperties {
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
-    show(canvasRect: DOMRect, meta: TooltipMeta, html?: string | null, instantly = false) {
+    show(canvasRect: DOMRect, meta: TooltipMeta, content?: TooltipContent | null, instantly = false) {
         const { element } = this;
 
-        if (html != null) {
-            element.innerHTML = html;
+        if (content != null) {
+            element.innerHTML = content.html;
         } else if (!element.innerHTML) {
             this.toggle(false);
             return;

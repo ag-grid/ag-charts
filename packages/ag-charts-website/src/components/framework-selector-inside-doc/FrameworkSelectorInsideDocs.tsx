@@ -1,10 +1,10 @@
 import fwLogos from '@ag-website-shared/images/fw-logos';
 import { FRAMEWORKS } from '@constants';
-import styles from '@legacy-design-system/modules/FrameworkSelectorInsideDocs.module.scss';
 import { getFrameworkDisplayText } from '@utils/framework';
 import classnames from 'classnames';
 
 import { getNewFrameworkPath } from '../../utils/framework';
+import styles from './FrameworkSelectorInsideDocs.module.scss';
 
 export const FrameworkSelectorInsideDocs = ({ path, currentFramework }) => {
     const handleFrameworkChange = (selectedFramework) => {

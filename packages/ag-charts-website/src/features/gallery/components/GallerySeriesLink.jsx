@@ -1,5 +1,4 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import styles from '@legacy-design-system/modules/GallerySeriesLink.module.scss';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework } from '@utils/framework';
@@ -8,6 +7,8 @@ import { urlWithPrefix } from '@utils/urlWithPrefix';
 import classnames from 'classnames';
 import GithubSlugger from 'github-slugger';
 import React from 'react';
+
+import styles from './GallerySeriesLink.module.scss';
 
 export const GallerySeriesLink = ({ series, link }) => {
     const internalFramework = useStore($internalFramework);

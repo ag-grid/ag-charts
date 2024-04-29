@@ -32,6 +32,10 @@ export class MapLineBackgroundSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
+    public override getNodeData(): MapLineBackgroundNodeDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
+    }
+
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
     }
@@ -194,7 +198,11 @@ export class MapLineBackgroundSeries
         return [];
     }
 
-    override getTooltipHtml(): string {
-        return '';
+    override getTooltipHtml(): _ModuleSupport.TooltipContent {
+        return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+    }
+
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return undefined;
     }
 }

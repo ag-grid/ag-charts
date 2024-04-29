@@ -1,11 +1,11 @@
 import { injectStyle } from '../../util/dom';
 import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
-import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
+import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
 import { DEFAULT_TOOLTIP_CLASS, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
-    content?: string;
+    content?: TooltipContent;
     meta?: TooltipMeta;
 }
 
@@ -164,7 +164,7 @@ export class TooltipManager {
         injectStyle(defaultTooltipCss, 'tooltip');
     }
 
-    public updateTooltip(callerId: string, meta?: TooltipMeta, content?: string) {
+    public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent) {
         if (!this.tooltip.enabled) return;
         content ??= this.stateTracker.get(callerId)?.content;
         this.stateTracker.set(callerId, { content, meta });
@@ -208,7 +208,7 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: TooltipPointerEvent,
+        event: TooltipPointerEvent<'hover' | 'keyboard'>,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { offsetX, offsetY } = event;

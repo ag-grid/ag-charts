@@ -8,6 +8,7 @@ const docs = defineCollection({
         title: z.string(),
         description: z.string().optional(),
         enterprise: z.boolean().optional(),
+        hidden: z.boolean().optional(),
         /**
          * Hide right hand side menu
          */
@@ -34,6 +35,7 @@ const menuItemBase = {
     frameworks: z.array(z.enum(FRAMEWORKS as any)).optional(),
     isEnterprise: z.boolean().optional(),
     feature: z.boolean().optional(),
+    hidden: z.boolean().optional(),
 };
 
 const level3MenuItem = z.object({

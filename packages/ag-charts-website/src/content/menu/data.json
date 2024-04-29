@@ -250,23 +250,20 @@
                     {
                         "title": "Overview",
                         "path": "financial-charts",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Candlestick",
-                        "icon": "chartsCandlestick",
-                        "path": "candlestick-series",
-                        "isEnterprise": true
+                        "isEnterprise": true,
+                        "hidden": true
                     },
                     {
                         "title": "Annotations",
                         "path": "annotations",
-                        "isEnterprise": true
+                        "isEnterprise": true,
+                        "hidden": true
                     },
                     {
                         "title": "Toolbar",
                         "path": "toolbar",
-                        "isEnterprise": true
+                        "isEnterprise": true,
+                        "hidden": true
                     }
                 ]
             }
@@ -327,6 +324,18 @@
                         "title": "Bullet",
                         "icon": "chartsBullet",
                         "path": "bullet-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Candlestick",
+                        "icon": "chartsCandlestick",
+                        "path": "candlestick-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "OHLC",
+                        "icon": "chartsOHLC",
+                        "path": "ohlc-series",
                         "isEnterprise": true
                     },
                     {
@@ -411,6 +420,10 @@
                 "title": "Migration",
                 "feature": false,
                 "items": [
+                    {
+                        "title": "Upgrade to AG Charts 9.3",
+                        "path": "upgrade-to-ag-charts-9-3"
+                    },
                     {
                         "title": "Upgrade to AG Charts 9.2",
                         "path": "upgrade-to-ag-charts-9-2"

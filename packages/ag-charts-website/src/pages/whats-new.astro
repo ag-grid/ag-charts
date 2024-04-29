@@ -1,44 +1,9 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
-import Layout from '../layouts/Layout.astro';
-import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/PagesNavigationFromLocalStorage';
-import { getDocsPages } from '@features/docs/utils/pageData';
-import { Version } from '../components/version/Version';
-import styles from '@legacy-design-system/modules/WhatsNew.module.scss';
+import { getEntry } from 'astro:content';
+import WhatsNew from '@ag-website-shared/components/whats-new/pages/whats-new.astro';
 
-export async function getStaticPaths() {
-    const pages = await getCollection('docs');
-    return getDocsPages(pages);
-}
-
-const menuEntry = await getEntry('menu', 'data');
-const versionsContent = await getEntry('versions', 'data');
-const versionsData: any[] = versionsContent ? versionsContent.data : [];
+const { data: versionsData } = await getEntry('versions', 'data');
+const { data: menuData } = await getEntry('menu', 'data');
 ---
 
-<Layout title={"What's new"} showTopBar={true} showSearchBar={true}>
-    <div class:list={['contentViewport layout-grid']}>
-        <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} pageName={'whats-new'} />
-
-        <div class={styles.whatsNewContainer}>
-            <h1>What's New in AG Charts</h1>
-            <p class={styles.description}>See what's new in recent AG Charts versions.</p>
-            <div class={styles.versions}>
-                {
-                    versionsData.map((versionInfo, index) => {
-                        return (
-                            <Version
-                                client:load
-                                isLatest={index === 0}
-                                version={versionInfo.version}
-                                date={versionInfo.date}
-                                highlights={versionInfo.highlights}
-                                notesPath={versionInfo.notesPath}
-                            />
-                        );
-                    })
-                }
-            </div>
-        </div>
-    </div>
-</Layout>
+<WhatsNew site="charts" versionsData={versionsData} menuData={menuData} />

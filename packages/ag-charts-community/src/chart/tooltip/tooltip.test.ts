@@ -89,22 +89,22 @@ describe('Tooltip', () => {
             await waitForChartStability(chart);
 
             const element = Array.from(getDocument('body').getElementsByClassName('ag-chart-tooltip'));
-            expect(element.map((e) => e.textContent).join('')).toEqual('4: 1.5');
+            expect(element.map((e) => e.textContent).join('')).toEqual('4: 1.48');
 
             await nextValue(10, 1.3249187570726666);
-            expect(element.map((e) => e.textContent).join('')).toEqual('5: 1.4');
+            expect(element.map((e) => e.textContent).join('')).toEqual('5: 1.40');
 
             await nextValue(11, 1.2651169069335022);
-            expect(element.map((e) => e.textContent).join('')).toEqual('6: 1.2');
+            expect(element.map((e) => e.textContent).join('')).toEqual('6: 1.22');
 
             await nextValue(12, 1.3627720015958902);
-            expect(element.map((e) => e.textContent).join('')).toEqual('7: 1.1');
+            expect(element.map((e) => e.textContent).join('')).toEqual('7: 1.11');
 
             await nextValue(13, 1.490244608234256);
-            expect(element.map((e) => e.textContent).join('')).toEqual('8: 1.5');
+            expect(element.map((e) => e.textContent).join('')).toEqual('8: 1.49');
 
             await nextValue(14, 1.490244608234256);
-            expect(element.map((e) => e.textContent).join('')).toEqual('9: 1.2');
+            expect(element.map((e) => e.textContent).join('')).toEqual('9: 1.17');
         });
     });
 });

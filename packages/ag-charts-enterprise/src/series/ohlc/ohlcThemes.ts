@@ -3,7 +3,9 @@ import { _Theme } from 'ag-charts-community';
 export const OHLC_SERIES_THEME = {
     series: {
         __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
+        direction: 'vertical',
     },
+    animation: { enabled: false },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: {

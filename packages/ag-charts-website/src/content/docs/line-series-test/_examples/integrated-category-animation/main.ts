@@ -66,7 +66,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function actionReset() {
-    options.data = [...data];
+    options.data = [...data].map(toIntegratedKey);
     AgCharts.update(chart, options);
 }
 

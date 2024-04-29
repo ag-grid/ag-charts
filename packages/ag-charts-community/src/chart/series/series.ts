@@ -7,6 +7,7 @@ import type {
     AgSeriesMarkerStyle,
     ISeriesMarker,
 } from '../../options/series/markerOptions';
+import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
@@ -35,6 +36,7 @@ import { accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
+import type { TooltipContent } from '../tooltip/tooltip';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
@@ -58,7 +60,21 @@ export type SeriesNodePickMatch = {
     distance: number;
 };
 
-function basicContinuousCheckDatumValidation(value: any) {
+export type PickFocusInputs = {
+    readonly datumIndex: number;
+    // datum delta is stricly +ve/-ve when changing datum focus, or 0 when changing series focus.
+    readonly datumIndexDelta: number;
+    readonly seriesRect?: Readonly<BBox>;
+};
+
+export type PickFocusOutputs<TDatum> = {
+    datumIndex: number;
+    datum: TDatum;
+    bbox: BBox;
+    showFocusBox: boolean;
+};
+
+export function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
@@ -66,23 +82,47 @@ function basicDiscreteCheckDatumValidation(value: any) {
     return value != null;
 }
 
-export function keyProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+function getValidationFn(scaleType?: ScaleType) {
+    switch (scaleType) {
+        case 'number':
+        case 'log':
+        case 'ordinal-time':
+        case 'time':
+        case 'color':
+            return basicContinuousCheckDatumValidation;
+        default:
+            return basicDiscreteCheckDatumValidation;
+    }
+}
+
+function getValueType(scaleType?: ScaleType) {
+    switch (scaleType) {
+        case 'number':
+        case 'log':
+        case 'time':
+        case 'color':
+            return 'range';
+        default:
+            return 'category';
+    }
+}
+export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'key',
-        valueType: continuous ? 'range' : 'category',
-        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        valueType: getValueType(scaleType),
+        validation: getValidationFn(scaleType),
         ...opts,
     };
     return result;
 }
 
-export function valueProperty<K>(propName: K, continuous: boolean, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'value',
-        valueType: continuous ? 'range' : 'category',
-        validation: continuous ? basicContinuousCheckDatumValidation : basicDiscreteCheckDatumValidation,
+        valueType: getValueType(scaleType),
+        validation: getValidationFn(scaleType),
         ...opts,
     };
     return result;
@@ -105,12 +145,12 @@ export function rangedValueProperty<K>(
 
 export function accumulativeValueProperty<K>(
     propName: K,
-    continuous: boolean,
+    scaleType?: ScaleType,
     opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
 ) {
     const { onlyPositive, ...defOpts } = opts;
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, continuous, defOpts),
+        ...valueProperty(propName, scaleType, defOpts),
         processor: accumulatedValue(onlyPositive),
     };
     return result;
@@ -118,11 +158,11 @@ export function accumulativeValueProperty<K>(
 
 export function trailingAccumulatedValueProperty<K>(
     propName: K,
-    continuous: boolean,
+    scaleType?: ScaleType,
     opts: Partial<DatumPropertyDefinition<K>> = {}
 ) {
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, continuous, opts),
+        ...valueProperty(propName, scaleType, opts),
         processor: trailingAccumulatedValue(),
     };
     return result;
@@ -130,13 +170,13 @@ export function trailingAccumulatedValueProperty<K>(
 
 export function groupAccumulativeValueProperty<K>(
     propName: K,
-    continuous: boolean,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
     sum: 'current' | 'last' = 'current',
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
+    scaleType?: ScaleType
 ) {
     return [
-        valueProperty(propName, continuous, opts),
+        valueProperty(propName, scaleType, opts),
         accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
         ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
     ];
@@ -146,7 +186,8 @@ export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContex
 
 interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
-    readonly event: MouseEvent;
+    // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
+    readonly event: Event;
     readonly datum: unknown;
     readonly seriesId: string;
 }
@@ -156,7 +197,7 @@ export interface INodeEventConstructor<
     TSeries extends Series<TDatum, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > {
-    new (type: TEvent, event: MouseEvent, { datum }: TDatum, series: TSeries): INodeEvent<TEvent>;
+    new (type: TEvent, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<TEvent>;
 }
 
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
@@ -167,7 +208,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
 
     constructor(
         readonly type: TEvent,
-        readonly event: MouseEvent,
+        readonly event: Event,
         { datum }: TDatum,
         series: ISeries<TDatum, unknown>
     ) {
@@ -581,7 +622,7 @@ export abstract class Series<
             .reduce((total, current) => Object.assign(total, current), {});
     }
 
-    abstract getTooltipHtml(seriesDatum: any): string;
+    abstract getTooltipHtml(seriesDatum: any): TooltipContent;
 
     pickNode(
         point: Point,
@@ -626,7 +667,11 @@ export abstract class Series<
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
         const match = this.contentGroup.pickNode(point.x, point.y);
-        return match && { datum: match.datum, distance: 0 };
+        if (match && match.datum.missing !== true) {
+            return { datum: match.datum, distance: 0 };
+        }
+
+        return undefined;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
@@ -637,7 +682,7 @@ export abstract class Series<
 
     protected pickNodeNearestDistantObject<T extends Node & DistantObject>(point: Point, items: Iterable<T>) {
         const match = nearestSquared(point.x, point.y, items);
-        if (match.nearest !== undefined) {
+        if (match.nearest !== undefined && match.nearest.datum.missing !== true) {
             return { datum: match.nearest.datum, distance: Math.sqrt(match.distanceSquared) };
         }
         return undefined;
@@ -651,15 +696,15 @@ export abstract class Series<
 
     abstract getLabelData(): PointLabelDatum[];
 
-    fireNodeClickEvent(event: MouseEvent, datum: TDatum): void {
+    fireNodeClickEvent(event: Event, datum: TDatum): void {
         this.fireEvent(new this.NodeEvent('nodeClick', event, datum, this));
     }
 
-    fireNodeDoubleClickEvent(event: MouseEvent, datum: TDatum): void {
+    fireNodeDoubleClickEvent(event: Event, datum: TDatum): void {
         this.fireEvent(new this.NodeEvent('nodeDoubleClick', event, datum, this));
     }
 
-    createNodeContextMenuActionEvent(event: MouseEvent, datum: TDatum): INodeEvent {
+    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent {
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
     }
 
@@ -698,7 +743,7 @@ export abstract class Series<
         return defaultFormatter(params.value);
     }
 
-    protected getMarkerStyle<TParams>(
+    public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TDatum, TParams>,
         params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
@@ -764,9 +809,7 @@ export abstract class Series<
         return resize;
     }
 
-    public pickFocus(_focus: { readonly datum: number }): { node: Node; datum: TDatum; datumIndex: number } {
-        // Override point for subclasses - but if this is invoked, the subclass specified it wants
-        // to use this feature.
-        throw new Error('AG Charts - Series.pickFocus() not implemented');
+    public pickFocus(_opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+        return undefined;
     }
 }

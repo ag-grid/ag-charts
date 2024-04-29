@@ -3,7 +3,7 @@ import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { Pipeline } from '@features/pipeline/Pipeline';
-import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/PagesNavigationFromLocalStorage';
+import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/components/PagesNavigationFromLocalStorage';
 
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);

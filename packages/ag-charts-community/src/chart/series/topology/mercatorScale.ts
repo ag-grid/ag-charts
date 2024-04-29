@@ -12,6 +12,7 @@ const xLon = (x: number) => x / radsInDeg;
 const yLat = (y: number) => (Math.atan(Math.exp(-y)) - Math.PI * 0.25) / (radsInDeg * 0.5);
 
 export class MercatorScale implements Scale<Position, XY> {
+    readonly type = 'mercator';
     readonly bounds: BBox;
 
     static bounds(domain: Position[]): BBox {

@@ -1,5 +1,6 @@
 import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult } from '../../options/chart/tooltipOptions';
 import { BaseProperties } from '../../util/properties';
+import type { RequireOptional } from '../../util/types';
 import { BOOLEAN, FUNCTION, OBJECT, Validate } from '../../util/validation';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 
@@ -26,9 +27,9 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> extends Base
     @Validate(OBJECT)
     readonly position = new TooltipPosition();
 
-    toTooltipHtml(defaults: AgTooltipRendererResult, params: P) {
+    toTooltipHtml(defaults: AgTooltipRendererResult, params: RequireOptional<P>) {
         if (this.renderer) {
-            return toTooltipHtml(this.renderer(params), defaults);
+            return toTooltipHtml(this.renderer(params as P), defaults);
         }
         return toTooltipHtml(defaults);
     }

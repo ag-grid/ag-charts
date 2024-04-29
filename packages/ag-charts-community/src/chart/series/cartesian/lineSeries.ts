@@ -2,7 +2,8 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { ContinuousScale } from '../../../scale/continuousScale';
+import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
+import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -12,6 +13,7 @@ import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
@@ -20,7 +22,8 @@ import { animationValidation, createDatumId, diff } from '../../data/processors'
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import { PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
 import {
@@ -30,7 +33,13 @@ import {
 } from './cartesianSeries';
 import { LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
-import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import {
+    computeMarkerFocusBounds,
+    markerFadeInAnimation,
+    markerSwipeScaleInAnimation,
+    resetMarkerFn,
+    resetMarkerPositionFn,
+} from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
@@ -68,7 +77,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const { xKey, yKey } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const props: DataModelOptions<any, false>['props'] = [];
 
@@ -77,7 +89,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         // is updated. If this is a static chart, we can instead not bother with identifying datum and
         // automatically garbage collect the marker selection.
         if (!isContinuousX) {
-            props.push(keyProperty(xKey, isContinuousX, { id: 'xKey' }));
+            props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
         }
         if (animationEnabled) {
             props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
@@ -86,12 +98,9 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             }
         }
 
-        const xScale = this.axes[ChartAxisDirection.X]?.scale;
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
-
         props.push(
-            valueProperty(xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-            valueProperty(yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
+            valueProperty(xKey, xScaleType, { id: 'xValue' }),
+            valueProperty(yKey, yScaleType, { id: 'yValue', invalidValue: undefined })
         );
 
         await this.requestDataModel<any>(dataController, this.data, { props });
@@ -130,7 +139,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        const { xKey, yKey, xName, yName, marker, label, connectMissingData } = this.properties;
+        const { xKey, yKey, xName, yName, marker, label, connectMissingData, legendItemName } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -165,7 +174,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
                 const labelText = this.getLabelText(
                     label,
-                    { value: yDatum, datum, xKey, yKey, xName, yName },
+                    { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
                     (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
                 );
 
@@ -319,16 +328,16 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         });
     }
 
-    getTooltipHtml(nodeDatum: LineNodeDatum): string {
+    getTooltipHtml(nodeDatum: LineNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, xName, yName, strokeWidth, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue } = nodeDatum;
+        const { datum, xValue, yValue, itemId } = nodeDatum;
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
         const title = sanitizeHtml(this.properties.title ?? yName);
@@ -345,6 +354,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,
@@ -352,7 +362,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 title,
                 color,
                 seriesId: this.id,
-                ...this.getModuleTooltipParams(),
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
     }
@@ -362,7 +372,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return [];
         }
 
-        const { yKey, yName, stroke, strokeOpacity, strokeWidth, lineDash, title, marker, visible } = this.properties;
+        const { yKey, yName, stroke, strokeOpacity, strokeWidth, lineDash, title, marker, visible, legendItemName } =
+            this.properties;
 
         const color0 = 'rgba(0, 0, 0, 0)';
         return [
@@ -370,10 +381,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 legendType: 'category',
                 id: this.id,
                 itemId: yKey,
+                legendItemName,
                 seriesId: this.id,
                 enabled: visible,
                 label: {
-                    text: title ?? yName ?? yKey,
+                    text: legendItemName ?? title ?? yName ?? yKey,
                 },
                 marker: {
                     shape: marker.shape,
@@ -497,5 +509,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    public getFormattedMarkerStyle(datum: LineNodeDatum) {
+        const { xKey, yKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

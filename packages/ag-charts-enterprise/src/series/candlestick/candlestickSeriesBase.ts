@@ -30,7 +30,7 @@ const {
 } = _ModuleSupport;
 
 const { sanitizeHtml, Logger } = _Util;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
+const { ContinuousScale } = _Scale;
 
 class CandlestickSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -43,7 +43,7 @@ class CandlestickSeriesNodeEvent<
 
     constructor(
         type: TEvent,
-        nativeEvent: MouseEvent,
+        nativeEvent: Event,
         datum: CandlestickNodeBaseDatum,
         series: CandlestickSeriesBase<
             CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
@@ -85,7 +85,7 @@ export abstract class CandlestickSeriesBase<
     ) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             directionKeys: {
                 x: ['xKey'],
                 y: ['lowKey', 'highKey', 'openKey', 'closeKey'],
@@ -103,13 +103,20 @@ export abstract class CandlestickSeriesBase<
         });
     }
 
+    protected override animateEmptyUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<TItemShapeGroup, TNodeDatum>) {
+        const animationFns = prepareCandlestickAnimationFunctions(true);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], animationFns);
+    }
+
     protected override animateWaitingUpdateReady({
         datumSelection,
     }: _ModuleSupport.CartesianAnimationData<TItemShapeGroup, TNodeDatum>) {
         const { processedData } = this;
         const difference = processedData?.reduced?.diff;
 
-        const animationFns = prepareCandlestickAnimationFunctions();
+        const animationFns = prepareCandlestickAnimationFunctions(false);
         motion.fromToMotion(
             this.id,
             'datums',
@@ -128,8 +135,8 @@ export abstract class CandlestickSeriesBase<
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.getCategoryAxis()?.scale;
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const yScale = this.getValueAxis()?.scale;
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
         if (animationEnabled) {
@@ -140,7 +147,7 @@ export abstract class CandlestickSeriesBase<
         }
         if (openKey) {
             extraProps.push(
-                valueProperty(openKey, true, {
+                valueProperty(openKey, yScaleType, {
                     id: `openValue`,
                     invalidValue: undefined,
                     missingValue: undefined,
@@ -150,10 +157,10 @@ export abstract class CandlestickSeriesBase<
 
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                valueProperty(closeKey, true, { id: `closeValue` }),
-                valueProperty(highKey, true, { id: `highValue` }),
-                valueProperty(lowKey, true, { id: `lowValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(closeKey, yScaleType, { id: `closeValue` }),
+                valueProperty(highKey, yScaleType, { id: `highValue` }),
+                valueProperty(lowKey, yScaleType, { id: `lowValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -207,7 +214,7 @@ export abstract class CandlestickSeriesBase<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && visible && xAxis && yAxis)) {
+        if (!(dataModel && xAxis && yAxis)) {
             return;
         }
 
@@ -224,6 +231,15 @@ export abstract class CandlestickSeriesBase<
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
         const { groupScale, processedData } = this;
+
+        const context = {
+            itemId: xKey,
+            nodeData,
+            labelData: [],
+            scales: this.calculateScaling(),
+            visible: this.visible,
+        };
+        if (!visible) return context;
 
         processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, openValue, closeValue, highValue, lowValue } = dataModel.resolveProcessedDataDefsValues(
@@ -304,7 +320,7 @@ export abstract class CandlestickSeriesBase<
             });
         });
 
-        return { itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible };
+        return context;
     }
 
     private getSeriesItemType(isRising: boolean): AgCandlestickSeriesItemType {
@@ -319,7 +335,7 @@ export abstract class CandlestickSeriesBase<
         return [];
     }
 
-    getTooltipHtml(nodeDatum: TNodeDatum): string {
+    getTooltipHtml(nodeDatum: TNodeDatum): _ModuleSupport.TooltipContent {
         const {
             xKey,
             openKey,
@@ -334,12 +350,12 @@ export abstract class CandlestickSeriesBase<
             lowName,
             tooltip,
         } = this.properties;
-        const { datum } = nodeDatum;
+        const { datum, itemId } = nodeDatum;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!xAxis || !yAxis || !this.properties.isValid()) return '';
+        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
 
         const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
@@ -378,6 +394,10 @@ export abstract class CandlestickSeriesBase<
                 closeName,
                 highName,
                 lowName,
+                title,
+                color: styles.fill,
+                fill: styles.fill,
+                itemId,
             }
         );
     }

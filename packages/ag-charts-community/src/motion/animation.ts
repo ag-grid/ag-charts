@@ -286,6 +286,9 @@ export class Animation<T extends AnimationValue> implements IAnimation {
                     return interpolateNumber(a, b);
                 case 'string':
                     return interpolateColor(a, b);
+                case 'boolean':
+                    if (a === b) return () => a;
+                    break;
             }
         } catch (e) {
             // Error-case handled below.

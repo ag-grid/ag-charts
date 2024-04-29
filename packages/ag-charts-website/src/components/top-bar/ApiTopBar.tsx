@@ -1,6 +1,5 @@
 import type { ApiMenuItem, Framework } from '@ag-grid-types';
 import { DEFAULT_FRAMEWORK } from '@constants';
-import styles from '@legacy-design-system/modules/Toolbar.module.scss';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework, replaceDynamicFrameworkPath } from '@utils/framework';
@@ -9,6 +8,8 @@ import { pathJoin } from '@utils/pathJoin';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { type FunctionComponent, useEffect, useMemo, useState } from 'react';
+
+import styles from './ApiTopBar.module.scss';
 
 interface Props {
     menuItems: ApiMenuItem[];

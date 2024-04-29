@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import {
-    type AgErrorBarFormatterParams,
-    type AgErrorBarOptions,
-    type AgScatterSeriesOptions,
-    type AgScatterSeriesTooltipRendererParams,
-    _ModuleSupport,
+import type {
+    AgErrorBarFormatterParams,
+    AgErrorBarOptions,
+    AgScatterSeriesOptions,
+    AgScatterSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import {
     Chart,
@@ -21,8 +20,6 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
-
-const { getDocument } = _ModuleSupport;
 
 export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
 export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
@@ -600,7 +597,7 @@ describe('ErrorBars', () => {
         await hoverAction(x, y)(chart);
         await waitForChartStability(chart);
 
-        expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+        expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
     });
 
     it('AG-10525 should render tooltips with no errorbars', async () => {
@@ -611,7 +608,7 @@ describe('ErrorBars', () => {
         await hoverAction(x, y)(chart);
         await waitForChartStability(chart);
 
-        expect(getDocument('body').getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
+        expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
     });
 
     it('should provide tooltip params', async () => {

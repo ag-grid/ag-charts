@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
+import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
@@ -15,7 +16,8 @@ import { createDatumId } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import type { SeriesNodeEventTypes } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
@@ -26,14 +28,14 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 
 class BubbleSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeEvent<TEvent> {
     readonly sizeKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: BubbleNodeDatum, series: BubbleSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: BubbleNodeDatum, series: BubbleSeries) {
         super(type, nativeEvent, datum, series);
         this.sizeKey = series.properties.sizeKey;
     }
@@ -74,18 +76,22 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || this.data == null || !this.visible) return;
 
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const colorScaleType = this.colorScale.type;
+        const sizeScaleType = this.sizeScale.type;
         const { xKey, yKey, sizeKey, labelKey, colorDomain, colorRange, colorKey, marker } = this.properties;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xKey-raw' }),
-                keyProperty(yKey, isContinuousY, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(labelKey, false, { id: `labelKey-raw` })] : []),
-                valueProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(yKey, isContinuousY, { id: `yValue` }),
-                valueProperty(sizeKey, true, { id: `sizeValue` }),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
-                ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
+                keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
+                keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
+                valueProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(yKey, yScaleType, { id: `yValue` }),
+                valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` }),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
             ],
         });
 
@@ -280,12 +286,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
     }
 
-    getTooltipHtml(nodeDatum: BubbleNodeDatum): string {
+    getTooltipHtml(nodeDatum: BubbleNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, marker, tooltip } = this.properties;
@@ -308,6 +314,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             yValue,
             sizeValue,
             label: { text: labelText },
+            itemId,
         } = nodeDatum;
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
@@ -328,6 +335,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,
@@ -384,5 +392,21 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    public getFormattedMarkerStyle(datum: BubbleNodeDatum) {
+        const { xKey, yKey, sizeKey, labelKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, {
+            datum,
+            xKey,
+            yKey,
+            sizeKey,
+            labelKey,
+            highlighted: false,
+        });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

@@ -14,9 +14,9 @@ const {
     seriesLabelFadeInAnimation,
     valueProperty,
     createDatumId,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
 const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -95,16 +95,12 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
-
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
 
         if (targetKey !== undefined) {
-            extraProps.push(valueProperty(targetKey, isContinuousY, { id: 'target' }));
+            extraProps.push(valueProperty(targetKey, yScaleType, { id: 'target' }));
         }
 
         if (!this.ctx.animationManager.isSkipped()) {
@@ -118,8 +114,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         // types and future compatibility (we may decide to support multiple datum at some point).
         await this.requestDataModel<any, any, true>(dataController, this.data.slice(0, 1), {
             props: [
-                keyProperty(valueKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
-                valueProperty(valueKey, isContinuousY, { id: 'value' }),
+                keyProperty(valueKey, xScaleType, { id: 'xValue' }),
+                valueProperty(valueKey, yScaleType, { id: 'value' }),
                 ...extraProps,
             ],
             groupByKeys: true,
@@ -187,6 +183,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!this.visible) return context;
+
         for (const { datum, values } of processedData.data) {
             if (!Array.isArray(datum) || datum.length < 1) {
                 continue;
@@ -274,13 +272,13 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         return [];
     }
 
-    override getTooltipHtml(nodeDatum: BulletNodeDatum): string {
+    override getTooltipHtml(nodeDatum: BulletNodeDatum): _ModuleSupport.TooltipContent {
         const { valueKey, valueName, targetKey, targetName } = this.properties;
         const axis = this.getValueAxis();
-        const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum } = nodeDatum;
+        const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum, itemId } = nodeDatum;
 
         if (valueKey === undefined || valueValue === undefined || axis === undefined) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const makeLine = (key: string, name: string | undefined, value: number) => {
@@ -296,7 +294,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         return this.properties.tooltip.toTooltipHtml(
             { title, content, backgroundColor: this.properties.fill },
-            { datum, title, seriesId: this.id, valueKey, valueName, targetKey, targetName }
+            { datum, itemId, title, seriesId: this.id, valueKey, valueName, targetKey, targetName, color: undefined }
         );
     }
 
@@ -417,5 +415,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }
+    }
+
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
     }
 }

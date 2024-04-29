@@ -1,10 +1,10 @@
-import styles from '@legacy-design-system/modules/ChartsApiExplorer.module.scss';
 import classnames from 'classnames';
 import { useState } from 'react';
 
 import { isXAxisNumeric } from '../utils/utils';
 import { Chart } from './Chart';
 import { ChartTypeSelector } from './ChartTypeSelector';
+import styles from './ChartsApiExplorer.module.scss';
 import { CodeView } from './CodeView';
 import { Launcher } from './Launcher';
 import { Options } from './Options';

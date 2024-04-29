@@ -43,7 +43,7 @@ describe('BulletSeries', () => {
         const getTooltipHtml = (): string => {
             const series = (chart as any)['series'][0];
             const datum = (chart as any)['series'][0].contextNodeData?.nodeData[0];
-            return series.getTooltipHtml(datum);
+            return series.getTooltipHtml(datum).html;
         };
 
         const hoverOnBullet = async () => {
@@ -204,7 +204,7 @@ describe('BulletSeries', () => {
             await waitForChartStability(chart);
 
             const tooltipHtml = getTooltipHtml();
-            expect(tooltipHtml).toEqual('<div class="ag-chart-tooltip-content"><b>income</b>: 11</div>');
+            expect(tooltipHtml).toEqual('<div class="ag-chart-tooltip-content"><b>income</b>: 11.00</div>');
         });
 
         test('tooltip no names', async () => {
@@ -225,7 +225,7 @@ describe('BulletSeries', () => {
 
             const tooltipHtml = getTooltipHtml();
             expect(tooltipHtml).toEqual(
-                '<div class="ag-chart-tooltip-content"><b>income</b>: 11<br/><b>objective</b>: 7</div>'
+                '<div class="ag-chart-tooltip-content"><b>income</b>: 11.00<br/><b>objective</b>: 7.00</div>'
             );
         });
 
@@ -249,7 +249,7 @@ describe('BulletSeries', () => {
 
             const tooltipHtml = getTooltipHtml();
             expect(tooltipHtml).toEqual(
-                '<div class="ag-chart-tooltip-content"><b>Actual income</b>: 11<br/><b>Target income</b>: 7</div>'
+                '<div class="ag-chart-tooltip-content"><b>Actual income</b>: 11.00<br/><b>Target income</b>: 7.00</div>'
             );
         });
     });

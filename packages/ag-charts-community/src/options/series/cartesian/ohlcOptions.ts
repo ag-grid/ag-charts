@@ -11,10 +11,7 @@ import type { AxisOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgOhlcSeriesItemType = AgCandlestickSeriesItemType;
 
-export interface AgOhlcSeriesBaseOptions extends Omit<AgCandlestickSeriesBaseOptions, 'openKey'> {
-    /** The key to use to retrieve open values from the data. */
-    openKey?: string;
-}
+export interface AgOhlcSeriesBaseOptions extends AgCandlestickSeriesBaseOptions {}
 
 export interface AgOhlcSeriesFormatterParams<TDatum> extends AgCandlestickSeriesBaseFormatterParams<TDatum> {}
 

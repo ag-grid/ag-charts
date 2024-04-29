@@ -28,24 +28,24 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'by gender',
     },
-    annotations: {
-        initial: [
-            {
-                type: 'line',
-                locked: true,
-                start: { x: 157.2, y: maleLine.gradient * 157.2 + maleLine.intercept },
-                end: { x: 198.1, y: maleLine.gradient * 198.1 + maleLine.intercept },
-                stroke: '#5090dc',
-            },
-            {
-                type: 'line',
-                locked: true,
-                start: { x: 147.2, y: femaleLine.gradient * 147.2 + femaleLine.intercept },
-                end: { x: 182.9, y: femaleLine.gradient * 182.9 + femaleLine.intercept },
-                stroke: '#ffa03a',
-            },
-        ],
-    },
+    // annotations: {
+    //     initial: [
+    //         {
+    //             type: 'line',
+    //             locked: true,
+    //             start: { x: 157.2, y: maleLine.gradient * 157.2 + maleLine.intercept },
+    //             end: { x: 198.1, y: maleLine.gradient * 198.1 + maleLine.intercept },
+    //             stroke: '#5090dc',
+    //         },
+    //         {
+    //             type: 'line',
+    //             locked: true,
+    //             start: { x: 147.2, y: femaleLine.gradient * 147.2 + femaleLine.intercept },
+    //             end: { x: 182.9, y: femaleLine.gradient * 182.9 + femaleLine.intercept },
+    //             stroke: '#ffa03a',
+    //         },
+    //     ],
+    // },
     legend: {
         enabled: false,
     },

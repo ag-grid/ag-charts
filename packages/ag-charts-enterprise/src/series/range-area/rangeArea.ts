@@ -22,6 +22,7 @@ const {
     diff,
     updateClipPath,
     isFiniteNumber,
+    computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent } = _Util;
@@ -48,7 +49,7 @@ class RangeAreaSeriesNodeEvent<
     readonly yLowKey?: string;
     readonly yHighKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeAreaMarkerDatum, series: RangeAreaSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RangeAreaMarkerDatum, series: RangeAreaSeries) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
@@ -102,7 +103,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         if (!this.properties.isValid() || !this.visible) return;
 
         const { xKey, yLowKey, yHighKey } = this.properties;
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -115,9 +118,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
-                valueProperty(yHighKey, isContinuousY, { id: `yHighValue`, invalidValue: undefined }),
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: undefined }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: undefined }),
                 ...extraProps,
             ],
         });
@@ -207,6 +210,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!this.visible) return context;
 
         const fillHighPoints = fillData.points;
         const fillLowPoints: RadarAreaPoint[] = [];
@@ -516,12 +520,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): string {
+    getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { id: seriesId } = this;
@@ -548,7 +552,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
-            { seriesId, itemId, datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, color }
+            {
+                seriesId,
+                itemId,
+                datum,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+                color,
+                title,
+                yHighValue,
+                yLowValue,
+            }
         );
     }
 
@@ -653,5 +672,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         super.animateWaitingUpdateReady(animationData);
         this.updateAreaPaths(paths, contextData);
+    }
+
+    public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
+        const { xKey, yLowKey, yHighKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yLowKey, yHighKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

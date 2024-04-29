@@ -34,11 +34,10 @@ enum TextNodeTag {
     Secondary,
 }
 
-let tempText: _Scene.Text;
+const tempText = new Text();
 
 function getTextSize(text: string, style: FontOptions): { width: number; height: number } {
     const { fontStyle, fontWeight, fontSize, fontFamily } = style;
-    tempText ??= new Text();
     tempText.setProperties({
         text,
         fontStyle,
@@ -708,7 +707,7 @@ export class TreemapSeries<
         return this.pickNodeNearestDistantObject(point, this.groupSelection.nodes());
     }
 
-    getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
+    getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
         const { datum, depth } = node;
         const { id: seriesId } = this;
         const {
@@ -719,11 +718,12 @@ export class TreemapSeries<
             secondaryLabelKey,
             sizeKey,
             sizeName = sizeKey,
+            childrenKey,
         } = this.properties;
         const isLeaf = node.children.length === 0;
         const interactive = isLeaf || this.properties.group.interactive;
         if (datum == null || depth == null || !interactive) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const title = labelKey != null ? datum[labelKey] : undefined;
@@ -732,7 +732,7 @@ export class TreemapSeries<
         const color = format?.fill ?? this.getNodeFill(node);
 
         if (!tooltip.renderer && !title) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const contentArray: string[] = [];
@@ -771,6 +771,10 @@ export class TreemapSeries<
             title,
             color,
             seriesId,
+            childrenKey,
+            colorName,
+            itemId: undefined,
+            sizeName,
         });
     }
 }

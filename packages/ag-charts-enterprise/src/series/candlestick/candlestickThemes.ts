@@ -8,7 +8,9 @@ export const CANDLESTICK_SERIES_THEME = {
                 strokeWidth: 3,
             },
         },
+        direction: 'vertical',
     },
+    animation: { enabled: false },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: {

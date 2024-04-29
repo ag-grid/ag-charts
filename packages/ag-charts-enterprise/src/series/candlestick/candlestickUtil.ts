@@ -3,7 +3,7 @@ import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 import type { CandlestickBaseGroup } from './candlestickGroup';
 import type { CandlestickNodeBaseDatum, CandlestickNodeDatum } from './candlestickTypes';
 
-const { NODE_UPDATE_STATE_TO_PHASE_MAPPING } = _ModuleSupport;
+const { computeBarFocusBounds, NODE_UPDATE_STATE_TO_PHASE_MAPPING } = _ModuleSupport;
 
 export type AnimatableCandlestickGroupDatum = {
     x?: number;
@@ -22,7 +22,7 @@ export function resetCandlestickSelectionsFn(
     return getCoordinates(datum);
 }
 
-export function prepareCandlestickAnimationFunctions() {
+export function prepareCandlestickAnimationFunctions(initial: boolean) {
     const fromFn: _ModuleSupport.FromToMotionPropFn<
         CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
         AnimatableCandlestickGroupDatum,
@@ -32,11 +32,14 @@ export function prepareCandlestickAnimationFunctions() {
         datum: CandlestickNodeBaseDatum,
         status: _ModuleSupport.NodeUpdateState
     ) => {
-        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
+        const phase = initial ? 'initial' : NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
 
-        if (status === 'added' && datum != null) {
-            const { x, yLow, yHigh, width } = getCoordinates(datum);
-            const collapsedY = datum.itemId === 'up' ? yLow : yHigh;
+        if (status === 'unknown' || (status === 'added' && datum != null)) {
+            const { x, y, yLow, yHigh, width, height } = getCoordinates(datum);
+            let collapsedY = datum.itemId === 'up' ? yLow : yHigh;
+            if (status === 'unknown') {
+                collapsedY = y + height / 2;
+            }
             return {
                 x,
                 y: collapsedY,
@@ -99,6 +102,27 @@ function getCoordinates(datum: CandlestickNodeDatum) {
         yHigh,
         yLow,
         width: bandwidth,
-        height: yBottom - y,
+        height: Math.max(yBottom - y, 0.001), // This is to differentiate between animation setting height 0 and data values resulting in height 0
     };
+}
+
+type AbstractCandlestickSeries = {
+    getNodeData(): CandlestickNodeBaseDatum[] | undefined;
+    contentGroup: _Scene.Group;
+};
+
+export function computeCandleFocusBounds(
+    series: AbstractCandlestickSeries,
+    opts: _ModuleSupport.PickFocusInputs
+): _Scene.BBox | undefined {
+    const candleDatum = series.getNodeData()?.at(opts.datumIndex);
+    const datum = !candleDatum
+        ? undefined
+        : {
+              x: candleDatum.scaledValues.xValue,
+              y: candleDatum.scaledValues.highValue,
+              width: candleDatum.bandwidth,
+              height: candleDatum.scaledValues.lowValue - candleDatum.scaledValues.highValue,
+          };
+    return computeBarFocusBounds(datum, series.contentGroup, opts.seriesRect);
 }

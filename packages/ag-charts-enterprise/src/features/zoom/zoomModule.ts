@@ -7,12 +7,43 @@ export const ZoomModule: _ModuleSupport.Module = {
     optionsKey: 'zoom',
     packageType: 'enterprise',
     chartTypes: ['cartesian', 'topology'],
+    dependencies: ['toolbar'],
     instanceConstructor: Zoom,
     themeTemplate: {
         zoom: {
             anchorPointX: 'end',
             anchorPointY: 'middle',
             axes: 'x',
+            buttons: {
+                enabled: true,
+                buttons: [
+                    {
+                        icon: 'zoom-out',
+                        tooltip: 'Zoom out',
+                        value: 'zoom-out',
+                    },
+                    {
+                        icon: 'zoom-in',
+                        tooltip: 'Zoom in',
+                        value: 'zoom-in',
+                    },
+                    {
+                        icon: 'pan-left',
+                        tooltip: 'Pan left',
+                        value: 'pan-left',
+                    },
+                    {
+                        icon: 'pan-right',
+                        tooltip: 'Pan right',
+                        value: 'pan-right',
+                    },
+                    {
+                        icon: 'reset',
+                        tooltip: 'Reset the zoom',
+                        value: 'reset',
+                    },
+                ],
+            },
             enabled: false,
             enableAxisDragging: true,
             enableDoubleClickToReset: true,

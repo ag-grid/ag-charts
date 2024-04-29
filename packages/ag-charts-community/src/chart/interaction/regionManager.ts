@@ -1,10 +1,11 @@
 import type { BBox } from '../../scene/bbox';
-import { getDocument } from '../../util/dom';
+import { getDocument, injectStyle } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import { buildConsumable } from './consumableEvent';
+import * as focusStyles from './focusStyles';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
-import { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
+import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 
 export type RegionName =
     | 'title'
@@ -17,7 +18,7 @@ export type RegionName =
     | 'series'
     | 'toolbar';
 
-const REGION_TAB_ORDERING: RegionName[] = ['title', 'subtitle', 'series', 'legend', 'footnote'];
+const REGION_TAB_ORDERING: RegionName[] = ['series', 'legend'];
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
@@ -47,8 +48,8 @@ export interface RegionProperties {
 
 export class RegionManager {
     private currentTabIndex = 0;
-    private readonly keyNavManager: KeyNavManager;
-    private readonly focusIndicator?: HTMLDivElement;
+    private readonly focusWrapper: HTMLDivElement;
+    private readonly focusIndicator: HTMLDivElement;
 
     private currentRegion?: Region;
     private isDragging = false;
@@ -59,30 +60,31 @@ export class RegionManager {
 
     constructor(
         private readonly interactionManager: InteractionManager,
-        container: HTMLElement | undefined
+        private readonly keyNavManager: KeyNavManager,
+        private readonly canvasElement: HTMLCanvasElement,
+        element: HTMLElement
     ) {
-        this.keyNavManager = new KeyNavManager(interactionManager);
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
             ),
             this.keyNavManager.addListener('blur', this.onNav.bind(this)),
+            this.keyNavManager.addListener('browserfocus', this.onFocus.bind(this)),
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
             this.keyNavManager.addListener('submit', this.onNav.bind(this))
         );
 
-        this.focusIndicator = getDocument()?.createElement('div');
-        if (this.focusIndicator !== undefined && container !== undefined) {
-            this.focusIndicator.className = 'ag-charts-focusindicator';
-            this.focusIndicator.style.position = 'absolute';
-            this.focusIndicator.style.border = '2px solid red';
-            this.focusIndicator.style.display = 'none';
-            this.focusIndicator.style.pointerEvents = 'none';
-            this.focusIndicator.style.userSelect = 'none';
-            container.appendChild(this.focusIndicator);
-        }
+        injectStyle(focusStyles.css, focusStyles.block);
+        this.focusWrapper = getDocument().createElement('div');
+        this.focusIndicator = getDocument().createElement('div');
+        this.focusWrapper.appendChild(this.focusIndicator);
+        element.appendChild(this.focusWrapper);
+
+        const { block, elements, modifiers } = focusStyles;
+        this.focusWrapper.classList.add(block, elements.wrapper);
+        this.focusIndicator.classList.add(block, elements.indicator, modifiers.hidden);
     }
 
     public destroy() {
@@ -93,7 +95,6 @@ export class RegionManager {
             region.listeners.destroy();
         }
         this.regions.clear();
-        this.keyNavManager.destroy();
     }
 
     public addRegionFromProperties(properties: RegionProperties) {
@@ -246,17 +247,21 @@ export class RegionManager {
     }
 
     private dispatchTabStart(event: KeyNavEvent<'tab'>): boolean {
-        const { delta, interactionEvent } = event;
-        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({ type: 'tab-start', delta, interactionEvent });
+        const { delta, sourceEvent } = event;
+        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({
+            type: 'tab-start',
+            delta,
+            sourceEvent,
+        });
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
 
         this.dispatch(focusedRegion, startEvent);
         return !!startEvent.consumed;
     }
 
-    private getNextInteractableTabIndex(delta: number): number | undefined {
+    private getNextInteractableTabIndex(currentIndex: number, delta: number): number | undefined {
         const direction = delta < 0 ? -1 : 1;
-        let i = this.currentTabIndex;
+        let i = currentIndex;
         while (delta !== 0) {
             const region = this.getTabRegion(i + direction);
             if (region === undefined) {
@@ -274,31 +279,45 @@ export class RegionManager {
         // If that's the case, then refresh the focus to the first interactable region.
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         if (focusedRegion !== undefined && !focusedRegion.properties.canInteraction()) {
-            this.currentTabIndex = -1;
-            this.currentTabIndex = this.getNextInteractableTabIndex(1) ?? 0;
+            this.currentTabIndex = this.getNextInteractableTabIndex(-1, 1) ?? 0;
+        }
+    }
+
+    private onFocus(event: KeyNavEvent<'browserfocus'>) {
+        const { delta, sourceEvent } = event;
+        const newIndex =
+            delta > 0
+                ? this.getNextInteractableTabIndex(-1, 1)
+                : this.getNextInteractableTabIndex(REGION_TAB_ORDERING.length, -1);
+        this.currentTabIndex = newIndex ?? 0;
+        const focusedRegion = this.getTabRegion(this.currentTabIndex);
+        if (focusedRegion) {
+            this.dispatch(focusedRegion, buildConsumable({ type: 'tab', delta, sourceEvent }));
         }
     }
 
     private onTab(event: KeyNavEvent<'tab'>) {
         const consumed = this.dispatchTabStart(event);
-        if (!consumed) {
-            this.validateCurrentTabIndex();
-            const newTabIndex = this.getNextInteractableTabIndex(event.delta);
-            const newRegion = this.getTabRegion(newTabIndex);
-            const focusedRegion = this.getTabRegion(this.currentTabIndex);
-            if (newTabIndex !== undefined) {
-                this.currentTabIndex = newTabIndex;
-            }
+        if (consumed) return;
 
-            if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
-                this.dispatch(focusedRegion, { ...event, type: 'blur' });
-            }
-            if (newRegion === undefined || !newRegion.properties.canInteraction()) {
-                this.updateFocusIndicatorRect(undefined);
-            } else {
-                event.interactionEvent.sourceEvent.preventDefault();
-                this.dispatch(newRegion, event);
-            }
+        this.validateCurrentTabIndex();
+        const newTabIndex = this.getNextInteractableTabIndex(this.currentTabIndex, event.delta);
+        const newRegion = this.getTabRegion(newTabIndex);
+        const focusedRegion = this.getTabRegion(this.currentTabIndex);
+        if (newTabIndex !== undefined) {
+            this.currentTabIndex = newTabIndex;
+        }
+
+        if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
+            // Build a distinct consumable event, since we don't care about consumed status of blur.
+            const { delta, sourceEvent } = event;
+            const blurEvent = buildConsumable({ type: 'blur' as const, delta, sourceEvent });
+            this.dispatch(focusedRegion, blurEvent);
+        }
+        if (newRegion === undefined || !newRegion.properties.canInteraction()) {
+            this.updateFocusIndicatorRect(undefined);
+        } else {
+            this.dispatch(newRegion, event);
         }
     }
 
@@ -307,17 +326,23 @@ export class RegionManager {
         this.dispatch(focusedRegion, event);
     }
 
-    public updateFocusIndicatorRect(rect: { x: number; y: number; width: number; height: number } | undefined) {
-        if (this.focusIndicator !== undefined) {
-            if (rect === undefined) {
-                this.focusIndicator.style.display = 'none';
-            } else {
-                this.focusIndicator.style.display = 'block';
-                this.focusIndicator.style.width = `${rect.width}px`;
-                this.focusIndicator.style.height = `${rect.height}px`;
-                this.focusIndicator.style.left = `${rect.x}px`;
-                this.focusIndicator.style.top = `${rect.y}px`;
-            }
+    public updateFocusWrapperRect() {
+        this.focusWrapper.style.width = this.canvasElement.style.width;
+        this.focusWrapper.style.height = this.canvasElement.style.height;
+    }
+
+    public updateFocusIndicatorRect(rect?: { x: number; y: number; width: number; height: number }) {
+        if (rect == null) {
+            this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
+            return;
         }
+
+        this.updateFocusWrapperRect();
+
+        this.focusIndicator.classList.remove(focusStyles.modifiers.hidden);
+        this.focusIndicator.style.width = `${rect.width}px`;
+        this.focusIndicator.style.height = `${rect.height}px`;
+        this.focusIndicator.style.left = `${rect.x}px`;
+        this.focusIndicator.style.top = `${rect.y}px`;
     }
 }

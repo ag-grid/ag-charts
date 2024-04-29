@@ -135,7 +135,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.updateLabel(labels[key]);
         });
         const format = this.label.format ?? axisLayout?.label.format;
-        this.labelFormatter = this.axisCtx.scaleValueFormatter(format);
+        this.labelFormatter = format ? this.axisCtx.scaleValueFormatter(format) : undefined;
     }
 
     private updateLabel(label: CrosshairLabel) {

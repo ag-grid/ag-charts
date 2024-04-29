@@ -1,10 +1,10 @@
 import type {
     AgBaseRadarSeriesOptions,
-    AgPieSeriesFormat,
-    AgPieSeriesFormatterParams,
-    AgPieSeriesTooltipRendererParams,
     AgRadarSeriesLabelFormatterParams,
+    AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
+    FillOptions,
+    StrokeOptions,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
@@ -16,6 +16,7 @@ export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
         textAlign: CanvasTextAlign;
         textBaseline: CanvasTextBaseline;
     };
+    readonly point: Readonly<_Scene.SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
 }
@@ -36,6 +37,8 @@ const {
     RATIO,
     STRING,
 } = _ModuleSupport;
+
+export type AgRadarSeriesFormat = FillOptions & StrokeOptions;
 
 export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends SeriesProperties<T> {
     @Validate(STRING)
@@ -66,7 +69,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
+    formatter?: (params: AgRadarSeriesTooltipRendererParams) => AgRadarSeriesFormat;
 
     @Validate(DEGREE)
     rotation: number = 0;
@@ -78,7 +81,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     readonly label = new Label<AgRadarSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams>();
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;

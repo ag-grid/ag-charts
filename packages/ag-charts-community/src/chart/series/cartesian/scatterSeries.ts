@@ -1,5 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
+import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -8,13 +10,15 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
+import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import { PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -22,7 +26,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 import { ScatterNodeDatum, ScatterSeriesProperties } from './scatterSeriesProperties';
 
 type ScatterAnimationData = CartesianAnimationData<Group, ScatterNodeDatum>;
@@ -58,18 +62,21 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || this.data == null || !this.visible) return;
 
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const colorScaleType = this.colorScale.type;
         const { xKey, yKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: 'xKey-raw' }),
-                keyProperty(yKey, isContinuousY, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(labelKey, false, { id: `labelKey-raw` })] : []),
-                valueProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(yKey, isContinuousY, { id: `yValue` }),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: `colorValue` })] : []),
-                ...(labelKey ? [valueProperty(labelKey, false, { id: `labelValue` })] : []),
+                keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
+                keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
+                ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
+                valueProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(yKey, yScaleType, { id: `yValue` }),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
             ],
         });
 
@@ -248,16 +255,16 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         });
     }
 
-    getTooltipHtml(nodeDatum: ScatterNodeDatum): string {
+    getTooltipHtml(nodeDatum: ScatterNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, labelKey, xName, yName, labelName, title = yName, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue, label } = nodeDatum;
+        const { datum, xValue, yValue, label, itemId } = nodeDatum;
 
         const baseStyle = mergeDefaults(
             { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
@@ -285,6 +292,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             { title, content, backgroundColor: color },
             {
                 datum,
+                itemId,
                 xKey,
                 xName,
                 yKey,
@@ -294,7 +302,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 title,
                 color,
                 seriesId: this.id,
-                ...this.getModuleTooltipParams(),
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
     }
@@ -342,5 +350,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    public getFormattedMarkerStyle(datum: ScatterNodeDatum) {
+        const { xKey, yKey, labelKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, labelKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

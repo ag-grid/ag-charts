@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
+import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -17,9 +18,22 @@ import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from 
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { Series, SeriesNodePickMatch, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import {
+    PickFocusInputs,
+    Series,
+    SeriesNodePickMatch,
+    SeriesNodePickMode,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
+import {
+    collapsedStartingBarPosition,
+    computeBarFocusBounds,
+    prepareBarAnimationFunctions,
+    resetBarSelectionsFn,
+} from './barUtil';
 import {
     type CartesianAnimationData,
     CartesianSeries,
@@ -123,11 +137,18 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     override async processData(dataController: DataController) {
-        if (!this.visible) return;
+        if (!this.visible) {
+            this.processedData = undefined;
+            this.animationState.transition('updateData');
+        }
 
         const { xKey, yKey, areaPlot, aggregation } = this.properties;
 
-        const props: PropertyDefinition<any>[] = [keyProperty(xKey, true), SORT_DOMAIN_GROUPS];
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { xScaleType, yScaleType } = this.getScaleInformation({ yScale, xScale });
+
+        const props: PropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
         if (yKey) {
             let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg');
 
@@ -141,7 +162,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             if (areaPlot) {
                 aggProp = area('groupAgg', aggProp);
             }
-            props.push(valueProperty(yKey, true, { invalidValue: undefined }), aggProp);
+            props.push(valueProperty(yKey, yScaleType, { invalidValue: undefined }), aggProp);
         } else {
             let aggProp = groupCount('groupAgg');
 
@@ -218,7 +239,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.visible || !xAxis || !yAxis || !processedData || processedData.type !== 'grouped') {
+        if (!xAxis || !yAxis) {
             return;
         }
 
@@ -235,6 +256,15 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         } = this.properties.label;
 
         const nodeData: HistogramNodeDatum[] = [];
+        const context = {
+            itemId: this.properties.yKey ?? this.id,
+            nodeData,
+            labelData: nodeData,
+            scales: this.calculateScaling(),
+            animationValid: true,
+            visible: this.visible,
+        };
+        if (!this.visible || !processedData || processedData.type !== 'grouped') return context;
 
         processedData.data.forEach((group) => {
             const {
@@ -317,14 +347,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             });
         });
 
-        return {
-            itemId: this.properties.yKey ?? this.id,
-            nodeData,
-            labelData: nodeData,
-            scales: this.calculateScaling(),
-            animationValid: true,
-            visible: this.visible,
-        };
+        // AG-11323 Sort bins from left-to-right for intuitive keyboard navigation.
+        nodeData.sort((a, b) => a.x - b.x);
+
+        return context;
     }
 
     protected override nodeFactory() {
@@ -443,12 +469,12 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return findQuadtreeMatch(this, point);
     }
 
-    getTooltipHtml(nodeDatum: HistogramNodeDatum): string {
+    getTooltipHtml(nodeDatum: HistogramNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, xName, yName, fill: color, aggregation, tooltip } = this.properties;
@@ -456,6 +482,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             aggregatedValue,
             frequency,
             domain: [rangeMin, rangeMax],
+            itemId,
         } = nodeDatum;
         const title = `${sanitizeHtml(xName ?? xKey)}: ${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`;
         let content = yKey
@@ -477,6 +504,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 domain: nodeDatum.domain,
                 frequency: nodeDatum.frequency,
             },
+            itemId,
             xKey,
             xName,
             yKey,
@@ -541,5 +569,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
     protected isLabelEnabled() {
         return this.properties.label.enabled;
+    }
+
+    protected computeFocusBounds({ datumIndex, seriesRect }: PickFocusInputs): BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
     }
 }

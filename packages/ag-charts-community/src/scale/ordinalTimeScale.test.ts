@@ -29,12 +29,7 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ];
         scale.tickCount = 5;
-        expect(scale.ticks()).toEqual([
-            new Date(2024, 1, 26),
-            new Date(2024, 1, 28),
-            new Date(2024, 2, 1),
-            new Date(2024, 2, 5),
-        ]);
+        expect(scale.ticks()).toMatchSnapshot();
     });
 
     it('should create ticks matching the data domain if the domain length is smaller than maxTickCount', () => {
@@ -50,7 +45,18 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ];
         scale.maxTickCount = 8;
-        expect(scale.ticks()).toEqual(scale.domain);
+        expect(scale.ticks()).toMatchSnapshot();
+    });
+
+    it('should extend the domain to create nice ticks matching the data domain', () => {
+        const scale = new OrdinalTimeScale();
+        scale.domain = [
+            // yearly data but not on the first day of the year (January 1st)
+            new Date(2023, 3, 5),
+            new Date(2024, 3, 5),
+            new Date(2025, 3, 5),
+        ];
+        expect(scale.ticks()).toMatchSnapshot();
     });
 
     describe('should create ticks with configured', () => {

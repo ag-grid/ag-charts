@@ -3,5 +3,6 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSaveMode": "file",
-  "eslint.validate": ["json"]
+  "eslint.validate": ["json"],
+  "prettier.ignorePath": ".prettierignore.local"
 }

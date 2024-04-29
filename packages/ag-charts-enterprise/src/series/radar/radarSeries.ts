@@ -13,6 +13,7 @@ const {
     resetMarkerFn,
     animationValidation,
     isFiniteNumber,
+    computeMarkerFocusBounds,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -33,7 +34,7 @@ class RadarSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadarNodeDatum, series: RadarSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RadarNodeDatum, series: RadarSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
@@ -52,8 +53,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
-
-    protected nodeData: RadarNodeDatum[] = [];
 
     protected resetInvalidToZero: boolean = false;
 
@@ -114,10 +113,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             extraProps.push(animationValidation());
         }
 
+        const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
+        const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;
+
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(angleKey, false, { id: 'angleValue' }),
-                valueProperty(radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
+                valueProperty(angleKey, angleScaleType, { id: 'angleValue' }),
+                valueProperty(radiusKey, radiusScaleType, { id: 'radiusValue', invalidValue: undefined }),
                 ...extraProps,
             ],
         });
@@ -352,14 +354,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: RadarNodeDatum): string {
+    getTooltipHtml(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent {
         if (!this.properties.isValid()) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { id: seriesId } = this;
         const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
-        const { datum, angleValue, radiusValue } = nodeDatum;
+        const { datum, angleValue, radiusValue, itemId } = nodeDatum;
 
         const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
         const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
@@ -384,7 +386,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
-            { datum, angleKey, angleName, radiusKey, radiusName, title, color, seriesId }
+            {
+                datum,
+                angleKey,
+                angleName,
+                radiusKey,
+                radiusName,
+                title,
+                color,
+                seriesId,
+                itemId,
+            }
         );
     }
 
@@ -664,5 +676,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             lineNode.checkPathDirty();
         }
+    }
+
+    public getFormattedMarkerStyle(datum: RadarNodeDatum) {
+        const { angleKey, radiusKey } = this.properties;
+        return this.getMarkerStyle(this.properties.marker, { datum, angleKey, radiusKey, highlighted: true });
+    }
+
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

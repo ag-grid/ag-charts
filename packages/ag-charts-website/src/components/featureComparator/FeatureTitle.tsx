@@ -1,8 +1,9 @@
 import type { Framework } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import styles from '@legacy-design-system/modules/FeatureTitle.module.scss';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import classnames from 'classnames';
+
+import styles from './FeatureTitle.module.scss';
 
 type FeatureTitleProps = {
     title: string;

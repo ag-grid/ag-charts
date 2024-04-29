@@ -27,13 +27,19 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
-import { SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import { PickFocusInputs, SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
-import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
+import {
+    computeSectorFocusBounds,
+    pickByMatchingAngle,
+    preparePieSeriesAnimationFunctions,
+    resetPieSelectionsFn,
+} from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<PieNodeDatum, TEvent> {
@@ -41,7 +47,7 @@ class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends S
     readonly radiusKey?: string;
     readonly calloutLabelKey?: string;
     readonly sectorLabelKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: PieNodeDatum, series: PieSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: PieNodeDatum, series: PieSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
@@ -118,7 +124,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
 
-    private nodeData: PieNodeDatum[] = [];
     private angleScale: LinearScale;
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
@@ -193,12 +198,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         // Order here should match `getDatumIdFromData()`.
         if (legendItemKey) {
-            extraKeyProps.push(keyProperty(legendItemKey, false, { id: `legendItemKey` }));
+            extraKeyProps.push(keyProperty(legendItemKey, 'band', { id: `legendItemKey` }));
         } else if (calloutLabelKey) {
-            extraKeyProps.push(keyProperty(calloutLabelKey, false, { id: `calloutLabelKey` }));
+            extraKeyProps.push(keyProperty(calloutLabelKey, 'band', { id: `calloutLabelKey` }));
         } else if (sectorLabelKey) {
-            extraKeyProps.push(keyProperty(sectorLabelKey, false, { id: `sectorLabelKey` }));
+            extraKeyProps.push(keyProperty(sectorLabelKey, 'band', { id: `sectorLabelKey` }));
         }
+
+        const radiusScaleType = this.radiusScale.type;
+        const angleScaleType = this.radiusScale.type;
 
         if (radiusKey) {
             extraProps.push(
@@ -207,7 +215,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     min: this.properties.radiusMin ?? 0,
                     max: this.properties.radiusMax,
                 }),
-                valueProperty(radiusKey, true, { id: `radiusRaw` }), // Raw value pass-through.
+                valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw` }), // Raw value pass-through.
                 normalisePropertyTo(
                     { id: 'radiusValue' },
                     [0, 1],
@@ -218,13 +226,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             );
         }
         if (calloutLabelKey) {
-            extraProps.push(valueProperty(calloutLabelKey, false, { id: `calloutLabelValue` }));
+            extraProps.push(valueProperty(calloutLabelKey, 'band', { id: `calloutLabelValue` }));
         }
         if (sectorLabelKey) {
-            extraProps.push(valueProperty(sectorLabelKey, false, { id: `sectorLabelValue` }));
+            extraProps.push(valueProperty(sectorLabelKey, 'band', { id: `sectorLabelValue` }));
         }
         if (legendItemKey) {
-            extraProps.push(valueProperty(legendItemKey, false, { id: `legendItemValue` }));
+            extraProps.push(valueProperty(legendItemKey, 'band', { id: `legendItemValue` }));
         }
         if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
             extraProps.push(diff(this.processedData));
@@ -236,8 +244,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
-                accumulativeValueProperty(angleKey, true, { id: `angleValue`, onlyPositive: true }),
-                valueProperty(angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
+                accumulativeValueProperty(angleKey, angleScaleType, { id: `angleValue`, onlyPositive: true }),
+                valueProperty(angleKey, angleScaleType, { id: `angleRaw` }), // Raw value pass-through.
                 normalisePropertyTo({ id: 'angleValue' }, [0, 1], 0, 0),
                 ...extraProps,
             ],
@@ -1240,15 +1248,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return pickByMatchingAngle(this, point);
     }
 
-    getTooltipHtml(nodeDatum: PieNodeDatum): string {
+    getTooltipHtml(nodeDatum: PieNodeDatum): TooltipContent {
         if (!this.properties.isValid()) {
-            return '';
+            return EMPTY_TOOLTIP_CONTENT;
         }
 
         const {
             datum,
             angleValue,
             sectorFormat: { fill: color },
+            itemId,
         } = nodeDatum;
 
         const title = sanitizeHtml(this.properties.title?.text);
@@ -1263,6 +1272,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             },
             {
                 datum,
+                itemId,
                 title,
                 color,
                 seriesId: this.id,
@@ -1274,6 +1284,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 calloutLabelName: this.properties.calloutLabelName,
                 sectorLabelKey: this.properties.sectorLabelKey,
                 sectorLabelName: this.properties.sectorLabelName,
+                legendItemKey: this.properties.legendItemKey,
             }
         );
     }
@@ -1483,5 +1494,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     protected override onDataChange() {
         const { data, seriesItemEnabled } = this;
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        return computeSectorFocusBounds(this, opts);
     }
 }

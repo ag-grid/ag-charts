@@ -44,6 +44,7 @@ export class HdpiCanvas {
         // Safari needs a width and height set or the output can appear blurry
         this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
         this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
+        this.element.style.position = 'absolute';
 
         this.context = this.element.getContext('2d')!;
 

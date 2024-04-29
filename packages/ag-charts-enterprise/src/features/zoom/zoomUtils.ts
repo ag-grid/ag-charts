@@ -2,9 +2,11 @@ import { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { DefinedZoomState } from './zoomTypes';
 
-const { clamp } = _ModuleSupport;
+const { clamp, isEqual, round } = _ModuleSupport;
 
 export const UNIT = { min: 0, max: 1 };
+export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
+export const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
 
 const constrain = (value: number, min = UNIT.min, max = UNIT.max) => clamp(min, value, max);
 
@@ -18,6 +20,22 @@ export function dx(zoom: DefinedZoomState) {
 
 export function dy(zoom: DefinedZoomState) {
     return zoom.y.max - zoom.y.min;
+}
+
+export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState, epsilon: number = 1e-10) {
+    return (
+        isEqual(left.x.min, right.x.min, epsilon) &&
+        isEqual(left.x.max, right.x.max, epsilon) &&
+        isEqual(left.y.min, right.y.min, epsilon) &&
+        isEqual(left.y.max, right.y.max, epsilon)
+    );
+}
+
+export function isZoomLess(zoom: DefinedZoomState, minRatioX: number, minRatioY: number) {
+    const isMinXZoom = round(dx(zoom), 10) <= minRatioX;
+    const isMinYZoom = round(dy(zoom), 10) <= minRatioY;
+
+    return isMinXZoom || isMinYZoom;
 }
 
 export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {

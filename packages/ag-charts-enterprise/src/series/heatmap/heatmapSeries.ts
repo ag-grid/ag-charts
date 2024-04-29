@@ -6,6 +6,7 @@ import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 
 const {
     SeriesNodePickMode,
+    computeBarFocusBounds,
     getMissCount,
     valueProperty,
     ChartAxisDirection,
@@ -16,7 +17,9 @@ const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
-interface HeatmapNodeDatum extends Required<_ModuleSupport.CartesianSeriesNodeDatum> {
+interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
+    readonly point: Readonly<_Scene.SizedPoint>;
+    midPoint: Readonly<_Scene.Point>;
     readonly width: number;
     readonly height: number;
     readonly fill: string;
@@ -43,7 +46,7 @@ class HeatmapSeriesNodeEvent<
 > extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
     readonly colorKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: HeatmapNodeDatum, series: HeatmapSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: HeatmapNodeDatum, series: HeatmapSeries) {
         super(type, nativeEvent, datum, series);
         this.colorKey = series.properties.colorKey;
     }
@@ -97,13 +100,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { xKey, yKey, colorRange, colorKey } = this.properties;
-        const { isContinuousX, isContinuousY } = this.isContinuous();
+
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const colorScaleType = this.colorScale.type;
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                valueProperty(xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(yKey, isContinuousY, { id: 'yValue' }),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
+                valueProperty(xKey, xScaleType, { id: 'xValue' }),
+                valueProperty(yKey, yScaleType, { id: 'yValue' }),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
 
@@ -402,12 +409,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: HeatmapNodeDatum): string {
+    getTooltipHtml(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { xKey, yKey, colorKey, xName, yName, colorName, stroke, strokeWidth, colorRange, formatter, tooltip } =
@@ -418,7 +425,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ctx: { callbackCache },
         } = this;
 
-        const { datum, xValue, yValue, colorValue } = nodeDatum;
+        const { datum, xValue, yValue, colorValue, itemId } = nodeDatum;
         const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
 
         let format: AgHeatmapSeriesFormat | undefined;
@@ -462,6 +469,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 title,
                 color,
                 colorKey,
+                colorName,
+                itemId,
             }
         );
     }
@@ -496,5 +505,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     override getBandScalePadding() {
         return { inner: 0, outer: 0 };
+    }
+
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        const datum = this.contextNodeData?.nodeData[datumIndex];
+        if (datum === undefined) return undefined;
+        const { width, height, midPoint } = datum;
+        const focusRect = { x: midPoint.x - width / 2, y: midPoint.y - height / 2, width, height };
+        return computeBarFocusBounds(focusRect, this.contentGroup, seriesRect);
     }
 }

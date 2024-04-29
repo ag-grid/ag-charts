@@ -44,6 +44,11 @@ export abstract class PolarSeries<
         return this.itemGroup.children as TNode[];
     }
 
+    protected nodeData: TDatum[] = [];
+    public override getNodeData(): TDatum[] | undefined {
+        return this.nodeData;
+    }
+
     protected itemSelection: Selection<TNode, TDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory(),
@@ -109,6 +114,7 @@ export abstract class PolarSeries<
             canHaveAxes,
         });
 
+        this.showFocusBox = false;
         this.itemGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 

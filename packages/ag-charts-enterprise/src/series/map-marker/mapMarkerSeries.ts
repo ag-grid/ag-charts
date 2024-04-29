@@ -26,6 +26,7 @@ const {
     SeriesNodePickMode,
     Layers,
     valueProperty,
+    computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
 const { Group, Selection, Text, getMarker } = _Scene;
@@ -57,6 +58,10 @@ export class MapMarkerSeries
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
+
+    public override getNodeData(): MapMarkerNodeDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
+    }
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
@@ -190,13 +195,17 @@ export class MapMarkerSeries
             featureById.set(property, feature);
         });
 
+        const sizeScaleType = this.sizeScale.type;
+        const colorScaleType = this.colorScale.type;
+        const mercatorScaleType = this.scale?.type;
+
         const hasLatLon = latitudeKey != null && longitudeKey != null;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...(idKey != null
                     ? [
-                          valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
-                          valueProperty(idKey, false, {
+                          valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
+                          valueProperty(idKey, mercatorScaleType, {
                               id: 'featureValue',
                               includeProperty: false,
                               processor: () => (datum) => featureById.get(datum),
@@ -205,13 +214,13 @@ export class MapMarkerSeries
                     : []),
                 ...(hasLatLon
                     ? [
-                          valueProperty(latitudeKey, false, { id: 'latValue' }),
-                          valueProperty(longitudeKey, false, { id: 'lonValue' }),
+                          valueProperty(latitudeKey, mercatorScaleType, { id: 'latValue' }),
+                          valueProperty(longitudeKey, mercatorScaleType, { id: 'lonValue' }),
                       ]
                     : []),
-                ...(labelKey ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
-                ...(sizeKey ? [valueProperty(sizeKey, true, { id: 'sizeValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
+                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
 
@@ -740,7 +749,7 @@ export class MapMarkerSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapMarkerNodeDatum): string {
+    override getTooltipHtml(nodeDatum: MapMarkerNodeDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -749,7 +758,7 @@ export class MapMarkerSeries
         } = this;
 
         if (!processedData || !this.properties.isValid()) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const {
@@ -766,8 +775,10 @@ export class MapMarkerSeries
             labelName,
             formatter,
             tooltip,
+            latitudeName,
+            longitudeName,
         } = properties;
-        const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue } = nodeDatum;
+        const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue, itemId } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
@@ -817,8 +828,76 @@ export class MapMarkerSeries
                 longitudeKey,
                 title,
                 color,
+                colorKey,
+                colorName,
+                idName,
+                itemId,
+                labelKey,
+                labelName,
+                latitudeName,
+                longitudeName,
+                sizeKey,
+                sizeName,
                 ...this.getModuleTooltipParams(),
             }
         );
+    }
+
+    public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
+        const {
+            id: seriesId,
+            properties,
+            ctx: { callbackCache },
+        } = this;
+        const { datum, point } = markerDatum;
+        const {
+            idKey,
+            latitudeKey,
+            longitudeKey,
+            labelKey,
+            sizeKey,
+            colorKey,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            formatter,
+        } = properties;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+        const params: _Util.RequireOptional<AgSeriesMarkerFormatterParams<MapMarkerNodeDatum>> &
+            _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys> = {
+            seriesId,
+            datum: datum.datum,
+            itemId: datum.itemId,
+            size: point.size,
+            idKey,
+            latitudeKey,
+            longitudeKey,
+            labelKey,
+            sizeKey,
+            colorKey,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            highlighted: true,
+        };
+        if (formatter !== undefined) {
+            const style: AgSeriesMarkerStyle | undefined = callbackCache.call(
+                formatter,
+                params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
+                    _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
+            );
+            if (style?.size !== undefined) {
+                return { size: style.size };
+            }
+        }
+
+        return { size: markerDatum.point.size };
+    }
+
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeMarkerFocusBounds(this, opts);
     }
 }

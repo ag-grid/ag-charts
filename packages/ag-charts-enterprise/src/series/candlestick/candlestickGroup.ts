@@ -101,13 +101,13 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
         lowWick.setProperties({
             y1: Math.round(yLow + lowWick.strokeWidth / 2),
             y2: yBottom,
-            x: Math.floor(x + halfWidth),
+            x: x + halfWidth,
         });
 
         highWick.setProperties({
             y1: Math.round(yHigh + highWick.strokeWidth / 2),
             y2: y,
-            x: Math.floor(x + halfWidth),
+            x: x + halfWidth,
         });
     }
 

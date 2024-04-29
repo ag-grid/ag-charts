@@ -3,10 +3,11 @@
  * type of the particular option.
  */
 import type { JsonModelProperty, JsonProperty } from '@features/api-explorer/utils/model';
-import styles from '@legacy-design-system/modules/Editors.module.scss';
 import classnames from 'classnames';
 import React, { useState } from 'react';
 import { AlphaPicker, HuePicker } from 'react-color';
+
+import styles from './Editors.module.scss';
 
 // TODO this feature is using the old docs model, which is no longer available, and should be rewritten when we'll want to enable it again
 

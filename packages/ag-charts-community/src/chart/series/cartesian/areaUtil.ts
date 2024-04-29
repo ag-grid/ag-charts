@@ -1,6 +1,6 @@
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
-import type { Point } from '../../../scene/point';
+import type { Point, SizedPoint } from '../../../scene/point';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -33,7 +33,9 @@ export type AreaPathDatum = {
     readonly itemId: string;
 };
 
-export interface MarkerSelectionDatum extends Required<CartesianSeriesNodeDatum> {
+export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
+    readonly point: Readonly<SizedPoint>;
+    readonly yKey: string;
     readonly index: number;
     readonly fill?: string;
     readonly stroke?: string;

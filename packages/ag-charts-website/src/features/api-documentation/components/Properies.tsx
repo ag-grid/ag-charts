@@ -1,10 +1,10 @@
-import { LinkIcon } from '@components/link-icon/LinkIcon';
-import styles from '@legacy-design-system/modules/ApiReference.module.scss';
-import { navigate, scrollIntoViewById } from '@utils/navigation';
+import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
+import { navigate, scrollIntoViewById } from '@ag-website-shared/utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
 
 import { cleanupName } from '../apiReferenceHelpers';
+import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
     name: string;

@@ -18,6 +18,7 @@ const {
     animationValidation,
     convertValuesToScaleByDefs,
     isFiniteNumber,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { motion } = _Scene;
 const { ContinuousScale } = _Scale;
@@ -32,7 +33,7 @@ class BoxPlotSeriesNodeEvent<
     readonly q3Key?: string;
     readonly maxKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.minKey = series.properties.minKey;
@@ -78,7 +79,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
+        const xScale = this.getCategoryAxis()?.scale;
+        const yScale = this.getValueAxis()?.scale;
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const extraProps = [];
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
@@ -89,12 +92,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(minKey, true, { id: `minValue` }),
-                valueProperty(q1Key, true, { id: `q1Value` }),
-                valueProperty(medianKey, true, { id: `medianValue` }),
-                valueProperty(q3Key, true, { id: `q3Value` }),
-                valueProperty(maxKey, true, { id: `maxValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                valueProperty(minKey, yScaleType, { id: `minValue` }),
+                valueProperty(q1Key, yScaleType, { id: `q1Value` }),
+                valueProperty(medianKey, yScaleType, { id: `medianValue` }),
+                valueProperty(q3Key, yScaleType, { id: `q3Value` }),
+                valueProperty(maxKey, yScaleType, { id: `maxValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -138,7 +141,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && visible && xAxis && yAxis)) {
+        if (!(dataModel && xAxis && yAxis)) {
             return;
         }
 
@@ -160,6 +163,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
         const { groupScale, processedData } = this;
         const isVertical = this.isVertical();
+
+        const context = {
+            itemId: xKey,
+            nodeData,
+            labelData: [],
+            scales: this.calculateScaling(),
+            visible: this.visible,
+        };
+
+        if (!visible) return context;
 
         processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
@@ -201,6 +214,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 y: isVertical ? midY : midX,
             };
 
+            const focusRectWidth = isVertical ? bandwidth : height;
+            const focusRectHeight = isVertical ? height : bandwidth;
             nodeData.push({
                 series: this,
                 itemId: xValue,
@@ -218,10 +233,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 midPoint,
+                focusRect: {
+                    x: midPoint.x - focusRectWidth / 2,
+                    y: midPoint.y - focusRectHeight / 2,
+                    width: focusRectWidth,
+                    height: focusRectHeight,
+                },
             });
         });
 
-        return { itemId: xKey, nodeData, labelData: [], scales: this.calculateScaling(), visible: this.visible };
+        return context;
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
@@ -259,7 +280,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         ];
     }
 
-    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): string {
+    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent {
         const {
             xKey,
             minKey,
@@ -275,13 +296,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             q3Name,
             maxName,
             tooltip,
+            fill,
         } = this.properties;
-        const { datum } = nodeDatum as { datum: any };
+        const { datum, itemId } = nodeDatum;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!xAxis || !yAxis || !this.properties.isValid()) return '';
+        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
 
         const title = _Util.sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
@@ -296,12 +318,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             .map(([key, name, axis]) => _Util.sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
             .join(title ? '<br/>' : ', ');
 
-        const { fill } = this.getFormattedStyles(nodeDatum);
+        const { fill: formatFill } = this.getFormattedStyles(nodeDatum);
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: fill },
             {
                 seriesId: this.id,
+                itemId,
                 datum,
                 fill,
                 xKey,
@@ -316,6 +339,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 medianName,
                 q3Name,
                 maxName,
+                yName,
+                title,
+                color: fill ?? formatFill,
             }
         );
     }
@@ -439,5 +465,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             }
         }
         return activeStyles;
+    }
+
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeBarFocusBounds(
+            this.contextNodeData?.nodeData[datumIndex].focusRect,
+            this.contentGroup,
+            seriesRect
+        );
     }
 }

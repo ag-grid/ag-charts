@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { getDocument } from '../../../util/dom';
 import { AgCharts } from '../../agChartV2';
 import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
 import {
@@ -143,7 +142,7 @@ describe('HistogramSeries', () => {
 
                     return s;
                 }),
-                container: getDocument('body'),
+                container: document.body,
             };
 
             prepareTestOptions(options);

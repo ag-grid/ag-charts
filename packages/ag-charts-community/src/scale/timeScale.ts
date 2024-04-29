@@ -79,39 +79,45 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         count,
         minCount,
         maxCount,
+        target,
     }: {
         start: number;
         stop: number;
         count: number;
         minCount: number;
         maxCount: number;
+        target?: number;
     }): CountableTimeInterval | TimeInterval | undefined {
         let countableTimeInterval;
         let step;
 
         const tickCount = count ?? ContinuousScale.defaultTickCount;
-        const target = Math.abs(stop - start) / Math.max(tickCount, 1);
-        let i = 0;
-        while (i < TimeScale.tickIntervals.length && target > TimeScale.tickIntervals[i][2]) {
-            i++;
-        }
-
+        const targetInterval = target ?? Math.abs(stop - start) / Math.max(tickCount, 1);
+        const i = TimeScale.getIntervalIndex(targetInterval);
         if (i === 0) {
             step = Math.max(tickStep(start, stop, tickCount, minCount, maxCount), 1);
             countableTimeInterval = timeMillisecond;
         } else if (i === TimeScale.tickIntervals.length) {
             const y0 = start / durationYear;
             const y1 = stop / durationYear;
-            step = tickStep(y0, y1, tickCount, minCount, maxCount);
+            step = target === undefined ? tickStep(y0, y1, tickCount, minCount, maxCount) : 1;
             countableTimeInterval = timeYear;
         } else {
-            const diff0 = target - TimeScale.tickIntervals[i - 1][2];
-            const diff1 = TimeScale.tickIntervals[i][2] - target;
+            const diff0 = targetInterval - TimeScale.tickIntervals[i - 1][2];
+            const diff1 = TimeScale.tickIntervals[i][2] - targetInterval;
             const index = diff0 < diff1 ? i - 1 : i;
             [countableTimeInterval, step] = TimeScale.tickIntervals[index];
         }
 
         return countableTimeInterval.every(step);
+    }
+
+    static getIntervalIndex(target: number) {
+        let i = 0;
+        while (i < TimeScale.tickIntervals.length && target > TimeScale.tickIntervals[i][2]) {
+            i++;
+        }
+        return i;
     }
 
     override invert(y: number): Date {
@@ -233,8 +239,16 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
      * the {@link TimeLocaleObject.format} method.
      * If no specifier is provided, this method returns the default time format function.
      */
-    tickFormat({ ticks, specifier }: { ticks?: any[]; specifier?: string }): (date: Date) => string {
-        return specifier == null ? defaultTimeTickFormat(ticks) : buildFormatter(specifier);
+    tickFormat({
+        ticks,
+        domain,
+        specifier,
+    }: {
+        ticks?: any[];
+        domain?: any[];
+        specifier?: string;
+    }): (date: Date) => string {
+        return specifier == null ? defaultTimeTickFormat(ticks, domain) : buildFormatter(specifier);
     }
 
     update() {

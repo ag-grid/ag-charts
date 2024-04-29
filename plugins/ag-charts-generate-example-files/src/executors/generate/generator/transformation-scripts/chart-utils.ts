@@ -11,7 +11,7 @@ export function wrapOptionsUpdateCode(
     }
 
     return code
-        .replace(/(?<!= )options\./g, localVar + '.')
+        .replace(/(?<!\w)options\./g, localVar + '.')
         .replace(/(.*?)\{(.*)\}/s, `$1{\n${before}\n$2\n${after}\n}`);
 }
 

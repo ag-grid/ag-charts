@@ -25,18 +25,29 @@ const options: AgChartOptions = {
             closeKey: 'close',
             item: {
                 up: {
-                    fill: '#45ba45',
-                    stroke: 'black',
+                    fill: 'transparent',
+                    stroke: '#2b5c95',
                     wick: {
                         strokeWidth: 2,
                     },
                 },
                 down: {
-                    fill: '#ba4545',
-                    stroke: 'black',
+                    fill: '#5090dc',
+                    stroke: '#2b5c95',
                     wick: {
                         strokeWidth: 2,
                     },
+                },
+            },
+            tooltip: {
+                renderer: ({ datum, xKey, openKey, highKey, lowKey, closeKey }) => {
+                    return {
+                        title: `<b>${datum[xKey].toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</b>`,
+                        content: `<b>O</b> ${datum[openKey].toLocaleString()}</br><b>H</b> ${datum[
+                            highKey
+                        ].toLocaleString()}<br/><b>L</b> ${datum[lowKey].toLocaleString()}
+                           <br/><b>C</b> ${datum[closeKey].toLocaleString()}`,
+                    };
                 },
             },
         },
@@ -54,6 +65,11 @@ const options: AgChartOptions = {
             position: 'right',
             label: {
                 formatter: ({ value }) => Number(value).toLocaleString(),
+            },
+            crosshair: {
+                label: {
+                    format: ',f',
+                },
             },
         },
     ],

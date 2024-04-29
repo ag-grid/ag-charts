@@ -10,6 +10,7 @@ import {
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
 import { lineStringCenter } from '../map-util/lineStringUtil';
+import { computeGeoFocusBounds } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -37,6 +38,10 @@ export class MapLineSeries
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
+    public override getNodeData(): MapLineNodeDatum[] | undefined {
+        return this.contextNodeData?.nodeData;
+    }
+
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
     }
@@ -48,7 +53,7 @@ export class MapLineSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(this.contentGroup, () =>
+    public datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(this.contentGroup, () =>
         this.nodeFactory()
     );
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
@@ -60,7 +65,7 @@ export class MapLineSeries
         () => this.nodeFactory()
     );
 
-    private contextNodeData?: MapLineNodeDataContext;
+    public contextNodeData?: MapLineNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -116,17 +121,21 @@ export class MapLineSeries
             featureById.set(property, feature);
         });
 
+        const sizeScaleType = this.sizeScale.type;
+        const colorScaleType = this.colorScale.type;
+        const mercatorScaleType = this.scale?.type;
+
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(idKey, false, { id: 'idValue', includeProperty: false }),
-                valueProperty(idKey, false, {
+                valueProperty(idKey, mercatorScaleType, { id: 'idValue', includeProperty: false }),
+                valueProperty(idKey, mercatorScaleType, {
                     id: 'featureValue',
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum),
                 }),
-                ...(labelKey != null ? [valueProperty(labelKey, false, { id: 'labelValue' })] : []),
-                ...(sizeKey != null ? [valueProperty(sizeKey, true, { id: 'sizeValue' })] : []),
-                ...(colorKey != null ? [valueProperty(colorKey, true, { id: 'colorValue' })] : []),
+                ...(labelKey != null ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(sizeKey != null ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
+                ...(colorKey != null ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
 
@@ -562,7 +571,7 @@ export class MapLineSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapLineNodeDatum): string {
+    override getTooltipHtml(nodeDatum: MapLineNodeDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -571,7 +580,7 @@ export class MapLineSeries
         } = this;
 
         if (!processedData || !properties.isValid()) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const {
@@ -587,7 +596,7 @@ export class MapLineSeries
             formatter,
             tooltip,
         } = properties;
-        const { datum, stroke, idValue, colorValue, sizeValue, labelValue } = nodeDatum;
+        const { datum, stroke, idValue, colorValue, sizeValue, labelValue, itemId } = nodeDatum;
 
         const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
         const contentLines: string[] = [];
@@ -626,8 +635,20 @@ export class MapLineSeries
                 idKey,
                 title,
                 color,
+                itemId,
+                sizeKey,
+                colorKey,
+                colorName,
+                idName,
+                labelKey,
+                labelName,
+                sizeName,
                 ...this.getModuleTooltipParams(),
             }
         );
+    }
+
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeGeoFocusBounds(this, opts);
     }
 }

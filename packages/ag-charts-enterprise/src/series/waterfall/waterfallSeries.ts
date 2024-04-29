@@ -26,10 +26,11 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     isFiniteNumber,
+    computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
-const { ContinuousScale, OrdinalTimeScale } = _Scale;
+const { ContinuousScale } = _Scale;
 
 type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
     readonly text: string;
@@ -139,45 +140,44 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
         });
 
-        const xScale = this.getCategoryAxis()?.scale;
-        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
-
-        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
-
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
             extraProps.push(animationValidation());
         }
 
+        const xScale = this.getCategoryAxis()?.scale;
+        const yScale = this.getValueAxis()?.scale;
+        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
-                keyProperty(xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
-                accumulativeValueProperty(yKey, true, {
+                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yCurrent`,
                 }),
-                accumulativeValueProperty(yKey, true, {
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     missingValue: 0,
                     id: `yCurrentTotal`,
                 }),
-                accumulativeValueProperty(yKey, true, {
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yCurrentPositive`,
                     validation: positiveNumber,
                 }),
-                accumulativeValueProperty(yKey, true, {
+                accumulativeValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yCurrentNegative`,
                     validation: negativeNumber,
                 }),
-                trailingAccumulatedValueProperty(yKey, true, {
+                trailingAccumulatedValueProperty(yKey, yScaleType, {
                     ...propertyDefinition,
                     id: `yPrevious`,
                 }),
-                valueProperty(yKey, true, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty('totalType', false, {
+                valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
+                valueProperty('totalType', 'band', {
                     id: `totalTypeValue`,
                     missingValue: undefined,
                     validation: totalTypeValue,
@@ -234,11 +234,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     async createNodeData() {
         const { data, dataModel, smallestDataInterval } = this;
-        const { visible, line } = this.properties;
+        const { line } = this.properties;
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
-        if (!(data && visible && categoryAxis && valueAxis && dataModel)) {
+        if (!(data && categoryAxis && valueAxis && dataModel)) {
             return;
         }
 
@@ -264,6 +264,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+        if (!this.visible) return context;
 
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -610,12 +611,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: WaterfallNodeDatum): string {
+    getTooltipHtml(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent {
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
         if (!this.properties.isValid() || !categoryAxis || !valueAxis) {
-            return '';
+            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
         const { id: seriesId } = this;
@@ -662,7 +663,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
-            { seriesId, itemId, datum, xKey, yKey, xName, yName, color }
+            { seriesId, itemId, datum, xKey, yKey, xName, yName, color, title }
         );
     }
 
@@ -871,4 +872,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override onDataChange() {}
+
+    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
+    }
 }

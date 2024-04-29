@@ -3,13 +3,14 @@
 exports[`ErrorBars AG-10525 should render tooltips with no errorbars 1`] = `
 HTMLCollection [
   <div
+    aria-hidden="true"
     class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
     style="transform: translate(314px, 200px);"
   >
     <div
       class="ag-chart-tooltip-content"
     >
-      May: 14.5
+      May: 14.50
     </div>
   </div>,
 ]
@@ -18,6 +19,7 @@ HTMLCollection [
 exports[`ErrorBars should render default tooltips 1`] = `
 HTMLCollection [
   <div
+    aria-hidden="true"
     class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
     style="transform: translate(413px, 380px);"
   >
@@ -27,12 +29,12 @@ HTMLCollection [
       <b>
         volume
       </b>
-      : 2.5
+      : 2.50
       <br />
       <b>
         pressure
       </b>
-      : 4.2
+      : 4.20
     </div>
   </div>,
 ]

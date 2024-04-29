@@ -23,17 +23,21 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     ],
     themeTemplate: CANDLESTICK_SERIES_THEME,
     groupable: false,
-    paletteFactory: ({ takeColors, colorsCount }) => {
+    paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
+        const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);
+        const { fills: DEFAULT_FILLS, strokes: DEFAULT_STROKES } = properties.get(
+            _Theme.DEFAULT_COLOURS
+        ) as unknown as _ModuleSupport.DefaultColors;
         return {
             item: {
                 up: {
-                    fill: 'transparent',
-                    stroke: strokes[0],
+                    fill: userPalette ? 'transparent' : DEFAULT_FILLS.GREEN,
+                    stroke: userPalette ? strokes[0] : DEFAULT_STROKES.GREEN,
                 },
                 down: {
-                    fill: fills[0],
-                    stroke: strokes[0],
+                    fill: userPalette ? fills[0] : DEFAULT_FILLS.RED,
+                    stroke: userPalette ? strokes[0] : DEFAULT_STROKES.RED,
                 },
             },
         };
