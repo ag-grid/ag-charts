@@ -94,6 +94,8 @@ export class RegionManager {
         for (const region of this.regions.values()) {
             region.listeners.destroy();
         }
+        this.focusWrapper.remove();
+
         this.regions.clear();
     }
 
