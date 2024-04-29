@@ -10,6 +10,7 @@ interface CanvasOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
+    position?: 'absolute';
 }
 
 /**
@@ -35,7 +36,7 @@ export class HdpiCanvas {
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width, height, pixelRatio } = options;
+        const { width, height, pixelRatio, position } = options;
 
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
@@ -44,7 +45,9 @@ export class HdpiCanvas {
         // Safari needs a width and height set or the output can appear blurry
         this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
         this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
-        this.element.style.position = 'absolute';
+        if (position) {
+            this.element.style.position = position;
+        }
 
         this.context = this.element.getContext('2d')!;
 
