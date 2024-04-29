@@ -56,6 +56,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected resetInvalidToZero: boolean = false;
 
+    private seriesItemEnabled: boolean[] = [];
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -172,6 +174,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`);
         const radiusIdx = dataModel.resolveProcessedDataIndexById(this, `radiusValue`);
         const axisInnerRadius = this.getAxisInnerRadius();
+        const { seriesItemEnabled } = this;
+        seriesItemEnabled.length = 0;
 
         const nodeData = processedData.data.map((group): RadarNodeDatum => {
             const { datum, values } = group;
@@ -181,6 +185,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             const angle = angleScale.convert(angleDatum);
             const radius = this.radius + axisInnerRadius - radiusScale.convert(radiusDatum);
+            if (_Util.isNumber(angle) && _Util.isNumber(radius)) {
+                seriesItemEnabled.push(true);
+            } else {
+                seriesItemEnabled.push(false);
+            }
 
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
