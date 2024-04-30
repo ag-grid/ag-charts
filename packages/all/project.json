@@ -64,13 +64,15 @@
         "parallel": false,
         "commands": [
           "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-examples --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-thumbnails --batch ; fi"
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-thumbnails --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-examples ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-thumbnails ; fi"
         ]
       }
     },
     "dev": {
       "executor": "nx:run-commands",
-      "dependsOn": ["dev:setup", "ag-charts-website:generate-examples", "ag-charts-website:generate-thumbnails"],
+      "dependsOn": ["dev:setup"],
       "inputs": [],
       "outputs": [],
       "options": {
