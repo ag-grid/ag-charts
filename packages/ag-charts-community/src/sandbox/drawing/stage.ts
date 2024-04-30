@@ -1,17 +1,18 @@
 import { createElement } from '../../util/dom';
 import { EventEmitter } from '../util/eventEmitter';
 import type { IStage, StageEventMap } from './drawingTypes';
+import { StageLayout } from './stageLayout';
 
 export class Stage implements IStage {
     static ElementClassName = 'ag-chart-wrapper'; // ag-charts-stage
     static ElementStyle = { position: 'relative', userSelect: 'none' };
 
     readonly events = new EventEmitter<StageEventMap>();
+    readonly layout = new StageLayout();
 
     readonly canvas: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D;
     readonly rootElement: HTMLDivElement;
-    readonly rootNode: object;
 
     constructor(
         width: number,
@@ -27,8 +28,6 @@ export class Stage implements IStage {
 
         this.rootElement = createElement('div', Stage.ElementClassName, Stage.ElementStyle);
         this.rootElement.appendChild(this.canvas);
-
-        this.rootNode = {};
     }
 
     get width() {
@@ -47,14 +46,11 @@ export class Stage implements IStage {
         this.context.restore();
     }
 
-    update() {}
-
     resize(width: number, height: number) {
-        if (width === this.width && height === this.height) return;
-
-        this.setCanvasSize(width, height);
-
-        this.events.emit('resize', { width, height });
+        if (width !== this.width || height !== this.height) {
+            this.setCanvasSize(width, height);
+            this.events.emit('resize', this);
+        }
     }
 
     toDataURL(type?: string) {

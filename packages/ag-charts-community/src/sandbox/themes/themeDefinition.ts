@@ -1,4 +1,4 @@
-import { defaultsDeep } from '../util/object';
+import { defaultsDeep } from '../util/object.util';
 import type { IThemeDefinition, IThemeVariables, ThemeName, ThemeVars } from './themeTypes';
 
 export class ThemeDefinition<T extends string, D extends object> implements IThemeDefinition<T> {

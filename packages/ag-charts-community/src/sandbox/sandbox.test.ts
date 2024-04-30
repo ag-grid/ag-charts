@@ -2,7 +2,7 @@ import { describe } from '@jest/globals';
 
 import { DATA_MEAN_SEA_LEVEL } from '../chart/test/data';
 import './bootstrap';
-import { createTestInstance, expectCanvasToMatchImageSnapshot, setupMockCanvas } from './util/testUtil';
+import { createTestInstance, expectCanvasToMatchImageSnapshot, setupMockCanvas } from './util/test.util';
 
 describe('Sandbox tests', () => {
     const canvasContext = setupMockCanvas();

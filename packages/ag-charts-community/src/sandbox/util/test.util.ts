@@ -7,8 +7,8 @@ import { getDocument } from '../../util/dom';
 import { AgCharts, type ChartInstance } from '../agCharts';
 import type { AgChartOptions, IChart, IChartOptions } from '../chart/chartTypes';
 import type { IStage } from '../drawing/drawingTypes';
-import type { Frame } from '../types/commonTypes';
-import { mapValues } from './object';
+import type { BBox } from '../types/commonTypes';
+import { mapValues } from './object.util';
 
 export interface TestInstance<T extends AgChartOptions> extends Omit<ChartInstance<T>, 'chart' | 'options' | 'scene'> {
     chart: IChart<T>;
@@ -46,7 +46,7 @@ export function setupMockCanvas(width = CanvasWidth, height = CanvasHeight) {
 export function expectCanvasToMatchImageSnapshot(
     ctx: mockCanvas.MockContext['ctx'],
     options?: MatchImageSnapshotOptions,
-    bbox?: Frame
+    bbox?: BBox
 ) {
     const imageData = extractImageData(ctx, bbox);
     expect(imageData).toMatchImageSnapshot({
@@ -56,7 +56,7 @@ export function expectCanvasToMatchImageSnapshot(
     });
 }
 
-export function extractImageData({ nodeCanvas }: mockCanvas.MockContext['ctx'], bbox?: Frame) {
+export function extractImageData({ nodeCanvas }: mockCanvas.MockContext['ctx'], bbox?: BBox) {
     let sourceCanvas = nodeCanvas;
 
     if (bbox) {

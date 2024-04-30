@@ -1,6 +1,6 @@
 import { Logger } from '../../util/logger';
 import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from '../../util/type-guards';
-import { joinFormatted } from './string';
+import { joinFormatted } from './string.util';
 
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');

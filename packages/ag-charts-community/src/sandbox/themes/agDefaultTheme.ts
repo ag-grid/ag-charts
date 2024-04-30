@@ -65,8 +65,8 @@ export const themeVars = new ThemeVariables({
 });
 
 export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
-    chart: {
-        allowEmpty: false,
+    chartDefaults: {
+        emptySelection: false,
         padding: [20],
         title: {
             enabled: false,
@@ -75,6 +75,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
             fontSize: themeVars.use('font:sizeLarge'),
             fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
+            margin: (opts: any) => (opts.subtitle?.enabled ? 10 : 20),
         },
         subtitle: {
             enabled: false,
@@ -83,7 +84,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
             fontSize: themeVars.use('font:sizeMedium'),
             fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
-            indent: 20,
+            margin: 20,
         },
         footnote: {
             enabled: false,
@@ -92,7 +93,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
             fontSize: themeVars.use('font:sizeMedium'),
             fontFamily: themeVars.use('font:family'),
             wrapping: 'hyphenate',
-            indent: 20,
+            margin: 20,
         },
         tooltip: {
             enabled: true,
@@ -102,7 +103,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
         legend: {
             enabled: true,
             position: 'bottom',
-            padding: [30],
+            margin: 30,
             item: {
                 padding: [8, 16],
                 marker: { size: 15, padding: [8] },
@@ -119,7 +120,7 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
             fill: '#fff',
         },
     },
-    axis: {
+    axisDefaults: {
         title: {
             enabled: false,
             text: 'Axis Title',
@@ -155,14 +156,14 @@ export const AgDefaultTheme = new ThemeDefinition('ag-default', themeVars, {
             },
         },
     },
-    series: {
+    seriesDefaults: {
         visible: true,
         showInLegend: true,
         tooltip: { enabled: true },
         highlightStyle: {
             item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 2 },
             series: { dimOpacity: 1 },
-            text: { color: 'black' },
+            text: { color: '#000' },
         },
         nodeClickRange: 'exact',
     },

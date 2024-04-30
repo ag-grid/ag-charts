@@ -18,7 +18,7 @@ export type Module =
     | AxisOptionModule<any>
     | SeriesOptionModule<any>;
 
-export type ModuleType = 'axis' | 'series' | 'axis-option' | 'chart-option' | 'series-option';
+export type ModuleType = 'axis' | 'series' | 'layout' | 'axis-option' | 'chart-option' | 'series-option';
 
 export interface ModuleDef<OptionsType extends object, ConstructorType extends IModule = IModule> {
     type: ModuleType;
