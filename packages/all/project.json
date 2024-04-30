@@ -87,14 +87,18 @@
         }
       }
     },
-    "dev:minimal": {
+    "dev:quick": {
       "executor": "nx:run-commands",
       "dependsOn": [],
       "inputs": [],
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["{projectRoot}/watch.sh", "nx run ag-charts-website:dev"]
+        "commands": [
+          "nx run generate-gallery-thumbnail --example=simple-bar",
+          "{projectRoot}/watch.sh",
+          "nx run ag-charts-website:dev"
+        ]
       },
       "configurations": {
         "windows": {
