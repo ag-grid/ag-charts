@@ -57,7 +57,7 @@ export class LayersManager {
     }) {
         const { width, height, pixelRatio } = this.canvas;
         const { zIndex = this.nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
-        const canvas = new HdpiCanvas({ width, height, pixelRatio });
+        const canvas = new HdpiCanvas({ width, height, pixelRatio, position: 'absolute' });
 
         const newLayer: SceneLayer = {
             id: this.nextLayerId++,

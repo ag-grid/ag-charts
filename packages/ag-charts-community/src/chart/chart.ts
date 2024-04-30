@@ -316,7 +316,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.sizeMonitor.observe(this.element, (size) => this.rawResize(size));
 
         const { overrideDevicePixelRatio } = options.specialOverrides;
-        scene ??= new Scene({ pixelRatio: overrideDevicePixelRatio });
+        scene ??= new Scene({ pixelRatio: overrideDevicePixelRatio, canvasPosition: 'absolute' });
         scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
@@ -1150,6 +1150,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 event: sourceEvent,
             });
         }
+        event.consume();
     }
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {

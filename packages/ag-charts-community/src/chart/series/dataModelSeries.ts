@@ -1,7 +1,6 @@
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
-import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
@@ -79,22 +78,13 @@ export abstract class DataModelSeries<
     public abstract getNodeData(): TDatum[] | undefined;
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
-        return this.doPickFocus(opts, this);
-    }
-
-    // The legend behaves differently for Pie and Donut series. We need to use a seriesItemEnabled
-    // array to determine whether a datum has been toggled on/off using the legend.
-    private doPickFocus<TSeries>(
-        opts: PickFocusInputs,
-        derivedSeries: TSeries & { readonly seriesItemEnabled?: readonly boolean[] }
-    ): PickFocusOutputs<TDatum> | undefined {
         const nodeData = this.getNodeData();
         if (nodeData === undefined || nodeData.length === 0) {
             return undefined;
         }
 
         const { datumIndexDelta, seriesRect } = opts;
-        const datumIndex = this.computeFocusDatumIndex(opts, nodeData, derivedSeries.seriesItemEnabled);
+        const datumIndex = this.computeFocusDatumIndex(opts, nodeData);
         if (datumIndex === undefined) {
             return undefined;
         }
@@ -107,22 +97,10 @@ export abstract class DataModelSeries<
         }
     }
 
-    private computeFocusDatumIndex(
-        opts: PickFocusInputs,
-        nodeData: TDatum[],
-        seriesItemEnabled: readonly boolean[] | undefined
-    ): number | undefined {
-        if (seriesItemEnabled && nodeData.length !== seriesItemEnabled.length) {
-            Logger.error(
-                `invalid state: nodeData.length (${nodeData.length} !== seriesItemEnabled.length (${seriesItemEnabled?.length})`
-            );
-        }
+    private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
         const isDatumEnabled = (datumIndex: number): boolean => {
-            const nodeDatum = nodeData[datumIndex];
-            return (
-                (nodeDatum.missing === undefined || nodeDatum.missing === false) &&
-                (seriesItemEnabled === undefined || seriesItemEnabled[datumIndex])
-            );
+            const { missing = false, enabled = true } = nodeData[datumIndex];
+            return !missing && enabled;
         };
         const searchBackward = (datumIndex: number): number | undefined => {
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {

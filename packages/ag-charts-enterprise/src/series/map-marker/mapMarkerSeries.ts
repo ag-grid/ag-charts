@@ -543,59 +543,15 @@ export class MapMarkerSeries
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
     }) {
-        const {
-            id: seriesId,
-            properties,
-            ctx: { callbackCache },
-        } = this;
+        const { properties } = this;
         const { markerSelection, isHighlight, highlightedDatum } = opts;
-        const {
-            idKey,
-            latitudeKey,
-            longitudeKey,
-            labelKey,
-            sizeKey,
-            colorKey,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            formatter,
-        } = properties;
+        const { fill, fillOpacity, stroke, strokeOpacity } = properties;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         markerSelection.each((marker, markerDatum) => {
             const { datum, point } = markerDatum;
-
-            let format: AgSeriesMarkerStyle | undefined;
-            if (formatter != null) {
-                const params: _Util.RequireOptional<AgSeriesMarkerFormatterParams<MapMarkerNodeDatum>> &
-                    _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys> = {
-                    seriesId,
-                    datum: markerDatum.datum,
-                    itemId: markerDatum.itemId,
-                    size: point.size,
-                    idKey,
-                    latitudeKey,
-                    longitudeKey,
-                    labelKey,
-                    sizeKey,
-                    colorKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    highlighted: isHighlight,
-                };
-                format = callbackCache.call(
-                    formatter,
-                    params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
-                        _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
-                );
-            }
-
+            const format: AgSeriesMarkerStyle | undefined = this.getMapMarkerStyle(markerDatum, isHighlight);
             marker.size = point.size;
             marker.fill = highlightStyle?.fill ?? format?.fill ?? markerDatum.fill ?? fill;
             marker.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
@@ -843,7 +799,7 @@ export class MapMarkerSeries
         );
     }
 
-    public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
+    public getMapMarkerStyle(markerDatum: MapMarkerNodeDatum, highlighted: boolean) {
         const {
             id: seriesId,
             properties,
@@ -881,20 +837,21 @@ export class MapMarkerSeries
             stroke,
             strokeWidth,
             strokeOpacity,
-            highlighted: true,
+            highlighted,
         };
         if (formatter !== undefined) {
-            const style: AgSeriesMarkerStyle | undefined = callbackCache.call(
+            return callbackCache.call(
                 formatter,
                 params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
                     _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
             );
-            if (style?.size !== undefined) {
-                return { size: style.size };
-            }
         }
+    }
 
-        return { size: markerDatum.point.size };
+    public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
+        const style = this.getMapMarkerStyle(markerDatum, true);
+        const { size = markerDatum.point.size } = style ?? { size: undefined };
+        return { size };
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {

@@ -6,7 +6,7 @@ export const ZoomModule: _ModuleSupport.Module = {
     type: 'root',
     optionsKey: 'zoom',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'topology'],
+    chartTypes: ['cartesian'],
     dependencies: ['toolbar'],
     instanceConstructor: Zoom,
     themeTemplate: {

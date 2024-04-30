@@ -11,6 +11,7 @@ interface SceneOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
+    canvasPosition?: 'absolute';
 }
 
 export class Scene {
@@ -26,8 +27,14 @@ export class Scene {
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
 
-    constructor({ width, height, pixelRatio }: SceneOptions) {
-        this.canvas = new HdpiCanvas({ width, height, pixelRatio });
+    constructor({ width, height, pixelRatio, canvasPosition }: SceneOptions) {
+        this.canvas = new HdpiCanvas({
+            width,
+            height,
+            pixelRatio,
+            position: canvasPosition,
+            insertAsFirstChild: canvasPosition === 'absolute',
+        });
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });

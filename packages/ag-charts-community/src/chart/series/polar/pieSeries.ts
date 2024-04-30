@@ -88,6 +88,7 @@ interface PieNodeDatum extends SeriesNodeDatum {
     readonly sectorFormat: { [key in keyof Required<AgPieSeriesFormat>]: AgPieSeriesFormat[key] };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
+    enabled: boolean;
 }
 
 enum PieNodeTag {
@@ -348,6 +349,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 innerRadius: Math.max(this.radiusScale.convert(0), 0),
                 outerRadius: Math.max(this.radiusScale.convert(radius), 0),
                 legendItemValue,
+                enabled: this.seriesItemEnabled[index],
                 ...labels,
             };
         });
@@ -1375,6 +1377,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
+        this.nodeData[itemId].enabled = enabled;
         this.nodeDataRefresh = true;
     }
 

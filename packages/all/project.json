@@ -64,7 +64,9 @@
         "parallel": false,
         "commands": [
           "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-examples --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-thumbnails --batch ; fi"
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-thumbnails --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-examples ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-thumbnails ; fi"
         ]
       }
     },
@@ -76,6 +78,29 @@
       "options": {
         "parallel": true,
         "commands": ["{projectRoot}/watch.sh", "nx run ag-charts-website:dev"]
+      },
+      "configurations": {
+        "windows": {
+          "commands": [
+            {
+              "command": "nx run ag-charts-website:dev --configuration watch"
+            }
+          ]
+        }
+      }
+    },
+    "dev:quick": {
+      "executor": "nx:run-commands",
+      "dependsOn": [],
+      "inputs": [],
+      "outputs": [],
+      "options": {
+        "parallel": true,
+        "commands": [
+          "nx run generate-gallery-thumbnail --example=simple-bar",
+          "{projectRoot}/watch.sh",
+          "nx run ag-charts-website:dev"
+        ]
       },
       "configurations": {
         "windows": {

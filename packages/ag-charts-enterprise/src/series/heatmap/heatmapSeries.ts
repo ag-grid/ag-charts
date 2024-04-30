@@ -251,6 +251,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 height,
                 fill,
                 midPoint: { x, y },
+                missing: colorValue == null,
             });
 
             if (labels?.label != null) {

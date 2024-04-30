@@ -229,6 +229,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
+                missing: !_Util.isNumber(angle) || !_Util.isNumber(radius),
             };
         });
 
