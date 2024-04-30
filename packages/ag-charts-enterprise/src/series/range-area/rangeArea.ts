@@ -692,6 +692,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeMarkerFocusBounds(this, opts);
+        const hiBox = computeMarkerFocusBounds(this, opts);
+        const loBox = computeMarkerFocusBounds(this, { ...opts, datumIndex: opts.datumIndex + 1 });
+        if (hiBox && loBox) {
+            return _Scene.BBox.merge([hiBox, loBox]);
+        }
+        return undefined;
     }
 }
