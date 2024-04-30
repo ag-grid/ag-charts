@@ -78,6 +78,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
 
+    public seriesItemEnabled: boolean[] = [];
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -302,6 +304,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lastYHighDatum = yHighValue;
             lastYLowDatum = yLowValue;
         });
+        // "Disable" odd datums, so the keyboard navigator treats upper/lower markers as 1 datum.
+        if (strokeHighPoints.length !== strokeLowPoints.length) {
+            _Util.Logger.error(
+                `strokeHighPoints.length (${strokeHighPoints.length}) !== strokeLowPoints.length (${strokeLowPoints.length})`
+            );
+        }
+        this.seriesItemEnabled.length = strokeHighPoints.length + strokeLowPoints.length;
+        for (let i = 0; i < this.seriesItemEnabled.length; i++) {
+            this.seriesItemEnabled[i] = i % 2 === 0;
+        }
 
         if (fillHighPoints.length > 0) {
             fillHighPoints[0] = createMovePoint(fillHighPoints[0]);
