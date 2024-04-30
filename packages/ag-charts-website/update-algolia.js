@@ -207,6 +207,10 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
                     default: {
                         const contents = currentTag.innerHTML || currentTag.textContent;
 
+                        if (currentTag.nodeName === 'SCRIPT') {
+                            continue;
+                        }
+
                         if (currentTag.nodeName === 'A' && contents.includes('Example: <!-- -->')) {
                             // exclude example runner titles
                             continue;
