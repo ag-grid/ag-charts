@@ -57,7 +57,7 @@ class RangeAreaSeriesNodeEvent<
     }
 }
 
-type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number };
+type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number; enabled: boolean };
 
 type RadarAreaPathDatum = {
     readonly points: RadarAreaPoint[];
@@ -77,8 +77,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override properties = new RangeAreaProperties();
 
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
-
-    public seriesItemEnabled: boolean[] = [];
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -187,10 +185,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const x = xScale.convert(xValue) + xOffset;
             const yHighCoordinate = yScale.convert(yHigh);
             const yLowCoordinate = yScale.convert(yLow);
+            const { size } = marker;
 
             return [
-                { point: { x, y: yHighCoordinate }, size: marker.size, itemId: `high`, yValue: yHigh, xValue },
-                { point: { x, y: yLowCoordinate }, size: marker.size, itemId: `low`, yValue: yLow, xValue },
+                { point: { x, y: yHighCoordinate }, size, itemId: `high`, yValue: yHigh, xValue, enabled: true },
+                { point: { x, y: yLowCoordinate }, size, itemId: `low`, yValue: yLow, xValue, enabled: false },
             ];
         };
 
@@ -231,7 +230,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue);
 
             const inverted = yLowValue > yHighValue;
-            points.forEach(({ point: { x, y }, size, itemId: datumItemId = '', yValue }) => {
+            points.forEach(({ point: { x, y }, enabled, size, itemId: datumItemId = '', yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,
@@ -246,6 +245,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     yLowKey,
                     yHighKey,
                     point: { x, y, size },
+                    enabled,
                 });
 
                 // label data
@@ -304,16 +304,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lastYHighDatum = yHighValue;
             lastYLowDatum = yLowValue;
         });
-        // "Disable" odd datums, so the keyboard navigator treats upper/lower markers as 1 datum.
-        if (strokeHighPoints.length !== strokeLowPoints.length) {
-            _Util.Logger.error(
-                `strokeHighPoints.length (${strokeHighPoints.length}) !== strokeLowPoints.length (${strokeLowPoints.length})`
-            );
-        }
-        this.seriesItemEnabled.length = strokeHighPoints.length + strokeLowPoints.length;
-        for (let i = 0; i < this.seriesItemEnabled.length; i++) {
-            this.seriesItemEnabled[i] = i % 2 === 0;
-        }
 
         if (fillHighPoints.length > 0) {
             fillHighPoints[0] = createMovePoint(fillHighPoints[0]);

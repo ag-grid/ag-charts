@@ -14,6 +14,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
     readonly yLowValue: number;
     readonly yHighValue: number;
     readonly point: Readonly<_Scene.SizedPoint>;
+    readonly enabled: boolean;
 }
 
 const { DropShadow, Label } = _Scene;

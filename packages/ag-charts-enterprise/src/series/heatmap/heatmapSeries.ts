@@ -79,8 +79,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     readonly colorScale = new ColorScale();
 
-    private seriesItemEnabled: boolean[] = [];
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -204,8 +202,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const verticalAlignFactor = (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign];
 
         const sizeFittingHeight = () => ({ width, height, meta: null });
-        const { seriesItemEnabled } = this;
-        seriesItemEnabled.length = 0;
 
         for (const { values, datum } of this.processedData?.data ?? []) {
             const xDatum = values[xDataIdx];
@@ -215,7 +211,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
             const colorValue = values[colorDataIdx ?? -1];
             const fill = colorScaleValid && colorValue != null ? this.colorScale.convert(colorValue) : colorRange[0];
-            seriesItemEnabled.push(colorValue != null);
 
             const labelText =
                 colorValue == null
@@ -256,6 +251,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 height,
                 fill,
                 midPoint: { x, y },
+                missing: colorValue == null,
             });
 
             if (labels?.label != null) {

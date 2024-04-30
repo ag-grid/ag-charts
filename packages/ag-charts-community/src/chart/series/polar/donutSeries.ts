@@ -91,6 +91,7 @@ interface DonutNodeDatum extends SeriesNodeDatum {
     readonly sectorFormat: { [key in keyof Required<AgDonutSeriesFormat>]: AgDonutSeriesFormat[key] };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
+    enabled: boolean;
 }
 
 enum PieNodeTag {
@@ -358,6 +359,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 innerRadius: Math.max(this.radiusScale.convert(0), 0),
                 outerRadius: Math.max(this.radiusScale.convert(radius), 0),
                 legendItemValue,
+                enabled: this.seriesItemEnabled[index],
                 ...labels,
             };
         });
@@ -1376,6 +1378,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
+        this.nodeData[itemId].enabled = enabled;
         this.nodeDataRefresh = true;
     }
 
