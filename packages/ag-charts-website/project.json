@@ -11,6 +11,7 @@
         "^production",
         "production",
         "!{projectRoot}/vitest.config.mjs",
+        "{workspaceRoot}/external/ag-website-shared/**",
         {
           "externalDependencies": ["npm:astro"]
         },
