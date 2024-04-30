@@ -1,4 +1,4 @@
-import { Matrix } from '../../scene/matrix';
+import { Matrix } from './matrix';
 
 export class TransformMatrix {
     constructor(

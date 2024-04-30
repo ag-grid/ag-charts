@@ -2,11 +2,11 @@ import type { BBox, DirectionMetrics } from '../types/commonTypes';
 import { Direction } from '../types/enums';
 import { LayoutHierarchy } from './drawingEnums';
 import type { IStage, IStageLayout, StageBlock } from './drawingTypes';
+import type { SpatialNode } from './nodes/spatialNode';
 import { TextNode } from './nodes/textNode';
-import type { TreeNode } from './nodes/treeNode';
 
 export class StageLayout implements IStageLayout {
-    readonly childMap = new Map<TreeNode, StageBlock>();
+    readonly childMap = new Map<SpatialNode, StageBlock>();
 
     readonly title = this.registerBlock(new TextNode(), Direction.Top, LayoutHierarchy.Title);
     readonly subtitle = this.registerBlock(new TextNode(), Direction.Top, LayoutHierarchy.Subtitle);
@@ -24,17 +24,42 @@ export class StageLayout implements IStageLayout {
         const children = Array.from(this.childMap).sort((a, b) => a[1].order - b[1].order);
         for (const [child, block] of children) {
             if (block.enabled === false) continue;
-            this.render(child, block.margin, availableBox);
+            this.divideBlock(child, block, availableBox);
+            this.renderBlock(child);
         }
         return availableBox;
     }
 
-    registerBlock(node: TreeNode, position: Direction, order: LayoutHierarchy, margin: number = 0) {
+    registerBlock(node: SpatialNode, position: Direction, order: LayoutHierarchy, margin: number = 0) {
         this.childMap.set(node, { position, order, margin });
         return node;
     }
 
-    private render(_node: TreeNode, _margin: number, _availableBox: BBox) {
+    private divideBlock(node: SpatialNode, block: StageBlock, availableBox: BBox) {
+        const { width, height } = node.getSize();
+
+        switch (block.position) {
+            case Direction.Top:
+                availableBox.y += height + block.margin;
+                availableBox.height -= height + block.margin;
+                break;
+
+            case Direction.Left:
+                availableBox.x += width + block.margin;
+                availableBox.width -= width + block.margin;
+                break;
+
+            case Direction.Bottom:
+                availableBox.height -= height + block.margin;
+                break;
+
+            case Direction.Right:
+                availableBox.width -= width + block.margin;
+                break;
+        }
+    }
+
+    private renderBlock(_node: SpatialNode) {
         // render node and reduce available size
     }
 }
