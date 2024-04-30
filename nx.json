@@ -1,9 +1,6 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "plugins": ["./plugins/ag-charts-task-autogen"],
-  "affected": {
-    "defaultBase": "latest"
-  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "defaultExcludes": [
@@ -154,5 +151,6 @@
     "libsDir": "libraries"
   },
   "nxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
-  "defaultProject": "all"
+  "defaultProject": "all",
+  "defaultBase": "latest"
 }
