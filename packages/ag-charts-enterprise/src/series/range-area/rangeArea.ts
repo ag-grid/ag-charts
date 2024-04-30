@@ -57,7 +57,7 @@ class RangeAreaSeriesNodeEvent<
     }
 }
 
-type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number };
+type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number; enabled: boolean };
 
 type RadarAreaPathDatum = {
     readonly points: RadarAreaPoint[];
@@ -185,10 +185,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const x = xScale.convert(xValue) + xOffset;
             const yHighCoordinate = yScale.convert(yHigh);
             const yLowCoordinate = yScale.convert(yLow);
+            const { size } = marker;
 
             return [
-                { point: { x, y: yHighCoordinate }, size: marker.size, itemId: `high`, yValue: yHigh, xValue },
-                { point: { x, y: yLowCoordinate }, size: marker.size, itemId: `low`, yValue: yLow, xValue },
+                { point: { x, y: yHighCoordinate }, size, itemId: `high`, yValue: yHigh, xValue, enabled: true },
+                { point: { x, y: yLowCoordinate }, size, itemId: `low`, yValue: yLow, xValue, enabled: false },
             ];
         };
 
@@ -229,7 +230,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue);
 
             const inverted = yLowValue > yHighValue;
-            points.forEach(({ point: { x, y }, size, itemId: datumItemId = '', yValue }) => {
+            points.forEach(({ point: { x, y }, enabled, size, itemId: datumItemId = '', yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,
@@ -244,6 +245,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     yLowKey,
                     yHighKey,
                     point: { x, y, size },
+                    enabled,
                 });
 
                 // label data
@@ -680,6 +682,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeMarkerFocusBounds(this, opts);
+        const hiBox = computeMarkerFocusBounds(this, opts);
+        const loBox = computeMarkerFocusBounds(this, { ...opts, datumIndex: opts.datumIndex + 1 });
+        if (hiBox && loBox) {
+            return _Scene.BBox.merge([hiBox, loBox]);
+        }
+        return undefined;
     }
 }
