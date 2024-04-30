@@ -28,7 +28,13 @@ export class Scene {
     private pendingSize?: [number, number];
 
     constructor({ width, height, pixelRatio, canvasPosition }: SceneOptions) {
-        this.canvas = new HdpiCanvas({ width, height, pixelRatio, position: canvasPosition });
+        this.canvas = new HdpiCanvas({
+            width,
+            height,
+            pixelRatio,
+            position: canvasPosition,
+            insertAsFirstChild: canvasPosition === 'absolute',
+        });
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });

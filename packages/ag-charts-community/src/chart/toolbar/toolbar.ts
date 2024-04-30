@@ -115,8 +115,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
-            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
+            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            () => this.destroyElements()
         );
+    }
+
+    private destroyElements() {
+        for (const element of Object.values(this.elements)) {
+            element.remove();
+        }
     }
 
     private onHover(event: PointerInteractionEvent<'hover'>) {

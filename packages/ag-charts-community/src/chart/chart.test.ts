@@ -455,9 +455,9 @@ describe('Chart', () => {
         async function createSeriesTestChart(options: object) {
             const chartOptions = prepareTestOptions(options);
             const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
-            const chartInstance = deproxy(chartProxy);
-            await waitForChartStability(chartInstance);
-            return { chartInstance, chartProxy, chartOptions };
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+            return { chartProxy, chartOptions };
         }
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
@@ -469,7 +469,7 @@ describe('Chart', () => {
         it('Chart data inherited only when Series data is not defined ', async () => {
             const moreData = datasets.economy.data;
             const lessData = datasets.economy.data.slice(0, 2);
-            const { chartInstance, chartProxy } = await createSeriesTestChart({
+            const { chartProxy } = await createSeriesTestChart({
                 data: moreData,
                 series: [
                     {
@@ -485,9 +485,9 @@ describe('Chart', () => {
                     },
                 ],
             });
-            expect(chartInstance.data).toEqual(moreData);
-            expect(chartInstance.series[0].data).toEqual(moreData);
-            expect(chartInstance.series[1].data).toEqual(lessData);
+            expect(chart.data).toEqual(moreData);
+            expect(chart.series[0].data).toEqual(moreData);
+            expect(chart.series[1].data).toEqual(lessData);
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -506,9 +506,9 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chartInstance.data).toEqual(moreData);
-            expect(chartInstance.series[0].data).toEqual(lessData);
-            expect(chartInstance.series[1].data).toEqual(moreData);
+            expect(chart.data).toEqual(moreData);
+            expect(chart.series[0].data).toEqual(lessData);
+            expect(chart.series[1].data).toEqual(moreData);
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -526,8 +526,79 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chartInstance.series[0].data).toEqual(chartInstance.data);
-            expect(chartInstance.series[1].data).toEqual(chartInstance.data);
+            expect(chart.series[0].data).toEqual(chart.data);
+            expect(chart.series[1].data).toEqual(chart.data);
+        });
+    });
+
+    describe('Chart lifecycle', () => {
+        let agChartInstance: AgChartProxy;
+
+        beforeEach(async () => {
+            const options: AgCartesianChartOptions | AgPolarChartOptions = prepareTestOptions({
+                container: document.body,
+                autoSize: false,
+                series: [
+                    {
+                        type: 'line',
+                        data: datasets.economy.data,
+                        xKey: datasets.economy.categoryKey,
+                        yKey: datasets.economy.valueKey,
+                    },
+                ],
+            });
+            agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+        });
+
+        afterEach(() => {
+            agChartInstance = undefined as any;
+        });
+
+        it('should setup DOM on create', async () => {
+            const elements = document.querySelectorAll('.ag-chart-wrapper');
+            expect(elements.length).toEqual(1);
+
+            expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus')).toHaveLength(2);
+            expect(elements[0].querySelectorAll('.ag-charts-focus__wrapper')).toHaveLength(1);
+        });
+
+        it('should cleanup DOM on destroy()', async () => {
+            agChartInstance.destroy();
+
+            const elements = document.querySelectorAll('.ag-chart-wrapper');
+            expect(elements.length).toEqual(0);
+
+            expect(document.querySelectorAll('canvas')).toHaveLength(0);
+            expect(document.querySelectorAll('.ag-charts-focus')).toHaveLength(0);
+            expect(document.querySelectorAll('.ag-charts-focus__wrapper')).toHaveLength(0);
+            expect(document.querySelectorAll('div')).toHaveLength(0);
+        });
+
+        it('should cleanup DOM on chart-type switch', async () => {
+            const options: AgCartesianChartOptions | AgPolarChartOptions = prepareTestOptions({
+                container: document.body,
+                autoSize: false,
+                series: [
+                    {
+                        type: 'pie',
+                        data: datasets.economy.data,
+                        calloutLabelKey: datasets.economy.categoryKey,
+                        angleKey: datasets.economy.valueKey,
+                    },
+                ],
+            });
+            AgCharts.update(agChartInstance, options);
+            await waitForChartStability(agChartInstance);
+
+            const elements = document.querySelectorAll('.ag-chart-wrapper');
+            expect(elements).toHaveLength(1);
+
+            expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus__wrapper')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-toolbar')).toHaveLength(0);
         });
     });
 });
