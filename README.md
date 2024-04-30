@@ -13,7 +13,7 @@
 
 AG Charts is a fully-featured and highly customizable JavaScript charting library. The professional choice for developers building enterprise applications.
 
-It delivers outstanding performance, has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/javascript/quick-start?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
+It delivers outstanding performance, has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/javascript/supported-frameworks/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
 
 ## Examples
 
@@ -62,6 +62,7 @@ Here are some of the features that make AG Charts stand out:
             </td>
             <td>
                 <a href="https://charts.ag-grid.com/javascript/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Animation</a>*<br/>
+                <a href="https://charts.ag-grid.com/javascript/accessibility/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Accessibility</a><br/>
                 <a href="https://charts.ag-grid.com/javascript/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Synchronized Charts</a>*<br/>
                 <a href="https://charts.ag-grid.com/javascript/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Context Menu</a>*<br/>
                 <a href="https://charts.ag-grid.com/javascript/axes-crosshairs/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Crosshairs</a>*<br/>
