@@ -66,7 +66,7 @@ function toAccessibleText(inputHtml: string): string {
     return inputHtml
         .replace(/<br\s*\/?>/g, lineConverter)
         .replace(/<\/p\s+>/g, lineConverter)
-        .replace(/<\/li\s*\/>/g, lineConverter)
+        .replace(/<\/li\s*>/g, lineConverter)
         .replace(/<[^>]+>/g, '');
 }
 
