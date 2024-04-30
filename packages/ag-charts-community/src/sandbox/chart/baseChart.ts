@@ -92,8 +92,8 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
         this.dataPipeline.processData(fullOptions.data);
 
-        console.log({ axes, series, keysMap });
-        console.log(this.dataPipeline.getResults());
+        // console.log({ axes, series, keysMap });
+        // console.log(this.dataPipeline.getResults());
 
         // if (fullOptions.axes ?? DefaultAxes) {
         // 'x' and 'y' represent the values inside `xKey` and `yKey`

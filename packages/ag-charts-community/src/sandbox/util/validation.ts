@@ -40,13 +40,19 @@ export function isValid<T extends object>(options: T, optionsDefs: OptionsDefs<T
     for (const { message } of errors) {
         Logger.warn(message);
     }
-    return errors.length > 0;
+    return errors.length === 0;
 }
 
 export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
-    const extendPath = (key: string) => (isArray(optionsDefs) ? `${path}[${key}]` : path ? `${path}.${key}` : key);
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
+
+    function extendPath(key: string) {
+        if (isArray(optionsDefs)) {
+            return `${path}[${key}]`;
+        }
+        return path ? `${path}.${key}` : key;
+    }
 
     for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
         optionsKeys.delete(key);
@@ -82,16 +88,27 @@ export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<
 }
 
 export function stringifyValue(value: any, maxLength = Infinity): string {
-    if (typeof value === 'number') {
-        if (isNaN(value)) return 'NaN';
-        if (value === Infinity) return 'Infinity';
-        if (value === -Infinity) return '-Infinity';
+    switch (typeof value) {
+        case 'undefined':
+            return 'undefined';
+
+        case 'number':
+            if (isNaN(value)) {
+                return 'NaN';
+            } else if (value === Infinity) {
+                return 'Infinity';
+            } else if (value === -Infinity) {
+                return '-Infinity';
+            }
+        // fallthrough
+
+        default:
+            value = JSON.stringify(value);
+            if (value.length > maxLength) {
+                return `${value.slice(0, maxLength)}... (+${value.length - maxLength} characters)`;
+            }
+            return value;
     }
-    value = JSON.stringify(value);
-    if (value.length > maxLength) {
-        return `${value.slice(0, maxLength)}... (+${value.length - maxLength} characters)`;
-    }
-    return value;
 }
 
 /**
