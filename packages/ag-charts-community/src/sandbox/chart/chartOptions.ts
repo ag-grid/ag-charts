@@ -1,7 +1,7 @@
 import { chartOptionsDef } from '../defs/chartOptionsDef';
 import { moduleRegistry } from '../modules/moduleRegistry';
 import type { ChartType } from '../types/enums';
-import { defaultsDeep, difference, freezeDeep } from '../util/object';
+import { defaultsDeep, difference, freezeDeep } from '../util/object.util';
 import { isValid } from '../util/validation';
 import type { AgChartOptions, IChartOptions } from './chartTypes';
 
