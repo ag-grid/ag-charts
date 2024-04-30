@@ -1,5 +1,5 @@
 import { type CartesianChartAxes, CartesianCoordinate } from '../axes/axesTypes';
-import type { CartesianAxis } from '../axes/baseAxis';
+import type { CartesianAxis } from '../axes/cartesianAxis';
 import { Direction } from '../types/enums';
 import { BaseChart } from './baseChart';
 import type { CartesianChartOptions } from './chartTypes';
