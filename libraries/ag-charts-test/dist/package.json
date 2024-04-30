@@ -1,0 +1,11 @@
+{
+  "name": "ag-charts-test",
+  "version": "9.2.1-beta.20240417.1115",
+  "dependencies": {
+    "canvas": "^2.10.2",
+    "tslib": "^2.3.0"
+  },
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./dist/src/index.d.ts"
+}

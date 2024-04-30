@@ -1,0 +1,49 @@
+{
+  "name": "ag-charts-vue",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "packages/ag-charts-vue/src",
+  "targets": {
+    "build": {
+      "dependsOn": ["ag-charts-community:build:types"],
+      "inputs": ["{projectRoot}/(vue|postcss).config.js", "{projectRoot}/src/**", "{projectRoot}/main.(js|d.ts)"],
+      "outputs": ["{projectRoot}/dist"],
+      "command": "tsc -p tsconfig-lib.json && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib src/AgChartsVue.ts",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
+    "pack": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "options": {
+        "cwd": "packages/ag-charts-vue",
+        "parallel": false,
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-vue.tgz"]
+      }
+    },
+    "pack:extract": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack"],
+      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue/"],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "mkdir -p dist/packages/contents/ag-charts-vue",
+          "tar -xzf dist/packages/ag-charts-vue.tgz -C dist/packages/contents/ag-charts-vue/"
+        ]
+      }
+    },
+    "pack:verify": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack:extract"],
+      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue/"],
+      "options": {
+        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-vue/package"]
+      }
+    }
+  },
+  "tags": ["fw"]
+}

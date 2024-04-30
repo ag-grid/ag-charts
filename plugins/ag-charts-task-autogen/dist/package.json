@@ -1,0 +1,14 @@
+{
+  "name": "ag-charts-task-autogen",
+  "version": "9.0.1-beta.20231211",
+  "private": true,
+  "dependencies": {
+    "@nx/devkit": "^18.0.4",
+    "nx": "^18.0.4",
+    "tslib": "^2.3.0"
+  },
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts",
+  "executors": "./executors.json"
+}
