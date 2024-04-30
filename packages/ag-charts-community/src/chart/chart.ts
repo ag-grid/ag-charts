@@ -1150,6 +1150,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 event: sourceEvent,
             });
         }
+        event.consume();
     }
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {

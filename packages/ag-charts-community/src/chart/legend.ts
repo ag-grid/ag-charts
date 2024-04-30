@@ -1018,7 +1018,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private onSubmit(_event: KeyNavEvent<'submit'>) {
+    private onSubmit(event: KeyNavEvent<'submit'>) {
         if (this.focus.mode === 'item') {
             this.doClick(this.getFocusedItem().datum);
         } else if (this.focus.mode === 'page') {
@@ -1028,6 +1028,7 @@ export class Legend extends BaseProperties {
                 `Legend page ${this.pagination.currentPage + 1} of ${this.pages.length}`
             );
         }
+        event.consume();
     }
 
     private maybeChangeFocusPage() {
