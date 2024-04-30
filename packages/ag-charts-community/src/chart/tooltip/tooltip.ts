@@ -69,7 +69,7 @@ function toAccessibleText(inputHtml: string): string {
         .replace(/<\/li\s*>/g, lineConverter)
         .replace(/<[^>]+>/g, '')
         .replace(/\n+/g, ' ')
-        .replace(/\s+/g, ' ')
+        .replace(/\s+/g, ' ');
 }
 
 export function toTooltipHtml(
