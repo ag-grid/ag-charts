@@ -1,1 +1,0 @@
-export { RadiusCategoryAxisModule } from './radiusCategoryAxisModule';

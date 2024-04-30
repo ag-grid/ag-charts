@@ -1,1 +1,0 @@
-export { AngleNumberAxisModule } from './angleNumberAxisModule';

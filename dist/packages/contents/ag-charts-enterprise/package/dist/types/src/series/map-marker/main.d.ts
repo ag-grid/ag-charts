@@ -1,1 +1,0 @@
-export { MapMarkerModule } from './mapMarkerModule';
