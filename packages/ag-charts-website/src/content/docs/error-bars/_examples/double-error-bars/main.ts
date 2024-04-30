@@ -49,8 +49,8 @@ function customTooltipRenderer(params: AgLineSeriesTooltipRendererParams) {
 
     const content = `
         <ul style="margin-left: -25px;">
-            <li><b>Expiry</b>: ${expiryLower} - ${expiryUpper} months</li>
-            <li><b>Price</b>: £${priceLower} - £${priceUpper}</li>
+            <li><b>Expiry</b>: ${expiryLower} to ${expiryUpper} months</li>
+            <li><b>Price</b>: ${priceLower} to ${priceUpper} pounds</li>
         </ul>
     `;
 
