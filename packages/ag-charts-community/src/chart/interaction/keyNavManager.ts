@@ -88,7 +88,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         } else {
             const delta = this.getBrowserFocusDelta();
             this.dispatch('browserfocus', delta, event);
-            this.dispatch('tab', 0, event);
+            this.dispatch('tab', delta, event);
         }
     }
 
