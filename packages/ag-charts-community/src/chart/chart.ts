@@ -18,7 +18,9 @@ import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { setAttribute } from '../util/attributeUtil';
 import { Debug } from '../util/debug';
-import { createElement, injectStyle } from '../util/dom';
+import { createElement, getDocument, injectStyle } from '../util/dom';
+import { GuardedElement } from '../util/guardedElement';
+import type { GuardedElementProperties } from '../util/guardedElement';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
@@ -78,7 +80,11 @@ import type { UpdateOpts } from './updateService';
 
 const debug = Debug.create(true, 'opts');
 
-export type TransferableResources = { container?: HTMLElement; scene: Scene; element: HTMLElement };
+export type TransferableResources = {
+    container?: HTMLElement;
+    scene: Scene;
+    wrapper: GuardedElementProperties;
+};
 
 type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
@@ -129,6 +135,16 @@ class SeriesArea extends BaseProperties {
     padding = new Padding(0);
 }
 
+export class GuardedAgChartsWrapperElement extends GuardedElement {
+    constructor(props: GuardedElementProperties | undefined) {
+        super(
+            props?.element ?? createElement('div', 'ag-chart-wrapper', { position: 'relative', userSelect: 'none' }),
+            props?.topTabGuard ?? getDocument().createElement('div'),
+            props?.botTabGuard ?? getDocument().createElement('div')
+        );
+    }
+}
+
 export abstract class Chart extends Observable implements AgChartInstance {
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
@@ -166,12 +182,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (this.destroyed) return;
 
             value.setAttribute('data-ag-charts', '');
-            value.appendChild(this.element);
+            value.appendChild(this.wrapper.topTabGuard);
+            value.appendChild(this.wrapper.element);
+            value.appendChild(this.wrapper.botTabGuard);
             Chart.chartsInstances.set(value, this);
         },
         oldValue(value: HTMLElement) {
             value.removeAttribute('data-ag-charts');
-            value.removeChild(this.element);
+            value.removeChild(this.wrapper.topTabGuard);
+            value.removeChild(this.wrapper.element);
+            value.removeChild(this.wrapper.botTabGuard);
             Chart.chartsInstances.delete(value);
         },
     })
@@ -215,7 +235,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private _firstAutoSize = true;
 
     private onAutoSizeChange(value: boolean) {
-        const { style } = this.element;
+        const { style } = this.wrapper.element;
         if (value) {
             style.display = 'block';
             style.width = '100%';
@@ -291,12 +311,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.chartOptions = options;
 
         let scene: Scene | undefined = resources?.scene;
-        const element =
-            resources?.element ??
-            createElement('div', 'ag-chart-wrapper', { position: 'relative', userSelect: 'none' });
         const container = resources?.container;
 
-        this.element = element;
+        this.wrapper = new GuardedAgChartsWrapperElement(resources?.wrapper);
 
         const root = new Group({ name: 'root' });
         // Prevent the scene from rendering chart components in an invalid state
@@ -313,11 +330,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         root.appendChild(this.axisGroup);
 
         this.sizeMonitor = new SizeMonitor();
-        this.sizeMonitor.observe(this.element, (size) => this.rawResize(size));
+        this.sizeMonitor.observe(this.wrapper.element, (size) => this.rawResize(size));
 
         const { overrideDevicePixelRatio } = options.specialOverrides;
         scene ??= new Scene({ pixelRatio: overrideDevicePixelRatio, canvasPosition: 'absolute' });
-        scene.setRoot(root).setContainer(element);
+        scene.setRoot(root).setContainer(this.wrapper.element);
         this.autoSize = true;
 
         this.tooltip = new Tooltip();
@@ -325,7 +342,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             syncManager: new SyncManager(this),
-            element,
+            wrapper: this.wrapper,
             updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
@@ -437,12 +454,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.processors.forEach((p) => p.destroy());
         this.tooltip.destroy();
         this.overlays.destroy();
-        this.sizeMonitor.unobserve(this.element);
+        this.sizeMonitor.unobserve(this.wrapper.element);
         this.modulesManager.destroy();
 
         if (keepTransferableResources) {
             this.ctx.scene.strip();
-            result = { container: this.container, scene: this.ctx.scene, element: this.element };
+            // The wrapper object is going to get destroyed. So to be safe, copy its properties.
+            const { element, topTabGuard, botTabGuard } = this.wrapper;
+            result = {
+                container: this.container,
+                scene: this.ctx.scene,
+                wrapper: { element, topTabGuard, botTabGuard },
+            };
         } else {
             this.ctx.scene.destroy();
             this.container = undefined;
@@ -459,6 +482,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.ctx.destroy();
         this.zoomManager.destroy();
+        this.wrapper.destroy();
         this.destroyed = true;
 
         Object.freeze(this);
@@ -656,7 +680,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private updateThemeClassName() {
         const {
-            element,
+            wrapper: { element },
             processedOptions: { theme },
         } = this;
 
@@ -691,7 +715,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.updateThemeClassName();
 
         const { enabled, tabIndex } = this.keyboard;
-        this.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
+        this.wrapper.tabIndex = enabled ? tabIndex ?? 0 : -1;
 
         setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
         setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
@@ -742,7 +766,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return true;
     }
 
-    readonly element: HTMLElement;
+    readonly wrapper: GuardedElement;
 
     @ActionOnSet<Chart>({
         changeValue(newValue, oldValue) {

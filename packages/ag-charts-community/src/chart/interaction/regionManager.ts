@@ -1,5 +1,6 @@
 import type { BBox } from '../../scene/bbox';
 import { getDocument, injectStyle } from '../../util/dom';
+import type { GuardedElement } from '../../util/guardedElement';
 import { Listeners } from '../../util/listeners';
 import { buildConsumable } from './consumableEvent';
 import * as focusStyles from './focusStyles';
@@ -62,7 +63,7 @@ export class RegionManager {
         private readonly interactionManager: InteractionManager,
         private readonly keyNavManager: KeyNavManager,
         private readonly canvasElement: HTMLCanvasElement,
-        element: HTMLElement
+        wrapper: GuardedElement
     ) {
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
@@ -80,7 +81,7 @@ export class RegionManager {
         this.focusWrapper = getDocument().createElement('div');
         this.focusIndicator = getDocument().createElement('div');
         this.focusWrapper.appendChild(this.focusIndicator);
-        element.appendChild(this.focusWrapper);
+        wrapper.element.appendChild(this.focusWrapper);
 
         const { block, elements, modifiers } = focusStyles;
         this.focusWrapper.classList.add(block, elements.wrapper);
