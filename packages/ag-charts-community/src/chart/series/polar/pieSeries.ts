@@ -488,10 +488,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         };
     }
 
-    override getInnerRadius() {
-        return 0;
-    }
-
     getOuterRadius() {
         return Math.max(this.radius * this.properties.outerRadiusRatio + this.properties.outerRadiusOffset, 0);
     }

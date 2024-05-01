@@ -1,6 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { DonutSeries } from './donutSeries';
-import { piePaletteFactory, pieTheme } from './pieTheme';
+import { donutTheme } from './donutTheme';
+import { piePaletteFactory } from './pieTheme';
 
 export const DonutSeriesModule: SeriesModule<'donut'> = {
     type: 'series',
@@ -10,6 +11,6 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
 
     identifier: 'donut',
     instanceConstructor: DonutSeries,
-    themeTemplate: pieTheme,
+    themeTemplate: donutTheme,
     paletteFactory: piePaletteFactory,
 };

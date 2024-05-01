@@ -96,13 +96,14 @@ export class PolarChart extends Chart {
                 series.radius = r;
             });
 
-            const seriesWithInnerRadius = polarSeries
-                .map((series) => ({ series, innerRadius: series.getInnerRadius() }))
-                .filter(
-                    (d): d is { series: (typeof polarSeries)[number]; innerRadius: number } => d.innerRadius != null
-                );
-            if (seriesWithInnerRadius.length > 1) {
-                const innerRadii = seriesWithInnerRadius.sort((a, b) => a.innerRadius - b.innerRadius);
+            const pieSeries = polarSeries.filter((s) => s.type === 'donut' || s.type === 'pie');
+            if (pieSeries.length > 1) {
+                const innerRadii = pieSeries
+                    .map((series) => {
+                        const innerRadius = series.getInnerRadius();
+                        return { series, innerRadius };
+                    })
+                    .sort((a, b) => a.innerRadius - b.innerRadius);
                 innerRadii.at(-1)!.series.surroundingRadius = undefined;
                 for (let i = 0; i < innerRadii.length - 1; i++) {
                     innerRadii[i].series.surroundingRadius = innerRadii[i + 1].innerRadius;
