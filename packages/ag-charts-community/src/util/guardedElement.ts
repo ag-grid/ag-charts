@@ -7,7 +7,6 @@ export type GuardedElementProperties = {
 export class GuardedElement implements GuardedElementProperties {
     private destroyFns: (() => void)[] = [];
 
-    public guardEvent?: FocusEvent;
     public guardTarget?: HTMLElement;
 
     constructor(
@@ -16,10 +15,10 @@ export class GuardedElement implements GuardedElementProperties {
         public readonly botTabGuard: HTMLElement
     ) {
         this.tabIndex = 0;
-        this.initEventListener(this.element, 'blur', (ev) => this.onBlur(ev));
-        this.initEventListener(this.element, 'focus', (ev) => this.onFocus(ev));
-        this.initEventListener(this.topTabGuard, 'focus', (ev) => this.onTabStart(ev, this.topTabGuard));
-        this.initEventListener(this.botTabGuard, 'focus', (ev) => this.onTabStart(ev, this.botTabGuard));
+        this.initEventListener(this.element, 'blur', () => this.onBlur());
+        this.initEventListener(this.element, 'focus', () => this.onFocus());
+        this.initEventListener(this.topTabGuard, 'focus', () => this.onTabStart(this.topTabGuard));
+        this.initEventListener(this.botTabGuard, 'focus', () => this.onTabStart(this.botTabGuard));
     }
 
     set tabIndex(index: number) {
@@ -33,23 +32,20 @@ export class GuardedElement implements GuardedElementProperties {
         this.destroyFns.length = 0;
     }
 
-    private initEventListener(elem: HTMLElement, type: 'focus' | 'blur', handler: (ev: FocusEvent) => void) {
+    private initEventListener(elem: HTMLElement, type: 'focus' | 'blur', handler: () => void) {
         elem.addEventListener(type, handler);
         this.destroyFns.push(() => elem.removeEventListener(type, handler));
     }
 
-    private onBlur(event: FocusEvent) {
-        this.guardEvent = event;
-        this.guardTarget = this.element;
+    private onBlur() {
         this.tabIndex = 0;
     }
 
-    private onFocus(_event: FocusEvent) {
+    private onFocus() {
         this.tabIndex = -1;
     }
 
-    private onTabStart(event: FocusEvent, target: HTMLElement) {
-        this.guardEvent = event;
+    private onTabStart(target: HTMLElement) {
         this.guardTarget = target;
         this.element.focus();
     }
