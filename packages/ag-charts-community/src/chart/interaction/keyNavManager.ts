@@ -1,3 +1,4 @@
+import type { GuardedElement } from '../../util/guardedElement';
 import { BaseManager } from './baseManager';
 import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
@@ -25,7 +26,10 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isMouseBlurred: boolean = false;
     private isClicking: boolean = false;
 
-    constructor(interactionManager: InteractionManager) {
+    constructor(
+        interactionManager: InteractionManager,
+        private readonly wrapper: GuardedElement
+    ) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
@@ -43,6 +47,13 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
 
     public override destroy() {
         super.destroy();
+    }
+
+    private getBrowserFocusDelta(): -1 | 0 | 1 {
+        const { guardTarget, topTabGuard, botTabGuard } = this.wrapper;
+        if (guardTarget === topTabGuard) return 1;
+        if (guardTarget === botTabGuard) return -1;
+        return 0;
     }
 
     private onClickStart(event: PointerInteractionEvent<'drag-start'>) {
@@ -75,7 +86,8 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         if (this.isClicking) {
             this.isMouseBlurred = true;
         } else {
-            this.dispatch('browserfocus', 1, event);
+            const delta = this.getBrowserFocusDelta();
+            this.dispatch('browserfocus', delta, event);
             this.dispatch('tab', 0, event);
         }
     }
