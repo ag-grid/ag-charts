@@ -6,8 +6,6 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { Layers } from './layers';
-import { DonutSeries } from './series/polar/donutSeries';
-import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
 
 export class PolarChart extends Chart {
@@ -98,16 +96,13 @@ export class PolarChart extends Chart {
                 series.radius = r;
             });
 
-            const pieSeries = polarSeries.filter<PieSeries | DonutSeries>((s): s is PieSeries | DonutSeries => {
-                return s instanceof PieSeries || s instanceof DonutSeries;
-            });
-            if (pieSeries.length > 1) {
-                const innerRadii = pieSeries
-                    .map((series) => {
-                        const innerRadius = series.getInnerRadius();
-                        return { series, innerRadius };
-                    })
-                    .sort((a, b) => a.innerRadius - b.innerRadius);
+            const seriesWithInnerRadius = polarSeries
+                .map((series) => ({ series, innerRadius: series.getInnerRadius() }))
+                .filter(
+                    (d): d is { series: (typeof polarSeries)[number]; innerRadius: number } => d.innerRadius != null
+                );
+            if (seriesWithInnerRadius.length > 1) {
+                const innerRadii = seriesWithInnerRadius.sort((a, b) => a.innerRadius - b.innerRadius);
                 innerRadii.at(-1)!.series.surroundingRadius = undefined;
                 for (let i = 0; i < innerRadii.length - 1; i++) {
                     innerRadii[i].series.surroundingRadius = innerRadii[i + 1].innerRadius;

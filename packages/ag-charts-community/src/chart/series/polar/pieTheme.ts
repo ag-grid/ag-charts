@@ -62,14 +62,6 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             yOffset: 3,
             blur: 5,
         },
-        innerLabels: {
-            fontStyle: undefined,
-            fontWeight: undefined,
-            fontSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
-            margin: 2,
-        },
         // @todo(AG-10275) Remove this
         // @ts-expect-error
         __BACKGROUND_COLOR_DO_NOT_USE: DEFAULT_BACKGROUND_COLOUR,
