@@ -61,6 +61,7 @@ Here are some of the features that make AG Charts stand out:
             </td>
             <td>
                 <a href="https://charts.ag-grid.com/angular/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Animation</a>*<br/>
+                <a href="https://charts.ag-grid.com/angular/accessibility/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Accessibility</a><br/>
                 <a href="https://charts.ag-grid.com/angular/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Synchronized Charts</a>*<br/>
                 <a href="https://charts.ag-grid.com/angular/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Context Menu</a>*<br/>
                 <a href="https://charts.ag-grid.com/angular/axes-crosshairs/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Crosshairs</a>*<br/>
