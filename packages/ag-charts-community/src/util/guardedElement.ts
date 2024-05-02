@@ -8,13 +8,14 @@ export class GuardedElement implements GuardedElementProperties {
     private destroyFns: (() => void)[] = [];
 
     public guardTarget?: HTMLElement;
+    private guardTabIndex: number = 0;
 
     constructor(
         public readonly element: HTMLElement,
         public readonly topTabGuard: HTMLElement,
         public readonly botTabGuard: HTMLElement
     ) {
-        this.tabIndex = 0;
+        this.element.tabIndex = -1;
         this.initEventListener(this.element, 'blur', () => this.onBlur());
         this.initEventListener(this.element, 'focus', () => this.onFocus());
         this.initEventListener(this.topTabGuard, 'focus', () => this.onTabStart(this.topTabGuard));
@@ -22,9 +23,21 @@ export class GuardedElement implements GuardedElementProperties {
     }
 
     set tabIndex(index: number) {
-        this.topTabGuard.tabIndex = index;
-        this.botTabGuard.tabIndex = index;
-        this.element.tabIndex = -1;
+        if (index >= 0) {
+            // Save this index so that this.element can restore it when it goes out of focus.
+            this.guardTabIndex = index;
+        }
+
+        // Strictly positive tab-indices breaks our ability to detect which direction the focus is coming
+        // from. So if it is the value that the user has specified, then disable the bottom tab-guard to
+        // treat TAB and Shift+TAB the same way.
+        if (index > 0) {
+            this.topTabGuard.tabIndex = index;
+            this.botTabGuard.style.display = 'none';
+        } else {
+            this.topTabGuard.tabIndex = index;
+            this.botTabGuard.tabIndex = index;
+        }
     }
 
     destroy() {
@@ -38,11 +51,16 @@ export class GuardedElement implements GuardedElementProperties {
     }
 
     private onBlur() {
-        this.tabIndex = 0;
+        if (this.element.tabIndex === -1) {
+            this.tabIndex = this.guardTabIndex;
+            this.guardTarget = undefined;
+        }
     }
 
     private onFocus() {
-        this.tabIndex = -1;
+        if (this.element.tabIndex === -1) {
+            this.tabIndex = -1;
+        }
     }
 
     private onTabStart(target: HTMLElement) {
