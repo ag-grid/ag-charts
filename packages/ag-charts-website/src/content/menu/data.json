@@ -250,20 +250,17 @@
                     {
                         "title": "Overview",
                         "path": "financial-charts",
-                        "isEnterprise": true,
-                        "hidden": true
+                        "isEnterprise": true
                     },
                     {
                         "title": "Annotations",
                         "path": "annotations",
-                        "isEnterprise": true,
-                        "hidden": true
+                        "isEnterprise": true
                     },
                     {
                         "title": "Toolbar",
                         "path": "toolbar",
-                        "isEnterprise": true,
-                        "hidden": true
+                        "isEnterprise": true
                     }
                 ]
             }
