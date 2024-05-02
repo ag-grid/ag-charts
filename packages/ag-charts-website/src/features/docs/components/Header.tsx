@@ -1,4 +1,4 @@
-import type { Framework } from '@ag-grid-types';
+import type { Framework, MenuItem } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { FrameworkSelectorInsideDocs } from '@components/framework-selector-inside-doc/FrameworkSelectorInsideDocs';
 import { getFrameworkDisplayText } from '@utils/framework';
@@ -13,9 +13,17 @@ interface Props {
     isEnterprise?: boolean;
     suppressFrameworkHeader?: boolean;
     path: string;
+    menuItems: MenuItem[];
 }
 
-export const Header: FunctionComponent<Props> = ({ title, framework, isEnterprise, suppressFrameworkHeader, path }) => {
+export const Header: FunctionComponent<Props> = ({
+    title,
+    framework,
+    isEnterprise,
+    suppressFrameworkHeader,
+    path,
+    menuItems,
+}) => {
     // Update framework store so it is in sync with the page
     // Done here, because it's run on all docs pages
     useSyncFrameworkStoreState(framework);
@@ -31,7 +39,7 @@ export const Header: FunctionComponent<Props> = ({ title, framework, isEnterpris
                         <span>{title}</span>
                     </div>
 
-                    <FrameworkSelectorInsideDocs path={path} currentFramework={framework} />
+                    <FrameworkSelectorInsideDocs path={path} currentFramework={framework} menuItems={menuItems} />
                 </div>
 
                 {isEnterprise && (
