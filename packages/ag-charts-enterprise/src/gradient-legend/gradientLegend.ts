@@ -10,18 +10,8 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const {
-    BOOLEAN,
-    Layers,
-    POSITION,
-    Validate,
-    Default,
-    MIN_SPACING,
-    MAX_SPACING,
-    POSITIVE_NUMBER,
-    ProxyProperty,
-    DeprecatedAndRenamedTo,
-} = _ModuleSupport;
+const { BOOLEAN, Layers, POSITION, Validate, Default, MIN_SPACING, MAX_SPACING, POSITIVE_NUMBER, ProxyProperty } =
+    _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
@@ -180,9 +170,6 @@ export class GradientLegend {
 
     scale: GradientLegendScale;
 
-    @DeprecatedAndRenamedTo('scale')
-    stop: GradientLegendScale;
-
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
     listeners: any = {};
@@ -210,7 +197,6 @@ export class GradientLegend {
         this.axis.attachAxis(this.axisGroup, this.axisGridGroup);
 
         this.scale = new GradientLegendScale(this.axis);
-        this.stop = this.scale;
 
         this.destroyFns.push(() => this.detachLegend());
     }

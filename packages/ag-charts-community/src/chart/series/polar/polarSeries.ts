@@ -169,6 +169,12 @@ export abstract class PolarSeries<
 
     protected abstract nodeFactory(): TNode;
 
+    getInnerRadius(): number {
+        return 0;
+    }
+
+    surroundingRadius?: number;
+
     getLabelData(): PointLabelDatum[] {
         return [];
     }

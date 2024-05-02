@@ -135,7 +135,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private oldTitle?: DonutTitle;
 
-    surroundingRadius?: number = undefined;
+    override surroundingRadius?: number = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -507,7 +507,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         };
     }
 
-    getInnerRadius() {
+    override getInnerRadius() {
         const { radius } = this;
         const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
         const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;

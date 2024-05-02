@@ -7,11 +7,9 @@ import type {
     AgPieSeriesTooltipRendererParams,
 } from '../../../options/series/polar/pieOptions';
 import { DropShadow } from '../../../scene/dropShadow';
-import { Deprecated } from '../../../util/deprecation';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
 import {
     BOOLEAN,
-    COLOR_STRING,
     COLOR_STRING_ARRAY,
     DEGREE,
     FUNCTION,
@@ -33,30 +31,6 @@ import { SeriesTooltip } from '../seriesTooltip';
 export class PieTitle extends Caption {
     @Validate(BOOLEAN)
     showInLegend = false;
-}
-
-export class DonutInnerLabel<T extends object = any> extends Label<AgPieSeriesLabelFormatterParams> {
-    @Deprecated('Use a Donut Series instead')
-    @Validate(STRING, { optional: true })
-    text?: string;
-
-    @Deprecated('Use a Donut Series instead')
-    @Validate(NUMBER, { optional: true })
-    margin?: number;
-
-    override set(properties: T, _reset?: boolean) {
-        return super.set(properties);
-    }
-}
-
-export class DonutInnerCircle extends BaseProperties {
-    @Deprecated('Use a Donut Series instead')
-    @Validate(COLOR_STRING, { optional: true })
-    fill?: string;
-
-    @Deprecated('Use a Donut Series instead')
-    @Validate(RATIO, { optional: true })
-    fillOpacity?: number;
 }
 
 class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
@@ -162,14 +136,6 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
 
-    @Deprecated('Use a Donut Series instead')
-    @Validate(NUMBER, { optional: true })
-    innerRadiusOffset?: number;
-
-    @Deprecated('Use a Donut Series instead')
-    @Validate(RATIO, { optional: true })
-    innerRadiusRatio?: number;
-
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
@@ -178,13 +144,10 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     sectorSpacing?: number = undefined;
 
     @Validate(OBJECT_ARRAY)
-    readonly innerLabels = new PropertiesArray(DonutInnerLabel);
+    readonly innerLabels = new PropertiesArray(Label);
 
     @Validate(OBJECT)
     readonly title = new PieTitle();
-
-    @Validate(OBJECT)
-    readonly innerCircle = new DonutInnerCircle();
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow();

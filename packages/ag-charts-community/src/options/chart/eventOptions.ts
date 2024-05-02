@@ -56,9 +56,6 @@ export interface AgChartDoubleClickEvent extends AgChartEvent<'doubleClick'> {
 
 export interface AgNodeContextMenuActionEvent<TDatum = any> extends AgNodeBaseClickEvent<'contextMenuAction', TDatum> {
     /** Event type. */ type: 'contextMenuAction';
-
-    /** @deprecated v9.2 use `xKey`, `yKey`, `angleKey` etc instead. */
-    itemId?: string;
 }
 
 export interface AgBaseChartListeners<TDatum> {

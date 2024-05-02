@@ -11,7 +11,7 @@ import {
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
 
-export const pieTheme: ExtensibleTheme<'pie'> = {
+export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         title: {
@@ -61,6 +61,14 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             xOffset: 3,
             yOffset: 3,
             blur: 5,
+        },
+        innerLabels: {
+            fontStyle: undefined,
+            fontWeight: undefined,
+            fontSize: 12,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_LABEL_COLOUR,
+            margin: 2,
         },
         // @todo(AG-10275) Remove this
         // @ts-expect-error
