@@ -63,7 +63,7 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
+import { PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
@@ -1147,7 +1147,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private focus: ChartFocusData = {
+    protected focus: ChartFocusData = {
         hasFocus: false,
         series: undefined,
         seriesIndex: 0,
@@ -1166,7 +1166,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private handleSeriesFocus(datumIndexDelta: number) {
+    protected handleSeriesFocus(datumIndexDelta: number) {
         const { series, seriesRect, focus } = this;
         const visibleSeries = series.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;
@@ -1177,7 +1177,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Update focused datum:
         const pick = focus.series.pickFocus({ datumIndex: focus.datumIndex, datumIndexDelta, seriesRect });
-        if (pick === undefined) return;
+        this.updatePickedFocus(pick);
+    }
+
+    protected updatePickedFocus(pick: PickFocusOutputs<SeriesNodeDatum> | undefined) {
+        const { focus } = this;
+        if (pick === undefined || focus.series === undefined) return;
 
         const { datum, datumIndex } = pick;
         focus.datumIndex = datumIndex;

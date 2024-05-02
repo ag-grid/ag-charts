@@ -61,6 +61,7 @@ export type SeriesNodePickMatch = {
 };
 
 export type PickFocusInputs = {
+    readonly depthIndex?: number;
     readonly datumIndex: number;
     // datum delta is stricly +ve/-ve when changing datum focus, or 0 when changing series focus.
     readonly datumIndexDelta: number;
