@@ -7,7 +7,7 @@ export type GuardedElementProperties = {
 export class GuardedElement implements GuardedElementProperties {
     private destroyFns: (() => void)[] = [];
 
-    public guardTarget?: HTMLElement;
+    private guardTarget?: HTMLElement;
     private guardTabIndex: number = 0;
 
     constructor(
@@ -66,5 +66,12 @@ export class GuardedElement implements GuardedElementProperties {
     private onTabStart(target: HTMLElement) {
         this.guardTarget = target;
         this.element.focus();
+    }
+
+    public getBrowserFocusDelta(): -1 | 0 | 1 {
+        const { guardTarget, topTabGuard, botTabGuard } = this;
+        if (guardTarget === topTabGuard) return 1;
+        if (guardTarget === botTabGuard) return -1;
+        return 0;
     }
 }

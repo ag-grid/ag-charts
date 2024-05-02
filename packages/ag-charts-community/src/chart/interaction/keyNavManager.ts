@@ -49,13 +49,6 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         super.destroy();
     }
 
-    private getBrowserFocusDelta(): -1 | 0 | 1 {
-        const { guardTarget, topTabGuard, botTabGuard } = this.wrapper;
-        if (guardTarget === topTabGuard) return 1;
-        if (guardTarget === botTabGuard) return -1;
-        return 0;
-    }
-
     private onClickStart(event: PointerInteractionEvent<'drag-start'>) {
         this.isClicking = true;
         this.mouseBlur(event);
@@ -86,7 +79,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         if (this.isClicking) {
             this.isMouseBlurred = true;
         } else {
-            const delta = this.getBrowserFocusDelta();
+            const delta = this.wrapper.getBrowserFocusDelta();
             this.dispatch('browserfocus', delta, event);
             this.dispatch('tab', delta, event);
         }
