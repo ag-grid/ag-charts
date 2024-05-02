@@ -6,8 +6,8 @@ import type {
     OverflowStrategy,
     TextWrap,
 } from '../../options/chart/types';
-import { createElement } from '../../util/dom';
 import { memoizeFunction } from '../../util/memo';
+import { type LineMetrics, TextMeasurerV2 } from '../../util/textMeasurer';
 import { isString } from '../../util/type-guards';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
@@ -97,29 +97,17 @@ export class Text extends Shape {
     lineHeight?: number;
 
     override computeBBox(): BBox {
-        const { x, y, lines, lineHeight, textBaseline, textAlign } = this;
-        const { top, left, width, height } = Text.getTextSizeMultiline(
-            lines,
-            getFont(this),
+        const { x, y, lines, textBaseline, textAlign } = this;
+        const { offsetTop, offsetLeft, width, height } = TextMeasurerV2.measureText(lines, {
+            font: getFont(this),
             textBaseline,
             textAlign,
-            lineHeight
-        );
-
-        return new BBox(x - left, y - top, width, height);
+        });
+        return new BBox(x - offsetLeft, y - offsetTop, width, height);
     }
 
     private getLineHeight(line: string): number {
-        if (this.lineHeight) {
-            return this.lineHeight;
-        }
-
-        const metrics: any = Text.measureText(line, this.font, this.textBaseline, this.textAlign);
-        return (
-            // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
-            (metrics.fontBoundingBoxAscent ?? metrics.emHeightAscent) +
-            (metrics.fontBoundingBoxDescent ?? metrics.emHeightDescent)
-        );
+        return this.lineHeight ?? (TextMeasurerV2.measureText(line, this) as LineMetrics).lineHeight;
     }
 
     isPointInPath(x: number, y: number): boolean {
@@ -219,27 +207,21 @@ export class Text extends Shape {
         textProps: TextSizeProperties,
         wrapping: TextWrap,
         overflow: OverflowStrategy
-    ): { lines: string[] | undefined; truncated: boolean } {
+    ): string[] | undefined {
         const canOverflow = overflow !== 'hide';
         const measurer = new TextMeasurer(textProps);
         const lines: string[] = text.split(/\r?\n/g);
 
         if (lines.length === 0) {
-            return { lines: undefined, truncated: false };
+            return;
         }
         if (wrapping === 'never') {
-            const { text: truncText, truncated } = Text.truncateLine(
-                lines[0],
-                maxWidth,
-                measurer,
-                canOverflow ? 'auto' : 'never'
-            );
-            return { lines: truncText != null ? [truncText] : undefined, truncated };
+            const truncText = Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never');
+            return truncText != null ? [truncText] : undefined;
         }
 
         const wrappedLines: string[] = [];
         let cumulativeHeight = 0;
-        let truncated = false;
         for (const line of lines) {
             const wrappedLine = Text.wrapLine(
                 line,
@@ -253,17 +235,14 @@ export class Text extends Shape {
             );
 
             if (wrappedLine == null) {
-                return { lines: undefined, truncated: false };
+                return;
             }
 
             wrappedLines.push(...wrappedLine.result);
             cumulativeHeight = wrappedLine.cumulativeHeight;
-            if (wrappedLine.truncated) {
-                truncated = true;
-                break;
-            }
+            if (wrappedLine.truncated) break;
         }
-        return { lines: wrappedLines, truncated };
+        return wrappedLines;
     }
 
     static wrap(
@@ -273,9 +252,9 @@ export class Text extends Shape {
         textProps: TextSizeProperties,
         wrapping: TextWrap,
         overflow: OverflowStrategy = 'ellipsis'
-    ): { text: string; truncated: boolean } {
-        const { lines, truncated } = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
-        return { text: lines?.join('\n').trim() ?? '', truncated };
+    ): string {
+        const lines = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
+        return lines?.join('\n').trim() ?? '';
     }
 
     private static wrapLine(
@@ -384,14 +363,14 @@ export class Text extends Shape {
         maxWidth: number,
         measurer: TextMeasurer,
         ellipsisMode: 'force' | 'never' | 'auto'
-    ): { text: string | undefined; truncated: boolean } {
+    ): string | undefined {
         text = text.trimEnd();
 
         const lineWidth = measurer.width(text);
         if (lineWidth > maxWidth && ellipsisMode === 'never') {
-            return { text: undefined, truncated: false };
+            return;
         } else if (lineWidth <= maxWidth && ellipsisMode !== 'force') {
-            return { text, truncated: false };
+            return text;
         }
 
         const ellipsisWidth = measurer.width(ellipsis);
@@ -403,9 +382,7 @@ export class Text extends Shape {
             truncWidth = measurer.width(trunc);
         }
         if (truncWidth + ellipsisWidth <= maxWidth) {
-            return { text: `${trunc}${ellipsis}`, truncated: true };
-        } else {
-            return { text: undefined, truncated: false };
+            return `${trunc}${ellipsis}`;
         }
     }
 
@@ -444,7 +421,7 @@ export class Text extends Shape {
             }
 
             const lastLine = currentLine.join(' ');
-            const { text } = Text.truncateLine(lastLine, maxWidth, measurer, 'force');
+            const text = Text.truncateLine(lastLine, maxWidth, measurer, 'force');
             if (text == null) {
                 return;
             }
@@ -514,7 +491,7 @@ export class Text extends Shape {
                 if (!addNewLine()) {
                     return truncateLastLine();
                 }
-                const { text } = Text.truncateLine(word, maxWidth, measurer, 'force');
+                const text = Text.truncateLine(word, maxWidth, measurer, 'force');
                 if (text == null) {
                     return;
                 }
@@ -599,19 +576,6 @@ export class Text extends Shape {
         }
     }
 
-    // 2D canvas context used for measuring text.
-    private static _textContext: CanvasRenderingContext2D;
-
-    private static get textContext() {
-        if (!this._textContext) {
-            const canvasElement = createElement('canvas');
-            canvasElement.width = 0;
-            canvasElement.height = 0;
-            this._textContext = canvasElement.getContext('2d')!;
-        }
-        return this._textContext;
-    }
-
     private static _measureText = memoizeFunction(
         ({
             text,
@@ -623,44 +587,14 @@ export class Text extends Shape {
             font: string;
             textBaseline: CanvasTextBaseline;
             textAlign: CanvasTextAlign;
-        }) => {
-            const ctx = this.textContext;
-
-            // optimisation, don't simplify
-            if (ctx.font !== font) {
-                ctx.font = font;
-            }
-            if (ctx.textBaseline !== textBaseline) {
-                ctx.textBaseline = textBaseline;
-            }
-            if (ctx.textAlign !== textAlign) {
-                ctx.textAlign = textAlign;
-            }
-
-            return ctx.measureText(text);
-        }
+        }) => TextMeasurerV2.measureText(text, { font, textBaseline, textAlign })
     );
 
-    private static _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) => {
-        const ctx = this.textContext;
-        // optimisation, don't simplify
-        if (ctx.font !== font) {
-            ctx.font = font;
-        }
-        const metrics = ctx.measureText(text);
+    private static _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) =>
+        TextMeasurerV2.measureText(text, { font })
+    );
 
-        return {
-            width: metrics.width,
-            height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
-        };
-    });
-
-    static measureText(
-        text: string,
-        font: string,
-        textBaseline: CanvasTextBaseline,
-        textAlign: CanvasTextAlign
-    ): TextMetrics {
+    static measureText(text: string, font: string, textBaseline: CanvasTextBaseline, textAlign: CanvasTextAlign) {
         return this._measureText({ text, font, textBaseline, textAlign });
     }
 
@@ -677,47 +611,10 @@ export class Text extends Shape {
         lines: string[],
         font: string,
         textBaseline: CanvasTextBaseline = Text.defaultStyles.textBaseline,
-        textAlign: CanvasTextAlign = Text.defaultStyles.textAlign,
-        lineHeight?: number
+        textAlign: CanvasTextAlign = Text.defaultStyles.textAlign
     ): { top: number; left: number; width: number; height: number } {
-        let top = 0;
-        let left = 0;
-        let width = 0;
-        let height = 0;
-
-        // Distance between first and last baselines.
-        let baselineDistance = 0;
-
-        for (const [i, text] of lines.entries()) {
-            const metrics: any = this._measureText({ text, font, textBaseline, textAlign });
-
-            left = Math.max(left, metrics.actualBoundingBoxLeft);
-            width = Math.max(width, metrics.width);
-
-            if (i == 0) {
-                top += metrics.actualBoundingBoxAscent;
-                height += metrics.actualBoundingBoxAscent;
-            } else {
-                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
-                baselineDistance += metrics.fontBoundingBoxAscent ?? metrics.emHeightAscent;
-            }
-
-            if (i == lines.length - 1) {
-                height += metrics.actualBoundingBoxDescent;
-            } else {
-                // Fallback to emHeightAscent + emHeightDescent is needed for server-side rendering.
-                baselineDistance += metrics.fontBoundingBoxDescent ?? metrics.emHeightDescent;
-            }
-        }
-
-        if (lineHeight != null) {
-            baselineDistance = (lines.length - 1) * lineHeight;
-        }
-        height += baselineDistance;
-
-        top += baselineDistance * Text.getVerticalModifier(textBaseline);
-
-        return { top, left, width, height };
+        const r = TextMeasurerV2.measureText(lines, { font, textBaseline, textAlign });
+        return { top: r.offsetTop, left: r.offsetLeft, width: r.width, height: r.height };
     }
 }
 
@@ -729,17 +626,11 @@ export class TextMeasurer {
     }
 
     size(text: string) {
-        return text.includes('\n')
-            ? Text.getTextSizeMultiline(
-                  text.split('\n').map((s) => s.trim()),
-                  this.font
-              )
-            : Text.getTextSize(text, this.font);
+        return TextMeasurerV2.measureText(text, { font: this.font });
     }
 
     width(text: string): number {
-        const { width } = this.size(text);
-        return width;
+        return this.size(text).width;
     }
 }
 

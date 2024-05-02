@@ -325,7 +325,7 @@ export abstract class AngleAxis<
                 const pixelError = 1;
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
-                    ({ text } = Text.wrap(text, availWidth, Infinity, label, 'never'));
+                    text = Text.wrap(text, availWidth, Infinity, label, 'never');
                     if (text === '\u2026') {
                         text = '';
                         box = undefined;

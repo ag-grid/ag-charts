@@ -278,7 +278,7 @@ describe('Text', () => {
                         truncate ? maxHeight : Infinity,
                         textNode,
                         wrapping
-                    ).text;
+                    );
                     textNode._setLayerManager(mockLayerManager);
 
                     ctx.save();
@@ -304,19 +304,19 @@ describe('Text', () => {
         const font = BASE_OPTIONS;
 
         it('should handle all text wrapping options for a small box', () => {
-            expect(Text.wrap(exampleString, 50, 50, font, 'on-space', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'never', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'hyphenate', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'always', 'hide').text).toBe('');
+            expect(Text.wrap(exampleString, 50, 50, font, 'on-space', 'hide')).toBe('');
+            expect(Text.wrap(exampleString, 50, 50, font, 'never', 'hide')).toBe('');
+            expect(Text.wrap(exampleString, 50, 50, font, 'hyphenate', 'hide')).toBe('');
+            expect(Text.wrap(exampleString, 50, 50, font, 'always', 'hide')).toBe('');
         });
 
         it('should handle all text wrapping options for a tall box', () => {
-            expect(Text.wrap(exampleString, 50, 1000, font, 'on-space', 'hide').text).toBe('');
-            expect(Text.wrap(exampleString, 50, 1000, font, 'never', 'hide').text).toBe('');
+            expect(Text.wrap(exampleString, 50, 1000, font, 'on-space', 'hide')).toBe('');
+            expect(Text.wrap(exampleString, 50, 1000, font, 'never', 'hide')).toBe('');
 
             // The word is broken here, so does not overflow
-            expect(Text.wrap(exampleString, 50, 1000, font, 'hyphenate', 'hide').text).not.toBe('');
-            expect(Text.wrap(exampleString, 50, 1000, font, 'always', 'hide').text).not.toBe('');
+            expect(Text.wrap(exampleString, 50, 1000, font, 'hyphenate', 'hide')).not.toBe('');
+            expect(Text.wrap(exampleString, 50, 1000, font, 'always', 'hide')).not.toBe('');
         });
     });
 

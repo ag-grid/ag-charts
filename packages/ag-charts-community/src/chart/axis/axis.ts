@@ -1367,14 +1367,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         tickData.ticks.forEach((tickDatum) => {
-            const { text } = Text.wrap(
+            tickDatum.tickLabel = Text.wrap(
                 tickDatum.tickLabel,
                 maxWidth ?? defaultMaxWidth,
                 maxHeight ?? defaultMaxHeight,
                 labelProps,
                 'hyphenate'
             );
-            tickDatum.tickLabel = text;
         });
 
         return { tickData, index, autoRotation: 0, terminate: true };

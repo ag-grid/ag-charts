@@ -109,9 +109,9 @@ export class Caption extends BaseProperties implements CaptionLike {
             this.node.text = text;
             return;
         }
-        const { text: wrappedText, truncated } = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
+        const wrappedText = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
         this.node.text = wrappedText;
-        this.truncated = truncated;
+        this.truncated = wrappedText !== text;
     }
 
     private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined) {
