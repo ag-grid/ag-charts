@@ -14,7 +14,7 @@ export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'n
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
-    delta: number;
+    delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
 };
 
@@ -111,7 +111,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
     }
 
-    private dispatch(type: KeyNavEventType, delta: number, interactionEvent: InteractionEvent) {
+    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, interactionEvent: InteractionEvent) {
         const event = buildConsumable({ type, delta, sourceEvent: interactionEvent });
         dispatchTypedConsumable(this.listeners, type, event);
     }
