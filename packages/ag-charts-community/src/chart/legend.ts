@@ -46,6 +46,8 @@ import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
+type LegendFocus = { on: boolean; mode: 'item' | 'page'; index: number };
+
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
     maxLength?: number = undefined;
@@ -244,7 +246,7 @@ export class Legend extends BaseProperties {
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             region.addListener('blur', (e) => this.onBlur(e)),
             region.addListener('tab', (e) => this.onTab(e)),
-            region.addListener('tab-start', (e) => this.onTabStart(e)),
+            region.addListener('tab-start', (e) => this.onTab(e)),
             region.addListener('nav-vert', (e) => this.onNav(e)),
             region.addListener('nav-hori', (e) => this.onNav(e)),
             region.addListener('submit', (e) => this.onSubmit(e)),
@@ -969,37 +971,39 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private focus: { mode: 'item' | 'page'; index: number } = { mode: 'item', index: 0 };
+    private focus: LegendFocus = { on: false, mode: 'item', index: 0 };
 
     private onBlur(_event: KeyNavEvent<'blur'>) {
         this.doMouseExit();
-        this.focus.mode = 'item';
+        this.focus.on = false;
         this.ctx.regionManager.updateFocusIndicatorRect(undefined);
     }
 
-    private onTab(event: KeyNavEvent<'tab'>) {
-        this.updateFocus();
-        event.consume();
-    }
+    // Tab forward/backward between the items and pagination buttons.
+    //
+    // 'tab' is received when legend comes into focus. 'tab-start' is received when the legend is
+    // currently focused and is just about to blur. Consuming the 'tab-start' event prevents the
+    // RegionManager from blurring the legend and dispatching 'tab' events.
+    private onTab(event: KeyNavEvent<'tab' | 'tab-start'>) {
+        const { on: hasFocus, mode } = this.focus;
+        const { delta } = event;
+        const hasPagination = this.pagination.visible && this.pagination.enabled;
 
-    private onTabStart(event: KeyNavEvent<'tab-start'>) {
-        if (!this.pagination.visible || !this.pagination.enabled) return;
-
-        // Tab forward/backward between the items and pagination buttons.
-        // Consuming the 'tab-start' event prevents to RegionManager from dispatch 'tab' events.
-        const consumeTabStart = (newMode: Legend['focus']['mode']) => {
-            this.focus.mode = newMode;
+        if (delta === 0) {
             this.updateFocus();
             event.consume();
-        };
-        if (this.focus.mode === 'item' && event.delta === 1) {
+        } else if (hasPagination && ((!hasFocus && delta < 0) || (hasFocus && mode === 'item' && delta > 0))) {
             // If the user is on the first page then put the initial focus on the next button (index: 1),
             // because the previous button (index: 0) will be grayed out.
             this.focus.index = this.pagination.currentPage === 0 ? 1 : 0;
-            consumeTabStart('page');
-        } else if (this.focus.mode === 'page' && event.delta === -1) {
+            this.focus.mode = 'page';
+            this.updateFocus();
+            event.consume();
+        } else if ((!hasFocus && delta > 0) || (hasFocus && mode === 'page' && delta < 0)) {
             this.focus.index = 0;
-            consumeTabStart('item');
+            this.focus.mode = 'item';
+            this.updateFocus();
+            event.consume();
         }
     }
 
@@ -1100,6 +1104,8 @@ export class Legend extends BaseProperties {
             const value = ['Previous legend page', 'Next legend page'][focus.index];
             this.ctx.ariaAnnouncementService.announceValue(`${value}, button`);
         }
+
+        this.focus.on = true;
     }
 
     private positionLegend(shrinkRect: BBox) {

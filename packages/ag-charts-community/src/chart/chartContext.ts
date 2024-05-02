@@ -2,6 +2,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
+import type { GuardedElement } from '../util/guardedElement';
 import type { Mutex } from '../util/mutex';
 import { AnnotationManager } from './annotation/annotationManager';
 import type { ChartService } from './chartService';
@@ -58,12 +59,13 @@ export class ChartContext implements ModuleContext {
         vars: {
             scene: Scene;
             syncManager: SyncManager;
-            element: HTMLElement;
+            wrapper: GuardedElement;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
         }
     ) {
-        const { scene, syncManager, element, updateCallback, updateMutex } = vars;
+        const { scene, syncManager, wrapper, updateCallback, updateMutex } = vars;
+        const { element } = wrapper;
         this.chartService = chart;
         this.scene = scene;
         this.syncManager = syncManager;
@@ -76,7 +78,7 @@ export class ChartContext implements ModuleContext {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(chart.keyboard, element);
-        this.keyNavManager = new KeyNavManager(this.interactionManager);
+        this.keyNavManager = new KeyNavManager(this.interactionManager, wrapper);
         this.regionManager = new RegionManager(
             this.interactionManager,
             this.keyNavManager,

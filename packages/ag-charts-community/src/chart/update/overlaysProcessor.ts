@@ -36,7 +36,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
         if (visible) {
             const element = overlay.getElement(this.animationManager, seriesRect);
-            (this.chartLike as any).element.append(element);
+            this.chartLike.wrapper.element.append(element);
         } else {
             overlay.removeElement(this.animationManager);
         }
