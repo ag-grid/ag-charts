@@ -61,10 +61,12 @@ export type SeriesNodePickMatch = {
 };
 
 export type PickFocusInputs = {
-    readonly depthIndex?: number;
-    readonly datumIndex: number;
     // datum delta is stricly +ve/-ve when changing datum focus, or 0 when changing series focus.
+    readonly datumIndex: number;
     readonly datumIndexDelta: number;
+    // 'other' means 'depth' for hierarchial charts, or 'series' for all other charts
+    readonly otherIndex: number;
+    readonly otherIndexDelta: number;
     readonly seriesRect?: Readonly<BBox>;
 };
 

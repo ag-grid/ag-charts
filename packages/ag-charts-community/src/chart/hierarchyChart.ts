@@ -58,17 +58,17 @@ export class HierarchyChart extends Chart {
         return shrinkRect;
     }
 
-    protected override handleSeriesFocus(datumIndexDelta: number) {
+    protected override handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
         // Hierarchial charts (treemap, sunburst) can only have 1 series. So we'll repurpose the focus.seriesIndex
         // value to control the focused depth. This allows the hierarchial charts to piggy-back on the base keyboard
         // handling implementation.
         this.focus.series = this.series[0];
         const {
-            focus: { series, seriesIndex: depthIndex, datumIndex },
+            focus: { series, seriesIndex: otherIndex, datumIndex },
             seriesRect,
         } = this;
         if (series === undefined) return;
-        const pick = series.pickFocus({ depthIndex, datumIndex, datumIndexDelta, seriesRect });
+        const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
         this.updatePickedFocus(pick);
     }
 }

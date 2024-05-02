@@ -12,7 +12,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
-import { Series, SeriesNodePickMode } from '../series';
+import { PickFocusInputs, PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
 
@@ -392,5 +392,9 @@ export abstract class HierarchySeries<
 
     protected getDatumId(node: HierarchyNode) {
         return this.getDatumIdFromData(node);
+    }
+
+    public override pickFocus(_opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+        return undefined;
     }
 }

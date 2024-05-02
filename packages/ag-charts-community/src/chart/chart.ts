@@ -1102,20 +1102,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private onTab(event: KeyNavEvent<'tab'>): void {
-        this.handleFocus();
+        this.handleFocus(0, 0);
         event.consume();
         this.focus.hasFocus = true;
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
         this.focus.seriesIndex += event.delta;
-        this.handleFocus();
+        this.handleFocus(event.delta, 0);
         event.consume();
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
         this.focus.datumIndex += event.delta;
-        this.handleFocus(event.delta);
+        this.handleFocus(0, event.delta);
         event.consume();
     }
 
@@ -1155,18 +1155,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         datum: undefined,
     };
 
-    private handleFocus(datumIndexDelta?: number) {
+    private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         this.focus.hasFocus = true;
         const overlayFocus = this.overlays.getFocusInfo();
         if (overlayFocus == null) {
-            this.handleSeriesFocus(datumIndexDelta ?? 0);
+            this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
             this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
 
-    protected handleSeriesFocus(datumIndexDelta: number) {
+    protected handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
         const { series, seriesRect, focus } = this;
         const visibleSeries = series.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;
@@ -1176,7 +1176,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         focus.series = visibleSeries[focus.seriesIndex];
 
         // Update focused datum:
-        const pick = focus.series.pickFocus({ datumIndex: focus.datumIndex, datumIndexDelta, seriesRect });
+        const { datumIndex, seriesIndex: otherIndex } = focus;
+        const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
         this.updatePickedFocus(pick);
     }
 
