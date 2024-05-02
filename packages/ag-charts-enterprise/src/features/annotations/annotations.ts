@@ -1,9 +1,11 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import {
-    AnnotationLinePointsProperties,
-    AnnotationPointProperties,
-    AnnotationProperties,
+    AnnotationPoint,
+    type AnnotationProperties,
+    DisjointChannelAnnotation,
+    LineAnnotation,
+    ParallelChannelAnnotation,
 } from './annotationProperties';
 import type { Coords } from './annotationTypes';
 import { AnnotationType } from './annotationTypes';
@@ -11,7 +13,7 @@ import type { Annotation } from './scenes/annotation';
 import { Channel } from './scenes/channel';
 import { Line } from './scenes/line';
 
-const { BOOLEAN, OBJECT_ARRAY, InteractionState, PropertiesArray, Validate } = _ModuleSupport;
+const { BOOLEAN, OBJECT_ARRAY, InteractionState, PropertiesArray, Validate, isArray } = _ModuleSupport;
 
 enum AddingStep {
     Start = 'start',
@@ -19,8 +21,47 @@ enum AddingStep {
     Height = 'height',
 }
 
+type Constructor<T = {}> = new (...args: any[]) => T;
+
+const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
+    [AnnotationType.Line]: LineAnnotation,
+    [AnnotationType.ParallelChannel]: ParallelChannelAnnotation,
+    [AnnotationType.DisjointChannel]: DisjointChannelAnnotation,
+};
+
+const annotationScenes: Record<AnnotationType, Constructor<Line | Channel>> = {
+    [AnnotationType.Line]: Line,
+    [AnnotationType.DisjointChannel]: Channel,
+    [AnnotationType.ParallelChannel]: Channel,
+};
+
 type ClickAddingFn = (node: Annotation | undefined, point: Coords, offset: Coords) => void;
 type HoverAddingFn = (datum: AnnotationProperties, node: Annotation, point: Coords, offset: Coords) => void;
+
+class TypedPropertiesArray<T extends _ModuleSupport.BaseProperties> extends PropertiesArray<T> {
+    private itemFactories!: { [type: string]: new () => T };
+
+    constructor(itemFactories: { [type: string]: new () => T }, ...properties: object[]) {
+        super(itemFactories[Object.keys(itemFactories)[0]], ...properties);
+        Object.defineProperty(this, 'itemFactories', { value: itemFactories, enumerable: false, configurable: false });
+        this.set(properties);
+    }
+
+    override set(properties: object[]): TypedPropertiesArray<T> {
+        if (isArray(properties)) {
+            this.length = properties.length;
+            for (let i = 0; i < properties.length; i++) {
+                const factory = this.itemFactories[properties[i].type]; // TODO <<<<====
+                this[i] = new factory().set(properties[i]);
+            }
+        }
+        return this;
+    }
+
+    override reset(properties: object[]): TypedPropertiesArray<T> {
+        return new TypedPropertiesArray(this.itemFactories, ...properties);
+    }
+}
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
@@ -29,11 +70,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     @Validate(BOOLEAN)
     public enabled: boolean = true;
 
-    @_ModuleSupport.ObserveChanges<Annotations>((target, newValue) => {
-        target.annotationData ??= newValue;
+    @_ModuleSupport.ObserveChanges<Annotations>((target, initial: Array<AnnotationProperties>) => {
+        target.annotationData ??= initial;
     })
     @Validate(OBJECT_ARRAY, { optional: true })
-    public initial = new PropertiesArray(AnnotationProperties);
+    // public initial = new PropertiesArray(LineAnnotation);
+    public initial = new TypedPropertiesArray(annotationDatums);
+    // public initial: Array<AnnotationProperties> = [];
 
     // State
     private annotationData?: AnnotationProperties[];
@@ -44,8 +87,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.createAnnotation.bind(this)
     );
 
-    private scaleX?: _Scene.Scale<any, any>;
-    private scaleY?: _Scene.Scale<any, any>;
+    private scaleX?: _Scene.Scale<any, number>;
+    private scaleY?: _Scene.Scale<any, number>;
     private domainX?: any[];
     private domainY?: any[];
 
@@ -89,32 +132,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createAnnotation(datum: AnnotationProperties) {
-        switch (datum.type) {
-            case AnnotationType.ParallelChannel:
-                return new Channel();
-
-            case AnnotationType.Line:
-            default:
-                return new Line();
-        }
+        return new annotationScenes[datum.type]();
     }
 
     private createDatum(type: AnnotationType, point: Coords) {
-        const datum = new AnnotationProperties();
-        datum.set(_ModuleSupport.mergeDefaults({ type }, this.ctx.annotationManager.getAnnotationTypeStyles(type)));
+        const datum = new annotationDatums[type]();
+        datum.set({ start: point, end: point });
 
-        switch (type) {
-            case AnnotationType.Line:
-                datum.set({ start: point, end: point });
-                break;
-
-            case AnnotationType.ParallelChannel:
-                datum.set({
-                    top: { start: point, end: point },
-                    bottom: { start: point, end: point },
-                });
-                break;
-        }
+        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+        if (styles) datum.set(styles);
 
         return datum;
     }
@@ -139,19 +165,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return;
             }
 
-            switch (datum.type) {
-                case AnnotationType.Line:
-                    (node as Line).update(datum, event.series.rect, this.convertLine(datum));
-                    break;
+            if (LineAnnotation.is(datum) && Line.is(node)) {
+                node.update(datum, event.series.rect, this.convertLine(datum));
+            }
 
-                case AnnotationType.ParallelChannel:
-                    (node as Channel).update(
-                        datum,
-                        event.series.rect,
-                        this.convertLine(datum.top),
-                        this.convertLine(datum.bottom)
-                    );
-                    break;
+            if (ParallelChannelAnnotation.is(datum) && Channel.is(node)) {
+                node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
             }
         });
     }
@@ -162,28 +181,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         switch (datum.type) {
             case AnnotationType.Line:
-                valid = this.validateDatumLine(datum, `Annotation [${datum.type}]`);
-                break;
-
             case AnnotationType.ParallelChannel:
-                valid = this.validateDatumLine(datum.top, `Annotation [${datum.type}] [top]`);
-                valid &&= this.validateDatumLine(datum.bottom, `Annotation [${datum.type}] [bottom]`);
+                valid = this.validateDatumLine(datum, `Annotation [${datum.type}]`);
                 break;
         }
 
         return valid;
     }
 
-    private validateDatumLine(datum: AnnotationProperties | AnnotationLinePointsProperties, prefix: string) {
+    private validateDatumLine(datum: { start: AnnotationPoint; end: AnnotationPoint }, prefix: string) {
         let valid = true;
 
-        if (datum.start == null || datum.end == null) {
-            _Util.Logger.warnOnce(`${prefix} requires both a [start] and [end] property, ignoring.`);
-            valid = false;
-        } else {
-            valid &&= this.validateDatumPoint(datum.start, `${prefix} [start]`);
-            valid &&= this.validateDatumPoint(datum.end, `${prefix} [end]`);
-        }
+        valid &&= this.validateDatumPoint(datum.start, `${prefix} [start]`);
+        valid &&= this.validateDatumPoint(datum.end, `${prefix} [end]`);
 
         return valid;
     }
@@ -266,6 +276,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotations,
             addingStep,
             addingType,
+            hoverAddingFns,
             ctx: { cursorManager, updateService },
         } = this;
 
@@ -290,7 +301,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         node.toggleActive(true);
 
-        const hoverAddingFn = this.hoverAddingFns[addingType]?.[addingStep];
+        const hoverAddingFn = hoverAddingFns[addingType]?.[addingStep];
         if (hoverAddingFn) {
             hoverAddingFn(datum, node, point, offset);
         }
@@ -298,39 +309,34 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update();
     }
 
-    private hoverAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, HoverAddingFn>>>> = {
+    // private hoverAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, HoverAddingFn>>>> = {
+    private hoverAddingFns = {
         [AnnotationType.Line]: {
-            [AddingStep.End]: (datum, node, point) => {
+            [AddingStep.End]: (datum: LineAnnotation, node: Line, point: Coords) => {
                 datum.set({ end: point });
                 node.toggleHandles({ end: false });
             },
         },
         [AnnotationType.ParallelChannel]: {
-            [AddingStep.End]: (datum, node, point) => {
-                datum.set({ top: { end: point }, bottom: { end: point } });
+            [AddingStep.End]: (datum: ParallelChannelAnnotation, node: Channel, point: Coords) => {
+                datum.set({ end: point, size: 0 });
                 node.toggleHandles(false);
             },
-            [AddingStep.Height]: (datum, node, point, offset) => {
-                const start = this.convertPoint(datum.bottom.start);
-                const end = this.convertPoint(datum.bottom.end);
+            [AddingStep.Height]: (datum: ParallelChannelAnnotation, node: Channel, point: Coords) => {
+                if (datum.start.y == null || datum.end.y == null) return;
 
-                if (!start || !end) return;
-
-                const height = offset.y - end.y;
-                const startY = this.invertY(start.y + height);
-                const endY = point.y;
+                const size = datum.end.y - point.y;
+                const bottomStartY = datum.start.y - size;
 
                 if (
-                    !this.validateDatumPoint({ x: start.x, y: startY }) ||
-                    !this.validateDatumPoint({ x: end.x, y: endY })
+                    !this.validateDatumPoint({ x: datum.start.y, y: bottomStartY }) ||
+                    !this.validateDatumPoint({ x: datum.end.x, y: point.y })
                 ) {
                     return;
                 }
 
                 node.toggleHandles({ topMiddle: false, bottomMiddle: false });
-                datum.set({
-                    bottom: { start: { y: startY }, end: { y: endY } },
-                });
+                datum.set({ size });
             },
         },
     };
@@ -385,14 +391,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private clickAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, ClickAddingFn>>>> = {
+    // private clickAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, ClickAddingFn>>>> = {
+    private clickAddingFns = {
         [AnnotationType.Line]: {
-            [AddingStep.Start]: (_node, point) => {
+            [AddingStep.Start]: (_node: Line, point: Coords) => {
                 const datum = this.createDatum(AnnotationType.Line, point);
                 this.annotationData?.push(datum);
                 this.addingStep = AddingStep.End;
             },
-            [AddingStep.End]: (node, point) => {
+            [AddingStep.End]: (node: Line, point: Coords) => {
                 this.annotationData?.at(-1)?.set({ end: point });
                 node?.toggleHandles(true);
                 this.addingStep = undefined;
@@ -401,38 +408,35 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
         },
         [AnnotationType.ParallelChannel]: {
-            [AddingStep.Start]: (_node, point) => {
+            [AddingStep.Start]: (_node: Channel, point: Coords) => {
                 const datum = this.createDatum(AnnotationType.ParallelChannel, point);
                 this.annotationData?.push(datum);
                 this.addingStep = AddingStep.End;
             },
-            [AddingStep.End]: (node, point) => {
+            [AddingStep.End]: (node: Channel, point: Coords) => {
                 this.annotationData?.at(-1)?.set({
-                    top: { end: point },
-                    bottom: { end: point },
+                    end: point,
                 });
                 node?.toggleHandles({ topMiddle: false, bottomMiddle: false });
                 this.addingStep = AddingStep.Height;
             },
-            [AddingStep.Height]: (node, point, offset) => {
+            [AddingStep.Height]: (node: Channel, point: Coords) => {
                 // TODO: rationalise with the hoverAddingFn which is very similar
-                const datum = this.annotationData?.at(-1)!;
-                const start = this.convertPoint(datum.bottom.start);
-                const end = this.convertPoint(datum.bottom.end);
-
-                if (!start || !end) return;
-
-                const height = offset.y - end.y;
-                const startY = this.invertY(start.y + height);
-                const endY = point.y;
+                const datum = this.annotationData?.at(-1);
                 if (
-                    datum &&
-                    this.validateDatumPoint({ x: start.x, y: startY }) &&
-                    this.validateDatumPoint({ x: end.x, y: endY })
+                    (ParallelChannelAnnotation.is(datum) || DisjointChannelAnnotation.is(datum)) &&
+                    datum.start.y != null &&
+                    datum.end.y != null
                 ) {
-                    datum.set({
-                        bottom: { start: { y: startY }, end: { y: endY } },
-                    });
+                    const size = datum.end.y - point.y;
+                    const bottomStartY = datum.start.y - size;
+
+                    if (
+                        this.validateDatumPoint({ x: datum.start.y, y: bottomStartY }) &&
+                        this.validateDatumPoint({ x: datum.end.x, y: point.y })
+                    ) {
+                        datum.set({ size });
+                    }
                 }
 
                 node?.toggleHandles(true);
@@ -466,7 +470,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
 
         cursorManager.updateCursor('annotations');
-        node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
+
+        if (LineAnnotation.is(datum) && Line.is(node)) {
+            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
+        }
+
+        if (ParallelChannelAnnotation.is(datum) && Channel.is(node)) {
+            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
+        }
+
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
@@ -499,7 +511,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private convertLine(datum: AnnotationProperties | AnnotationLinePointsProperties) {
+    private convertLine(datum: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> }) {
         if (datum.start == null || datum.end == null) return;
 
         const start = this.convertPoint(datum.start);
@@ -510,7 +522,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
     }
 
-    private convertPoint(point: AnnotationPointProperties) {
+    private convertPoint(point: Pick<AnnotationPoint, 'x' | 'y'>) {
         const { scaleX, scaleY } = this;
 
         let x = 0;

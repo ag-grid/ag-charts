@@ -1,5 +1,6 @@
 export enum AnnotationType {
     Line = 'line',
+    DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 }
 

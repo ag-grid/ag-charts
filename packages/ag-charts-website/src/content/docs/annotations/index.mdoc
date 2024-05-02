@@ -72,14 +72,15 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 ```ts
 {
     type: 'parallel-channel',
-    top: {
-        start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 - 50 },
-        end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 - 50 },
+    start: {
+        x: new Date('Thursday, September 14, 2023'),
+        y: 4487.78 + 50
     },
-    bottom: {
-        start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 + 50 },
-        end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 + 50 },
+    end: {
+        x: new Date('Tuesday, October 03, 2023'),
+        y: 4229.45 + 50
     },
+    size: 100,
 },
 ```
 
@@ -125,8 +126,8 @@ annotations: {
 {% apiReference id="AgLineAnnotation" /%}
 {% /tabItem %}
 
-{% tabItem id="AgChannelAnnotation" label="Channel Annotation" %}
-{% apiReference id="AgChannelAnnotation" /%}
+{% tabItem id="AgParallelChannelAnnotation" label="Parallel Channel Annotation" %}
+{% apiReference id="AgParallelChannelAnnotation" /%}
 {% /tabItem %}
 
 {% /tabs %}

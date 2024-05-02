@@ -1,9 +1,15 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationProperties } from '../annotationProperties';
 import type { Coords } from '../annotationTypes';
 
+const { isObject } = _ModuleSupport;
+
 export abstract class Annotation extends _Scene.Group {
+    static isCheck(value: unknown, type: string) {
+        return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
+    }
+
     public locked: boolean = false;
 
     public abstract type: string;
