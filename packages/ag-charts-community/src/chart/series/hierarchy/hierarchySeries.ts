@@ -406,7 +406,7 @@ export abstract class HierarchySeries<
                 return this.computeFocusOutputs(deepest);
             }
         } else if (childDelta !== 0) {
-            const targetChild = path[path.length - 1].childIndex + childDelta;
+            const targetChild = path[depth].childIndex + childDelta;
             const currentParent = path[depth - 1].nodeDatum;
             const childCount = currentParent?.children?.length;
             if (childCount !== undefined) {
