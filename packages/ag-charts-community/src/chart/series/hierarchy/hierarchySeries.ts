@@ -1,7 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import { StateMachine } from '../../../motion/states';
 import { ColorScale } from '../../../scale/colorScale';
 import type { BBox } from '../../../scene/bbox';
 import type { Group } from '../../../scene/group';
@@ -11,6 +10,7 @@ import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { Logger } from '../../../util/logger';
 import { clamp } from '../../../util/number';
+import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';

@@ -1,21 +1,19 @@
 import { _Scene } from 'ag-charts-community';
 
-import type { DisjointChannelAnnotation, ParallelChannelAnnotation } from '../annotationProperties';
 import { AnnotationType, type Coords, type LineCoords } from '../annotationTypes';
-import { Annotation } from './annotation';
-import { DivariantHandle, UnivariantHandle } from './handle';
-import { CollidableLine } from './shapes';
+import { Annotation } from '../scenes/annotation';
+import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
+import { CollidableLine } from '../scenes/shapes';
+import type { ParallelChannelAnnotation } from './parallelChannelProperties';
 
-type ChannelHandle = keyof Channel['handles'];
+type ChannelHandle = keyof ParallelChannel['handles'];
 
-type ChannelAnnotation = DisjointChannelAnnotation | ParallelChannelAnnotation;
-
-export class Channel extends Annotation {
-    static override is(value: unknown): value is Channel {
-        return Annotation.isCheck(value, 'channel');
+export class ParallelChannel extends Annotation {
+    static override is(value: unknown): value is ParallelChannel {
+        return Annotation.isCheck(value, 'parallel-channel');
     }
 
-    type = 'channel';
+    type = 'parallel-channel';
 
     override activeHandle?: ChannelHandle;
 
@@ -40,7 +38,7 @@ export class Channel extends Annotation {
         this.append([this.background, this.topLine, this.middleLine, this.bottomLine, ...Object.values(this.handles)]);
     }
 
-    public update(datum: ChannelAnnotation, seriesRect: _Scene.BBox, top?: LineCoords, bottom?: LineCoords) {
+    public update(datum: ParallelChannelAnnotation, seriesRect: _Scene.BBox, top?: LineCoords, bottom?: LineCoords) {
         const { locked, visible } = datum;
 
         this.locked = locked ?? false;
@@ -83,7 +81,11 @@ export class Channel extends Annotation {
         }
     }
 
-    override dragHandle(datum: ChannelAnnotation, target: Coords, invertPoint: (point: Coords) => Coords | undefined) {
+    override dragHandle(
+        datum: ParallelChannelAnnotation,
+        target: Coords,
+        invertPoint: (point: Coords) => Coords | undefined
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -184,7 +186,7 @@ export class Channel extends Annotation {
         return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y);
     }
 
-    private updateLines(datum: ChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    private updateLines(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -224,7 +226,7 @@ export class Channel extends Annotation {
         }
     }
 
-    private updateHandles(datum: ChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    private updateHandles(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const {
             handles: { topLeft, topMiddle, topRight, bottomLeft, bottomMiddle, bottomRight },
         } = this;
@@ -251,7 +253,7 @@ export class Channel extends Annotation {
         });
     }
 
-    private updateBackground(datum: ChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    private updateBackground(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const { background } = this;
 
         background.path.clear();

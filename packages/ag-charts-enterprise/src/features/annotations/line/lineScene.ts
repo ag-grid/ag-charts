@@ -1,10 +1,10 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { LineAnnotation } from '../annotationProperties';
 import type { Coords, LineCoords } from '../annotationTypes';
-import { Annotation } from './annotation';
-import { DivariantHandle } from './handle';
-import { CollidableLine } from './shapes';
+import { Annotation } from '../scenes/annotation';
+import { DivariantHandle } from '../scenes/handle';
+import { CollidableLine } from '../scenes/shapes';
+import type { LineAnnotation } from './lineProperties';
 
 export class Line extends Annotation {
     static override is(value: unknown): value is Line {
