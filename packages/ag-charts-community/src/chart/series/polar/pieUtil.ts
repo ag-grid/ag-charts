@@ -159,7 +159,7 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
     return undefined;
 }
 
-export function computeSectorFocusBounds(series: SectorSeries, opts: PickFocusInputs): BBox | undefined {
+export function computeSectorSeriesFocusBounds(series: SectorSeries, opts: PickFocusInputs): BBox | undefined {
     const nodeData = series.getNodeData();
     if (nodeData === undefined) return undefined;
 

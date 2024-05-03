@@ -35,7 +35,7 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
 import {
-    computeSectorFocusBounds,
+    computeSectorSeriesFocusBounds,
     pickByMatchingAngle,
     preparePieSeriesAnimationFunctions,
     resetPieSelectionsFn,
@@ -1401,6 +1401,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeSectorFocusBounds(this, opts);
+        return computeSectorSeriesFocusBounds(this, opts);
     }
 }
