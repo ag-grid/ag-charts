@@ -60,7 +60,10 @@ export class Scene {
     }
 
     setContainer(value: HTMLElement | DOMManagerLike) {
-        if (value instanceof HTMLElement) {
+        const isElement = (v: unknown): v is HTMLElement => {
+            return typeof (v as any).tagName !== 'undefined';
+        };
+        if (isElement(value)) {
             const { element } = this.canvas;
             element.parentElement?.removeChild(element);
             value.appendChild(element);
