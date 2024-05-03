@@ -1,7 +1,7 @@
 import { deepClone } from '../../util/json';
 import { StateTracker } from '../../util/stateTracker';
+import { BaseManager } from '../baseManager';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import { BaseManager } from './baseManager';
 
 export interface ZoomState {
     min: number;

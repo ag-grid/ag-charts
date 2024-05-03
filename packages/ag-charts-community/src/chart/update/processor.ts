@@ -13,7 +13,6 @@ export interface ChartLike {
     title: Caption;
     subtitle: Caption;
     footnote: Caption;
-    wrapper: { element: HTMLElement };
 }
 
 export interface AxisLike {

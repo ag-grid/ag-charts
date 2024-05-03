@@ -1,10 +1,11 @@
 import { allInStringUnion } from '../../util/array';
 import { Debug } from '../../util/debug';
-import { getDocument, getWindow, injectStyle } from '../../util/dom';
+import { getDocument, getWindow } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
-import { BaseManager } from './baseManager';
+import { BaseManager } from '../baseManager';
+import type { DOMManager } from '../dom/domManager';
 import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
@@ -53,7 +54,7 @@ type SUPPORTED_EVENTS =
     | 'pagehide'
     | 'wheel';
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
-const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
+const EVENT_HANDLERS = [
     'click',
     'dblclick',
     'contextmenu',
@@ -69,7 +70,7 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'focus',
     'keydown',
     'keyup',
-];
+] as const;
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
@@ -144,7 +145,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private readonly debug = Debug.create(true, 'interaction');
 
     private readonly rootElement: HTMLElement;
-    private readonly element: HTMLElement;
 
     private eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -162,20 +162,19 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
-        element: HTMLElement
+        private readonly domManager: DOMManager
     ) {
         super();
 
         this.rootElement = getDocument('body');
-        this.element = element;
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch')) {
-                element.addEventListener(type, this.eventHandler, { passive: true });
+                this.domManager.addEventListener(type, this.eventHandler, { passive: true });
             } else if (type === 'wheel') {
-                element.addEventListener(type, this.eventHandler, { passive: false });
+                this.domManager.addEventListener(type, this.eventHandler, { passive: false });
             } else {
-                element.addEventListener(type, this.eventHandler);
+                this.domManager.addEventListener(type, this.eventHandler);
             }
         }
 
@@ -183,7 +182,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().addEventListener(type, this.eventHandler);
         }
 
-        injectStyle(CSS, 'interactionManager');
+        domManager.addStyles('interactionManager', CSS);
     }
 
     override destroy() {
@@ -194,8 +193,10 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of EVENT_HANDLERS) {
-            this.element.removeEventListener(type, this.eventHandler);
+            this.domManager.removeEventListener(type, this.eventHandler);
         }
+
+        this.domManager.removeStyles('interactionManager');
     }
 
     // Wrapper to only broadcast events when the InteractionManager is a given state.
@@ -362,11 +363,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private isEventOverElement(event: SupportedEvent) {
-        return (
-            event.target === this.element ||
-            (event.target as any)?.parentElement === this.element ||
-            (event.target as any)?.parentElement?.parentElement === this.element
-        );
+        return this.domManager.isEventOverElement(event);
     }
 
     private static readonly NULL_COORDS: Coords = {
@@ -442,7 +439,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         let { offsetX, offsetY, pageX, pageY } = opts;
 
         if (!isFiniteNumber(offsetX) || !isFiniteNumber(offsetY)) {
-            const rect = this.element.getBoundingClientRect();
+            const rect = this.domManager.getBoundingClientRect();
             offsetX = clientX - rect.left;
             offsetY = clientY - rect.top;
         }

@@ -1,8 +1,7 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createElement, injectStyle } =
-    _ModuleSupport;
+const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
 const { setAttribute } = _Util;
 const { BBox } = _Scene;
 
@@ -61,6 +60,8 @@ export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties 
 }
 
 export class CrosshairLabel extends BaseProperties {
+    private id = _Util.createId(this);
+
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
@@ -93,15 +94,14 @@ export class CrosshairLabel extends BaseProperties {
 
     private readonly element: HTMLElement;
 
-    constructor(private readonly labelRoot: HTMLElement) {
+    constructor(private readonly domManager: _ModuleSupport.DOMManager) {
         super();
 
-        this.element = createElement('div');
+        this.element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
         this.element.classList.add(DEFAULT_LABEL_CLASS);
         setAttribute(this.element, 'aria-hidden', true);
-        labelRoot.appendChild(this.element);
 
-        injectStyle(defaultLabelCss, 'crosshairLabel');
+        this.domManager.addStyles('crosshair-labels', defaultLabelCss);
     }
 
     show(meta: LabelMeta) {
@@ -139,7 +139,7 @@ export class CrosshairLabel extends BaseProperties {
     }
 
     private getContainerBoundingBox(): _Scene.BBox {
-        const { width, height } = this.labelRoot.getBoundingClientRect();
+        const { width, height } = this.domManager.getBoundingClientRect();
         return new BBox(0, 0, width, height);
     }
 
@@ -148,11 +148,7 @@ export class CrosshairLabel extends BaseProperties {
     }
 
     destroy() {
-        const { parentNode } = this.element;
-
-        if (parentNode) {
-            parentNode.removeChild(this.element);
-        }
+        this.domManager.removeChild('canvas-overlay', `crosshair-label-${this.id}`);
     }
 
     toLabelHtml(input: string | AgCrosshairLabelRendererResult, defaults?: AgCrosshairLabelRendererResult): string {

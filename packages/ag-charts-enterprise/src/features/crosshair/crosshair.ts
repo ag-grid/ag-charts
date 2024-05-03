@@ -7,8 +7,7 @@ type AgCrosshairLabelRendererResult = any;
 
 const { Group, Line, BBox } = _Scene;
 const { createId } = _Util;
-const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, Validate, Layers, getDocument } =
-    _ModuleSupport;
+const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, Validate, Layers } = _ModuleSupport;
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
@@ -130,7 +129,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private updateLabels(keys: string[]) {
         const { labels, ctx, axisLayout } = this;
         keys.forEach((key) => {
-            labels[key] ??= new CrosshairLabel(ctx.scene.canvas.container ?? getDocument('body'));
+            labels[key] ??= new CrosshairLabel(ctx.domManager);
 
             this.updateLabel(labels[key]);
         });
