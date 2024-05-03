@@ -1,5 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { openPlunker } from '@features/plunkr/utils/plunkr';
+import { openPlunker } from '@ag-website-shared/components/plunkr/utils/plunkr';
 import { doOnEnter } from '@utils/doOnEnter';
 
 import { getJavascriptContent, getPlunkrHtml } from '../utils/templates';

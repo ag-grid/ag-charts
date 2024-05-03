@@ -12,6 +12,9 @@ export async function getStaticPaths() {
     return pages;
 }
 
+// NOTE: Render as a partial, so that astro does not insert any website styles into the page
+export const partial = true;
+
 const { exampleName } = Astro.params;
 
 /**

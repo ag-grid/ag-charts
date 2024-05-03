@@ -25,13 +25,13 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
                 {
                     page.enterprise && (
                         <span class="enterpriseIcon">
-                            <Icon client:only name="enterprise" />
+                            <Icon client:only="react" name="enterprise" />
                         </span>
                     )
                 }
             </span>
 
-            <GallerySeriesLink client:only series={page.seriesTitle} link={page.seriesLink} />
+            <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
         </h1>
 
         <GalleryExampleRunner title={page.name} name={page.slug} />
