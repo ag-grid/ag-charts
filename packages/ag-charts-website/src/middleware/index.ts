@@ -1,30 +1,5 @@
-import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { defineMiddleware } from 'astro/middleware';
-import { parse } from 'node-html-parser';
 import * as prettier from 'prettier';
-
-const env = import.meta.env;
-
-const rewriteAstroGeneratedContent = (body: string) => {
-    const html = parse(body);
-    html.querySelectorAll('script').forEach((script) => {
-        const src = script.getAttribute('src');
-        if (env.DEV && src != null && src.startsWith(urlWithBaseUrl('/'))) {
-            script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
-        } else if (src == null && script.textContent.trim() === '') {
-            // Astro generated content
-            script.remove();
-        }
-    });
-    html.querySelectorAll('link').forEach((link) => {
-        const href = link.getAttribute('href');
-        if (href != null && href.startsWith(urlWithBaseUrl('/_astro'))) {
-            // Astro generated content
-            link.remove();
-        }
-    });
-    return html.toString();
-};
 
 const BINARY_EXTENSIONS = ['png', 'webp', 'jpeg', 'jpg'];
 
@@ -56,8 +31,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     let body = await response.text();
 
     if (isHtml(context.url.pathname)) {
-        body = rewriteAstroGeneratedContent(body);
-
         try {
             body = await prettier.format(body, {
                 parser: 'html',
