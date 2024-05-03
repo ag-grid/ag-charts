@@ -10,7 +10,6 @@ import svgr from 'vite-plugin-svgr';
 
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
-import { getDevFileList } from './src/utils/pages';
 import { getSitemapConfig } from './src/utils/sitemap';
 import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
 
