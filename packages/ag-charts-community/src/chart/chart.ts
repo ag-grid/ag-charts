@@ -1181,7 +1181,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.updatePickedFocus(pick);
     }
 
-    protected updatePickedFocus(pick: PickFocusOutputs<SeriesNodeDatum> | undefined) {
+    protected updatePickedFocus(pick: PickFocusOutputs | undefined) {
         const { focus } = this;
         if (pick === undefined || focus.series === undefined) return;
 

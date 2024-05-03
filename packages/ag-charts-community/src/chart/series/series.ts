@@ -70,9 +70,9 @@ export type PickFocusInputs = {
     readonly seriesRect?: Readonly<BBox>;
 };
 
-export type PickFocusOutputs<TDatum> = {
+export type PickFocusOutputs = {
     datumIndex: number;
-    datum: TDatum;
+    datum: SeriesNodeDatum;
     bbox: BBox;
     showFocusBox: boolean;
 };
@@ -812,7 +812,7 @@ export abstract class Series<
         return resize;
     }
 
-    public pickFocus(_opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+    public pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
         return undefined;
     }
 }

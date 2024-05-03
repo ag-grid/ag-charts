@@ -77,7 +77,7 @@ export abstract class DataModelSeries<
 
     public abstract getNodeData(): TDatum[] | undefined;
 
-    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         const nodeData = this.getNodeData();
         if (nodeData === undefined || nodeData.length === 0) {
             return undefined;

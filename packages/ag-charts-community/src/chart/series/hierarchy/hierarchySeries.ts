@@ -394,7 +394,7 @@ export abstract class HierarchySeries<
         return this.getDatumIdFromData(node);
     }
 
-    public override pickFocus(_opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+    public override pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
         return undefined;
     }
 }
