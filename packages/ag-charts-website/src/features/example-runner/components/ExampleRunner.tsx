@@ -13,6 +13,7 @@ import chartsStyles from './LegacyExampleRunner.module.scss';
 
 interface Props {
     id: string;
+    title: string;
     exampleUrl?: string;
     exampleRunnerExampleUrl?: string;
     exampleType?: ExampleType;
@@ -30,6 +31,7 @@ const DEFAULT_HEIGHT = 500;
 
 export const ExampleRunner: FunctionComponent<Props> = ({
     id,
+    title,
     exampleUrl,
     exampleRunnerExampleUrl,
     exampleType,
@@ -56,6 +58,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     style={{ height: exampleHeight, width: '100%' }}
                 >
                     <ExampleIFrame
+                        title={title}
                         isHidden={showCode}
                         url={exampleRunnerExampleUrl!}
                         loadingIFrameId={loadingIFrameId}
