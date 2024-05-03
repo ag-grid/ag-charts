@@ -592,4 +592,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             },
         });
     }
+
+    protected computeFocusBounds(
+        node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
+    ): _Scene.BBox | undefined {
+        node; // TODO
+        return _Scene.BBox.NaN;
+    }
 }

@@ -9,6 +9,8 @@ import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { Logger } from '../../../util/logger';
+import { clamp } from '../../../util/number';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
@@ -46,7 +48,7 @@ export class HierarchyNode<TDatum = Record<string, any>>
         public readonly fill: string | undefined,
         public readonly stroke: string | undefined,
         public readonly sumSize: number,
-        public readonly depth: number | undefined,
+        public readonly depth: number,
         public readonly parent: HierarchyNode<TDatum> | undefined,
         public readonly children: HierarchyNode<TDatum>[]
     ) {
@@ -88,24 +90,17 @@ export class HierarchyNode<TDatum = Record<string, any>>
     }
 }
 
+type FocusPathNode<TDatum> = {
+    nodeDatum: HierarchyNode<TDatum>;
+    childIndex: number;
+};
+
 export abstract class HierarchySeries<
     TNode extends Node = Group,
     TProps extends HierarchySeriesProperties<any> = HierarchySeriesProperties<any>,
     TDatum extends SeriesNodeDatum = SeriesNodeDatum,
 > extends Series<TDatum, TProps> {
-    rootNode = new HierarchyNode<TDatum>(
-        this,
-        0,
-        undefined,
-        0,
-        undefined,
-        undefined,
-        undefined,
-        0,
-        undefined,
-        undefined,
-        []
-    );
+    rootNode = new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, undefined, 0, 0, undefined, []);
     colorDomain: number[] = [0, 0];
     maxDepth = 0;
 
@@ -188,7 +183,7 @@ export abstract class HierarchySeries<
 
         const createNode = (datum: any, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
             const nodeIndex = getIndex();
-            const depth = parent.depth != null ? parent.depth + 1 : 0;
+            const depth = parent.depth + 1;
             const children = childrenKey != null ? datum[childrenKey] : undefined;
             const isLeaf = children == null || children.length === 0;
 
@@ -240,19 +235,7 @@ export abstract class HierarchySeries<
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode<TDatum>(
-                this,
-                0,
-                undefined,
-                0,
-                undefined,
-                undefined,
-                undefined,
-                0,
-                undefined,
-                undefined,
-                []
-            ),
+            new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, undefined, 0, 0, undefined, []),
             this.data
         );
 
@@ -286,6 +269,7 @@ export abstract class HierarchySeries<
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
         this.colorDomain = colorDomain;
+        this.focusPath = [{ nodeDatum: this.rootNode, childIndex: 0 }];
     }
 
     protected abstract updateSelections(): Promise<void>;
@@ -394,7 +378,61 @@ export abstract class HierarchySeries<
         return this.getDatumIdFromData(node);
     }
 
-    public override pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
+    private focusPath: FocusPathNode<TDatum>[] = [];
+    private focusDepth: number = 1;
+
+    protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
+
+    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
+        if (this.rootNode.children.length === 0) return undefined;
+        if (this.focusPath.length === 0) {
+            Logger.error('this.focusPath should not be empty');
+        }
+
+        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
+        const { focusPath: path, focusDepth: depth } = this;
+
+        if (depthDelta !== 0 || path.length === 1) {
+            const targetDepth = Math.max(1, depth + depthDelta);
+            if (path[targetDepth] !== undefined) {
+                return this.computeFocusOutputs(path[targetDepth]);
+            } else {
+                let deepest = path[path.length - 1];
+                while (deepest.nodeDatum.children.length > 0 && deepest.nodeDatum.depth < targetDepth) {
+                    const nextDeepest = { nodeDatum: deepest.nodeDatum.children[0], childIndex: 0 };
+                    path.push(nextDeepest);
+                    deepest = nextDeepest;
+                }
+                return this.computeFocusOutputs(deepest);
+            }
+        } else if (childDelta !== 0) {
+            const targetChild = path[path.length - 1].childIndex + childDelta;
+            const currentParent = path[depth - 1].nodeDatum;
+            const childCount = currentParent?.children?.length;
+            if (childCount !== undefined) {
+                const newChild = clamp(0, targetChild, childCount);
+                const newFocus = { nodeDatum: currentParent.children[newChild], childIndex: 0 };
+                path[depth] = newFocus;
+                path.length = depth + 1;
+                return this.computeFocusOutputs(newFocus);
+            }
+        } else {
+            return this.computeFocusOutputs(path[path.length - 1]);
+        }
+    }
+
+    private computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
+        const bbox = this.computeFocusBounds(nodeDatum);
+        if (bbox) {
+            this.focusDepth = nodeDatum.depth;
+            return {
+                datum: nodeDatum,
+                datumIndex: childIndex,
+                otherIndex: nodeDatum.depth,
+                bbox,
+                showFocusBox: true,
+            };
+        }
         return undefined;
     }
 }
