@@ -1,7 +1,7 @@
+import { BaseManager } from '../baseManager';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
 import type { UpdateService } from '../updateService';
-import { BaseManager } from './baseManager';
 import type { HighlightManager } from './highlightManager';
 import type { TooltipManager } from './tooltipManager';
 import type { ZoomManager } from './zoomManager';

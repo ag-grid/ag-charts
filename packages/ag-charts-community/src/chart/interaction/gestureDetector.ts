@@ -1,6 +1,7 @@
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
-import { BaseManager } from './baseManager';
+import { BaseManager } from '../baseManager';
+import type { DOMManager } from '../dom/domManager';
 
 type PinchEventTypes = 'pinch-start' | 'pinch-move' | 'pinch-end';
 type GestureEventTypes = PinchEventTypes;
@@ -44,8 +45,6 @@ function distance(finger1: Finger, finger2: Finger): number {
 const MIN_DISTANCE_TO_START_PINCH = 1;
 
 export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent> {
-    private readonly element: HTMLElement;
-
     private touchstart = (event: TouchEvent) => this.onTouchStart(event);
     private touchmove = (event: TouchEvent) => this.onTouchMove(event);
     private touchend = (event: TouchEvent) => this.onTouchEnd(event);
@@ -59,21 +58,19 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
         status: PinchTrackingStatus.Off,
     };
 
-    public constructor(element: HTMLElement) {
+    public constructor(private readonly domManager: DOMManager) {
         super();
-        this.element = element;
-        element.addEventListener('touchstart', this.touchstart, { passive: true });
-        element.addEventListener('touchmove', this.touchmove, { passive: true });
-        element.addEventListener('touchend', this.touchend);
-        element.addEventListener('touchcancel', this.touchcancel);
+        this.domManager.addEventListener('touchstart', this.touchstart, { passive: true });
+        this.domManager.addEventListener('touchmove', this.touchmove, { passive: true });
+        this.domManager.addEventListener('touchend', this.touchend);
+        this.domManager.addEventListener('touchcancel', this.touchcancel);
     }
 
     override destroy() {
-        const { element } = this;
-        element.removeEventListener('touchstart', this.touchstart);
-        element.removeEventListener('touchmove', this.touchmove);
-        element.removeEventListener('touchend', this.touchend);
-        element.removeEventListener('touchcancel', this.touchcancel);
+        this.domManager.removeEventListener('touchstart', this.touchstart);
+        this.domManager.removeEventListener('touchmove', this.touchmove);
+        this.domManager.removeEventListener('touchend', this.touchend);
+        this.domManager.removeEventListener('touchcancel', this.touchcancel);
     }
 
     private findPinchTouches(moveEvent: TouchEvent): undefined | [Touch, Touch] {

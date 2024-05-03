@@ -6,12 +6,11 @@ import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 // Work-around for typing issues with Angular 13+ (see AG-6969),
 type OffscreenCanvasRenderingContext2D = any;
 
-interface CanvasOptions {
+export interface CanvasOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
-    position?: 'absolute';
-    insertAsFirstChild?: boolean;
+    canvasConstructor?: () => HTMLCanvasElement;
 }
 
 /**
@@ -29,28 +28,20 @@ export class HdpiCanvas {
     @ObserveChanges<HdpiCanvas>((target) => target.onEnabledChange())
     enabled: boolean = true;
 
-    @ObserveChanges<HdpiCanvas>((target, newValue, oldValue) => target.onContainerChange(newValue, oldValue))
-    container?: HTMLElement;
-
     width: number = 600;
     height: number = 300;
     pixelRatio: number;
-    insertAsFirstChild: boolean;
 
     constructor(options: CanvasOptions) {
-        const { width, height, pixelRatio, position, insertAsFirstChild } = options;
+        const { width, height, pixelRatio, canvasConstructor } = options;
 
-        this.insertAsFirstChild = insertAsFirstChild ?? false;
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
-        this.element = createElement('canvas');
+        this.element = canvasConstructor?.() ?? createElement('canvas');
         // Safari needs a width and height set or the output can appear blurry
         this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
         this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
-        if (position) {
-            this.element.style.position = position;
-        }
 
         this.context = this.element.getContext('2d')!;
 
@@ -104,17 +95,6 @@ export class HdpiCanvas {
         this.context.clearRect(0, 0, 0, 0);
 
         Object.freeze(this);
-    }
-
-    private onContainerChange(newValue?: HTMLElement, oldValue?: HTMLElement) {
-        if (newValue === oldValue) return;
-
-        this.element.parentNode?.removeChild(this.element);
-        if (this.insertAsFirstChild && this.container?.firstChild) {
-            this.container?.insertBefore(this.element, this.container.firstChild);
-        } else {
-            this.container?.appendChild(this.element);
-        }
     }
 
     private onEnabledChange() {

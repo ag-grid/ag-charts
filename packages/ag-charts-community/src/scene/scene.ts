@@ -1,17 +1,22 @@
 import { Debug } from '../util/debug';
 import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
-import { HdpiCanvas } from './canvas/hdpiCanvas';
+import { CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
 import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
+
+type DOMManagerLike = {
+    addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
+};
 
 interface SceneOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
     canvasPosition?: 'absolute';
+    domManager?: DOMManagerLike;
 }
 
 export class Scene {
@@ -27,14 +32,20 @@ export class Scene {
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
 
-    constructor({ width, height, pixelRatio, canvasPosition }: SceneOptions) {
-        this.canvas = new HdpiCanvas({
+    private domManager?: DOMManagerLike;
+
+    constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
+        this.domManager = domManager;
+
+        const canvasOpts: CanvasOptions = {
             width,
             height,
             pixelRatio,
-            position: canvasPosition,
-            insertAsFirstChild: canvasPosition === 'absolute',
-        });
+        };
+        if (domManager) {
+            canvasOpts.canvasConstructor = () => domManager.addChild('canvas', 'scene-canvas') as HTMLCanvasElement;
+        }
+        this.canvas = new HdpiCanvas(canvasOpts);
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });
@@ -48,8 +59,15 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
-    setContainer(value: HTMLElement) {
-        this.canvas.container = value;
+    setContainer(value: HTMLElement | DOMManagerLike) {
+        if (value instanceof HTMLElement) {
+            const { element } = this.canvas;
+            element.parentElement?.removeChild(element);
+            value.appendChild(element);
+        } else {
+            this.domManager = value;
+            this.domManager.addChild('canvas', 'scene-canvas', this.canvas.element);
+        }
         return this;
     }
 
@@ -222,8 +240,6 @@ export class Scene {
     }
 
     destroy() {
-        this.canvas.container = undefined;
-
         this.strip();
 
         this.canvas.destroy();

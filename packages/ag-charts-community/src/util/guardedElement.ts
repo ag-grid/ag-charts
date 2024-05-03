@@ -1,7 +1,7 @@
 export type GuardedElementProperties = {
     element: HTMLElement;
     topTabGuard: HTMLElement;
-    botTabGuard: HTMLElement;
+    bottomTabGuard: HTMLElement;
 };
 
 export class GuardedElement implements GuardedElementProperties {
@@ -15,13 +15,13 @@ export class GuardedElement implements GuardedElementProperties {
     constructor(
         public readonly element: HTMLElement,
         public readonly topTabGuard: HTMLElement,
-        public readonly botTabGuard: HTMLElement
+        public readonly bottomTabGuard: HTMLElement
     ) {
         this.element.tabIndex = -1;
         this.initEventListener(this.element, 'blur', () => this.onBlur());
         this.initEventListener(this.element, 'focus', () => this.onFocus());
         this.initEventListener(this.topTabGuard, 'focus', (ev) => this.onTabStart(ev, this.topTabGuard));
-        this.initEventListener(this.botTabGuard, 'focus', (ev) => this.onTabStart(ev, this.botTabGuard));
+        this.initEventListener(this.bottomTabGuard, 'focus', (ev) => this.onTabStart(ev, this.bottomTabGuard));
     }
 
     set tabIndex(index: number) {
@@ -35,10 +35,10 @@ export class GuardedElement implements GuardedElementProperties {
         // to treat TAB and Shift+TAB the same way.
         if (index > 0) {
             this.topTabGuard.tabIndex = index;
-            this.botTabGuard.style.display = 'none';
+            this.bottomTabGuard.style.display = 'none';
         } else {
             this.topTabGuard.tabIndex = index;
-            this.botTabGuard.tabIndex = index;
+            this.bottomTabGuard.tabIndex = index;
         }
     }
 
@@ -88,7 +88,7 @@ export class GuardedElement implements GuardedElementProperties {
     }
 
     public getBrowserFocusDelta(): -1 | 0 | 1 {
-        const { guessedDelta, guardTarget, topTabGuard, botTabGuard } = this;
+        const { guessedDelta, guardTarget, topTabGuard, bottomTabGuard: botTabGuard } = this;
         if (guessedDelta !== undefined) return guessedDelta;
         if (guardTarget === topTabGuard) return 1;
         if (guardTarget === botTabGuard) return -1;
