@@ -411,7 +411,7 @@ export abstract class HierarchySeries<
             const childCount = currentParent?.children?.length;
             if (childCount !== undefined) {
                 const newChild = clamp(0, targetChild, childCount);
-                const newFocus = { nodeDatum: currentParent.children[newChild], childIndex: 0 };
+                const newFocus = { nodeDatum: currentParent.children[newChild], childIndex: newChild };
                 path[depth] = newFocus;
                 path.length = depth + 1;
                 return this.computeFocusOutputs(newFocus);
