@@ -70,9 +70,6 @@ export default defineConfig({
         },
         server: {
             https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
-            fs: {
-                allow: ['.'].concat(getDevFileList()).concat('../../external'),
-            },
         },
         css: {
             preprocessorOptions: {
