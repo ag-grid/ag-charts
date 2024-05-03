@@ -278,7 +278,7 @@ function ToggleDetails({
     onToggle?: () => void;
 }) {
     return (
-        <button className={classnames(styles.seeMore, 'button-as-link')} role="presentation" onClick={onToggle}>
+        <button className={classnames(styles.seeMore, 'button-as-link')} onClick={onToggle}>
             {!isOpen ? moreText : lessText} <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} />
         </button>
     );
