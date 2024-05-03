@@ -24,12 +24,12 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
                         <li>
                             <a href={getPageHashUrl({ chartSeriesName: series.seriesName, isRelative: true })}>
                                 <span class="seriesIcon">
-                                    <Icon client:only name={series.icon as IconName} />
+                                    <Icon client:only="react" name={series.icon as IconName} />
                                 </span>
                                 <span class="name">{series.title}</span>
                                 {series.enterprise && (
                                     <span class="enterpriseIcon">
-                                        <Icon client:only name="enterprise" />
+                                        <Icon client:only="react" name="enterprise" />
                                     </span>
                                 )}
                             </a>
