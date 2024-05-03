@@ -781,7 +781,7 @@ export class TreemapSeries<
     protected computeFocusBounds(
         node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
     ): _Scene.BBox | undefined {
-        node; // TODO
-        return _Scene.BBox.NaN;
+        const rects = this.groupSelection.selectByClass(Rect);
+        return rects[node.index]?.computeTransformedBBox();
     }
 }

@@ -162,13 +162,13 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
 export function computeSectorSeriesFocusBounds(series: SectorSeries, opts: PickFocusInputs): BBox | undefined {
     const nodeData = series.getNodeData();
     if (nodeData === undefined) return undefined;
+    return computeSectorFocusBounds(nodeData[opts.datumIndex], series.centerX, series.centerY);
+}
 
-    const { centerX, centerY } = series;
-
+export function computeSectorFocusBounds(datum: SectorVariables, centerX: number, centerY: number): BBox | undefined {
     // To calculate the bbox of the sector, we find the min & max X/Y coords of
     // 1) the points of the straight lines of the sector and
     // 2) the points on the top/right/left/bottom of the outer arc (if the sector passes through these).
-    const datum = nodeData[opts.datumIndex];
     const pointVars: { radius: number; angle: number }[] = [
         { radius: datum.innerRadius, angle: datum.startAngle },
         { radius: datum.innerRadius, angle: datum.endAngle },
