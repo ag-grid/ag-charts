@@ -350,10 +350,7 @@ export class Legend extends BaseProperties {
             paddingY,
             label,
             maxWidth,
-            marker: itemMarker,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
-            line: itemLine,
-            showSeriesStroke,
         } = this.item;
         const data = [...this.data];
         if (this.reverseOrder) {
@@ -370,55 +367,16 @@ export class Legend extends BaseProperties {
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
         this.itemSelection.each((markerLabel, datum) => {
-            let paddedMarkerWidth = paddingX;
-
-            if (markerLabel.markers.length === 0) {
-                const dimensionProps: { length: number; spacing: number }[] = [];
-                const markers: Marker[] = [];
-                const lines: Line[] = [];
-
-                datum.symbols.forEach((symbol) => {
-                    const markerEnabled =
-                        this.item.marker.enabled ??
-                        (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
-                    const lineEnabled = !!(symbol.line && showSeriesStroke);
-
-                    const spacing = symbol.marker.padding ?? itemMarker.padding;
-
-                    if (markerEnabled || lineEnabled) {
-                        paddedMarkerWidth += spacing;
-                    }
-
-                    if (lineEnabled) {
-                        lines.push(new Line());
-                    }
-
-                    if (markerEnabled) {
-                        const { size: markerSize, shape: markerShape = symbol.marker.shape } = itemMarker;
-                        const MarkerCtr = getMarker(markerShape);
-                        const marker = new MarkerCtr();
-
-                        marker.size = markerSize;
-                        markers.push(marker);
-                    }
-
-                    const length = lineEnabled ? itemLine.length ?? 25 : 0;
-                    dimensionProps.push({ length, spacing });
-                });
-
-                markerLabel.markers = markers;
-                markerLabel.lines = lines;
-                markerLabel.update(dimensionProps);
-            }
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
-            markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedMarkerWidth, font, id);
+            markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, font, id);
 
             bboxes.push(markerLabel.computeBBox());
         });
@@ -462,6 +420,55 @@ export class Legend extends BaseProperties {
         this.update();
     }
 
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
+        const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
+
+        let paddedSymbolWidth = paddingX;
+        if (markerLabel.markers.length > 0 || markerLabel.lines.length > 0) {
+            return paddedSymbolWidth;
+        }
+
+        const dimensionProps: { length: number; spacing: number }[] = [];
+        const markers: Marker[] = [];
+        const lines: Line[] = [];
+
+        datum.symbols.forEach((symbol) => {
+            const markerEnabled =
+                this.item.marker.enabled ??
+                (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
+            const lineEnabled = !!(symbol.line && showSeriesStroke);
+
+            const spacing = symbol.marker.padding ?? itemMarker.padding;
+
+            if (lineEnabled) {
+                lines.push(new Line());
+            }
+
+            const { size: markerSize, shape: markerShape = symbol.marker.shape } = itemMarker;
+
+            if (markerEnabled) {
+                const MarkerCtr = getMarker(markerShape);
+                const marker = new MarkerCtr();
+
+                marker.size = markerSize;
+                markers.push(marker);
+            }
+
+            const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
+            const markerLength = markerEnabled ? markerSize : 0;
+            dimensionProps.push({ length: lineLength, spacing });
+
+            if (markerEnabled || lineEnabled) {
+                paddedSymbolWidth += spacing + Math.max(lineLength, markerLength);
+            }
+        });
+
+        markerLabel.markers = markers;
+        markerLabel.lines = lines;
+        markerLabel.update(dimensionProps);
+
+        return paddedSymbolWidth;
+    }
     private truncate(
         text: string,
         maxCharLength: number,
