@@ -459,18 +459,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, formatter, sectorSpacing, __BACKGROUND_COLOR_DO_NOT_USE } =
-            this.properties;
+        const { angleKey, radiusKey, fills, strokes, formatter } = this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
             highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
-        let defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
-        if (sectorSpacing == null && defaultStroke == null) {
-            // @todo(AG-10275) Remove sectorSpacing null case
-            defaultStroke = __BACKGROUND_COLOR_DO_NOT_USE;
-        }
+        const defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
             isDatumHighlighted && this.properties.highlightStyle.item,
             {
@@ -734,13 +729,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
             sector.cornerRadius = this.properties.cornerRadius;
-            // @todo(AG-10275) Remove sectorSpacing null case
-            sector.inset =
-                this.properties.sectorSpacing != null
-                    ? (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2
-                    : 0;
-            // @todo(AG-10275) Remove this line completely
-            sector.lineJoin = this.properties.sectorSpacing != null ? 'miter' : 'round';
+            sector.inset = (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2;
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
