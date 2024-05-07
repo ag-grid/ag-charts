@@ -67,7 +67,27 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 
 ### Parallel Channel
 
-{% chartExampleRunner title="Channel Annotation" name="annotation-channel" type="generated" /%}
+{% chartExampleRunner title="Parallel Channel Annotation" name="annotation-parallel-channel" type="generated" /%}
+
+```ts
+{
+    type: 'parallel-channel',
+    start: {
+        x: new Date('Thursday, September 14, 2023'),
+        y: 4487.78 + 50
+    },
+    end: {
+        x: new Date('Tuesday, October 03, 2023'),
+        y: 4229.45 + 50
+    },
+    startSize: 50,
+    endSize: 150,
+},
+```
+
+### Dijsoint Channel
+
+{% chartExampleRunner title="Disjoint Channel Annotation" name="annotation-disjoint-channel" type="generated" /%}
 
 ```ts
 {
@@ -83,12 +103,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
     size: 100,
 },
 ```
-
-### Dijsoint Channel
-
-{% warning %}
-todo
-{% /warning %}
 
 ## Customisation
 
@@ -124,6 +138,10 @@ annotations: {
 
 {% tabItem id="AgLineAnnotation" label="Line Annotation" %}
 {% apiReference id="AgLineAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgDisjointChannelAnnotation" label="Disjoint Channel Annotation" %}
+{% apiReference id="AgDisjointChannelAnnotation" /%}
 {% /tabItem %}
 
 {% tabItem id="AgParallelChannelAnnotation" label="Parallel Channel Annotation" %}
