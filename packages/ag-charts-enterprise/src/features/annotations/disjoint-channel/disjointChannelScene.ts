@@ -2,13 +2,13 @@ import { _Scene } from 'ag-charts-community';
 
 import type { Coords, LineCoords } from '../annotationTypes';
 import { Annotation } from '../scenes/annotation';
+import { Channel } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
-import { CollidableLine } from '../scenes/shapes';
 import type { DisjointChannelAnnotation } from './disjointChannelProperties';
 
 type ChannelHandle = keyof DisjointChannel['handles'];
 
-export class DisjointChannel extends Annotation {
+export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
     static override is(value: unknown): value is DisjointChannel {
         return Annotation.isCheck(value, 'disjoint-channel');
     }
@@ -17,13 +17,7 @@ export class DisjointChannel extends Annotation {
 
     override activeHandle?: ChannelHandle;
 
-    private topLine = new CollidableLine();
-    private bottomLine = new CollidableLine();
-    private background = new _Scene.Path({ zIndex: -1 });
-
-    private seriesRect?: _Scene.BBox;
-
-    private handles = {
+    override handles = {
         topLeft: new DivariantHandle(),
         topRight: new DivariantHandle(),
         bottomLeft: new DivariantHandle(),
@@ -33,24 +27,6 @@ export class DisjointChannel extends Annotation {
     constructor() {
         super();
         this.append([this.background, this.topLine, this.bottomLine, ...Object.values(this.handles)]);
-    }
-
-    public update(datum: DisjointChannelAnnotation, seriesRect: _Scene.BBox, top?: LineCoords, bottom?: LineCoords) {
-        const { locked, visible } = datum;
-
-        this.locked = locked ?? false;
-        this.seriesRect = seriesRect;
-
-        if (top == null || bottom == null) {
-            this.visible = false;
-            return;
-        } else {
-            this.visible = visible ?? true;
-        }
-
-        this.updateLines(datum, top, bottom);
-        this.updateHandles(datum, top, bottom);
-        this.updateBackground(datum, top, bottom);
     }
 
     override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
@@ -87,80 +63,61 @@ export class DisjointChannel extends Annotation {
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
-        if (activeHandle === 'topLeft' || activeHandle === 'bottomLeft') {
-            const direction = activeHandle === 'topLeft' ? 1 : -1;
-            const start = invertPoint({
-                x: handles.topLeft.handle.x + offset.x,
-                y: handles.topLeft.handle.y + offset.y * direction,
-            });
+        switch (activeHandle) {
+            case 'topLeft':
+            case 'bottomLeft': {
+                const direction = activeHandle === 'topLeft' ? 1 : -1;
+                const start = invertPoint({
+                    x: handles.topLeft.handle.x + offset.x,
+                    y: handles.topLeft.handle.y + offset.y * direction,
+                });
 
-            if (!start || datum.start.y == null) return;
+                if (!start || datum.start.y == null) return;
 
-            const startSize = datum.startSize + (start.y - datum.start.y) * 2;
+                const startSize = datum.startSize + (start.y - datum.start.y) * 2;
 
-            datum.start.x = start.x;
-            datum.start.y = start.y;
-            datum.startSize = startSize;
-        } else if (activeHandle === 'topRight') {
-            const end = invertPoint({
-                x: handles.topRight.handle.x + offset.x,
-                y: handles.topRight.handle.y + offset.y,
-            });
+                datum.start.x = start.x;
+                datum.start.y = start.y;
+                datum.startSize = startSize;
 
-            if (!end || datum.end.y == null) return;
+                break;
+            }
 
-            const endSize = datum.endSize + (end.y - datum.end.y) * 2;
+            case 'topRight': {
+                const end = invertPoint({
+                    x: handles.topRight.handle.x + offset.x,
+                    y: handles.topRight.handle.y + offset.y,
+                });
 
-            datum.end.x = end.x;
-            datum.end.y = end.y;
-            datum.endSize = endSize;
-        } else if (activeHandle === 'bottomRight') {
-            const bottomEnd = invertPoint({
-                x: handles.bottomRight.handle.x + offset.x,
-                y: handles.bottomRight.handle.y + offset.y,
-            });
+                if (!end || datum.end.y == null) return;
 
-            if (!bottomEnd || datum.start.y == null || datum.end.y == null) return;
+                const endSize = datum.endSize + (end.y - datum.end.y) * 2;
 
-            const endSize = datum.end.y - bottomEnd.y;
-            const startSize = datum.startSize - (datum.endSize - endSize);
+                datum.end.x = end.x;
+                datum.end.y = end.y;
+                datum.endSize = endSize;
 
-            datum.startSize = startSize;
-            datum.endSize = endSize;
-        }
-    }
+                break;
+            }
 
-    override stopDragging() {
-        const { activeHandle, handles } = this;
-        if (activeHandle == null) return;
+            case 'bottomRight': {
+                const bottomEnd = invertPoint({
+                    x: handles.bottomRight.handle.x + offset.x,
+                    y: handles.bottomRight.handle.y + offset.y,
+                });
 
-        handles[activeHandle].toggleDragging(false);
-    }
+                if (!bottomEnd || datum.start.y == null || datum.end.y == null) return;
 
-    override getCursor() {
-        if (this.activeHandle == null) return 'pointer';
-        return this.handles[this.activeHandle].getCursor();
-    }
+                const endSize = datum.end.y - bottomEnd.y;
+                const startSize = datum.startSize - (datum.endSize - endSize);
 
-    override containsPoint(x: number, y: number) {
-        const { handles, seriesRect, topLine, bottomLine } = this;
-
-        this.activeHandle = undefined;
-
-        for (const [handle, child] of Object.entries(handles)) {
-            if (child.containsPoint(x, y)) {
-                this.activeHandle = handle as ChannelHandle;
-                return true;
+                datum.startSize = startSize;
+                datum.endSize = endSize;
             }
         }
-
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
-
-        return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y);
     }
 
-    private updateLines(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateLines(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const { topLine, bottomLine } = this;
         const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -184,7 +141,7 @@ export class DisjointChannel extends Annotation {
         bottomLine.updateCollisionBBox();
     }
 
-    private updateHandles(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const {
             handles: { topLeft, topRight, bottomLeft, bottomRight },
         } = this;
@@ -202,22 +159,6 @@ export class DisjointChannel extends Annotation {
             ...handleStyles,
             x: bottom.x2 - bottomRight.handle.width / 2,
             y: bottom.y2 - bottomRight.handle.height / 2,
-        });
-    }
-
-    private updateBackground(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
-        const { background } = this;
-
-        background.path.clear();
-        background.path.moveTo(top.x1, top.y1);
-        background.path.lineTo(top.x2, top.y2);
-        background.path.lineTo(bottom.x2, bottom.y2);
-        background.path.lineTo(bottom.x1, bottom.y1);
-        background.path.closePath();
-        background.checkPathDirty();
-        background.setProperties({
-            fill: datum.background.fill,
-            fillOpacity: datum.background.fillOpacity,
         });
     }
 }
