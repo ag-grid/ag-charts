@@ -17,6 +17,12 @@ const domElementConfig: Record<
 };
 
 const STYLES = `
+.ag-chart-wrapper {
+    touch-action: none;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
 .ag-charts-style {
     display: none;
 }
@@ -198,6 +204,34 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     getBoundingClientRect() {
         return this.parent.element.getBoundingClientRect();
+    }
+
+    calculateCanvasPosition(el: HTMLElement) {
+        let x = 0;
+        let y = 0;
+
+        const parentRect = this.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        x = elRect.x - parentRect.x;
+        y = elRect.y - parentRect.y;
+
+        return { x, y };
+    }
+
+    isManagedDOMElement(el: HTMLElement, container = this.parentElement.element) {
+        while (el && el !== container) {
+            if (el.parentElement == null) return false;
+            el = el.parentElement;
+        }
+
+        return true;
+    }
+
+    isManagedChildDOMElement(el: HTMLElement, domElementClass: DOMElementClass, id: string) {
+        const { children } = this.rootElements.get(domElementClass) ?? {};
+
+        const search = children?.get(id);
+        return search != null && this.isManagedDOMElement(el, search);
     }
 
     isEventOverElement(event: Event | MouseEvent | TouchEvent) {
