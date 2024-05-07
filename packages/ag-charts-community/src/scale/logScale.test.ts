@@ -1,6 +1,5 @@
 import { describe, expect, it, test } from '@jest/globals';
 
-import { createNumericTicks } from '../util/ticks';
 import { LogScale } from './logScale';
 
 describe('LogScale', () => {
@@ -8,10 +7,9 @@ describe('LogScale', () => {
         {
             const scale = new LogScale();
             scale.domain = [100, 1000000];
-            // Note using spear operator on array to test for fractionDigits property from createNumericTicks
-            expect({ ...scale.ticks() }).toEqual({ ...[100, 1000, 10000, 100000, 1000000] });
+            expect(scale.ticks()).toEqual({ ticks: [100, 1000, 10000, 100000, 1000000], fractionDigits: 0 });
             scale.tickCount = 4;
-            expect({ ...scale.ticks() }).toEqual({ ...createNumericTicks(0, [100, 1000, 10000, 100000, 1000000]) });
+            expect(scale.ticks()).toEqual({ ticks: [100, 1000, 10000, 100000, 1000000], fractionDigits: 0 });
         }
 
         {
@@ -23,7 +21,7 @@ describe('LogScale', () => {
         {
             const scale = new LogScale();
             scale.domain = [-1000, -10];
-            expect({ ...scale.ticks() }).toEqual({ ...[-1000, -300, -100, -30, -10] });
+            expect(scale.ticks()).toEqual({ ticks: [-1000, -300, -100, -30, -10], fractionDigits: 0 });
         }
     });
 
@@ -125,10 +123,10 @@ describe('LogScale', () => {
     });
 
     test('base', () => {
-        const expTicks = createNumericTicks(
-            0,
-            [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351]
-        );
+        const expTicks = {
+            ticks: [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351],
+            fractionDigits: 0,
+        };
         const scale = new LogScale();
         scale.domain = [10, 1000];
         expect({ ...scale.ticks() }).not.toEqual({ ...expTicks });

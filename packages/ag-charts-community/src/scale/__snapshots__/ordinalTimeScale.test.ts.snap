@@ -1,174 +1,231 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OrdinalTimeScale should create nice ticks 1`] = `
-[
-  2024-02-27T00:00:00.000Z,
-  2024-02-29T00:00:00.000Z,
-  2024-03-04T00:00:00.000Z,
-  2024-03-06T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-02-27T00:00:00.000Z,
+    2024-02-29T00:00:00.000Z,
+    2024-03-04T00:00:00.000Z,
+    2024-03-06T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks matching the data domain if the domain length is smaller than maxTickCount 1`] = `
-[
-  2024-02-26T00:00:00.000Z,
-  2024-02-27T00:00:00.000Z,
-  2024-02-28T00:00:00.000Z,
-  2024-02-29T00:00:00.000Z,
-  2024-03-01T00:00:00.000Z,
-  2024-03-04T00:00:00.000Z,
-  2024-03-05T00:00:00.000Z,
-  2024-03-06T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-02-26T00:00:00.000Z,
+    2024-02-27T00:00:00.000Z,
+    2024-02-28T00:00:00.000Z,
+    2024-02-29T00:00:00.000Z,
+    2024-03-01T00:00:00.000Z,
+    2024-03-04T00:00:00.000Z,
+    2024-03-05T00:00:00.000Z,
+    2024-03-06T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every 2 days case 1`] = `
-[
-  2024-02-26T00:00:00.000Z,
-  2024-02-28T00:00:00.000Z,
-  2024-03-01T00:00:00.000Z,
-  2024-03-03T00:00:00.000Z,
-  2024-03-05T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-02-26T00:00:00.000Z,
+    2024-02-28T00:00:00.000Z,
+    2024-03-01T00:00:00.000Z,
+    2024-03-03T00:00:00.000Z,
+    2024-03-05T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every 2 weeks case 1`] = `
-[
-  2024-02-18T00:00:00.000Z,
-  2024-03-03T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-02-18T00:00:00.000Z,
+    2024-03-03T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every half day case 1`] = `
-[
-  2024-01-01T12:00:00.000Z,
-  2024-01-02T00:00:00.000Z,
-  2024-01-02T12:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-01T12:00:00.000Z,
+    2024-01-02T00:00:00.000Z,
+    2024-01-02T12:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every hour case 1`] = `
-[
-  2024-01-01T12:00:00.000Z,
-  2024-01-01T13:00:00.000Z,
-  2024-01-01T15:00:00.000Z,
-  2024-01-01T16:00:00.000Z,
-  2024-01-01T17:00:00.000Z,
-  2024-01-01T18:00:00.000Z,
-  2024-01-01T19:00:00.000Z,
-  2024-01-02T08:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-01T12:00:00.000Z,
+    2024-01-01T13:00:00.000Z,
+    2024-01-01T15:00:00.000Z,
+    2024-01-01T16:00:00.000Z,
+    2024-01-01T17:00:00.000Z,
+    2024-01-01T18:00:00.000Z,
+    2024-01-01T19:00:00.000Z,
+    2024-01-02T08:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every minute case 1`] = `
-[
-  2024-01-01T12:00:00.000Z,
-  2024-01-01T12:05:00.000Z,
-  2024-01-01T12:10:00.000Z,
-  2024-01-01T12:15:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-01T12:00:00.000Z,
+    2024-01-01T12:05:00.000Z,
+    2024-01-01T12:10:00.000Z,
+    2024-01-01T12:15:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every month case 1`] = `
-[
-  2024-02-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-02-01T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every year case 1`] = `
-[
-  2020-01-01T00:00:00.000Z,
-  2021-01-01T00:00:00.000Z,
-  2022-01-01T00:00:00.000Z,
-  2023-01-01T00:00:00.000Z,
-  2024-01-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2020-01-01T00:00:00.000Z,
+    2021-01-01T00:00:00.000Z,
+    2022-01-01T00:00:00.000Z,
+    2023-01-01T00:00:00.000Z,
+    2024-01-01T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every 2 months case 1`] = `
-[
-  2023-03-01T00:00:00.000Z,
-  2023-04-30T23:00:00.000Z,
-  2023-06-30T23:00:00.000Z,
-  2023-08-31T23:00:00.000Z,
-  2023-11-01T00:00:00.000Z,
-  2024-01-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2023-03-01T00:00:00.000Z,
+    2023-04-30T23:00:00.000Z,
+    2023-06-30T23:00:00.000Z,
+    2023-08-31T23:00:00.000Z,
+    2023-11-01T00:00:00.000Z,
+    2024-01-01T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every 3 days case 1`] = `
-[
-  2024-01-04T00:00:00.000Z,
-  2024-01-07T00:00:00.000Z,
-  2024-01-10T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-04T00:00:00.000Z,
+    2024-01-07T00:00:00.000Z,
+    2024-01-10T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every 3 year case 1`] = `
-[
-  2020-01-01T00:00:00.000Z,
-  2023-01-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2020-01-01T00:00:00.000Z,
+    2023-01-01T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every 6 months case 1`] = `
-[
-  2023-05-31T23:00:00.000Z,
-  2023-12-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2023-05-31T23:00:00.000Z,
+    2023-12-01T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every day case 1`] = `
-[
-  2024-01-02T00:00:00.000Z,
-  2024-01-03T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-02T00:00:00.000Z,
+    2024-01-03T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every hour case 1`] = `
-[
-  2024-01-01T11:00:00.000Z,
-  2024-01-01T12:00:00.000Z,
-  2024-01-01T13:00:00.000Z,
-  2024-01-01T17:00:00.000Z,
-  2024-01-01T18:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-01T11:00:00.000Z,
+    2024-01-01T12:00:00.000Z,
+    2024-01-01T13:00:00.000Z,
+    2024-01-01T17:00:00.000Z,
+    2024-01-01T18:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every minute case 1`] = `
-[
-  2024-01-01T17:53:00.000Z,
-  2024-01-01T17:54:00.000Z,
-  2024-01-01T17:55:00.000Z,
-  2024-01-01T17:56:00.000Z,
-  2024-01-01T17:57:00.000Z,
-  2024-01-01T17:58:00.000Z,
-  2024-01-01T17:59:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-01T17:53:00.000Z,
+    2024-01-01T17:54:00.000Z,
+    2024-01-01T17:55:00.000Z,
+    2024-01-01T17:56:00.000Z,
+    2024-01-01T17:57:00.000Z,
+    2024-01-01T17:58:00.000Z,
+    2024-01-01T17:59:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every month case 1`] = `
-[
-  2024-01-01T00:00:00.000Z,
-  2024-02-01T00:00:00.000Z,
-  2024-03-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2024-01-01T00:00:00.000Z,
+    2024-02-01T00:00:00.000Z,
+    2024-03-01T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should create ticks with configured time interval for every year case 1`] = `
-[
-  2018-01-01T00:00:00.000Z,
-  2019-01-01T00:00:00.000Z,
-  2020-01-01T00:00:00.000Z,
-  2022-01-01T00:00:00.000Z,
-  2023-01-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2018-01-01T00:00:00.000Z,
+    2019-01-01T00:00:00.000Z,
+    2020-01-01T00:00:00.000Z,
+    2022-01-01T00:00:00.000Z,
+    2023-01-01T00:00:00.000Z,
+  ],
+}
 `;
 
 exports[`OrdinalTimeScale should extend the domain to create nice ticks matching the data domain 1`] = `
-[
-  2023-01-01T00:00:00.000Z,
-  2024-01-01T00:00:00.000Z,
-  2025-01-01T00:00:00.000Z,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    2023-01-01T00:00:00.000Z,
+    2024-01-01T00:00:00.000Z,
+    2025-01-01T00:00:00.000Z,
+  ],
+}
 `;

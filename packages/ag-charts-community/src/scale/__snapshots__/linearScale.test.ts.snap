@@ -1,147 +1,180 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`LinearScale should create ticks for interval: -1 domain: [-10, 0] case 1`] = `
-[
-  -10,
-  -9,
-  -8,
-  -7,
-  -6,
-  -5,
-  -4,
-  -3,
-  -2,
-  -1,
-  0,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    -10,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    0,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: -1 domain: [0, 10] case 1`] = `
-[
-  0,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9,
-  10,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: -7.5 domain: [-37.5, -7.5] case 1`] = `
-[
-  -37.5,
-  -30,
-  -22.5,
-  -15,
-  -7.5,
-]
+{
+  "fractionDigits": 1,
+  "ticks": [
+    -37.5,
+    -30,
+    -22.5,
+    -15,
+    -7.5,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 0 domain: [-1, 1] case 1`] = `
-[
-  -1,
-  -0.5,
-  0,
-  0.5,
-  1,
-]
+{
+  "fractionDigits": 1,
+  "ticks": [
+    -1,
+    -0.5,
+    0,
+    0.5,
+    1,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 0.005 domain: [0.01, 0.02] case 1`] = `
-[
-  0.01,
-  0.015,
-  0.02,
-]
+{
+  "fractionDigits": 3,
+  "ticks": [
+    0.01,
+    0.015,
+    0.02,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 0.01 domain: [0.1, 0.2] case 1`] = `
-[
-  0.1,
-  0.11,
-  0.12,
-  0.13,
-  0.14,
-  0.15,
-  0.16,
-  0.17,
-  0.18,
-  0.19,
-  0.2,
-]
+{
+  "fractionDigits": 2,
+  "ticks": [
+    0.1,
+    0.11,
+    0.12,
+    0.13,
+    0.14,
+    0.15,
+    0.16,
+    0.17,
+    0.18,
+    0.19,
+    0.2,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 0.1 domain: [0, 1] case 1`] = `
-[
-  0,
-  0.1,
-  0.2,
-  0.3,
-  0.4,
-  0.5,
-  0.6,
-  0.7,
-  0.8,
-  0.9,
-  1,
-]
+{
+  "fractionDigits": 1,
+  "ticks": [
+    0,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 1 domain: [0, 10] case 1`] = `
-[
-  0,
-  1,
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
-  8,
-  9,
-  10,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 3 domain: [-3, 12] case 1`] = `
-[
-  -3,
-  0,
-  3,
-  6,
-  9,
-  12,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    -3,
+    0,
+    3,
+    6,
+    9,
+    12,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 10.5 domain: [0, 102] case 1`] = `
-[
-  0,
-  10.5,
-  21,
-  31.5,
-  42,
-  52.5,
-  63,
-  73.5,
-  84,
-  94.5,
-  105,
-]
+{
+  "fractionDigits": 1,
+  "ticks": [
+    0,
+    10.5,
+    21,
+    31.5,
+    42,
+    52.5,
+    63,
+    73.5,
+    84,
+    94.5,
+    105,
+  ],
+}
 `;
 
 exports[`LinearScale should create ticks for interval: 133 domain: [0, 665] case 1`] = `
-[
-  0,
-  133,
-  266,
-  399,
-  532,
-  665,
-]
+{
+  "fractionDigits": 0,
+  "ticks": [
+    0,
+    133,
+    266,
+    399,
+    532,
+    665,
+  ],
+}
 `;

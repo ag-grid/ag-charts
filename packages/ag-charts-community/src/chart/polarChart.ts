@@ -1,4 +1,5 @@
 import type { ChartOptions } from '../module/optionsModule';
+import type { Scale } from '../scale/scale';
 import { BBox } from '../scene/bbox';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
@@ -47,8 +48,8 @@ export class PolarChart extends Chart {
             return;
         }
 
-        const angleScale = angleAxis.scale;
-        const angles = angleScale.ticks?.().map((value: string) => angleScale.convert(value));
+        const angleScale: Scale<number, number> = angleAxis.scale;
+        const angles = angleScale.ticks?.().ticks.map((value) => angleScale.convert(value));
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
