@@ -48,7 +48,7 @@ export class HierarchyNode<TDatum = Record<string, any>>
         public readonly fill: string | undefined,
         public readonly stroke: string | undefined,
         public readonly sumSize: number,
-        public readonly depth: number,
+        public readonly depth: number | undefined,
         public readonly parent: HierarchyNode<TDatum> | undefined,
         public readonly children: HierarchyNode<TDatum>[]
     ) {
@@ -100,7 +100,19 @@ export abstract class HierarchySeries<
     TProps extends HierarchySeriesProperties<any> = HierarchySeriesProperties<any>,
     TDatum extends SeriesNodeDatum = SeriesNodeDatum,
 > extends Series<TDatum, TProps> {
-    rootNode = new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, undefined, 0, 0, undefined, []);
+    rootNode = new HierarchyNode<TDatum>(
+        this,
+        0,
+        undefined,
+        0,
+        undefined,
+        undefined,
+        undefined,
+        0,
+        undefined,
+        undefined,
+        []
+    );
     colorDomain: number[] = [0, 0];
     maxDepth = 0;
 
@@ -183,7 +195,7 @@ export abstract class HierarchySeries<
 
         const createNode = (datum: any, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
             const nodeIndex = getIndex();
-            const depth = parent.depth + 1;
+            const depth = parent.depth != null ? parent.depth + 1 : 0;
             const children = childrenKey != null ? datum[childrenKey] : undefined;
             const isLeaf = children == null || children.length === 0;
 
@@ -235,7 +247,19 @@ export abstract class HierarchySeries<
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, undefined, 0, 0, undefined, []),
+            new HierarchyNode<TDatum>(
+                this,
+                0,
+                undefined,
+                0,
+                undefined,
+                undefined,
+                undefined,
+                0,
+                undefined,
+                undefined,
+                []
+            ),
             this.data
         );
 
@@ -379,7 +403,7 @@ export abstract class HierarchySeries<
     }
 
     private focusPath: FocusPathNode<TDatum>[] = [];
-    private focusDepth: number = 1;
+    private focusDepth: number = 0;
 
     protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
 
@@ -398,7 +422,7 @@ export abstract class HierarchySeries<
                 return this.computeFocusOutputs(path[targetDepth]);
             } else {
                 let deepest = path[path.length - 1];
-                while (deepest.nodeDatum.children.length > 0 && deepest.nodeDatum.depth < targetDepth) {
+                while (deepest.nodeDatum.children.length > 0 && (deepest.nodeDatum.depth ?? -1) < targetDepth) {
                     const nextDeepest = { nodeDatum: deepest.nodeDatum.children[0], childIndex: 0 };
                     path.push(nextDeepest);
                     deepest = nextDeepest;
@@ -424,7 +448,7 @@ export abstract class HierarchySeries<
     private computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
         const bbox = this.computeFocusBounds(nodeDatum);
         if (bbox) {
-            this.focusDepth = nodeDatum.depth;
+            this.focusDepth = nodeDatum.depth ?? 0;
             return {
                 datum: nodeDatum,
                 datumIndex: childIndex,
