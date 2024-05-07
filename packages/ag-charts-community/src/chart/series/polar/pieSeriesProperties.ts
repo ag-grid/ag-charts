@@ -139,9 +139,8 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    // @todo(AG-10275) remove optionality, set default
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    sectorSpacing?: number = undefined;
+    @Validate(POSITIVE_NUMBER)
+    sectorSpacing: number = 0;
 
     @Validate(OBJECT_ARRAY)
     readonly innerLabels = new PropertiesArray(Label);
@@ -163,8 +162,4 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
-
-    // @todo(AG-10275) Remove this
-    @Validate(STRING, { optional: true })
-    __BACKGROUND_COLOR_DO_NOT_USE?: string = undefined;
 }

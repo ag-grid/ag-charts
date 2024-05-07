@@ -11440,7 +11440,6 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
   },
   "series": [
     {
-      "__BACKGROUND_COLOR_DO_NOT_USE": "white",
       "angleKey": "count",
       "calloutLabel": {
         "color": "rgb(70, 70, 70)",
@@ -11530,6 +11529,7 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "count",
+      "sectorSpacing": 1,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -12090,7 +12090,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
   },
   "series": [
     {
-      "__BACKGROUND_COLOR_DO_NOT_USE": "white",
       "angleKey": "population",
       "calloutLabel": {
         "color": "rgb(70, 70, 70)",
@@ -12159,6 +12158,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "positionRatio": 0.5,
       },
       "sectorLabelKey": "population",
+      "sectorSpacing": 1,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
