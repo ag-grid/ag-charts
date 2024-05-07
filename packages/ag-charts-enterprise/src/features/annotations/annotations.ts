@@ -14,8 +14,16 @@ import { ParallelChannel } from './parallel-channel/parallelChannelScene';
 import { ParallelChannelStateMachine } from './parallel-channel/parallelChannelState';
 import type { Annotation } from './scenes/annotation';
 
-const { BOOLEAN, OBJECT_ARRAY, InteractionState, TypedPropertiesArray, StateMachine, ToolbarManager, Validate } =
-    _ModuleSupport;
+const {
+    BOOLEAN,
+    OBJECT_ARRAY,
+    Cursor,
+    InteractionState,
+    TypedPropertiesArray,
+    StateMachine,
+    ToolbarManager,
+    Validate,
+} = _ModuleSupport;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -102,7 +110,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.state = new AnnotationsStateMachine(ctx, this.createDatum.bind(this), (point) => {
             const valid = this.validateDatumPoint(point);
             if (!valid) {
-                this.ctx.cursorManager.updateCursor('annotations', 'not-allowed');
+                this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
             }
             return valid;
         });
@@ -310,7 +318,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const point = this.invertPoint(offset);
 
         const valid = this.validateDatumPoint(point);
-        cursorManager.updateCursor('annotations', valid ? undefined : 'not-allowed');
+        cursorManager.updateCursor('annotations', valid ? undefined : Cursor.NotAllowed);
 
         if (!valid || this.state.is('start')) return;
 
@@ -417,7 +425,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const point = this.invertPoint(handleOffset);
         const valid = this.validateDatumPoint(point);
         if (!valid) {
-            this.ctx.cursorManager.updateCursor('annotations', 'not-allowed');
+            this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
             return;
         }
         return point;
