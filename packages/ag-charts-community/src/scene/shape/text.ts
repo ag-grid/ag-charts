@@ -98,7 +98,7 @@ export class Text extends Shape {
 
     override computeBBox(): BBox {
         const { x, y, lines, textBaseline, textAlign } = this;
-        const { offsetTop, offsetLeft, width, height } = TextMeasurerV2.measureText(lines, {
+        const { offsetTop, offsetLeft, width, height } = TextMeasurerV2.measureLines(lines, {
             font: getFont(this),
             textBaseline,
             textAlign,
@@ -210,19 +210,19 @@ export class Text extends Shape {
     ): string[] | undefined {
         const canOverflow = overflow !== 'hide';
         const measurer = new TextMeasurer(textProps);
-        const lines: string[] = text.split(/\r?\n/g);
+        const lines = text.split(/\r?\n/g);
+        const result: string[] = [];
 
-        if (lines.length === 0) {
-            return;
-        }
         if (wrapping === 'never') {
             const truncText = Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never');
             return truncText != null ? [truncText] : undefined;
         }
 
-        const wrappedLines: string[] = [];
         let cumulativeHeight = 0;
-        for (const line of lines) {
+        for (let line of lines) {
+            line = line.trim();
+            if (!line) continue;
+
             const wrappedLine = Text.wrapLine(
                 line,
                 maxWidth,
@@ -234,15 +234,15 @@ export class Text extends Shape {
                 canOverflow
             );
 
-            if (wrappedLine == null) {
-                return;
-            }
+            if (wrappedLine == null) return;
 
-            wrappedLines.push(...wrappedLine.result);
-            cumulativeHeight = wrappedLine.cumulativeHeight;
+            result.push(...wrappedLine.result);
+
             if (wrappedLine.truncated) break;
+
+            cumulativeHeight = wrappedLine.cumulativeHeight;
         }
-        return wrappedLines;
+        return result;
     }
 
     static wrap(
@@ -267,11 +267,6 @@ export class Text extends Shape {
         cumulativeHeight: number,
         canOverflow: boolean
     ): { result: string[]; truncated: boolean; cumulativeHeight: number } | undefined {
-        text = text.trim();
-        if (!text) {
-            return { result: [], truncated: false, cumulativeHeight };
-        }
-
         const initialSize = measurer.size(text);
         if (initialSize.width <= maxWidth) {
             // Text fits into a single line
@@ -298,9 +293,7 @@ export class Text extends Shape {
             canOverflow
         );
 
-        if (wrapResult == null) {
-            return;
-        }
+        if (wrapResult == null) return;
 
         cumulativeHeight = wrapResult.cumulativeHeight;
 
@@ -613,7 +606,7 @@ export class Text extends Shape {
         textBaseline: CanvasTextBaseline = Text.defaultStyles.textBaseline,
         textAlign: CanvasTextAlign = Text.defaultStyles.textAlign
     ): { top: number; left: number; width: number; height: number } {
-        const r = TextMeasurerV2.measureText(lines, { font, textBaseline, textAlign });
+        const r = TextMeasurerV2.measureLines(lines, { font, textBaseline, textAlign });
         return { top: r.offsetTop, left: r.offsetLeft, width: r.width, height: r.height };
     }
 }
@@ -626,7 +619,9 @@ export class TextMeasurer {
     }
 
     size(text: string) {
-        return TextMeasurerV2.measureText(text, { font: this.font });
+        return text.includes('\n')
+            ? TextMeasurerV2.measureLines(text, { font: this.font })
+            : TextMeasurerV2.measureText(text, { font: this.font });
     }
 
     width(text: string): number {

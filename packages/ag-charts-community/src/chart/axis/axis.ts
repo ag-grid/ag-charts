@@ -26,7 +26,7 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { Text, TextMeasurer, type TextSizeProperties } from '../../scene/shape/text';
+import { Text, type TextSizeProperties, getFont } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
@@ -36,6 +36,7 @@ import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
+import { TextMeasurerV2 } from '../../util/textMeasurer';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -52,8 +53,7 @@ import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import type { TickCount, TickInterval } from './axisTick';
-import type { AxisTick } from './axisTick';
+import type { AxisTick, TickCount, TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
@@ -996,12 +996,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelMatrix: Matrix
     ): PlacedLabelDatum[] {
         const labelData: PlacedLabelDatum[] = [];
-        const measurer = new TextMeasurer(textProps);
+        const textOptions = { ...textProps, font: getFont(textProps) };
 
         for (const { tickLabel, translationY } of tickData) {
             if (tickLabel === '' || tickLabel == null) continue;
 
-            const { width, height } = measurer.size(tickLabel);
+            const { width, height } = TextMeasurerV2.measureLines(tickLabel, textOptions);
             const bbox = new BBox(labelX, translationY, width, height);
             const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
 

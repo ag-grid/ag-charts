@@ -42,10 +42,10 @@ export class TextMeasurer {
     static readonly EllipsisChar = '\u2026';
     static readonly DefaultLineHeight = 1.15;
 
-    // Caches 2D contexts and character widths by font to optimize performance.
     private static instanceMap = new Map<string, TextMeasurer>();
     // private static punctuation = new Set('.,-:;!?\'"()'.split(''));
     private static newLineRegexp = /\r?\n/g;
+    // private static breakWordRegexp = /\s+/g;
 
     private static createFontMeasurer(font: string) {
         const ctx = createCanvasContext();
@@ -67,6 +67,10 @@ export class TextMeasurer {
     }
 
     static wrapText(text: string, options: WrapOptions) {
+        return this.wrapLines(text, options).join('\n');
+    }
+
+    static wrapLines(text: string, options: WrapOptions) {
         const measurer = TextMeasurer.getFontMeasurer(options);
         const lines: string[] = text.split(TextMeasurer.newLineRegexp);
 
@@ -118,14 +122,14 @@ export class TextMeasurer {
     }
 
     // Measures the dimensions of the provided text, handling multiline if needed.
-    static measureText(text: string, options: MeasureOptions): LineMetrics | MultilineMetrics;
-    static measureText(text: string[], options: MeasureOptions): MultilineMetrics;
-    static measureText(text: string | string[], options: MeasureOptions) {
+    static measureText(text: string, options: MeasureOptions) {
         const { ctx } = TextMeasurer.getFontMeasurer(options);
-        if (typeof text === 'string' && !text.includes('\n')) {
-            return this.getMetrics(ctx, text);
-        }
-        const lines = Array.isArray(text) ? text : text.split(TextMeasurer.newLineRegexp);
+        return this.getMetrics(ctx, text);
+    }
+
+    static measureLines(text: string | string[], options: MeasureOptions) {
+        const { ctx } = TextMeasurer.getFontMeasurer(options);
+        const lines = typeof text === 'string' ? text.split(TextMeasurer.newLineRegexp) : text;
         return this.getMultilineMetrics(ctx, lines);
     }
 
