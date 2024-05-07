@@ -127,9 +127,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     /**
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
-    ticks(): Date[] {
+    ticks(): { ticks: Date[]; fractionDigits: 0 } {
         if (!this.domain || this.domain.length < 2) {
-            return [];
+            return { ticks: [], fractionDigits: 0 };
         }
         this.refresh();
 
@@ -140,22 +140,21 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         const { interval, nice, tickCount, minTickCount, maxTickCount } = this;
 
+        let ticks: Date[];
         if (interval !== undefined) {
             const availableRange = this.getPixelRange();
-            const ticks = TimeScale.getTicksForInterval({ start, stop, interval, availableRange });
-            return ticks ?? TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+            ticks =
+                TimeScale.getTicksForInterval({ start, stop, interval, availableRange }) ??
+                TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+        } else if (nice && tickCount === 2) {
+            ticks = this.niceDomain;
+        } else if (nice && tickCount === 1) {
+            ticks = this.niceDomain.slice(0, 1);
+        } else {
+            ticks = TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
         }
 
-        if (nice) {
-            if (tickCount === 2) {
-                return this.niceDomain;
-            }
-            if (tickCount === 1) {
-                return this.niceDomain.slice(0, 1);
-            }
-        }
-
-        return TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+        return { ticks, fractionDigits: 0 };
     }
 
     static getDefaultTicks({

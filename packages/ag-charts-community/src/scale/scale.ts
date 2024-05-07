@@ -19,7 +19,7 @@ export interface Scale<D, R, I = number> {
     interval?: I;
     convert(value: D, params?: ScaleConvertParams): R;
     invert?(value: R): D;
-    ticks?(): D[];
+    ticks?(): { ticks: D[]; fractionDigits: number };
     tickFormat?(params: ScaleTickFormatParams): (x: any) => string;
     getDomain?(): D[];
     bandwidth?: number;

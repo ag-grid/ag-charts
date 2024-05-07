@@ -7,22 +7,19 @@ export type NumericTicks = number[] & {
     fractionDigits: number;
 };
 
-export const createNumericTicks = (fractionDigits: number, takingValues: number[] = []): NumericTicks =>
-    Object.assign(takingValues, { fractionDigits });
-
 export default function (
     start: number,
     stop: number,
     count: number,
     minCount?: number,
     maxCount?: number
-): NumericTicks {
+): { ticks: number[]; fractionDigits: number } {
     if (count < 2) {
         return range(start, stop, stop - start);
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
     if (isNaN(step)) {
-        return createNumericTicks(0);
+        return { ticks: [], fractionDigits: 0 };
     }
     start = Math.ceil(start / step) * step;
     stop = Math.floor(stop / step) * step;
@@ -76,21 +73,21 @@ export function singleTickDomain(a: number, b: number): number[] {
         .sort((a2, b2) => a2.error - b2.error)[0].domain;
 }
 
-export function range(start: number, stop: number, step: number): NumericTicks {
+export function range(start: number, stop: number, step: number): { ticks: number[]; fractionDigits: number } {
     const d0 = Math.min(start, stop);
     const d1 = Math.max(start, stop);
 
-    const fractionalDigits = countFractionDigits(step);
-    const f = Math.pow(10, fractionalDigits);
+    const fractionDigits = countFractionDigits(step);
+    const f = Math.pow(10, fractionDigits);
     const n = Math.ceil((d1 - d0) / step);
-    const values = createNumericTicks(fractionalDigits);
+    const ticks = [];
 
     for (let i = 0; i <= n; i++) {
         const value = d0 + step * i;
-        values.push(Math.round(value * f) / f);
+        ticks.push(Math.round(value * f) / f);
     }
 
-    return values;
+    return { ticks, fractionDigits };
 }
 
 export function isDenseInterval({
