@@ -554,7 +554,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: legendItemName ?? yName ?? yKey },
-                marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity },
+                symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
                 legendItemName,
             },
         ];

@@ -14,6 +14,7 @@ import { Group } from '../scene/group';
 import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
+import { Line } from '../scene/shape/line';
 import { Text, getFont } from '../scene/shape/text';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
@@ -40,7 +41,8 @@ import { InteractionState, PointerInteractionEvent } from './interaction/interac
 import type { KeyNavEvent } from './interaction/keyNavManager';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
-import type { CategoryLegendDatum } from './legendDatum';
+import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
+import type { Marker } from './marker/marker';
 import { MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
@@ -92,7 +94,7 @@ class LegendMarker extends BaseProperties {
     strokeWidth?: number;
 
     @Validate(BOOLEAN)
-    enabled: boolean = true;
+    enabled?: boolean;
 
     parent?: { onMarkerShapeChange(): void };
 }
@@ -230,8 +232,6 @@ export class Legend extends BaseProperties {
         );
         this.pagination.attachPagination(this.group);
 
-        this.item.marker.parent = this;
-
         const animationState = InteractionState.Default | InteractionState.Animation;
         const region = ctx.regionManager.addRegionFromProperties({
             name: 'legend',
@@ -350,7 +350,7 @@ export class Legend extends BaseProperties {
             paddingY,
             label,
             maxWidth,
-            marker: { size: markerSize, padding: markerPadding, shape: markerShape },
+            marker: itemMarker,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
             line: itemLine,
             showSeriesStroke,
@@ -368,18 +368,48 @@ export class Legend extends BaseProperties {
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
-        const paddedMarkerWidth = markerSize + markerPadding + paddingX;
 
         this.itemSelection.each((markerLabel, datum) => {
-            const Marker = getMarker(markerShape ?? datum.marker.shape);
-            const markerEnabled = datum.marker.enabled ?? this.item.marker.enabled;
+            let paddedMarkerWidth = paddingX;
 
-            if (!(markerLabel.marker && markerLabel.marker instanceof Marker)) {
-                markerLabel.marker = new Marker();
+            if (markerLabel.markers.length === 0) {
+                const dimensionProps: { length: number; spacing: number }[] = [];
+                const markers: Marker[] = [];
+                const lines: Line[] = [];
+
+                datum.symbols.forEach((symbol) => {
+                    const markerEnabled =
+                        this.item.marker.enabled ??
+                        (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
+                    const lineEnabled = !!(symbol.line && showSeriesStroke);
+
+                    const spacing = symbol.marker.padding ?? itemMarker.padding;
+
+                    if (markerEnabled || lineEnabled) {
+                        paddedMarkerWidth += spacing;
+                    }
+
+                    if (lineEnabled) {
+                        lines.push(new Line());
+                    }
+
+                    if (markerEnabled) {
+                        const { size: markerSize, shape: markerShape = symbol.marker.shape } = itemMarker;
+                        const MarkerCtr = getMarker(markerShape);
+                        const marker = new MarkerCtr();
+
+                        marker.size = markerSize;
+                        markers.push(marker);
+                    }
+
+                    const length = lineEnabled ? itemLine.length ?? 25 : 0;
+                    dimensionProps.push({ length, spacing });
+                });
+
+                markerLabel.markers = markers;
+                markerLabel.lines = lines;
+                markerLabel.update(dimensionProps);
             }
-
-            markerLabel.markerSize = markerSize;
-            markerLabel.spacing = markerPadding;
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
@@ -389,15 +419,6 @@ export class Legend extends BaseProperties {
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedMarkerWidth, font, id);
-
-            if (showSeriesStroke && datum.line !== undefined) {
-                markerLabel.lineVisible = true;
-                markerLabel.markerVisible = markerEnabled;
-                markerLabel.setSeriesStrokeOffset(itemLine.length ?? 5);
-            } else {
-                markerLabel.lineVisible = false;
-                markerLabel.markerVisible = true;
-            }
 
             bboxes.push(markerLabel.computeBBox());
         });
@@ -711,30 +732,61 @@ export class Legend extends BaseProperties {
     update() {
         const {
             label: { color },
-            marker: itemMarker,
-            line: itemLine,
-            showSeriesStroke,
         } = this.item;
         this.itemSelection.each((markerLabel, datum) => {
-            const marker = datum.marker;
-            markerLabel.markerFill = marker.fill;
-            markerLabel.markerStroke = marker.stroke;
-            markerLabel.markerStrokeWidth = itemMarker.strokeWidth ?? Math.min(2, marker.strokeWidth);
-            markerLabel.markerFillOpacity = marker.fillOpacity;
-            markerLabel.markerStrokeOpacity = marker.strokeOpacity;
+            datum.symbols.forEach((symbol, index) => {
+                const marker = markerLabel.markers[index];
+                const line = markerLabel.lines[index];
+
+                if (marker) {
+                    const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
+
+                    marker.fill = fill;
+                    marker.stroke = stroke;
+                    marker.strokeWidth = Math.min(2, strokeWidth);
+                    marker.fillOpacity = fillOpacity;
+                    marker.strokeOpacity = strokeOpacity;
+                }
+
+                if (line) {
+                    const lineStyles = this.getLineStyles(symbol);
+
+                    line.stroke = lineStyles.stroke;
+                    line.strokeOpacity = lineStyles.strokeOpacity;
+                    line.strokeWidth = lineStyles.strokeWidth;
+                    line.lineDash = lineStyles.lineDash;
+                }
+            });
+
             markerLabel.opacity = datum.enabled ? 1 : 0.5;
             markerLabel.color = color;
-
-            const { line } = datum;
-            if (showSeriesStroke && line !== undefined) {
-                markerLabel.lineStroke = line.stroke;
-                markerLabel.lineStrokeOpacity = line.strokeOpacity;
-                markerLabel.lineStrokeWidth = itemLine.strokeWidth ?? Math.min(2, line.strokeWidth);
-                markerLabel.lineLineDash = line.lineDash;
-            }
         });
     }
 
+    private getLineStyles(datum: LegendSymbolOptions) {
+        const { stroke, strokeOpacity = 1, strokeWidth, lineDash } = datum.line ?? {};
+
+        const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
+
+        return {
+            stroke,
+            strokeOpacity,
+            strokeWidth: this.item.line.strokeWidth ?? defaultLineStrokeWidth,
+            lineDash,
+        };
+    }
+    private getMarkerStyles(datum: LegendSymbolOptions) {
+        const { fill, stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth } = datum.marker;
+        const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
+
+        return {
+            fill,
+            stroke,
+            strokeOpacity,
+            fillOpacity,
+            strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+        };
+    }
     private getDatumForPoint(x: number, y: number): CategoryLegendDatum | undefined {
         const visibleChildBBoxes: BBox[] = [];
         const closestLeftTop = { dist: Infinity, datum: undefined as any };

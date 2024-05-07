@@ -550,13 +550,17 @@ export abstract class RadialColumnSeriesBase<
                 label: {
                     text: radiusName ?? radiusKey,
                 },
-                marker: {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: fillOpacity ?? 1,
-                    strokeOpacity: strokeOpacity ?? 1,
-                    strokeWidth,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            fill: fill ?? 'rgba(0, 0, 0, 0)',
+                            stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                            fillOpacity: fillOpacity ?? 1,
+                            strokeOpacity: strokeOpacity ?? 1,
+                            strokeWidth,
+                        },
+                    },
+                ],
             },
         ];
     }

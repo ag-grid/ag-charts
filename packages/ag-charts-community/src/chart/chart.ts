@@ -967,7 +967,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const seriesMarkerFills: { [key: string]: { [key: string]: string | undefined } } = {};
             const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
 
-            for (const { seriesId, marker, label } of legendData) {
+            for (const {
+                seriesId,
+                symbols: [{ marker }],
+                label,
+            } of legendData) {
                 if (marker.fill == null) continue;
 
                 const seriesType = seriesTypeMap.get(seriesId)!;
