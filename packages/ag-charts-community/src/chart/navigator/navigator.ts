@@ -8,6 +8,7 @@ import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, PointerInteractionEvent } from '../interaction/interactionManager';
+import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
@@ -65,7 +66,11 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        const region = ctx.regionManager.addRegion('navigator', this.rangeSelector);
+        const region = ctx.regionManager.addRegionFromProperties({
+            name: 'navigator',
+            bboxproviders: [this.rangeSelector],
+            canInteraction: () => this.enabled && this.rangeSelector.visible,
+        });
         const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
         this.destroyFns.push(
             ctx.scene.attachNode(this.rangeSelector),
@@ -74,6 +79,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('drag', (event) => this.onDrag(event), dragStates),
             region.addListener('drag-end', () => this.onDragEnd(), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
+            region.addListener('tab', (event) => this.onTab(event), dragStates),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
@@ -195,6 +201,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private onLeave(_event: PointerInteractionEvent<'leave'>) {
         this.ctx.cursorManager.updateCursor('navigator');
+    }
+
+    private onTab(event: KeyNavEvent<'tab'>) {
+        event.consume();
     }
 
     private onZoomChange(event: ZoomChangeEvent) {
