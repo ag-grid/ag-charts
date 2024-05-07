@@ -187,14 +187,25 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         const [r0, r1] = this.range;
         const width = r1 - r0;
 
-        const rawStep = width / Math.max(1, count + 2 * paddingOuter - paddingInner);
-        const step = round ? Math.floor(rawStep) : rawStep;
-        const fullBandWidth = step * (count - paddingInner);
-        const x0 = r0 + (width - fullBandWidth) / 2;
-        const start = round ? Math.round(x0) : x0;
-        const bw = step * (1 - paddingInner);
-        const bandwidth = round ? Math.round(bw) : bw;
-        const rawBandwidth = rawStep * (1 - paddingInner);
+        let start: number;
+        let bandwidth: number;
+        let rawBandwidth: number;
+        let step: number;
+        if (count === 1) {
+            rawBandwidth = width * (1 - 2 * paddingOuter);
+            bandwidth = round ? Math.round(rawBandwidth) : rawBandwidth;
+            step = bandwidth;
+            start = round ? Math.round(width * paddingOuter) : width * paddingOuter;
+        } else {
+            const rawStep = width / Math.max(1, count + 2 * paddingOuter - paddingInner);
+            step = round ? Math.floor(rawStep) : rawStep;
+            const fullBandWidth = step * (count - paddingInner);
+            const x0 = r0 + (width - fullBandWidth) / 2;
+            start = round ? Math.round(x0) : x0;
+            const bw = step * (1 - paddingInner);
+            bandwidth = round ? Math.round(bw) : bw;
+            rawBandwidth = rawStep * (1 - paddingInner);
+        }
 
         const values: number[] = [];
         for (let i = 0; i < count; i++) {
