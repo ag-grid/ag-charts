@@ -1,6 +1,6 @@
 import type { AgToolbarOptions } from '../../options/chart/toolbarOptions';
+import { BaseManager } from '../baseManager';
 import type { ToolbarGroup } from '../toolbar/toolbarTypes';
-import { BaseManager } from './baseManager';
 
 type EventTypes = ToolbarButtonPressed | ToolbarButtonToggled | ToolbarGroupToggled | ToolbarProxyGroupOptions;
 type ToolbarButtonPressed = 'button-pressed';
@@ -48,10 +48,6 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         event: ToolbarEvent
     ): event is ToolbarButtonPressedEvent<ToolbarEventButtonValue<T>> {
         return event.group === group;
-    }
-
-    constructor(readonly element: HTMLElement) {
-        super();
     }
 
     pressButton(group: ToolbarGroup, value: any) {

@@ -20,7 +20,7 @@ const {
     animationValidation,
     isFiniteNumber,
     SeriesNodePickMode,
-    computeSectorFocusBounds,
+    computeSectorSeriesFocusBounds,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -583,6 +583,6 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeSectorFocusBounds(this, opts);
+        return computeSectorSeriesFocusBounds(this, opts);
     }
 }

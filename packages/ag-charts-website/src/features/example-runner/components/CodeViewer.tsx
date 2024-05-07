@@ -126,7 +126,7 @@ const FileItem = ({ path, isActive, onClick }) => (
             title={path}
             onClick={onClick}
             onKeyDown={(e) => doOnEnter(e, onClick)}
-            tabIndex="0"
+            tabIndex={0}
         >
             {path}
         </button>

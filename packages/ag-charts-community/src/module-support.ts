@@ -91,6 +91,7 @@ export * as Motion from './motion/easing';
 export * from './motion/states';
 export * from './motion/resetMotion';
 export * from './motion/fromToMotion';
+export * from './chart/dom/domManager';
 export { resetIds } from './util/id';
 export { DefaultColors } from './chart/themes/defaultColors';
 

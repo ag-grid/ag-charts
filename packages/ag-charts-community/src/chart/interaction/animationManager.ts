@@ -3,8 +3,8 @@ import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
+import { BaseManager } from '../baseManager';
 import { AnimationBatch } from './animationBatch';
-import { BaseManager } from './baseManager';
 import { InteractionManager, InteractionState } from './interactionManager';
 
 type AnimationEventType = 'animation-frame' | 'animation-start' | 'animation-stop';

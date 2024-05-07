@@ -1,6 +1,6 @@
 import type { BBox } from '../../scene/bbox';
-import { getDocument, injectStyle } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
+import type { DOMManager } from '../dom/domManager';
 import { buildConsumable } from './consumableEvent';
 import * as focusStyles from './focusStyles';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
@@ -48,8 +48,7 @@ export interface RegionProperties {
 
 export class RegionManager {
     private currentTabIndex = 0;
-    private readonly focusWrapper: HTMLDivElement;
-    private readonly focusIndicator: HTMLDivElement;
+    private readonly focusIndicator: HTMLElement;
 
     private currentRegion?: Region;
     private isDragging = false;
@@ -61,8 +60,7 @@ export class RegionManager {
     constructor(
         private readonly interactionManager: InteractionManager,
         private readonly keyNavManager: KeyNavManager,
-        private readonly canvasElement: HTMLCanvasElement,
-        element: HTMLElement
+        private readonly domManager: DOMManager
     ) {
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
@@ -76,14 +74,10 @@ export class RegionManager {
             this.keyNavManager.addListener('submit', this.onNav.bind(this))
         );
 
-        injectStyle(focusStyles.css, focusStyles.block);
-        this.focusWrapper = getDocument().createElement('div');
-        this.focusIndicator = getDocument().createElement('div');
-        this.focusWrapper.appendChild(this.focusIndicator);
-        element.appendChild(this.focusWrapper);
+        domManager.addStyles(focusStyles.block, focusStyles.css);
+        this.focusIndicator = domManager.addChild('canvas-overlay', focusStyles.block);
 
         const { block, elements, modifiers } = focusStyles;
-        this.focusWrapper.classList.add(block, elements.wrapper);
         this.focusIndicator.classList.add(block, elements.indicator, modifiers.hidden);
     }
 
@@ -94,7 +88,9 @@ export class RegionManager {
         for (const region of this.regions.values()) {
             region.listeners.destroy();
         }
-        this.focusWrapper.remove();
+
+        this.domManager.removeStyles(focusStyles.block);
+        this.domManager.removeChild('canvas-overlay', focusStyles.block);
 
         this.regions.clear();
     }
@@ -323,18 +319,11 @@ export class RegionManager {
         this.dispatch(focusedRegion, event);
     }
 
-    public updateFocusWrapperRect() {
-        this.focusWrapper.style.width = this.canvasElement.style.width;
-        this.focusWrapper.style.height = this.canvasElement.style.height;
-    }
-
     public updateFocusIndicatorRect(rect?: { x: number; y: number; width: number; height: number }) {
         if (rect == null) {
             this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
             return;
         }
-
-        this.updateFocusWrapperRect();
 
         this.focusIndicator.classList.remove(focusStyles.modifiers.hidden);
         this.focusIndicator.style.width = `${rect.width}px`;

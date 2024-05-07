@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "include": ["./src/**/*.ts", "./src/**/*.tsx", "./plugins/**/*.ts"],
+  "exclude": ["src/content/docs/**/*", "src/content/gallery/**/*"],
   "compilerOptions": {
     "baseUrl": ".",
 

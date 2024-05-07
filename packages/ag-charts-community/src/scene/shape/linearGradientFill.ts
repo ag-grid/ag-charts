@@ -6,7 +6,7 @@ import { Shape } from './shape';
 
 export class LinearGradientFill extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    direction: 'to-bottom' | 'to-right' = 'to-right';
+    direction: 'to-bottom' | 'to-top' | 'to-right' | 'to-left' = 'to-right';
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     stops?: string[] = undefined;
@@ -60,26 +60,35 @@ export class LinearGradientFill extends Shape {
         const y0 = Math.floor(maskBbox.y);
         const y1 = Math.ceil(maskBbox.y + maskBbox.height);
 
+        const horizontal = this.direction === 'to-right' || this.direction === 'to-left';
+        const reversed = this.direction === 'to-top' || this.direction === 'to-left';
+
         const colorScale = new ColorScale();
-        const [i0, i1] = this.direction === 'to-right' ? [x0, x1] : [y0, y1];
+        const [i0, i1] = horizontal ? [x0, x1] : [y0, y1];
         colorScale.domain = stops.map((_, index) => {
             return i0 + ((i1 - i0) * index) / (stops.length - 1);
         });
-        colorScale.range = stops;
+        colorScale.range = reversed ? stops.slice().reverse() : stops;
         colorScale.update();
 
-        if (this.direction === 'to-right') {
-            const height = y1 - y0;
-            for (let x = x0; x <= x1; x += pixelLength) {
-                ctx.fillStyle = colorScale.convert(x);
-                ctx.fillRect(x, y0, pixelLength, height);
-            }
-        } else {
-            const width = x1 - x0;
-            for (let y = y0; y <= y1; y += pixelLength) {
-                ctx.fillStyle = colorScale.convert(y);
-                ctx.fillRect(x0, y, width, pixelLength);
-            }
+        const height = y1 - y0;
+        const width = x1 - x0;
+
+        switch (this.direction) {
+            case 'to-right':
+            case 'to-left':
+                for (let x = x0; x <= x1; x += pixelLength) {
+                    ctx.fillStyle = colorScale.convert(x);
+                    ctx.fillRect(x, y0, pixelLength, height);
+                }
+                break;
+            case 'to-bottom':
+            case 'to-top':
+                for (let y = y0; y <= y1; y += pixelLength) {
+                    ctx.fillStyle = colorScale.convert(y);
+                    ctx.fillRect(x0, y, width, pixelLength);
+                }
+                break;
         }
 
         ctx.restore();

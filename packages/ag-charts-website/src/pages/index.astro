@@ -6,6 +6,8 @@ import { urlWithPrefix } from '@utils/urlWithPrefix';
 import styles from '@pages-styles/homepage.module.scss';
 import GridLogoType from '@ag-website-shared/images/inline-svgs/ag-grid-logotype.svg?react';
 import GridLogoMark from '@ag-website-shared/images/inline-svgs/ag-grid-logomark.svg?react';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { Image } from 'astro:assets';
 
 const frameworksData = [
     {
@@ -100,14 +102,18 @@ const frameworksData = [
                 </p>
             </div>
             <div class={styles.gridExample}>
-                <img
+                <Image
+                    width={640}
+                    height={380}
                     class={styles.gridExampleLight}
-                    src="images/integrated-charts-light.png"
+                    src={urlWithBaseUrl('/images/integrated-charts-light.png')}
                     alt="AG Charts & AG Grid - integrated charts"
                 />
-                <img
+                <Image
+                    width={640}
+                    height={380}
                     class={styles.gridExampleDark}
-                    src="images/integrated-charts-dark.png"
+                    src={urlWithBaseUrl('/images/integrated-charts-dark.png')}
                     alt="AG Charts & AG Grid - integrated charts"
                 />
             </div>

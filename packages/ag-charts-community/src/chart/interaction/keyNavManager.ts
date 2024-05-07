@@ -1,5 +1,5 @@
-import type { GuardedElement } from '../../util/guardedElement';
-import { BaseManager } from './baseManager';
+import { BaseManager } from '../baseManager';
+import type { DOMManager } from '../dom/domManager';
 import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
@@ -28,7 +28,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
 
     constructor(
         interactionManager: InteractionManager,
-        private readonly wrapper: GuardedElement
+        private readonly domManager: DOMManager
     ) {
         super();
         this.destroyFns.push(
@@ -79,7 +79,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         if (this.isClicking) {
             this.isMouseBlurred = true;
         } else {
-            const delta = this.wrapper.getBrowserFocusDelta();
+            const delta = this.domManager.parent.getBrowserFocusDelta();
             this.dispatch('browserfocus', delta, event);
             this.dispatch('tab', delta, event);
         }

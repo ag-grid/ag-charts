@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { createElement, injectStyle } = _ModuleSupport;
+const { createElement } = _ModuleSupport;
 
 const watermarkStyles = `
 .ag-watermark {
@@ -36,13 +36,15 @@ const watermarkStyles = `
 }
 `;
 
-export function injectWatermark(parentElement: HTMLElement, text: string) {
-    injectStyle(watermarkStyles, 'watermark');
-    const element = createElement('div');
+export function injectWatermark(domManager: _ModuleSupport.DOMManager, text: string) {
+    domManager.addStyles('watermark', watermarkStyles);
+    const element = domManager.addChild('canvas-overlay', 'watermark');
     const textElement = createElement('span');
     textElement.innerText = text;
-    element.addEventListener('animationend', () => parentElement.removeChild(element));
+    element.addEventListener('animationend', () => {
+        domManager.removeChild('canvas-overlay', 'watermark');
+        domManager.removeStyles('watermark');
+    });
     element.classList.add('ag-watermark');
     element.appendChild(textElement);
-    parentElement.appendChild(element);
 }

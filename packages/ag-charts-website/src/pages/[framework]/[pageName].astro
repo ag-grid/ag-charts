@@ -30,7 +30,8 @@ const headings = getHeadings({
     getTabItemSlug: (id) => `${DOCS_TAB_ITEM_ID_PREFIX}${id}`,
 });
 
-const menuEntry = await getEntry('menu', 'data');
+const { data: menuData } = await getEntry('menu', 'data');
+const menuItems = Object.values(menuData);
 
 const appendSeoToDescription = `Download AG Charts today: The best ${getFrameworkDisplayText(
     currentFramework
@@ -49,12 +50,7 @@ const description =
     <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport', 'layout-grid']}>
         {
             !hidePageMenu && (
-                <PagesNavigation
-                    client:load
-                    menuData={menuEntry.data}
-                    framework={currentFramework}
-                    pageName={pageName}
-                />
+                <PagesNavigation client:load menuData={menuData} framework={currentFramework} pageName={pageName} />
             )
         }
         <div
@@ -66,7 +62,14 @@ const description =
                 },
             ]}
         >
-            <Header client:load title={title} framework={currentFramework} isEnterprise={enterprise} path={path} />
+            <Header
+                client:load
+                title={title}
+                framework={currentFramework}
+                isEnterprise={enterprise}
+                path={path}
+                menuItems={menuItems}
+            />
 
             {/* Wrapping div is a hack to target "intro" section of docs page */}
             <div class="pageSections">

@@ -1,6 +1,6 @@
 import { StateTracker } from '../../util/stateTracker';
+import { BaseManager } from '../baseManager';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
-import { BaseManager } from './baseManager';
 
 export interface HighlightNodeDatum extends SeriesNodeDatum {
     readonly xKey?: string;

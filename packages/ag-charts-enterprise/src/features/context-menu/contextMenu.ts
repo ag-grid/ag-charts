@@ -17,7 +17,9 @@ type ContextMenuAction = _ModuleSupport.ContextMenuAction;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 type ContextMenuItem = 'download' | ContextMenuAction;
 
-const { BOOLEAN, Validate, createElement, getDocument, getWindow, injectStyle } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, getWindow } = _ModuleSupport;
+
+const moduleId = 'context-menu';
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -50,11 +52,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private y: number = 0;
 
     // HTML elements
-    private readonly canvasElement: HTMLElement;
-    private readonly container: HTMLElement;
-    private readonly element: HTMLDivElement;
+    private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
-    private intersectionObserver?: IntersectionObserver;
     private mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -76,33 +75,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // State
         this.groups = { default: [], node: [], extra: [], extraNode: [] };
 
-        // HTML elements
-        this.canvasElement = ctx.scene.canvas.element;
-        this.container = getDocument('body');
-
-        this.element = this.container.appendChild(createElement('div'));
+        this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
         this.destroyFns.push(() => this.element.parentNode?.removeChild(this.element));
 
         this.hide();
 
-        if (typeof IntersectionObserver !== 'undefined') {
-            // Detect when the chart becomes invisible and hide the context menu as well.
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    for (const entry of entries) {
-                        if (entry.target === this.canvasElement && entry.intersectionRatio === 0) {
-                            this.hide();
-                        }
-                    }
-                },
-                { root: this.container }
-            );
-
-            observer.observe(this.canvasElement);
-            this.intersectionObserver = observer;
-        }
+        ctx.domManager.addListener('hidden', () => this.hide());
 
         if (typeof MutationObserver !== 'undefined') {
             const observer = new MutationObserver(() => {
@@ -114,7 +94,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.mutationObserver = observer;
         }
 
-        injectStyle(defaultContextMenuCss, 'contextMenu');
+        ctx.domManager.addStyles(moduleId, defaultContextMenuCss);
 
         this.registry.registerDefaultAction({
             id: 'download',
@@ -306,7 +286,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public override destroy() {
         super.destroy();
 
-        this.intersectionObserver?.unobserve(this.canvasElement);
         this.mutationObserver?.disconnect();
+
+        this.ctx.domManager.removeStyles(moduleId);
+        this.ctx.domManager.removeChild('canvas-overlay', moduleId);
     }
 }

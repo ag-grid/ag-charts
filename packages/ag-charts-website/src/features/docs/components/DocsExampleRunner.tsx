@@ -159,6 +159,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     return (
         <ExampleRunner
             id={id}
+            title={title}
             exampleUrl={exampleUrl}
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}

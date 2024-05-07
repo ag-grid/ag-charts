@@ -4,7 +4,6 @@ import fs from 'fs/promises';
 import glob from 'glob';
 
 import { SITE_BASE_URL, TYPESCRIPT_INTERNAL_FRAMEWORKS, USE_PUBLISHED_PACKAGES } from '../constants';
-import { getIsDev } from './env';
 import { pathJoin } from './pathJoin';
 import { urlWithBaseUrl } from './urlWithBaseUrl';
 
@@ -55,34 +54,28 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
  * The root url where the monorepo exists
  */
 export const getRootUrl = (): URL => {
-    const root = getIsDev()
-        ? // Relative to the folder of this file
-          '../../../../'
-        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../../';
+    // Relative to the folder of this file
+    const root = '../../../../';
     return new URL(root, import.meta.url);
 };
 
 /**
  * The `ag-charts-website` root url where the monorepo exists
  */
-const getWebsiteRootUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
-    const root = isDev
-        ? // Relative to the folder of this file
-          '../../'
-        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../../packages/ag-charts-website/';
+const getWebsiteRootUrl = (): URL => {
+    // Relative to the folder of this file
+    const root = '../../';
     return new URL(root, import.meta.url);
 };
 
-export const getPublicFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
-    const websiteRoot = getWebsiteRootUrl({ isDev });
+export const getPublicFileUrl = (): URL => {
+    const websiteRoot = getWebsiteRootUrl();
     const contentRoot = pathJoin(websiteRoot, 'public');
     return new URL(contentRoot, import.meta.url);
 };
 
-export const getContentRootFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
-    const websiteRoot = getWebsiteRootUrl({ isDev });
+export const getContentRootFileUrl = (): URL => {
+    const websiteRoot = getWebsiteRootUrl();
     const contentRoot = pathJoin(websiteRoot, 'src/content');
     return new URL(contentRoot, import.meta.url);
 };
@@ -97,8 +90,8 @@ export const getThumbnailRootFileUrl = (): URL => {
     return new URL(`${root}/dist/generated-thumbnails/ag-charts-website/`, import.meta.url);
 };
 
-export const getDebugFolderUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
-    const websiteRoot = getWebsiteRootUrl({ isDev });
+export const getDebugFolderUrl = (): URL => {
+    const websiteRoot = getWebsiteRootUrl();
     const contentRoot = pathJoin(websiteRoot, 'src/pages/debug');
     return new URL(contentRoot, import.meta.url);
 };
