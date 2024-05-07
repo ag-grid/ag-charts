@@ -1,7 +1,11 @@
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
+import { Logger } from '../util/logger';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
+import { HierarchyNode } from './series/hierarchy/hierarchySeries';
+import type { SeriesNodeDatum } from './series/seriesTypes';
+import type { TooltipContent } from './tooltip/tooltip';
 
 export class HierarchyChart extends Chart {
     static readonly className = 'HierarchyChart';
@@ -61,6 +65,16 @@ export class HierarchyChart extends Chart {
     override getAriaLabel(): string {
         const captionText = this.getCaptionText();
         return `hierarchical chart, ${captionText}`;
+    }
+
+    override getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
+        if (!(datum instanceof HierarchyNode)) {
+            Logger.error(`datum is not HierarchyNode: ${datum}`);
+            return super.getDatumAriaText(datum, html);
+        }
+        const level = (datum.depth ?? -1) + 1;
+        const count = datum.children.length;
+        return `level ${level}, ${count} children, ${html.ariaLabel}`;
     }
 
     protected override handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
