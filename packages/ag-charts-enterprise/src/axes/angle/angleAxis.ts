@@ -328,7 +328,6 @@ export abstract class AngleAxis<
                     text = Text.wrap(text, availWidth, Infinity, label, 'never');
                     if (text === '\u2026') {
                         text = '';
-                        box = undefined;
                     }
                     tempText.text = text;
                     box = tempText.computeBBox();
