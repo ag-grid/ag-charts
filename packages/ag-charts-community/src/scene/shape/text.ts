@@ -212,11 +212,9 @@ export class Text extends Shape {
             textBaseline: textProps.textBaseline,
             textWrap: wrapping,
         });
-
-        if (overflow === 'hide' && result.join('\n') !== text) {
+        if (overflow === 'hide' && result.some((l) => l.endsWith(TextMeasurer.EllipsisChar))) {
             return;
         }
-
         return result;
     }
 

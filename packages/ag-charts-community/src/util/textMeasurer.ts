@@ -151,6 +151,22 @@ export class TextMeasurer {
             }
         }
 
+        if (result.length > 1) {
+            const { length } = result;
+            const lastLine = result[length - 1];
+            const beforeLast = result[length - 2];
+            if (beforeLast.length > lastLine.length) {
+                const lastSpaceIndex = beforeLast.lastIndexOf(' ');
+                if (lastSpaceIndex !== -1 && !lastLine.includes(' ')) {
+                    const lastWord = beforeLast.slice(lastSpaceIndex + 1);
+                    if (measurer.textWidth(lastLine + lastWord) <= options.maxWidth) {
+                        result[length - 2] = beforeLast.slice(0, lastSpaceIndex);
+                        result[length - 1] = lastWord + ' ' + lastLine;
+                    }
+                }
+            }
+        }
+
         return this.clipLines(result, measurer, options);
     }
 
