@@ -35,7 +35,7 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import {
-    computeSectorFocusBounds,
+    computeSectorSeriesFocusBounds,
     pickByMatchingAngle,
     preparePieSeriesAnimationFunctions,
     resetPieSelectionsFn,
@@ -1501,6 +1501,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeSectorFocusBounds(this, opts);
+        return computeSectorSeriesFocusBounds(this, opts);
     }
 }

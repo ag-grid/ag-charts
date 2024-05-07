@@ -20,7 +20,7 @@ const {
     seriesLabelFadeOutAnimation,
     animationValidation,
     isFiniteNumber,
-    computeSectorFocusBounds,
+    computeSectorSeriesFocusBounds,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -572,6 +572,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeSectorFocusBounds(this, opts);
+        return computeSectorSeriesFocusBounds(this, opts);
     }
 }

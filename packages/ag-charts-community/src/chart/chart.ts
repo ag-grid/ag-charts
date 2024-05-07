@@ -63,7 +63,7 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
+import { PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
@@ -1102,20 +1102,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private onTab(event: KeyNavEvent<'tab'>): void {
-        this.handleFocus();
+        this.handleFocus(0, 0);
         event.consume();
         this.focus.hasFocus = true;
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
         this.focus.seriesIndex += event.delta;
-        this.handleFocus();
+        this.handleFocus(event.delta, 0);
         event.consume();
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
         this.focus.datumIndex += event.delta;
-        this.handleFocus(event.delta);
+        this.handleFocus(0, event.delta);
         event.consume();
     }
 
@@ -1147,7 +1147,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private focus: ChartFocusData = {
+    protected focus: ChartFocusData = {
         hasFocus: false,
         series: undefined,
         seriesIndex: 0,
@@ -1155,18 +1155,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         datum: undefined,
     };
 
-    private handleFocus(datumIndexDelta?: number) {
+    private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         this.focus.hasFocus = true;
         const overlayFocus = this.overlays.getFocusInfo();
         if (overlayFocus == null) {
-            this.handleSeriesFocus(datumIndexDelta ?? 0);
+            this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
             this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
 
-    private handleSeriesFocus(datumIndexDelta: number) {
+    protected handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
         const { series, seriesRect, focus } = this;
         const visibleSeries = series.filter((s) => s.visible);
         if (visibleSeries.length === 0) return;
@@ -1176,8 +1176,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         focus.series = visibleSeries[focus.seriesIndex];
 
         // Update focused datum:
-        const pick = focus.series.pickFocus({ datumIndex: focus.datumIndex, datumIndexDelta, seriesRect });
-        if (pick === undefined) return;
+        const { datumIndex, seriesIndex: otherIndex } = focus;
+        const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
+        this.updatePickedFocus(pick);
+    }
+
+    protected updatePickedFocus(pick: PickFocusOutputs | undefined) {
+        const { focus } = this;
+        if (pick === undefined || focus.series === undefined) return;
 
         const { datum, datumIndex } = pick;
         focus.datumIndex = datumIndex;

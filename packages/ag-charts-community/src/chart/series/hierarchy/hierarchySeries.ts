@@ -9,10 +9,12 @@ import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { Logger } from '../../../util/logger';
+import { clamp } from '../../../util/number';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
-import { Series, SeriesNodePickMode } from '../series';
+import { PickFocusInputs, PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
 
@@ -87,6 +89,11 @@ export class HierarchyNode<TDatum = Record<string, any>>
         }
     }
 }
+
+type FocusPathNode<TDatum> = {
+    nodeDatum: HierarchyNode<TDatum>;
+    childIndex: number;
+};
 
 export abstract class HierarchySeries<
     TNode extends Node = Group,
@@ -286,6 +293,7 @@ export abstract class HierarchySeries<
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
         this.colorDomain = colorDomain;
+        this.focusPath = [{ nodeDatum: this.rootNode, childIndex: 0 }];
     }
 
     protected abstract updateSelections(): Promise<void>;
@@ -392,5 +400,63 @@ export abstract class HierarchySeries<
 
     protected getDatumId(node: HierarchyNode) {
         return this.getDatumIdFromData(node);
+    }
+
+    private focusPath: FocusPathNode<TDatum>[] = [];
+    private focusDepth: number = 0;
+
+    protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
+
+    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
+        if (this.rootNode.children.length === 0) return undefined;
+        if (this.focusPath.length === 0) {
+            Logger.error('this.focusPath should not be empty');
+        }
+
+        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
+        const { focusPath: path, focusDepth: depth } = this;
+
+        if (depthDelta !== 0 || path.length === 1) {
+            const targetDepth = Math.max(1, depth + depthDelta);
+            if (path[targetDepth] !== undefined) {
+                return this.computeFocusOutputs(path[targetDepth]);
+            } else {
+                let deepest = path[path.length - 1];
+                while (deepest.nodeDatum.children.length > 0 && (deepest.nodeDatum.depth ?? -1) < targetDepth) {
+                    const nextDeepest = { nodeDatum: deepest.nodeDatum.children[0], childIndex: 0 };
+                    path.push(nextDeepest);
+                    deepest = nextDeepest;
+                }
+                return this.computeFocusOutputs(deepest);
+            }
+        } else if (childDelta !== 0) {
+            const targetChild = path[depth].childIndex + childDelta;
+            const currentParent = path[depth - 1].nodeDatum;
+            const childCount = currentParent?.children?.length;
+            if (childCount !== undefined) {
+                const newChild = clamp(0, targetChild, childCount - 1);
+                const newFocus = { nodeDatum: currentParent.children[newChild], childIndex: newChild };
+                path[depth] = newFocus;
+                path.length = depth + 1;
+                return this.computeFocusOutputs(newFocus);
+            }
+        } else {
+            return this.computeFocusOutputs(path[path.length - 1]);
+        }
+    }
+
+    private computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
+        const bbox = this.computeFocusBounds(nodeDatum);
+        if (bbox) {
+            this.focusDepth = nodeDatum.depth ?? 0;
+            return {
+                datum: nodeDatum,
+                datumIndex: childIndex,
+                otherIndex: nodeDatum.depth,
+                bbox,
+                showFocusBox: true,
+            };
+        }
+        return undefined;
     }
 }

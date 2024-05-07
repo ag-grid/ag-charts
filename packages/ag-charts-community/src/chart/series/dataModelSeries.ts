@@ -77,13 +77,12 @@ export abstract class DataModelSeries<
 
     public abstract getNodeData(): TDatum[] | undefined;
 
-    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         const nodeData = this.getNodeData();
         if (nodeData === undefined || nodeData.length === 0) {
             return undefined;
         }
 
-        const { datumIndexDelta, seriesRect } = opts;
         const datumIndex = this.computeFocusDatumIndex(opts, nodeData);
         if (datumIndex === undefined) {
             return undefined;
@@ -91,7 +90,7 @@ export abstract class DataModelSeries<
 
         const { showFocusBox } = this;
         const datum = nodeData[datumIndex];
-        const bbox = this.computeFocusBounds({ datumIndex, datumIndexDelta, seriesRect });
+        const bbox = this.computeFocusBounds({ ...opts, datumIndex });
         if (bbox !== undefined) {
             return { bbox, showFocusBox, datum, datumIndex };
         }
