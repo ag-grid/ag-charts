@@ -1,22 +1,26 @@
 import type { TextWrap } from '../options/chart/types';
 import { createCanvasContext } from './canvas.util';
 
+// Allows for mutation of a readonly type by making all properties writable.
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
+// Configuration options for measuring text.
 export interface MeasureOptions {
     font: string;
     textAlign?: CanvasTextAlign;
     textBaseline?: CanvasTextBaseline;
 }
 
+// Extended measurement options including wrapping behavior.
 export interface WrapOptions extends MeasureOptions {
     maxWidth: number;
     maxLines?: number;
-    // maxHeight?: number;
+    maxHeight?: number;
     lineHeight?: number;
     textWrap: TextWrap;
 }
 
+// Metrics for a single line of text.
 export interface LineMetrics {
     width: number;
     height: number;
@@ -25,6 +29,7 @@ export interface LineMetrics {
     lineHeight: number;
 }
 
+// Metrics for multiple lines of text.
 export interface MultilineMetrics {
     width: number;
     height: number;
@@ -33,20 +38,20 @@ export interface MultilineMetrics {
     lineMetrics: ({ text: string } & LineMetrics)[];
 }
 
+// TextMetrics adjusted for compatibility and extensibility.
 export interface LegacyTextMetrics extends Writeable<TextMetrics> {
     emHeightAscent: number;
     emHeightDescent: number;
 }
 
+// Manages text measurement and wrapping functionalities.
 export class TextMeasurer {
-    static readonly EllipsisChar = '\u2026';
-    static readonly DefaultLineHeight = 1.15;
+    static readonly EllipsisChar = '\u2026'; // Representation for text clipping.
 
     private static instanceMap = new Map<string, TextMeasurer>();
-    // private static punctuation = new Set('.,-:;!?\'"()'.split(''));
-    private static newLineRegexp = /\r?\n/g;
-    // private static breakWordRegexp = /\s+/g;
+    private static lineSplitter = /\r?\n/g;
 
+    // Creates or retrieves a TextMeasurer instance for a specific font.
     private static createFontMeasurer(font: string) {
         const ctx = createCanvasContext();
         const measurer = new TextMeasurer(ctx);
@@ -55,6 +60,7 @@ export class TextMeasurer {
         return measurer;
     }
 
+    // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     private static getFontMeasurer(options: MeasureOptions) {
         const measurer = TextMeasurer.instanceMap.get(options.font) ?? TextMeasurer.createFontMeasurer(options.font);
         if (options.textAlign) {
@@ -71,38 +77,108 @@ export class TextMeasurer {
     }
 
     static wrapLines(text: string, options: WrapOptions) {
+        const lines: string[] = text.split(TextMeasurer.lineSplitter);
         const measurer = TextMeasurer.getFontMeasurer(options);
-        const lines: string[] = text.split(TextMeasurer.newLineRegexp);
 
         if (options.textWrap === 'never') {
             return lines.map((line) => this.truncateLine(line.trimEnd(), measurer, options.maxWidth));
         }
 
-        const result = [];
-        for (const line of lines) {
-            result.push(...this.wrapLine(line.trimEnd(), measurer, options));
-            if (options.maxLines && result.length >= options.maxLines) {
-                return result.slice(0, options.maxLines);
+        const result: string[] = [];
+        const wrapHyphenate = options.textWrap === 'hyphenate';
+        const wrapOnSpace = options.textWrap === 'on-space';
+
+        for (let line of lines) {
+            line = line.trimEnd();
+
+            for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; i < line.length; i++) {
+                const char = line.charAt(i);
+
+                estimatedWidth += measurer.textWidth(char);
+
+                if (char === ' ') {
+                    lastSpaceIndex = i;
+                }
+
+                if (estimatedWidth > options.maxWidth) {
+                    if (lastSpaceIndex) {
+                        const nextSpaceIndex = line.indexOf(' ', lastSpaceIndex + 1);
+                        const nextWord =
+                            nextSpaceIndex === -1
+                                ? line.slice(lastSpaceIndex + 1)
+                                : line.slice(lastSpaceIndex + 1, nextSpaceIndex);
+                        const textWidth = measurer.textWidth(nextWord);
+
+                        if (textWidth <= options.maxWidth) {
+                            result.push(line.slice(0, lastSpaceIndex).trimEnd());
+                            line = line.slice(lastSpaceIndex).trimStart();
+                            i = -1; // reset the index after cutting the line
+                            estimatedWidth = 0; // reset the width
+                            lastSpaceIndex = 0; // reset last space index
+
+                            continue;
+                        } else if (wrapOnSpace && textWidth > options.maxWidth) {
+                            result.push(
+                                line.slice(0, lastSpaceIndex).trimEnd(),
+                                this.truncateLine(
+                                    line.slice(lastSpaceIndex).trimStart(),
+                                    measurer,
+                                    options.maxWidth,
+                                    true
+                                )
+                            );
+                            line = '';
+                            break;
+                        }
+                    }
+
+                    const postfix = wrapHyphenate ? '-' : '';
+                    let newLine = line.slice(0, i).trim();
+                    while (measurer.textWidth(newLine + postfix) > options.maxWidth) {
+                        newLine = newLine.slice(0, -1).trimEnd();
+                        if (!newLine.length) break;
+                    }
+                    result.push(newLine + postfix);
+                    line = line.slice(newLine.length).trimStart();
+                    i = -1; // reset the index after cutting the line
+                    estimatedWidth = 0; // reset the width
+                    lastSpaceIndex = 0; // reset last space index
+                }
+            }
+
+            if (line) {
+                result.push(line);
             }
         }
-        return result;
+
+        return this.clipLines(result, measurer, options);
     }
 
-    private static wrapLine(text: string, measurer: TextMeasurer, options: WrapOptions): string[] {
-        let estimatedWidth = 0;
-        let i = 0;
-        for (; i < text.length; i++) {
-            const charWidth = measurer.textWidth(text.charAt(i));
-            if (estimatedWidth + charWidth > options.maxWidth) break;
-            estimatedWidth += charWidth;
+    static clipLines(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
+        if (!options.maxHeight) {
+            return lines;
         }
-        if (text.length === i) {
-            return [text];
+
+        const { height, lineMetrics } = this.measureLines(lines, options);
+
+        if (height <= options.maxHeight) {
+            return lines;
         }
-        return [text];
+
+        for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
+            const { lineHeight } = lineMetrics[i];
+            cumulativeHeight += lineHeight;
+            if (cumulativeHeight > options.maxHeight) {
+                const clippedResults = lines.slice(0, Math.max(i, 1));
+                const lastLine = clippedResults.pop()!;
+                return clippedResults.concat(this.truncateLine(lastLine, measurer, options.maxWidth, true));
+            }
+        }
+
+        return lines;
     }
 
-    private static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
+    static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
         const ellipsisWidth = measurer.textWidth(TextMeasurer.EllipsisChar);
         let estimatedWidth = 0;
         let i = 0;
@@ -114,9 +190,9 @@ export class TextMeasurer {
         if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
             return ellipsisForce ? text + TextMeasurer.EllipsisChar : text;
         }
-        text = text.slice(0, i);
+        text = text.slice(0, i).trimEnd();
         while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
-            text = text.slice(0, -1);
+            text = text.slice(0, -1).trimEnd();
         }
         return text + TextMeasurer.EllipsisChar;
     }
@@ -129,7 +205,7 @@ export class TextMeasurer {
 
     static measureLines(text: string | string[], options: MeasureOptions) {
         const { ctx } = TextMeasurer.getFontMeasurer(options);
-        const lines = typeof text === 'string' ? text.split(TextMeasurer.newLineRegexp) : text;
+        const lines = typeof text === 'string' ? text.split(TextMeasurer.lineSplitter) : text;
         return this.getMultilineMetrics(ctx, lines);
     }
 
@@ -218,7 +294,14 @@ export class TextMeasurer {
 
     constructor(private readonly ctx: CanvasRenderingContext2D) {}
 
-    textWidth(text: string): number {
+    textWidth(text: string, estimate?: boolean): number {
+        if (estimate) {
+            let estimatedWidth = 0;
+            for (let i = 0; i < text.length; i++) {
+                estimatedWidth += this.textWidth(text.charAt(i));
+            }
+            return estimatedWidth;
+        }
         if (text.length > 1) {
             return this.ctx.measureText(text).width;
         }
@@ -231,5 +314,3 @@ export class TextMeasurer {
         return width;
     }
 }
-
-export const TextMeasurerV2 = TextMeasurer;

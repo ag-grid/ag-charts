@@ -36,7 +36,7 @@ import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
-import { TextMeasurerV2 } from '../../util/textMeasurer';
+import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -801,6 +801,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
+        const font = getFont({ fontFamily, fontSize, fontStyle, fontWeight });
 
         const textProps: TextSizeProperties = {
             fontFamily,
@@ -844,10 +845,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 const labelRotation = initialRotation + autoRotation;
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
                 labelOverlap = this.label.avoidCollisions
-                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, {
-                          ...textProps,
-                          textAlign,
-                      })
+                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, { font })
                     : false;
             }
         }
@@ -979,7 +977,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelMatrix: Matrix,
         tickData: TickDatum[],
         labelX: number,
-        textProps: TextSizeProperties
+        textProps: MeasureOptions
     ): boolean {
         Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
@@ -992,16 +990,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private createLabelData(
         tickData: TickDatum[],
         labelX: number,
-        textProps: TextSizeProperties,
+        textProps: MeasureOptions,
         labelMatrix: Matrix
     ): PlacedLabelDatum[] {
         const labelData: PlacedLabelDatum[] = [];
-        const textOptions = { ...textProps, font: getFont(textProps) };
-
         for (const { tickLabel, translationY } of tickData) {
-            if (tickLabel === '' || tickLabel == null) continue;
+            if (!tickLabel) continue;
 
-            const { width, height } = TextMeasurerV2.measureLines(tickLabel, textOptions);
+            const { width, height } = TextMeasurer.measureLines(tickLabel, textProps);
             const bbox = new BBox(labelX, translationY, width, height);
             const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
 
