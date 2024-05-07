@@ -58,6 +58,11 @@ export class HierarchyChart extends Chart {
         return shrinkRect;
     }
 
+    override getAriaLabel(): string {
+        const captionText = this.getCaptionText();
+        return `hierarchical chart, ${captionText}`;
+    }
+
     protected override handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
         // Hierarchial charts (treemap, sunburst) can only have 1 series. So we'll repurpose the focus.seriesIndex
         // value to control the focused depth. This allows the hierarchial charts to piggy-back on the base keyboard

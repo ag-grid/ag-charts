@@ -381,11 +381,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this.ctx;
     }
 
-    getAriaLabel(): string {
-        const captionText = [this.title, this.subtitle, this.footnote]
+    protected getCaptionText(): string {
+        return [this.title, this.subtitle, this.footnote]
             .filter((caption) => caption.enabled && caption.text)
             .map((caption) => caption.text)
             .join('. ');
+    }
+
+    getAriaLabel(): string {
+        const captionText = this.getCaptionText();
         const nSeries = this.series.length ?? 0;
         return `chart, ${nSeries} series, ${captionText}`;
     }
