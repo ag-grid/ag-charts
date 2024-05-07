@@ -1,5 +1,3 @@
-import { _Scene } from 'ag-charts-community';
-
 import type { Coords, LineCoords } from '../annotationTypes';
 import { Annotation } from '../scenes/annotation';
 import { Channel } from '../scenes/channelScene';

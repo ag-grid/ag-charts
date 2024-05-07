@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { _Scene } from 'ag-charts-community';
 
 import type { Coords, LineCoords } from '../annotationTypes';
 import { Annotation } from '../scenes/annotation';
