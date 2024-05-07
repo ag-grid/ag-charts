@@ -20,7 +20,7 @@ export class ParallelChannel extends Annotation {
     private topLine = new CollidableLine();
     private middleLine = new _Scene.Line();
     private bottomLine = new CollidableLine();
-    private background = new _Scene.Path();
+    private background = new _Scene.Path({ zIndex: -1 });
 
     private seriesRect?: _Scene.BBox;
 

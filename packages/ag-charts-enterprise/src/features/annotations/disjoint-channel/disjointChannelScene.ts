@@ -19,7 +19,7 @@ export class DisjointChannel extends Annotation {
 
     private topLine = new CollidableLine();
     private bottomLine = new CollidableLine();
-    private background = new _Scene.Path();
+    private background = new _Scene.Path({ zIndex: -1 });
 
     private seriesRect?: _Scene.BBox;
 
