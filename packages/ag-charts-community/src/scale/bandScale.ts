@@ -73,14 +73,14 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     @Invalidating
     range: number[] = [0, 1];
 
-    ticks(): D[] {
+    ticks(): { ticks: D[]; fractionDigits: number } {
         this.refresh();
         let { interval = 1 } = this;
         if (typeof interval !== 'number') {
             interval = Number(interval);
         }
         const step = Math.abs(Math.round(interval));
-        return this._domain.filter((_, i) => i % step === 0);
+        return { ticks: this._domain.filter((_, i) => i % step === 0), fractionDigits: 0 };
     }
 
     convert(d: D): number {

@@ -175,7 +175,7 @@ export abstract class AngleAxis<
                 });
             }
         } else if (shape === 'polygon') {
-            const angles = (scale.ticks?.() ?? []).map((value) => scale.convert(value));
+            const angles = (scale.ticks?.().ticks ?? []).map((value) => scale.convert(value));
             if (angles.length > 2) {
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);

@@ -2,7 +2,7 @@ import { identity } from '../util/function';
 import { Logger } from '../util/logger';
 import { findRangeExtent } from '../util/number';
 import { format } from '../util/numberFormat';
-import generateTicks, { createNumericTicks, isDenseInterval, range } from '../util/ticks';
+import generateTicks, { isDenseInterval, range } from '../util/ticks';
 import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
@@ -78,10 +78,10 @@ export class LogScale extends ContinuousScale<number> {
         this.niceDomain = [n0, n1];
     }
 
-    ticks() {
+    ticks(): { ticks: number[]; fractionDigits: number } {
         const count = this.tickCount ?? 10;
         if (!this.domain || this.domain.length < 2 || count < 1) {
-            return [];
+            return { ticks: [], fractionDigits: 0 };
         }
         this.refresh();
         const base = this.base;
@@ -96,15 +96,13 @@ export class LogScale extends ContinuousScale<number> {
         if (this.interval) {
             const step = Math.abs(this.interval);
             const absDiff = Math.abs(p1 - p0);
-            let ticks = range(p0, p1, Math.min(absDiff, step));
-            ticks = createNumericTicks(
-                ticks.fractionDigits,
-                ticks.map((x) => this.pow(x)).filter((t) => t >= start && t <= stop)
-            );
+            // eslint-disable-next-line prefer-const
+            let { ticks, fractionDigits } = range(p0, p1, Math.min(absDiff, step));
+            ticks = ticks.map((x) => this.pow(x)).filter((t) => t >= start && t <= stop);
 
             const availableRange = this.getPixelRange();
             if (!isDenseInterval({ start, stop, interval: step, count: ticks.length, availableRange })) {
-                return ticks;
+                return { ticks, fractionDigits };
             }
         }
 
@@ -113,12 +111,10 @@ export class LogScale extends ContinuousScale<number> {
 
         if (!isBaseInteger || isDiffLarge) {
             // Returns [10^1, 10^2, 10^3, 10^4, ...]
-            let ticks = generateTicks(p0, p1, Math.min(p1 - p0, count));
-            ticks = createNumericTicks(
-                ticks.fractionDigits,
-                ticks.map((x) => this.pow(x))
-            );
-            return ticks;
+            // eslint-disable-next-line prefer-const
+            let { ticks, fractionDigits } = generateTicks(p0, p1, Math.min(p1 - p0, count));
+            ticks = ticks.map((x) => this.pow(x));
+            return { ticks, fractionDigits };
         }
 
         const ticks: number[] = [];
@@ -143,7 +139,7 @@ export class LogScale extends ContinuousScale<number> {
                 }
             }
         }
-        return ticks;
+        return { ticks, fractionDigits: 0 };
     }
 
     tickFormat({

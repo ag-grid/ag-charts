@@ -77,7 +77,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     // During processData phase, used to unify different ways of the user specifying
     // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
     private deriveBins(xDomain: [number, number]): [number, number][] {
-        const binStarts = ticks(xDomain[0], xDomain[1], defaultBinCount);
+        const binStarts = ticks(xDomain[0], xDomain[1], defaultBinCount).ticks;
         const binSize = tickStep(xDomain[0], xDomain[1], defaultBinCount);
         const [firstBinEnd] = binStarts;
 

@@ -116,7 +116,7 @@ export type LabelNodeDatum = {
     range: number[];
 };
 
-type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
+type TickData = { rawTicks: any[]; fractionDigits: number; ticks: TickDatum[]; labelCount: number };
 
 interface TickGenerationParams {
     primaryTickCount?: number;
@@ -372,8 +372,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected labelFormatter?: (datum: any) => string;
-    protected onLabelFormatChange(ticks: any[], _domain: any[], format?: string) {
-        const { scale, fractionDigits } = this;
+    protected onLabelFormatChange(ticks: any[], fractionDigits: number, _domain: any[], format?: string) {
+        const { scale } = this;
         const logScale = scale instanceof LogScale;
 
         const defaultLabelFormatter =
@@ -427,8 +427,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      */
     @ObserveChanges<Axis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
     gridLength: number = 0;
-
-    private fractionDigits = 0;
 
     /**
      * The distance between the grid ticks and the axis ticks.
@@ -504,7 +502,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.updateTickLines();
         this.updateTitle({ anyTickVisible: tickData.ticks.length > 0 });
         this.updateCrossLines({ rotation, parallelFlipRotation, regularFlipRotation });
-        this.updateLayoutState();
+        this.updateLayoutState(tickData.fractionDigits);
 
         return primaryTickCount;
     }
@@ -624,9 +622,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             sideFlag,
         });
 
-        this.updateLayoutState();
-
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
+
+        this.updateLayoutState(tickData.fractionDigits);
 
         const boxes: BBox[] = [];
 
@@ -720,9 +718,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { primaryTickCount, bbox: transformedBBox };
     }
 
-    private updateLayoutState() {
+    private updateLayoutState(fractionDigits: number) {
         this.layout.label = {
-            fractionDigits: this.fractionDigits,
+            fractionDigits: fractionDigits,
             padding: this.label.padding,
             format: this.label.format,
         };
@@ -813,6 +811,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let tickData: TickData = {
             rawTicks: [],
+            fractionDigits: 0,
             ticks: [],
             labelCount: 0,
         };
@@ -947,11 +946,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let unchanged = true;
         while (unchanged && index <= maxIterations) {
             const prevTicks = tickData.rawTicks;
+            const prevFractionDigits = tickData.fractionDigits;
             tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
 
-            const { rawTicks, ticks, labelCount } = this.getTicks({
+            const { rawTicks, fractionDigits, ticks, labelCount } = this.getTicks({
                 tickGenerationType,
                 previousTicks: prevTicks,
+                previousFractionDigits: prevFractionDigits,
                 tickCount,
                 minTickCount,
                 maxTickCount,
@@ -959,6 +960,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             });
 
             tickData.rawTicks = rawTicks;
+            tickData.fractionDigits = fractionDigits;
             tickData.ticks = ticks;
             tickData.labelCount = labelCount;
 
@@ -1018,6 +1020,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private getTicks({
         tickGenerationType,
         previousTicks,
+        previousFractionDigits,
         tickCount,
         minTickCount,
         maxTickCount,
@@ -1025,6 +1028,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }: {
         tickGenerationType: TickGenerationType;
         previousTicks: TickDatum[];
+        previousFractionDigits: number;
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
@@ -1033,6 +1037,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { range, scale, visibleRange } = this;
 
         let rawTicks: any[];
+        let fractionDigits: number = 0;
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
@@ -1046,22 +1051,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             case TickGenerationType.CREATE_SECONDARY:
                 if (ContinuousScale.is(scale)) {
                     // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`
-                    rawTicks = this.updateSecondaryAxisTicks(primaryTickCount);
+                    ({ ticks: rawTicks, fractionDigits } = this.updateSecondaryAxisTicks(primaryTickCount));
                 } else {
                     // AG-10654 Just use normal ticks for categoric axes.
-                    rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
+                    ({ ticks: rawTicks, fractionDigits } = this.createTicks(tickCount, minTickCount, maxTickCount));
                 }
                 break;
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
+                fractionDigits = previousFractionDigits;
                 break;
             default:
-                rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
+                ({ ticks: rawTicks, fractionDigits } = this.createTicks(tickCount, minTickCount, maxTickCount));
                 break;
         }
-
-        // `ticks instanceof NumericTicks` doesn't work here, so we feature detect.
-        this.fractionDigits = (rawTicks as any).fractionDigits >= 0 ? (rawTicks as any).fractionDigits : 0;
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
@@ -1075,7 +1078,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const filteredTicks = rawTicks.slice(start, end);
         // When the scale domain or the ticks change, the label format may change
-        this.onLabelFormatChange(filteredTicks, rawTicks, this.label.format);
+        this.onLabelFormatChange(filteredTicks, fractionDigits, rawTicks, this.label.format);
 
         for (let i = 0; i < filteredTicks.length; i++) {
             const tick = filteredTicks[i];
@@ -1085,7 +1088,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             // instead hide ticks based on their translation.
             if (range.length > 0 && !this.inRange(translationY, 0, 0.001)) continue;
 
-            const tickLabel = this.formatTick(tick, start + i);
+            const tickLabel = this.formatTick(tick, fractionDigits, start + i);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             let tickId = tickLabel;
@@ -1105,7 +1108,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             labelCount++;
         }
 
-        return { rawTicks, ticks, labelCount };
+        return { rawTicks, fractionDigits, ticks, labelCount };
     }
 
     private filterTicks(ticks: any, tickCount: number): any[] {
@@ -1114,9 +1117,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return ticks.filter((_: any, i: number) => i % keepEvery === 0);
     }
 
-    private createTicks(tickCount: number, minTickCount: number, maxTickCount: number) {
+    private createTicks(
+        tickCount: number,
+        minTickCount: number,
+        maxTickCount: number
+    ): { ticks: D[]; fractionDigits: number } {
         this.setTickCount(tickCount, minTickCount, maxTickCount);
-        return this.scale.ticks?.() ?? [];
+        return this.scale.ticks?.() ?? { ticks: [], fractionDigits: 0 };
     }
 
     protected estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
@@ -1270,7 +1277,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
+    updateSecondaryAxisTicks(_primaryTickCount: number | undefined): { ticks: any[]; fractionDigits: number } {
         throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
     }
 
@@ -1398,8 +1405,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     // For formatting (nice rounded) tick values.
-    formatTick(datum: any, index: number): string {
-        return this.datumFormatter(index)(datum);
+    formatTick(datum: any, fractionDigits: number, index: number): string {
+        return this.datumFormatter(index)(datum, fractionDigits);
     }
 
     // For formatting arbitrary values between the ticks.
@@ -1407,16 +1414,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return String(datum);
     }
 
-    datumFormatter(index: number = 0): (datum: any) => string {
+    datumFormatter(index: number = 0): (datum: any, fractionDigits: number) => string {
         const {
             label,
             labelFormatter,
-            fractionDigits,
             moduleCtx: { callbackCache },
         } = this;
 
         if (label.formatter) {
-            return (datum) =>
+            return (datum, fractionDigits) =>
                 callbackCache.call(label.formatter as (params: AgAxisLabelFormatterParams) => string, {
                     value: fractionDigits > 0 ? datum : String(datum),
                     index,
