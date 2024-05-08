@@ -376,10 +376,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale } = this;
         const logScale = scale instanceof LogScale;
 
-        const defaultLabelFormatter =
-            !logScale && fractionDigits > 0
-                ? (x: any) => (typeof x === 'number' ? x.toFixed(fractionDigits) : String(x))
-                : (x: any) => String(x);
+        const defaultLabelFormatter = logScale
+            ? (x: any) => String(x)
+            : (x: any) => (typeof x === 'number' ? x.toFixed(fractionDigits) : String(x));
 
         if (format && scale && scale.tickFormat) {
             try {
@@ -1411,7 +1410,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting arbitrary values between the ticks.
     formatDatum(datum: any): string {
-        return String(datum);
+        return this.datumFormatter()(datum);
     }
 
     datumFormatter(index: number = 0): (datum: any, fractionDigits: number) => string {
@@ -1527,7 +1526,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) =>
-                specifier ? this.scale.tickFormat?.({ specifier }) : this.formatDatum,
+                specifier ? this.scale.tickFormat?.({ specifier }) : this.datumFormatter(),
             scaleBandwidth: () => this.scale.bandwidth ?? 0,
             scaleConvert: (val) => this.scale.convert(val),
             scaleInvert: (val) => this.scale.invert?.(val),
