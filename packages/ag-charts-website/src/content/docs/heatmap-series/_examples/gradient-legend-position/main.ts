@@ -24,7 +24,6 @@ const options: AgChartOptions = {
     ],
     gradientLegend: {
         position: 'right',
-        reverseOrder: true,
     },
 };
 
