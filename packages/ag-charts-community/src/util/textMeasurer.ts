@@ -120,22 +120,19 @@ export class TextMeasurer {
                         if (textWidth <= options.maxWidth) {
                             result.push(line.slice(0, lastSpaceIndex).trimEnd());
                             line = line.slice(lastSpaceIndex).trimStart();
+
                             i = -1; // reset the index after cutting the line
                             estimatedWidth = 0; // reset the width
                             lastSpaceIndex = 0; // reset last space index
-
                             continue;
                         } else if (wrapOnSpace && textWidth > options.maxWidth) {
-                            result.push(
-                                line.slice(0, lastSpaceIndex).trimEnd(),
-                                this.truncateLine(
-                                    line.slice(lastSpaceIndex).trimStart(),
-                                    measurer,
-                                    options.maxWidth,
-                                    true
-                                )
+                            result.push(line.slice(0, lastSpaceIndex).trimEnd());
+                            line = this.truncateLine(
+                                line.slice(lastSpaceIndex).trimStart(),
+                                measurer,
+                                options.maxWidth,
+                                true
                             );
-                            line = '';
                             break;
                         }
                     }
