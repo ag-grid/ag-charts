@@ -31,7 +31,7 @@ import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMa
 import type { AgMapShapeBackgroundThemeableOptions } from '../series/topology/mapShapeBackgroundOptions';
 import type { AgMapShapeSeriesThemeableOptions } from '../series/topology/mapShapeOptions';
 import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
-// import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
+import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { CssColor } from './types';
 
@@ -48,21 +48,10 @@ export type AgChartThemeName =
     | 'ag-material-dark';
 
 /**
- * @deprecated v9.1 use AgChartThemeOptionalPalette instead; in the next major release we will rename
- *             AgChartThemeOptionalPalette to AgChartThemePalette.
- */
-export interface AgChartThemePalette {
-    /** The array of fills to be used. */
-    fills: CssColor[];
-    /** The array of strokes to be used. */
-    strokes: CssColor[];
-}
-
-/**
  * Temporary alias type of Partial<AgChartThemePalette>, until we can fix AgChartThemePalette in the
  * next major release.
  */
-export interface AgChartThemeOptionalPalette {
+export interface AgChartThemePalette {
     /** The array of fills to be used. */
     fills?: CssColor[];
     /** The array of strokes to be used. */
@@ -71,7 +60,7 @@ export interface AgChartThemeOptionalPalette {
 
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
-    palette?: AgChartThemeOptionalPalette;
+    palette?: AgChartThemePalette;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
     overrides?: AgChartThemeOverrides;
 }
@@ -172,7 +161,7 @@ export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPo
 
 export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptions {
     axes?: AgCommonThemeableAxisOptions;
-    // annotations?: AgAnnotationsThemeableOptions;
+    annotations?: AgAnnotationsThemeableOptions;
 }
 
 export interface AgChartThemeOverrides {

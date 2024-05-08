@@ -3,7 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgToolbarGroupPosition } from '../../options/agChartOptions';
 import type { BBox } from '../../scene/bbox';
-import { createElement, injectStyle } from '../../util/dom';
+import { createElement } from '../../util/dom';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -47,7 +47,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private margin = 10;
     private floatingDetectionRange = 28;
-    private readonly container: HTMLElement;
 
     private elements: Record<ToolbarPosition, HTMLElement>;
 
@@ -88,17 +87,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        this.container = ctx.toolbarManager.element;
-        this.elements = {
-            [ToolbarPosition.Top]: this.container.appendChild(createElement('div')),
-            [ToolbarPosition.Right]: this.container.appendChild(createElement('div')),
-            [ToolbarPosition.Bottom]: this.container.appendChild(createElement('div')),
-            [ToolbarPosition.Left]: this.container.appendChild(createElement('div')),
-            [ToolbarPosition.FloatingTop]: this.container.appendChild(createElement('div')),
-            [ToolbarPosition.FloatingBottom]: this.container.appendChild(createElement('div')),
-        };
-
-        injectStyle(styles.css, styles.block);
+        ctx.domManager.addStyles(styles.block, styles.css);
+        this.elements = Object.values(ToolbarPosition)
+            .filter((v) => typeof v === 'string')
+            .reduce(
+                (r, n) => {
+                    r[n] = ctx.domManager.addChild('canvas-overlay', `toolbar-${n}`);
+                    return r;
+                },
+                {} as Record<ToolbarPosition, HTMLElement>
+            );
 
         this.renderToolbar(ToolbarPosition.Top);
         this.renderToolbar(ToolbarPosition.Right);
@@ -121,8 +119,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private destroyElements() {
-        for (const element of Object.values(this.elements)) {
-            element.remove();
+        this.ctx.domManager.removeStyles(styles.block);
+        for (const element of Object.keys(this.elements)) {
+            this.ctx.domManager.removeChild('canvas-overlay', `toolbar-${element}`);
         }
     }
 
@@ -164,13 +163,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             elements,
             ctx: { scene },
         } = this;
-        const { relatedTarget, target } = event.sourceEvent as MouseEvent;
+        const { relatedElement, targetElement } = event;
         const { FloatingBottom, FloatingTop } = ToolbarPosition;
 
-        if (!enabled || target !== scene.canvas.element) return;
+        if (!enabled || targetElement !== scene.canvas.element) return;
 
         const isTargetButton = TOOLBAR_GROUPS.some((group) =>
-            this.groupButtons[group].some((button) => button === relatedTarget)
+            this.groupButtons[group].some((button) => button === relatedElement)
         );
         if (isTargetButton) return;
 

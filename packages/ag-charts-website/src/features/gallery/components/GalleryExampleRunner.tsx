@@ -138,6 +138,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
     return (
         <ExampleRunner
             id={id}
+            title={title}
             exampleUrl={exampleUrl}
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}

@@ -1,28 +1,6 @@
 import { PHASE_METADATA } from '../../motion/animation';
-import { createElement, injectStyle } from '../../util/dom';
-import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS } from './overlay';
-
-const defaultOverlayCss = `
-.${DEFAULT_OVERLAY_CLASS} {
-    color: #181d1f;
-}
-
-.${DEFAULT_OVERLAY_CLASS}.${DEFAULT_OVERLAY_DARK_CLASS} {
-    color: #ffffff;
-}
-
-.${DEFAULT_OVERLAY_CLASS}--loading {
-    color: rgb(140, 140, 140); /* DEFAULT_MUTED_LABEL_COLOUR */
-}
-
-.${DEFAULT_OVERLAY_CLASS}__loading-background {
-    background: white; /* DEFAULT_BACKGROUND_FILL */
-}
-
-.${DEFAULT_OVERLAY_CLASS}.${DEFAULT_OVERLAY_DARK_CLASS} .${DEFAULT_OVERLAY_CLASS}__loading-background {
-    background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
-}
-`;
+import { createElement } from '../../util/dom';
+import { DEFAULT_OVERLAY_CLASS } from './overlay';
 
 export function getLoadingSpinner(text: string, defaultDuration: number) {
     const { animationDuration } = PHASE_METADATA['add'];
@@ -73,8 +51,6 @@ export function getLoadingSpinner(text: string, defaultDuration: number) {
     ].join(' ');
 
     container.replaceChildren(animationStyles, matrix, label, background);
-
-    injectStyle(defaultOverlayCss, 'chartOverlays');
 
     return container;
 }

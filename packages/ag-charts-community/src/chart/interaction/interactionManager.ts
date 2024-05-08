@@ -1,10 +1,11 @@
 import { allInStringUnion } from '../../util/array';
 import { Debug } from '../../util/debug';
-import { getDocument, getWindow, injectStyle } from '../../util/dom';
+import { getDocument, getWindow } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
-import { BaseManager } from './baseManager';
+import { BaseManager } from '../baseManager';
+import type { DOMManager } from '../dom/domManager';
 import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
@@ -53,7 +54,7 @@ type SUPPORTED_EVENTS =
     | 'pagehide'
     | 'wheel';
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
-const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
+const EVENT_HANDLERS = [
     'click',
     'dblclick',
     'contextmenu',
@@ -69,11 +70,13 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'focus',
     'keydown',
     'keyup',
-];
+] as const;
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
     sourceEvent: TEvent;
+    relatedElement?: HTMLElement;
+    targetElement?: HTMLElement;
 };
 
 export type PointerOffsets = {
@@ -116,12 +119,6 @@ interface Coords {
     offsetY: number;
 }
 
-const CSS = `
-.ag-chart-wrapper {
-    touch-action: none;
-}
-`;
-
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
 // These interaction state are both bitflags and priorities.
@@ -144,7 +141,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private readonly debug = Debug.create(true, 'interaction');
 
     private readonly rootElement: HTMLElement;
-    private readonly element: HTMLElement;
 
     private eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -162,28 +158,25 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
-        element: HTMLElement
+        private readonly domManager: DOMManager
     ) {
         super();
 
         this.rootElement = getDocument('body');
-        this.element = element;
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch')) {
-                element.addEventListener(type, this.eventHandler, { passive: true });
+                this.domManager.addEventListener(type, this.eventHandler, { passive: true });
             } else if (type === 'wheel') {
-                element.addEventListener(type, this.eventHandler, { passive: false });
+                this.domManager.addEventListener(type, this.eventHandler, { passive: false });
             } else {
-                element.addEventListener(type, this.eventHandler);
+                this.domManager.addEventListener(type, this.eventHandler);
             }
         }
 
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
         }
-
-        injectStyle(CSS, 'interactionManager');
     }
 
     override destroy() {
@@ -194,8 +187,10 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of EVENT_HANDLERS) {
-            this.element.removeEventListener(type, this.eventHandler);
+            this.domManager.removeEventListener(type, this.eventHandler);
         }
+
+        this.domManager.removeStyles('interactionManager');
     }
 
     // Wrapper to only broadcast events when the InteractionManager is a given state.
@@ -237,12 +232,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
         if (allInStringUnion(POINTER_INTERACTION_TYPES, types)) {
             this.dispatchPointerEvent(event, types);
-        } else if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
+            return;
+        }
+
+        const { relatedElement, targetElement } = this.extractElements(event);
+        if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
             for (const type of types) {
                 dispatchTypedConsumable(
                     this.listeners,
                     type,
-                    buildConsumable({ type, sourceEvent: event as FocusEvent })
+                    buildConsumable({ type, sourceEvent: event as FocusEvent, relatedElement, targetElement })
                 );
             }
         } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
@@ -250,10 +249,24 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 dispatchTypedConsumable(
                     this.listeners,
                     type,
-                    buildConsumable({ type, sourceEvent: event as KeyboardEvent })
+                    buildConsumable({ type, sourceEvent: event as KeyboardEvent, relatedElement, targetElement })
                 );
             }
         }
+    }
+
+    extractElements(event: SupportedEvent): { relatedElement?: HTMLElement; targetElement?: HTMLElement } {
+        let relatedElement;
+        let targetElement;
+
+        if ('relatedTarget' in event && event['relatedTarget'] instanceof HTMLElement) {
+            relatedElement = event['relatedTarget'] as HTMLElement;
+        }
+        if ('target' in event && event['target'] instanceof HTMLElement) {
+            targetElement = event['target'] as HTMLElement;
+        }
+
+        return { relatedElement, targetElement };
     }
 
     private dispatchPointerEvent(event: SupportedEvent, types: PointerInteractionTypes[]) {
@@ -362,11 +375,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private isEventOverElement(event: SupportedEvent) {
-        return (
-            event.target === this.element ||
-            (event.target as any)?.parentElement === this.element ||
-            (event.target as any)?.parentElement?.parentElement === this.element
-        );
+        return this.domManager.isEventOverElement(event);
     }
 
     private static readonly NULL_COORDS: Coords = {
@@ -399,27 +408,18 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private getMouseEventCoords(event: MouseEvent): Coords {
         const { clientX, clientY, pageX, pageY } = event;
         let { offsetX, offsetY } = event;
-        const offsets = (el: HTMLElement) => {
-            let x = 0;
-            let y = 0;
 
-            while (el) {
-                x += el.offsetLeft;
-                y += el.offsetTop;
-                el = el.offsetParent as HTMLElement;
-            }
-
-            return { x, y };
-        };
-
+        const { x, y } = this.domManager.calculateCanvasPosition(event.target as HTMLElement);
         if (this.dragStartElement != null && event.target !== this.dragStartElement) {
             // Offsets need to be relative to the drag-start element to avoid jumps when
             // the pointer moves between element boundaries.
 
-            const offsetDragStart = offsets(this.dragStartElement);
-            const offsetEvent = offsets(event.target as HTMLElement);
-            offsetX -= offsetDragStart.x - offsetEvent.x;
-            offsetY -= offsetDragStart.y - offsetEvent.y;
+            const offsetDragStart = this.domManager.calculateCanvasPosition(this.dragStartElement);
+            offsetX -= offsetDragStart.x - x;
+            offsetY -= offsetDragStart.y - y;
+        } else {
+            offsetX += x;
+            offsetY += y;
         }
         return { clientX, clientY, pageX, pageY, offsetX, offsetY };
     }
@@ -442,7 +442,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         let { offsetX, offsetY, pageX, pageY } = opts;
 
         if (!isFiniteNumber(offsetX) || !isFiniteNumber(offsetY)) {
-            const rect = this.element.getBoundingClientRect();
+            const rect = this.domManager.getBoundingClientRect();
             offsetX = clientX - rect.left;
             offsetY = clientY - rect.top;
         }
@@ -471,6 +471,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pointerHistory = this.dblclickHistory;
         }
 
+        const { relatedElement, targetElement } = this.extractElements(event);
+
         const builtEvent = buildConsumable({
             type,
             offsetX,
@@ -481,6 +483,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             deltaY,
             pointerHistory,
             sourceEvent: event,
+            relatedElement,
+            targetElement,
         });
 
         this.debug('InteractionManager - builtEvent: ', builtEvent);

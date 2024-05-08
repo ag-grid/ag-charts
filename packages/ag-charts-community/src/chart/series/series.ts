@@ -61,15 +61,19 @@ export type SeriesNodePickMatch = {
 };
 
 export type PickFocusInputs = {
-    readonly datumIndex: number;
     // datum delta is stricly +ve/-ve when changing datum focus, or 0 when changing series focus.
+    readonly datumIndex: number;
     readonly datumIndexDelta: number;
+    // 'other' means 'depth' for hierarchial charts, or 'series' for all other charts
+    readonly otherIndex: number;
+    readonly otherIndexDelta: number;
     readonly seriesRect?: Readonly<BBox>;
 };
 
-export type PickFocusOutputs<TDatum> = {
+export type PickFocusOutputs = {
     datumIndex: number;
-    datum: TDatum;
+    datum: SeriesNodeDatum;
+    otherIndex?: number;
     bbox: BBox;
     showFocusBox: boolean;
 };
@@ -809,7 +813,7 @@ export abstract class Series<
         return resize;
     }
 
-    public pickFocus(_opts: PickFocusInputs): PickFocusOutputs<TDatum> | undefined {
+    public pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
         return undefined;
     }
 }

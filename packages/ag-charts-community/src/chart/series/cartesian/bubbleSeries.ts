@@ -369,14 +369,18 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 label: {
                     text: title ?? yName ?? yKey,
                 },
-                marker: {
-                    shape,
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: fillOpacity ?? 1,
-                    strokeOpacity: strokeOpacity ?? 1,
-                    strokeWidth: strokeWidth ?? 0,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            shape,
+                            fill: fill ?? 'rgba(0, 0, 0, 0)',
+                            stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                            fillOpacity: fillOpacity ?? 1,
+                            strokeOpacity: strokeOpacity ?? 1,
+                            strokeWidth: strokeWidth ?? 0,
+                        },
+                    },
+                ],
             },
         ];
     }

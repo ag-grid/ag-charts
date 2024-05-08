@@ -4,7 +4,6 @@ import { moduleRegistry } from '../module/module';
 import { ChartOptions } from '../module/optionsModule';
 import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
-import { createDeprecationWarning } from '../util/deprecation';
 import { deepClone, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
@@ -89,7 +88,7 @@ export abstract class AgCharts {
         const chart = AgChartsInternal.createOrUpdate(options);
 
         if (this.licenseManager?.isDisplayWatermark()) {
-            enterpriseModule.injectWatermark?.(chart.chart.element, this.licenseManager.getWatermarkMessage());
+            enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
         return chart;
     }
@@ -142,39 +141,6 @@ export abstract class AgCharts {
             throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
         return AgChartsInternal.getImageDataURL(chart, options);
-    }
-}
-
-/** @deprecated v9.0 use AgCharts instead */
-export class AgChart {
-    private static warnDeprecated(memberName: string) {
-        const warnDeprecated = createDeprecationWarning();
-        warnDeprecated(`AgChart.${memberName}`, `Use AgCharts.${memberName} instead`);
-    }
-
-    public static create(options: AgChartOptions): AgChartInstance {
-        this.warnDeprecated('create');
-        return AgCharts.create(options);
-    }
-
-    public static update(chart: AgChartInstance, options: AgChartOptions) {
-        this.warnDeprecated('update');
-        return AgCharts.update(chart, options);
-    }
-
-    public static updateDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>) {
-        this.warnDeprecated('updateDelta');
-        return AgCharts.updateDelta(chart, deltaOptions);
-    }
-
-    public static download(chart: AgChartInstance, options?: DownloadOptions) {
-        this.warnDeprecated('download');
-        return AgCharts.download(chart, options);
-    }
-
-    public static getImageDataURL(chart: AgChartInstance, options?: ImageDataUrlOptions): Promise<string> {
-        this.warnDeprecated('getImageDataURL');
-        return AgCharts.getImageDataURL(chart, options);
     }
 }
 

@@ -32,10 +32,10 @@ import { PickFocusInputs, SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodeP
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import type { DonutInnerLabel, PieTitle } from './pieSeriesProperties';
+import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
 import {
-    computeSectorFocusBounds,
+    computeSectorSeriesFocusBounds,
     pickByMatchingAngle,
     preparePieSeriesAnimationFunctions,
     resetPieSelectionsFn,
@@ -106,8 +106,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     private readonly radiusScale: LinearScale = new LinearScale();
     private readonly calloutLabelSelection: Selection<Group, PieNodeDatum>;
     private readonly sectorLabelSelection: Selection<Text, PieNodeDatum>;
-    private readonly innerLabelsSelection: Selection<Text, DonutInnerLabel>;
-    private readonly innerCircleSelection: Selection<Circle, { radius: number }>;
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
@@ -121,7 +119,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
     readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Circle());
-    readonly zerosumInnerRing = this.zerosumRingsGroup.appendChild(new Circle());
 
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
 
@@ -132,7 +129,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private oldTitle?: PieTitle;
 
-    surroundingRadius?: number = undefined;
+    override surroundingRadius?: number = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -150,14 +147,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const pieCalloutLabels = new Group({ name: 'pieCalloutLabels' });
         const pieSectorLabels = new Group({ name: 'pieSectorLabels' });
-        const innerLabels = new Group({ name: 'innerLabels' });
         this.labelGroup.append(pieCalloutLabels);
         this.labelGroup.append(pieSectorLabels);
-        this.labelGroup.append(innerLabels);
         this.calloutLabelSelection = Selection.select(pieCalloutLabels, Group);
         this.sectorLabelSelection = Selection.select(pieSectorLabels, Text);
-        this.innerLabelsSelection = Selection.select(innerLabels, Text);
-        this.innerCircleSelection = Selection.select(this.innerCircleGroup, Circle);
     }
 
     override addChartEventListeners(): void {
@@ -355,8 +348,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         });
 
         this.zerosumOuterRing.visible = sum === 0;
-        const { innerRadiusRatio = 1 } = this.properties;
-        this.zerosumInnerRing.visible = sum === 0 && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
 
         return { itemId: seriesId, nodeData, labelData: nodeData };
     }
@@ -449,18 +440,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, formatter, sectorSpacing, __BACKGROUND_COLOR_DO_NOT_USE } =
-            this.properties;
+        const { angleKey, radiusKey, fills, strokes, formatter } = this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
             highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
-        let defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
-        if (sectorSpacing != null) {
-            // @todo(AG-10275) Remove sectorSpacing null case
-            defaultStroke ??= __BACKGROUND_COLOR_DO_NOT_USE;
-        }
+        const defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
             isDatumHighlighted && this.properties.highlightStyle.item,
             {
@@ -497,22 +483,12 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         };
     }
 
-    getInnerRadius() {
-        const { radius } = this;
-        const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
-        const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;
-        if (innerRadius === radius || innerRadius < 0) {
-            return 0;
-        }
-        return innerRadius;
-    }
-
     getOuterRadius() {
         return Math.max(this.radius * this.properties.outerRadiusRatio + this.properties.outerRadiusOffset, 0);
     }
 
     updateRadiusScale(resize: boolean) {
-        const newRange = [this.getInnerRadius(), this.getOuterRadius()];
+        const newRange = [0, this.getOuterRadius()];
         this.radiusScale.range = newRange;
 
         if (resize) {
@@ -575,12 +551,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             title.node.translationY = isFinite(dy) ? dy : 0;
         }
 
-        for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
-            circle.fillOpacity = 0;
-            circle.stroke = this.properties.calloutLabel.color;
-            circle.strokeWidth = 1;
-            circle.strokeOpacity = 1;
-        }
+        this.zerosumOuterRing.fillOpacity = 0;
+        this.zerosumOuterRing.stroke = this.properties.calloutLabel.color;
+        this.zerosumOuterRing.strokeWidth = 1;
+        this.zerosumOuterRing.strokeOpacity = 1;
 
         this.updateNodeMidPoint();
 
@@ -618,12 +592,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private async updateSelections() {
         await this.updateGroupSelection();
-        this.updateInnerCircleSelection();
     }
 
     private async updateGroupSelection() {
-        const { itemSelection, highlightSelection, calloutLabelSelection, sectorLabelSelection, innerLabelsSelection } =
-            this;
+        const { itemSelection, highlightSelection, calloutLabelSelection, sectorLabelSelection } = this;
 
         const update = (selection: typeof this.itemSelection, clone: boolean) => {
             let nodeData = this.nodeData;
@@ -656,25 +628,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         sectorLabelSelection.update(this.nodeData, (node) => {
             node.pointerEvents = PointerEvents.None;
         });
-
-        innerLabelsSelection.update(this.properties.innerLabels, (node) => {
-            node.pointerEvents = PointerEvents.None;
-        });
-    }
-
-    private updateInnerCircleSelection() {
-        const { innerCircle } = this.properties;
-
-        let radius = 0;
-        const innerRadius = this.getInnerRadius();
-        if (innerRadius > 0) {
-            const circleRadius = Math.min(innerRadius, this.getOuterRadius());
-            const antiAliasingPadding = 1;
-            radius = Math.ceil(circleRadius * 2 + antiAliasingPadding);
-        }
-
-        const datums = innerCircle ? [{ radius }] : [];
-        this.innerCircleSelection.update(datums);
     }
 
     private async updateNodes(seriesRect: BBox) {
@@ -689,14 +642,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         this.contentGroup.opacity = this.getOpacity();
-
-        this.innerCircleSelection.each((node, { radius }) => {
-            node.setProperties({
-                fill: this.properties.innerCircle?.fill,
-                opacity: this.properties.innerCircle?.fillOpacity,
-                size: radius,
-            });
-        });
 
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
             const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
@@ -723,13 +668,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
             sector.cornerRadius = this.properties.cornerRadius;
-            // @todo(AG-10275) Remove sectorSpacing null case
-            sector.inset =
-                this.properties.sectorSpacing != null
-                    ? (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2
-                    : 0;
-            // @todo(AG-10275) Remove this line completely
-            sector.lineJoin = this.properties.sectorSpacing != null ? 'miter' : 'round';
+            sector.inset = (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2;
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
@@ -744,7 +683,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.updateCalloutLineNodes();
         this.updateCalloutLabelNodes(seriesRect);
         this.updateSectorLabelNodes();
-        this.updateInnerLabelNodes();
         this.updateZerosumRings();
 
         this.animationState.transition('update');
@@ -1184,51 +1122,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         });
     }
 
-    private updateInnerLabelNodes() {
-        const textBBoxes: BBox[] = [];
-        const margins: number[] = [];
-        this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, color, margin = 2 } = datum;
-            text.fontStyle = fontStyle;
-            text.fontWeight = fontWeight;
-            text.fontSize = fontSize;
-            text.fontFamily = fontFamily;
-            text.text = datum.text;
-            text.x = 0;
-            text.y = 0;
-            text.fill = color;
-            text.textAlign = 'center';
-            text.textBaseline = 'alphabetic';
-            textBBoxes.push(text.computeBBox());
-            margins.push(margin);
-        });
-        const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);
-        const getMarginBottom = (index: number) => (index === margins.length - 1 ? 0 : margins[index]);
-        const totalHeight = textBBoxes.reduce((sum, bbox, i) => {
-            return sum + bbox.height + getMarginTop(i) + getMarginBottom(i);
-        }, 0);
-        const totalWidth = Math.max(...textBBoxes.map((bbox) => bbox.width));
-        const innerRadius = this.getInnerRadius();
-        const labelRadius = Math.sqrt(Math.pow(totalWidth / 2, 2) + Math.pow(totalHeight / 2, 2));
-        const labelsVisible = labelRadius <= (innerRadius > 0 ? innerRadius : this.getOuterRadius());
-
-        const textBottoms: number[] = [];
-        for (let i = 0, prev = -totalHeight / 2; i < textBBoxes.length; i++) {
-            const bbox = textBBoxes[i];
-            const bottom = bbox.height + prev + getMarginTop(i);
-            textBottoms.push(bottom);
-            prev = bottom + getMarginBottom(i);
-        }
-        this.innerLabelsSelection.each((text, _datum, index) => {
-            text.y = textBottoms[index];
-            text.visible = labelsVisible;
-        });
-    }
-
     private updateZerosumRings() {
         // The Circle `size` is the diameter
         this.zerosumOuterRing.size = this.getOuterRadius() * 2;
-        this.zerosumInnerRing.size = this.getInnerRadius() * 2;
     }
 
     protected override readonly NodeEvent = PieSeriesNodeEvent;
@@ -1351,13 +1247,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 label: {
                     text: labelParts.join(' - '),
                 },
-                marker: {
-                    fill: sectorFormat.fill,
-                    stroke: sectorFormat.stroke,
-                    fillOpacity: this.properties.fillOpacity,
-                    strokeOpacity: this.properties.strokeOpacity,
-                    strokeWidth: this.properties.strokeWidth,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            fill: sectorFormat.fill,
+                            stroke: sectorFormat.stroke,
+                            fillOpacity: this.properties.fillOpacity,
+                            strokeOpacity: this.properties.strokeOpacity,
+                            strokeWidth: this.properties.strokeWidth,
+                        },
+                    },
+                ],
                 legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
             });
         }
@@ -1404,11 +1304,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             this.previousRadiusScale
         );
         fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
-        fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', animationManager, this.sectorLabelSelection);
-        seriesLabelFadeInAnimation(this, 'inner', animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1442,11 +1340,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             (_, datum) => this.getDatumId(datum),
             dataDiff
         );
-        fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
-        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1462,11 +1358,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             previousRadiusScale
         );
         fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
-        fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
-        seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1500,6 +1394,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeSectorFocusBounds(this, opts);
+        return computeSectorSeriesFocusBounds(this, opts);
     }
 }

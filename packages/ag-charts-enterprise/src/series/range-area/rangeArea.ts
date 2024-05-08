@@ -602,20 +602,24 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                marker: {
-                    shape: marker.shape,
-                    fill: marker.fill ?? fill,
-                    stroke: marker.stroke ?? stroke,
-                    fillOpacity: marker.fillOpacity,
-                    strokeOpacity: marker.strokeOpacity,
-                    strokeWidth: marker.strokeWidth,
-                },
-                line: {
-                    stroke,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            shape: marker.shape,
+                            fill: marker.fill ?? fill,
+                            stroke: marker.stroke ?? stroke,
+                            fillOpacity: marker.fillOpacity,
+                            strokeOpacity: marker.strokeOpacity,
+                            strokeWidth: marker.strokeWidth,
+                        },
+                        line: {
+                            stroke,
+                            strokeOpacity,
+                            strokeWidth,
+                            lineDash,
+                        },
+                    },
+                ],
             },
         ];
     }

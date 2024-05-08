@@ -1,4 +1,4 @@
-import { Listeners } from '../../util/listeners';
+import { Listeners } from '../util/listeners';
 
 export abstract class BaseManager<EventType extends string = never, Event extends { type: any } = never> {
     protected readonly listeners = new Listeners<EventType, (event: Event) => void>();

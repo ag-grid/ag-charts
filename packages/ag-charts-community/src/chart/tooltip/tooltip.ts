@@ -1,6 +1,6 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { setAttribute } from '../../util/attributeUtil';
-import { createElement, getDocument, getWindow } from '../../util/dom';
+import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
@@ -16,7 +16,8 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { PointerInteractionEvent, PointerOffsets } from '../interaction/interactionManager';
+import type { DOMManager } from '../dom/domManager';
+import type { PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -36,6 +37,8 @@ type TooltipPositionType =
 export type TooltipEventType = 'hover' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType> = PointerOffsets & {
     type: T;
+    relatedElement?: HTMLElement;
+    targetElement?: HTMLElement;
 };
 
 export type TooltipMeta = PointerOffsets & {
@@ -139,10 +142,10 @@ export class Tooltip extends BaseProperties {
 
     @ObserveChanges<Tooltip>((target, newValue, oldValue) => {
         if (newValue) {
-            target.element.classList.add(newValue);
+            target.element?.classList.add(newValue);
         }
         if (oldValue) {
-            target.element.classList.remove(oldValue);
+            target.element?.classList.remove(oldValue);
         }
     })
     @Validate(STRING, { optional: true })
@@ -167,28 +170,31 @@ export class Tooltip extends BaseProperties {
     private lastVisibilityChange: number = Date.now();
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
 
-    private readonly element: HTMLDivElement;
-    readonly root: HTMLElement;
+    private element?: HTMLElement;
 
     private showTimeout: NodeJS.Timeout | number = 0;
     private _showArrow = true;
 
-    constructor() {
-        super();
-
-        this.element = createElement('div', DEFAULT_TOOLTIP_CLASS);
-        setAttribute(this.element, 'aria-hidden', true);
-
-        this.root = getDocument('body');
-        this.root.appendChild(this.element);
+    get interactive() {
+        return this.enableInteraction;
     }
 
-    destroy() {
-        this.element.remove();
+    constructor() {
+        super();
+    }
+
+    setup(domManager: DOMManager) {
+        this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
+        this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
+        setAttribute(this.element, 'aria-hidden', true);
+    }
+
+    destroy(domManager: DOMManager) {
+        domManager.removeChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
     }
 
     isVisible(): boolean {
-        return !this.element.classList.contains(DEFAULT_TOOLTIP_CLASS + '-hidden');
+        return !this.element?.classList.contains(DEFAULT_TOOLTIP_CLASS + '-hidden');
     }
 
     /**
@@ -198,9 +204,9 @@ export class Tooltip extends BaseProperties {
     show(canvasRect: DOMRect, meta: TooltipMeta, content?: TooltipContent | null, instantly = false) {
         const { element } = this;
 
-        if (content != null) {
+        if (content != null && element != null) {
             element.innerHTML = content.html;
-        } else if (!element.innerHTML) {
+        } else if (!element?.innerHTML) {
             this.toggle(false);
             return;
         }
@@ -219,9 +225,6 @@ export class Tooltip extends BaseProperties {
             canvasRect.height,
             tooltipBounds
         );
-
-        position.x += canvasRect.x;
-        position.y += canvasRect.y;
 
         const left = clamp(0, position.x, windowBounds.width - element.clientWidth - 1);
         const top = clamp(0, position.y, windowBounds.height - element.clientHeight);
@@ -252,6 +255,8 @@ export class Tooltip extends BaseProperties {
     }
 
     toggle(visible: boolean) {
+        if (!this.element) return;
+
         const { classList } = this.element;
         const toggleClass = (name: string, include: boolean) =>
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}-${name}`, include);
@@ -293,16 +298,6 @@ export class Tooltip extends BaseProperties {
         }
     }
 
-    pointerLeftOntoTooltip(event: PointerInteractionEvent<'leave'>): boolean {
-        if (!this.enableInteraction) return false;
-
-        const classList = ((event.sourceEvent as MouseEvent).relatedTarget as any)?.classList as DOMTokenList;
-        const classes = ['', '-title', '-content'];
-        const classListContains = Boolean(classes.filter((c) => classList?.contains(`${DEFAULT_TOOLTIP_CLASS}${c}`)));
-
-        return classList !== undefined && classListContains;
-    }
-
     private updateShowArrow(show: boolean) {
         this._showArrow = show;
     }
@@ -320,6 +315,8 @@ export class Tooltip extends BaseProperties {
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
+        if (!this.element) return {};
+
         const { clientWidth: tooltipWidth, clientHeight: tooltipHeight } = this.element;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 

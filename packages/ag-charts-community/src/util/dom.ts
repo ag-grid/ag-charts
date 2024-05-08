@@ -1,5 +1,4 @@
 const verifiedGlobals = {} as { document: Document; window: Window };
-const injectCache = new WeakMap<Document, Set<string>>();
 
 if (typeof window !== 'undefined') {
     verifiedGlobals.window = window;
@@ -62,23 +61,6 @@ export function downloadUrl(dataUrl: string, fileName: string) {
     body.appendChild(element);
     element.click();
     setTimeout(() => body.removeChild(element));
-}
-
-export function injectStyle(cssStyle: string, uniqueId?: string) {
-    const document = getDocument();
-
-    if (uniqueId && injectCache.get(document)?.has(uniqueId)) return;
-
-    const styleElement = createElement('style');
-    styleElement.innerHTML = cssStyle;
-    // Make sure these styles are injected before other styles, so it can be overridden.
-    document.head.insertBefore(styleElement, document.head.querySelector('style'));
-
-    if (uniqueId && !injectCache.has(document)) {
-        injectCache.set(document, new Set([uniqueId]));
-    } else if (uniqueId) {
-        injectCache.get(document)?.add(uniqueId);
-    }
 }
 
 export function setDocument(document: Document) {

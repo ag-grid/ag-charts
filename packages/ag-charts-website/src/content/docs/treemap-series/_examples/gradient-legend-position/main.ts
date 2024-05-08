@@ -15,7 +15,6 @@ const options: AgChartOptions = {
     ],
     gradientLegend: {
         position: 'right',
-        reverseOrder: true,
     },
     title: {
         text: 'UK Government Budget',

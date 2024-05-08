@@ -25,7 +25,6 @@ const options: AgChartOptions = {
     ],
     gradientLegend: {
         position: 'right',
-        reverseOrder: true,
     },
     title: {
         text: 'Top 10 countries by GDP',

@@ -10,18 +10,8 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const {
-    BOOLEAN,
-    Layers,
-    POSITION,
-    Validate,
-    Default,
-    MIN_SPACING,
-    MAX_SPACING,
-    POSITIVE_NUMBER,
-    ProxyProperty,
-    DeprecatedAndRenamedTo,
-} = _ModuleSupport;
+const { BOOLEAN, Layers, POSITION, Validate, Default, MIN_SPACING, MAX_SPACING, POSITIVE_NUMBER, ProxyProperty } =
+    _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
@@ -180,9 +170,6 @@ export class GradientLegend {
 
     scale: GradientLegendScale;
 
-    @DeprecatedAndRenamedTo('scale')
-    stop: GradientLegendScale;
-
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
     listeners: any = {};
@@ -210,7 +197,6 @@ export class GradientLegend {
         this.axis.attachAxis(this.axisGroup, this.axisGridGroup);
 
         this.scale = new GradientLegendScale(this.axis);
-        this.stop = this.scale;
 
         this.destroyFns.push(() => this.detachLegend());
     }
@@ -277,6 +263,7 @@ export class GradientLegend {
     }
 
     private updateGradientRect(shrinkRect: _Scene.BBox, colorRange: string[]) {
+        const { reverseOrder, gradientFill, gradientRect } = this;
         const { preferredLength: gradientLength, thickness } = this.gradient;
 
         const gradientBox = new BBox(0, 0, 0, 0);
@@ -297,15 +284,17 @@ export class GradientLegend {
             gradientBox.height = thickness;
         }
 
-        if (this.reverseOrder) {
-            colorRange = colorRange.slice().reverse();
+        gradientFill.stops = colorRange;
+        if (vertical) {
+            gradientFill.direction = reverseOrder ? 'to-bottom' : 'to-top';
+        } else {
+            gradientFill.direction = reverseOrder ? 'to-left' : 'to-right';
         }
-        this.gradientFill.stops = colorRange;
-        this.gradientFill.direction = vertical ? 'to-bottom' : 'to-right';
-        this.gradientRect.x = gradientBox.x;
-        this.gradientRect.y = gradientBox.y;
-        this.gradientRect.width = gradientBox.width;
-        this.gradientRect.height = gradientBox.height;
+
+        gradientRect.x = gradientBox.x;
+        gradientRect.y = gradientBox.y;
+        gradientRect.width = gradientBox.width;
+        gradientRect.height = gradientBox.height;
 
         return gradientBox;
     }
@@ -313,10 +302,10 @@ export class GradientLegend {
     private updateAxis(data: _ModuleSupport.GradientLegendDatum, gradientBox: _Scene.BBox) {
         const { reverseOrder, axis } = this;
         const vertical = this.getOrientation() === 'vertical';
+        const positiveAxis = reverseOrder !== vertical;
 
         axis.position = vertical ? 'right' : 'bottom';
-
-        axis.colorDomain = reverseOrder ? data.colorDomain.slice().reverse() : data.colorDomain;
+        axis.colorDomain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
         axis.calculateDomain();
 
         axis.range = vertical ? [0, gradientBox.height] : [0, gradientBox.width];

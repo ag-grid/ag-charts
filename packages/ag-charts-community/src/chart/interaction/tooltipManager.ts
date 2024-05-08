@@ -1,5 +1,5 @@
-import { injectStyle } from '../../util/dom';
 import { StateTracker } from '../../util/stateTracker';
+import type { DOMManager } from '../dom/domManager';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
 import { DEFAULT_TOOLTIP_CLASS, TooltipPointerEvent } from '../tooltip/tooltip';
@@ -13,9 +13,6 @@ const defaultTooltipCss = `
 .${DEFAULT_TOOLTIP_CLASS} {
     transition: transform 0.1s ease;
     max-width: 100%;
-    position: fixed;
-    left: 0px;
-    top: 0px;
     z-index: 99999;
     font: 12px Verdana, sans-serif;
     color: rgb(70, 70, 70);
@@ -125,11 +122,6 @@ const defaultTooltipCss = `
 
     margin: 0 auto;
 }
-
-.ag-chart-wrapper {
-    box-sizing: border-box;
-    overflow: hidden;
-}
 `;
 
 /**
@@ -138,30 +130,16 @@ const defaultTooltipCss = `
  */
 export class TooltipManager {
     private readonly stateTracker = new StateTracker<TooltipState>();
-    private readonly observer?: IntersectionObserver;
     private appliedState: TooltipState | null = null;
 
     public constructor(
-        private readonly canvasElement: HTMLCanvasElement,
+        private readonly domManager: DOMManager,
         private readonly tooltip: Tooltip
     ) {
-        // Detect when the chart becomes invisible and hide the tooltip as well.
-        if (typeof IntersectionObserver !== 'undefined') {
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    for (const entry of entries) {
-                        if (entry.target === this.canvasElement && entry.intersectionRatio === 0) {
-                            this.tooltip.toggle(false);
-                        }
-                    }
-                },
-                { root: this.tooltip.root }
-            );
-            observer.observe(this.canvasElement);
-            this.observer = observer;
-        }
+        tooltip.setup(domManager);
 
-        injectStyle(defaultTooltipCss, 'tooltip');
+        domManager.addListener('hidden', () => this.tooltip.toggle(false));
+        domManager.addStyles('tooltip', defaultTooltipCss);
     }
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent) {
@@ -182,7 +160,7 @@ export class TooltipManager {
     }
 
     public destroy() {
-        this.observer?.unobserve(this.canvasElement);
+        this.domManager.removeStyles('tooltip');
     }
 
     private applyStates() {
@@ -195,7 +173,7 @@ export class TooltipManager {
             return;
         }
 
-        const canvasRect = this.canvasElement.getBoundingClientRect();
+        const canvasRect = this.domManager.getBoundingClientRect();
 
         if (this.appliedState?.content === state?.content) {
             const renderInstantly = this.tooltip.isVisible();

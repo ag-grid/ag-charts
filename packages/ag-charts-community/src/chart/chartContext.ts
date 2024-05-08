@@ -1,11 +1,12 @@
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
-import type { Scene } from '../scene/scene';
+import { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
 import { AnnotationManager } from './annotation/annotationManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
+import { DOMManager } from './dom/domManager';
 import { AnimationManager } from './interaction/animationManager';
 import { AriaAnnouncementService } from './interaction/ariaAnnouncementServices';
 import { ChartEventManager } from './interaction/chartEventManager';
@@ -43,6 +44,7 @@ export class ChartContext implements ModuleContext {
     chartEventManager: ChartEventManager;
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
+    domManager: DOMManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
     keyNavManager: KeyNavManager;
@@ -56,35 +58,33 @@ export class ChartContext implements ModuleContext {
     constructor(
         chart: ChartService & { zoomManager: ZoomManager; annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
-            scene: Scene;
+            scene?: Scene;
             syncManager: SyncManager;
-            element: HTMLElement;
+            container?: HTMLElement;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
+            overrideDevicePixelRatio?: number;
         }
     ) {
-        const { scene, syncManager, element, updateCallback, updateMutex } = vars;
+        const { scene, syncManager, container, updateCallback, updateMutex, overrideDevicePixelRatio } = vars;
         this.chartService = chart;
-        this.scene = scene;
         this.syncManager = syncManager;
         this.zoomManager = chart.zoomManager;
+        this.domManager = new DOMManager(container);
+        scene?.setContainer(this.domManager);
+        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, domManager: this.domManager });
 
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
-        this.ariaAnnouncementService = new AriaAnnouncementService(scene.canvas.element);
+        this.ariaAnnouncementService = new AriaAnnouncementService(this.scene.canvas.element);
         this.chartEventManager = new ChartEventManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
-        this.cursorManager = new CursorManager(element);
+        this.cursorManager = new CursorManager(this.domManager);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(chart.keyboard, element);
-        this.keyNavManager = new KeyNavManager(this.interactionManager);
-        this.regionManager = new RegionManager(
-            this.interactionManager,
-            this.keyNavManager,
-            this.scene.canvas.element,
-            element
-        );
-        this.toolbarManager = new ToolbarManager(element);
-        this.gestureDetector = new GestureDetector(element);
+        this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
+        this.keyNavManager = new KeyNavManager(this.interactionManager, this.domManager);
+        this.regionManager = new RegionManager(this.interactionManager, this.keyNavManager, this.domManager);
+        this.toolbarManager = new ToolbarManager();
+        this.gestureDetector = new GestureDetector(this.domManager);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService(updateCallback);
         this.seriesStateManager = new SeriesStateManager();
@@ -95,7 +95,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager.play();
 
         this.dataService = new DataService<any>(this.animationManager);
-        this.tooltipManager = new TooltipManager(this.scene.canvas.element, chart.tooltip);
+        this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
     }
 
     destroy() {
@@ -112,5 +112,6 @@ export class ChartContext implements ModuleContext {
         this.callbackCache.invalidateCache();
         this.animationManager.reset();
         this.syncManager.destroy();
+        this.domManager.destroy();
     }
 }

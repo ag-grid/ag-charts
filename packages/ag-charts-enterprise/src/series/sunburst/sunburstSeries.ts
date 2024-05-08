@@ -10,7 +10,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const { fromToMotion } = _ModuleSupport;
+const { fromToMotion, computeSectorFocusBounds } = _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -304,6 +304,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     availableWidthUntilItHitsTheStraightEdges
                 );
 
+                const maxPerpendicularAngle = Math.PI / 4;
                 let perpendicularHeight: number;
                 let perpendicularWidth: number;
                 if (depth === 0) {
@@ -312,10 +313,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     perpendicularWidth =
                         Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) -
                         labelHeight / (2 * Math.tan(deltaOuterAngle * 0.5));
-                } else {
+                } else if (_Util.normalizeAngle360(deltaInnerAngle) < maxPerpendicularAngle) {
                     // Outer wedge - fit the height to the sector, then fit the width
                     perpendicularHeight = 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5);
                     perpendicularWidth = Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) - innerRadius;
+                } else {
+                    perpendicularWidth = 0;
+                    perpendicularHeight = 0;
                 }
 
                 return parallelWidth >= perpendicularWidth
@@ -591,5 +595,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 }
             },
         });
+    }
+
+    protected computeFocusBounds(
+        node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
+    ): _Scene.BBox | undefined {
+        const sector = this.groupSelection.selectByClass(Sector)[node.index];
+        const { x, y } = sector.inverseTransformPoint(0, 0);
+        return computeSectorFocusBounds(sector, x, y);
     }
 }

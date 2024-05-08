@@ -777,4 +777,11 @@ export class TreemapSeries<
             sizeName,
         });
     }
+
+    protected computeFocusBounds(
+        node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
+    ): _Scene.BBox | undefined {
+        const rects = this.groupSelection.selectByClass(Rect);
+        return rects[node.index]?.computeTransformedBBox();
+    }
 }

@@ -16,10 +16,10 @@ export class LinearScale extends ContinuousScale<number> {
         return d;
     }
 
-    ticks() {
+    ticks(): { ticks: number[]; fractionDigits: number } {
         const count = this.tickCount ?? ContinuousScale.defaultTickCount;
         if (!this.domain || this.domain.length < 2 || count < 1 || this.domain.some((d) => !isFinite(d))) {
-            return [];
+            return { ticks: [], fractionDigits: 0 };
         }
         this.refresh();
         const [d0, d1] = this.getDomain();
@@ -93,6 +93,6 @@ export class LinearScale extends ContinuousScale<number> {
     }
 
     tickFormat({ ticks: specifiedTicks, specifier }: { ticks?: any[]; specifier?: string }) {
-        return tickFormat(specifiedTicks ?? this.ticks(), specifier);
+        return tickFormat(specifiedTicks ?? this.ticks().ticks, specifier);
     }
 }

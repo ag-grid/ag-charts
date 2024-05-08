@@ -1,4 +1,5 @@
 import type { ChartOptions } from '../module/optionsModule';
+import type { Scale } from '../scale/scale';
 import { BBox } from '../scene/bbox';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
@@ -6,8 +7,6 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { Layers } from './layers';
-import { DonutSeries } from './series/polar/donutSeries';
-import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
 
 export class PolarChart extends Chart {
@@ -49,8 +48,8 @@ export class PolarChart extends Chart {
             return;
         }
 
-        const angleScale = angleAxis.scale;
-        const angles = angleScale.ticks?.().map((value: string) => angleScale.convert(value));
+        const angleScale: Scale<number, number> = angleAxis.scale;
+        const angles = angleScale.ticks?.().ticks.map((value) => angleScale.convert(value));
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
@@ -98,9 +97,7 @@ export class PolarChart extends Chart {
                 series.radius = r;
             });
 
-            const pieSeries = polarSeries.filter<PieSeries | DonutSeries>((s): s is PieSeries | DonutSeries => {
-                return s instanceof PieSeries || s instanceof DonutSeries;
-            });
+            const pieSeries = polarSeries.filter((s) => s.type === 'donut' || s.type === 'pie');
             if (pieSeries.length > 1) {
                 const innerRadii = pieSeries
                     .map((series) => {

@@ -20,7 +20,7 @@ const {
     animationValidation,
     isFiniteNumber,
     SeriesNodePickMode,
-    computeSectorFocusBounds,
+    computeSectorSeriesFocusBounds,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -550,13 +550,17 @@ export abstract class RadialColumnSeriesBase<
                 label: {
                     text: radiusName ?? radiusKey,
                 },
-                marker: {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: fillOpacity ?? 1,
-                    strokeOpacity: strokeOpacity ?? 1,
-                    strokeWidth,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            fill: fill ?? 'rgba(0, 0, 0, 0)',
+                            stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                            fillOpacity: fillOpacity ?? 1,
+                            strokeOpacity: strokeOpacity ?? 1,
+                            strokeWidth,
+                        },
+                    },
+                ],
             },
         ];
     }
@@ -583,6 +587,6 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeSectorFocusBounds(this, opts);
+        return computeSectorSeriesFocusBounds(this, opts);
     }
 }

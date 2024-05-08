@@ -23,16 +23,16 @@ const options: AgCartesianChartOptions = {
             start: new Date(2023, 10, 26),
         },
     },
-    // toolbar: {
-    //     ranges: {
-    //         enabled: true,
-    //         buttons: [
-    //             { label: '6 months', value: 6 * MONTH },
-    //             { label: '12 months', value: 12 * MONTH },
-    //             { label: 'All', value: (start, end) => [start, end] },
-    //         ],
-    //     },
-    // },
+    toolbar: {
+        ranges: {
+            enabled: true,
+            buttons: [
+                { label: '6 months', value: 6 * MONTH },
+                { label: '12 months', value: 12 * MONTH },
+                { label: 'All', value: (start, end) => [start, end] },
+            ],
+        },
+    },
     tooltip: {
         enabled: true,
     },

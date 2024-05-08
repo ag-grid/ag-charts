@@ -1,3 +1,4 @@
+import type { DOMManager } from '../chart/dom/domManager';
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 
 export interface LicenseManager {
@@ -11,7 +12,7 @@ export interface LicenseManager {
 interface EnterpriseModuleOptions {
     isEnterprise: boolean;
     licenseManager?: (options: AgChartOptions) => LicenseManager;
-    injectWatermark?: (parentElement: HTMLElement, text: string) => void;
+    injectWatermark?: (domManager: DOMManager, text: string) => void;
 }
 
 export const enterpriseModule: EnterpriseModuleOptions = {

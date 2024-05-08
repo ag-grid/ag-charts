@@ -2,7 +2,6 @@ import type { ExtensibleTheme } from '../../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
 import { FONT_WEIGHT } from '../../themes/constants';
 import {
-    DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
@@ -53,8 +52,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         lineDash: [0],
         lineDashOffset: 0,
         rotation: 0,
-        // @todo(AG-10275) Uncomment this
-        // sectorSpacing: 1,
+        sectorSpacing: 1,
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
@@ -62,17 +60,6 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             yOffset: 3,
             blur: 5,
         },
-        innerLabels: {
-            fontStyle: undefined,
-            fontWeight: undefined,
-            fontSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
-            margin: 2,
-        },
-        // @todo(AG-10275) Remove this
-        // @ts-expect-error
-        __BACKGROUND_COLOR_DO_NOT_USE: DEFAULT_BACKGROUND_COLOUR,
     },
 };
 

@@ -1,23 +1,22 @@
 import type { FontStyle, FontWeight } from '../options/agChartOptions';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';
-import { Line } from '../scene/shape/line';
+import type { Line } from '../scene/shape/line';
 import { Text } from '../scene/shape/text';
+import { arraysEqual } from '../util/array';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
-import { Square } from './marker/square';
 import type { MarkerConstructor } from './marker/util';
 
 export class MarkerLabel extends Group {
     static override readonly className = 'MarkerLabel';
 
     private label = new Text();
-    private line = new Line();
 
     constructor() {
         super({ name: 'markerLabelGroup' });
 
-        const { marker, label, line } = this;
+        const { markers, label, lines } = this;
         label.textBaseline = 'middle';
         label.fontSize = 12;
         label.fontFamily = 'Verdana, sans-serif';
@@ -25,8 +24,7 @@ export class MarkerLabel extends Group {
         // For better looking vertical alignment of labels to markers.
         label.y = 1;
 
-        this.append([line, marker, label]);
-        this.update();
+        this.append([...lines, ...markers, label]);
     }
 
     @ProxyPropertyOnWrite('label')
@@ -47,103 +45,83 @@ export class MarkerLabel extends Group {
     @ProxyPropertyOnWrite('label', 'fill')
     color?: string;
 
-    @ProxyPropertyOnWrite('marker', 'fill')
-    markerFill?: string;
-
-    @ProxyPropertyOnWrite('marker', 'stroke')
-    markerStroke?: string;
-
-    @ProxyPropertyOnWrite('marker', 'strokeWidth')
-    markerStrokeWidth?: number;
-
-    @ProxyPropertyOnWrite('marker', 'fillOpacity')
-    markerFillOpacity?: number;
-
-    @ProxyPropertyOnWrite('marker', 'strokeOpacity')
-    markerStrokeOpacity?: number;
-
-    @ProxyPropertyOnWrite('marker', 'visible')
-    markerVisible?: boolean;
-
-    @ProxyPropertyOnWrite('line', 'stroke')
-    lineStroke?: string;
-
-    @ProxyPropertyOnWrite('line', 'strokeWidth')
-    lineStrokeWidth?: number;
-
-    @ProxyPropertyOnWrite('line', 'strokeOpacity')
-    lineStrokeOpacity?: number;
-
-    @ProxyPropertyOnWrite('line', 'lineDash')
-    lineLineDash?: number[];
-
-    @ProxyPropertyOnWrite('line', 'visible')
-    lineVisible?: boolean;
-
-    private _marker: Marker = new Square();
-    set marker(value: Marker) {
-        if (this._marker !== value) {
-            this.removeChild(this._marker);
-            this._marker = value;
-            this.appendChild(value);
-            this.update();
+    private _markers: Marker[] = [];
+    set markers(value: Marker[]) {
+        if (!arraysEqual(this._markers, value)) {
+            this._markers.forEach((marker) => {
+                this.removeChild(marker);
+            });
+            this._markers = value;
+            this._markers.forEach((marker) => {
+                this.appendChild(marker);
+            });
         }
     }
-    get marker(): Marker {
-        return this._marker;
+    get markers(): Marker[] {
+        return this._markers;
     }
 
-    private _markerSize: number = 15;
-    set markerSize(value: number) {
-        if (this._markerSize !== value) {
-            this._markerSize = value;
-            this.update();
+    private _lines: Line[] = [];
+    set lines(value: Line[]) {
+        if (!arraysEqual(this._lines, value)) {
+            this._lines.forEach((line) => {
+                this.removeChild(line);
+            });
+            this._lines = value;
+            this._lines.forEach((line) => {
+                this.appendChild(line);
+            });
         }
     }
-    get markerSize(): number {
-        return this._markerSize;
+    get lines(): Line[] {
+        return this._lines;
     }
+    update(dimensionProps: { length: number; spacing: number }[]) {
+        const { markers, lines } = this;
 
-    private _spacing: number = 8;
-    set spacing(value: number) {
-        if (this._spacing !== value) {
-            this._spacing = value;
-            this.update();
+        let shift = 0;
+        for (let i = 0; i < Math.max(markers.length, lines.length); i++) {
+            const { length, spacing } = dimensionProps[i] ?? 0;
+            const marker = markers[i];
+            const line = lines[i];
+
+            const size = marker?.size ?? 0;
+
+            if (marker) {
+                const center = (marker.constructor as MarkerConstructor).center;
+
+                marker.x = (center.x - 0.5) * size + length / 2 + shift;
+                marker.y = (center.y - 0.5) * size;
+            }
+
+            if (line) {
+                line.x1 = shift;
+                line.x2 = shift + length;
+                line.y1 = 0;
+                line.y2 = 0;
+                line.markDirtyTransform();
+            }
+
+            shift += spacing + Math.max(length, size);
         }
-    }
-    get spacing(): number {
-        return this._spacing;
-    }
 
-    setSeriesStrokeOffset(xOff: number) {
-        const offset = this.marker.size / 2 + xOff;
-        this.line.x1 = -offset;
-        this.line.x2 = offset;
-        this.line.y1 = 0;
-        this.line.y2 = 0;
-        this.line.markDirtyTransform();
-        this.update();
-    }
-
-    private update() {
-        const { markerSize } = this;
-
-        const center = (this.marker.constructor as MarkerConstructor).center;
-        this.marker.size = markerSize;
-        this.marker.x = (center.x - 0.5) * markerSize;
-        this.marker.y = (center.y - 0.5) * markerSize;
-
-        const lineEnd = this.line.visible ? this.line.x2 : -Infinity;
-        const markerEnd = markerSize / 2;
-        this.label.x = Math.max(lineEnd, markerEnd) + this.spacing;
+        const lastLine = this.lines.at(-1);
+        const lastMarker = this.markers.at(-1);
+        const lineEnd = lastLine?.visible ? lastLine.x2 : -Infinity;
+        const markerEnd = (lastMarker?.x ?? 0) + (lastMarker?.size ?? 0) / 2;
+        this.label.x = Math.max(lineEnd, markerEnd) + (dimensionProps.at(-1)?.spacing ?? 0);
     }
 
     override render(renderCtx: RenderContext): void {
         // Cannot override field Group.opacity with get/set pair, so
         // propagate opacity changes here.
-        this.marker.opacity = this.opacity;
+        this.markers.forEach((marker) => {
+            marker.opacity = this.opacity;
+        });
+        this.lines.forEach((line) => {
+            line.opacity = this.opacity;
+        });
         this.label.opacity = this.opacity;
-        this.line.opacity = this.opacity;
 
         super.render(renderCtx);
     }

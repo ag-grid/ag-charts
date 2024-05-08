@@ -135,6 +135,11 @@ export class MapMarkerSeries
                         target: 'ready',
                         action: () => this.animateMarkers(),
                     },
+                    // chart.ts transitions to updateData on zoom change
+                    resize: {
+                        target: 'ready',
+                        action: () => this.resetAllAnimation(),
+                    },
                     reset: 'empty',
                     skip: 'ready',
                 },
@@ -461,7 +466,17 @@ export class MapMarkerSeries
         }
     }
 
+    private previousScale: _ModuleSupport.MercatorScale | undefined;
+    private checkScaleChange() {
+        if (this.previousScale === this.scale) return false;
+        this.previousScale = this.scale;
+        return true;
+    }
+
     override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
+        const resize = this.checkResize(seriesRect);
+        const scaleChange = this.checkScaleChange();
+
         const { labelSelection, markerSelection, highlightMarkerSelection } = this;
 
         await this.updateSelections();
@@ -492,8 +507,7 @@ export class MapMarkerSeries
             highlightedDatum,
         });
 
-        const resize = this.checkResize(seriesRect);
-        if (resize) {
+        if (scaleChange || resize) {
             this.animationState.transition('resize');
         }
         this.animationState.transition('update');
@@ -689,14 +703,18 @@ export class MapMarkerSeries
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.id },
-                marker: {
-                    shape,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            shape,
+                            fill,
+                            fillOpacity,
+                            stroke,
+                            strokeWidth,
+                            strokeOpacity,
+                        },
+                    },
+                ],
                 legendItemName,
             };
             return [legendDatum];

@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-generate-example-files",
-  "version": "9.3.1-beta.20240430",
+  "version": "9.3.1-beta.20240505",
   "private": true,
   "dependencies": {
     "glob": "8.0.3",
@@ -8,12 +8,12 @@
     "cheerio": "^1.0.0-rc.12",
     "sucrase": "^3.32.0",
     "json5": "2.2.3",
-    "@nx/devkit": "^18.0.4",
+    "@nx/devkit": "^18.3.4",
     "@swc/helpers": "0.5.3",
     "jscodeshift": "^0.15.0",
     "prettier": "^3.2.5",
-    "ag-charts-community": "9.3.1-beta.20240430",
-    "ag-charts-test": "9.3.1-beta.20240430"
+    "ag-charts-community": "9.3.1-beta.20240505",
+    "ag-charts-test": "9.3.1-beta.20240505"
   },
   "type": "commonjs",
   "main": "./dist/src/index.js",

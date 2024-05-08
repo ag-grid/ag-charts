@@ -180,8 +180,8 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    sectorSpacing?: number = undefined;
+    @Validate(POSITIVE_NUMBER)
+    sectorSpacing: number = 0;
 
     @Validate(OBJECT_ARRAY)
     readonly innerLabels = new PropertiesArray(DonutInnerLabel);
@@ -206,8 +206,4 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams>();
-
-    // @todo(AG-10275) Remove this
-    @Validate(STRING, { optional: true })
-    __BACKGROUND_COLOR_DO_NOT_USE?: string = undefined;
 }

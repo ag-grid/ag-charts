@@ -1,4 +1,5 @@
-import { BaseManager } from './baseManager';
+import { BaseManager } from '../baseManager';
+import type { DOMManager } from '../dom/domManager';
 import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
@@ -13,7 +14,7 @@ export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'n
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
-    delta: number;
+    delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
 };
 
@@ -25,7 +26,10 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isMouseBlurred: boolean = false;
     private isClicking: boolean = false;
 
-    constructor(interactionManager: InteractionManager) {
+    constructor(
+        interactionManager: InteractionManager,
+        private readonly domManager: DOMManager
+    ) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
@@ -75,8 +79,9 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         if (this.isClicking) {
             this.isMouseBlurred = true;
         } else {
-            this.dispatch('browserfocus', 1, event);
-            this.dispatch('tab', 0, event);
+            const delta = this.domManager.parent.getBrowserFocusDelta();
+            this.dispatch('browserfocus', delta, event);
+            this.dispatch('tab', delta, event);
         }
     }
 
@@ -106,7 +111,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
     }
 
-    private dispatch(type: KeyNavEventType, delta: number, interactionEvent: InteractionEvent) {
+    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, interactionEvent: InteractionEvent) {
         const event = buildConsumable({ type, delta, sourceEvent: interactionEvent });
         dispatchTypedConsumable(this.listeners, type, event);
     }

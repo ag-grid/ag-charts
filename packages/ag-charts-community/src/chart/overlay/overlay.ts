@@ -82,7 +82,7 @@ export class Overlay extends BaseProperties {
         return this.element;
     }
 
-    removeElement(animationManager?: AnimationManager) {
+    removeElement(cleanup = () => this.element?.remove(), animationManager?: AnimationManager) {
         if (!this.element) return;
 
         if (animationManager) {
@@ -97,11 +97,11 @@ export class Overlay extends BaseProperties {
                     element.style.opacity = String(value);
                 },
                 onStop() {
-                    element.remove();
+                    cleanup?.();
                 },
             });
         } else {
-            this.element.remove();
+            cleanup?.();
         }
 
         this.element = undefined;

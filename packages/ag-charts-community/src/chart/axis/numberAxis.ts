@@ -45,20 +45,24 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         return new NumberAxisTick();
     }
 
-    override updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
+    override updateSecondaryAxisTicks(primaryTickCount: number | undefined): { ticks: any[]; fractionDigits: number } {
         if (this.dataDomain == null) {
             throw new Error('AG Charts - dataDomain not calculated, cannot perform tick calculation.');
         }
 
-        if (this.dataDomain.domain.length === 0) return [];
+        if (this.dataDomain.domain.length === 0) return { ticks: [], fractionDigits: 0 };
 
-        const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain.domain, primaryTickCount ?? 0, this.reverse);
+        const { domain, ticks, fractionDigits } = calculateNiceSecondaryAxis(
+            this.dataDomain.domain,
+            primaryTickCount ?? 0,
+            this.reverse
+        );
 
         this.scale.nice = false;
-        this.scale.domain = d;
+        this.scale.domain = domain;
         this.scale.update();
 
-        return ticks;
+        return { ticks, fractionDigits };
     }
 
     override formatDatum(datum: number): string {

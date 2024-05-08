@@ -231,7 +231,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
     private updateCategoryGridLines() {
         const { gridLength, gridLine, label, range, tickScale } = this;
-        const ticks = tickScale.ticks();
+        const { ticks } = tickScale.ticks();
         const sideFlag = label.getSideFlag();
         const gridSelection = this.gridLineSelection.update(gridLength ? ticks : []);
         if (gridLength) {
@@ -285,7 +285,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         // Render ticks and labels.
         const tickTreeLayout = this.tickTreeLayout;
-        const labels = scale.ticks();
+        const { ticks: labels } = scale.ticks();
         const treeLabels = tickTreeLayout ? tickTreeLayout.nodes : [];
         const isLabelTree = tickTreeLayout ? tickTreeLayout.depth > 1 : false;
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to

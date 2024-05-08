@@ -6,6 +6,7 @@ import type { AgBaseChartListeners } from './eventOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
+import type { AgToolbarOptions } from './toolbarOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
 import type { AgZoomOptions } from './zoomOptions';
@@ -180,7 +181,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions;
     /** Configuration for the toolbar. */
-    // toolbar?: AgToolbarOptions;
+    toolbar?: AgToolbarOptions;
     /** Keyboard navigation options. */
     keyboard?: AgKeyboardOptions;
 

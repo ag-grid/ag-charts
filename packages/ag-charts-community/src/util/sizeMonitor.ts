@@ -1,6 +1,6 @@
 import { getDocument, getWindow } from './dom';
 
-type Size = {
+export type Size = {
     width: number;
     height: number;
 };
