@@ -78,7 +78,14 @@ export class AngleCrossLine extends PolarCrossLine {
     private updatePolygonNode(visible: boolean) {
         const { polygonNode: polygon, range, scale, shape, type } = this;
         let ticks: any[] | undefined;
-        if (!visible || type !== 'range' || shape !== 'polygon' || !scale || !range || !(ticks = scale.ticks?.())) {
+        if (
+            !visible ||
+            type !== 'range' ||
+            shape !== 'polygon' ||
+            !scale ||
+            !range ||
+            !(ticks = scale.ticks?.().ticks)
+        ) {
             polygon.visible = false;
             return;
         }
@@ -184,7 +191,7 @@ export class AngleCrossLine extends PolarCrossLine {
             const isBottomSide = (isNumberEqual(angle, 0) || angle > 0) && angle < Math.PI;
 
             let distance: number;
-            const ticks = scale.ticks?.() ?? [];
+            const ticks = scale.ticks?.().ticks ?? [];
             if (this.shape === 'circle' || ticks.length < 3) {
                 distance = axisOuterRadius - label.padding;
             } else {

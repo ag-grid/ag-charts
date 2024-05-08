@@ -17,7 +17,7 @@ import {
     Validate,
 } from '../../util/validation';
 import type { DOMManager } from '../dom/domManager';
-import type { PointerInteractionEvent, PointerOffsets } from '../interaction/interactionManager';
+import type { PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -37,6 +37,8 @@ type TooltipPositionType =
 export type TooltipEventType = 'hover' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType> = PointerOffsets & {
     type: T;
+    relatedElement?: HTMLElement;
+    targetElement?: HTMLElement;
 };
 
 export type TooltipMeta = PointerOffsets & {
@@ -173,6 +175,10 @@ export class Tooltip extends BaseProperties {
     private showTimeout: NodeJS.Timeout | number = 0;
     private _showArrow = true;
 
+    get interactive() {
+        return this.enableInteraction;
+    }
+
     constructor() {
         super();
     }
@@ -290,16 +296,6 @@ export class Tooltip extends BaseProperties {
         for (const wrapType of this.wrapTypes) {
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}-wrap-${wrapType}`, wrapType === this.wrapping);
         }
-    }
-
-    pointerLeftOntoTooltip(event: PointerInteractionEvent<'leave'>): boolean {
-        if (!this.enableInteraction) return false;
-
-        const classList = ((event.sourceEvent as MouseEvent).relatedTarget as any)?.classList as DOMTokenList;
-        const classes = ['', '-title', '-content'];
-        const classListContains = Boolean(classes.filter((c) => classList?.contains(`${DEFAULT_TOOLTIP_CLASS}${c}`)));
-
-        return classList !== undefined && classListContains;
     }
 
     private updateShowArrow(show: boolean) {

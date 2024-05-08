@@ -75,6 +75,8 @@ const EVENT_HANDLERS = [
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
     sourceEvent: TEvent;
+    relatedElement?: HTMLElement;
+    targetElement?: HTMLElement;
 };
 
 export type PointerOffsets = {
@@ -116,12 +118,6 @@ interface Coords {
     offsetX: number;
     offsetY: number;
 }
-
-const CSS = `
-.ag-chart-wrapper {
-    touch-action: none;
-}
-`;
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
@@ -181,8 +177,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
         }
-
-        domManager.addStyles('interactionManager', CSS);
     }
 
     override destroy() {
@@ -238,12 +232,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
         if (allInStringUnion(POINTER_INTERACTION_TYPES, types)) {
             this.dispatchPointerEvent(event, types);
-        } else if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
+            return;
+        }
+
+        const { relatedElement, targetElement } = this.extractElements(event);
+        if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
             for (const type of types) {
                 dispatchTypedConsumable(
                     this.listeners,
                     type,
-                    buildConsumable({ type, sourceEvent: event as FocusEvent })
+                    buildConsumable({ type, sourceEvent: event as FocusEvent, relatedElement, targetElement })
                 );
             }
         } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
@@ -251,10 +249,24 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 dispatchTypedConsumable(
                     this.listeners,
                     type,
-                    buildConsumable({ type, sourceEvent: event as KeyboardEvent })
+                    buildConsumable({ type, sourceEvent: event as KeyboardEvent, relatedElement, targetElement })
                 );
             }
         }
+    }
+
+    extractElements(event: SupportedEvent): { relatedElement?: HTMLElement; targetElement?: HTMLElement } {
+        let relatedElement;
+        let targetElement;
+
+        if ('relatedTarget' in event && event['relatedTarget'] instanceof HTMLElement) {
+            relatedElement = event['relatedTarget'] as HTMLElement;
+        }
+        if ('target' in event && event['target'] instanceof HTMLElement) {
+            targetElement = event['target'] as HTMLElement;
+        }
+
+        return { relatedElement, targetElement };
     }
 
     private dispatchPointerEvent(event: SupportedEvent, types: PointerInteractionTypes[]) {
@@ -396,27 +408,18 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private getMouseEventCoords(event: MouseEvent): Coords {
         const { clientX, clientY, pageX, pageY } = event;
         let { offsetX, offsetY } = event;
-        const offsets = (el: HTMLElement) => {
-            let x = 0;
-            let y = 0;
 
-            while (el) {
-                x += el.offsetLeft;
-                y += el.offsetTop;
-                el = el.offsetParent as HTMLElement;
-            }
-
-            return { x, y };
-        };
-
+        const { x, y } = this.domManager.calculateCanvasPosition(event.target as HTMLElement);
         if (this.dragStartElement != null && event.target !== this.dragStartElement) {
             // Offsets need to be relative to the drag-start element to avoid jumps when
             // the pointer moves between element boundaries.
 
-            const offsetDragStart = offsets(this.dragStartElement);
-            const offsetEvent = offsets(event.target as HTMLElement);
-            offsetX -= offsetDragStart.x - offsetEvent.x;
-            offsetY -= offsetDragStart.y - offsetEvent.y;
+            const offsetDragStart = this.domManager.calculateCanvasPosition(this.dragStartElement);
+            offsetX -= offsetDragStart.x - x;
+            offsetY -= offsetDragStart.y - y;
+        } else {
+            offsetX += x;
+            offsetY += y;
         }
         return { clientX, clientY, pageX, pageY, offsetX, offsetY };
     }
@@ -468,6 +471,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pointerHistory = this.dblclickHistory;
         }
 
+        const { relatedElement, targetElement } = this.extractElements(event);
+
         const builtEvent = buildConsumable({
             type,
             offsetX,
@@ -478,6 +483,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             deltaY,
             pointerHistory,
             sourceEvent: event,
+            relatedElement,
+            targetElement,
         });
 
         this.debug('InteractionManager - builtEvent: ', builtEvent);

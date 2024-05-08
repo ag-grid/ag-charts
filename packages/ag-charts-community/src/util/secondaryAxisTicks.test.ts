@@ -3,7 +3,7 @@ import { expect, test } from '@jest/globals';
 import { calculateNiceSecondaryAxis } from './secondaryAxisTicks';
 
 function ticks(a: number, b: number, count: number): number[] {
-    const [, result] = calculateNiceSecondaryAxis([a, b], count);
+    const { ticks: result } = calculateNiceSecondaryAxis([a, b], count);
     return result;
 }
 

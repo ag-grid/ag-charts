@@ -122,11 +122,6 @@ const defaultTooltipCss = `
 
     margin: 0 auto;
 }
-
-.ag-chart-wrapper {
-    box-sizing: border-box;
-    overflow: hidden;
-}
 `;
 
 /**

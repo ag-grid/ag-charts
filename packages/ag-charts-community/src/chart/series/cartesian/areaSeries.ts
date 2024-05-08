@@ -678,21 +678,25 @@ export class AreaSeries extends CartesianSeries<
                 label: {
                     text: yName ?? yKey,
                 },
-                marker: {
-                    shape: marker.shape,
-                    fill: useAreaFill ? fill : marker.fill,
-                    fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
-                    stroke: marker.stroke ?? stroke,
-                    strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
-                    strokeWidth: marker.strokeWidth ?? 0,
-                    enabled: marker.enabled || strokeWidth <= 0,
-                },
-                line: {
-                    stroke,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            shape: marker.shape,
+                            fill: useAreaFill ? fill : marker.fill,
+                            fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
+                            stroke: marker.stroke ?? stroke,
+                            strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
+                            strokeWidth: marker.strokeWidth ?? 0,
+                            enabled: marker.enabled || strokeWidth <= 0,
+                        },
+                        line: {
+                            stroke,
+                            strokeOpacity,
+                            strokeWidth,
+                            lineDash,
+                        },
+                    },
+                ],
             },
         ];
     }

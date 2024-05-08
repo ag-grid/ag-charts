@@ -304,6 +304,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     availableWidthUntilItHitsTheStraightEdges
                 );
 
+                const maxPerpendicularAngle = Math.PI / 4;
                 let perpendicularHeight: number;
                 let perpendicularWidth: number;
                 if (depth === 0) {
@@ -312,10 +313,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     perpendicularWidth =
                         Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) -
                         labelHeight / (2 * Math.tan(deltaOuterAngle * 0.5));
-                } else {
+                } else if (_Util.normalizeAngle360(deltaInnerAngle) < maxPerpendicularAngle) {
                     // Outer wedge - fit the height to the sector, then fit the width
                     perpendicularHeight = 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5);
                     perpendicularWidth = Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) - innerRadius;
+                } else {
+                    perpendicularWidth = 0;
+                    perpendicularHeight = 0;
                 }
 
                 return parallelWidth >= perpendicularWidth

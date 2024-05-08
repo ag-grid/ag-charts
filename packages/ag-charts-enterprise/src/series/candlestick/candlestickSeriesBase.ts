@@ -331,8 +331,55 @@ export abstract class CandlestickSeriesBase<
         return this.properties.item[seriesItemType];
     }
 
-    getLegendData(_legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        return [];
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+        const { id, data } = this;
+        const {
+            xKey,
+            yName,
+            item: { up, down },
+            showInLegend,
+            legendItemName,
+            visible,
+        } = this.properties;
+
+        if (!showInLegend || !data?.length || !xKey || legendType !== 'category') {
+            return [];
+        }
+
+        return [
+            {
+                legendType: 'category',
+                id,
+                itemId: id,
+                seriesId: id,
+                enabled: visible,
+                label: {
+                    text: legendItemName ?? yName ?? id,
+                },
+                symbols: [
+                    {
+                        marker: {
+                            fill: up.fill,
+                            fillOpacity: up.fillOpacity ?? 1,
+                            stroke: up.stroke,
+                            strokeWidth: up.strokeWidth ?? 1,
+                            strokeOpacity: up.strokeOpacity ?? 1,
+                            padding: 0,
+                        },
+                    },
+                    {
+                        marker: {
+                            fill: down.fill,
+                            fillOpacity: down.fillOpacity ?? 1,
+                            stroke: down.stroke,
+                            strokeWidth: down.strokeWidth ?? 1,
+                            strokeOpacity: down.strokeOpacity ?? 1,
+                        },
+                    },
+                ],
+                legendItemName,
+            },
+        ];
     }
 
     getTooltipHtml(nodeDatum: TNodeDatum): _ModuleSupport.TooltipContent {
