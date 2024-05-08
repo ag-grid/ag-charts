@@ -1,13 +1,13 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import { StateMachine } from '../../../motion/states';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';

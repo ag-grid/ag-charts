@@ -49,6 +49,7 @@ const options: AgChartOptions = {
             enabled: true,
         },
     },
+    tooltip: { enabled: false },
 };
 
 AgCharts.create(options);

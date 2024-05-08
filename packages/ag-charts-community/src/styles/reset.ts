@@ -7,9 +7,4 @@ export default `
     outline: none;
 }
 
-button[class^='ag-charts'] {
-    background: none;
-    border: 0;
-}
-
 `;

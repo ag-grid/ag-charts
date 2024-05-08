@@ -84,6 +84,38 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
     }
 }
 
+export class TypedPropertiesArray<T extends BaseProperties> extends PropertiesArray<T> {
+    private itemFactories!: { [type: string]: new () => T };
+
+    constructor(itemFactories: { [type: string]: new () => T }, ...properties: { type: string }[]) {
+        super(itemFactories[Object.keys(itemFactories)[0]], ...properties);
+        Object.defineProperty(this, 'itemFactories', { value: itemFactories, enumerable: false, configurable: false });
+        this.set(properties);
+    }
+
+    override set(properties: { type: string }[]): TypedPropertiesArray<T> {
+        if (!isArray(properties)) return this;
+
+        this.length = properties.length;
+        for (let i = 0; i < properties.length; i++) {
+            const factory = this.itemFactories[properties[i].type];
+            if (!factory) {
+                Logger.warnOnce(
+                    `Can not set property of unknown type [${properties[i].type}], expected one of [${Object.keys(this.itemFactories)}], ignoring.`
+                );
+                continue;
+            }
+            this[i] = new factory().set(properties[i]);
+        }
+
+        return this;
+    }
+
+    override reset(properties: { type: string }[]): TypedPropertiesArray<T> {
+        return new TypedPropertiesArray(this.itemFactories, ...properties);
+    }
+}
+
 export function isProperties<T extends object>(value: unknown): value is BaseProperties<T> {
     return value instanceof BaseProperties || value instanceof PropertiesArray;
 }
