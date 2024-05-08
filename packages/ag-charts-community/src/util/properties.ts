@@ -61,7 +61,7 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
 
     constructor(itemFactory: (new () => T) | ((params: object) => T), ...properties: object[]) {
         super(properties.length);
-        const isConstructor = (value: Function): value is new () => T => Boolean(value.prototype.constructor.name);
+        const isConstructor = (value: Function): value is new () => T => Boolean(value.prototype?.constructor?.name);
         const value = isConstructor(itemFactory) ? (params: object) => new itemFactory().set(params) : itemFactory;
         Object.defineProperty(this, 'itemFactory', { value, enumerable: false, configurable: false });
         this.set(properties);
