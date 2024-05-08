@@ -1,8 +1,8 @@
 import {
-    AgMapMarkerSeriesOptionsKeys,
-    AgMapShapeSeriesStyle,
-    AgSeriesMarkerFormatterParams,
-    AgSeriesMarkerStyle,
+    type AgMapMarkerSeriesOptionsKeys,
+    type AgMapShapeSeriesStyle,
+    type AgSeriesMarkerFormatterParams,
+    type AgSeriesMarkerStyle,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -14,7 +14,11 @@ import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { markerPositions } from '../map-util/markerUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { MapMarkerNodeDatum, MapMarkerNodeLabelDatum, MapMarkerSeriesProperties } from './mapMarkerSeriesProperties';
+import {
+    type MapMarkerNodeDatum,
+    type MapMarkerNodeLabelDatum,
+    MapMarkerSeriesProperties,
+} from './mapMarkerSeriesProperties';
 
 const {
     Validate,
@@ -75,7 +79,7 @@ export class MapMarkerSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private markerGroup = this.contentGroup.appendChild(
+    private readonly markerGroup = this.contentGroup.appendChild(
         new Group({
             name: 'markerGroup',
             layer: true,
@@ -102,7 +106,7 @@ export class MapMarkerSeries
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
-    private animationState: _ModuleSupport.StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
+    private readonly animationState: _ModuleSupport.StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({

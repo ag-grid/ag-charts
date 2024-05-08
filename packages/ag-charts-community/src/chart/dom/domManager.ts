@@ -1,6 +1,6 @@
 import { createElement, getDocument } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
-import { Size, SizeMonitor } from '../../util/sizeMonitor';
+import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
 
 const domElementClasses = ['styles', 'canvas', 'canvas-overlay', 'hidden'] as const;
@@ -39,7 +39,7 @@ const STYLES = `
     left: 0;
     right: 0;
 }
- 
+
 .ag-charts-canvas-overlay > * {
     position: absolute;
 }

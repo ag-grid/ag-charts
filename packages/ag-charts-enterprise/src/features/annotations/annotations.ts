@@ -38,14 +38,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // State
     private annotationData?: AnnotationProperties[];
 
-    private container = new _Scene.Group({ name: 'static-annotations' });
-    private annotations = new _Scene.Selection<Line | Channel, AnnotationProperties>(
+    private readonly container = new _Scene.Group({ name: 'static-annotations' });
+    private readonly annotations = new _Scene.Selection<Line | Channel, AnnotationProperties>(
         this.container,
         this.createAnnotation.bind(this)
     );
 
-    private scaleX?: _Scene.Scale<any, any>;
-    private scaleY?: _Scene.Scale<any, any>;
+    private scaleX?: _Scene.Scale<any, any, number | _Util.TimeInterval>;
+    private scaleY?: _Scene.Scale<any, any, number | _Util.TimeInterval>;
     private domainX?: any[];
     private domainY?: any[];
 
@@ -221,7 +221,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return true;
     }
 
-    private validateDatumPointDirection(domain: any[], scale: _Scene.Scale<any, any>, value: any) {
+    private validateDatumPointDirection(
+        domain: any[],
+        scale: _Scene.Scale<any, any, number | _Util.TimeInterval>,
+        value: any
+    ) {
         if (_Scene.ContinuousScale.is(scale)) {
             return value >= domain[0] && value <= domain[1];
         }
@@ -298,7 +302,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update();
     }
 
-    private hoverAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, HoverAddingFn>>>> = {
+    private readonly hoverAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, HoverAddingFn>>>> = {
         [AnnotationType.Line]: {
             [AddingStep.End]: (datum, node, point) => {
                 datum.set({ end: point });
@@ -385,7 +389,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private clickAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, ClickAddingFn>>>> = {
+    private readonly clickAddingFns: Partial<Record<AnnotationType, Partial<Record<AddingStep, ClickAddingFn>>>> = {
         [AnnotationType.Line]: {
             [AddingStep.Start]: (_node, point) => {
                 const datum = this.createDatum(AnnotationType.Line, point);

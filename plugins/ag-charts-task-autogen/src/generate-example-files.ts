@@ -1,8 +1,8 @@
 import {
-    CreateDependencies,
+    type CreateDependencies,
     DependencyType,
     type RawProjectGraphDependency,
-    TargetConfiguration,
+    type TargetConfiguration,
     validateDependency,
 } from '@nx/devkit';
 

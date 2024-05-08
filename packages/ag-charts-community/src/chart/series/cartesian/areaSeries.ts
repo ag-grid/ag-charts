@@ -25,9 +25,9 @@ import { animationValidation, diff, normaliseGroupTo } from '../../data/processo
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import {
-    PickFocusInputs,
+    type PickFocusInputs,
     SeriesNodePickMode,
     groupAccumulativeValueProperty,
     keyProperty,

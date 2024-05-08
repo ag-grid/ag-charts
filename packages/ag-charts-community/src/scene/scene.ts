@@ -1,7 +1,7 @@
 import { Debug } from '../util/debug';
 import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
-import { CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
+import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';

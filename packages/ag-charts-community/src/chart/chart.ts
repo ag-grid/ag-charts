@@ -63,16 +63,16 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
+import { type PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import {
     DEFAULT_TOOLTIP_CLASS,
     Tooltip,
-    TooltipContent,
-    TooltipEventType,
-    TooltipPointerEvent,
+    type TooltipContent,
+    type TooltipEventType,
+    type TooltipPointerEvent,
 } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -497,10 +497,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
 
     private updateShortcutCount = 0;
-    private seriesToUpdate: Set<ISeries<any, any>> = new Set();
-    private updateMutex = new Mutex();
+    private readonly seriesToUpdate: Set<ISeries<any, any>> = new Set();
+    private readonly updateMutex = new Mutex();
     private updateRequestors: Record<string, ChartUpdateType> = {};
-    private performUpdateTrigger = debouncedCallback(async ({ count }) => {
+    private readonly performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this.destroyed) return;
         this.updateMutex
             .acquire(async () => {
@@ -551,7 +551,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private _performUpdateSplits: Record<string, number> = {};
+    private readonly _performUpdateSplits: Record<string, number> = {};
     private async performUpdate(count: number) {
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
@@ -1227,7 +1227,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     ): event is TooltipPointerEvent<'hover'> {
         return event !== undefined && event.type === 'hover';
     }
-    private pointerScheduler = debouncedAnimationFrame(() => {
+    private readonly pointerScheduler = debouncedAnimationFrame(() => {
         if (!this.lastInteractionEvent) return;
 
         if (this.performUpdateType <= ChartUpdateType.SERIES_UPDATE) {
@@ -1431,7 +1431,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return false;
     }
 
-    private onSeriesNodeClick = (event: TypedEvent) => {
+    private readonly onSeriesNodeClick = (event: TypedEvent) => {
         const seriesNodeClickEvent = {
             ...event,
             type: 'seriesNodeClick',
@@ -1444,7 +1444,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.fireEvent(seriesNodeClickEvent);
     };
 
-    private onSeriesNodeDoubleClick = (event: TypedEvent) => {
+    private readonly onSeriesNodeDoubleClick = (event: TypedEvent) => {
         const seriesNodeDoubleClick = {
             ...event,
             type: 'seriesNodeDoubleClick',
@@ -1452,7 +1452,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.fireEvent(seriesNodeDoubleClick);
     };
 
-    private seriesGroupingChanged = (event: TypedEvent) => {
+    private readonly seriesGroupingChanged = (event: TypedEvent) => {
         if (!(event instanceof SeriesGroupingChangedEvent)) return;
         const { series, seriesGrouping, oldGrouping } = event;
 
@@ -1526,7 +1526,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await this.updateMutex.waitForClearAcquireQueue();
     }
 
-    private dataProcessListeners = new Set<(...args: any[]) => void>();
+    private readonly dataProcessListeners = new Set<(...args: any[]) => void>();
     waitForDataProcess(timeout?: number): Promise<void> {
         return new Promise((resolve) => {
             this.dataProcessListeners.add(resolve);

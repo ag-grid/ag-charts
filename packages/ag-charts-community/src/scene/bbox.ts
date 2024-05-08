@@ -1,6 +1,9 @@
-// For small data structs like a bounding box, objects are superior to arrays
-import { Interpolating, interpolate } from '../util/interpolating';
+import { type Interpolating, interpolate } from '../util/interpolating';
 import { clamp } from '../util/number';
+import type { DistantObject, NearestResult } from './nearest';
+import { nearestSquared } from './nearest';
+
+// For small data structs like a bounding box, objects are superior to arrays
 // in terms of performance (by 3-4% in Chrome 71, Safari 12 and by 20% in Firefox 64).
 // They are also self descriptive and harder to abuse.
 // For example, one has to do:
@@ -8,9 +11,6 @@ import { clamp } from '../util/number';
 // rather than become enticed by the much slower:
 // `ctx.strokeRect(...bbox);`
 // https://jsperf.com/array-vs-object-create-access
-import type { DistantObject, NearestResult } from './nearest';
-import { nearestSquared } from './nearest';
-
 type Padding = {
     top: number;
     left: number;

@@ -15,7 +15,6 @@ if [[ "${BUILD_FWS:-0}" == "1" ]] ; then
   IGNORED_PROJECTS+=(
     ag-charts-angular
     ag-charts-react
-    ag-charts-vue
     ag-charts-vue3
   )
 fi

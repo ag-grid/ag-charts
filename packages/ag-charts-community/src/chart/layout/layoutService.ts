@@ -2,6 +2,7 @@ import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { type Listener, Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
+import type { TimeInterval } from '../../util/time/interval';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
 type LayoutStage = 'start-layout' | 'before-series';
@@ -19,7 +20,7 @@ export interface AxisLayout {
     };
     direction: ChartAxisDirection;
     domain: any[];
-    scale: Scale<any, any>;
+    scale: Scale<any, any, number | TimeInterval>;
 }
 
 export interface LayoutCompleteEvent {

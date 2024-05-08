@@ -28,7 +28,7 @@ export const createNodes: CreateNodes = [
         const uniqueName = configFilePath
             .split('/')
             .slice(2)
-            .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has[p])
+            .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has(p))
             .join('_')
             .replace(' ', '-');
         const examplePath = dirname(configFilePath).replace(`packages/${parentProject}/`, '{projectRoot}/');

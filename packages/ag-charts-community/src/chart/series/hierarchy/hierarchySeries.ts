@@ -14,7 +14,7 @@ import { clamp } from '../../../util/number';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
-import { PickFocusInputs, PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
 

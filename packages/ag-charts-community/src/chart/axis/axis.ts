@@ -416,7 +416,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         if (scale instanceof TimeScale) {
-            this.setTickInterval(count);
+            this.setTickInterval(count as TickInterval<S>);
         }
     }
 

@@ -1,6 +1,6 @@
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
+import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
     InteractionEvent,

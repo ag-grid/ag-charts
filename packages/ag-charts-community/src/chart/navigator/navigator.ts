@@ -7,7 +7,7 @@ import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
-import { InteractionState, PointerInteractionEvent } from '../interaction/interactionManager';
+import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
@@ -53,14 +53,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     protected y = 0;
     protected width = 0;
 
-    private rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
+    private readonly rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
 
     private dragging?: 'min' | 'max' | 'pan';
     private panStart?: number;
     private _min = 0;
     private _max = 1;
 
-    private minRange = 0.001;
+    private readonly minRange = 0.001;
 
     constructor(private readonly ctx: ModuleContext) {
         super();

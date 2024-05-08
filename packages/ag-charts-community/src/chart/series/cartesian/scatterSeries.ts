@@ -17,8 +17,8 @@ import { fixNumericExtent } from '../../data/dataModel';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
-import { PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { type PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -27,7 +27,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
-import { ScatterNodeDatum, ScatterSeriesProperties } from './scatterSeriesProperties';
+import { type ScatterNodeDatum, ScatterSeriesProperties } from './scatterSeriesProperties';
 
 type ScatterAnimationData = CartesianAnimationData<Group, ScatterNodeDatum>;
 

@@ -20,7 +20,7 @@ import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {

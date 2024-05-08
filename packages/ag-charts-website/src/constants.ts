@@ -9,7 +9,6 @@ export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
     'reactFunctional',
     'reactFunctionalTs',
     'angular',
-    'vue',
     'vue3',
 ] as const;
 
@@ -31,7 +30,6 @@ export const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
 export const PUBLISHED_URLS = {
     'ag-charts-react': `${NPM_CDN}/ag-charts-react@${agChartsReactVersion}/`,
     'ag-charts-angular': `${NPM_CDN}/ag-charts-angular@${agChartsAngularVersion}/`,
-    'ag-charts-vue': `${NPM_CDN}/ag-charts-vue@${agChartsVueVersion}/`,
     'ag-charts-vue3': `${NPM_CDN}/ag-charts-vue3@${agChartsVueVersion}/`,
     'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/package/main.cjs.js`,
     'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/package/main.cjs.js`,

@@ -15,7 +15,6 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "importsNotUsedAsValues": "error",
     "strictNullChecks": true,
     "paths": {
       "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],

@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
+import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
 
 const {
     valueProperty,

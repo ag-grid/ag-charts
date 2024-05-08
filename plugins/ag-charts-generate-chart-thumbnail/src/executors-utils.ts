@@ -147,7 +147,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 }
 
 export async function consolePrefix(prefix: string, cb: () => Promise<void>) {
-    const fns = {};
+    const fns: any = {};
     const fnNames = ['log', 'debug', 'info', 'warn', 'error'] as const;
     const timesCalled: Record<(typeof fnNames)[number], number> = {
         debug: 0,

@@ -4,7 +4,6 @@ import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
 import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
-import { vanillaToVue } from '../transformation-scripts/chart-vanilla-to-vue';
 import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import type { InternalFramework } from '../types';
@@ -257,10 +256,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    vue: createVueFilesGenerator({
-        sourceGenerator: vanillaToVue,
-        internalFramework: 'vue',
-    }),
     vue3: createVueFilesGenerator({
         sourceGenerator: vanillaToVue3,
         internalFramework: 'vue3',
