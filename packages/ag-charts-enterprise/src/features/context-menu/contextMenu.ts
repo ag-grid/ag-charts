@@ -68,8 +68,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const { Default, ContextMenu: ContextMenuState, All } = _ModuleSupport.InteractionState;
         const contextState = Default | ContextMenuState;
         this.destroyFns.push(
-            ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), contextState),
-            ctx.interactionManager.addListener('click', () => this.onClick(), All)
+            ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), contextState),
+            ctx.regionManager.listenAll('click', (_region) => this.onClick(), All)
         );
 
         // State
@@ -98,6 +98,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.registry.registerDefaultAction({
             id: 'download',
+            region: 'all',
             label: 'Download',
             action: () => {
                 const title = ctx.chartService.title;
@@ -127,7 +128,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.x = event.pageX;
         this.y = event.pageY;
 
-        this.groups.default = this.registry.copyDefaultActions();
+        this.groups.default = this.registry.filterActions(event.region ?? 'all');
 
         this.pickedNode = this.highlightManager.getActivePicked();
         if (this.extraActions.length > 0) {

@@ -46,6 +46,25 @@ export interface RegionProperties {
     canInteraction(): boolean;
 }
 
+function addHandler<T extends RegionEvent['type']>(
+    listeners: RegionListeners | undefined,
+    interactionManager: InteractionManager,
+    type: T,
+    handler: (event: TypeInfo[T]) => void,
+    triggeringStates: InteractionState = InteractionState.Default
+): () => void {
+    return (
+        listeners?.addListener(type, (e: RegionEvent) => {
+            if (!e.consumed) {
+                const currentState = interactionManager.getState();
+                if (currentState & triggeringStates) {
+                    handler(e as TypeInfo[T]);
+                }
+            }
+        }) ?? (() => {})
+    );
+}
+
 export class RegionManager {
     private currentTabIndex = 0;
     private readonly focusIndicator: HTMLElement;
@@ -56,6 +75,7 @@ export class RegionManager {
 
     private regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
+    private allRegionsListeners = new RegionListeners();
 
     constructor(
         private readonly interactionManager: InteractionManager,
@@ -113,6 +133,14 @@ export class RegionManager {
         return this.makeObserver(this.regions.get(name));
     }
 
+    listenAll<T extends RegionEvent['type']>(
+        type: T,
+        handler: (event: TypeInfo[T]) => void,
+        triggeringStates: InteractionState = InteractionState.Default
+    ): () => void {
+        return addHandler(this.allRegionsListeners, this.interactionManager, type, handler, triggeringStates);
+    }
+
     private find(x: number, y: number): Region[] {
         // Sort matches by area.
         // This ensure that we prioritise smaller regions are contained inside larger regions.
@@ -139,16 +167,7 @@ export class RegionManager {
                 handler: (event: TypeInfo[T]) => void,
                 triggeringStates: InteractionState = InteractionState.Default
             ): () => void {
-                return (
-                    region?.listeners.addListener(type, (e: RegionEvent) => {
-                        if (!e.consumed) {
-                            const currentState = interactionManager.getState();
-                            if (currentState & triggeringStates) {
-                                handler(e as TypeInfo[T]);
-                            }
-                        }
-                    }) ?? (() => {})
-                );
+                return addHandler(region?.listeners, interactionManager, type, handler, triggeringStates);
             }
         }
         return new ObservableRegionImplementation();
@@ -165,7 +184,9 @@ export class RegionManager {
     }
 
     private dispatch(region: Region | undefined, event: RegionEvent) {
+        event.region = region?.properties.name;
         region?.listeners.dispatch(event.type, event);
+        this.allRegionsListeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard

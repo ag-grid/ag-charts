@@ -1,6 +1,7 @@
 export type ContextMenuAction = {
     id?: string;
     label: string;
+    region: 'all' | 'series' | 'legend';
     action: (params: ContextMenuActionParams) => void;
 };
 
@@ -15,8 +16,8 @@ export class ContextMenuRegistry {
     private defaultActions: Array<ContextMenuAction> = [];
     private disabledActions: Set<string> = new Set();
 
-    public copyDefaultActions(): ContextMenuAction[] {
-        return [...this.defaultActions];
+    public filterActions(region: string): ContextMenuAction[] {
+        return this.defaultActions.filter((action) => ['all', region].includes(action.region));
     }
 
     public registerDefaultAction(action: ContextMenuAction) {

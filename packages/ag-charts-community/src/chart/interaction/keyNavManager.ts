@@ -14,6 +14,7 @@ export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'n
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
+    region?: string;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
 };
