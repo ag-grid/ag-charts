@@ -417,9 +417,9 @@ export abstract class HierarchySeries<
         const { focusPath: path, focusDepth: depth } = this;
 
         if (depthDelta !== 0 || path.length === 1) {
-            const targetDepth = Math.max(1, depth + depthDelta);
-            if (path[targetDepth] !== undefined) {
-                return this.computeFocusOutputs(path[targetDepth]);
+            const targetDepth = Math.max(0, depth + depthDelta);
+            if (path[targetDepth + 1] !== undefined) {
+                return this.computeFocusOutputs(path[targetDepth + 1]);
             } else {
                 let deepest = path[path.length - 1];
                 while (deepest.nodeDatum.children.length > 0 && (deepest.nodeDatum.depth ?? -1) < targetDepth) {
@@ -430,14 +430,14 @@ export abstract class HierarchySeries<
                 return this.computeFocusOutputs(deepest);
             }
         } else if (childDelta !== 0) {
-            const targetChild = path[depth].childIndex + childDelta;
-            const currentParent = path[depth - 1].nodeDatum;
+            const targetChild = path[depth + 1].childIndex + childDelta;
+            const currentParent = path[depth].nodeDatum;
             const childCount = currentParent?.children?.length;
             if (childCount !== undefined) {
                 const newChild = clamp(0, targetChild, childCount - 1);
                 const newFocus = { nodeDatum: currentParent.children[newChild], childIndex: newChild };
-                path[depth] = newFocus;
-                path.length = depth + 1;
+                path[depth + 1] = newFocus;
+                path.length = depth + 2;
                 return this.computeFocusOutputs(newFocus);
             }
         } else {
