@@ -113,6 +113,7 @@ export class TextMeasurer {
                 }
 
                 if (estimatedWidth > options.maxWidth) {
+                    if (i === 0) break; // char width is greater than options.maxWidth
                     if (lastSpaceIndex) {
                         const nextWord = this.getWordAt(line, lastSpaceIndex + 1);
                         const textWidth = measurer.textWidth(nextWord);
@@ -126,15 +127,23 @@ export class TextMeasurer {
                             lastSpaceIndex = 0; // reset last space index
                             continue;
                         } else if (wrapOnSpace && textWidth > options.maxWidth) {
-                            result.push(line.slice(0, lastSpaceIndex).trimEnd());
-                            line = this.truncateLine(
-                                line.slice(lastSpaceIndex).trimStart(),
-                                measurer,
-                                options.maxWidth,
-                                true
+                            result.push(
+                                line.slice(0, lastSpaceIndex).trimEnd(),
+                                this.truncateLine(
+                                    line.slice(lastSpaceIndex).trimStart(),
+                                    measurer,
+                                    options.maxWidth,
+                                    true
+                                )
                             );
-                            break;
                         }
+                    } else if (wrapOnSpace) {
+                        result.push(this.truncateLine(line, measurer, options.maxWidth, true));
+                    }
+
+                    if (wrapOnSpace) {
+                        line = '';
+                        break;
                     }
 
                     const postfix = wrapHyphenate ? '-' : '';
