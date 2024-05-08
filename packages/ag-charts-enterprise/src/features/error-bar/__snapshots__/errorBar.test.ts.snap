@@ -10,7 +10,7 @@ NodeList [
     <div
       class="ag-chart-tooltip-content"
     >
-      May: 15
+      May: 14.5
     </div>
   </div>,
 ]
@@ -29,12 +29,12 @@ NodeList [
       <b>
         volume
       </b>
-      : 3
+      : 2.5
       <br />
       <b>
         pressure
       </b>
-      : 4
+      : 4.2
     </div>
   </div>,
 ]
