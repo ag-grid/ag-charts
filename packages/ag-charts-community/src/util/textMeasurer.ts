@@ -54,15 +54,15 @@ export class TextMeasurer {
     // Creates or retrieves a TextMeasurer instance for a specific font.
     private static createFontMeasurer(font: string) {
         const ctx = createCanvasContext();
-        const measurer = new TextMeasurer(ctx);
-        TextMeasurer.instanceMap.set(font, measurer);
+        const measurer = new this(ctx);
+        this.instanceMap.set(font, measurer);
         ctx.font = font;
         return measurer;
     }
 
     // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     private static getFontMeasurer(options: MeasureOptions) {
-        const measurer = TextMeasurer.instanceMap.get(options.font) ?? TextMeasurer.createFontMeasurer(options.font);
+        const measurer = this.instanceMap.get(options.font) ?? this.createFontMeasurer(options.font);
         if (options.textAlign) {
             measurer.ctx.textAlign = options.textAlign;
         }
@@ -72,13 +72,25 @@ export class TextMeasurer {
         return measurer;
     }
 
+    // Measures the dimensions of the provided text, handling multiline if needed.
+    static measureText(text: string, options: MeasureOptions) {
+        const { ctx } = this.getFontMeasurer(options);
+        return this.getMetrics(ctx, text);
+    }
+
+    static measureLines(text: string | string[], options: MeasureOptions) {
+        const { ctx } = this.getFontMeasurer(options);
+        const lines = typeof text === 'string' ? text.split(this.lineSplitter) : text;
+        return this.getMultilineMetrics(ctx, lines);
+    }
+
     static wrapText(text: string, options: WrapOptions) {
         return this.wrapLines(text, options).join('\n');
     }
 
     static wrapLines(text: string, options: WrapOptions) {
-        const lines: string[] = text.split(TextMeasurer.lineSplitter);
-        const measurer = TextMeasurer.getFontMeasurer(options);
+        const lines: string[] = text.split(this.lineSplitter);
+        const measurer = this.getFontMeasurer(options);
 
         if (options.textWrap === 'never') {
             return lines.map((line) => this.truncateLine(line.trimEnd(), measurer, options.maxWidth));
@@ -102,11 +114,7 @@ export class TextMeasurer {
 
                 if (estimatedWidth > options.maxWidth) {
                     if (lastSpaceIndex) {
-                        const nextSpaceIndex = line.indexOf(' ', lastSpaceIndex + 1);
-                        const nextWord =
-                            nextSpaceIndex === -1
-                                ? line.slice(lastSpaceIndex + 1)
-                                : line.slice(lastSpaceIndex + 1, nextSpaceIndex);
+                        const nextWord = this.getWordAt(line, lastSpaceIndex + 1);
                         const textWidth = measurer.textWidth(nextWord);
 
                         if (textWidth <= options.maxWidth) {
@@ -140,6 +148,7 @@ export class TextMeasurer {
                     }
                     result.push(newLine + postfix);
                     line = line.slice(newLine.length).trimStart();
+
                     i = -1; // reset the index after cutting the line
                     estimatedWidth = 0; // reset the width
                     lastSpaceIndex = 0; // reset last space index
@@ -151,26 +160,16 @@ export class TextMeasurer {
             }
         }
 
-        if (result.length > 1) {
-            const { length } = result;
-            const lastLine = result[length - 1];
-            const beforeLast = result[length - 2];
-            if (beforeLast.length > lastLine.length) {
-                const lastSpaceIndex = beforeLast.lastIndexOf(' ');
-                if (lastSpaceIndex !== -1 && !lastLine.includes(' ')) {
-                    const lastWord = beforeLast.slice(lastSpaceIndex + 1);
-                    if (measurer.textWidth(lastLine + lastWord) <= options.maxWidth) {
-                        result[length - 2] = beforeLast.slice(0, lastSpaceIndex);
-                        result[length - 1] = lastWord + ' ' + lastLine;
-                    }
-                }
-            }
-        }
-
+        this.avoidOrphans(result, measurer, options);
         return this.clipLines(result, measurer, options);
     }
 
-    static clipLines(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
+    private static getWordAt(text: string, position: number) {
+        const nextSpaceIndex = text.indexOf(' ', position);
+        return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
+    }
+
+    private static clipLines(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
         if (!options.maxHeight) {
             return lines;
         }
@@ -194,8 +193,28 @@ export class TextMeasurer {
         return lines;
     }
 
-    static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
-        const ellipsisWidth = measurer.textWidth(TextMeasurer.EllipsisChar);
+    private static avoidOrphans(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
+        if (lines.length < 2) return;
+
+        const { length } = lines;
+        const lastLine = lines[length - 1];
+        const beforeLast = lines[length - 2];
+
+        if (beforeLast.length < lastLine.length) return;
+
+        const lastSpaceIndex = beforeLast.lastIndexOf(' ');
+        // If last line has an orphan and previous line has more than one space
+        if (lastSpaceIndex === -1 || lastSpaceIndex === beforeLast.indexOf(' ') || lastLine.includes(' ')) return;
+
+        const lastWord = beforeLast.slice(lastSpaceIndex + 1);
+        if (measurer.textWidth(lastLine + lastWord) <= options.maxWidth) {
+            lines[length - 2] = beforeLast.slice(0, lastSpaceIndex);
+            lines[length - 1] = lastWord + ' ' + lastLine;
+        }
+    }
+
+    private static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
+        const ellipsisWidth = measurer.textWidth(this.EllipsisChar);
         let estimatedWidth = 0;
         let i = 0;
         for (; i < text.length; i++) {
@@ -204,25 +223,13 @@ export class TextMeasurer {
             estimatedWidth += charWidth;
         }
         if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-            return ellipsisForce ? text + TextMeasurer.EllipsisChar : text;
+            return ellipsisForce ? text + this.EllipsisChar : text;
         }
         text = text.slice(0, i).trimEnd();
         while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
             text = text.slice(0, -1).trimEnd();
         }
-        return text + TextMeasurer.EllipsisChar;
-    }
-
-    // Measures the dimensions of the provided text, handling multiline if needed.
-    static measureText(text: string, options: MeasureOptions) {
-        const { ctx } = TextMeasurer.getFontMeasurer(options);
-        return this.getMetrics(ctx, text);
-    }
-
-    static measureLines(text: string | string[], options: MeasureOptions) {
-        const { ctx } = TextMeasurer.getFontMeasurer(options);
-        const lines = typeof text === 'string' ? text.split(TextMeasurer.lineSplitter) : text;
-        return this.getMultilineMetrics(ctx, lines);
+        return text + this.EllipsisChar;
     }
 
     // Measures metrics for a single line of text.
@@ -248,7 +255,7 @@ export class TextMeasurer {
         let offsetLeft = 0;
         let baselineDistance = 0; // Distance between first and last baselines.
 
-        const verticalModifier = TextMeasurer.getVerticalModifier(ctx.textBaseline);
+        const verticalModifier = this.getVerticalModifier(ctx.textBaseline);
         const lineMetrics = lines.map((line, index, { length }) => {
             const m = ctx.measureText(line) as LegacyTextMetrics;
             // Apply fallbacks for environments like `node-canvas` where some metrics may be missing.
