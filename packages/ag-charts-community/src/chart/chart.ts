@@ -67,7 +67,7 @@ import { PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePi
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
-import { Tooltip, TooltipEventType, TooltipPointerEvent } from './tooltip/tooltip';
+import { Tooltip, TooltipContent, TooltipEventType, TooltipPointerEvent } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -381,13 +381,21 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this.ctx;
     }
 
-    getAriaLabel(): string {
-        const captionText = [this.title, this.subtitle, this.footnote]
+    protected getCaptionText(): string {
+        return [this.title, this.subtitle, this.footnote]
             .filter((caption) => caption.enabled && caption.text)
             .map((caption) => caption.text)
             .join('. ');
+    }
+
+    getAriaLabel(): string {
+        const captionText = this.getCaptionText();
         const nSeries = this.series.length ?? 0;
         return `chart, ${nSeries} series, ${captionText}`;
+    }
+
+    getDatumAriaText(_datum: SeriesNodeDatum, html: TooltipContent): string {
+        return html.ariaLabel;
     }
 
     resetAnimations() {
@@ -1199,9 +1207,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.lastInteractionEvent = keyboardEvent;
             const html = focus.series.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
+            const aria = this.getDatumAriaText(datum, html);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue(html.ariaLabel);
+            this.ctx.ariaAnnouncementService.announceValue(aria);
         }
     }
 
