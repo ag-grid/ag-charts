@@ -14264,7 +14264,7 @@ hdr-histogram-percentiles-obj@^3.0.0:
   resolved "https://registry.yarnpkg.com/hdr-histogram-percentiles-obj/-/hdr-histogram-percentiles-obj-3.0.0.tgz#9409f4de0c2dda78e61de2d9d78b1e9f3cba283c"
   integrity sha512-7kIufnBqdsBGcSZLPJwqHT3yhk1QTsSlFsVD3kx5ixH/AlgBs9yM1q6DPhXZ8f8gtdqgh7N7/5btRLpQsS2gHw==
 
-he@1.2.x, he@^1.1.0, he@^1.2.0:
+he@1.2.0, he@1.2.x, he@^1.1.0, he@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
@@ -18533,6 +18533,14 @@ node-gyp@^9.0.0:
     semver "^7.3.5"
     tar "^6.1.2"
     which "^2.0.2"
+
+node-html-parser@^6.1.13:
+  version "6.1.13"
+  resolved "https://registry.yarnpkg.com/node-html-parser/-/node-html-parser-6.1.13.tgz#a1df799b83df5c6743fcd92740ba14682083b7e4"
+  integrity sha512-qIsTMOY4C/dAa5Q5vsobRpOOvPfC4pB61UVW2uSwZNUp0QU/jCekTal1vMmbO0DgdHeLUJpv/ARmDqErVxA3Sg==
+  dependencies:
+    css-select "^5.1.0"
+    he "1.2.0"
 
 node-int64@^0.4.0:
   version "0.4.0"
