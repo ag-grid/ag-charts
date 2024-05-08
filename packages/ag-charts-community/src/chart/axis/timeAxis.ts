@@ -73,12 +73,13 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return new TimeAxisTick();
     }
 
-    protected override onLabelFormatChange(ticks: any[], fractionDigits: number, domain: any[], format?: string) {
+    protected override onFormatChange(ticks: any[], fractionDigits: number, domain: any[], format?: string) {
         if (format) {
-            super.onLabelFormatChange(ticks, fractionDigits, domain, format);
+            super.onFormatChange(ticks, fractionDigits, domain, format);
         } else {
             // For time axis labels to look nice, even if date format wasn't set.
             this.labelFormatter = this.scale.tickFormat({ ticks, domain });
+            this.datumFormatter = this.scale.tickFormat({ ticks, domain, formatOffset: 1 });
         }
     }
 

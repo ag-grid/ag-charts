@@ -24,12 +24,12 @@ export function dateToNumber(x: any) {
     return x instanceof Date ? x.getTime() : x;
 }
 
-export function defaultTimeTickFormat(ticks?: any[], domain?: any[]) {
-    const formatString = calculateDefaultTimeTickFormat(ticks, domain);
+export function defaultTimeTickFormat(ticks?: any[], domain?: any[], formatOffset?: number) {
+    const formatString = calculateDefaultTimeTickFormat(ticks, domain, formatOffset);
     return (date: Date) => buildFormatter(formatString)(date);
 }
 
-export function calculateDefaultTimeTickFormat(ticks: any[] | undefined = [], domain = ticks) {
+export function calculateDefaultTimeTickFormat(ticks: any[] | undefined = [], domain = ticks, formatOffset = 0) {
     let defaultTimeFormat = DefaultTimeFormats.YEAR;
 
     const updateFormat = (format: DefaultTimeFormats) => {
@@ -48,6 +48,8 @@ export function calculateDefaultTimeTickFormat(ticks: any[] | undefined = [], do
     const startYear = new Date(startDomain).getFullYear();
     const stopYear = new Date(endDomain).getFullYear();
     const yearChange = stopYear - startYear > 0;
+
+    defaultTimeFormat = Math.max(defaultTimeFormat - formatOffset, 0);
 
     return formatStringBuilder(defaultTimeFormat, yearChange, ticks);
 }
