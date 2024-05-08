@@ -67,7 +67,13 @@ import { PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePi
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
-import { Tooltip, TooltipContent, TooltipEventType, TooltipPointerEvent } from './tooltip/tooltip';
+import {
+    DEFAULT_TOOLTIP_CLASS,
+    Tooltip,
+    TooltipContent,
+    TooltipEventType,
+    TooltipPointerEvent,
+} from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -1079,11 +1085,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected onLeave(event: PointerInteractionEvent<'leave'>): void {
-        if (!this.tooltip.pointerLeftOntoTooltip(event)) {
-            this.resetPointer();
-            this.update(ChartUpdateType.SCENE_RENDER);
-            this.ctx.cursorManager.updateCursor('chart');
-        }
+        const el = event.relatedElement;
+        if (el && this.ctx.domManager.isManagedDOMElement(el)) return;
+
+        this.resetPointer();
+        this.update(ChartUpdateType.SCENE_RENDER);
+        this.ctx.cursorManager.updateCursor('chart');
     }
 
     private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
@@ -1214,7 +1221,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private lastInteractionEvent?: TooltipPointerEvent<'hover' | 'keyboard'>;
+    private lastInteractionEvent?: TooltipPointerEvent<'hover'> | TooltipPointerEvent<'keyboard'>;
     private static isHoverEvent(
         event: TooltipPointerEvent<TooltipEventType> | undefined
     ): event is TooltipPointerEvent<'hover'> {
@@ -1268,14 +1275,23 @@ export abstract class Chart extends Observable implements AgChartInstance {
     ) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
-        const { offsetX, offsetY } = event;
+        const { offsetX, offsetY, targetElement } = event;
 
         let pixelRange;
         if (isFiniteNumber(range)) {
             pixelRange = range;
         }
-        const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
 
+        if (
+            targetElement &&
+            this.tooltip.interactive &&
+            this.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
+        ) {
+            // Skip tooltip update if tooltip is interactive, and the source event was for a tooltip HTML element.
+            return;
+        }
+
+        const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
         if (!pick) {
             this.ctx.tooltipManager.removeTooltip(this.id);
             if (this.highlight.range === 'tooltip') {
