@@ -555,7 +555,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 seriesId: id,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
+                symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
             },
         ];
     }

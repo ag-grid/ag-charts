@@ -274,7 +274,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 label: {
                     text: legendItemName ?? yName ?? id,
                 },
-                marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth },
+                symbols: [{ marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } }],
                 legendItemName,
             },
         ];

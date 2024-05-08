@@ -703,14 +703,18 @@ export class MapMarkerSeries
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.id },
-                marker: {
-                    shape,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            shape,
+                            fill,
+                            fillOpacity,
+                            stroke,
+                            strokeWidth,
+                            strokeOpacity,
+                        },
+                    },
+                ],
                 legendItemName,
             };
             return [legendDatum];

@@ -549,20 +549,24 @@ export class MapLineSeries
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
-                marker: {
-                    fill: stroke,
-                    fillOpacity: strokeOpacity,
-                    stroke: undefined,
-                    strokeWidth: 0,
-                    strokeOpacity: 0,
-                    enabled: false,
-                },
-                line: {
-                    stroke,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            fill: stroke,
+                            fillOpacity: strokeOpacity,
+                            stroke: undefined,
+                            strokeWidth: 0,
+                            strokeOpacity: 0,
+                            enabled: false,
+                        },
+                        line: {
+                            stroke,
+                            strokeOpacity,
+                            strokeWidth,
+                            lineDash,
+                        },
+                    },
+                ],
                 legendItemName,
             };
             return [legendDatum];

@@ -1341,13 +1341,17 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 label: {
                     text: labelParts.join(' - '),
                 },
-                marker: {
-                    fill: sectorFormat.fill,
-                    stroke: sectorFormat.stroke,
-                    fillOpacity: this.properties.fillOpacity,
-                    strokeOpacity: this.properties.strokeOpacity,
-                    strokeWidth: this.properties.strokeWidth,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            fill: sectorFormat.fill,
+                            stroke: sectorFormat.stroke,
+                            fillOpacity: this.properties.fillOpacity,
+                            strokeOpacity: this.properties.strokeOpacity,
+                            strokeWidth: this.properties.strokeWidth,
+                        },
+                    },
+                ],
                 legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
             });
         }

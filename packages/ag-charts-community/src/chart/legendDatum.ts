@@ -22,10 +22,7 @@ export interface BaseChartLegendDatum {
     enabled: boolean;
 }
 
-export interface CategoryLegendDatum extends BaseChartLegendDatum {
-    legendType: 'category';
-    id: string; // component ID
-    itemId: any; // sub-component ID
+export interface LegendSymbolOptions {
     marker: {
         shape?: string | MarkerConstructor;
         fill?: string;
@@ -34,6 +31,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
         strokeOpacity: number;
         strokeWidth: number;
         enabled?: boolean;
+        padding?: number;
     };
     line?: {
         stroke: string;
@@ -41,6 +39,12 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
         strokeWidth: number;
         lineDash: number[];
     };
+}
+export interface CategoryLegendDatum extends BaseChartLegendDatum {
+    legendType: 'category';
+    id: string; // component ID
+    itemId: any; // sub-component ID
+    symbols: LegendSymbolOptions[];
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
     label: {

@@ -532,13 +532,17 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 label: {
                     text: yName ?? xKey ?? 'Frequency',
                 },
-                marker: {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: fillOpacity,
-                    strokeOpacity: strokeOpacity,
-                    strokeWidth,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            fill: fill ?? 'rgba(0, 0, 0, 0)',
+                            stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                            fillOpacity: fillOpacity,
+                            strokeOpacity: strokeOpacity,
+                            strokeWidth,
+                        },
+                    },
+                ],
             },
         ];
     }

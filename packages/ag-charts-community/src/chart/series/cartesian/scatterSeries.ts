@@ -325,14 +325,18 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 label: {
                     text: title ?? yName ?? yKey,
                 },
-                marker: {
-                    shape: marker.shape,
-                    fill: marker.fill ?? fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: fillOpacity ?? 1,
-                    strokeOpacity: strokeOpacity ?? 1,
-                    strokeWidth: strokeWidth ?? 0,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            shape: marker.shape,
+                            fill: marker.fill ?? fill ?? 'rgba(0, 0, 0, 0)',
+                            stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                            fillOpacity: fillOpacity ?? 1,
+                            strokeOpacity: strokeOpacity ?? 1,
+                            strokeWidth: strokeWidth ?? 0,
+                        },
+                    },
+                ],
             },
         ];
     }

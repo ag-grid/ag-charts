@@ -625,13 +625,17 @@ export class MapShapeSeries
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
-                marker: {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                },
+                symbols: [
+                    {
+                        marker: {
+                            fill,
+                            fillOpacity,
+                            stroke,
+                            strokeWidth,
+                            strokeOpacity,
+                        },
+                    },
+                ],
                 legendItemName,
             };
             return [legendDatum];
