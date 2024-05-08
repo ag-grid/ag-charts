@@ -3,7 +3,6 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
-import type { Node } from '../../scene/node';
 import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
@@ -60,8 +59,11 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
 
+    // We need both `hasFocus` and `focus`, because if we change browser window then we need to make
+    // sure that we can restore the focus on the same button as before.
     private hasFocus = false;
     private focus?: NavigatorButtonType;
+
     private dragging?: NavigatorButtonType;
     private panStart?: number;
     private _min = 0;
@@ -231,6 +233,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             }
         }
 
+        this.hasFocus = this.focus !== undefined;
         this.updateFocus(event);
     }
 
@@ -242,9 +245,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         const deltaRatio = event.delta * 0.05;
 
         if (focus === 'min') {
-            min = clamp(0, min+deltaRatio, max - minRange);
+            min = clamp(0, min + deltaRatio, max - minRange);
         } else if (focus === 'max') {
-            max = clamp(min + minRange, max+deltaRatio, 1);
+            max = clamp(min + minRange, max + deltaRatio, 1);
         } else if (focus === 'pan') {
             const span = max - min;
             min = clamp(0, min + deltaRatio, 1 - span);
@@ -255,18 +258,19 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this._max = max;
 
         this.updateZoom();
+        this.updateFocus(event);
     }
 
     private onBlur(_event: KeyNavEvent<'blur'>) {
         this.hasFocus = false;
     }
 
-    private updateFocus(event: ConsumableEvent) {
-        if (this.focus) {
-            const node = { min: this.minHandle, max: this.maxHandle, pan: this.mask }[this.focus];
-            this.ctx.regionManager.updateFocusIndicatorRect(node.computeVisibleRangeBBox());
-            this.hasFocus = true;
-            event.consume();
+    private updateFocus(event: ConsumableEvent | undefined) {
+        const { minHandle: min, maxHandle: max, mask: pan, focus, hasFocus, ctx } = this;
+        if (focus && hasFocus) {
+            const node = { min, max, pan }[focus];
+            ctx.regionManager.updateFocusIndicatorRect(node.computeVisibleRangeBBox());
+            event?.consume();
         }
     }
 
@@ -294,6 +298,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             minHandle.zIndex = 4;
             maxHandle.zIndex = 3;
         }
+        this.updateFocus(undefined);
     }
 
     private updateNodes(min: number, max: number) {
