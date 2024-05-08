@@ -139,6 +139,7 @@ describe('TreemapSeries', () => {
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
                 autoSize: false,
+                tooltip: { range: 'exact' },
                 series: [
                     {
                         tooltip,
