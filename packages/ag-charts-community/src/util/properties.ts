@@ -57,11 +57,13 @@ export class BaseProperties<T extends object = object> {
 }
 
 export class PropertiesArray<T extends BaseProperties> extends Array {
-    private itemFactory!: new () => T;
+    private itemFactory!: (params: object) => T;
 
-    constructor(itemFactory: new () => T, ...properties: object[]) {
+    constructor(itemFactory: (new () => T) | ((params: object) => T), ...properties: object[]) {
         super(properties.length);
-        Object.defineProperty(this, 'itemFactory', { value: itemFactory, enumerable: false, configurable: false });
+        const isConstructor = (value: Function): value is new () => T => Boolean(value.prototype?.constructor?.name);
+        const value = isConstructor(itemFactory) ? (params: object) => new itemFactory().set(params) : itemFactory;
+        Object.defineProperty(this, 'itemFactory', { value, enumerable: false, configurable: false });
         this.set(properties);
     }
 
@@ -69,7 +71,7 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
         if (isArray(properties)) {
             this.length = properties.length;
             for (let i = 0; i < properties.length; i++) {
-                this[i] = new this.itemFactory().set(properties[i]);
+                this[i] = this.itemFactory(properties[i]);
             }
         }
         return this;
