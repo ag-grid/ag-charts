@@ -41,6 +41,10 @@ export const css = `
     position: absolute;
     transform: translateY(0);
     transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+
+    background: none;
+    border: none;
+    padding: 0 var(--ag-charts-toolbar-padding);
 }
 
 .${modifiers.hidden},
@@ -85,6 +89,9 @@ export const css = `
     flex-direction: inherit;
     flex-wrap: inherit;
     max-width: 100%;
+
+    gap: var(--ag-charts-toolbar-gap);
+    width: 100%;
 }
 
 .${modifiers.align.center},
@@ -104,6 +111,7 @@ export const css = `
 .${modifiers[ToolbarPosition.FloatingBottom]} .${elements.align} {
     gap: var(--ag-charts-toolbar-gap);
     transition: transform 0.4s ease-in-out;
+    width: auto;
 }
 
 .${elements.button} {
@@ -118,6 +126,9 @@ export const css = `
     padding: var(--ag-charts-button-padding);
     pointer-events: all;
     transition: background-color .25s ease-in-out;
+
+    background: var(--ag-charts-toolbar-background-color);
+    border: var(--ag-charts-toolbar-border-critical);
 }
 
 .${modifiers[ToolbarPosition.Left]} .${elements.button},

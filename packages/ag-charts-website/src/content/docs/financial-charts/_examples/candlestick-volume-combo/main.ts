@@ -141,15 +141,9 @@ const options: AgCartesianChartOptions = {
         initial: [
             {
                 type: 'parallel-channel',
-                top: {
-                    // TODO: `new Date()` should not be needed once this chart uses the `OrdinalTimeAxis`
-                    start: { x: new Date(1672756200000), y: 130.28 + 6 },
-                    end: { x: new Date(1689773400000), y: 195.1 + 6 },
-                },
-                bottom: {
-                    start: { x: new Date(1672756200000), y: 130.28 - 6 },
-                    end: { x: new Date(1689773400000), y: 195.1 - 6 },
-                },
+                start: { x: new Date(1672756200000), y: 130.28 + 6 },
+                end: { x: new Date(1689773400000), y: 195.1 + 6 },
+                size: 12,
             },
             {
                 type: 'line',

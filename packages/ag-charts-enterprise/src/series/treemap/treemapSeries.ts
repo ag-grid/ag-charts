@@ -701,6 +701,11 @@ export class TreemapSeries<
     }
 
     protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        const exactMatch = this.pickNodeExactShape(point);
+        if (exactMatch !== undefined) {
+            return exactMatch;
+        }
+
         // We don't need to recurse on the tree because the root's nodes bounding-box contain all bounding boxes
         // of the descendants. Therefore the nearest node is always a child of the root. If there is an exact
         // match, then the pickNodeExactShape function will return a result, and this function wouldn't be called.

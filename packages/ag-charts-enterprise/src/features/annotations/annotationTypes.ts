@@ -1,5 +1,6 @@
 export enum AnnotationType {
     Line = 'line',
+    DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 }
 
@@ -13,4 +14,16 @@ export interface LineCoords {
     y1: number;
     x2: number;
     y2: number;
+}
+
+export interface StateHoverEvent<Annotation, Scene> {
+    datum: Annotation;
+    node: Scene;
+    point: Coords;
+}
+
+export interface StateClickEvent<Annotation, Scene> {
+    datum?: Annotation;
+    node?: Scene;
+    point: Coords;
 }

@@ -67,6 +67,16 @@ describe('BandScale', () => {
         expect(scale.convert('E')).toBe(500);
     });
 
+    test('inner padding with single value', () => {
+        const scale = new BandScale();
+
+        scale.domain = ['A'];
+        scale.range = [0, 500];
+        scale.paddingInner = 0.5;
+
+        expect(scale.convert('A')).toBe(0);
+    });
+
     test('outer padding', () => {
         const scale = new BandScale();
 

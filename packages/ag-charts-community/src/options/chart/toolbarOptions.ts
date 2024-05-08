@@ -28,7 +28,17 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset' | 'zoom-in' | 'zoom-out';
+export type AgIconName =
+    | 'pan-end'
+    | 'pan-left'
+    | 'pan-right'
+    | 'pan-start'
+    | 'reset'
+    | 'zoom-in'
+    | 'zoom-out'
+    | 'trend-line'
+    | 'parallel-channel'
+    | 'disjoint-channel';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
@@ -41,7 +51,7 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
     value: AgToolbarAnnotationsButtonValue;
 }
 
-export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel';
+export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel' | 'disjoint-channel';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {
@@ -74,4 +84,7 @@ export type AgToolbarZoomButtonValue =
     | 'pan-left'
     | 'pan-right'
     | 'pan-start'
-    | 'pan-end';
+    | 'pan-end'
+    | 'trend-line'
+    | 'parallel-channel'
+    | 'disjoint-channel';

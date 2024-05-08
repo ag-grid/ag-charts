@@ -34,7 +34,7 @@ export class CollidableLine extends _Scene.Line {
         const x = x1 + mag * Math.cos(angle);
         const y = y1 + mag * Math.sin(angle);
 
-        return this.collisionBBox?.containsPoint(x, y) ?? false;
+        return collisionBBox.containsPoint(x, y) ?? false;
     }
 }
 

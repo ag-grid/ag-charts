@@ -1,4 +1,5 @@
 ---
+import { getIsDev } from '@utils/env';
 import { getEntry } from 'astro:content';
 import GalleryFrameworkTemplate from '@features/gallery/components/GalleryFrameworkTemplate.astro';
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
@@ -12,8 +13,8 @@ export async function getStaticPaths() {
     return pages;
 }
 
-// NOTE: Render as a partial, so that astro does not insert any website styles into the page
-export const partial = true;
+// NOTE: Render as a partial, so that astro does not insert any website styles into the page (when not dev)
+export const partial = !getIsDev();
 
 const { exampleName } = Astro.params;
 ---

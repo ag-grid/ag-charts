@@ -28,16 +28,14 @@ const options: AgChartOptions = {
     annotations: {
         initial: [
             {
-                type: 'parallel-channel',
+                type: 'disjoint-channel',
                 locked: true,
-                top: {
-                    start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 - 50 },
-                    end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 - 50 },
-                },
-                bottom: {
-                    start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 + 50 },
-                    end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 + 50 },
-                },
+
+                start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 + 25 },
+                end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 + 100 },
+
+                startSize: 50,
+                endSize: 150,
             },
         ],
     },
