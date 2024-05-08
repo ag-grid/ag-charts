@@ -87,6 +87,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
             region.addListener('tab', (event) => this.onTab(event), dragStates),
             region.addListener('tab-start', (event) => this.onTab(event), dragStates),
+            region.addListener('nav-hori', (event) => this.onNavHori(event), dragStates),
             region.addListener('blur', (event) => this.onBlur(event), dragStates),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
@@ -231,6 +232,29 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
 
         this.updateFocus(event);
+    }
+
+    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
+        if (!this.enabled || this.focus == null) return;
+
+        const { focus, minRange } = this;
+        let { _min: min, _max: max } = this;
+        const deltaRatio = event.delta * 0.05;
+
+        if (focus === 'min') {
+            min = clamp(0, min+deltaRatio, max - minRange);
+        } else if (focus === 'max') {
+            max = clamp(min + minRange, max+deltaRatio, 1);
+        } else if (focus === 'pan') {
+            const span = max - min;
+            min = clamp(0, min + deltaRatio, 1 - span);
+            max = min + span;
+        }
+
+        this._min = min;
+        this._max = max;
+
+        this.updateZoom();
     }
 
     private onBlur(_event: KeyNavEvent<'blur'>) {
