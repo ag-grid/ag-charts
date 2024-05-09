@@ -1,4 +1,5 @@
 import type { FontStyle, FontWeight } from '../options/agChartOptions';
+import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';
 import type { Line } from '../scene/shape/line';
@@ -13,6 +14,10 @@ export class MarkerLabel extends Group {
 
     private readonly label = new Text();
 
+    private readonly symbolsGroup: Group = new Group({
+        name: 'legend-markerLabel-symbols',
+    });
+
     constructor() {
         super({ name: 'markerLabelGroup' });
 
@@ -24,7 +29,8 @@ export class MarkerLabel extends Group {
         // For better looking vertical alignment of labels to markers.
         label.y = 1;
 
-        this.append([...lines, ...markers, label]);
+        this.symbolsGroup.append([...lines, ...markers]);
+        this.append([this.symbolsGroup, label]);
     }
 
     @ProxyPropertyOnWrite('label')
@@ -53,7 +59,7 @@ export class MarkerLabel extends Group {
             });
             this._markers = value;
             this._markers.forEach((marker) => {
-                this.appendChild(marker);
+                this.symbolsGroup.appendChild(marker);
             });
         }
     }
@@ -69,7 +75,7 @@ export class MarkerLabel extends Group {
             });
             this._lines = value;
             this._lines.forEach((line) => {
-                this.appendChild(line);
+                this.symbolsGroup.appendChild(line);
             });
         }
     }
@@ -105,11 +111,23 @@ export class MarkerLabel extends Group {
             shift += spacing + Math.max(length, size);
         }
 
+        const lastSymbolProps = dimensionProps.at(-1);
         const lastLine = this.lines.at(-1);
         const lastMarker = this.markers.at(-1);
         const lineEnd = lastLine?.visible ? lastLine.x2 : -Infinity;
         const markerEnd = (lastMarker?.x ?? 0) + (lastMarker?.size ?? 0) / 2;
-        this.label.x = Math.max(lineEnd, markerEnd) + (dimensionProps.at(-1)?.spacing ?? 0);
+        this.label.x = Math.max(lineEnd, markerEnd) + (lastSymbolProps?.spacing ?? 0);
+
+        if (dimensionProps.length < 2) {
+            return;
+        }
+
+        // clip the symbols to the size of a single symbol to match the size of other legend items
+        const bbox = this.symbolsGroup.computeBBox();
+        const clippedWidth = Math.max(lastMarker?.size ?? 0, lastSymbolProps?.length ?? 0);
+        const clipRect = new BBox(bbox.x + clippedWidth / 2, bbox.y, clippedWidth, bbox.height);
+
+        this.symbolsGroup.setClipRectInGroupCoordinateSpace(clipRect);
     }
 
     override render(renderCtx: RenderContext): void {
