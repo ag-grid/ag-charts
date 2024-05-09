@@ -7,7 +7,7 @@ import type {
     AgPieSeriesTooltipRendererParams,
 } from '../../../options/series/polar/pieOptions';
 import { DropShadow } from '../../../scene/dropShadow';
-import { BaseProperties, PropertiesArray } from '../../../util/properties';
+import { BaseProperties } from '../../../util/properties';
 import {
     BOOLEAN,
     COLOR_STRING_ARRAY,
@@ -16,7 +16,6 @@ import {
     LINE_DASH,
     NUMBER,
     OBJECT,
-    OBJECT_ARRAY,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -141,9 +140,6 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
 
     @Validate(POSITIVE_NUMBER)
     sectorSpacing: number = 0;
-
-    @Validate(OBJECT_ARRAY)
-    readonly innerLabels = new PropertiesArray(Label);
 
     @Validate(OBJECT)
     readonly title = new PieTitle();
