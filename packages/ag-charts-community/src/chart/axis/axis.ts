@@ -5,7 +5,6 @@ import type { AxisOptionModule } from '../../module/optionsModule';
 import type { FromToDiff } from '../../motion/fromToMotion';
 import { fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
-import { StateMachine } from '../../motion/states';
 import type {
     AgAxisCaptionFormatterParams,
     AgAxisLabelFormatterParams,
@@ -26,7 +25,7 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { Text, TextMeasurer, type TextSizeProperties } from '../../scene/shape/text';
+import { Text, type TextSizeProperties, getFont } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
@@ -36,6 +35,8 @@ import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
+import { StateMachine } from '../../util/stateMachine';
+import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -52,8 +53,7 @@ import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import type { TickCount, TickInterval } from './axisTick';
-import type { AxisTick } from './axisTick';
+import type { AxisTick, TickCount, TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
@@ -371,25 +371,28 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return x + width >= min - tolerance && x <= max + tolerance;
     }
 
+    protected datumFormatter?: (datum: any) => string;
     protected labelFormatter?: (datum: any) => string;
-    protected onLabelFormatChange(ticks: any[], fractionDigits: number, _domain: any[], format?: string) {
+    protected onFormatChange(ticks: any[], fractionDigits: number, _domain: any[], format?: string) {
         const { scale } = this;
         const logScale = scale instanceof LogScale;
 
-        const defaultLabelFormatter =
-            !logScale && fractionDigits > 0
-                ? (x: any) => (typeof x === 'number' ? x.toFixed(fractionDigits) : String(x))
-                : (x: any) => String(x);
+        const defaultFormatter = (formatOffset: number = 0) =>
+            logScale
+                ? (x: any) => String(x)
+                : (x: any) => (typeof x === 'number' ? x.toFixed(fractionDigits + formatOffset) : String(x));
 
         if (format && scale && scale.tickFormat) {
             try {
                 this.labelFormatter = scale.tickFormat({ ticks, specifier: format });
             } catch (e) {
-                this.labelFormatter = defaultLabelFormatter;
+                this.labelFormatter = defaultFormatter();
+                this.datumFormatter = defaultFormatter(1);
                 Logger.warnOnce(`the axis label format string ${format} is invalid. No formatting will be applied`);
             }
         } else {
-            this.labelFormatter = defaultLabelFormatter;
+            this.labelFormatter = defaultFormatter();
+            this.datumFormatter = defaultFormatter(1);
         }
     }
 
@@ -799,6 +802,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
+        const font = getFont({ fontFamily, fontSize, fontStyle, fontWeight });
 
         const textProps: TextSizeProperties = {
             fontFamily,
@@ -843,10 +847,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 const labelRotation = initialRotation + autoRotation;
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
                 labelOverlap = this.label.avoidCollisions
-                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, {
-                          ...textProps,
-                          textAlign,
-                      })
+                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, { font })
                     : false;
             }
         }
@@ -981,7 +982,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelMatrix: Matrix,
         tickData: TickDatum[],
         labelX: number,
-        textProps: TextSizeProperties
+        textProps: MeasureOptions
     ): boolean {
         Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
@@ -994,16 +995,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private createLabelData(
         tickData: TickDatum[],
         labelX: number,
-        textProps: TextSizeProperties,
+        textProps: MeasureOptions,
         labelMatrix: Matrix
     ): PlacedLabelDatum[] {
         const labelData: PlacedLabelDatum[] = [];
-        const measurer = new TextMeasurer(textProps);
-
         for (const { tickLabel, translationY } of tickData) {
-            if (tickLabel === '' || tickLabel == null) continue;
+            if (!tickLabel) continue;
 
-            const { width, height } = measurer.size(tickLabel);
+            const { width, height } = TextMeasurer.measureLines(tickLabel, textProps);
             const bbox = new BBox(labelX, translationY, width, height);
             const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
 
@@ -1078,7 +1077,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const filteredTicks = rawTicks.slice(start, end);
         // When the scale domain or the ticks change, the label format may change
-        this.onLabelFormatChange(filteredTicks, fractionDigits, rawTicks, this.label.format);
+        this.onFormatChange(filteredTicks, fractionDigits, rawTicks, this.label.format);
 
         for (let i = 0; i < filteredTicks.length; i++) {
             const tick = filteredTicks[i];
@@ -1374,14 +1373,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         tickData.ticks.forEach((tickDatum) => {
-            const { text } = Text.wrap(
+            tickDatum.tickLabel = Text.wrap(
                 tickDatum.tickLabel,
                 maxWidth ?? defaultMaxWidth,
                 maxHeight ?? defaultMaxHeight,
                 labelProps,
                 'hyphenate'
             );
-            tickDatum.tickLabel = text;
         });
 
         return { tickData, index, autoRotation: 0, terminate: true };
@@ -1406,25 +1404,28 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting (nice rounded) tick values.
     formatTick(datum: any, fractionDigits: number, index: number): string {
-        return this.datumFormatter(index)(datum, fractionDigits);
+        return this.getFormatter(index, true)(datum, fractionDigits);
     }
 
     // For formatting arbitrary values between the ticks.
     formatDatum(datum: any): string {
-        return String(datum);
+        return this.getFormatter()(datum);
     }
 
-    datumFormatter(index: number = 0): (datum: any, fractionDigits: number) => string {
+    getFormatter(index: number = 0, isTickLabel?: boolean): (datum: any, fractionDigits?: number) => string {
         const {
             label,
             labelFormatter,
+            datumFormatter,
             moduleCtx: { callbackCache },
         } = this;
 
-        if (label.formatter) {
+        if (!isTickLabel && datumFormatter) {
+            return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
+        } else if (label.formatter) {
             return (datum, fractionDigits) =>
                 callbackCache.call(label.formatter as (params: AgAxisLabelFormatterParams) => string, {
-                    value: fractionDigits > 0 ? datum : String(datum),
+                    value: (fractionDigits ?? 0) > 0 ? datum : String(datum),
                     index,
                     fractionDigits,
                     formatter: labelFormatter,
@@ -1509,10 +1510,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected createAxisContext(): AxisContext {
+        const { scale } = this;
         return {
             axisId: this.id,
             direction: this.direction,
-            continuous: ContinuousScale.is(this.scale),
+            continuous: ContinuousScale.is(scale) || OrdinalTimeScale.is(scale),
             keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
@@ -1527,10 +1529,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) =>
-                specifier ? this.scale.tickFormat?.({ specifier }) : this.formatDatum,
-            scaleBandwidth: () => this.scale.bandwidth ?? 0,
-            scaleConvert: (val) => this.scale.convert(val),
-            scaleInvert: (val) => this.scale.invert?.(val),
+                specifier ? scale.tickFormat?.({ specifier }) : this.getFormatter(),
+            scaleBandwidth: () => scale.bandwidth ?? 0,
+            scaleConvert: (val) => scale.convert(val),
+            scaleInvert: OrdinalTimeScale.is(scale)
+                ? (val) => scale.invertNearest?.(val)
+                : (val) => scale.invert?.(val),
         };
     }
 

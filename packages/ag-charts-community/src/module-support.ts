@@ -88,7 +88,7 @@ export * from './chart/legendDatum';
 export * from './chart/tooltip/tooltip';
 export * from './motion/animation';
 export * as Motion from './motion/easing';
-export * from './motion/states';
+export * from './util/stateMachine';
 export * from './motion/resetMotion';
 export * from './motion/fromToMotion';
 export * from './chart/dom/domManager';

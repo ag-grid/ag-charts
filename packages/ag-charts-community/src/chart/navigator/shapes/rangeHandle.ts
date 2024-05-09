@@ -124,6 +124,10 @@ export class RangeHandle extends Path {
         return new BBox(x, y, width, height);
     }
 
+    computeVisibleRangeBBox() {
+        return this.computeTransformedBBox();
+    }
+
     override isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
         const bbox = this.computeBBox();

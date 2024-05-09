@@ -188,7 +188,7 @@ module.exports = {
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
             from: { path: '^src/util/' },
-            to: { pathNot: ['^src/util/', 'node_modules', '^fs$', 'ag-charts-test'] },
+            to: { pathNot: ['^src/util/', '^src/options/', 'node_modules', '^fs$', 'ag-charts-test'] },
         },
         {
             name: 'ag-isolated-scales',

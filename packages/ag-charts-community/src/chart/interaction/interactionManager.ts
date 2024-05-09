@@ -74,6 +74,7 @@ const EVENT_HANDLERS = [
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
+    region?: string;
     sourceEvent: TEvent;
     relatedElement?: HTMLElement;
     targetElement?: HTMLElement;

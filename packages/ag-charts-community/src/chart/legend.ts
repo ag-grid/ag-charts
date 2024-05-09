@@ -176,6 +176,8 @@ export class Legend extends BaseProperties {
         return this._data;
     }
 
+    private contextMenuDatum?: CategoryLegendDatum;
+
     @Validate(OBJECT)
     readonly pagination: Pagination;
 
@@ -232,6 +234,19 @@ export class Legend extends BaseProperties {
         );
         this.pagination.attachPagination(this.group);
 
+        ctx.contextMenuRegistry.registerDefaultAction({
+            id: 'legend-visibility',
+            region: 'legend',
+            label: 'Toggle Visibility',
+            action: (_params) => this.contextToggleVisibility(),
+        });
+        ctx.contextMenuRegistry.registerDefaultAction({
+            id: 'legend-other-series',
+            region: 'legend',
+            label: 'Toggle Other Series',
+            action: (_params) => this.contextToggleOtherSeries(),
+        });
+
         const animationState = InteractionState.Default | InteractionState.Animation;
         const region = ctx.regionManager.addRegionFromProperties({
             name: 'legend',
@@ -239,6 +254,7 @@ export class Legend extends BaseProperties {
             canInteraction: () => this.enabled && this.group.visible,
         });
         this.destroyFns.push(
+            region.addListener('contextmenu', (e) => this.checkContextClick(e), animationState),
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
@@ -843,6 +859,18 @@ export class Legend extends BaseProperties {
         return actualBBox;
     }
 
+    private contextToggleVisibility() {
+        this.doClick(this.contextMenuDatum);
+    }
+
+    private contextToggleOtherSeries() {
+        this.doDoubleClick(this.contextMenuDatum);
+    }
+
+    private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
+        this.contextMenuDatum = this.getDatumForPoint(event.offsetX, event.offsetY);
+    }
+
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
         const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
         if (this.doClick(datum)) {
@@ -904,6 +932,13 @@ export class Legend extends BaseProperties {
     }
 
     private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
+        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        if (this.doDoubleClick(datum)) {
+            event.consume();
+        }
+    }
+
+    private doDoubleClick(datum: CategoryLegendDatum | undefined): boolean {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
@@ -912,21 +947,18 @@ export class Legend extends BaseProperties {
         // Integrated charts do not handle double click behaviour correctly due to multiple instances of the
         // chart being created. See https://ag-grid.atlassian.net/browse/RTI-1381
         if (chartService.mode === 'integrated') {
-            return;
+            return false;
         }
 
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
-
         if (!datum) {
-            return;
+            return false;
         }
 
         const { id, itemId, seriesId } = datum;
         const series = chartService.series.find((s) => s.id === id);
         if (!series) {
-            return;
+            return false;
         }
-        event.consume();
 
         if (toggleSeriesVisible) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
@@ -946,6 +978,7 @@ export class Legend extends BaseProperties {
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
         legendItemDoubleClick?.({ type: 'dblclick', enabled: true, itemId, seriesId: series.id });
+        return true;
     }
 
     private handleLegendMouseMove(event: PointerInteractionEvent<'hover'>) {
