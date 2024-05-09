@@ -1,4 +1,3 @@
-import { setElementBBox } from '../module-support';
 import type { ModuleContext } from '../module/moduleContext';
 import type {
     AgChartLegendClickEvent,
@@ -17,6 +16,7 @@ import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { Text, getFont } from '../scene/shape/text';
+import { setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
@@ -392,13 +392,13 @@ export class Legend extends BaseProperties {
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
-        this.itemSelection.each((markerLabel, datum) => {
+        this.itemSelection.each((markerLabel, datum, index) => {
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, index);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -446,7 +446,7 @@ export class Legend extends BaseProperties {
         this.update();
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, index: number): number {
         const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
 
         let paddedSymbolWidth = paddingX;
@@ -493,8 +493,23 @@ export class Legend extends BaseProperties {
         markerLabel.lines = lines;
         markerLabel.update(dimensionProps);
 
+        if (datum.proxyButton === undefined) {
+            datum.proxyButton = this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `ag-charts-legend-item-${index}`,
+                textContext: this.getItemAriaText(index),
+                parent: this.proxyLegendToolbar,
+                bboxprovider: markerLabel,
+                onclick: (_event: MouseEvent): any => {
+                    const datum = this.data[index];
+                    this.doClick(datum);
+                },
+            });
+        }
+
         return paddedSymbolWidth;
     }
+
     private truncate(
         text: string,
         maxCharLength: number,
@@ -1288,20 +1303,11 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.y += this.group.translationY;
         }
 
-        this.itemSelection.each((node, _datum, index) => {
-            // FIXME: this should "add or update" the proxy buttons
-            const element = this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
-                id: `ag-charts-legend-item-${index}`,
-                textContext: this.getItemAriaText(index),
-                bboxprovider: node,
-                parent: this.proxyLegendToolbar,
-                onclick: (_event: MouseEvent): any => {
-                    const datum = this.data[index];
-                    this.doClick(datum);
-                }
-            });
-            element!.style.position = 'absolute';
+        this.itemSelection.each((node, datum) => {
+            const bbox = node.computeTransformedBBox();
+            if (bbox && datum.proxyButton) {
+                setElementBBox(datum.proxyButton, bbox);
+            }
         });
 
         return { shrinkRect: newShrinkRect };

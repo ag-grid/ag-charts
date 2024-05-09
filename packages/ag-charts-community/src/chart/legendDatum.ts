@@ -44,6 +44,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     legendType: 'category';
     id: string; // component ID
     itemId: any; // sub-component ID
+    proxyButton?: HTMLButtonElement;
     symbols: LegendSymbolOptions[];
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
