@@ -1275,7 +1275,7 @@ export class Legend extends BaseProperties {
                 bbox,
             });
             proxyButton?.addEventListener('click', (_event: MouseEvent): any => {
-                const { datum } = this.getFocusedItem();
+                const datum = this.data[index];
                 this.doClick(datum);
             });
         });
