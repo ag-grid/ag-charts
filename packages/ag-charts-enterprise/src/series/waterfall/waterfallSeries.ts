@@ -85,7 +85,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
             pathsZIndexSubOrderOffset: [-1, -1],

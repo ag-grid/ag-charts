@@ -50,6 +50,7 @@
     "@angular/compiler": "14.3.0",
     "lucide-react": "^0.343.0",
     "nanostores": "^0.9.3",
+    "node-html-parser": "^6.1.13",
     "@markdoc/markdoc": "0.3.5",
     "glob": "8.0.3",
     "dotenv": "10.0.0",

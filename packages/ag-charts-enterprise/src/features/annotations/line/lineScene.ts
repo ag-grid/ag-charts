@@ -1,12 +1,16 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { _Scene } from 'ag-charts-community';
 
-import type { AnnotationProperties } from '../annotationProperties';
 import type { Coords, LineCoords } from '../annotationTypes';
-import { Annotation } from './annotation';
-import { DivariantHandle } from './handle';
-import { CollidableLine } from './shapes';
+import { Annotation } from '../scenes/annotation';
+import { DivariantHandle } from '../scenes/handle';
+import { CollidableLine } from '../scenes/shapes';
+import type { LineAnnotation } from './lineProperties';
 
 export class Line extends Annotation {
+    static override is(value: unknown): value is Line {
+        return Annotation.isCheck(value, 'line');
+    }
+
     type = 'line';
 
     override activeHandle?: 'start' | 'end';
@@ -22,7 +26,7 @@ export class Line extends Annotation {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, coords?: LineCoords) {
+    public update(datum: LineAnnotation, seriesRect: _Scene.BBox, coords?: LineCoords) {
         const { line, start, end } = this;
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
 
@@ -80,11 +84,7 @@ export class Line extends Annotation {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(
-        datum: AnnotationProperties,
-        target: Coords,
-        invertPoint: (point: Coords) => Coords | undefined
-    ) {
+    override dragHandle(datum: LineAnnotation, target: Coords, invertPoint: (point: Coords) => Coords | undefined) {
         const { activeHandle } = this;
 
         if (!activeHandle || datum.start == null || datum.end == null) return;

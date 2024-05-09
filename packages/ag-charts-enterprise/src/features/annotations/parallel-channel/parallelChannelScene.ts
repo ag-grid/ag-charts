@@ -1,26 +1,22 @@
 import { _Scene } from 'ag-charts-community';
 
-import type { AnnotationProperties } from '../annotationProperties';
 import { AnnotationType, type Coords, type LineCoords } from '../annotationTypes';
-import { Annotation } from './annotation';
-import { DivariantHandle, UnivariantHandle } from './handle';
-import { CollidableLine } from './shapes';
+import { Annotation } from '../scenes/annotation';
+import { Channel } from '../scenes/channelScene';
+import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
+import type { ParallelChannelAnnotation } from './parallelChannelProperties';
 
-type ChannelHandle = keyof Channel['handles'];
+type ChannelHandle = keyof ParallelChannel['handles'];
 
-export class Channel extends Annotation {
-    type = 'channel';
+export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
+    static override is(value: unknown): value is ParallelChannel {
+        return Annotation.isCheck(value, 'parallel-channel');
+    }
+
+    type = 'parallel-channel';
 
     override activeHandle?: ChannelHandle;
-
-    private topLine = new CollidableLine();
-    private middleLine = new _Scene.Line();
-    private bottomLine = new CollidableLine();
-    private background = new _Scene.Path();
-
-    private seriesRect?: _Scene.BBox;
-
-    private handles = {
+    override handles = {
         topLeft: new DivariantHandle(),
         topMiddle: new UnivariantHandle(),
         topRight: new DivariantHandle(),
@@ -29,27 +25,11 @@ export class Channel extends Annotation {
         bottomRight: new DivariantHandle(),
     };
 
+    private middleLine = new _Scene.Line();
+
     constructor() {
         super();
         this.append([this.background, this.topLine, this.middleLine, this.bottomLine, ...Object.values(this.handles)]);
-    }
-
-    public update(datum: AnnotationProperties, seriesRect: _Scene.BBox, top?: LineCoords, bottom?: LineCoords) {
-        const { locked, visible } = datum;
-
-        this.locked = locked ?? false;
-        this.seriesRect = seriesRect;
-
-        if (top == null || bottom == null) {
-            this.visible = false;
-            return;
-        } else {
-            this.visible = visible ?? true;
-        }
-
-        this.updateLines(datum, top, bottom);
-        this.updateHandles(datum, top, bottom);
-        this.updateBackground(datum, top, bottom);
     }
 
     override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
@@ -78,7 +58,7 @@ export class Channel extends Annotation {
     }
 
     override dragHandle(
-        datum: AnnotationProperties,
+        datum: ParallelChannelAnnotation,
         target: Coords,
         invertPoint: (point: Coords) => Coords | undefined
     ) {
@@ -121,44 +101,38 @@ export class Channel extends Annotation {
             return;
         }
 
-        for (const [index, invertedMove] of invertedMoves.entries()) {
-            const datumPoint = this.getHandleDatumPoint(moves[index], datum);
-            datumPoint.x = invertedMove!.x;
-            datumPoint.y = invertedMove!.y;
-        }
-    }
-
-    override stopDragging() {
-        const { activeHandle, handles } = this;
-        if (activeHandle == null) return;
-
-        handles[activeHandle].toggleDragging(false);
-    }
-
-    override getCursor() {
-        if (this.activeHandle == null) return 'pointer';
-        return this.handles[this.activeHandle].getCursor();
-    }
-
-    override containsPoint(x: number, y: number) {
-        const { handles, seriesRect, topLine, bottomLine } = this;
-
-        this.activeHandle = undefined;
-
-        for (const [handle, child] of Object.entries(handles)) {
-            if (child.containsPoint(x, y)) {
-                this.activeHandle = handle as ChannelHandle;
-                return true;
+        // Adjust the size if dragging a middle handle
+        if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && datum.start.y != null) {
+            const topLeft = invertPoint({
+                x: handles.topLeft.handle.x + offset.x,
+                y: handles.topLeft.handle.y + offset.y,
+            });
+            if (topLeft) {
+                if (activeHandle === 'topMiddle') {
+                    datum.size += topLeft.y - datum.start.y;
+                } else {
+                    datum.size -= topLeft.y - datum.start.y;
+                }
             }
         }
 
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
+        // Move the start and end points if required
+        for (const [index, invertedMove] of invertedMoves.entries()) {
+            switch (moves[index]) {
+                case 'topLeft':
+                    datum.start.x = invertedMove!.x;
+                    datum.start.y = invertedMove!.y;
+                    break;
 
-        return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y);
+                case 'topRight':
+                    datum.end.x = invertedMove!.x;
+                    datum.end.y = invertedMove!.y;
+                    break;
+            }
+        }
     }
 
-    private updateLines(datum: AnnotationProperties, top: LineCoords, bottom: LineCoords) {
+    override updateLines(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -198,7 +172,7 @@ export class Channel extends Annotation {
         }
     }
 
-    private updateHandles(datum: AnnotationProperties, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const {
             handles: { topLeft, topMiddle, topRight, bottomLeft, bottomMiddle, bottomRight },
         } = this;
@@ -223,38 +197,5 @@ export class Channel extends Annotation {
             x: bottom.x1 + (bottom.x2 - bottom.x1) / 2 - bottomMiddle.handle.width / 2,
             y: bottom.y1 + (bottom.y2 - bottom.y1) / 2 - bottomMiddle.handle.height / 2,
         });
-    }
-
-    private updateBackground(datum: AnnotationProperties, top: LineCoords, bottom: LineCoords) {
-        const { background } = this;
-
-        background.path.clear();
-        background.path.moveTo(top.x1, top.y1);
-        background.path.lineTo(top.x2, top.y2);
-        background.path.lineTo(bottom.x2, bottom.y2);
-        background.path.lineTo(bottom.x1, bottom.y1);
-        background.path.closePath();
-        background.checkPathDirty();
-        background.setProperties({
-            fill: datum.background.fill,
-            fillOpacity: datum.background.fillOpacity,
-        });
-    }
-
-    private getHandleDatumPoint(
-        handle: Omit<ChannelHandle, 'topMiddle' | 'bottomMiddle'>,
-        datum: AnnotationProperties
-    ) {
-        switch (handle) {
-            case 'topLeft':
-                return datum.top.start;
-            case 'topRight':
-                return datum.top.end;
-            case 'bottomLeft':
-                return datum.bottom.start;
-            case 'bottomRight':
-            default:
-                return datum.bottom.end;
-        }
     }
 }

@@ -11,8 +11,9 @@ const annotations: AgToolbarOptions['annotations'] = {
     position: 'left',
     align: 'start',
     buttons: [
-        { label: 'Li', value: 'line' },
-        { label: 'PCh', value: 'parallel-channel' },
+        { icon: 'trend-line', tooltip: 'Trend Line', value: 'line' },
+        { icon: 'parallel-channel', tooltip: 'Parallel Channel', value: 'parallel-channel' },
+        { icon: 'disjoint-channel', tooltip: 'Disjoint Channel', value: 'disjoint-channel' },
     ],
 };
 

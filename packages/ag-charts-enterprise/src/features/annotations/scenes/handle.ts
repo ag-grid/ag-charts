@@ -2,7 +2,7 @@ import { _Scene } from 'ag-charts-community';
 
 import type { Coords } from '../annotationTypes';
 
-abstract class Handle extends _Scene.Group {
+export abstract class Handle extends _Scene.Group {
     protected abstract handle: _Scene.Rect | _Scene.Circle;
     protected abstract glow: _Scene.Rect | _Scene.Circle;
 

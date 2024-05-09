@@ -59,7 +59,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             directionKeys: {
                 x: ['xKey'],
                 y: ['medianKey', 'q1Key', 'q3Key', 'minKey', 'maxKey'],

@@ -34,7 +34,7 @@ export abstract class AbstractBarSeries<
     protected smallestDataInterval?: number = undefined;
 
     override getBandScalePadding() {
-        return { inner: 0.2, outer: 0.1 };
+        return { inner: 0.3, outer: 0.15 };
     }
 
     override shouldFlipXY(): boolean {
