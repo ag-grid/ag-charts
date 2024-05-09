@@ -307,6 +307,12 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
                 setElementBBox(newButton, { ...opts.bbox, y: opts.bbox.y });
                 newButton.style.pointerEvents = 'none';
                 newButton.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
+                newButton?.addEventListener('focus', (_event: FocusEvent): any => {
+                    newButton.style.setProperty('pointerEvents', null);
+                });
+                newButton?.addEventListener('blur', (_event: FocusEvent): any => {
+                    newButton.style.pointerEvents = 'none';
+                });
                 element?.appendChild(newButton);
                 return newButton;
         }
