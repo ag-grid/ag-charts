@@ -1,5 +1,5 @@
 import { Debug } from '../../util/debug';
-import { createElement, getDocument, setElementBBox } from '../../util/dom';
+import { createElement, getDocument } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
@@ -81,6 +81,19 @@ export class GuardedAgChartsWrapperElement extends GuardedElement {
         this.element.remove();
     }
 }
+
+type ProxyElementType = 'button';
+
+type ProxyElementParams<T extends ProxyElementType> = {
+    type: T;
+    id: string;
+    textContext: string;
+    onclick?: (ev: MouseEvent) => void;
+};
+
+type ProxyElementReturnMap = {
+    button: HTMLButtonElement;
+};
 
 type Events = { type: 'hidden' } | { type: 'resize'; size: Size };
 
@@ -293,26 +306,27 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         children.delete(id);
     }
 
-    addProxyItem(opts: {
-        type: 'button';
-        textContext: string;
-        id: string;
-        bbox: { x: number; y: number; width: number; height: number };
-    }): HTMLElement | undefined {
-        switch (opts.type) {
+    addProxyElement<T extends ProxyElementType>(params: ProxyElementParams<T>): ProxyElementReturnMap[T] | undefined {
+        const { type, id, textContext, onclick } = params;
+        switch (type) {
             case 'button':
                 const newButton = createElement('button');
                 const { element } = this.rootElements.get('canvas-overlay') ?? {};
-                newButton.textContent = opts.textContext;
-                setElementBBox(newButton, { ...opts.bbox, y: opts.bbox.y });
+
+                newButton.id = id;
+                newButton.textContent = textContext;
                 newButton.style.pointerEvents = 'none';
                 newButton.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
-                newButton?.addEventListener('focus', (_event: FocusEvent): any => {
+                newButton.addEventListener('focus', (_event: FocusEvent): any => {
                     newButton.style.setProperty('pointerEvents', null);
                 });
-                newButton?.addEventListener('blur', (_event: FocusEvent): any => {
+                newButton.addEventListener('blur', (_event: FocusEvent): any => {
                     newButton.style.pointerEvents = 'none';
                 });
+                if (onclick) {
+                    newButton.addEventListener('click', onclick);
+                }
+
                 element?.appendChild(newButton);
                 return newButton;
         }
