@@ -33,7 +33,7 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ xKey, datum }) => {
                     const year = datum[xKey];
-                    return `${year === 2023 || year === 1768 ? year : ''}`;
+                    return year === 2023 || year === 1768 ? `${year}` : '';
                 },
             },
             marker: {

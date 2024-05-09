@@ -5,7 +5,16 @@
     }
 
     System.config({
-        transpiler: 'plugin-babel',
+        transpiler: 'ts',
+        typescriptOptions: {
+            module: 'system',
+            moduleResolution: 'node',
+            target: 'es2020',
+            noImplicitAny: false,
+            sourceMap: true,
+            jsx: 'react',
+            lib: ['es2020', 'dom'],
+        },
         defaultExtension: 'js',
         paths: {
             // paths serve as alias
@@ -13,10 +22,6 @@
             ...sjsPaths,
         },
         map: {
-            // babel transpiler
-            'plugin-babel': 'npm:systemjs-plugin-babel@0.0.25/plugin-babel.js',
-            'systemjs-babel-build': 'npm:systemjs-plugin-babel@0.0.25/systemjs-babel-browser.js',
-
             css: boilerplatePath + 'css.js',
 
             // vuejs
@@ -24,6 +29,9 @@
             '@vue/reactivity': 'npm:@vue/reactivity@3.0.0/dist/reactivity.esm-browser.prod.js',
             // vue class component
             'vue-class-component': 'npm:vue-class-component@^8.0.0-beta.3/dist/vue-class-component.cjs.js',
+
+            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
+            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
             app: appLocation + 'app',
             // systemJsMap comes from index.html
@@ -49,10 +57,8 @@
             },
         },
         meta: {
-            '*.js': {
-                babelOptions: {
-                    es2015: false,
-                },
+            typescript: {
+                exports: 'ts',
             },
             '*.css': { loader: 'css' },
         },

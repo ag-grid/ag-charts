@@ -1,17 +1,22 @@
 (function (global) {
     System.config({
-        transpiler: 'plugin-babel',
-        defaultExtension: 'js',
+        transpiler: 'ts',
+        typescriptOptions: {
+            module: 'system',
+            moduleResolution: 'node',
+            target: 'es2020',
+            noImplicitAny: false,
+            sourceMap: true,
+            jsx: 'react',
+            lib: ['es2020', 'dom'],
+        },
         paths: {
+            // paths serve as alias
             'npm:': 'https://cdn.jsdelivr.net/npm/',
+            ...systemJsPaths,
         },
         map: {
-            // css plugin
             css: boilerplatePath + 'css.js',
-
-            // babel transpiler
-            'plugin-babel': 'npm:systemjs-plugin-babel@0.0.25/plugin-babel.js',
-            'systemjs-babel-build': 'npm:systemjs-plugin-babel@0.0.25/systemjs-babel-browser.js',
 
             // react
             react: 'npm:react@18.2.0',
@@ -21,16 +26,23 @@
 
             deepclone: 'npm:deepclone@1.0.2',
 
-            app: 'app',
+            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
+            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
+
+            app: appLocation,
             // systemJsMap comes from index.html
             ...systemJsMap,
         },
         packages: {
+            css: {},
             react: {
-                main: './umd/react.production.min.js',
+                main: './umd/react.profiling.min.js',
             },
             'react-dom': {
-                main: './umd/react-dom.production.min.js',
+                main: './umd/react-dom.profiling.min.js',
+            },
+            'react-dom/server': {
+                main: '../umd/react-dom-server.browser.production.min.js',
             },
             'prop-types': {
                 main: './prop-types.min.js',
@@ -38,6 +50,7 @@
             },
 
             app: {
+                main: './index.jsx',
                 defaultExtension: 'jsx',
             },
             'ag-charts-react': {
@@ -54,11 +67,8 @@
             },
         },
         meta: {
-            '*.jsx': {
-                babelOptions: {
-                    es2015: false,
-                    react: true,
-                },
+            typescript: {
+                exports: 'ts',
             },
             '*.css': { loader: 'css' },
         },

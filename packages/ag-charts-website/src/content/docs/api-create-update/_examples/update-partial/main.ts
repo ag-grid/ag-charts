@@ -56,7 +56,7 @@ function swapTitles() {
 function rotateLegend() {
     const position = chart.getOptions().legend!.position;
 
-    const currentIdx = positions.indexOf(position || 'top');
+    const currentIdx = positions.indexOf(position ?? 'top');
     const newPosition = positions[(currentIdx + 1) % positions.length];
 
     AgCharts.updateDelta(chart, { legend: { position: newPosition } });
