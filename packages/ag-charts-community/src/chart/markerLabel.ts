@@ -16,7 +16,6 @@ export class MarkerLabel extends Group {
 
     private readonly symbolsGroup: Group = new Group({
         name: 'legend-markerLabel-symbols',
-        layer: true,
     });
 
     constructor() {
