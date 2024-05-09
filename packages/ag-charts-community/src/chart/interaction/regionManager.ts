@@ -75,7 +75,7 @@ export class RegionManager {
 
     private readonly regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
-    private allRegionsListeners = new RegionListeners();
+    private readonly allRegionsListeners = new RegionListeners();
 
     constructor(
         private readonly interactionManager: InteractionManager,
