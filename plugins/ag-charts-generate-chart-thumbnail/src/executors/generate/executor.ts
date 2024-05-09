@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { ExecutorContext } from '@nx/devkit';
-import { CanvasRenderingContext2D } from 'canvas';
+import { Canvas, CanvasRenderingContext2D } from 'canvas';
 import path from 'path';
 import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
 
@@ -10,6 +10,7 @@ import { consolePrefix, ensureDirectory, readJSONFile } from '../../executors-ut
 import { generateThumbnail } from './generator/thumbnailGenerator';
 
 global.Path2D = Path2D;
+global.OffscreenCanvas = Canvas as any;
 
 applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
 
