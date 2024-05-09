@@ -3,7 +3,7 @@ import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
 
-const domElementClasses = ['styles', 'canvas', 'canvas-overlay', 'hidden'] as const;
+const domElementClasses = ['styles', 'canvas', 'canvas-overlay'] as const;
 export type DOMElementClass = (typeof domElementClasses)[number];
 
 const domElementConfig: Record<
@@ -13,7 +13,6 @@ const domElementConfig: Record<
     styles: { childElementType: 'style' },
     canvas: { childElementType: 'canvas' },
     'canvas-overlay': { childElementType: 'div' },
-    hidden: { childElementType: 'div' },
 };
 
 const STYLES = `
@@ -45,6 +44,15 @@ const STYLES = `
 }
 `;
 
+const BASE_DOM = `
+<div class="ag-charts-wrapper ag-charts-styles" data-ag-charts>
+    <div class="ag-charts-float">
+        <div class="ag-charts-canvas"></div>
+        <div class="ag-charts-canvas-overlay"></div>
+    <div>
+</div>
+`;
+
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
     // Detect when the chart becomes invisible and hide the tooltip as well.
     if (typeof IntersectionObserver === 'undefined') return;
@@ -65,8 +73,11 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
 
 export class GuardedAgChartsWrapperElement extends GuardedElement {
     constructor() {
+        const templateEl = createElement('div');
+        templateEl.innerHTML = BASE_DOM;
+        
         super(
-            createElement('div', 'ag-chart-wrapper', { position: 'relative', userSelect: 'none' }),
+            templateEl.children.item(0) as HTMLElement,
             getDocument().createElement('div'),
             getDocument().createElement('div')
         );
@@ -96,20 +107,20 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.parentElement = new GuardedAgChartsWrapperElement();
         const { element } = this.parentElement;
-        element.setAttribute('data-ag-charts', '');
         if (container) {
             this.setContainer(container);
         }
 
         this.rootElements = new Map(
             domElementClasses.map((c) => {
-                const el = createElement('div', `ag-charts-${c}`, domElementConfig[c].style);
+                const cssClass = `ag-charts-${c}`;
+                const el = element.classList.contains(cssClass) ? element : element.querySelector(`.${cssClass}`) as HTMLElement;
+
+                if (!el) throw new Error(`AG Charts - unable to find DOM element ${cssClass}`);
 
                 return [c, { element: el, children: new Map<string, HTMLElement>() }];
             })
         );
-
-        this.rootElements.forEach((el) => element.appendChild(el.element));
 
         let hidden = false;
         this.observer = setupObserver(element, (intersectionRatio) => {
