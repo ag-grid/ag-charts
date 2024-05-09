@@ -142,9 +142,6 @@
         "fix": {}
       }
     },
-    "format:check": {
-      "command": "nx format:check ."
-    },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-enterprise.xml"],

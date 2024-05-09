@@ -120,9 +120,6 @@
         }
       }
     },
-    "format:check": {
-      "command": "nx format:check ."
-    },
     "generate-examples": {
       "executor": "nx:noop",
       "dependsOn": ["^generate-example"],

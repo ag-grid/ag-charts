@@ -112,10 +112,10 @@
         }
       }
     },
-    "format:check": {
-      "executor": "nx:noop",
-      "dependsOn": ["^format:check"],
-      "inputs": [],
+    "format-check": {
+      "command": "nx format:check --all",
+      "cache": true,
+      "inputs": ["{workspaceRoot}/**"],
       "outputs": []
     },
     "blt": {
