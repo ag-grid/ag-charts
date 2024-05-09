@@ -500,7 +500,10 @@ export class Legend extends BaseProperties {
             parent: this.proxyLegendToolbar,
             bboxprovider: markerLabel,
             onclick: (_event: MouseEvent): any => {
-                const datum = this.data[index];
+                // Retrieve the datum from the node rather than from the method parameter.
+                // The method parameter `datum` gets destroyed when the data is refreshed
+                // using Series.getLegendData(). But the scene node will stay the same.
+                const datum: CategoryLegendDatum = markerLabel.datum;
                 this.doClick(datum);
             },
         });
