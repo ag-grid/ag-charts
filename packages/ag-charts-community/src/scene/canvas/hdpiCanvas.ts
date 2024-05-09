@@ -33,20 +33,27 @@ export class HdpiCanvas {
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width, height, pixelRatio, canvasConstructor } = options;
+        const { width = this.width, height = this.height, pixelRatio, canvasConstructor } = options;
 
+        this.width = options.width ?? 0; // Must default to zero or #clear breaks. Should be investigated.
+        this.height = options.height ?? 0;
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         this.element = canvasConstructor?.() ?? createElement('canvas');
-        // Safari needs a width and height set or the output can appear blurry
-        this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
-        this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
+        // Safari needs a width and height set before getContext or the output can appear blurry
+        // We need *all* the styles set with display block so the width and height are correct
+        this.element.width = Math.round(width * this.pixelRatio);
+        this.element.height = Math.round(height * this.pixelRatio);
+        this.element.style.display = 'block';
+        this.element.style.width = width + 'px';
+        this.element.style.height = height + 'px';
 
         this.context = this.element.getContext('2d')!;
+        this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
-        this.onEnabledChange(); // Force `display: block` style
-        this.resize(width ?? 0, height ?? 0);
+        // Hide element if enabled is false
+        this.onEnabledChange();
 
         HdpiCanvas.debugContext(this.context);
     }
@@ -61,6 +68,7 @@ export class HdpiCanvas {
 
     resize(width: number, height: number) {
         if (!(width > 0 && height > 0)) return;
+        if (width === this.height && height === this.height) return;
 
         const { element, context, pixelRatio } = this;
         element.width = Math.round(width * pixelRatio);
