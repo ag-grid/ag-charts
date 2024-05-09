@@ -193,7 +193,7 @@
       "dependsOn": [
         "build",
         "ag-charts-community-examples:build",
-        "ag-charts-website-src_content_docs_benchmarks__examples_multi-series_main.ts:generate-example"
+        "ag-charts-website-benchmarks_multi-series_main.ts:generate-example"
       ]
     },
     "pack": {
