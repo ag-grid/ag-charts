@@ -185,6 +185,10 @@ jobs:
                   # Batched builds.
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 
+            - name: nx run generate-gallery-thumbnail
+              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
+              run: yarn nx run generate-gallery-thumbnail --example simple-bar
+
             - name: nx run-many -t validate-examples
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
