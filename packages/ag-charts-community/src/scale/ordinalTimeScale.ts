@@ -257,8 +257,10 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return specifier == null ? defaultTimeTickFormat(ticks, domain) : buildFormatter(specifier);
     }
 
-    override invert(y: number): Date {
-        return new Date(super.invert(y));
+    override invert(position: number) {
+        this.refresh();
+        const index = this.ordinalRange.findIndex((p) => position <= p);
+        return this.domain[index];
     }
 
     override invertNearest(y: number): Date {

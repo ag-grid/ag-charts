@@ -242,12 +242,14 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         ticks,
         domain,
         specifier,
+        formatOffset,
     }: {
         ticks?: any[];
         domain?: any[];
         specifier?: string;
+        formatOffset?: number;
     }): (date: Date) => string {
-        return specifier == null ? defaultTimeTickFormat(ticks, domain) : buildFormatter(specifier);
+        return specifier == null ? defaultTimeTickFormat(ticks, domain, formatOffset) : buildFormatter(specifier);
     }
 
     update() {
