@@ -48,7 +48,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         },
         fillOpacity: 1,
         strokeOpacity: 1,
-        strokeWidth: 1,
+        strokeWidth: 0,
         lineDash: [0],
         lineDashOffset: 0,
         rotation: 0,
@@ -71,11 +71,11 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
     },
 };
 
-export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount, userPalette }) => {
+export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount }) => {
     const { fills, strokes } = takeColors(colorsCount);
     return {
         fills,
-        strokes: userPalette ? strokes : [],
+        strokes,
         calloutLine: {
             colors: strokes,
         },

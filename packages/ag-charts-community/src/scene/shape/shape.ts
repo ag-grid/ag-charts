@@ -129,6 +129,9 @@ export abstract class Shape extends Node {
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
     lineJoin?: ShapeLineJoin = Shape.defaultStyles.lineJoin;
 
+    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    miterLimit?: number = undefined;
+
     @SceneChangeDetection({
         redraw: RedrawType.MINOR,
         convertor: (v: number) => clamp(0, v, 1),
@@ -199,6 +202,9 @@ export abstract class Shape extends Node {
             }
             if (this.lineJoin) {
                 ctx.lineJoin = this.lineJoin;
+            }
+            if (this.miterLimit != null) {
+                ctx.miterLimit = this.miterLimit;
             }
 
             this.executeStroke(ctx, path);

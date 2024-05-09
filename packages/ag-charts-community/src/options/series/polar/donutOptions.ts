@@ -117,11 +117,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     innerCircle?: AgDonutInnerCircle;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
-    /**
-     * The spacing between Donut sectors.
-     *
-     * __Important:__ When this property is used, strokes are rendered on the inside of the Donut sectors, and no longer have a default colour.
-     */
+    /** The spacing between Donut sectors. */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the Donut sectors. */
     formatter?: (params: AgDonutSeriesFormatterParams<TDatum>) => AgDonutSeriesFormat;
