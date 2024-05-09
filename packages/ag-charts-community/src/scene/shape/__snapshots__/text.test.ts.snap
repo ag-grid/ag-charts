@@ -20,30 +20,20 @@ exports[`Text text measurements should measure multiline text size currently 2`]
 
 exports[`Text text measurements should measure text currently 1`] = `
 {
-  "actualBoundingBoxAscent": 24,
-  "actualBoundingBoxDescent": -5.333333333333333,
-  "actualBoundingBoxLeft": 0,
-  "actualBoundingBoxRight": 130.66666666666666,
-  "alphabeticBaseline": 5.333333333333336,
-  "emHeightAscent": 24,
-  "emHeightDescent": 0,
-  "fontBoundingBoxAscent": 24,
-  "fontBoundingBoxDescent": 0,
+  "height": 18.666666666666668,
+  "lineHeight": 24,
+  "offsetLeft": 0,
+  "offsetTop": 24,
   "width": 130.66666666666666,
 }
 `;
 
 exports[`Text text measurements should measure text currently 2`] = `
 {
-  "actualBoundingBoxAscent": 24,
-  "actualBoundingBoxDescent": 13.333333333333334,
-  "actualBoundingBoxLeft": 178.66666666666666,
-  "actualBoundingBoxRight": 178.66666666666666,
-  "alphabeticBaseline": -13.333333333333329,
-  "emHeightAscent": 24,
-  "emHeightDescent": 24,
-  "fontBoundingBoxAscent": 24,
-  "fontBoundingBoxDescent": 24,
+  "height": 37.333333333333336,
+  "lineHeight": 48,
+  "offsetLeft": 178.66666666666666,
+  "offsetTop": 24,
   "width": 357.3333333333333,
 }
 `;
@@ -51,6 +41,9 @@ exports[`Text text measurements should measure text currently 2`] = `
 exports[`Text text measurements should measure text size currently 1`] = `
 {
   "height": 18.666666666666668,
+  "lineHeight": 24,
+  "offsetLeft": 0,
+  "offsetTop": 24,
   "width": 130.66666666666666,
 }
 `;
@@ -58,6 +51,9 @@ exports[`Text text measurements should measure text size currently 1`] = `
 exports[`Text text measurements should measure text size currently 2`] = `
 {
   "height": 37.333333333333336,
+  "lineHeight": 48,
+  "offsetLeft": 178.66666666666666,
+  "offsetTop": 24,
   "width": 357.3333333333333,
 }
 `;
