@@ -17,6 +17,7 @@ import type { Annotation } from './scenes/annotation';
 const {
     BOOLEAN,
     OBJECT_ARRAY,
+    ChartUpdateType,
     Cursor,
     InteractionState,
     TypedPropertiesArray,
@@ -77,14 +78,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     @Validate(BOOLEAN)
     public enabled: boolean = true;
 
-    @_ModuleSupport.ObserveChanges<Annotations>((target, initial: Array<AnnotationProperties>) => {
-        target.annotationData ??= initial;
-    })
+    @_ModuleSupport.ObserveChanges<Annotations>(
+        (target, initial: _ModuleSupport.TypedPropertiesArray<AnnotationProperties>) => {
+            target.annotationData ??= initial;
+        }
+    )
     @Validate(OBJECT_ARRAY, { optional: true })
     public initial = new TypedPropertiesArray(annotationDatums);
 
     // State
-    private annotationData?: AnnotationProperties[];
+    private annotationData?: _ModuleSupport.TypedPropertiesArray<AnnotationProperties>;
 
     private readonly container = new _Scene.Group({ name: 'static-annotations' });
     private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
@@ -124,9 +127,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             region.addListener('click', this.onClick.bind(this), All),
             region.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             region.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
+            ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
+            ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
         );
+    }
+
+    private onRestoreAnnotations(event: { annotations?: any }) {
+        this.clear();
+
+        this.annotationData ??= new TypedPropertiesArray(annotationDatums);
+        this.annotationData.set(event.annotations);
+
+        this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
@@ -139,20 +152,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        let annotation: AnnotationType;
-        switch (event.value) {
-            case 'line':
-                annotation = AnnotationType.Line;
-                break;
-            case 'disjoint-channel':
-                annotation = AnnotationType.DisjointChannel;
-                break;
-            case 'parallel-channel':
-                annotation = AnnotationType.ParallelChannel;
-                break;
-            default:
-                _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
-                return;
+        const annotation = this.stringToAnnotationType(event.value);
+        if (!annotation) {
+            _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
+            return;
         }
 
         this.ctx.interactionManager.pushState(InteractionState.Annotations);
@@ -171,7 +174,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        const { annotationData, annotations } = this;
+        const {
+            annotationData,
+            annotations,
+            ctx: { annotationManager },
+        } = this;
 
         this.seriesRect = event.series.rect;
 
@@ -184,6 +191,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.domainY ??= axis.domain;
             }
         }
+
+        annotationManager.updateData(annotationData?.map((d) => d.toJson()));
 
         annotations.update(annotationData ?? []).each((node, datum) => {
             if (!this.validateDatum(datum)) {
@@ -215,6 +224,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         switch (datum.type) {
             case AnnotationType.Line:
+            case AnnotationType.DisjointChannel:
             case AnnotationType.ParallelChannel:
                 valid = this.validateDatumLine(datum, `Annotation [${datum.type}]`);
                 break;
@@ -337,7 +347,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point };
         this.state.transition('hover', data);
 
-        updateService.update();
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
@@ -384,7 +394,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point };
         this.state.transition('click', data);
 
-        updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
@@ -422,7 +432,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
         }
 
-        updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onDragNodeHandle(handleOffset: Coords) {
@@ -450,7 +460,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null) return;
 
         annotations.nodes()[active].stopDragging();
-        updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+    }
+
+    private clear() {
+        this.annotations.clear();
+        this.hovered = undefined;
+        this.active = undefined;
+    }
+
+    private stringToAnnotationType(value: string) {
+        switch (value) {
+            case 'line':
+                return AnnotationType.Line;
+            case 'disjoint-channel':
+                return AnnotationType.DisjointChannel;
+            case 'parallel-channel':
+                return AnnotationType.ParallelChannel;
+        }
     }
 
     private convertLine(datum: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> }) {
