@@ -70,3 +70,10 @@ export function setDocument(document: Document) {
 export function setWindow(window: Window) {
     verifiedGlobals.window = window;
 }
+
+export function setElementBBox(element: HTMLElement, bbox: { x: number; y: number; width: number; height: number }) {
+    element.style.width = `${bbox.width}px`;
+    element.style.height = `${bbox.height}px`;
+    element.style.left = `${bbox.x}px`;
+    element.style.top = `${bbox.y}px`;
+}

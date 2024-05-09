@@ -1263,6 +1263,19 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.y += this.group.translationY;
         }
 
+        this.itemSelection.each((node, datum, index) => {
+            const bbox = node.computeBBox();
+            if (!bbox) return;
+
+            // FIXME: this should "add or update" the proxy buttons
+            this.ctx.domManager.addProxyItem({
+                type: 'button',
+                id: `ag-charts-legend-item-${index}`,
+                textContext: datum.legendItemName ?? datum.label.text,
+                bbox,
+            });
+        });
+
         return { shrinkRect: newShrinkRect };
     }
 

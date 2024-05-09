@@ -1,4 +1,4 @@
-import { createElement, getDocument } from '../../util/dom';
+import { createElement, getDocument, setElementBBox } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
@@ -286,5 +286,23 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         children.get(id)?.remove();
         children.delete(id);
+    }
+
+    addProxyItem(opts: {
+        type: 'button';
+        textContext: string;
+        id: string;
+        bbox: { x: number; y: number; width: number; height: number };
+    }) {
+        switch (opts.type) {
+            case 'button':
+                const newButton = createElement('button');
+                const { element } = this.rootElements.get('canvas-overlay') ?? {};
+                newButton.textContent = opts.textContext;
+                // FIXME translating the button up a bit for testing.
+                setElementBBox(newButton, { ...opts.bbox, y: opts.bbox.y - 30 });
+                element?.appendChild(newButton);
+                break;
+        }
     }
 }

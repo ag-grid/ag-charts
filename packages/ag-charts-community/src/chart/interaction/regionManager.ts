@@ -1,4 +1,5 @@
 import type { BBox } from '../../scene/bbox';
+import { setElementBBox } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
 import type { DOMManager } from '../dom/domManager';
 import { FocusIndicator } from '../dom/focusIndicator';

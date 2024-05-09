@@ -1,3 +1,4 @@
+import { setElementBBox } from '../../module-support';
 import type { DOMManager } from './domManager';
 import * as focusStyles from './focusStyles';
 
@@ -23,9 +24,6 @@ export class FocusIndicator {
         }
 
         this.element.classList.remove(focusStyles.modifiers.hidden);
-        this.element.style.width = `${rect.width}px`;
-        this.element.style.height = `${rect.height}px`;
-        this.element.style.left = `${rect.x}px`;
-        this.element.style.top = `${rect.y}px`;
+        setElementBBox(this.element, rect);
     }
 }
