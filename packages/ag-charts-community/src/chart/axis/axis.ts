@@ -1510,10 +1510,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected createAxisContext(): AxisContext {
+        const { scale } = this;
         return {
             axisId: this.id,
             direction: this.direction,
-            continuous: ContinuousScale.is(this.scale) || OrdinalTimeScale.is(this.scale),
+            continuous: ContinuousScale.is(scale) || OrdinalTimeScale.is(scale),
             keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
@@ -1528,10 +1529,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) =>
-                specifier ? this.scale.tickFormat?.({ specifier }) : this.getFormatter(),
-            scaleBandwidth: () => this.scale.bandwidth ?? 0,
-            scaleConvert: (val) => this.scale.convert(val),
-            scaleInvert: (val) => this.scale.invert?.(val),
+                specifier ? scale.tickFormat?.({ specifier }) : this.getFormatter(),
+            scaleBandwidth: () => scale.bandwidth ?? 0,
+            scaleConvert: (val) => scale.convert(val),
+            scaleInvert: OrdinalTimeScale.is(scale)
+                ? (val) => scale.invertNearest?.(val)
+                : (val) => scale.invert?.(val),
         };
     }
 
