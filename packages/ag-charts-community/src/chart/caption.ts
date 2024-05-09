@@ -6,6 +6,7 @@ import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
+import { TextMeasurer } from '../util/textMeasurer';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -111,7 +112,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         }
         const wrappedText = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
         this.node.text = wrappedText;
-        this.truncated = wrappedText !== text;
+        this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
     }
 
     private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined) {
