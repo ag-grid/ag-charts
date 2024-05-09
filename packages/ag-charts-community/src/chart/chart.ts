@@ -172,12 +172,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         newValue(value: HTMLElement) {
             if (this.destroyed) return;
 
-            value.setAttribute('data-ag-charts', '');
             this.ctx.domManager.setContainer(value);
             Chart.chartsInstances.set(value, this);
         },
         oldValue(value: HTMLElement) {
-            value.removeAttribute('data-ag-charts');
             Chart.chartsInstances.delete(value);
         },
     })

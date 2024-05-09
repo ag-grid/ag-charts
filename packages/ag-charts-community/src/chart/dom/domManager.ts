@@ -96,6 +96,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.parentElement = new GuardedAgChartsWrapperElement();
         const { element } = this.parentElement;
+        element.setAttribute('data-ag-charts', '');
         if (container) {
             this.setContainer(container);
         }
