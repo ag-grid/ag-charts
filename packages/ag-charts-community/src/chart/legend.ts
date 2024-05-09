@@ -1033,7 +1033,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private focus: LegendFocus = { on: false, mode: 'item', index: 0 };
+    private readonly focus: LegendFocus = { on: false, mode: 'item', index: 0 };
 
     private onBlur(_event: KeyNavEvent<'blur'>) {
         this.doMouseExit();

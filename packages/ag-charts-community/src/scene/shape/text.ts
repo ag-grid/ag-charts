@@ -340,7 +340,7 @@ export class Text extends Shape {
         return { result: wrappedText, truncated: wrapResult.linesTruncated, cumulativeHeight };
     }
 
-    private static punctuationMarks = ['.', ',', '-', ':', ';', '!', '?', `'`, '"', '(', ')'];
+    private static readonly punctuationMarks = ['.', ',', '-', ':', ';', '!', '?', `'`, '"', '(', ')'];
 
     private static breakWord(
         word: string,
@@ -612,7 +612,7 @@ export class Text extends Shape {
         return this._textContext;
     }
 
-    private static _measureText = memoizeFunction(
+    private static readonly _measureText = memoizeFunction(
         ({
             text,
             font,
@@ -641,7 +641,7 @@ export class Text extends Shape {
         }
     );
 
-    private static _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) => {
+    private static readonly _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) => {
         const ctx = this.textContext;
         // optimisation, don't simplify
         if (ctx.font !== font) {

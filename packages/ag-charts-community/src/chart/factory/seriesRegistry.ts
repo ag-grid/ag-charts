@@ -33,8 +33,8 @@ interface SeriesRegistryRecord {
 }
 
 export class SeriesRegistry {
-    private seriesMap = new Map<SeriesType, SeriesRegistryRecord>();
-    private themeTemplates = new Map<string, { community: object; enterprise: object }>();
+    private readonly seriesMap = new Map<SeriesType, SeriesRegistryRecord>();
+    private readonly themeTemplates = new Map<string, { community: object; enterprise: object }>();
 
     register(
         seriesType: NonNullable<SeriesType>,

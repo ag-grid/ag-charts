@@ -55,7 +55,7 @@ export class MapLineBackgroundSeries
         return false;
     }
 
-    private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
     private datumSelection: _Scene.Selection<GeoGeometry, MapLineBackgroundNodeDatum> = Selection.select(
         this.itemGroup,

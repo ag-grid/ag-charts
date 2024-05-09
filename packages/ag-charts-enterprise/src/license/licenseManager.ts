@@ -19,15 +19,15 @@ const LICENSE_TYPES = {
 };
 
 export class LicenseManager {
-    private static RELEASE_INFORMATION: string = 'MTcxMzg5MTcwNTkzNw==';
+    private static readonly RELEASE_INFORMATION: string = 'MTcxMzg5MTcwNTkzNw==';
     private licenseKey?: string;
     private gridContext: boolean = false;
     private watermarkMessage: string | undefined = undefined;
 
-    private md5: MD5;
-    private document?: Document;
+    private readonly md5: MD5;
+    private readonly document?: Document;
 
-    private totalMessageLength = 124;
+    private readonly totalMessageLength = 124;
 
     constructor(document?: Document) {
         this.document = document;

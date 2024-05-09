@@ -8,9 +8,9 @@ import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
-    private lastAxisZooms = new Map<string, ZoomState>();
+    private readonly lastAxisZooms = new Map<string, ZoomState>();
 
-    private destroyFns: (() => void)[] = [];
+    private readonly destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly chart: ChartLike,

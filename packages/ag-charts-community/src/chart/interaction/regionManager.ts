@@ -54,7 +54,7 @@ export class RegionManager {
     private isDragging = false;
     private leftCanvas = false;
 
-    private regions: Map<RegionName, Region> = new Map();
+    private readonly regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(

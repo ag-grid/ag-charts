@@ -251,6 +251,7 @@ export class CartesianChart extends Chart {
 
         this._lastAxisWidths = axisWidths;
         this._lastVisibility = visibility;
+        this._lastClipSeries = clipSeries;
 
         return { seriesRect, animationRect: inputShrinkRect, visibility, clipSeries };
     }

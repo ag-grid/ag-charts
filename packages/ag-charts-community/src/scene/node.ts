@@ -130,8 +130,8 @@ export abstract class Node extends ChangeDetectable {
         return this._parent;
     }
 
-    private _virtualChildren: Node[] = [];
-    private _children: Node[] = [];
+    private readonly _virtualChildren: Node[] = [];
+    private readonly _children: Node[] = [];
     get children(): Node[] {
         return this._virtualChildren.length
             ? this._children.concat(this._virtualChildren.flatMap((next) => next.children))

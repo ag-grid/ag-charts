@@ -84,7 +84,7 @@ export class GuardedAgChartsWrapperElement extends GuardedElement {
 type Events = { type: 'hidden' } | { type: 'resize'; size: Size };
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
-    private rootElements: Map<DOMElementClass, { element: HTMLElement; children: Map<string, HTMLElement> }>;
+    private readonly rootElements: Map<DOMElementClass, { element: HTMLElement; children: Map<string, HTMLElement> }>;
     private readonly parentElement: GuardedElement;
     private container?: HTMLElement;
 

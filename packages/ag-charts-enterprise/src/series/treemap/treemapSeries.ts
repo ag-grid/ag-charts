@@ -94,7 +94,7 @@ export class TreemapSeries<
     override properties = new TreemapSeriesProperties();
 
     groupSelection = Selection.select(this.contentGroup, DistantGroup);
-    private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
+    private readonly highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.highlightGroup,
         Group
     );

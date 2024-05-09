@@ -3,9 +3,9 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
 
 export class AxisRegistry {
-    private axesMap = new Map<string, new (moduleContext: ModuleContext) => ChartAxis>();
-    private hidden = new Set<string>();
-    private themeTemplates = new Map<string, object>();
+    private readonly axesMap = new Map<string, new (moduleContext: ModuleContext) => ChartAxis>();
+    private readonly hidden = new Set<string>();
+    private readonly themeTemplates = new Map<string, object>();
 
     register(axisType: string, module: Pick<AxisModule, 'instanceConstructor' | 'themeTemplate' | 'hidden'>) {
         this.axesMap.set(axisType, module.instanceConstructor);

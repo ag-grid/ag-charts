@@ -10,10 +10,10 @@ export class AngleCrossLine extends PolarCrossLine {
 
     override direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.X;
 
-    private polygonNode = new Path();
-    private sectorNode = new Sector();
-    private lineNode = new Path();
-    private labelNode = new Text();
+    private readonly polygonNode = new Path();
+    private readonly sectorNode = new Sector();
+    private readonly lineNode = new Path();
+    private readonly labelNode = new Text();
 
     constructor() {
         super();

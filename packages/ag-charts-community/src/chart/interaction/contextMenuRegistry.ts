@@ -12,8 +12,8 @@ export type ContextMenuActionParams = {
 };
 
 export class ContextMenuRegistry {
-    private defaultActions: Array<ContextMenuAction> = [];
-    private disabledActions: Set<string> = new Set();
+    private readonly defaultActions: Array<ContextMenuAction> = [];
+    private readonly disabledActions: Set<string> = new Set();
 
     public copyDefaultActions(): ContextMenuAction[] {
         return [...this.defaultActions];

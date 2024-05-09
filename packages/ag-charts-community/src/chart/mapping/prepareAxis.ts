@@ -34,9 +34,9 @@ function isAxisPosition(position: unknown): position is AgCartesianAxisPosition 
 // If axis[].position, then we cannot always default to the same value. We need
 // to default to an 'untaken' position (see AG-9963 for more info).
 export class AxisPositionGuesser {
-    private result: ChartAxis[] = [];
-    private valid: ChartAxis[] = [];
-    private invalid: ChartAxis[] = [];
+    private readonly result: ChartAxis[] = [];
+    private readonly valid: ChartAxis[] = [];
+    private readonly invalid: ChartAxis[] = [];
 
     push(axis: ChartAxis, options: AgBaseAxisOptions) {
         const { result, valid, invalid } = this;

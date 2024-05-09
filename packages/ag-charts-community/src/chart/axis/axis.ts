@@ -243,11 +243,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected axisContext?: AxisContext;
 
     protected animationManager: AnimationManager;
-    private animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
+    private readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
-    private destroyFns: Function[] = [];
+    private readonly destroyFns: Function[] = [];
 
-    private minRect?: BBox;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private minRect?: BBox = undefined;
 
     constructor(
         protected readonly moduleCtx: ModuleContext,

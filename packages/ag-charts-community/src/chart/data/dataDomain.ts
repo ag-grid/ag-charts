@@ -4,7 +4,7 @@ export interface IDataDomain<D = any> {
 }
 
 export class DiscreteDomain implements IDataDomain {
-    private domain = new Set();
+    private readonly domain = new Set();
 
     static is(value: unknown): value is DiscreteDomain {
         return value instanceof DiscreteDomain;

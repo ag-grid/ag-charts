@@ -25,7 +25,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
         bottomRight: new DivariantHandle(),
     };
 
-    private middleLine = new _Scene.Line();
+    private readonly middleLine = new _Scene.Line();
 
     constructor() {
         super();

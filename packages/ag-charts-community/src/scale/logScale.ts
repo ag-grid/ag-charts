@@ -57,12 +57,12 @@ export class LogScale extends ContinuousScale<number> {
     private baseLog: (x: number) => number = identity;
     private basePow: (x: number) => number = identity;
 
-    private log = (x: number) => {
+    private readonly log = (x: number) => {
         const start = Math.min(...this.domain);
         return start >= 0 ? this.baseLog(x) : -this.baseLog(-x);
     };
 
-    private pow = (x: number) => {
+    private readonly pow = (x: number) => {
         const start = Math.min(...this.domain);
         return start >= 0 ? this.basePow(x) : -this.basePow(-x);
     };

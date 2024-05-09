@@ -20,7 +20,7 @@ export class GeoGeometry extends Path {
 
     private bbox: _Scene.BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
-    private strokePath = new ExtendedPath2D();
+    private readonly strokePath = new ExtendedPath2D();
 
     override computeBBox(): _Scene.BBox | undefined {
         if (this.dirtyPath || this.isDirtyPath()) {

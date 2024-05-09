@@ -80,7 +80,7 @@ export class BackgroundImage extends BaseProperties {
         );
     }
 
-    private onImageLoad = () => {
+    private readonly onImageLoad = () => {
         if (this.loadedSynchronously) {
             return;
         }

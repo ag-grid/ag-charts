@@ -11,7 +11,7 @@ type Entry = {
 };
 
 export class SizeMonitor {
-    private elements = new Map<HTMLElement, Entry>();
+    private readonly elements = new Map<HTMLElement, Entry>();
     private resizeObserver: any;
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];

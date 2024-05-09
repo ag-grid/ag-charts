@@ -36,7 +36,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     @Validate(OBJECT)
     readonly label = new CrosshairLabelProperties();
 
-    private labels: { [key: string]: CrosshairLabel };
+    private readonly labels: { [key: string]: CrosshairLabel };
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
     private seriesRect: _Scene.BBox = new BBox(0, 0, 0, 0);
@@ -46,7 +46,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private axisLayout?: _ModuleSupport.AxisLayout & { id: string };
     private labelFormatter?: (value: any) => string;
 
-    private crosshairGroup: _Scene.Group = new Group({ layer: true, zIndex: Layers.SERIES_CROSSHAIR_ZINDEX });
+    private readonly crosshairGroup: _Scene.Group = new Group({ layer: true, zIndex: Layers.SERIES_CROSSHAIR_ZINDEX });
     protected readonly lineGroup = this.crosshairGroup.appendChild(
         new Group({
             name: `${this.id}-crosshair-lines`,

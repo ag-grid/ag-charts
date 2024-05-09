@@ -12,7 +12,7 @@ export class AnimationBatch {
     public readonly stoppedCbs: Set<() => void> = new Set();
 
     private currentPhase = 0;
-    private phases = new Map(PHASE_ORDER.map((p) => [p, [] as IAnimation[]]));
+    private readonly phases = new Map(PHASE_ORDER.map((p) => [p, [] as IAnimation[]]));
     private skipAnimations = false;
     private animationTimeConsumed = 0;
 
