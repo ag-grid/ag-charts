@@ -33,6 +33,8 @@ export class MarkerLabel extends Group {
         this.append([this.symbolsGroup, label]);
     }
 
+    proxyButton?: HTMLButtonElement;
+
     @ProxyPropertyOnWrite('label')
     text?: string;
 
