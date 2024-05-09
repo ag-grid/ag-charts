@@ -4,7 +4,6 @@ import { getInternalFramework } from '@utils/framework';
 
 export type FrameworkContext = {
     useTypescript: string;
-    useVue3: string;
 };
 
 const LOCALSTORAGE_PREFIX = 'documentation';
@@ -17,7 +16,6 @@ export const $internalFramework = persistentAtom<InternalFramework>(
 );
 export const $frameworkContext = persistentMap<FrameworkContext>(`${LOCALSTORAGE_PREFIX}:context`, {
     useTypescript: 'false',
-    useVue3: 'false',
 });
 
 /**
