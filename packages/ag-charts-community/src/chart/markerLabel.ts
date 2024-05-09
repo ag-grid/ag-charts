@@ -34,6 +34,8 @@ export class MarkerLabel extends Group implements RelativeBBoxProvider<BBoxValue
         this.append([this.symbolsGroup, label]);
     }
 
+    proxyButton?: HTMLButtonElement;
+
     @ProxyPropertyOnWrite('label')
     text?: string;
 

@@ -493,19 +493,17 @@ export class Legend extends BaseProperties {
         markerLabel.lines = lines;
         markerLabel.update(dimensionProps);
 
-        if (datum.proxyButton === undefined) {
-            datum.proxyButton = this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
-                id: `ag-charts-legend-item-${index}`,
-                textContext: this.getItemAriaText(index),
-                parent: this.proxyLegendToolbar,
-                bboxprovider: markerLabel,
-                onclick: (_event: MouseEvent): any => {
-                    const datum = this.data[index];
-                    this.doClick(datum);
-                },
-            });
-        }
+        markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
+            type: 'button',
+            id: `ag-charts-legend-item-${index}`,
+            textContext: this.getItemAriaText(index),
+            parent: this.proxyLegendToolbar,
+            bboxprovider: markerLabel,
+            onclick: (_event: MouseEvent): any => {
+                const datum = this.data[index];
+                this.doClick(datum);
+            },
+        });
 
         return paddedSymbolWidth;
     }
@@ -1303,10 +1301,10 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.y += this.group.translationY;
         }
 
-        this.itemSelection.each((node, datum) => {
+        this.itemSelection.each((node) => {
             const bbox = node.computeTransformedBBox();
-            if (bbox && datum.proxyButton) {
-                setElementBBox(datum.proxyButton, bbox);
+            if (bbox && node.proxyButton) {
+                setElementBBox(node.proxyButton, bbox);
             }
         });
 
