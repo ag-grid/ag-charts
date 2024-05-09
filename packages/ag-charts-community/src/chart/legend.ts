@@ -254,7 +254,7 @@ export class Legend extends BaseProperties {
         const region = ctx.regionManager.addRegionFromProperties({
             name: 'legend',
             bboxproviders: [this.group],
-            canInteraction: () => this.enabled && this.group.visible,
+            canInteraction: () => false,
         });
         this.destroyFns.push(
             region.addListener('contextmenu', (e) => this.checkContextClick(e), animationState),
