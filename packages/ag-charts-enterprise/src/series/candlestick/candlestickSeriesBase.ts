@@ -1,7 +1,7 @@
 import {
-    AgCandlestickSeriesBaseFormatterParams,
-    AgCandlestickSeriesItemOptions,
-    AgCandlestickSeriesItemType,
+    type AgCandlestickSeriesBaseFormatterParams,
+    type AgCandlestickSeriesItemOptions,
+    type AgCandlestickSeriesItemType,
     _ModuleSupport,
     _Scale,
     _Scene,

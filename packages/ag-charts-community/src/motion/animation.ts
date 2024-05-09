@@ -1,7 +1,7 @@
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
-import { Interpolating, interpolate, isInterpolating } from '../util/interpolating';
+import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
 import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
 import { linear } from './easing';
@@ -131,7 +131,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     protected iteration = 0;
 
     private isPlaying = false;
-    private isReverse = false;
+    private readonly isReverse = false;
 
     private readonly onComplete; // onEnd
     private readonly onPlay; // onStart
@@ -139,7 +139,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     private readonly onUpdate;
     private readonly from?: T;
 
-    private interpolate: (delta: number) => T;
+    private readonly interpolate: (delta: number) => T;
 
     constructor(opts: AnimationOptions<T> & { defaultDuration: number }) {
         // animation configuration

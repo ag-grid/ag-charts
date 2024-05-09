@@ -14,7 +14,7 @@ import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
 import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
-import { DEFAULT_FILLS, DEFAULT_STROKES, DefaultColors } from './defaultColors';
+import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_HANDLE_FILL,

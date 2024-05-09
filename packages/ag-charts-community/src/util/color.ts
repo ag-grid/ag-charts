@@ -510,7 +510,7 @@ export class Color implements IColor {
      * CSS Color Module Level 4:
      * https://drafts.csswg.org/css-color/#named-colors
      */
-    private static nameToHex: { [key: string]: string } = Object.freeze({
+    private static readonly nameToHex: { [key: string]: string } = Object.freeze({
         aliceblue: '#F0F8FF',
         antiquewhite: '#FAEBD7',
         aqua: '#00FFFF',

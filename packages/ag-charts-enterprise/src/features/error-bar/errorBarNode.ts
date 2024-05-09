@@ -54,14 +54,14 @@ class HierarchicalBBox {
 }
 
 export class ErrorBarNode extends _Scene.Group {
-    private whiskerPath: _Scene.Path;
-    private capsPath: _Scene.Path;
+    private readonly whiskerPath: _Scene.Path;
+    private readonly capsPath: _Scene.Path;
     private capLength: number = NaN;
 
     // The ErrorBarNode does not need to handle the 'nearest' interaction range type, we can let the
     // series class handle that for us. The 'exact' interaction range is the same as having a distance
     // of 0. Therefore, we only need bounding boxes for number based ranges.
-    private bboxes: HierarchicalBBox;
+    private readonly bboxes: HierarchicalBBox;
 
     protected override _datum?: ErrorBarNodeDatum = undefined;
     public override get datum(): ErrorBarNodeDatum | undefined {

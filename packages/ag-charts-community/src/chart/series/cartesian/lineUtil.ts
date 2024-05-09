@@ -6,7 +6,7 @@ import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { prepareMarkerAnimation } from './markerUtil';
 import type { BackfillSplitMode, PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
 import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
-import { Scaling, areScalingEqual } from './scaling';
+import { type Scaling, areScalingEqual } from './scaling';
 
 function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;

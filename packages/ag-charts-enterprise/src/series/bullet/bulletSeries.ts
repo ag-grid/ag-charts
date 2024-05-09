@@ -62,9 +62,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
     override properties = new BulletSeriesProperties();
 
     private normalizedColorRanges: NormalizedColorRange[] = [];
-    private colorRangesGroup: _Scene.Group;
-    private colorRangesSelection: _Scene.Selection<_Scene.Rect, NormalizedColorRange>;
-    private targetLinesSelection: _Scene.Selection<_Scene.Line, BulletNodeDatum>;
+    private readonly colorRangesGroup: _Scene.Group;
+    private readonly colorRangesSelection: _Scene.Selection<_Scene.Rect, NormalizedColorRange>;
+    private readonly targetLinesSelection: _Scene.Selection<_Scene.Line, BulletNodeDatum>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({

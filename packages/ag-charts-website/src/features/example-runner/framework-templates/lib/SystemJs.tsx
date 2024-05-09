@@ -24,7 +24,6 @@ const localConfiguration: Configuration = {
     chartMap: {
         'ag-charts-react': `${localPrefix}/ag-charts-react`,
         'ag-charts-angular': `${localPrefix}/ag-charts-angular`,
-        'ag-charts-vue': `${localPrefix}/ag-charts-vue`,
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
     },
     chartPaths: {
@@ -37,7 +36,6 @@ const buildAndArchivesConfiguration: Configuration = {
     chartMap: {
         'ag-charts-react': `${localPrefix}/ag-charts-react`,
         'ag-charts-angular': `${localPrefix}/ag-charts-angular`,
-        'ag-charts-vue': `${localPrefix}/ag-charts-vue`,
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
     },
     chartPaths: {
@@ -54,11 +52,10 @@ const publishedConfiguration = {
 function getRelevantConfig(configuration: Configuration, framework: InternalFramework) {
     const filterByFramework = ([k]: string[]) => {
         const inverseFrameworks: Record<string, string[]> = {
-            react: ['angular', 'vue', 'vue3'],
-            angular: ['react', 'vue', 'vue3'],
-            vue: ['angular', 'react', 'vue3'],
-            vue3: ['angular', 'react', 'vue'],
-            typescript: ['angular', 'react', 'vue', 'vue3'],
+            react: ['angular', 'vue3'],
+            angular: ['react', 'vue3'],
+            vue3: ['angular', 'react'],
+            typescript: ['angular', 'react', 'vue3'],
         };
         return !inverseFrameworks[framework].some((f) => k.endsWith(f));
     };

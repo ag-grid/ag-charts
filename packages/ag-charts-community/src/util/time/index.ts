@@ -11,3 +11,4 @@ export { utcHour } from './utcHour';
 export { utcDay } from './utcDay';
 export { utcMonth } from './utcMonth';
 export { utcYear } from './utcYear';
+export { TimeInterval } from './interval';

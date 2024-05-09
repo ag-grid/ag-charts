@@ -5,6 +5,7 @@ import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import { Logger } from '../../util/logger';
+import type { TimeInterval } from '../../util/time/interval';
 import { predicateWithMessage, stringify } from '../../util/validation';
 import { checkDatum } from '../../util/value';
 import type { ChartAxisDirection } from '../chartAxisDirection';
@@ -88,7 +89,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     parallelFlipRotation: number;
     range?: [any, any];
     regularFlipRotation: number;
-    scale?: Scale<any, number>;
+    scale?: Scale<any, number, number | TimeInterval>;
     sideFlag: 1 | -1;
     stroke?: string;
     strokeOpacity?: number;

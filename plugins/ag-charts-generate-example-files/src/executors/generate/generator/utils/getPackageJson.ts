@@ -24,8 +24,6 @@ function getFrameworkDependencies(internalFramework: InternalFramework) {
         frameworkDependencies['ag-charts-angular'] = getPackageJsonVersion('ag-charts-angular');
     } else if (internalFramework === 'reactFunctional' || internalFramework === 'reactFunctionalTs') {
         frameworkDependencies['ag-charts-react'] = getPackageJsonVersion('ag-charts-react');
-    } else if (internalFramework === 'vue') {
-        frameworkDependencies['ag-charts-vue'] = getPackageJsonVersion('ag-charts-vue');
     } else if (internalFramework === 'vue3') {
         frameworkDependencies['ag-charts-vue3'] = getPackageJsonVersion('ag-charts-vue3');
     }

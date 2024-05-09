@@ -37,16 +37,16 @@ import {
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
-import { InteractionState, PointerInteractionEvent } from './interaction/interactionManager';
+import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
 import type { KeyNavEvent } from './interaction/keyNavManager';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import type { Marker } from './marker/marker';
-import { MarkerConstructor, getMarker } from './marker/util';
+import { type MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
-import { TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
+import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 type LegendFocus = { on: boolean; mode: 'item' | 'page'; index: number };
 
@@ -157,9 +157,12 @@ export class Legend extends BaseProperties {
 
     private readonly group: Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
 
-    private itemSelection: Selection<MarkerLabel, CategoryLegendDatum> = Selection.select(this.group, MarkerLabel);
+    private readonly itemSelection: Selection<MarkerLabel, CategoryLegendDatum> = Selection.select(
+        this.group,
+        MarkerLabel
+    );
 
-    private oldSize: [number, number] = [0, 0];
+    private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
     private maxPageSize: [number, number] = [0, 0];
     /** Item index to track on re-pagination, so current page updates appropriately. */
@@ -218,9 +221,9 @@ export class Legend extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     spacing = 20;
 
-    private characterWidths = new Map();
+    private readonly characterWidths = new Map();
 
-    private destroyFns: Function[] = [];
+    private readonly destroyFns: Function[] = [];
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -1063,7 +1066,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private focus: LegendFocus = { on: false, mode: 'item', index: 0 };
+    private readonly focus: LegendFocus = { on: false, mode: 'item', index: 0 };
 
     private onBlur(_event: KeyNavEvent<'blur'>) {
         this.doMouseExit();

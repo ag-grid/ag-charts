@@ -45,12 +45,12 @@ function distance(finger1: Finger, finger2: Finger): number {
 const MIN_DISTANCE_TO_START_PINCH = 1;
 
 export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent> {
-    private touchstart = (event: TouchEvent) => this.onTouchStart(event);
-    private touchmove = (event: TouchEvent) => this.onTouchMove(event);
-    private touchend = (event: TouchEvent) => this.onTouchEnd(event);
-    private touchcancel = (event: TouchEvent) => this.onTouchCancel(event);
+    private readonly touchstart = (event: TouchEvent) => this.onTouchStart(event);
+    private readonly touchmove = (event: TouchEvent) => this.onTouchMove(event);
+    private readonly touchend = (event: TouchEvent) => this.onTouchEnd(event);
+    private readonly touchcancel = (event: TouchEvent) => this.onTouchCancel(event);
 
-    private pinch = {
+    private readonly pinch = {
         finger1: { identifier: NaN, screenX: NaN, screenY: NaN },
         finger2: { identifier: NaN, screenX: NaN, screenY: NaN },
         origin: { x: NaN, y: NaN },

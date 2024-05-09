@@ -209,10 +209,10 @@
       },
       "dependsOn": [
         "build",
-        "ag-charts-website-src_content_docs_benchmarks__examples_integrated-large-scale_main.ts:generate-example",
-        "ag-charts-website-src_content_docs_benchmarks__examples_large-dataset_main.ts:generate-example",
-        "ag-charts-website-src_content_docs_benchmarks__examples_large-scale-multi-series_main.ts:generate-example",
-        "ag-charts-website-src_content_docs_benchmarks__examples_multi-series_main.ts:generate-example"
+        "ag-charts-website-benchmarks_integrated-large-scale_main.ts:generate-example",
+        "ag-charts-website-benchmarks_large-dataset_main.ts:generate-example",
+        "ag-charts-website-benchmarks_large-scale-multi-series_main.ts:generate-example",
+        "ag-charts-website-benchmarks_multi-series_main.ts:generate-example"
       ]
     },
     "pack": {

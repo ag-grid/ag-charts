@@ -22,8 +22,8 @@ import { animationValidation, createDatumId, diff } from '../../data/processors'
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
-import { PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { type PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
 import {
@@ -31,7 +31,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
+import { type LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
 import {
     computeMarkerFocusBounds,

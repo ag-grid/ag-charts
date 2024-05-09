@@ -619,7 +619,7 @@ export function addBindingImports(
     convertToPackage: boolean,
     ignoreTsImports: boolean
 ) {
-    const workingImports = {};
+    const workingImports: Record<string, { namedImport: string; imports: string[] }> = {};
     const namespacedImports = [];
 
     const chartsEnterprise = bindingImports.some((i) => i.module.includes('ag-charts-enterprise'));
@@ -657,7 +657,7 @@ export function addBindingImports(
     imports.push(...new Set(namespacedImports));
 
     let hasEnterpriseModules = false;
-    Object.entries(workingImports).forEach(([k, v]: [string, { namedImport: string; imports: string[] }]) => {
+    Object.entries(workingImports).forEach(([k, v]) => {
         let unique = [...new Set(v.imports)].sort();
 
         if (convertToPackage && k.includes('ag-grid')) {

@@ -69,7 +69,7 @@ export abstract class RadialColumnSeriesBase<
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, RadialColumnSeriesBaseProperties<any>, ItemPathType> {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
 
-    private groupScale = new BandScale<string>();
+    private readonly groupScale = new BandScale<string>();
 
     constructor(
         moduleCtx: _ModuleSupport.ModuleContext,

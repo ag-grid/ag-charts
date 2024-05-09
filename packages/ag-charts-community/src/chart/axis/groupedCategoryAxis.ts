@@ -39,10 +39,10 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     // We don't call is `labelScale` for consistency with other axes.
     readonly tickScale = new BandScale<string | number>();
 
-    private gridLineSelection: Selection<Line>;
-    private axisLineSelection: Selection<Line>;
-    private separatorSelection: Selection<Line>;
-    private labelSelection: Selection<Text>;
+    private readonly gridLineSelection: Selection<Line>;
+    private readonly axisLineSelection: Selection<Line>;
+    private readonly separatorSelection: Selection<Line>;
+    private readonly labelSelection: Selection<Text>;
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {

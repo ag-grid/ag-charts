@@ -1,7 +1,7 @@
 import {
-    AgMapShapeSeriesFormatterParams,
-    AgMapShapeSeriesLabelFormatterParams,
-    AgMapShapeSeriesStyle,
+    type AgMapShapeSeriesFormatterParams,
+    type AgMapShapeSeriesLabelFormatterParams,
+    type AgMapShapeSeriesStyle,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -15,7 +15,11 @@ import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { AutoSizedLabel, formatSingleLabel } from '../util/labelFormatter';
-import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } from './mapShapeSeriesProperties';
+import {
+    type MapShapeNodeDatum,
+    type MapShapeNodeLabelDatum,
+    MapShapeSeriesProperties,
+} from './mapShapeSeriesProperties';
 
 const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
 const { ColorScale } = _Scale;
@@ -71,8 +75,8 @@ export class MapShapeSeries
 
     private readonly colorScale = new ColorScale();
 
-    private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
-    private itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
+    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
     public datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
         this.nodeFactory()

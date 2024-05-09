@@ -108,7 +108,7 @@ export class Pagination extends BaseProperties {
     private readonly group = new Group({ name: 'pagination' });
     private readonly labelNode: Text = new Text();
     private highlightActive?: 'previous' | 'next';
-    private destroyFns: (() => void)[] = [];
+    private readonly destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly chartUpdateCallback: (type: ChartUpdateType) => void,

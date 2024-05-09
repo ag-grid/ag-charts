@@ -11,7 +11,7 @@ import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
-import { DistantObject, nearestSquared } from '../../scene/nearest';
+import { type DistantObject, nearestSquared } from '../../scene/nearest';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
@@ -473,7 +473,7 @@ export abstract class Series<
         return [main, subIndex];
     }
 
-    private seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
+    private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
 
     public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, listener: (event: E) => void) {
         return this.seriesListeners.addListener(type, listener);

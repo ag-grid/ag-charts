@@ -29,9 +29,9 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import {
-    PickFocusInputs,
+    type PickFocusInputs,
     SeriesNodePickMode,
     groupAccumulativeValueProperty,
     keyProperty,
@@ -41,7 +41,7 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
-import { RectConfig, computeBarFocusBounds } from './barUtil';
+import { type RectConfig, computeBarFocusBounds } from './barUtil';
 import {
     checkCrisp,
     collapsedStartingBarPosition,

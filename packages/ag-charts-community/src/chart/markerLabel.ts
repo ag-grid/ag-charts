@@ -11,7 +11,7 @@ import type { MarkerConstructor } from './marker/util';
 export class MarkerLabel extends Group {
     static override readonly className = 'MarkerLabel';
 
-    private label = new Text();
+    private readonly label = new Text();
 
     constructor() {
         super({ name: 'markerLabelGroup' });

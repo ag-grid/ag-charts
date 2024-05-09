@@ -24,8 +24,8 @@ export class TopologyChart extends Chart {
     static readonly className = 'TopologyChart';
     static readonly type = 'topology' as const;
 
-    private xAxis: NumberAxis;
-    private yAxis: NumberAxis;
+    private readonly xAxis: NumberAxis;
+    private readonly yAxis: NumberAxis;
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);

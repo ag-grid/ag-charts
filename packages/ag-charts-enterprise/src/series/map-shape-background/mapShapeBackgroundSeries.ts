@@ -3,7 +3,10 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { MapShapeBackgroundNodeDatum, MapShapeBackgroundSeriesProperties } from './mapShapeBackgroundSeriesProperties';
+import {
+    type MapShapeBackgroundNodeDatum,
+    MapShapeBackgroundSeriesProperties,
+} from './mapShapeBackgroundSeriesProperties';
 
 const { createDatumId, Series, SeriesNodePickMode, Validate } = _ModuleSupport;
 const { Selection, Group, PointerEvents } = _Scene;
@@ -49,7 +52,7 @@ export class MapShapeBackgroundSeries
         return false;
     }
 
-    private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
     private datumSelection: _Scene.Selection<GeoGeometry, MapShapeBackgroundNodeDatum> = Selection.select(
         this.itemGroup,

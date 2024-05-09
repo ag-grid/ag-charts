@@ -49,7 +49,7 @@ export class UnivariantHandle extends Handle {
     override handle = new _Scene.Rect();
     override glow = new _Scene.Rect();
 
-    private gradient: 'horizontal' | 'vertical' = 'horizontal';
+    private readonly gradient: 'horizontal' | 'vertical' = 'horizontal';
 
     constructor() {
         super();

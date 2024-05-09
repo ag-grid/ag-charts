@@ -6,7 +6,7 @@ import { constrainZoom, definedZoomState, multiplyZoom, pointToRatio, scaleZoom,
 
 // "Re-rewind, when the crowd say..."
 export class ZoomSelector {
-    private rect: ZoomRect;
+    private readonly rect: ZoomRect;
     private coords?: ZoomCoords;
 
     constructor(rect: ZoomRect) {

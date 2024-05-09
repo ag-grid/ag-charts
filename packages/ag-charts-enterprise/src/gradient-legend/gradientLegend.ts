@@ -132,9 +132,9 @@ export class GradientLegend {
     private readonly axisGroup: _Scene.Group;
     private readonly arrow: _Scene.Triangle;
 
-    private gradient = new GradientBar();
+    private readonly gradient = new GradientBar();
 
-    private destroyFns: Function[] = [];
+    private readonly destroyFns: Function[] = [];
 
     private readonly layoutService: _ModuleSupport.ModuleContext['layoutService'];
     private readonly highlightManager: _ModuleSupport.HighlightManager;

@@ -243,7 +243,7 @@ export class Matrix {
         ctx.transform(e[0], e[1], e[2], e[3], e[4], e[5]);
     }
 
-    private static instance = new Matrix();
+    private static readonly instance = new Matrix();
     static flyweight(sourceMatrix: Matrix): Matrix {
         return Matrix.instance.setElements(sourceMatrix.elements);
     }

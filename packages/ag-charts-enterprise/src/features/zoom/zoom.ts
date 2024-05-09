@@ -11,7 +11,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomContextMenu } from './zoomContextMenu';
-import { ZoomPanUpdate, ZoomPanner } from './zoomPanner';
+import { type ZoomPanUpdate, ZoomPanner } from './zoomPanner';
 import { ZoomRange } from './zoomRange';
 import { ZoomRatio } from './zoomRatio';
 import { ZoomScrollPanner } from './zoomScrollPanner';
@@ -147,21 +147,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
-    private readonly contextMenu = new ZoomContextMenu(
-        this.ctx.contextMenuRegistry,
-        this.ctx.zoomManager,
-        this.updateZoom.bind(this)
-    );
+    private readonly contextMenu: ZoomContextMenu;
     private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();
-    private readonly toolbar = new ZoomToolbar(
-        this.ctx.toolbarManager,
-        this.ctx.zoomManager,
-        this.getResetZoom.bind(this),
-        this.updateZoom.bind(this)
-    );
+    private readonly toolbar: ZoomToolbar;
 
     @ProxyProperty('panner.deceleration')
     @Validate(NUMBER.restrict({ min: 0.0001, max: 1 }))
@@ -179,6 +170,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect);
+        this.contextMenu = new ZoomContextMenu(ctx.contextMenuRegistry, ctx.zoomManager, this.updateZoom.bind(this));
+        this.toolbar = new ZoomToolbar(
+            this.ctx.toolbarManager,
+            this.ctx.zoomManager,
+            this.getResetZoom.bind(this),
+            this.updateZoom.bind(this)
+        );
 
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;

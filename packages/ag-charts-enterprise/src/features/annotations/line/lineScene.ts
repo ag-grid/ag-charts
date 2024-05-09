@@ -15,9 +15,9 @@ export class Line extends Annotation {
 
     override activeHandle?: 'start' | 'end';
 
-    private line = new CollidableLine();
-    private start = new DivariantHandle();
-    private end = new DivariantHandle();
+    private readonly line = new CollidableLine();
+    private readonly start = new DivariantHandle();
+    private readonly end = new DivariantHandle();
 
     private seriesRect?: _Scene.BBox;
 

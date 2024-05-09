@@ -148,8 +148,6 @@ export class CandlestickSeriesProperties extends CandlestickSeriesBaseProperties
     CandlestickSeriesItems,
     AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>
 > {
-    @Validate(STRING)
-    override openKey!: string;
     constructor() {
         super(new CandlestickSeriesItems());
     }

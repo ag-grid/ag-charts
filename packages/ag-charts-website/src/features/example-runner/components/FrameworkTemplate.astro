@@ -119,7 +119,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
         />
-    ) : internalFramework === 'vue' || internalFramework === 'vue3' ? (
+    ) : internalFramework === 'vue3' ? (
         <VueTemplate
             isDev={isDev}
             title={title}
@@ -129,7 +129,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             styleFiles={styleFiles}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
-            vueFramework={internalFramework}
             extraStyles={extraStyles}
         />
     ) : null

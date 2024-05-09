@@ -57,7 +57,7 @@ export class BaseProperties<T extends object = object> {
 }
 
 export class PropertiesArray<T extends BaseProperties> extends Array {
-    private itemFactory!: (params: object) => T;
+    private readonly itemFactory!: (params: object) => T;
 
     constructor(itemFactory: (new () => T) | ((params: object) => T), ...properties: object[]) {
         super(properties.length);
@@ -87,7 +87,7 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
 }
 
 export class TypedPropertiesArray<T extends BaseProperties> extends PropertiesArray<T> {
-    private itemFactories!: { [type: string]: new () => T };
+    private readonly itemFactories!: { [type: string]: new () => T };
 
     constructor(itemFactories: { [type: string]: new () => T }, ...properties: { type: string }[]) {
         super(itemFactories[Object.keys(itemFactories)[0]], ...properties);

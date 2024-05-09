@@ -6,7 +6,7 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
+import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -143,13 +143,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private readonly rootElement: HTMLElement;
 
-    private eventHandler = (event: SupportedEvent) => this.processEvent(event);
+    private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
     private mouseDown = false;
     private touchDown = false;
     private dragStartElement?: HTMLElement;
-    private clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
-    private dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
+    private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
+    private readonly dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
         { offsetX: NaN, offsetY: NaN, type: 'mouseup' },
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },

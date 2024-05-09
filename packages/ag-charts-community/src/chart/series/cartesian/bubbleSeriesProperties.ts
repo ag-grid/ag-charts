@@ -21,7 +21,7 @@ import { Label } from '../../label';
 import type { MarkerConstructor } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
 export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;

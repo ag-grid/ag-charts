@@ -39,13 +39,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public extraNodeActions: Array<ContextMenuAction> = [];
 
     // Module context
-    private scene: _Scene.Scene;
-    private highlightManager: _ModuleSupport.HighlightManager;
-    private interactionManager: _ModuleSupport.InteractionManager;
-    private registry: _ModuleSupport.ContextMenuRegistry;
+    private readonly scene: _Scene.Scene;
+    private readonly highlightManager: _ModuleSupport.HighlightManager;
+    private readonly interactionManager: _ModuleSupport.InteractionManager;
+    private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
     // State
-    private groups: ContextMenuGroups;
+    private readonly groups: ContextMenuGroups;
     private pickedNode?: _ModuleSupport.SeriesNodeDatum;
     private showEvent?: MouseEvent;
     private x: number = 0;
@@ -54,7 +54,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // HTML elements
     private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
-    private mutationObserver?: MutationObserver;
+    private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();

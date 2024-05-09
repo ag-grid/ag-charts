@@ -7,7 +7,7 @@ import type {
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
-    CandlestickSeriesBaseItems,
+    type CandlestickSeriesBaseItems,
     CandlestickSeriesBaseProperties,
 } from '../candlestick/candlestickSeriesProperties';
 import type { OhlcNodeDatum } from './ohlcTypes';

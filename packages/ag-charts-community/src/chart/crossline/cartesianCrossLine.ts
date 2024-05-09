@@ -162,8 +162,8 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
     readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
     readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
-    private crossLineRange: Range = new Range();
-    private crossLineLabel = new Text();
+    private readonly crossLineRange: Range = new Range();
+    private readonly crossLineLabel = new Text();
     private labelPoint?: Point = undefined;
 
     private data: NodeData = [];

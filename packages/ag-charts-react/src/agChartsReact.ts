@@ -1,7 +1,7 @@
 import * as PropTypes from 'prop-types';
-import { Component, RefObject, createElement, createRef } from 'react';
+import { Component, type RefObject, createElement, createRef } from 'react';
 
-import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 
 export interface AgChartProps {
     options: AgChartOptions;
