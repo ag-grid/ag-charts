@@ -1,3 +1,4 @@
+import { setElementBBox } from '../module-support';
 import type { ModuleContext } from '../module/moduleContext';
 import type {
     AgChartLegendClickEvent,
@@ -225,6 +226,8 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
+    private readonly proxyLegendToolbar;
+
     constructor(private readonly ctx: ModuleContext) {
         super();
 
@@ -272,9 +275,13 @@ export class Legend extends BaseProperties {
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
+
+        this.proxyLegendToolbar = this.ctx.domManager.addChild('canvas-overlay', `${this.id}-toolbar`);
+        this.proxyLegendToolbar.classList.add('ag-charts-proxy-legend-toolbar');
     }
 
     public destroy() {
+        this.ctx.domManager.removeChild('canvas-overlay', 'ag-charts-proxy-legend-toolbar');
         this.destroyFns.forEach((f) => f());
 
         this.pagination.destroy();
@@ -721,14 +728,18 @@ export class Legend extends BaseProperties {
                 return;
             }
 
-            y = itemHeight * rowIndex;
-            x = rowSumColumnWidths[rowIndex] ?? 0;
+            // Round off for pixel grid alignment to work properly.
+            y = Math.floor(itemHeight * rowIndex);
+            x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
 
             rowSumColumnWidths[rowIndex] = (rowSumColumnWidths[rowIndex] ?? 0) + column.columnWidth;
 
-            // Round off for pixel grid alignment to work properly.
-            markerLabel.translationX = Math.floor(x);
-            markerLabel.translationY = Math.floor(y);
+            markerLabel.translationX = x;
+            markerLabel.translationY = y;
+
+            // Update relative BBox so that we can update the hidden CSS button.
+            const { width, height } = markerLabel.computeBBox();
+            markerLabel.relativeBBox = { x, y, width, height };
         });
     }
 
@@ -1252,6 +1263,14 @@ export class Legend extends BaseProperties {
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(-legendBBox.x + shrinkRect.x + translationX);
             this.group.translationY = Math.floor(-legendBBox.y + shrinkRect.y + translationY);
+
+            const proxyBBox = this.group.computeTransformedBBox();
+            if (proxyBBox) {
+                setElementBBox(this.proxyLegendToolbar, proxyBBox);
+                this.proxyLegendToolbar.style.removeProperty('display');
+            }
+        } else {
+            this.proxyLegendToolbar.style.display = 'none';
         }
 
         if (this.visible && this.enabled && this.data.length) {
@@ -1262,6 +1281,18 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.x += this.group.translationX;
             legendPositionedBBox.y += this.group.translationY;
         }
+
+        this.itemSelection.each((node, datum, index) => {
+            // FIXME: this should "add or update" the proxy buttons
+            const element = this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `ag-charts-legend-item-${index}`,
+                textContext: datum.legendItemName ?? datum.label.text,
+                bboxprovider: node,
+                parent: this.proxyLegendToolbar,
+            });
+            element!.style.position = 'absolute';
+        });
 
         return { shrinkRect: newShrinkRect };
     }

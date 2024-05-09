@@ -5,11 +5,12 @@ import type { RenderContext } from '../scene/node';
 import type { Line } from '../scene/shape/line';
 import { Text } from '../scene/shape/text';
 import { arraysEqual } from '../util/array';
+import type { BBoxValues, RelativeBBoxProvider } from '../util/bboxinterface';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
 
-export class MarkerLabel extends Group {
+export class MarkerLabel extends Group implements RelativeBBoxProvider<BBoxValues> {
     static override readonly className = 'MarkerLabel';
 
     private readonly label = new Text();
@@ -142,5 +143,10 @@ export class MarkerLabel extends Group {
         this.label.opacity = this.opacity;
 
         super.render(renderCtx);
+    }
+
+    public relativeBBox: BBoxValues = { x: NaN, y: NaN, width: NaN, height: NaN };
+    getCachedRelativeBBox(): BBoxValues {
+        return this.relativeBBox;
     }
 }

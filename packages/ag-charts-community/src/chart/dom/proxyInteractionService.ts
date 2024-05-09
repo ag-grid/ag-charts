@@ -1,4 +1,4 @@
-import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
+import type { BBoxProvider, BBoxValues, RelativeBBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement, setElementBBox } from '../../util/dom';
 import type { UpdateService } from '../updateService';
@@ -11,7 +11,7 @@ type ProxyParams<T extends ProxyType> = {
     id: string;
     textContext: string;
     parent: HTMLElement;
-    bboxprovider: BBoxProvider<BBoxValues>;
+    bboxprovider: BBoxProvider<BBoxValues> & RelativeBBoxProvider<BBoxValues>;
     onclick?: (ev: MouseEvent) => void;
 };
 
@@ -21,7 +21,7 @@ type ProxyReturnMap = {
 
 type ProxyNode = {
     element: HTMLElement;
-    bboxprovider: BBoxProvider<BBoxValues>;
+    bboxprovider: RelativeBBoxProvider<BBoxValues>;
 };
 
 export class ProxyInteractionService {
@@ -45,7 +45,7 @@ export class ProxyInteractionService {
 
     private update() {
         for (const { element, bboxprovider } of this.nodes) {
-            setElementBBox(element, bboxprovider.getCachedBBox());
+            setElementBBox(element, bboxprovider.getCachedRelativeBBox());
         }
     }
 
