@@ -89,11 +89,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
-    /**
-     * The spacing between pie sectors.
-     *
-     * __Important:__ When this property is used, strokes are rendered on the inside of the pie sectors, and no longer have a default colour.
-     */
+    /** The spacing between Pie sectors. */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the pie sectors. */
     formatter?: (params: AgPieSeriesFormatterParams<TDatum>) => AgPieSeriesFormat;

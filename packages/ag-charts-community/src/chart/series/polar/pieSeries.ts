@@ -166,7 +166,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     protected override nodeFactory(): Sector {
-        return new Sector();
+        const sector = new Sector();
+        sector.miterLimit = 1e9;
+        return sector;
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
