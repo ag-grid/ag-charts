@@ -1,3 +1,4 @@
+import { Debug } from '../../util/debug';
 import { createElement, getDocument, setElementBBox } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
@@ -90,6 +91,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor: SizeMonitor;
+
+    // This debug option make the proxies button partially transparent instead of fully transparent.
+    // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
+    private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
 
     constructor(container?: HTMLElement) {
         super();
@@ -293,16 +298,17 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         textContext: string;
         id: string;
         bbox: { x: number; y: number; width: number; height: number };
-    }) {
+    }): HTMLElement | undefined {
         switch (opts.type) {
             case 'button':
                 const newButton = createElement('button');
                 const { element } = this.rootElements.get('canvas-overlay') ?? {};
                 newButton.textContent = opts.textContext;
-                // FIXME translating the button up a bit for testing.
-                setElementBBox(newButton, { ...opts.bbox, y: opts.bbox.y - 30 });
+                setElementBBox(newButton, { ...opts.bbox, y: opts.bbox.y });
+                newButton.style.pointerEvents = 'none';
+                newButton.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
                 element?.appendChild(newButton);
-                break;
+                return newButton;
         }
     }
 }

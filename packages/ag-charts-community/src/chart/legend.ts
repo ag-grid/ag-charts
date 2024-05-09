@@ -1268,11 +1268,22 @@ export class Legend extends BaseProperties {
             if (!bbox) return;
 
             // FIXME: this should "add or update" the proxy buttons
-            this.ctx.domManager.addProxyItem({
+            const proxyButton = this.ctx.domManager.addProxyItem({
                 type: 'button',
                 id: `ag-charts-legend-item-${index}`,
                 textContext: datum.legendItemName ?? datum.label.text,
                 bbox,
+            });
+            const that = this;
+            proxyButton?.addEventListener('click', (_event: MouseEvent): any => {
+                const { datum } = that.getFocusedItem();
+                that.doClick(datum);
+            });
+            proxyButton?.addEventListener('focus', (_event: FocusEvent): any => {
+                proxyButton.style.setProperty('pointerEvents', null);
+            });
+            proxyButton?.addEventListener('blur', (_event: FocusEvent): any => {
+                proxyButton.style.pointerEvents = 'none';
             });
         });
 
