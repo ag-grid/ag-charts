@@ -1153,17 +1153,28 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getFocusedItem(): { nodeIndex: number; node?: MarkerLabel; datum?: CategoryLegendDatum } {
+    private getItemAriaText(nodeIndex: number): string {
+        const datum = this.data[nodeIndex];
+        const label = datum && this.getItemLabel(datum);
+        if (nodeIndex >= 0 && label && datum) {
+            const visibility = datum.enabled ? 'visible' : 'hidden';
+            return `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, ${visibility}`;
+        }
+        return 'Unknown legend item';
+    }
+
+    private getFocusedItem(): { node?: MarkerLabel; datum?: CategoryLegendDatum; ariaText: string } {
+        let ariaText = this.getItemAriaText(-1);
         if (this.focus.mode !== 'item') {
             Logger.error(`getFocusedItem() should be called only when focus.mode is 'item'`);
-            return { nodeIndex: -1, node: undefined, datum: undefined };
+            return { node: undefined, datum: undefined, ariaText };
         }
         this.maybeChangeFocusPage();
 
         const nodeIndex = this.getNodeIndexFromFocusIndex();
         if (nodeIndex < 0) {
             Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
-            return { nodeIndex: -1, node: undefined, datum: undefined };
+            return { node: undefined, datum: undefined, ariaText };
         }
 
         const node = this.itemSelection.nodes()[nodeIndex];
@@ -1171,28 +1182,23 @@ export class Legend extends BaseProperties {
         let datum: CategoryLegendDatum | undefined;
         if (nodeIndex < data.length) {
             datum = this.data[nodeIndex];
+            ariaText = this.getItemAriaText(nodeIndex);
         } else {
             Logger.error(`Cannot access datum[${nodeIndex}]`);
         }
 
-        return { nodeIndex, node, datum };
+        return { node, datum, ariaText };
     }
 
     private updateFocus() {
         const { focus, pagination } = this;
         if (focus.mode === 'item') {
-            const { nodeIndex, node, datum } = this.getFocusedItem();
+            const { node, datum, ariaText } = this.getFocusedItem();
             if (datum === undefined) return;
 
             const bbox = node?.computeTransformedBBox();
             this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, { bbox, showFocusBox: true }), datum);
-            const label = datum && this.getItemLabel(datum);
-            if (label) {
-                const visibility = datum.enabled ? 'visible' : 'hidden';
-                this.ctx.ariaAnnouncementService.announceValue(
-                    `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, ${visibility}`
-                );
-            }
+            this.ctx.ariaAnnouncementService.announceValue(ariaText);
         } else if (focus.mode === 'page') {
             const button = focus.index === 0 ? pagination.previousButton : pagination.nextButton;
             this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
@@ -1263,7 +1269,7 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.y += this.group.translationY;
         }
 
-        this.itemSelection.each((node, datum, index) => {
+        this.itemSelection.each((node, _datum, index) => {
             const bbox = node.computeBBox();
             if (!bbox) return;
 
@@ -1271,7 +1277,7 @@ export class Legend extends BaseProperties {
             const proxyButton = this.ctx.domManager.addProxyItem({
                 type: 'button',
                 id: `ag-charts-legend-item-${index}`,
-                textContext: datum.legendItemName ?? datum.label.text,
+                textContext: this.getItemAriaText(index),
                 bbox,
             });
             proxyButton?.addEventListener('click', (_event: MouseEvent): any => {
