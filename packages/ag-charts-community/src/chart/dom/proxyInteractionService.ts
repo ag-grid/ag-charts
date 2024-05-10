@@ -1,5 +1,5 @@
-import { Debug } from '../../sparklines-util';
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
+import { Debug } from '../../util/debug';
 import { createElement, setElementBBox } from '../../util/dom';
 import type { UpdateService } from '../updateService';
 import type { FocusIndicator } from './focusIndicator';
