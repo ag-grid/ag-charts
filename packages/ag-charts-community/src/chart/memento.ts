@@ -3,12 +3,12 @@ import { isDate, isPlainObject } from '../util/type-guards';
 
 export interface Memento {
     type: string;
-    version: number;
+    version: string;
 }
 
 export interface MementoOriginator {
     mementoOriginatorName: string;
-    createMemento(version: number): Memento;
+    createMemento(version: string): Memento;
     guardMemento(blob: unknown): boolean;
     restoreMemento(blob: Memento): void;
 }
@@ -19,12 +19,13 @@ export interface MementoOriginator {
  * is also versioned to ensure it can be migrated to newer versions of the originator.
  */
 export class MementoCaretaker {
-    private readonly version: number;
+    private readonly version: string;
 
     constructor(version: string) {
-        // Only consider the major version when versioning mementos, there should be no breaking changes in minor or
-        // patch versions that require migrating.
-        this.version = parseInt(version.split('.')[0]);
+        // Only consider the major and minor when versioning mementos, to handle migrating breaking changes and
+        // deprecations. Changes in patch versions can be safely ignored.
+        const [major, minor] = version.split('.');
+        this.version = `${major}.${minor}`;
     }
 
     save(originator: MementoOriginator) {

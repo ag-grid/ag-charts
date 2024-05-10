@@ -12,7 +12,7 @@ export interface AnnotationsRestoreEvent {
 
 export class AnnotationsMemento implements Memento {
     type = 'annotations';
-    version = 10;
+    version = '10.0';
 
     constructor(public readonly annotations?: any) {}
 }
@@ -30,9 +30,9 @@ export class AnnotationManager
         super();
     }
 
-    public createMemento(version: number) {
+    public createMemento(_version: string) {
         const memento = new AnnotationsMemento(this.annotations);
-        memento.version = version;
+        memento.version = '10.0';
         return memento;
     }
 
