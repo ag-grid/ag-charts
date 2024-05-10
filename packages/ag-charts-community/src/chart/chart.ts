@@ -57,7 +57,7 @@ import { Keyboard } from './keyboard';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
-import { AxisPositionGuesser } from './mapping/prepareAxis';
+import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/types';
 import { ModulesManager } from './modulesManager';
@@ -1933,7 +1933,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
-        const guesser: AxisPositionGuesser = new AxisPositionGuesser();
+        const newAxes: ChartAxis[] = [];
         const moduleContext = this.getModuleContext();
 
         for (let index = 0; index < options.length; index++) {
@@ -1942,10 +1942,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.applyAxisModules(axis, axisOptions);
             jsonApply(axis, axisOptions, { ...JSON_APPLY_PLUGINS, path: `axes[${index}]`, skip });
 
-            guesser.push(axis, axisOptions);
+            newAxes.push(axis);
         }
 
-        return guesser.guessInvalidPositions();
+        guessInvalidPositions(newAxes);
+
+        return newAxes;
     }
 
     private applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
