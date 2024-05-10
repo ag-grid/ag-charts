@@ -9,7 +9,7 @@ describe('Memento Caretaker', () => {
 
     class TestMemento implements Memento {
         type = 'test';
-        version = 10;
+        version = '10.0';
 
         constructor(public readonly data?: any) {}
     }
@@ -46,7 +46,7 @@ describe('Memento Caretaker', () => {
         const blob = caretaker.save(originator);
         caretaker.restore(originator, blob);
 
-        expect(blob).toBe('eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwidHlwZSI6InRlc3QiLCJ2ZXJzaW9uIjoxMH0=');
+        expect(blob).toBe('eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwidHlwZSI6InRlc3QiLCJ2ZXJzaW9uIjoiMTAuMCJ9');
         expect(originator.restored).toEqual({ hello: 'world' });
     });
 
@@ -56,7 +56,7 @@ describe('Memento Caretaker', () => {
         const blob = caretaker.save(originator);
         caretaker.restore(originator, blob);
 
-        expect(blob).toBe('eyJkYXRhIjp7ImhlbGxvIjoi8J+MjSJ9LCJ0eXBlIjoidGVzdCIsInZlcnNpb24iOjEwfQ==');
+        expect(blob).toBe('eyJkYXRhIjp7ImhlbGxvIjoi8J+MjSJ9LCJ0eXBlIjoidGVzdCIsInZlcnNpb24iOiIxMC4wIn0=');
         expect(originator.restored).toEqual({ hello: '🌍' });
     });
 
@@ -86,7 +86,7 @@ describe('Memento Caretaker', () => {
         expectWarning('AG Charts - TestOriginator - Could not restore data, memento was invalid, ignoring.', {
             data: otherOriginator.data,
             type: 'other-test',
-            version: 10,
+            version: '10.0',
         });
         expect(originator.restored).toBeUndefined();
     });
