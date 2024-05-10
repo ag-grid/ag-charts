@@ -7,13 +7,8 @@
     System.config({
         transpiler: 'ts',
         typescriptOptions: {
-            module: 'system',
-            moduleResolution: 'node',
             target: 'es2020',
-            noImplicitAny: false,
-            sourceMap: true,
             jsx: 'react',
-            lib: ['es2020', 'dom'],
         },
         paths: {
             // paths serve as alias
@@ -27,7 +22,6 @@
             react: 'npm:react@18.2.0',
             'react-dom': 'npm:react-dom@18.2.0',
             'react-dom/client': 'npm:react-dom@18.2.0',
-            'prop-types': 'npm:prop-types@15.8.1',
 
             deepclone: 'npm:deepclone@1.0.2',
 
@@ -48,10 +42,6 @@
             },
             'react-dom/server': {
                 main: '../umd/react-dom-server.browser.production.min.js',
-            },
-            'prop-types': {
-                main: './prop-types.min.js',
-                defaultExtension: 'js',
             },
 
             app: {

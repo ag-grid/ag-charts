@@ -29,9 +29,6 @@
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },
   "homepage": "https://charts.ag-grid.com/",
-  "dependencies": {
-    "prop-types": "^15.6.2"
-  },
   "devDependencies": {
     "ag-charts-community": "9.3.1-beta.20240505",
     "@types/react": "^18",

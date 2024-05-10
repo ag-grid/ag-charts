@@ -2,28 +2,22 @@
     System.config({
         transpiler: 'ts',
         typescriptOptions: {
-            module: 'system',
-            moduleResolution: 'node',
             target: 'es2020',
-            noImplicitAny: false,
-            sourceMap: true,
-            jsx: 'react',
-            lib: ['es2020', 'dom'],
         },
         paths: {
             'npm:': 'https://cdn.jsdelivr.net/npm/',
         },
         map: {
+            // Transpilers
             css: boilerplatePath + 'css.js',
+            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
+            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
             // vuejs
             vue: 'npm:vue@3.2.29/dist/vue.esm-browser.js',
             '@vue/reactivity': 'npm:@vue/reactivity@3.0.0/dist/reactivity.esm-browser.js',
             // vue class component
             'vue-class-component': 'npm:vue-class-component@^8.0.0-beta.3/dist/vue-class-component.cjs.js',
-
-            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
-            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
             app: appLocation + 'app',
             // systemJsMap comes from index.html
