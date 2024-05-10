@@ -1,8 +1,6 @@
 import type { TextWrap } from '../options/chart/types';
+import type { Writeable } from '../sandbox/types/generics';
 import { createCanvasContext } from './canvas.util';
-
-// Allows for mutation of a readonly type by making all properties writable.
-export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 // Configuration options for measuring text.
 export interface MeasureOptions {
