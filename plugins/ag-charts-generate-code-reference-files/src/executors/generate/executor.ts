@@ -1,17 +1,18 @@
 /* eslint-disable no-console */
 import * as ts from 'typescript';
 
+import { patchDocInterfaces } from '../../doc-interfaces/patch-doc-interfaces';
+import { TypeMapper } from '../../doc-interfaces/types-utils';
 import { writeJSONFile } from '../../executors-utils';
-import { TypeMapper } from './types-utils';
 
-type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
+type OptionsMode = 'debug-interfaces' | 'docs-interfaces' | 'docs-interfaces-patched';
 type ExecutorOptions = { mode: OptionsMode; inputs: string[]; output: string };
 
 export default async function (options: ExecutorOptions) {
     try {
         console.log('-'.repeat(80));
         console.log('Generate docs reference files...');
-        console.log('Using Typescript version: ', ts.version);
+        console.log('Using Typescript version:', ts.version);
 
         await generateFile(options);
 
@@ -35,6 +36,14 @@ async function generateFile(options: ExecutorOptions) {
 
         case 'docs-interfaces':
             return await writeJSONFile(options.output, typeMapper.resolvedEntries());
+
+        // Patched docs-interface for front end to consume
+        case 'docs-interfaces-patched':
+            const resolvedEntries = typeMapper.resolvedEntries();
+            const patchedDocInterfaces = patchDocInterfaces(resolvedEntries);
+            const docInterfacesObject = Object.fromEntries(patchedDocInterfaces.entries());
+
+            return await writeJSONFile(options.output, docInterfacesObject);
 
         default:
             throw new Error(`Unsupported mode "${options.mode}"`);

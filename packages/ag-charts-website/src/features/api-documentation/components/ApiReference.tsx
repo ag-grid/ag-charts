@@ -1,6 +1,12 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import Code from '@components/Code';
+import type {
+    ApiReferenceNode,
+    ApiReferenceType,
+    MemberNode,
+    TypeAliasNode,
+} from '@generate-code-reference-plugin/doc-interfaces/types';
 import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
@@ -10,7 +16,6 @@ import Markdown from 'react-markdown';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
 
-import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
 import type { SpecialTypesMap } from '../apiReferenceHelpers';
 import {
     cleanupName,
@@ -18,7 +23,6 @@ import {
     getMemberType,
     isInterfaceHidden,
     normalizeType,
-    patchAgChartOptionsReference,
     processMembers,
 } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
@@ -86,7 +90,6 @@ export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & Ap
         ['resolved-interfaces'],
         async () => {
             const data = await fetchInterfacesReference();
-            patchAgChartOptionsReference(data);
             return data;
         },
         queryOptions

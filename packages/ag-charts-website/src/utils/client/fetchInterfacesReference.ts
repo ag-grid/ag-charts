@@ -1,6 +1,5 @@
-import type { ApiReferenceType } from '@features/api-documentation/api-reference-types';
+import type { ApiReferenceType } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { getDevFileUrl } from '@utils/devFileUrl';
-import { updateInterfaceReferences } from '@utils/updateInterfaceReferences';
 
 /**
  * Get interfaces reference by fetching from the dev files url
@@ -8,9 +7,9 @@ import { updateInterfaceReferences } from '@utils/updateInterfaceReferences';
 export async function fetchInterfacesReference(): Promise<ApiReferenceType> {
     const contents = await fetch(
         getDevFileUrl({
-            filePath: '/resolved-interfaces.json',
+            filePath: '/resolved-interfaces-patched.json',
         })
     ).then((res) => res.json());
 
-    return updateInterfaceReferences(contents);
+    return new Map(Object.entries(contents));
 }

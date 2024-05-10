@@ -49,7 +49,7 @@ if [[ ${IGNORED_FILE_COUNT} -gt 0 ]] ; then
 fi
 
 if [[ "${MODIFIED}" == "ag-charts-community" ]] ; then
-  nx run-many ${NX_OPTS} -p ag-charts-community,ag-charts-enterprise -t build:types,build:package,build:umd,docs-resolved-interfaces -c watch
+  nx run-many ${NX_OPTS} -p ag-charts-community,ag-charts-enterprise -t build:types,build:package,build:umd,docs-resolved-interfaces-patched -c watch
 elif [[ "${MODIFIED}" == "ag-charts-enterprise" ]] ; then
   nx run-many ${NX_OPTS} -p ${MODIFIED} -t build:types,build:package,build:umd -c watch
 elif [[ "${MODIFIED}" =~ "ag-charts-website-" ]] ; then

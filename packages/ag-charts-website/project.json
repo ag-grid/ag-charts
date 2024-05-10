@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
-      "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples", "generate-thumbnails"],
+      "dependsOn": ["^build", "^docs-resolved-interfaces-patched", "generate-examples", "generate-thumbnails"],
       "inputs": [
         "^production",
         "production",
@@ -31,7 +31,7 @@
       }
     },
     "dev": {
-      "dependsOn": ["^build", "^docs-resolved-interfaces"],
+      "dependsOn": ["^build", "^docs-resolved-interfaces-patched"],
       "inputs": [],
       "outputs": [],
       "command": "astro dev --port=${PORT} --host",
