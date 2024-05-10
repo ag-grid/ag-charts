@@ -36,6 +36,10 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         this.height = height;
     }
 
+    static fromDOMRect({ x, y, width, height }: DOMRect) {
+        return new BBox(x, y, width, height);
+    }
+
     clone() {
         const { x, y, width, height } = this;
         return new BBox(x, y, width, height);
