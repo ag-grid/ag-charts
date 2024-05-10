@@ -29,7 +29,7 @@ export class ProxyInteractionService {
     // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
     private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
 
-    private nodes: ProxyNode[] = [];
+    private readonly nodes: ProxyNode[] = [];
     private readonly destroyFns: (() => void)[];
 
     constructor(
