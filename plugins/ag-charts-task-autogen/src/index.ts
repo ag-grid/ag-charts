@@ -9,7 +9,7 @@ const NON_UNIQUE_PATH_ELEMENTS = new Set(['src', 'content', 'docs', '_examples']
 
 const IGNORE_THUMBNAILS = [
     // Too large to generate, isn't visible in the gallery either.
-    'ag-charts-website-src_content_gallery__examples_large-datasets_main.ts',
+    'ag-charts-website-gallery_large-datasets_main.ts',
 ];
 
 function generateThumbnails(projectName: string) {
@@ -28,7 +28,7 @@ export const createNodes: CreateNodes = [
         const uniqueName = configFilePath
             .split('/')
             .slice(2)
-            .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has[p])
+            .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has(p))
             .join('_')
             .replace(' ', '-');
         const examplePath = dirname(configFilePath).replace(`packages/${parentProject}/`, '{projectRoot}/');

@@ -25,7 +25,7 @@ import type { Keyboard } from './keyboard';
 import { LayoutService } from './layout/layoutService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
-import { UpdateCallback, UpdateService } from './updateService';
+import { type UpdateCallback, UpdateService } from './updateService';
 
 export class ChartContext implements ModuleContext {
     scene: Scene;

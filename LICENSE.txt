@@ -7,7 +7,6 @@ The following packages are MIT licensed:
 + ag-charts-community
 + ag-charts-angular
 + ag-charts-react
-+ ag-charts-vue
 + ag-charts-vue-example
 
 The following packages are Commercial licensed:

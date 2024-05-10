@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
+import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
 const {
     ChartAxisDirection,

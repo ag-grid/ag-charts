@@ -45,12 +45,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.onGroupButtonsChanged.bind(this, 'zoom')
     );
 
-    private margin = 10;
-    private floatingDetectionRange = 28;
+    private readonly margin = 10;
+    private readonly floatingDetectionRange = 28;
 
-    private elements: Record<ToolbarPosition, HTMLElement>;
+    private readonly elements: Record<ToolbarPosition, HTMLElement>;
 
-    private positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
+    private readonly positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
         [ToolbarPosition.Top]: new Set(),
         [ToolbarPosition.Right]: new Set(),
         [ToolbarPosition.Bottom]: new Set(),
@@ -59,7 +59,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         [ToolbarPosition.FloatingBottom]: new Set(),
     };
 
-    private positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
+    private readonly positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
         [ToolbarPosition.Top]: {},
         [ToolbarPosition.Right]: {},
         [ToolbarPosition.Bottom]: {},
@@ -82,7 +82,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
-    private groupProxied = new Set<ToolbarGroup>();
+    private readonly groupProxied = new Set<ToolbarGroup>();
 
     constructor(private readonly ctx: ModuleContext) {
         super();

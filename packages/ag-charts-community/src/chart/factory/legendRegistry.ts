@@ -10,8 +10,8 @@ interface LegendRegistryRecord {
 type LegendRegistryOptions = LegendRegistryRecord & { themeTemplate?: object };
 
 export class LegendRegistry {
-    private legendMap = new Map<ChartLegendType, LegendRegistryRecord>();
-    private themeTemplates = new Map<string, object | undefined>();
+    private readonly legendMap = new Map<ChartLegendType, LegendRegistryRecord>();
+    private readonly themeTemplates = new Map<string, object | undefined>();
 
     register(legendType: ChartLegendType, { optionsKey, instanceConstructor, themeTemplate }: LegendRegistryOptions) {
         this.legendMap.set(legendType, { optionsKey, instanceConstructor });

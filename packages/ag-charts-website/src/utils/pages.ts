@@ -40,8 +40,6 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-enterprise/dist/**': 'packages/ag-charts-enterprise/dist/**/*.{cjs,js,map}',
     'ag-charts-react/dist/**': 'packages/ag-charts-react/dist/**/*.{cjs,js,map}',
 
-    'ag-charts-vue/main.js': 'packages/ag-charts-vue/main.js',
-    'ag-charts-vue/lib/AgChartsVue.js': 'packages/ag-charts-vue/lib/AgChartsVue.js',
     'ag-charts-vue3/lib/AgChartsVue.js': 'packages/ag-charts-vue3/lib/AgChartsVue.js',
 
     'ag-charts-angular/fesm2015/ag-charts-angular.mjs':

@@ -2,7 +2,7 @@ import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../
 import { setAttribute } from '../../util/attributeUtil';
 import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
-import { Bounds, calculatePlacement } from '../../util/placement';
+import { type Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import {

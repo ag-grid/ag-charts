@@ -63,7 +63,6 @@ export default defineConfig({
                 'ag-charts-community',
                 'ag-charts-enterprise',
                 'ag-charts-react',
-                'ag-charts-vue',
                 'ag-charts-vue3',
             ],
         },

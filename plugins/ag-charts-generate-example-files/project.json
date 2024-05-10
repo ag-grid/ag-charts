@@ -18,9 +18,6 @@
     "lint": {
       "executor": "@nx/eslint:lint"
     },
-    "format:check": {
-      "command": "nx format:check ."
-    },
     "test": {
       "executor": "@nx/jest:jest",
       "dependsOn": ["ag-charts-community:build"],

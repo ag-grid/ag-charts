@@ -47,7 +47,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     protected _nodes: TChild[] = [];
     protected data: TDatum[] = [];
 
-    private debug = Debug.create(true, 'scene', 'scene:selections');
+    private readonly debug = Debug.create(true, 'scene', 'scene:selections');
 
     constructor(
         private readonly parentNode: Node,

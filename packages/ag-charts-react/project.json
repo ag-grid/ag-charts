@@ -8,9 +8,6 @@
     "lint": {
       "executor": "nx:noop"
     },
-    "format:check": {
-      "command": "nx format:check ."
-    },
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:package", "build:umd", "build:types"],

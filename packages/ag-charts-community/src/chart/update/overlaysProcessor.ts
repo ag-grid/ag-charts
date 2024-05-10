@@ -30,7 +30,7 @@ const defaultOverlayCss = `
 `;
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
-    private destroyFns: (() => void)[] = [];
+    private readonly destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly chartLike: ChartLike,

@@ -1,7 +1,7 @@
 import {
-    AgCandlestickSeriesBaseFormatterParams,
-    AgCandlestickSeriesItemOptions,
-    AgCandlestickSeriesItemType,
+    type AgCandlestickSeriesBaseFormatterParams,
+    type AgCandlestickSeriesItemOptions,
+    type AgCandlestickSeriesItemType,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -359,7 +359,7 @@ export abstract class CandlestickSeriesBase<
                 symbols: [
                     {
                         marker: {
-                            fill: up.fill,
+                            fill: up.fill ?? up.stroke,
                             fillOpacity: up.fillOpacity ?? 1,
                             stroke: up.stroke,
                             strokeWidth: up.strokeWidth ?? 1,
@@ -369,7 +369,7 @@ export abstract class CandlestickSeriesBase<
                     },
                     {
                         marker: {
-                            fill: down.fill,
+                            fill: down.fill ?? down.stroke,
                             fillOpacity: down.fillOpacity ?? 1,
                             stroke: down.stroke,
                             strokeWidth: down.strokeWidth ?? 1,

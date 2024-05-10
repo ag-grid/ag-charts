@@ -16,11 +16,11 @@ import { createDatumId } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
+import { type BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,

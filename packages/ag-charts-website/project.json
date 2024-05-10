@@ -120,9 +120,6 @@
         }
       }
     },
-    "format:check": {
-      "command": "nx format:check ."
-    },
     "generate-examples": {
       "executor": "nx:noop",
       "dependsOn": ["^generate-example"],
@@ -165,7 +162,6 @@
     "ag-charts-enterprise",
     "ag-charts-angular",
     "ag-charts-react",
-    "ag-charts-vue",
     "ag-charts-vue3"
   ],
   "tags": []

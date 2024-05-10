@@ -1,11 +1,11 @@
 import type { InternalFramework } from '@ag-grid-types';
 import { setInternalFramework } from '@stores/frameworkStore';
-import { isReactInternalFramework, isVueInternalFramework } from '@utils/framework';
+import { isReactInternalFramework } from '@utils/framework';
 
 import { type ExampleType, isGeneratedExample } from '../../example-generator/types';
 import styles from './CodeOptions.module.scss';
 
-type SelectorType = 'typescript' | 'react' | 'vue';
+type SelectorType = 'typescript' | 'react';
 interface SelectorConfig {
     label: string;
     labelValues: Record<string, string>;
@@ -24,13 +24,6 @@ const SELECTOR_CONFIG: Record<SelectorType, SelectorConfig> = {
         labelValues: {
             Javascript: 'reactFunctional',
             Typescript: 'reactFunctionalTs',
-        },
-    },
-    vue: {
-        label: 'Version',
-        labelValues: {
-            'Vue 2': 'vue',
-            'Vue 3': 'vue3',
         },
     },
 };
@@ -98,8 +91,7 @@ export const CodeOptions = ({
         (isGenerated || exampleType === 'multi') &&
         (internalFramework === 'vanilla' || internalFramework === 'typescript');
     const showReactSelector = isReactInternalFramework(internalFramework);
-    const showVueSelector = isVueInternalFramework(internalFramework);
-    const nothingToShow = !(showTypescriptSelector || showReactSelector || showVueSelector);
+    const nothingToShow = !(showTypescriptSelector || showReactSelector);
 
     return nothingToShow ? null : (
         <div className={styles.outer}>
@@ -107,8 +99,6 @@ export const CodeOptions = ({
                 <CodeOptionSelector id={id} type="typescript" internalFramework={internalFramework} />
             )}
             {showReactSelector && <CodeOptionSelector id={id} type="react" internalFramework={internalFramework} />}
-
-            {showVueSelector && <CodeOptionSelector id={id} type="vue" internalFramework={internalFramework} />}
         </div>
     );
 };

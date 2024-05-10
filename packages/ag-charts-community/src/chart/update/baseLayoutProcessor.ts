@@ -7,7 +7,7 @@ import type { LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
-    private destroyFns: (() => void)[] = [];
+    private readonly destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly chartLike: ChartLike,

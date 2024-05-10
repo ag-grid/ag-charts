@@ -60,7 +60,7 @@ export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties 
 }
 
 export class CrosshairLabel extends BaseProperties {
-    private id = _Util.createId(this);
+    private readonly id = _Util.createId(this);
 
     @Validate(BOOLEAN)
     enabled: boolean = true;

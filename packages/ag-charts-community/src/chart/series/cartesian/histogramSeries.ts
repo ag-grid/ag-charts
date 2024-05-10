@@ -18,11 +18,11 @@ import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from 
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import {
-    PickFocusInputs,
+    type PickFocusInputs,
     Series,
-    SeriesNodePickMatch,
+    type SeriesNodePickMatch,
     SeriesNodePickMode,
     keyProperty,
     valueProperty,
@@ -40,7 +40,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
+import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, childrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
 enum HistogramSeriesNodeTag {

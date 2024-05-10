@@ -21,7 +21,7 @@ import {
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesTooltip } from '../seriesTooltip';
-import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
 export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly x: number;

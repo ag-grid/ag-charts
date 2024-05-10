@@ -1,6 +1,6 @@
 import {
-    AgMapLineSeriesFormatterParams,
-    AgMapLineSeriesStyle,
+    type AgMapLineSeriesFormatterParams,
+    type AgMapLineSeriesStyle,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -12,7 +12,7 @@ import { GeometryType, containsType, geometryBbox, largestLineString, projectGeo
 import { lineStringCenter } from '../map-util/lineStringUtil';
 import { computeGeoFocusBounds } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
+import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;

@@ -26,7 +26,6 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
         case 'reactFunctionalTs':
         case 'reactFunctional':
             return 'react';
-        case 'vue':
         case 'vue3':
             return 'vue';
         default:
@@ -42,21 +41,18 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
  * - 'react' (React Classes)
  * - 'reactFunctional' (React Hooks)
  * - 'angular' (Angular)
- * - 'vue' (Vue)
  * - 'vue3' (Vue 3)
  */
 export const getInternalFramework = ({
     framework,
-    useVue3,
     useTypescript,
 }: {
     framework: string;
-    useVue3?: boolean;
     useTypescript?: boolean;
 }): InternalFramework => {
     switch (framework) {
         case 'vue':
-            return useVue3 ? 'vue3' : 'vue';
+            return 'vue3';
         case 'javascript':
             return useTypescript ? 'typescript' : 'vanilla';
         case 'react':
@@ -68,15 +64,6 @@ export const getInternalFramework = ({
 
 export const isReactInternalFramework = (internalFramework: InternalFramework) => {
     const reactInternalFrameworks: InternalFramework[] = ['reactFunctional', 'reactFunctionalTs'];
-    if (!internalFramework) {
-        return false;
-    }
-
-    return reactInternalFrameworks.includes(internalFramework);
-};
-
-export const isVueInternalFramework = (internalFramework: InternalFramework) => {
-    const reactInternalFrameworks: InternalFramework[] = ['vue', 'vue3'];
     if (!internalFramework) {
         return false;
     }

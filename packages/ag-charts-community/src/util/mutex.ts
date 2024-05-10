@@ -4,7 +4,7 @@ type MutexCallback = (...args: any[]) => Promise<void>;
 
 export class Mutex {
     private available: boolean = true;
-    private acquireQueue: [MutexCallback, () => void][] = [];
+    private readonly acquireQueue: [MutexCallback, () => void][] = [];
 
     public acquire(cb: MutexCallback): Promise<void> {
         return new Promise((resolve) => {

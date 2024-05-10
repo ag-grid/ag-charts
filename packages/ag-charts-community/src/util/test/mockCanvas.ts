@@ -1,4 +1,4 @@
-import { Canvas, PngConfig, createCanvas } from 'canvas';
+import { Canvas, type PngConfig, createCanvas } from 'canvas';
 import * as fs from 'fs';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';

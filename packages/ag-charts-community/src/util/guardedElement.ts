@@ -5,7 +5,7 @@ export type GuardedElementProperties = {
 };
 
 export class GuardedElement implements GuardedElementProperties {
-    private destroyFns: (() => void)[] = [];
+    private readonly destroyFns: (() => void)[] = [];
 
     private guardTarget?: HTMLElement;
     private guardTabIndex: number = 0;

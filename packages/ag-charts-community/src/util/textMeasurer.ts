@@ -46,8 +46,8 @@ export interface LegacyTextMetrics extends Writeable<TextMetrics> {
 export class TextMeasurer {
     static readonly EllipsisChar = '\u2026'; // Representation for text clipping.
 
-    private static instanceMap = new Map<string, TextMeasurer>();
-    private static lineSplitter = /\r?\n/g;
+    private static readonly instanceMap = new Map<string, TextMeasurer>();
+    private static readonly lineSplitter = /\r?\n/g;
 
     // Creates or retrieves a TextMeasurer instance for a specific font.
     private static createFontMeasurer(font: string) {
@@ -317,7 +317,7 @@ export class TextMeasurer {
     }
 
     // local chars width cache per TextMeasurer
-    private charMap = new Map<string, number>();
+    private readonly charMap = new Map<string, number>();
 
     constructor(private readonly ctx: CanvasRenderingContext2D) {}
 

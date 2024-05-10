@@ -4,7 +4,7 @@ import type { Node } from '../../../scene/node';
 import { Layers } from '../../layers';
 
 export class RangeSelector extends Group {
-    private background: Group;
+    private readonly background: Group;
 
     private x = 0;
     private y = 0;

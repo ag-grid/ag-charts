@@ -27,8 +27,13 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
-import { EMPTY_TOOLTIP_CONTENT, TooltipContent } from '../../tooltip/tooltip';
-import { PickFocusInputs, SeriesNodeEventTypes, SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import {
+    type PickFocusInputs,
+    type SeriesNodeEventTypes,
+    type SeriesNodePickMatch,
+    SeriesNodePickMode,
+} from '../series';
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -122,7 +127,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
 
-    private angleScale: LinearScale;
+    private readonly angleScale: LinearScale;
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
     public seriesItemEnabled: boolean[] = [];
@@ -166,7 +171,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     protected override nodeFactory(): Sector {
-        return new Sector();
+        const sector = new Sector();
+        sector.miterLimit = 1e9;
+        return sector;
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {

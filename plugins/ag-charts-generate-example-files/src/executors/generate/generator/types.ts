@@ -22,14 +22,7 @@ export interface GeneratedContents {
     packageJson: Record<string, any>;
 }
 
-export type InternalFramework =
-    | 'vanilla'
-    | 'typescript'
-    | 'reactFunctional'
-    | 'reactFunctionalTs'
-    | 'angular'
-    | 'vue'
-    | 'vue3';
+export type InternalFramework = 'vanilla' | 'typescript' | 'reactFunctional' | 'reactFunctionalTs' | 'angular' | 'vue3';
 
 export const FRAMEWORKS: InternalFramework[] = [
     'vanilla',
@@ -37,7 +30,6 @@ export const FRAMEWORKS: InternalFramework[] = [
     'reactFunctional',
     'reactFunctionalTs',
     'angular',
-    'vue',
     'vue3',
 ];
 export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs', 'angular'];

@@ -2,7 +2,7 @@ import { StateTracker } from '../../util/stateTracker';
 import type { DOMManager } from '../dom/domManager';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
-import { DEFAULT_TOOLTIP_CLASS, TooltipPointerEvent } from '../tooltip/tooltip';
+import { DEFAULT_TOOLTIP_CLASS, type TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
     content?: TooltipContent;

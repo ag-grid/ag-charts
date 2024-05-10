@@ -44,7 +44,7 @@ type Result<
 export class DataController {
     private readonly debug = Debug.create(true, 'data-model');
 
-    private requested: RequestedProcessing<any, any, any>[] = [];
+    private readonly requested: RequestedProcessing<any, any, any>[] = [];
     private status: 'setup' | 'executed' = 'setup';
 
     public constructor(private readonly mode: ChartMode) {}

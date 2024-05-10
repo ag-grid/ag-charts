@@ -19,9 +19,9 @@ export class RadiusCrossLine extends PolarCrossLine {
 
     override label = new RadiusCrossLineLabel();
 
-    private polygonNode = new Path();
-    private sectorNode = new Sector();
-    private labelNode = new Text();
+    private readonly polygonNode = new Path();
+    private readonly sectorNode = new Sector();
+    private readonly labelNode = new Text();
 
     private outerRadius = 0;
     private innerRadius = 0;

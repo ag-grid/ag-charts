@@ -5,7 +5,6 @@ libraries/ag-charts-test/dist/
 packages/ag-charts-angular/dist/
 packages/ag-charts-community/dist/
 packages/ag-charts-react/dist/
-packages/ag-charts-vue/dist/
 packages/ag-charts-vue3/dist/
 plugins/ag-charts-generate-chart-thumbnail/dist/
 plugins/ag-charts-generate-code-reference-files/dist/

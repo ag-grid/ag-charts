@@ -27,7 +27,7 @@ export class ZoomPanner {
 
     private coordsMonitorTimeout: NodeJS.Timeout | undefined;
     private zoomCoordsHistoryIndex = 0;
-    private coordsHistory: ZoomCoordHistory[] = [];
+    private readonly coordsHistory: ZoomCoordHistory[] = [];
 
     private inertiaHandle: number | undefined;
 

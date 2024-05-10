@@ -37,9 +37,9 @@ type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
  * and handles conflicting zoom requests.
  */
 export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
-    private axisZoomManagers = new Map<string, AxisZoomManager>();
-    private state = new StateTracker<AxisZoomState>(undefined, 'initial');
-    private rejectCallbacks = new Map<string, (stateId: string) => void>();
+    private readonly axisZoomManagers = new Map<string, AxisZoomManager>();
+    private readonly state = new StateTracker<AxisZoomState>(undefined, 'initial');
+    private readonly rejectCallbacks = new Map<string, (stateId: string) => void>();
 
     public updateAxes(axes: Array<ChartAxisLike>) {
         const zoomManagers = new Map(axes.map((axis) => [axis.id, this.axisZoomManagers.get(axis.id)]));
@@ -149,9 +149,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
 }
 
 class AxisZoomManager {
-    private axis: ChartAxisLike;
+    private readonly axis: ChartAxisLike;
     private currentZoom: ZoomState;
-    private state: StateTracker<ZoomState>;
+    private readonly state: StateTracker<ZoomState>;
 
     constructor(axis: ChartAxisLike) {
         this.axis = axis;

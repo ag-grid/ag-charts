@@ -1,5 +1,5 @@
 import { BBox } from '../bbox';
-import { DistantObject, NearestResult, nearestSquared } from '../nearest';
+import { type DistantObject, type NearestResult, nearestSquared } from '../nearest';
 
 type QuadtreeNearestResult<V> = NearestResult<QuadtreeElem<HitTesterNearest, V>>;
 

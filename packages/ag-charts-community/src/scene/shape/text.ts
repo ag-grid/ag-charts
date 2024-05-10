@@ -256,7 +256,7 @@ export class Text extends Shape {
         }
     }
 
-    private static _measureText = memoizeFunction(
+    private static readonly _measureText = memoizeFunction(
         ({
             text,
             font,
@@ -270,7 +270,7 @@ export class Text extends Shape {
         }) => TextMeasurer.measureText(text, { font, textBaseline, textAlign })
     );
 
-    private static _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) =>
+    private static readonly _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) =>
         TextMeasurer.measureText(text, { font })
     );
 

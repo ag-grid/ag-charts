@@ -1,7 +1,7 @@
 import {
-    AgCandlestickSeriesBaseFormatterParams,
-    AgOhlcSeriesFormatterParams,
-    AgOhlcSeriesItemOptions,
+    type AgCandlestickSeriesBaseFormatterParams,
+    type AgOhlcSeriesFormatterParams,
+    type AgOhlcSeriesItemOptions,
     _ModuleSupport,
     _Scene,
 } from 'ag-charts-community';

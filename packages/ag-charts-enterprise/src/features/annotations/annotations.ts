@@ -86,21 +86,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // State
     private annotationData?: AnnotationProperties[];
 
-    private container = new _Scene.Group({ name: 'static-annotations' });
-    private annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
+    private readonly container = new _Scene.Group({ name: 'static-annotations' });
+    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
         this.container,
         this.createAnnotation.bind(this)
     );
 
-    private scaleX?: _Scene.Scale<any, number>;
-    private scaleY?: _Scene.Scale<any, number>;
+    private scaleX?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
+    private scaleY?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
     private domainX?: any[];
     private domainY?: any[];
 
     private hovered?: number;
     private active?: number;
 
-    private state: AnnotationsStateMachine;
+    private readonly state: AnnotationsStateMachine;
 
     private seriesRect?: _Scene.BBox;
 
@@ -265,7 +265,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return true;
     }
 
-    private validateDatumPointDirection(domain: any[], scale: _Scene.Scale<any, any>, value: any) {
+    private validateDatumPointDirection(
+        domain: any[],
+        scale: _Scene.Scale<any, any, number | _Util.TimeInterval>,
+        value: any
+    ) {
         if (_Scene.ContinuousScale.is(scale)) {
             return value >= domain[0] && value <= domain[1];
         }

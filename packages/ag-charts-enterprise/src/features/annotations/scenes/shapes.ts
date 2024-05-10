@@ -4,7 +4,7 @@ const magnitude = (x: number, y: number) => Math.sqrt(Math.pow(x, 2) + Math.pow(
 
 export class CollidableLine extends _Scene.Line {
     public collisionBBox?: _Scene.BBox;
-    private growCollisionBox = 2;
+    private readonly growCollisionBox = 2;
 
     updateCollisionBBox() {
         const x = this.x1;

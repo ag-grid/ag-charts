@@ -5,7 +5,7 @@ export interface TypedEvent {
 export type TypedEventListener = (event: TypedEvent) => any;
 
 export class Observable {
-    private eventListeners: Map<string, Set<TypedEventListener>> = new Map();
+    private readonly eventListeners: Map<string, Set<TypedEventListener>> = new Map();
 
     addEventListener(eventType: string, listener: TypedEventListener): void {
         if (typeof listener !== 'function') {
