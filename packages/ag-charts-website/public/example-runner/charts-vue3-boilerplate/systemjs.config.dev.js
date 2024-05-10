@@ -1,16 +1,17 @@
 (function (global) {
     System.config({
-        transpiler: 'plugin-babel',
-        defaultExtension: 'js',
+        transpiler: 'ts',
+        typescriptOptions: {
+            target: 'es2020',
+        },
         paths: {
             'npm:': 'https://cdn.jsdelivr.net/npm/',
         },
         map: {
-            // babel transpiler
-            'plugin-babel': 'npm:systemjs-plugin-babel@0.0.25/plugin-babel.js',
-            'systemjs-babel-build': 'npm:systemjs-plugin-babel@0.0.25/systemjs-babel-browser.js',
-
+            // Transpilers
             css: boilerplatePath + 'css.js',
+            ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
+            typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
             // vuejs
             vue: 'npm:vue@3.2.29/dist/vue.esm-browser.js',
@@ -50,10 +51,8 @@
             },
         },
         meta: {
-            '*.js': {
-                babelOptions: {
-                    es2015: false,
-                },
+            typescript: {
+                exports: 'ts',
             },
             '*.css': { loader: 'css' },
         },

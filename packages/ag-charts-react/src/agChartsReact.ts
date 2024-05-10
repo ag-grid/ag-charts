@@ -1,5 +1,4 @@
-import * as PropTypes from 'prop-types';
-import { CSSProperties, Component, type RefObject, createElement, createRef } from 'react';
+import { type CSSProperties, Component, type RefObject, createElement, createRef } from 'react';
 
 import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 
@@ -62,7 +61,3 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
         return { ...propsOptions, container: this.containerRef.current };
     }
 }
-
-AgChartsReact.propTypes = {
-    options: PropTypes.object,
-};

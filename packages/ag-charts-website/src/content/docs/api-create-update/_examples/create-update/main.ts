@@ -48,7 +48,7 @@ function swapTitles() {
 }
 
 function rotateLegend() {
-    const currentIdx = positions.indexOf(legend.position || 'top');
+    const currentIdx = positions.indexOf(legend.position ?? 'top');
     legend.position = positions[(currentIdx + 1) % positions.length];
 
     options.legend = legend;

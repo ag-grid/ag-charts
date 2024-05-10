@@ -8,16 +8,7 @@
         // DEMO ONLY! REAL CODE SHOULD NOT TRANSPILE IN THE BROWSER
         transpiler: 'ts',
         typescriptOptions: {
-            // Copy of compiler options in standard tsconfig.json
             target: 'es2020',
-            module: 'system', //gets rid of console warning
-            moduleResolution: 'node',
-            sourceMap: false,
-            emitDecoratorMetadata: true,
-            experimentalDecorators: true,
-            lib: ['es2020', 'dom'],
-            noImplicitAny: true,
-            suppressImplicitAnyIndexErrors: true,
         },
         meta: {
             typescript: {
@@ -32,8 +23,8 @@
         },
         // map tells the System loader where to look for things
         map: {
+            // Transpilers
             css: boilerplatePath + 'css.js',
-
             ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
             tslib: 'npm:tslib@2.3.1/tslib.js',
             typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
