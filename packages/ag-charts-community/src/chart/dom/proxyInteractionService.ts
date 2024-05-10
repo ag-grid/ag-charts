@@ -31,18 +31,17 @@ export class ProxyInteractionService {
     private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
 
     private nodes: ProxyNode[] = [];
+    private readonly destroyFns: (() => void)[];
 
     constructor(
         updateService: UpdateService,
-        private readonly domManager: DOMManager,
         private readonly focusIndicator: FocusIndicator
     ) {
-        updateService.addListener('update-complete', () => this.update());
+        this.destroyFns = [updateService.addListener('update-complete', () => this.update())];
     }
 
     public destroy() {
-        this.domManager;
-        this.focusIndicator;
+        this.destroyFns.forEach((d) => d());
     }
 
     private update() {
@@ -53,29 +52,28 @@ export class ProxyInteractionService {
 
     createProxyElement<T extends ProxyType>(params: ProxyParams<T>): ProxyReturnMap[T] | undefined {
         const { type, id, parent, bboxprovider, textContext, onclick } = params;
-        switch (type) {
-            case 'button':
-                const newButton = createElement('button');
+        if (type === 'button') {
+            const newButton = createElement('button');
 
-                newButton.id = id;
-                newButton.textContent = textContext;
+            newButton.id = id;
+            newButton.textContent = textContext;
+            newButton.style.pointerEvents = 'none';
+            newButton.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
+            newButton.addEventListener('focus', (_event: FocusEvent): any => {
+                newButton.style.setProperty('pointerEvents', null);
+                this.focusIndicator.updateBBox(bboxprovider.getCachedBBox());
+            });
+            newButton.addEventListener('blur', (_event: FocusEvent): any => {
                 newButton.style.pointerEvents = 'none';
-                newButton.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
-                newButton.addEventListener('focus', (_event: FocusEvent): any => {
-                    newButton.style.setProperty('pointerEvents', null);
-                    this.focusIndicator.updateBBox(bboxprovider.getCachedBBox());
-                });
-                newButton.addEventListener('blur', (_event: FocusEvent): any => {
-                    newButton.style.pointerEvents = 'none';
-                    this.focusIndicator.updateBBox(undefined);
-                });
-                if (onclick) {
-                    newButton.addEventListener('click', onclick);
-                }
+                this.focusIndicator.updateBBox(undefined);
+            });
+            if (onclick) {
+                newButton.addEventListener('click', onclick);
+            }
 
-                this.nodes.push({ element: newButton, bboxprovider });
-                parent.appendChild(newButton);
-                return newButton;
+            this.nodes.push({ element: newButton, bboxprovider });
+            parent.appendChild(newButton);
+            return newButton;
         }
     }
 }

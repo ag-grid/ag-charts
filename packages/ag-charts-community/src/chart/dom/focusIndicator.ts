@@ -18,7 +18,7 @@ export class FocusIndicator {
         this.domManager.removeChild('canvas-overlay', focusStyles.block);
     }
 
-    public updateBBox(rect?: BBoxValues) {
+    public updateBBox(rect: BBoxValues | undefined) {
         if (rect == null) {
             this.element.classList.add(focusStyles.modifiers.hidden);
             return;
