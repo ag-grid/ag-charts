@@ -1,72 +1,34 @@
-import type {
-    AgBaseAxisOptions,
-    AgBaseCartesianAxisOptions,
-    AgCartesianAxisPosition,
-    AgCartesianAxisType,
-} from '../../options/agChartOptions';
+import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
+import { CartesianAxis } from '../axis/cartesianAxis';
 import type { ChartAxis } from '../chartAxis';
 
-const CARTESIAN_AXIS_POSITIONS: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
-const CARTESIAN_AXIS_TYPES: AgCartesianAxisType[] = [
-    'category',
-    'grouped-category',
-    'ordinal-time',
-    'number',
-    'log',
-    'time',
-];
-
-function hasCartesianAxisPosition(axis: ChartAxis): axis is ChartAxis & { position: AgCartesianAxisPosition } {
-    const allowedTypes: string[] = CARTESIAN_AXIS_TYPES;
-    return allowedTypes.includes(axis.type);
-}
-
-function isCartesianAxisOptions(options: AgBaseAxisOptions): options is AgBaseCartesianAxisOptions {
-    const allowedTypes: string[] = CARTESIAN_AXIS_TYPES;
-    return allowedTypes.includes(options.type);
-}
+const CartesianAxisPositions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
 
 function isAxisPosition(position: unknown): position is AgCartesianAxisPosition {
-    const allowedPositions: string[] = CARTESIAN_AXIS_POSITIONS;
-    return typeof position === 'string' && allowedPositions.includes(position);
+    return typeof position === 'string' && CartesianAxisPositions.includes(position as AgCartesianAxisPosition);
 }
 
-// If axis[].position, then we cannot always default to the same value. We need
-// to default to an 'untaken' position (see AG-9963 for more info).
-export class AxisPositionGuesser {
-    private readonly result: ChartAxis[] = [];
-    private readonly valid: ChartAxis[] = [];
-    private readonly invalid: ChartAxis[] = [];
+export function guessInvalidPositions(axes: ChartAxis[]) {
+    const invalidAxes: ChartAxis[] = [];
+    const usedPositions: AgCartesianAxisPosition[] = [];
+    const guesses = [...CartesianAxisPositions];
 
-    push(axis: ChartAxis, options: AgBaseAxisOptions) {
-        const { result, valid, invalid } = this;
-        if (isCartesianAxisOptions(options)) {
-            if (isAxisPosition(options.position)) {
-                valid.push(axis);
+    for (const axis of axes) {
+        if (axis instanceof CartesianAxis) {
+            if (isAxisPosition(axis.position)) {
+                usedPositions.push(axis.position);
             } else {
-                invalid.push(axis);
+                invalidAxes.push(axis);
             }
         }
-
-        result.push(axis);
     }
 
-    guessInvalidPositions() {
-        const takenPosition: (AgCartesianAxisPosition | undefined)[] = this.valid
-            .filter((v) => hasCartesianAxisPosition(v))
-            .map((v) => v.position)
-            .filter((v) => v !== undefined);
-        const guesses: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
-        for (const invalidAxis of this.invalid) {
-            let nextGuess = guesses.pop();
-            while (takenPosition.includes(nextGuess) && nextGuess !== undefined) {
-                nextGuess = guesses.pop();
-            }
-
-            if (nextGuess === undefined) break;
-            invalidAxis.position = nextGuess;
-        }
-
-        return this.result;
+    for (const axis of invalidAxes) {
+        let nextGuess: AgCartesianAxisPosition | undefined;
+        do {
+            nextGuess = guesses.pop();
+        } while (nextGuess && usedPositions.includes(nextGuess));
+        if (nextGuess == null) break;
+        axis.position = nextGuess;
     }
 }
