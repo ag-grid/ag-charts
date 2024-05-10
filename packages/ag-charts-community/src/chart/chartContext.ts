@@ -7,6 +7,8 @@ import { AnnotationManager } from './annotation/annotationManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
 import { DOMManager } from './dom/domManager';
+import { FocusIndicator } from './dom/focusIndicator';
+import { ProxyInteractionService } from './dom/proxyInteractionService';
 import { AnimationManager } from './interaction/animationManager';
 import { AriaAnnouncementService } from './interaction/ariaAnnouncementServices';
 import { ChartEventManager } from './interaction/chartEventManager';
@@ -45,9 +47,11 @@ export class ChartContext implements ModuleContext {
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
     domManager: DOMManager;
+    focusIndicator: FocusIndicator;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
     keyNavManager: KeyNavManager;
+    proxyInteractionService: ProxyInteractionService;
     regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
     syncManager: SyncManager;
@@ -82,7 +86,9 @@ export class ChartContext implements ModuleContext {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
         this.keyNavManager = new KeyNavManager(this.interactionManager, this.domManager);
-        this.regionManager = new RegionManager(this.interactionManager, this.keyNavManager, this.domManager);
+        this.focusIndicator = new FocusIndicator(this.domManager);
+        this.regionManager = new RegionManager(this.interactionManager, this.keyNavManager, this.focusIndicator);
+        this.proxyInteractionService = new ProxyInteractionService(this.domManager, this.focusIndicator);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(this.domManager);
         this.layoutService = new LayoutService();
@@ -101,7 +107,9 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene and zoomManager.
         this.tooltipManager.destroy();
+        this.proxyInteractionService.destroy();
         this.regionManager.destroy();
+        this.focusIndicator.destroy();
         this.keyNavManager.destroy();
         this.interactionManager.destroy();
         this.animationManager.stop();

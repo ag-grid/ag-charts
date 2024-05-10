@@ -1,7 +1,6 @@
 import type { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
-import type { DOMManager } from '../dom/domManager';
-import { FocusIndicator } from '../dom/focusIndicator';
+import type { FocusIndicator } from '../dom/focusIndicator';
 import { buildConsumable } from './consumableEvent';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
@@ -67,7 +66,6 @@ function addHandler<T extends RegionEvent['type']>(
 
 export class RegionManager {
     private currentTabIndex = 0;
-    public readonly focusIndicator: FocusIndicator;
 
     private currentRegion?: Region;
     private isDragging = false;
@@ -80,7 +78,7 @@ export class RegionManager {
     constructor(
         private readonly interactionManager: InteractionManager,
         private readonly keyNavManager: KeyNavManager,
-        domManager: DOMManager
+        private readonly focusIndicator: FocusIndicator
     ) {
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
@@ -93,8 +91,6 @@ export class RegionManager {
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
             this.keyNavManager.addListener('submit', this.onNav.bind(this))
         );
-
-        this.focusIndicator = new FocusIndicator(domManager);
     }
 
     public destroy() {
