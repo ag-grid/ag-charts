@@ -2,6 +2,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
+import { ObjectDestroyer } from '../util/destroy';
 import type { Mutex } from '../util/mutex';
 import { AnnotationManager } from './annotation/annotationManager';
 import type { ChartService } from './chartService';
@@ -59,6 +60,8 @@ export class ChartContext implements ModuleContext {
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
 
+    private readonly owned: ObjectDestroyer;
+
     constructor(
         chart: ChartService & { zoomManager: ZoomManager; annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
@@ -78,48 +81,40 @@ export class ChartContext implements ModuleContext {
         scene?.setContainer(this.domManager);
         this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, domManager: this.domManager });
 
-        this.annotationManager = new AnnotationManager(chart.annotationRoot);
-        this.ariaAnnouncementService = new AriaAnnouncementService(this.scene.canvas.element);
-        this.chartEventManager = new ChartEventManager();
-        this.contextMenuRegistry = new ContextMenuRegistry();
-        this.cursorManager = new CursorManager(this.domManager);
-        this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
-        this.keyNavManager = new KeyNavManager(this.interactionManager, this.domManager);
-        this.focusIndicator = new FocusIndicator(this.domManager);
-        this.regionManager = new RegionManager(this.interactionManager, this.keyNavManager, this.focusIndicator);
-        this.toolbarManager = new ToolbarManager();
-        this.gestureDetector = new GestureDetector(this.domManager);
-        this.layoutService = new LayoutService();
-        this.updateService = new UpdateService(updateCallback);
-        this.proxyInteractionService = new ProxyInteractionService(this.updateService, this.focusIndicator);
-        this.seriesStateManager = new SeriesStateManager();
-        this.callbackCache = new CallbackCache();
+        this.owned = new ObjectDestroyer(
+            this.domManager,
+            (this.annotationManager = new AnnotationManager(chart.annotationRoot)),
+            (this.ariaAnnouncementService = new AriaAnnouncementService(this.scene.canvas.element)),
+            (this.chartEventManager = new ChartEventManager()),
+            (this.contextMenuRegistry = new ContextMenuRegistry()),
+            (this.cursorManager = new CursorManager(this.domManager)),
+            (this.highlightManager = new HighlightManager()),
+            (this.interactionManager = new InteractionManager(chart.keyboard, this.domManager)),
+            (this.keyNavManager = new KeyNavManager(this.interactionManager, this.domManager)),
+            (this.focusIndicator = new FocusIndicator(this.domManager)),
+            (this.regionManager = new RegionManager(this.interactionManager, this.keyNavManager, this.focusIndicator)),
+            (this.toolbarManager = new ToolbarManager()),
+            (this.gestureDetector = new GestureDetector(this.domManager)),
+            (this.layoutService = new LayoutService()),
+            (this.updateService = new UpdateService(updateCallback)),
+            (this.proxyInteractionService = new ProxyInteractionService(this.updateService, this.focusIndicator)),
+            (this.seriesStateManager = new SeriesStateManager()),
+            (this.callbackCache = new CallbackCache()),
+            (this.animationManager = this.createAnimationManager(this.interactionManager, updateMutex)),
+            (this.dataService = new DataService<any>(this.animationManager)),
+            (this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip))
+        );
+    }
 
-        this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
-        this.animationManager.skip();
-        this.animationManager.play();
-
-        this.dataService = new DataService<any>(this.animationManager);
-        this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
+    private createAnimationManager(interactionManager: InteractionManager, updateMutex: Mutex): AnimationManager {
+        const animationManager = new AnimationManager(interactionManager, updateMutex);
+        animationManager.skip();
+        animationManager.play();
+        return animationManager;
     }
 
     destroy() {
         // chart.ts handles the destruction of the scene and zoomManager.
-        this.tooltipManager.destroy();
-        this.proxyInteractionService.destroy();
-        this.regionManager.destroy();
-        this.focusIndicator.destroy();
-        this.keyNavManager.destroy();
-        this.interactionManager.destroy();
-        this.animationManager.stop();
-        this.animationManager.destroy();
-        this.ariaAnnouncementService.destroy();
-        this.chartEventManager.destroy();
-        this.highlightManager.destroy();
-        this.callbackCache.invalidateCache();
-        this.animationManager.reset();
-        this.syncManager.destroy();
-        this.domManager.destroy();
+        this.owned.destroy();
     }
 }
