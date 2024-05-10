@@ -1,4 +1,4 @@
-import type { BBox } from '../../scene/bbox';
+import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import { buildConsumable } from './consumableEvent';
@@ -27,12 +27,9 @@ type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> } &
 
 type RegionEvent = PointerInteractionEvent | KeyNavEvent;
 type RegionHandler = (event: RegionEvent) => void;
+type RegionBBoxProvider = BBoxProvider<BBoxContainsTester & { width: number; height: number }>;
 
 class RegionListeners extends Listeners<RegionEvent['type'], RegionHandler> {}
-
-interface BBoxProvider {
-    getCachedBBox(): BBox;
-}
 
 type Region = {
     readonly properties: RegionProperties;
@@ -41,7 +38,7 @@ type Region = {
 
 export interface RegionProperties {
     readonly name: RegionName;
-    readonly bboxproviders: BBoxProvider[];
+    readonly bboxproviders: RegionBBoxProvider[];
     canInteraction(): boolean;
 }
 
@@ -111,7 +108,7 @@ export class RegionManager {
         return this.makeObserver(region);
     }
 
-    public addRegion(name: RegionName, bboxprovider: BBoxProvider, ...extraProviders: BBoxProvider[]) {
+    public addRegion(name: RegionName, bboxprovider: RegionBBoxProvider, ...extraProviders: RegionBBoxProvider[]) {
         return this.addRegionFromProperties({
             name,
             bboxproviders: [bboxprovider, ...extraProviders],
@@ -330,7 +327,7 @@ export class RegionManager {
         this.dispatch(focusedRegion, event);
     }
 
-    public updateFocusIndicatorRect(rect?: { x: number; y: number; width: number; height: number }) {
+    public updateFocusIndicatorRect(rect?: BBoxValues) {
         this.focusIndicator.updateBBox(rect);
     }
 }

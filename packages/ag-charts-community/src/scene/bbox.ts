@@ -1,3 +1,4 @@
+import type { BBoxContainsTester, BBoxValues } from '../util/bboxinterface';
 import { type Interpolating, interpolate } from '../util/interpolating';
 import type { DistantObject, NearestResult } from '../util/nearest';
 import { nearestSquared } from '../util/nearest';
@@ -20,7 +21,7 @@ type Padding = {
 
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
-export class BBox implements DistantObject, Interpolating<BBox> {
+export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Interpolating<BBox> {
     x: number;
     y: number;
     width: number;
