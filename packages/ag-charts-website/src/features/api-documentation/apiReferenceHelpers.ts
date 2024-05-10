@@ -245,7 +245,7 @@ export function extractSearchData(
                 );
             } else if (
                 typeof member.type === 'object' &&
-                member.type.kind === 'array' &&
+                'type' in member.type &&
                 typeof member.type.type === 'string' &&
                 reference?.has(member.type.type)
             ) {
