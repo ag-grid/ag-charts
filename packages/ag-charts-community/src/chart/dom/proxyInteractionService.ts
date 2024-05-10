@@ -2,7 +2,6 @@ import { Debug } from '../../sparklines-util';
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { createElement, setElementBBox } from '../../util/dom';
 import type { UpdateService } from '../updateService';
-import type { DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
 
 type ProxyType = 'button';
