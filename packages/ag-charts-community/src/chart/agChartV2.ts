@@ -145,11 +145,11 @@ export abstract class AgCharts {
         return AgChartsInternal.getImageDataURL(chart, options);
     }
 
-    public static getAnnotations(chart: AgChartInstance) {
+    public static saveAnnotations(chart: AgChartInstance) {
         if (!(chart instanceof AgChartInstanceProxy)) {
             throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        return AgChartsInternal.getAnnotations(chart);
+        return AgChartsInternal.saveAnnotations(chart);
     }
 
     public static restoreAnnotations(chart: AgChartInstance, blob: unknown) {
@@ -259,7 +259,7 @@ class AgChartsInternal {
         return result;
     }
 
-    static getAnnotations(proxy: AgChartInstanceProxy) {
+    static saveAnnotations(proxy: AgChartInstanceProxy) {
         return AgChartsInternal.caretaker.save(proxy.chart.ctx.annotationManager);
     }
 
