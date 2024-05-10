@@ -1,7 +1,6 @@
 import type { TimeInterval } from '../util/time/interval';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
-import { isValidDate } from '../util/type-guards';
 import { BandScale } from './bandScale';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
@@ -211,13 +210,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override convert(d: Date): number {
         if (typeof d === 'number') {
             d = new Date(d);
-        }
-
-        if (typeof d === 'string') {
-            const maybeDate = new Date(d);
-            if (isValidDate(maybeDate)) {
-                d = maybeDate;
-            }
         }
 
         if (!(d instanceof Date)) {

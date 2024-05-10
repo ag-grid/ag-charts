@@ -1,4 +1,5 @@
 import { Logger } from '../util/logger';
+import { isDate, isPlainObject } from '../util/type-guards';
 
 export interface Memento {
     type: string;
@@ -57,12 +58,14 @@ export class MementoCaretaker {
      */
     private encode(originator: MementoOriginator, memento: Memento) {
         try {
-            const mementoString = JSON.stringify(memento);
+            const mementoString = JSON.stringify(memento, this.encodeTypes);
             const bytes = new TextEncoder().encode(mementoString);
             const binaryString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join('');
             return btoa(binaryString);
         } catch (error) {
-            throw new Error(`${originator.mementoOriginatorName} - Failed to encode memento.`, { cause: error });
+            throw new Error(`${originator.mementoOriginatorName} - Failed to encode memento [${error}].`, {
+                cause: error,
+            });
         }
     }
 
@@ -74,9 +77,23 @@ export class MementoCaretaker {
             const binaryString = atob(encoded);
             const bytes = Uint8Array.from(binaryString, (m) => m.codePointAt(0) ?? 0);
             const blobString = new TextDecoder().decode(bytes);
-            return JSON.parse(blobString);
+            return JSON.parse(blobString, this.decodeTypes);
         } catch (error) {
-            throw new Error(`${originator.mementoOriginatorName} - Failed to decode memento.`, { cause: error });
+            throw new Error(`${originator.mementoOriginatorName} - Failed to decode memento [${error}].`, {
+                cause: error,
+            });
         }
+    }
+
+    private encodeTypes(this: any, key: any, value: any) {
+        if (isDate(this[key])) return { __type: 'date', value: String(this[key]) };
+        return value;
+    }
+
+    private decodeTypes(this: any, key: any, value: any) {
+        if (isPlainObject(this[key]) && '__type' in this[key] && this[key].__type === 'date') {
+            return new Date(this[key].value);
+        }
+        return value;
     }
 }

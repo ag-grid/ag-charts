@@ -23,7 +23,7 @@ export class AnnotationManager
 {
     public mementoOriginatorName = 'Annotations';
 
-    private data?: any;
+    private annotations?: any;
     private styles?: AgAnnotationsThemeableOptions;
 
     constructor(private readonly annotationRoot: Group) {
@@ -31,7 +31,7 @@ export class AnnotationManager
     }
 
     public createMemento(version: number) {
-        const memento = new AnnotationsMemento(this.data);
+        const memento = new AnnotationsMemento(this.annotations);
         memento.version = version;
         return memento;
     }
@@ -49,8 +49,8 @@ export class AnnotationManager
         });
     }
 
-    public updateData(data?: any) {
-        this.data = data;
+    public updateData(annotations?: any) {
+        this.annotations = annotations;
     }
 
     public attachNode(node: Node) {
