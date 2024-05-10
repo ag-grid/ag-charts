@@ -1,3 +1,5 @@
+import type { BBoxValues } from '../../util/bboxinterface';
+import { setElementBBox } from '../../util/dom';
 import type { DOMManager } from './domManager';
 import * as focusStyles from './focusStyles';
 
@@ -16,16 +18,13 @@ export class FocusIndicator {
         this.domManager.removeChild('canvas-overlay', focusStyles.block);
     }
 
-    public updateBBox(rect?: { x: number; y: number; width: number; height: number }) {
+    public updateBBox(rect?: BBoxValues) {
         if (rect == null) {
             this.element.classList.add(focusStyles.modifiers.hidden);
             return;
         }
 
         this.element.classList.remove(focusStyles.modifiers.hidden);
-        this.element.style.width = `${rect.width}px`;
-        this.element.style.height = `${rect.height}px`;
-        this.element.style.left = `${rect.x}px`;
-        this.element.style.top = `${rect.y}px`;
+        setElementBBox(this.element, rect);
     }
 }
