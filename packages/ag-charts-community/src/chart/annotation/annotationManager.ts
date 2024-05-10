@@ -12,9 +12,11 @@ export interface AnnotationsRestoreEvent {
 
 export class AnnotationsMemento implements Memento {
     type = 'annotations';
-    version = '10.0';
 
-    constructor(public readonly annotations?: any) {}
+    constructor(
+        public readonly version: string,
+        public readonly annotations?: any
+    ) {}
 }
 
 export class AnnotationManager
@@ -30,10 +32,8 @@ export class AnnotationManager
         super();
     }
 
-    public createMemento(_version: string) {
-        const memento = new AnnotationsMemento(this.annotations);
-        memento.version = '10.0';
-        return memento;
+    public createMemento(version: string) {
+        return new AnnotationsMemento(version, this.annotations);
     }
 
     public guardMemento(blob: unknown): blob is AnnotationsMemento {

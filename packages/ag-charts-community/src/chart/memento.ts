@@ -22,10 +22,8 @@ export class MementoCaretaker {
     private readonly version: string;
 
     constructor(version: string) {
-        // Only consider the major and minor when versioning mementos, to handle migrating breaking changes and
-        // deprecations. Changes in patch versions can be safely ignored.
-        const [major, minor] = version.split('.');
-        this.version = `${major}.${minor}`;
+        // Strip out version suffixes, e.g. `-beta`
+        this.version = version.split('-')[0];
     }
 
     save(originator: MementoOriginator) {

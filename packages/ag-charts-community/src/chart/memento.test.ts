@@ -9,18 +9,19 @@ describe('Memento Caretaker', () => {
 
     class TestMemento implements Memento {
         type = 'test';
-        version = '10.0';
-
-        constructor(public readonly data?: any) {}
+        constructor(
+            public readonly version: string,
+            public readonly data?: any
+        ) {}
     }
 
     class TestOriginator implements MementoOriginator {
         mementoOriginatorName = 'TestOriginator';
-        data?: any;
-        restored?: any;
+        data?: object;
+        restored?: object;
 
-        createMemento() {
-            return new TestMemento(this.data);
+        createMemento(version: string) {
+            return new TestMemento(version, this.data);
         }
 
         guardMemento(blob: unknown): boolean {
@@ -46,7 +47,7 @@ describe('Memento Caretaker', () => {
         const blob = caretaker.save(originator);
         caretaker.restore(originator, blob);
 
-        expect(blob).toBe('eyJkYXRhIjp7ImhlbGxvIjoid29ybGQifSwidHlwZSI6InRlc3QiLCJ2ZXJzaW9uIjoiMTAuMCJ9');
+        expect(blob).toBe('eyJ2ZXJzaW9uIjoiMTAuMC4wIiwiZGF0YSI6eyJoZWxsbyI6IndvcmxkIn0sInR5cGUiOiJ0ZXN0In0=');
         expect(originator.restored).toEqual({ hello: 'world' });
     });
 
@@ -56,7 +57,7 @@ describe('Memento Caretaker', () => {
         const blob = caretaker.save(originator);
         caretaker.restore(originator, blob);
 
-        expect(blob).toBe('eyJkYXRhIjp7ImhlbGxvIjoi8J+MjSJ9LCJ0eXBlIjoidGVzdCIsInZlcnNpb24iOiIxMC4wIn0=');
+        expect(blob).toBe('eyJ2ZXJzaW9uIjoiMTAuMC4wIiwiZGF0YSI6eyJoZWxsbyI6IvCfjI0ifSwidHlwZSI6InRlc3QifQ==');
         expect(originator.restored).toEqual({ hello: '🌍' });
     });
 
@@ -68,8 +69,8 @@ describe('Memento Caretaker', () => {
         class OtherTestOriginator extends TestOriginator {
             override mementoOriginatorName = 'OtherTestOriginator';
 
-            override createMemento() {
-                return new OtherTestMemento(this.data);
+            override createMemento(version: string) {
+                return new OtherTestMemento(version, this.data);
             }
 
             override guardMemento(blob: unknown): boolean {
@@ -86,7 +87,7 @@ describe('Memento Caretaker', () => {
         expectWarning('AG Charts - TestOriginator - Could not restore data, memento was invalid, ignoring.', {
             data: otherOriginator.data,
             type: 'other-test',
-            version: '10.0',
+            version: '10.0.0',
         });
         expect(originator.restored).toBeUndefined();
     });
