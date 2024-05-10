@@ -1,8 +1,8 @@
 import type { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
 import type { DOMManager } from '../dom/domManager';
+import { FocusIndicator } from '../dom/focusIndicator';
 import { buildConsumable } from './consumableEvent';
-import * as focusStyles from './focusStyles';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
@@ -67,7 +67,7 @@ function addHandler<T extends RegionEvent['type']>(
 
 export class RegionManager {
     private currentTabIndex = 0;
-    private readonly focusIndicator: HTMLElement;
+    public readonly focusIndicator: FocusIndicator;
 
     private currentRegion?: Region;
     private isDragging = false;
@@ -80,7 +80,7 @@ export class RegionManager {
     constructor(
         private readonly interactionManager: InteractionManager,
         private readonly keyNavManager: KeyNavManager,
-        private readonly domManager: DOMManager
+        domManager: DOMManager
     ) {
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
@@ -94,11 +94,7 @@ export class RegionManager {
             this.keyNavManager.addListener('submit', this.onNav.bind(this))
         );
 
-        domManager.addStyles(focusStyles.block, focusStyles.css);
-        this.focusIndicator = domManager.addChild('canvas-overlay', focusStyles.block);
-
-        const { block, elements, modifiers } = focusStyles;
-        this.focusIndicator.classList.add(block, elements.indicator, modifiers.hidden);
+        this.focusIndicator = new FocusIndicator(domManager);
     }
 
     public destroy() {
@@ -109,9 +105,7 @@ export class RegionManager {
             region.listeners.destroy();
         }
 
-        this.domManager.removeStyles(focusStyles.block);
-        this.domManager.removeChild('canvas-overlay', focusStyles.block);
-
+        this.focusIndicator.destroy();
         this.regions.clear();
     }
 
@@ -341,15 +335,6 @@ export class RegionManager {
     }
 
     public updateFocusIndicatorRect(rect?: { x: number; y: number; width: number; height: number }) {
-        if (rect == null) {
-            this.focusIndicator.classList.add(focusStyles.modifiers.hidden);
-            return;
-        }
-
-        this.focusIndicator.classList.remove(focusStyles.modifiers.hidden);
-        this.focusIndicator.style.width = `${rect.width}px`;
-        this.focusIndicator.style.height = `${rect.height}px`;
-        this.focusIndicator.style.left = `${rect.x}px`;
-        this.focusIndicator.style.top = `${rect.y}px`;
+        this.focusIndicator.updateBBox(rect);
     }
 }
