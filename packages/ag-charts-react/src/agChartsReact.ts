@@ -5,8 +5,6 @@ import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-c
 export interface AgChartProps {
     options: AgChartOptions;
     onChartReady?: (chart: AgChartInstance) => void;
-    /** @deprecated use style instead */
-    containerStyle?: CSSProperties;
     style?: CSSProperties;
     className?: string;
 }
@@ -27,7 +25,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
     }
 
     render() {
-        const { style = this.props.containerStyle, className } = this.props;
+        const { style, className } = this.props;
         return createElement('div', {
             style,
             className,
