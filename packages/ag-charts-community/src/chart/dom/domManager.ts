@@ -27,7 +27,7 @@ const STYLES = `
 }
 
 .ag-charts-canvas {
-    position: relative;
+    position: absolute;
 }
 
 .ag-charts-canvas > * {
