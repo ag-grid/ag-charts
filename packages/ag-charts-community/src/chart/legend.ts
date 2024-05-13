@@ -725,11 +725,9 @@ export class Legend extends BaseProperties {
                     this.doClick(datum);
                 },
             });
-            if (markerLabel.proxyButton != null) {
-                const { width, height } = markerLabel.computeBBox();
-                setElementBBox(markerLabel.proxyButton, { x, y, width, height });
-                markerLabel.proxyButton.style.position = 'absolute';
-            }
+
+            const { width, height } = markerLabel.computeBBox();
+            setElementBBox(markerLabel.proxyButton, { x, y, width, height });
         });
     }
 
