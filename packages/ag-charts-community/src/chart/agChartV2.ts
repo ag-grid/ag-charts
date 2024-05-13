@@ -20,15 +20,17 @@ import {
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
+    isAgSankeyChartOptions,
     isAgTopologyChartOptions,
 } from './mapping/types';
 import { MementoCaretaker } from './memento';
 import { PolarChart } from './polarChart';
+import { SankeyChart } from './sankeyChart';
 import { TopologyChart } from './topologyChart';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' {
+function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'sankey' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
@@ -311,6 +313,8 @@ class AgChartsInternal {
             return PolarChart;
         } else if (isAgTopologyChartOptions(options)) {
             return TopologyChart;
+        } else if (isAgSankeyChartOptions(options)) {
+            return SankeyChart;
         }
 
         throw new Error(

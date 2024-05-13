@@ -73,6 +73,9 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get topology(): ChartTypeConfig {
         return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
     },
+    get sankey(): ChartTypeConfig {
+        return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
+    },
 };
 
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
@@ -315,7 +318,8 @@ export class ChartTheme {
             getOverridesByType('cartesian', chartTypes.cartesianTypes),
             getOverridesByType('polar', chartTypes.polarTypes),
             getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
-            getOverridesByType('topology', chartTypes.topologyTypes)
+            getOverridesByType('topology', chartTypes.topologyTypes),
+            getOverridesByType('sankey', chartTypes.sankeyTypes)
         );
     }
 

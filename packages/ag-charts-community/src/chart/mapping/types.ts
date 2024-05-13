@@ -2,8 +2,10 @@ import type {
     AgCartesianChartOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
+    AgSankeyChartOptions,
+    AgTopologyChartOptions,
 } from '../../options/agChartOptions';
-import type { AgChartOptions, AgTopologyChartOptions } from '../../options/chart/chartBuilderOptions';
+import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
 import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';
@@ -76,6 +78,15 @@ export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopo
     }
 
     return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
+}
+
+export function isAgSankeyChartOptions(input: AgChartOptions): input is AgSankeyChartOptions {
+    const specifiedType = optionsType(input);
+    if (specifiedType == null) {
+        return false;
+    }
+
+    return chartTypes.isSankey(specifiedType) || isEnterpriseTopology(specifiedType);
 }
 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
