@@ -17,7 +17,7 @@ export const defaultLabelCss = `
     font: 12px Verdana, sans-serif;
     overflow: hidden;
     white-space: nowrap;
-    z-index: 99999;
+    z-index: 99998; // Needs to be below tooltips!
     box-sizing: border-box;
 }
 

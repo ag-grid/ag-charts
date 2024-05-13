@@ -54,7 +54,7 @@ const applyDarkmode = () => {
     document.documentElement.setAttribute('data-dark-mode', darkmode);
     const charts = document.querySelectorAll('[data-ag-charts]');
     charts.forEach((element) => {
-        const chart = __chartAPI.getInstance(element);
+        const chart = __chartAPI.getInstance(element.parentElement);
         if (chart == null) return;
         // .update is monkey-patched to apply theme to options
         // This is just needed to trigger the theme update
