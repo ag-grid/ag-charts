@@ -54,7 +54,7 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
     return convertFunctionalTemplate(template);
 }
 
-function getComponentMetadata(bindings: any, property: any) {
+function getComponentMetadata(bindings: any, id: string, property: any) {
     const {
         optionsTypeInfo,
         chartSettings: { enterprise = false },
@@ -76,6 +76,16 @@ function getComponentMetadata(bindings: any, property: any) {
         componentAttributes.push(`options={${property.name}}`);
     }
 
+    Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
+        if (key === 'style') {
+            componentAttributes.push(`style={${JSON.stringify(styleAsObject(value as any))}}`);
+        } else if (key === 'class') {
+            componentAttributes.push(`className=${JSON.stringify(value as any)}`);
+        } else {
+            throw new Error(`Unknown chart attribute: ${key}`);
+        }
+    });
+
     return {
         stateProperties,
         componentAttributes,
@@ -92,6 +102,7 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
     if (placeholders.length <= 1) {
         const { stateProperties, componentAttributes } = getComponentMetadata(
             bindings,
+            placeholders[0],
             properties.find((p) => p.name === 'options')
         );
 
@@ -137,16 +148,9 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
             const propertyName = bindings.chartProperties[id];
             const { stateProperties, componentAttributes } = getComponentMetadata(
                 bindings,
+                id,
                 properties.find((p) => p.name === propertyName)
             );
-
-            Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
-                if (key === 'style') {
-                    componentAttributes.push(`containerStyle={${JSON.stringify(styleAsObject(value as any))}}`);
-                } else {
-                    throw new Error(`Unknown chart attribute: ${key}`);
-                }
-            });
 
             indexFile = `${indexFile}
 

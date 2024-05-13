@@ -13,7 +13,7 @@
     min-width: 20px;
 }
 
-#myChart {
+.chart {
     height: 100%;
     resize: both;
     /* 'auto' has different behaviour on Windows! */
