@@ -11,7 +11,7 @@ type ProxyTypeMap = {
 type ProxyParams<T extends keyof ProxyTypeMap> = {
     readonly type: T;
     readonly id: string;
-    readonly textContext: string;
+    readonly textContent: string;
     readonly parent: HTMLElement;
     readonly focusable: BBoxProvider<BBoxValues>;
     readonly onclick?: (ev: MouseEvent) => void;
@@ -48,10 +48,10 @@ export class ProxyInteractionService {
     }
 
     private initElement<TElem extends HTMLElement>(params: ProxyParams<keyof ProxyTypeMap>, element: TElem) {
-        const { id, parent, focusable, textContext, onclick } = params;
+        const { id, parent, focusable, textContent, onclick } = params;
 
         element.id = id;
-        element.textContent = textContext;
+        element.textContent = textContent;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';

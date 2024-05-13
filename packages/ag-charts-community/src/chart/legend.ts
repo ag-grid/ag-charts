@@ -714,7 +714,7 @@ export class Legend extends BaseProperties {
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
                 type: 'button',
                 id: `ag-charts-legend-item-${i}`,
-                textContext: this.getItemAriaText(i),
+                textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
                 focusable: markerLabel,
                 onclick: (_event: MouseEvent): any => {
