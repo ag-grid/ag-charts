@@ -24,6 +24,6 @@
     display: inline-block;
 }
 
-#myChart {
+.chart {
     height: 100%;
 }
