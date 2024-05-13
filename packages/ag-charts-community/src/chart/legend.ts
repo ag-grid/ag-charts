@@ -278,6 +278,8 @@ export class Legend extends BaseProperties {
 
         this.proxyLegendToolbar = this.ctx.domManager.addChild('canvas-overlay', `${this.id}-toolbar`);
         this.proxyLegendToolbar.classList.add('ag-charts-proxy-legend-toolbar');
+        this.proxyLegendToolbar.role = 'toolbar';
+        this.proxyLegendToolbar.ariaLabel = 'Legend';
     }
 
     public destroy() {
