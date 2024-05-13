@@ -42,8 +42,8 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 
     'ag-charts-vue3/lib/AgChartsVue.js': 'packages/ag-charts-vue3/lib/AgChartsVue.js',
 
-    'ag-charts-angular/fesm2015/ag-charts-angular.mjs':
-        'packages/ag-charts-angular/dist/ag-charts-angular/fesm2015/ag-charts-angular.mjs',
+    'ag-charts-angular/fesm2022/ag-charts-angular.mjs':
+        'packages/ag-charts-angular/dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs',
 
     'ag-charts-thumbnails/**': 'dist/generated-thumbnails/ag-charts-website/gallery/_examples/**/*.{png,webp}',
 };

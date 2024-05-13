@@ -8,6 +8,7 @@ import { deepClone, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
+import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import { Chart, type ChartExtendedOptions } from './chart';
 import { AgChartInstanceProxy } from './chartProxy';
@@ -21,6 +22,7 @@ import {
     isAgPolarChartOptions,
     isAgTopologyChartOptions,
 } from './mapping/types';
+import { MementoCaretaker } from './memento';
 import { PolarChart } from './polarChart';
 import { TopologyChart } from './topologyChart';
 
@@ -142,9 +144,25 @@ export abstract class AgCharts {
         }
         return AgChartsInternal.getImageDataURL(chart, options);
     }
+
+    public static saveAnnotations(chart: AgChartInstance) {
+        if (!(chart instanceof AgChartInstanceProxy)) {
+            throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
+        }
+        return AgChartsInternal.saveAnnotations(chart);
+    }
+
+    public static restoreAnnotations(chart: AgChartInstance, blob: unknown) {
+        if (!(chart instanceof AgChartInstanceProxy)) {
+            throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
+        }
+        return AgChartsInternal.restoreAnnotations(chart, blob);
+    }
 }
 
 class AgChartsInternal {
+    private static readonly caretaker = new MementoCaretaker(VERSION);
+
     static getInstance(element: HTMLElement): AgChartInstanceProxy | undefined {
         const chart = Chart.getInstance(element);
         return chart ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
@@ -239,6 +257,14 @@ class AgChartsInternal {
         clone.destroy();
 
         return result;
+    }
+
+    static saveAnnotations(proxy: AgChartInstanceProxy) {
+        return AgChartsInternal.caretaker.save(proxy.chart.ctx.annotationManager);
+    }
+
+    static restoreAnnotations(proxy: AgChartInstanceProxy, blob: unknown) {
+        return AgChartsInternal.caretaker.restore(proxy.chart.ctx.annotationManager, blob);
     }
 
     private static async prepareResizedChart({ chart }: AgChartInstanceProxy, opts: DownloadOptions = {}) {

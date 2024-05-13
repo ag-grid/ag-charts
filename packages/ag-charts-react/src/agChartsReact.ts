@@ -1,12 +1,14 @@
-import * as PropTypes from 'prop-types';
-import { Component, type RefObject, createElement, createRef } from 'react';
+import { type CSSProperties, Component, type RefObject, createElement, createRef } from 'react';
 
 import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 
 export interface AgChartProps {
     options: AgChartOptions;
     onChartReady?: (chart: AgChartInstance) => void;
-    containerStyle?: any;
+    /** @deprecated use style instead */
+    containerStyle?: CSSProperties;
+    style?: CSSProperties;
+    className?: string;
 }
 
 interface AgChartState {}
@@ -14,31 +16,27 @@ interface AgChartState {}
 export class AgChartsReact extends Component<AgChartProps, AgChartState> {
     static propTypes: any;
 
-    public chart!: AgChartInstance;
+    public chart: AgChartInstance | undefined;
 
-    protected chartRef: RefObject<HTMLElement>;
+    protected containerRef: RefObject<HTMLElement>;
 
     constructor(public props: AgChartProps) {
         super(props);
-        this.chartRef = createRef();
+        this.chart = undefined;
+        this.containerRef = createRef();
     }
 
     render() {
+        const { style = this.props.containerStyle, className } = this.props;
         return createElement('div', {
-            style: this.createStyleForDiv(),
-            ref: this.chartRef,
+            style,
+            className,
+            ref: this.containerRef,
         });
     }
 
-    createStyleForDiv() {
-        return {
-            height: '100%',
-            ...this.props.containerStyle,
-        };
-    }
-
     componentDidMount() {
-        const options = this.applyContainerIfNotSet(this.props.options);
+        const options = this.applyContainer(this.props.options);
 
         const chart = AgCharts.create(options);
         this.chart = chart;
@@ -46,37 +44,20 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
         (chart as any).chart.waitForUpdate().then(() => this.props.onChartReady?.(chart));
     }
 
-    private applyContainerIfNotSet(propsOptions: any) {
-        if (propsOptions.container) {
-            return propsOptions;
-        }
-
-        return { ...propsOptions, container: this.chartRef.current };
-    }
-
-    shouldComponentUpdate(nextProps: any) {
-        this.processPropsChanges(this.props, nextProps);
-
-        // we want full control of the dom, as AG Charts doesn't use React internally,
-        // so for performance reasons we tell React we don't need render called after
-        // property changes.
-        return false;
-    }
-
-    processPropsChanges(prevProps: any, nextProps: any) {
-        if (this.chart) {
-            AgCharts.update(this.chart, this.applyContainerIfNotSet(nextProps.options));
+    componentDidUpdate() {
+        if (this.chart != null) {
+            AgCharts.update(this.chart, this.applyContainer(this.props.options));
         }
     }
 
     componentWillUnmount() {
-        if (this.chart) {
+        if (this.chart != null) {
             this.chart.destroy();
-            this.chart = undefined as any;
+            this.chart = undefined;
         }
     }
-}
 
-AgChartsReact.propTypes = {
-    options: PropTypes.object,
-};
+    private applyContainer(propsOptions: any) {
+        return { ...propsOptions, container: this.containerRef.current };
+    }
+}

@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "9.3.1-beta.20240505",
+  "version": "9.3.1-beta.20240512",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -18,12 +18,12 @@
   },
   "homepage": "https://charts.ag-grid.com/",
   "peerDependencies": {
-    "@angular/common": ">= 14.0.0",
-    "@angular/core": ">= 14.0.0",
-    "ag-charts-community": "9.3.1-beta.20240505"
+    "@angular/common": ">= 16.0.0",
+    "@angular/core": ">= 16.0.0",
+    "ag-charts-community": "9.3.1-beta.20240512"
   },
   "dependencies": {
     "tslib": "^2.3.0",
-    "ag-charts-community": "9.3.1-beta.20240505"
+    "ag-charts-community": "9.3.1-beta.20240512"
   }
 }

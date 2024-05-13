@@ -21,7 +21,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     thickness: number = 0;
 
     @Validate(POSITION)
-    position: AgCartesianAxisPosition = 'left';
+    position!: AgCartesianAxisPosition;
 
     get direction() {
         return ['top', 'bottom'].includes(this.position) ? ChartAxisDirection.X : ChartAxisDirection.Y;

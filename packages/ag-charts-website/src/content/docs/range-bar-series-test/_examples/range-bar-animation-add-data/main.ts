@@ -25,7 +25,7 @@ const chart = AgCharts.create(options);
 
 function addValue() {
     console.log('adding');
-    const optionsData = options.data != null ? options.data : [];
+    const optionsData = options.data ?? [];
     const datum = data[optionsData.length % data.length];
     const newDatum = {
         ...datum,
