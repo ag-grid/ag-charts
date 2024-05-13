@@ -12,7 +12,3 @@ export interface BBoxContainsTester {
 export interface BBoxProvider<T = BBoxValues> {
     getCachedBBox(): T;
 }
-
-export interface RelativeBBoxProvider<T = BBoxValues> {
-    getCachedRelativeBBox(): T;
-}

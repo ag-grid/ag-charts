@@ -392,13 +392,13 @@ export class Legend extends BaseProperties {
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
-        this.itemSelection.each((markerLabel, datum, index) => {
+        this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, index);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -446,7 +446,7 @@ export class Legend extends BaseProperties {
         this.update();
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, index: number): number {
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
         const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
 
         let paddedSymbolWidth = paddingX;
@@ -492,21 +492,6 @@ export class Legend extends BaseProperties {
         markerLabel.markers = markers;
         markerLabel.lines = lines;
         markerLabel.update(dimensionProps);
-
-        markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-            type: 'button',
-            id: `ag-charts-legend-item-${index}`,
-            textContext: this.getItemAriaText(index),
-            parent: this.proxyLegendToolbar,
-            bboxprovider: markerLabel,
-            onclick: (_event: MouseEvent): any => {
-                // Retrieve the datum from the node rather than from the method parameter.
-                // The method parameter `datum` gets destroyed when the data is refreshed
-                // using Series.getLegendData(). But the scene node will stay the same.
-                const datum: CategoryLegendDatum = markerLabel.datum;
-                this.doClick(datum);
-            },
-        });
 
         return paddedSymbolWidth;
     }
@@ -753,9 +738,26 @@ export class Legend extends BaseProperties {
             markerLabel.translationX = x;
             markerLabel.translationY = y;
 
-            // Update relative BBox so that we can update the hidden CSS button.
-            const { width, height } = markerLabel.computeBBox();
-            markerLabel.relativeBBox = { x, y, width, height };
+            // Create/Update the hidden CSS button.
+            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `ag-charts-legend-item-${i}`,
+                textContext: this.getItemAriaText(i),
+                parent: this.proxyLegendToolbar,
+                focusable: markerLabel,
+                onclick: (_event: MouseEvent): any => {
+                    // Retrieve the datum from the node rather than from the method parameter.
+                    // The method parameter `datum` gets destroyed when the data is refreshed
+                    // using Series.getLegendData(). But the scene node will stay the same.
+                    const datum: CategoryLegendDatum = markerLabel.datum;
+                    this.doClick(datum);
+                },
+            });
+            if (markerLabel.proxyButton != null) {
+                const { width, height } = markerLabel.computeBBox();
+                setElementBBox(markerLabel.proxyButton, { x, y, width, height });
+                markerLabel.proxyButton.style.position = 'absolute';
+            }
         });
     }
 
@@ -1303,13 +1305,6 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.x += this.group.translationX;
             legendPositionedBBox.y += this.group.translationY;
         }
-
-        this.itemSelection.each((node) => {
-            const bbox = node.computeTransformedBBox();
-            if (bbox && node.proxyButton) {
-                setElementBBox(node.proxyButton, bbox);
-            }
-        });
 
         return { shrinkRect: newShrinkRect };
     }

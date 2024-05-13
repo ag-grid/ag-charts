@@ -92,7 +92,7 @@ export class ChartContext implements ModuleContext {
         this.gestureDetector = new GestureDetector(this.domManager);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService(updateCallback);
-        this.proxyInteractionService = new ProxyInteractionService(this.updateService, this.focusIndicator);
+        this.proxyInteractionService = new ProxyInteractionService(this.focusIndicator);
         this.seriesStateManager = new SeriesStateManager();
         this.callbackCache = new CallbackCache();
 
@@ -107,7 +107,6 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene and zoomManager.
         this.tooltipManager.destroy();
-        this.proxyInteractionService.destroy();
         this.regionManager.destroy();
         this.focusIndicator.destroy();
         this.keyNavManager.destroy();
