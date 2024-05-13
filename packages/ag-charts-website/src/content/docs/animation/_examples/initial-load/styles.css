@@ -7,6 +7,8 @@
 
 .toolPanel {
     text-align: center;
+    font-size: 12px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
 }
 
 .spacer {
@@ -14,6 +16,6 @@
     min-width: 20px;
 }
 
-#myChart {
+.chart {
     height: 100%;
 }

@@ -38,7 +38,7 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
             padding: 1rem;
         }
 
-        [data-ag-charts] {
+        .chart {
             overflow: hidden;
         }
 

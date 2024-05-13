@@ -21,6 +21,6 @@
     opacity: 0.4;
 }
 
-#myChart {
+.chart {
     flex: 1;
 }
