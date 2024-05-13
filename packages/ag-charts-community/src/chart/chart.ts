@@ -219,7 +219,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private _firstAutoSize = true;
 
     private onAutoSizeChange(value: boolean) {
-        this.ctx.domManager.setAutoSizeStyle(value);
+        this.ctx.domManager.setAutoSizeStyle(value, this.width, this.height);
         if (value && this._lastAutoSize) {
             this.resize(undefined, undefined, 'autoSize option');
         }
@@ -884,12 +884,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.resize(undefined, undefined, 'SizeMonitor');
     }
 
-    private resize(width?: number, height?: number, source?: string) {
+    private resize(inWidth?: number, inHeight?: number, source?: string) {
         const { scene, animationManager } = this.ctx;
-        width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : scene.canvas.width);
-        height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : scene.canvas.height);
+        const width = inWidth ?? this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : scene.canvas.width);
+        const height = inHeight ?? this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : scene.canvas.height);
         this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
         if (!width || !height || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
+
+        this.ctx.domManager.setAutoSizeStyle(this.autoSize, inWidth ?? this.width, inHeight ?? this.height);
 
         if (scene.resize(width, height)) {
             this.resetPointer();
