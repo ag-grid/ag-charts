@@ -1,7 +1,8 @@
+import type { BBoxContainsTester, BBoxValues } from '../util/bboxinterface';
 import { type Interpolating, interpolate } from '../util/interpolating';
+import type { DistantObject, NearestResult } from '../util/nearest';
+import { nearestSquared } from '../util/nearest';
 import { clamp } from '../util/number';
-import type { DistantObject, NearestResult } from './nearest';
-import { nearestSquared } from './nearest';
 
 // For small data structs like a bounding box, objects are superior to arrays
 // in terms of performance (by 3-4% in Chrome 71, Safari 12 and by 20% in Firefox 64).
@@ -20,7 +21,7 @@ type Padding = {
 
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
-export class BBox implements DistantObject, Interpolating<BBox> {
+export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Interpolating<BBox> {
     x: number;
     y: number;
     width: number;
