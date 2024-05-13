@@ -79,7 +79,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-class DistantGroup extends _Scene.Group implements _Scene.DistantObject {
+class DistantGroup extends _Scene.Group implements _ModuleSupport.DistantObject {
     distanceSquared(x: number, y: number): number {
         return this.computeBBox().distanceSquared(x, y);
     }

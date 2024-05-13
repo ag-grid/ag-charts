@@ -557,7 +557,7 @@ describe('Chart', () => {
         });
 
         it('should setup DOM on create', async () => {
-            const elements = document.querySelectorAll('.ag-chart-wrapper');
+            const elements = document.querySelectorAll('.ag-charts-wrapper');
             expect(elements.length).toEqual(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
@@ -567,7 +567,7 @@ describe('Chart', () => {
         it('should cleanup DOM on destroy()', async () => {
             agChartInstance.destroy();
 
-            const elements = document.querySelectorAll('.ag-chart-wrapper');
+            const elements = document.querySelectorAll('.ag-charts-wrapper');
             expect(elements.length).toEqual(0);
 
             expect(document.querySelectorAll('canvas')).toHaveLength(0);
@@ -591,7 +591,7 @@ describe('Chart', () => {
             AgCharts.update(agChartInstance, options);
             await waitForChartStability(agChartInstance);
 
-            const elements = document.querySelectorAll('.ag-chart-wrapper');
+            const elements = document.querySelectorAll('.ag-charts-wrapper');
             expect(elements).toHaveLength(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);

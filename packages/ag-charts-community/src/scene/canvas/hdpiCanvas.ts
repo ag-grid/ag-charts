@@ -99,7 +99,7 @@ export class HdpiCanvas {
 
     private onEnabledChange() {
         if (this.element) {
-            this.element.style.display = this.enabled ? 'block' : 'none';
+            this.element.style.display = this.enabled ? '' : 'none';
         }
     }
 

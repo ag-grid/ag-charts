@@ -2,7 +2,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .btnPanel {
@@ -16,10 +15,6 @@
 
 .chart {
     height: 100%;
-}
-
-.ag-chart-wrapper {
     resize: both;
     /* 'auto' has different behaviour on Windows! */
-    overflow: hidden;
 }
