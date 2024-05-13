@@ -2,7 +2,7 @@ type Destroyable = {} | { destroy(): void };
 export class ObjectDestroyer {
     private readonly objs: Destroyable[];
     constructor(...objs: Destroyable[]) {
-        this.objs = objs.reverse();
+        this.objs = [...objs].reverse();
     }
     destroy() {
         this.objs.forEach((o) => {
