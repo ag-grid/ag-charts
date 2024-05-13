@@ -41,7 +41,7 @@ export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
 
     distanceSquared(x: number, y: number): number {
         const nodes = _Scene.Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, _Scene.Rect, _Scene.Line);
-        return _Scene.nearestSquared(x, y, nodes).distanceSquared;
+        return _ModuleSupport.nearestSquared(x, y, nodes).distanceSquared;
     }
 
     get midPoint(): { x: number; y: number } {

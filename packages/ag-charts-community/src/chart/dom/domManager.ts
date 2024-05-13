@@ -156,16 +156,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setAutoSizeStyle(autoSize: boolean) {
+    setAutoSizeStyle(_autoSize: boolean, width?: number, height?: number) {
         const { style } = this.parentElement.element;
-        if (autoSize) {
-            style.display = 'block';
+        if (width != null && height != null) {
+            style.width = `${width}px`;
+            style.height = `${height}px`;
+        } else {
             style.width = '100%';
             style.height = '100%';
-        } else {
-            style.display = 'inline-block';
-            style.width = 'auto';
-            style.height = 'auto';
         }
     }
 
