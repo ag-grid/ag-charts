@@ -88,6 +88,7 @@ export class TextMeasurer {
         return this.wrapLines(text, options).join('\n');
     }
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     static wrapLines(text: string, options: WrapOptions) {
         const lines: string[] = text.split(this.lineSplitter);
         const measurer = this.getFontMeasurer(options);

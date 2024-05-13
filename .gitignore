@@ -36,7 +36,7 @@ node_modules
 /.sass-cache
 /.scannerwork
 /connect.lock
-/coverage
+coverage
 /reports
 /libpeerconnection.log
 npm-debug.log
