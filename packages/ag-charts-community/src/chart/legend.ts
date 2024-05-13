@@ -1290,6 +1290,10 @@ export class Legend extends BaseProperties {
                 textContext: datum.legendItemName ?? datum.label.text,
                 bboxprovider: node,
                 parent: this.proxyLegendToolbar,
+                onclick: (_event: MouseEvent): any => {
+                    const datum = this.data[index];
+                    this.doClick(datum);
+                }
             });
             element!.style.position = 'absolute';
         });
