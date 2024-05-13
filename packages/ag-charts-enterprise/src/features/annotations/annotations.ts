@@ -20,7 +20,7 @@ const {
     ChartUpdateType,
     Cursor,
     InteractionState,
-    TypedPropertiesArray,
+    PropertiesArray,
     StateMachine,
     ToolbarManager,
     Validate,
@@ -79,15 +79,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     public enabled: boolean = true;
 
     @_ModuleSupport.ObserveChanges<Annotations>(
-        (target, initial: _ModuleSupport.TypedPropertiesArray<AnnotationProperties>) => {
+        (target, initial: _ModuleSupport.PropertiesArray<AnnotationProperties>) => {
             target.annotationData ??= initial;
         }
     )
     @Validate(OBJECT_ARRAY, { optional: true })
-    public initial = new TypedPropertiesArray(annotationDatums);
+    public initial = new PropertiesArray(this.annotationFactory);
+
+    private annotationFactory(params: { type: AnnotationType }) {
+        if (params.type in annotationDatums) {
+            return new annotationDatums[params.type]().set(params);
+        }
+        throw new Error(
+            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationDatums)}], ignoring.`
+        );
+    }
 
     // State
-    private annotationData?: _ModuleSupport.TypedPropertiesArray<AnnotationProperties>;
+    private annotationData?: _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
     private readonly container = new _Scene.Group({ name: 'static-annotations' });
     private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
@@ -136,7 +145,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onRestoreAnnotations(event: { annotations?: any }) {
         this.clear();
 
-        this.annotationData ??= new TypedPropertiesArray(annotationDatums);
+        this.annotationData ??= new PropertiesArray(this.annotationFactory);
         this.annotationData.set(event.annotations);
 
         this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });

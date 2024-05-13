@@ -255,7 +255,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         readonly scale: S,
         options?: { respondsToZoom: boolean }
     ) {
-        this.refreshScale();
+        this.range = this.scale.range.slice() as [number, number];
+        this.crossLines?.forEach((crossLine) => this.initCrossLine(crossLine));
 
         this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx, 'root'));
         this._titleCaption.node.rotation = -Math.PI / 2;
@@ -323,11 +324,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     destroy() {
         this.moduleMap.destroy();
         this.destroyFns.forEach((f) => f());
-    }
-
-    protected refreshScale() {
-        this.range = this.scale.range.slice() as [number, number];
-        this.crossLines?.forEach(this.initCrossLine, this);
     }
 
     protected updateRange() {
@@ -447,7 +443,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if ((prevValue && !value) || (!prevValue && value)) {
             this.onGridVisibilityChange();
         }
-        this.crossLines?.forEach(this.initCrossLine, this);
+        this.crossLines?.forEach((crossLine) => this.initCrossLine(crossLine));
     }
 
     protected onGridVisibilityChange() {

@@ -57,12 +57,12 @@ export class BaseProperties<T extends object = object> {
 }
 
 export class PropertiesArray<T extends BaseProperties> extends Array {
-    private readonly itemFactory!: (params: object) => T;
+    private readonly itemFactory!: (params: any) => T;
 
-    constructor(itemFactory: (new () => T) | ((params: object) => T), ...properties: object[]) {
+    constructor(itemFactory: (new () => T) | ((params: any) => T), ...properties: object[]) {
         super(properties.length);
         const isConstructor = (value: Function): value is new () => T => Boolean(value?.prototype?.constructor?.name);
-        const value = isConstructor(itemFactory) ? (params: object) => new itemFactory().set(params) : itemFactory;
+        const value = isConstructor(itemFactory) ? (params: any) => new itemFactory().set(params) : itemFactory;
         Object.defineProperty(this, 'itemFactory', { value, enumerable: false, configurable: false });
         this.set(properties);
     }
@@ -83,38 +83,6 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
 
     toJson() {
         return this.map((value) => value?.toJson?.() ?? value);
-    }
-}
-
-export class TypedPropertiesArray<T extends BaseProperties> extends PropertiesArray<T> {
-    private readonly itemFactories!: { [type: string]: new () => T };
-
-    constructor(itemFactories: { [type: string]: new () => T }, ...properties: { type: string }[]) {
-        super(itemFactories[Object.keys(itemFactories)[0]], ...properties);
-        Object.defineProperty(this, 'itemFactories', { value: itemFactories, enumerable: false, configurable: false });
-        this.set(properties);
-    }
-
-    override set(properties: { type: string }[]): TypedPropertiesArray<T> {
-        if (!isArray(properties)) return this;
-
-        this.length = properties.length;
-        for (let i = 0; i < properties.length; i++) {
-            const factory = this.itemFactories[properties[i].type];
-            if (!factory) {
-                Logger.warnOnce(
-                    `Can not set property of unknown type [${properties[i].type}], expected one of [${Object.keys(this.itemFactories)}], ignoring.`
-                );
-                continue;
-            }
-            this[i] = new factory().set(properties[i]);
-        }
-
-        return this;
-    }
-
-    override reset(properties: { type: string }[]): TypedPropertiesArray<T> {
-        return new TypedPropertiesArray(this.itemFactories, ...properties);
     }
 }
 
