@@ -12,9 +12,14 @@ export function processFunction(code: string): string {
     );
 }
 
+function needsWrappingInFragment(bindings: any) {
+    return Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</');
+}
+
 function getImports(componentFilenames: string[], bindings): string[] {
-    const reactImports = ['Fragment', 'useState'];
+    const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
+    if (needsWrappingInFragment(bindings)) reactImports.push('Fragment');
 
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
@@ -31,7 +36,9 @@ function getImports(componentFilenames: string[], bindings): string[] {
         imports.push(`import 'ag-charts-enterprise';`);
     }
 
-    imports.push(`import deepClone from 'deepclone';`);
+    if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
+        imports.push(`import deepClone from 'deepclone';`);
+    }
 
     if (componentFilenames) {
         imports.push(...componentFilenames.map(getImport));
@@ -153,7 +160,7 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
             wrapper = wrapper.replace(template, components.get(id)!);
         });
 
-        if (!bindings.template.includes('</')) {
+        if (needsWrappingInFragment(bindings)) {
             wrapper = `<Fragment>
                 ${wrapper}
             </Fragment>`;
