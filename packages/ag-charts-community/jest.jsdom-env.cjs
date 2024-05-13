@@ -20,6 +20,6 @@ module.exports = class TimezoneAwareJSDOMEnvironment extends TestEnvironment {
     async teardown() {
         timezoneMock.unregister();
 
-        return super.setup();
+        return super.teardown();
     }
 };
