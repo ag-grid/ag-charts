@@ -2,7 +2,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .toolPanel {
@@ -13,6 +12,6 @@
     margin-left: 20px;
 }
 
-#myChart {
+.chart {
     height: 100%;
 }

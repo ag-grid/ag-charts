@@ -24,6 +24,18 @@ type FileListParams = {
     folderPath: string;
 };
 
+const PLACEHOLDER_MAIN_TS = `
+import { AgCharts } from 'ag-charts-community';
+
+const options = {
+    container: document.getElementById('myChart'),
+    title: { text: 'Frameworks not supported' },
+    subtitle: { text: 'Switch to Javascript' },
+};
+
+const chart = AgCharts.create(options);
+`;
+
 /**
  * Get the file list of the generated contents
  * (without generating the contents)
@@ -77,9 +89,15 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         throw new Error('Unable to find example entry-point at: ' + folderPath);
     }
 
-    const entryFile = await readFile(path.join(folderPath, SOURCE_ENTRY_FILE_NAME));
-    const indexHtml = await readFile(path.join(folderPath, 'index.html'));
+    let entryFile = await readFile(path.join(folderPath, SOURCE_ENTRY_FILE_NAME));
+    let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
+
+    if (entryFile.includes('@ag-skip-fws') && internalFramework !== 'vanilla') {
+        entryFile = PLACEHOLDER_MAIN_TS;
+        indexHtml = `<div id="myChart"></div>`;
+        extractOptions = false;
+    }
 
     const otherScriptFiles = await getOtherScriptFiles({
         folderPath,

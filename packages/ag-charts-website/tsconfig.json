@@ -19,6 +19,7 @@
       "@utils/*": ["src/utils/*"],
       "@constants": ["src/constants.ts"],
       "@ag-website-shared/*": ["../../external/ag-website-shared/src/*"],
+      "@generate-code-reference-plugin/*": ["../../plugins/ag-charts-generate-code-reference-files/src/*"],
       "ag-charts-community": ["../ag-charts-community/src/main.ts"],
       "ag-charts-enterprise": ["../ag-charts-enterprise/src/main.ts"]
     },

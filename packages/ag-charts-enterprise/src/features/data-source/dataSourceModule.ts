@@ -6,7 +6,7 @@ export const DataSourceModule: _ModuleSupport.Module = {
     type: 'root',
     optionsKey: 'dataSource',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'hierarchy', 'polar', 'topology'],
+    chartTypes: ['cartesian', 'hierarchy', 'polar', 'topology', 'sankey'],
     instanceConstructor: DataSource,
     themeTemplate: {
         dataSource: { enabled: false },

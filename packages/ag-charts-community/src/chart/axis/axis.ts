@@ -53,7 +53,7 @@ import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import type { AxisTick, TickCount, TickInterval } from './axisTick';
+import type { AxisTick, TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
@@ -255,7 +255,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         readonly scale: S,
         options?: { respondsToZoom: boolean }
     ) {
-        this.refreshScale();
+        this.range = this.scale.range.slice() as [number, number];
+        this.crossLines?.forEach((crossLine) => this.initCrossLine(crossLine));
 
         this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx, 'root'));
         this._titleCaption.node.rotation = -Math.PI / 2;
@@ -325,11 +326,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.destroyFns.forEach((f) => f());
     }
 
-    protected refreshScale() {
-        this.range = this.scale.range.slice() as [number, number];
-        this.crossLines?.forEach(this.initCrossLine, this);
-    }
-
     protected updateRange() {
         const { range: rr, visibleRange: vr, scale } = this;
         const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
@@ -364,12 +360,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     /**
      * Checks if a point or an object is in range.
      * @param x A point (or object's starting point).
-     * @param width Object's width.
      * @param tolerance Expands the range on both ends by this amount.
      */
-    inRange(x: number, width = 0, tolerance = 0): boolean {
+    inRange(x: number, tolerance = 0): boolean {
         const [min, max] = findMinMax(this.range);
-        return x + width >= min - tolerance && x <= max + tolerance;
+        return x >= min - tolerance && x <= max + tolerance;
     }
 
     protected datumFormatter?: (datum: any) => string;
@@ -378,21 +373,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale } = this;
         const logScale = scale instanceof LogScale;
 
-        const defaultFormatter = (formatOffset: number = 0) =>
+        const defaultFormatter = (formatOffset: number) =>
             logScale
-                ? (x: any) => String(x)
+                ? String
                 : (x: any) => (typeof x === 'number' ? x.toFixed(fractionDigits + formatOffset) : String(x));
 
         if (format && scale && scale.tickFormat) {
             try {
                 this.labelFormatter = scale.tickFormat({ ticks, specifier: format });
             } catch (e) {
-                this.labelFormatter = defaultFormatter();
+                this.labelFormatter = defaultFormatter(0);
                 this.datumFormatter = defaultFormatter(1);
                 Logger.warnOnce(`the axis label format string ${format} is invalid. No formatting will be applied`);
             }
         } else {
-            this.labelFormatter = defaultFormatter();
+            this.labelFormatter = defaultFormatter(0);
             this.datumFormatter = defaultFormatter(1);
         }
     }
@@ -405,29 +400,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.scale.interval = this.tick.interval ?? interval;
     }
 
-    private setTickCount(count?: TickCount<S> | number, minTickCount?: number, maxTickCount?: number) {
-        const { scale } = this;
-        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-        if (!(count && continuous)) {
-            return;
-        }
-
-        if (typeof count === 'number') {
-            scale.tickCount = count;
-            scale.minTickCount = minTickCount ?? 0;
-            scale.maxTickCount = maxTickCount ?? Infinity;
-            return;
-        }
-
-        if (scale instanceof TimeScale) {
-            this.setTickInterval(count as TickInterval<S>);
-        }
-    }
-
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
-     * In case {@link radialGrid} is `true`, the value is interpreted as an angle
-     * (in degrees).
      */
     @ObserveChanges<Axis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
     gridLength: number = 0;
@@ -447,7 +421,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if ((prevValue && !value) || (!prevValue && value)) {
             this.onGridVisibilityChange();
         }
-        this.crossLines?.forEach(this.initCrossLine, this);
+        this.crossLines?.forEach((crossLine) => this.initCrossLine(crossLine));
     }
 
     protected onGridVisibilityChange() {
@@ -1086,7 +1060,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
-            if (range.length > 0 && !this.inRange(translationY, 0, 0.001)) continue;
+            if (range.length > 0 && !this.inRange(translationY, 0.001)) continue;
 
             const tickLabel = this.formatTick(tick, fractionDigits, start + i);
 
@@ -1122,8 +1096,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         minTickCount: number,
         maxTickCount: number
     ): { ticks: D[]; fractionDigits: number } {
-        this.setTickCount(tickCount, minTickCount, maxTickCount);
-        return this.scale.ticks?.() ?? { ticks: [], fractionDigits: 0 };
+        const { scale } = this;
+
+        if (tickCount && (ContinuousScale.is(scale) || OrdinalTimeScale.is(scale))) {
+            if (typeof tickCount === 'number') {
+                scale.tickCount = tickCount;
+                scale.minTickCount = minTickCount ?? 0;
+                scale.maxTickCount = maxTickCount ?? Infinity;
+            } else if (scale instanceof TimeScale) {
+                this.setTickInterval(tickCount as TickInterval<S>);
+            }
+        }
+
+        return scale.ticks?.() ?? { ticks: [], fractionDigits: 0 };
     }
 
     protected estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {

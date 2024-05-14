@@ -1,4 +1,5 @@
 import { navigate, useHistory, useLocation } from '@ag-website-shared/utils/navigation';
+import type { ApiReferenceType, InterfaceNode } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
@@ -6,7 +7,6 @@ import { useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 
-import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
 import type { PageTitle } from '../apiReferenceHelpers';
 import type { NavigationData, SpecialTypesMap } from '../apiReferenceHelpers';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';

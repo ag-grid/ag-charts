@@ -11,5 +11,6 @@
 /packages/ag-charts-vue3/dist
 /packages/ag-charts-vue3/lib
 /external/ag-website-shared/
+/packages/ag-charts-angular/projects/ag-charts-angular/src/test.ts
 
 /.nx/cache

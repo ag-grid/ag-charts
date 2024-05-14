@@ -146,11 +146,16 @@ export class TextMeasurer {
 
                     const postfix = wrapHyphenate ? '-' : '';
                     let newLine = line.slice(0, i).trim();
-                    while (measurer.textWidth(newLine + postfix) > options.maxWidth) {
+                    while (newLine.length && measurer.textWidth(newLine + postfix) > options.maxWidth) {
                         newLine = newLine.slice(0, -1).trimEnd();
-                        if (!newLine.length) break;
                     }
                     result.push(newLine + postfix);
+
+                    if (!newLine.length) {
+                        line = '';
+                        break;
+                    }
+
                     line = line.slice(newLine.length).trimStart();
 
                     i = -1; // reset the index after cutting the line

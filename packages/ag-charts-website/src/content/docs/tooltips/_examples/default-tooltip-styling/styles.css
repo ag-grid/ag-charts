@@ -10,7 +10,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .toolPanel {
@@ -28,6 +27,6 @@ button {
     font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
-#myChart {
+.chart {
     height: 100%;
 }

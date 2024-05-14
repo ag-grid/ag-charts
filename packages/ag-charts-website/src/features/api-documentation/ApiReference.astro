@@ -1,10 +1,5 @@
 ---
-import { patchAgChartOptionsReference } from '@features/api-documentation/apiReferenceHelpers';
 import { ApiReferenceWithContext } from './components/ApiReference';
-import { getInterfacesReference } from '@utils/devFiles';
-
-const reference = getInterfacesReference();
-patchAgChartOptionsReference(reference);
 ---
 
-<ApiReferenceWithContext client:load {...Astro.props} reference={reference} />
+<ApiReferenceWithContext client:load {...Astro.props} />

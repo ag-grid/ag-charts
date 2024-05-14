@@ -14,7 +14,7 @@ enum GroupTags {
     Cap,
 }
 
-export class BoxPlotGroup extends Group implements _Scene.DistantObject {
+export class BoxPlotGroup extends Group implements _ModuleSupport.DistantObject {
     constructor() {
         super();
         this.append([
@@ -163,7 +163,7 @@ export class BoxPlotGroup extends Group implements _Scene.DistantObject {
 
     distanceSquared(x: number, y: number): number {
         const nodes = Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, Rect, Line);
-        return _Scene.nearestSquared(x, y, nodes).distanceSquared;
+        return _ModuleSupport.nearestSquared(x, y, nodes).distanceSquared;
     }
 
     get midPoint(): { x: number; y: number } {

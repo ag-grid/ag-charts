@@ -1,3 +1,5 @@
+import type { BBoxValues } from './bboxinterface';
+
 const verifiedGlobals = {} as { document: Document; window: Window };
 
 if (typeof window !== 'undefined') {
@@ -69,4 +71,11 @@ export function setDocument(document: Document) {
 
 export function setWindow(window: Window) {
     verifiedGlobals.window = window;
+}
+
+export function setElementBBox(element: HTMLElement, bbox: BBoxValues) {
+    element.style.width = `${bbox.width}px`;
+    element.style.height = `${bbox.height}px`;
+    element.style.left = `${bbox.x}px`;
+    element.style.top = `${bbox.y}px`;
 }

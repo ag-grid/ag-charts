@@ -46,14 +46,14 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new BandScale<string | number>());
-        this.includeInvisibleDomains = true;
-
-        const { tickLineGroup, tickLabelGroup, gridLineGroup, tickScale, scale } = this;
-
+        const scale = new BandScale<string | number>();
         scale.paddingOuter = 0.1;
         scale.paddingInner = scale.paddingOuter * 2;
-        this.refreshScale();
+
+        super(moduleCtx, scale);
+        this.includeInvisibleDomains = true;
+
+        const { tickLineGroup, tickLabelGroup, gridLineGroup, tickScale } = this;
 
         tickScale.paddingInner = 1;
         tickScale.paddingOuter = 0;

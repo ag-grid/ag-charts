@@ -1,9 +1,9 @@
 import type { Group } from '../../../scene/group';
-import type { DistantObject } from '../../../scene/nearest';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Logger } from '../../../util/logger';
+import type { DistantObject } from '../../../util/nearest';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 

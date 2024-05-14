@@ -1,6 +1,6 @@
+import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { DistantObject } from '../nearest';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
 

@@ -6,6 +6,7 @@ import type {
     AgCartesianSeriesOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
+    AgSankeySeriesOptions,
 } from '../../options/agChartOptions';
 import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
 import type { AgTopologySeriesOptions } from '../../options/series/topology/topologyOptions';
@@ -19,7 +20,8 @@ export type SeriesOptions =
     | AgCartesianSeriesOptions
     | AgPolarSeriesOptions
     | AgHierarchySeriesOptions
-    | AgTopologySeriesOptions;
+    | AgTopologySeriesOptions
+    | AgSankeySeriesOptions;
 
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
