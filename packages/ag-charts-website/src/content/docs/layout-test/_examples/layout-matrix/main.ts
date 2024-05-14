@@ -77,8 +77,9 @@ const bodyGrid = `
   }
   `;
 
-const script = 'https://localhost:4600/dev/ag-charts-community/dist/umd/ag-charts-community.js?t=1715337042150';
-// const script = 'https://charts-staging.ag-grid.com/dev/ag-charts-community/dist/umd/ag-charts-community.js?t=1715349786074';
+const script = [...document.querySelectorAll('script').values()]
+    .map((e) => e.src)
+    .filter((s) => s.includes('ag-charts-community'))[0];
 
 const cases = [
     { styles: '', options: {} },
