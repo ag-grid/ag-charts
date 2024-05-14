@@ -9,6 +9,7 @@ import {
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
+    isAgSankeyChartOptions,
     isAgTopologyChartOptions,
     isAxisOptionType,
     isSeriesOptionType,
@@ -407,6 +408,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return 'treemap';
         } else if (isAgTopologyChartOptions(options)) {
             return 'map-shape';
+        } else if (isAgSankeyChartOptions(options)) {
+            return 'sankey';
         }
         throw new Error('Invalid chart options type detected.');
     }

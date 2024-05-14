@@ -249,6 +249,17 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
     };
 }
 
+export function sankeyChartAssertions(params?: { seriesTypes?: string[] }) {
+    const { seriesTypes = ['map-shape'] } = params ?? {};
+
+    return async (chartOrProxy: Chart | AgChartProxy) => {
+        const chart = deproxy(chartOrProxy);
+        expect(chart?.constructor?.name).toEqual('SankeyChart');
+        expect(chart.axes).toHaveLength(0);
+        expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
+    };
+}
+
 const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };

@@ -54,6 +54,7 @@ export * from './series/topology/mapLineOptions';
 export * from './series/topology/mapMarkerOptions';
 export * from './series/topology/mapShapeBackgroundOptions';
 export * from './series/topology/mapLineBackgroundOptions';
+export * from './series/sankey/sankeyOptions';
 export * from './series/markerOptions';
 
 /**

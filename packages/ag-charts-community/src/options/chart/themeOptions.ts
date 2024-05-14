@@ -25,6 +25,11 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
+import type {
+    AgBaseSankeyThemeOptions,
+    AgSankeySeriesOptions,
+    AgSankeySeriesThemeableOptions,
+} from '../series/sankey/sankeyOptions';
 import type { AgMapLineBackgroundThemeableOptions } from '../series/topology/mapLineBackgroundOptions';
 import type { AgMapLineSeriesThemeableOptions } from '../series/topology/mapLineOptions';
 import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
@@ -156,6 +161,9 @@ export interface AgMapShapeBackgroundThemeOverrides extends AgBaseTopologyThemeO
 export interface AgMapLineBackgroundThemeOverrides extends AgBaseTopologyThemeOptions {
     series?: AgMapLineBackgroundThemeableOptions;
 }
+export interface AgSankeyThemeOverrides extends AgBaseSankeyThemeOptions {
+    series?: AgSankeySeriesThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -224,6 +232,8 @@ export interface AgChartThemeOverrides {
     'map-shape-background'?: AgMapShapeBackgroundThemeOverrides;
     /** map-line-background series theme overrides. */
     'map-line-background'?: AgMapLineBackgroundThemeOverrides;
+    /** sankey series theme overrides. */
+    sankey?: AgSankeyThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually
@@ -234,6 +244,8 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
     [K in NonNullable<AgPolarSeriesOptions['type']>]?: T;
 } & {
     [K in NonNullable<AgHierarchySeriesOptions['type']>]?: T;
+} & {
+    [K in NonNullable<AgSankeySeriesOptions['type']>]?: T;
 } & {
     common?: Partial<T>;
 };
