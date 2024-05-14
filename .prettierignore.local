@@ -10,5 +10,6 @@
 /packages/ag-charts-react/dist
 /packages/ag-charts-vue3/dist
 /packages/ag-charts-vue3/lib
+/packages/ag-charts-angular/projects/ag-charts-angular/src/test.ts
 
 /.nx/cache

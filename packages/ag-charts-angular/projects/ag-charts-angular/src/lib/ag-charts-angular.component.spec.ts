@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ComponentFixture, TestBed, async } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AgChartOptions } from 'ag-charts-community';
 
@@ -17,15 +17,62 @@ const DATA_UK_LABOUR_MARKET_FEB_2020 = [
     { type: 'Caring, leisure & other services', earnings: 358 },
 ];
 
+@Component({
+    selector: `host-component`,
+    standalone: true,
+    template: ` <ag-charts-angular [options]="options"></ag-charts-angular>`,
+})
+class TestHostComponent {
+    options: AgChartOptions = {
+        autoSize: true,
+        data: DATA_UK_LABOUR_MARKET_FEB_2020,
+        title: {
+            text: 'Gross Weekly Earnings\nby Occupation (Q4 2019)',
+            fontSize: 18,
+        },
+        subtitle: {
+            text: 'Source: Office for\nNational Statistics',
+        },
+        series: [
+            {
+                type: 'bar',
+                direction: 'horizontal',
+                xKey: 'type',
+                yKey: 'earnings',
+            },
+        ],
+        axes: [
+            {
+                type: 'category',
+                position: 'left',
+            },
+            {
+                type: 'number',
+                position: 'bottom',
+                title: {
+                    enabled: true,
+                    text: '£/week',
+                },
+            },
+        ],
+        legend: {
+            enabled: false,
+        },
+    };
+}
+
 describe('AgChartsAngularComponent', () => {
     let component: TestHostComponent;
     let fixture: ComponentFixture<TestHostComponent>;
 
-    beforeEach(async(() => {
-        TestBed.configureTestingModule({
-            declarations: [AgChartsAngular, TestHostComponent],
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent, AgChartsAngular],
         }).compileComponents();
-    }));
+
+        fixture = TestBed.createComponent(AgChartsAngular);
+        component = fixture.componentInstance;
+    });
 
     beforeEach(() => {
         fixture = TestBed.createComponent(TestHostComponent);
@@ -36,47 +83,4 @@ describe('AgChartsAngularComponent', () => {
     it('should create', () => {
         expect(component).toBeTruthy();
     });
-
-    @Component({
-        selector: `host-component`,
-        template: ` <ag-charts-angular [options]="options"></ag-charts-angular>`,
-    })
-    class TestHostComponent {
-        options: AgChartOptions = {
-            autoSize: true,
-            data: DATA_UK_LABOUR_MARKET_FEB_2020,
-            title: {
-                text: 'Gross Weekly Earnings\nby Occupation (Q4 2019)',
-                fontSize: 18,
-            },
-            subtitle: {
-                text: 'Source: Office for\nNational Statistics',
-            },
-            series: [
-                {
-                    type: 'bar',
-                    direction: 'horizontal',
-                    xKey: 'type',
-                    yKey: 'earnings',
-                },
-            ],
-            axes: [
-                {
-                    type: 'category',
-                    position: 'left',
-                },
-                {
-                    type: 'number',
-                    position: 'bottom',
-                    title: {
-                        enabled: true,
-                        text: '£/week',
-                    },
-                },
-            ],
-            legend: {
-                enabled: false,
-            },
-        };
-    }
 });
