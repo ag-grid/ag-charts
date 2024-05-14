@@ -29,6 +29,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public mask = new RangeMask();
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
+    private maskVisibleRange = {
+        computeBBox: (): BBox => {
+            return this.mask.computeVisibleRangeBBox();
+        },
+        getCachedBBox: (): BBox => {
+            return this.mask.computeVisibleRangeBBox();
+        },
+    };
 
     @Validate(POSITIVE_NUMBER)
     public height: number = 30;
@@ -111,7 +119,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 id: 'ag-charts-navigator-pan',
                 textContent: 'Panning',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.mask,
+                focusable: this.maskVisibleRange,
             }),
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'div-slider',
@@ -303,10 +311,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private updateFocus(event: ConsumableEvent | undefined) {
-        const { minHandle: min, maxHandle: max, mask: pan, focus, hasFocus, ctx } = this;
+        const { minHandle: min, maxHandle: max, maskVisibleRange: pan, focus, hasFocus, ctx } = this;
         if (focus && hasFocus) {
             const node = { min, max, pan }[focus];
-            ctx.regionManager.updateFocusIndicatorRect(node.computeVisibleRangeBBox());
+            ctx.regionManager.updateFocusIndicatorRect(node.computeBBox());
             event?.consume();
         }
     }
@@ -337,7 +345,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
         this.updateFocus(undefined);
 
-        [mask, minHandle, maxHandle].forEach((node: { computeBBox(): BBox }, index) => {
+        [this.maskVisibleRange, minHandle, maxHandle].forEach((node, index) => {
             const bbox = node.computeBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
             setElementBBox(this.proxyNavigatorElements[index], tbox);
