@@ -1,11 +1,15 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { navigate, scrollIntoView, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
+import type {
+    ApiReferenceNode,
+    ApiReferenceType,
+    MemberNode,
+} from '@generate-code-reference-plugin/doc-interfaces/types';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 
-import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
 import { type NavigationData, type NavigationPath, isInterfaceHidden } from '../apiReferenceHelpers';
 import {
     cleanupName,

@@ -1,14 +1,21 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import Code from '@components/Code';
+import type {
+    ApiReferenceNode,
+    ApiReferenceType,
+    MemberNode,
+    TypeAliasNode,
+} from '@generate-code-reference-plugin/doc-interfaces/types';
+import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
+import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
 
-import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
 import type { SpecialTypesMap } from '../apiReferenceHelpers';
 import {
     cleanupName,
@@ -24,6 +31,17 @@ import { PropertyTitle, PropertyType } from './Properies';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
+
+// NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
+// loaded on the client side
+const queryClient = new QueryClient();
+
+const queryOptions = {
+    retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+};
 
 export interface ApiReferenceConfig {
     prioritise?: string[];
@@ -51,20 +69,35 @@ interface ApiReferenceRowOptions {
 }
 
 export function ApiReferenceWithContext({
-    reference,
     prioritise,
     include,
     exclude,
     hideHeader,
     hideRequired,
-    keepExpanded,
     ...props
-}: ApiReferenceOptions & ApiReferenceConfig & { reference: ApiReferenceType }) {
+}: ApiReferenceOptions & ApiReferenceConfig) {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <ApiReferenceConfigContext.Provider value={{ prioritise, include, exclude, hideHeader, hideRequired }}>
+                <ApiReferenceWithReferenceContext {...props} />
+            </ApiReferenceConfigContext.Provider>
+        </QueryClientProvider>
+    );
+}
+
+export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & ApiReferenceConfig) {
+    const { data: reference } = useQuery(
+        ['resolved-interfaces'],
+        async () => {
+            const data = await fetchInterfacesReference();
+            return data;
+        },
+        queryOptions
+    );
+
     return (
         <ApiReferenceContext.Provider value={reference}>
-            <ApiReferenceConfigContext.Provider value={{ prioritise, include, exclude, hideHeader, hideRequired }}>
-                <ApiReference {...props} />
-            </ApiReferenceConfigContext.Provider>
+            <ApiReference {...props} />
         </ApiReferenceContext.Provider>
     );
 }
