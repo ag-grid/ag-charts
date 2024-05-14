@@ -39,22 +39,33 @@ export class ProxyInteractionService {
 
     createProxyElement<T extends keyof ProxyTypeMap>(params: ProxyParams<T>): ProxyTypeMap[T] {
         if (check(params, 'button')) {
-            return this.initElement(params, createElement('button')) as ProxyTypeMap[T];
+            return this.initElement(params, createElement('button'));
         } else if (check(params, 'slider')) {
-            return this.initElement(params, createInput('range')) as ProxyTypeMap[T];
+            return this.initElement(params, createInput('range'));
         } else {
             throw new Error(`unexpected type [${params.type}]`);
         }
     }
 
-    private initElement<TElem extends HTMLElement>(params: ProxyParams<keyof ProxyTypeMap>, element: TElem) {
-        const { id, parent, focusable, textContent, onclick } = params;
+    private initElement<T extends keyof ProxyTypeMap>(params: ProxyParams<T>, element: ProxyTypeMap[T]) {
+        const { id, parent, textContent } = params;
 
         element.id = id;
         element.textContent = textContent;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
+        this.initListeners(params, element);
+
+        parent.appendChild(element);
+        return element;
+    }
+
+    private initListeners<T extends keyof ProxyTypeMap, TElem extends HTMLElement>(
+        params: ProxyParams<T>,
+        element: TElem
+    ) {
+        const { focusable, onclick } = params;
         element.addEventListener('focus', (_event: FocusEvent): any => {
             element.style.setProperty('pointerEvents', null);
             this.focusIndicator.updateBBox(focusable.getCachedBBox());
@@ -66,8 +77,5 @@ export class ProxyInteractionService {
         if (onclick) {
             element.addEventListener('click', onclick);
         }
-
-        parent.appendChild(element);
-        return element;
     }
 }
