@@ -1,0 +1,17 @@
+body {
+    display: flex;
+    position: border-box;
+    height: 100%;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+iframe {
+    /* grid-column: 1 / 2; */
+    /* display: inline-block; */
+    width: 25%;
+    min-height: 400px;
+    flex-grow: 1;
+    border-width: 0;
+    overflow: hidden;
+}
