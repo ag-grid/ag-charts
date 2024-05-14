@@ -1,4 +1,4 @@
-import type { Destroyable } from "../../util/destroy";
+import type { Destroyable } from '../../util/destroy';
 
 export type SeriesGrouping = {
     groupIndex: number;
