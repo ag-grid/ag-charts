@@ -7,6 +7,7 @@
 /packages/ag-charts-website/.astro
 /packages/ag-charts-website/src/layouts/Layout.astro
 /packages/ag-charts-angular/dist
+/packages/ag-charts-angular/projects/ag-charts-angular/src/test.ts
 /packages/ag-charts-react/dist
 /packages/ag-charts-vue3/dist
 /packages/ag-charts-vue3/lib
