@@ -17,7 +17,7 @@ export type RegionName =
     | 'series'
     | 'toolbar';
 
-const REGION_TAB_ORDERING: RegionName[] = ['series', 'navigator'];
+const REGION_TAB_ORDERING: RegionName[] = ['series'];
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).

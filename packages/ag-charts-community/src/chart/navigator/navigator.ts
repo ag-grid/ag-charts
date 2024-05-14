@@ -8,9 +8,7 @@ import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
-import type { ConsumableEvent } from '../interaction/consumableEvent';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
-import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
@@ -68,11 +66,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private readonly rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
 
-    // We need both `hasFocus` and `focus`, because if we change browser window then we need to make
-    // sure that we can restore the focus on the same button as before.
-    private hasFocus = false;
-    private focus?: NavigatorButtonType;
-
     private dragging?: NavigatorButtonType;
     private panStart?: number;
     private _min = 0;
@@ -86,11 +79,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        const region = ctx.regionManager.addRegionFromProperties({
-            name: 'navigator',
-            bboxproviders: [this.rangeSelector],
-            canInteraction: () => this.enabled && this.rangeSelector.visible,
-        });
+        const region = ctx.regionManager.addRegion('navigator', this.rangeSelector);
         const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
         this.destroyFns.push(
             ctx.scene.attachNode(this.rangeSelector),
@@ -99,10 +88,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('drag', (event) => this.onDrag(event), dragStates),
             region.addListener('drag-end', () => this.onDragEnd(), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
-            region.addListener('tab', (event) => this.onTab(event), dragStates),
-            region.addListener('tab-start', (event) => this.onTab(event), dragStates),
-            region.addListener('nav-hori', (event) => this.onNavHori(event), dragStates),
-            region.addListener('blur', (event) => this.onBlur(event), dragStates),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
@@ -259,66 +244,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.ctx.cursorManager.updateCursor('navigator');
     }
 
-    private onTab(event: KeyNavEvent<'tab' | 'tab-start'>) {
-        // Update focused button
-        if (this.focus !== undefined) {
-            const indices = { min: 0, pan: 1, max: 2 } as const;
-            const reverse = ['min', 'pan', 'max'] as const;
-            const targetIndex = indices[this.focus] + event.delta;
-            this.focus = reverse[targetIndex];
-        }
-        // Handle tabbing into the navigator
-        else if (!this.hasFocus) {
-            if (event.delta > 0) {
-                this.focus = 'min';
-            } else if (event.delta < 0) {
-                this.focus = 'max';
-            } else {
-                Logger.error('expected state: this.focus is undefined and tab event delta is 0');
-            }
-        }
-
-        this.hasFocus = this.focus !== undefined;
-        this.updateFocus(event);
-    }
-
-    private onNavHori(event: KeyNavEvent<'nav-hori'>) {
-        if (!this.enabled || this.focus == null) return;
-
-        const { focus, minRange } = this;
-        let { _min: min, _max: max } = this;
-        const deltaRatio = event.delta * 0.05;
-
-        if (focus === 'min') {
-            min = clamp(0, min + deltaRatio, max - minRange);
-        } else if (focus === 'max') {
-            max = clamp(min + minRange, max + deltaRatio, 1);
-        } else if (focus === 'pan') {
-            const span = max - min;
-            min = clamp(0, min + deltaRatio, 1 - span);
-            max = min + span;
-        }
-
-        this._min = min;
-        this._max = max;
-
-        this.updateZoom();
-        this.updateFocus(event);
-    }
-
-    private onBlur(_event: KeyNavEvent<'blur'>) {
-        this.hasFocus = false;
-    }
-
-    private updateFocus(event: ConsumableEvent | undefined) {
-        const { minHandle: min, maxHandle: max, maskVisibleRange: pan, focus, hasFocus, ctx } = this;
-        if (focus && hasFocus) {
-            const node = { min, max, pan }[focus];
-            ctx.regionManager.updateFocusIndicatorRect(node.computeBBox());
-            event?.consume();
-        }
-    }
-
     private onZoomChange(event: ZoomChangeEvent) {
         const { x } = event;
         if (!x) return;
@@ -343,7 +268,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             minHandle.zIndex = 4;
             maxHandle.zIndex = 3;
         }
-        this.updateFocus(undefined);
 
         [this.maskVisibleRange, minHandle, maxHandle].forEach((node, index) => {
             const bbox = node.computeBBox();
