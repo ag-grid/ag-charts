@@ -1,9 +1,9 @@
-import { setElementBBox } from '../../module-support';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import { setElementBBox } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
@@ -73,6 +73,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly minRange = 0.001;
 
     private readonly proxyNavigatorToolbar: HTMLElement;
+    private readonly proxyNavigatorElements: [HTMLDivElement, HTMLDivElement, HTMLDivElement];
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -101,29 +102,32 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.proxyNavigatorToolbar.classList.add('ag-charts-proxy-navigator-toolbar');
         this.proxyNavigatorToolbar.role = 'toolbar';
         this.proxyNavigatorToolbar.ariaLabel = 'Navigator';
+        this.proxyNavigatorToolbar.style.pointerEvents = 'none';
         this.updateGroupVisibility();
 
-        this.ctx.proxyInteractionService.createProxyElement({
-            type: 'slider',
-            id: 'ag-charts-navigator-pan',
-            textContent: 'Panning',
-            parent: this.proxyNavigatorToolbar,
-            focusable: this.mask,
-        });
-        this.ctx.proxyInteractionService.createProxyElement({
-            type: 'slider',
-            id: 'ag-charts-navigator-min',
-            textContent: 'Minimum',
-            parent: this.proxyNavigatorToolbar,
-            focusable: this.minHandle,
-        });
-        this.ctx.proxyInteractionService.createProxyElement({
-            type: 'slider',
-            id: 'ag-charts-navigator-max',
-            textContent: 'Maximum',
-            parent: this.proxyNavigatorToolbar,
-            focusable: this.maxHandle,
-        });
+        this.proxyNavigatorElements = [
+            this.ctx.proxyInteractionService.createProxyElement({
+                type: 'div-scrollbar',
+                id: 'ag-charts-navigator-pan',
+                textContent: 'Panning',
+                parent: this.proxyNavigatorToolbar,
+                focusable: this.mask,
+            }),
+            this.ctx.proxyInteractionService.createProxyElement({
+                type: 'div-slider',
+                id: 'ag-charts-navigator-min',
+                textContent: 'Minimum',
+                parent: this.proxyNavigatorToolbar,
+                focusable: this.minHandle,
+            }),
+            this.ctx.proxyInteractionService.createProxyElement({
+                type: 'div-slider',
+                id: 'ag-charts-navigator-max',
+                textContent: 'Maximum',
+                parent: this.proxyNavigatorToolbar,
+                focusable: this.maxHandle,
+            }),
+        ];
     }
 
     public updateBackground(oldGroup?: Group, newGroup?: Group) {
@@ -332,6 +336,12 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             maxHandle.zIndex = 3;
         }
         this.updateFocus(undefined);
+
+        [mask, minHandle, maxHandle].forEach((node: { computeBBox(): BBox }, index) => {
+            const bbox = node.computeBBox();
+            const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
+            setElementBBox(this.proxyNavigatorElements[index], tbox);
+        });
     }
 
     private updateNodes(min: number, max: number) {

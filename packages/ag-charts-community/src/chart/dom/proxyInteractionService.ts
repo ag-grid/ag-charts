@@ -5,7 +5,8 @@ import type { FocusIndicator } from './focusIndicator';
 
 type ProxyTypeMap = {
     button: HTMLButtonElement;
-    slider: HTMLInputElement;
+    'div-slider': HTMLDivElement;
+    'div-scrollbar': HTMLDivElement;
 };
 
 type ProxyParams<T extends keyof ProxyTypeMap> = {
@@ -24,12 +25,6 @@ function check<T extends keyof ProxyTypeMap>(
     return params.type === type;
 }
 
-function createInput(type: 'range') {
-    const input = createElement('input');
-    input.type = type;
-    return input;
-}
-
 export class ProxyInteractionService {
     // This debug option make the proxies button partially transparent instead of fully transparent.
     // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
@@ -37,11 +32,23 @@ export class ProxyInteractionService {
 
     constructor(private readonly focusIndicator: FocusIndicator) {}
 
+    private createDivWithRole(role: 'slider' | 'scrollbar') {
+        const input = createElement('div');
+        input.role = role;
+        input.tabIndex = 0;
+        if (this.debugShowDOMProxies) {
+            input.style.background = ({ slider: 'red', scrollbar: 'green' } as const)[role];
+        }
+        return input;
+    }
+
     createProxyElement<T extends keyof ProxyTypeMap>(params: ProxyParams<T>): ProxyTypeMap[T] {
         if (check(params, 'button')) {
             return this.initElement(params, createElement('button'));
-        } else if (check(params, 'slider')) {
-            return this.initElement(params, createInput('range'));
+        } else if (check(params, 'div-slider')) {
+            return this.initElement(params, this.createDivWithRole('slider'));
+        } else if (check(params, 'div-scrollbar')) {
+            return this.initElement(params, this.createDivWithRole('scrollbar'));
         } else {
             throw new Error(`unexpected type [${params.type}]`);
         }
