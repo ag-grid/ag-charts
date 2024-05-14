@@ -1,3 +1,4 @@
+import type { Destroyable } from '../../util/destroy';
 import { StateTracker } from '../../util/stateTracker';
 import type { DOMManager } from '../dom/domManager';
 
@@ -19,7 +20,7 @@ export enum Cursor {
  * Manages the cursor styling for an element. Tracks the requested styling from distinct
  * dependents and handles conflicting styling requests.
  */
-export class CursorManager {
+export class CursorManager implements Destroyable {
     private readonly stateTracker = new StateTracker('default');
 
     constructor(private readonly domManager: DOMManager) {}

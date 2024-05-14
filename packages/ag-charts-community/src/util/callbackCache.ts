@@ -1,6 +1,7 @@
+import type { Destroyable } from './destroy';
 import { Logger } from './logger';
 
-export class CallbackCache {
+export class CallbackCache implements Destroyable {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
     destroy() {}

@@ -1,3 +1,5 @@
+import type { Destroyable } from "../../util/destroy";
+
 export type ContextMenuAction = {
     id?: string;
     label: string;
@@ -12,7 +14,7 @@ export type ContextMenuActionParams = {
     event: MouseEvent;
 };
 
-export class ContextMenuRegistry {
+export class ContextMenuRegistry implements Destroyable {
     private readonly defaultActions: Array<ContextMenuAction> = [];
     private readonly disabledActions: Set<string> = new Set();
 

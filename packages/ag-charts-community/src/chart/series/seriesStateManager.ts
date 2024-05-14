@@ -1,3 +1,5 @@
+import type { Destroyable } from "../../util/destroy";
+
 export type SeriesGrouping = {
     groupIndex: number;
     groupCount: number;
@@ -5,7 +7,7 @@ export type SeriesGrouping = {
     stackCount: number;
 };
 
-export class SeriesStateManager {
+export class SeriesStateManager implements Destroyable {
     private readonly groups: {
         [type: string]: {
             [id: string]: {

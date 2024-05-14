@@ -1,4 +1,5 @@
-type Destroyable = { destroy(): void };
+export type Destroyable = { destroy(): void };
+
 export class ObjectDestroyer {
     private readonly objs: Destroyable[];
     constructor(...objs: Destroyable[]) {
