@@ -153,7 +153,10 @@ export class TextMeasurer {
                     }
                     result.push(newLine + postfix);
 
-                    if (!newLine.length) break;
+                    if (!newLine.length) {
+                        line = '';
+                        break;
+                    }
 
                     line = line.slice(newLine.length).trimStart();
 
