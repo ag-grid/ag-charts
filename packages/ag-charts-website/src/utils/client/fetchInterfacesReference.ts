@@ -7,7 +7,7 @@ import { getDevFileUrl } from '@utils/devFileUrl';
 export async function fetchInterfacesReference(): Promise<ApiReferenceType> {
     const contents = await fetch(
         getDevFileUrl({
-            filePath: '/resolved-interfaces-patched.json',
+            filePath: '/resolved-interfaces.json',
         })
     ).then((res) => res.json());
 

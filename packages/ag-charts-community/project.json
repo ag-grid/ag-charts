@@ -127,18 +127,6 @@
         "output": "dist/packages/ag-charts-community/resolved-interfaces.AUTO.json"
       }
     },
-    "docs-resolved-interfaces-patched": {
-      "executor": "ag-charts-generate-code-reference-files:generate",
-      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
-      "inputs": ["{projectRoot}/src/options/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
-      "outputs": ["{options.output}"],
-      "cache": true,
-      "options": {
-        "mode": "docs-interfaces-patched",
-        "inputs": ["packages/ag-charts-community/src/options"],
-        "output": "dist/packages/ag-charts-community/resolved-interfaces-patched.AUTO.json"
-      }
-    },
     "lint:eslint": {
       "executor": "@nx/eslint:lint",
       "options": {

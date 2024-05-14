@@ -5,7 +5,7 @@ import { patchDocInterfaces } from '../../doc-interfaces/patch-doc-interfaces';
 import { TypeMapper } from '../../doc-interfaces/types-utils';
 import { writeJSONFile } from '../../executors-utils';
 
-type OptionsMode = 'debug-interfaces' | 'docs-interfaces' | 'docs-interfaces-patched';
+type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
 type ExecutorOptions = { mode: OptionsMode; inputs: string[]; output: string };
 
 export default async function (options: ExecutorOptions) {
@@ -35,10 +35,6 @@ async function generateFile(options: ExecutorOptions) {
             return await writeJSONFile(options.output, typeMapper.entries());
 
         case 'docs-interfaces':
-            return await writeJSONFile(options.output, typeMapper.resolvedEntries());
-
-        // Patched docs-interface for front end to consume
-        case 'docs-interfaces-patched':
             const resolvedEntries = typeMapper.resolvedEntries();
             const patchedDocInterfaces = patchDocInterfaces(resolvedEntries);
             const docInterfacesObject = Object.fromEntries(patchedDocInterfaces.entries());

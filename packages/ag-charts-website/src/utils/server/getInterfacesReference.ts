@@ -17,6 +17,6 @@ function getJsonFromDevFile(devFileKey: DevFileKey) {
  * For static site generation
  */
 export function getInterfacesReference(): ApiReferenceType {
-    const jsonContent = getJsonFromDevFile('resolved-interfaces-patched.json');
+    const jsonContent = getJsonFromDevFile('resolved-interfaces.json');
     return new Map(Object.entries(jsonContent));
 }
