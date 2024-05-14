@@ -1,9 +1,10 @@
+import { BBox } from '../../scene/bbox';
 import { createElement, getDocument } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
 
-const domElementClasses = ['styles', 'canvas', 'canvas-overlay', 'hidden'] as const;
+const domElementClasses = ['styles', 'canvas', 'canvas-overlay'] as const;
 export type DOMElementClass = (typeof domElementClasses)[number];
 
 const domElementConfig: Record<
@@ -13,36 +14,42 @@ const domElementConfig: Record<
     styles: { childElementType: 'style' },
     canvas: { childElementType: 'canvas' },
     'canvas-overlay': { childElementType: 'div' },
-    hidden: { childElementType: 'div' },
 };
 
 const STYLES = `
-.ag-chart-wrapper {
+.ag-charts-wrapper {
+    position: relative;
     touch-action: none;
     box-sizing: border-box;
-    overflow: hidden;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-.ag-charts-style {
-    display: none;
-}
-
-.ag-charts-hidden {
-    visibility: none;
-}
-
-.ag-charts-canvas, .ag-charts-canvas-overlay {
+.ag-charts-canvas {
     position: absolute;
+}
+
+.ag-charts-canvas > * {
     display: block;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+}
+
+.ag-charts-canvas-overlay {
+    position: relative;
+    display: contents;
 }
 
 .ag-charts-canvas-overlay > * {
     position: absolute;
 }
+`;
+
+const BASE_DOM = `
+<div class="ag-charts-wrapper ag-charts-styles" data-ag-charts>
+    <div class="ag-charts-canvas">
+        <div class="ag-charts-canvas-overlay"></div>
+    </div>
+</div>
 `;
 
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
@@ -65,8 +72,11 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
 
 export class GuardedAgChartsWrapperElement extends GuardedElement {
     constructor() {
+        const templateEl = createElement('div');
+        templateEl.innerHTML = BASE_DOM;
+
         super(
-            createElement('div', 'ag-chart-wrapper', { position: 'relative', userSelect: 'none' }),
+            templateEl.children.item(0) as HTMLElement,
             getDocument().createElement('div'),
             getDocument().createElement('div')
         );
@@ -102,13 +112,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.rootElements = new Map(
             domElementClasses.map((c) => {
-                const el = createElement('div', `ag-charts-${c}`, domElementConfig[c].style);
+                const cssClass = `ag-charts-${c}`;
+                const el = element.classList.contains(cssClass)
+                    ? element
+                    : (element.querySelector(`.${cssClass}`) as HTMLElement);
+
+                if (!el) throw new Error(`AG Charts - unable to find DOM element ${cssClass}`);
 
                 return [c, { element: el, children: new Map<string, HTMLElement>() }];
             })
         );
-
-        this.rootElements.forEach((el) => element.appendChild(el.element));
 
         let hidden = false;
         this.observer = setupObserver(element, (intersectionRatio) => {
@@ -143,16 +156,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setAutoSizeStyle(autoSize: boolean) {
+    setAutoSizeStyle(_autoSize: boolean, width?: number, height?: number) {
         const { style } = this.parentElement.element;
-        if (autoSize) {
-            style.display = 'block';
+        if (width != null && height != null) {
+            style.width = `${width}px`;
+            style.height = `${height}px`;
+        } else {
             style.width = '100%';
             style.height = '100%';
-        } else {
-            style.display = 'inline-block';
-            style.width = 'auto';
-            style.height = 'auto';
         }
     }
 
@@ -206,14 +217,26 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parent.element.getBoundingClientRect();
     }
 
+    getChildBoundingClientRect(type: DOMElementClass) {
+        const { children } = this.rootElements.get(type) ?? {};
+        if (!children) return;
+
+        const childRects: BBox[] = [];
+        for (const child of children.values()) {
+            childRects.push(BBox.fromDOMRect(child.getBoundingClientRect()));
+        }
+
+        return BBox.merge(childRects);
+    }
+
     calculateCanvasPosition(el: HTMLElement) {
         let x = 0;
         let y = 0;
 
-        const parentRect = this.getBoundingClientRect();
+        const { x: cx = 0, y: cy = 0 } = this.getChildBoundingClientRect('canvas') ?? {};
         const elRect = el.getBoundingClientRect();
-        x = elRect.x - parentRect.x;
-        y = elRect.y - parentRect.y;
+        x = elRect.x - cx;
+        y = elRect.y - cy;
 
         return { x, y };
     }

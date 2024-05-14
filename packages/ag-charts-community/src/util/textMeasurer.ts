@@ -104,7 +104,8 @@ export class TextMeasurer {
         for (let line of lines) {
             line = line.trimEnd();
 
-            for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; i < line.length; i++) {
+            let limit = line.length + 10;
+            for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; limit > 0 && i < line.length; i++, limit--) {
                 const char = line.charAt(i);
 
                 estimatedWidth += measurer.textWidth(char);

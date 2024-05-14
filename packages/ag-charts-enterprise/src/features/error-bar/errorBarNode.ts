@@ -1,10 +1,10 @@
 import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { partialAssign, mergeDefaults } = _ModuleSupport;
+const { nearestSquaredInContainer, partialAssign, mergeDefaults } = _ModuleSupport;
 const { BBox } = _Scene;
 type BBox = _Scene.BBox;
-type NearestResult<T> = _Scene.NearestResult<T>;
+type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
@@ -243,7 +243,7 @@ export class ErrorBarGroup extends _Scene.Group {
     }
 
     nearestSquared(x: number, y: number): _ModuleSupport.PickNodeDatumResult {
-        const { nearest, distanceSquared } = _Scene.nearestSquaredInContainer(x, y, this);
+        const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, this);
         if (nearest !== undefined && !isNaN(distanceSquared)) {
             return { datum: nearest.datum, distanceSquared };
         }

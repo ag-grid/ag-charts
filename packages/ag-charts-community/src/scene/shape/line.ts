@@ -1,6 +1,6 @@
 import { lineDistanceSquared } from '../../util/distance';
+import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
-import type { DistantObject } from '../nearest';
 import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';

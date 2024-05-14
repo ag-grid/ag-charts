@@ -226,8 +226,13 @@ export class Tooltip extends BaseProperties {
             tooltipBounds
         );
 
-        const left = clamp(0, position.x, windowBounds.width - element.clientWidth - 1);
-        const top = clamp(0, position.y, windowBounds.height - element.clientHeight);
+        const minX = -canvasRect.left;
+        const maxX = windowBounds.width - element.clientWidth - 1 + minX;
+        const left = clamp(minX, position.x, maxX);
+
+        const minY = -canvasRect.top;
+        const maxY = windowBounds.height - element.clientHeight + minY;
+        const top = clamp(minY, position.y, maxY);
 
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
@@ -302,13 +307,7 @@ export class Tooltip extends BaseProperties {
         this._showArrow = show;
     }
 
-    private getTooltipBounds({
-        positionType,
-        meta,
-        yOffset,
-        xOffset,
-        canvasRect,
-    }: {
+    private getTooltipBounds(opts: {
         positionType: TooltipPositionType;
         meta: TooltipMeta;
         yOffset: number;
@@ -316,6 +315,8 @@ export class Tooltip extends BaseProperties {
         canvasRect: DOMRect;
     }): Bounds {
         if (!this.element) return {};
+
+        const { positionType, meta, yOffset, xOffset, canvasRect } = opts;
 
         const { clientWidth: tooltipWidth, clientHeight: tooltipHeight } = this.element;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };

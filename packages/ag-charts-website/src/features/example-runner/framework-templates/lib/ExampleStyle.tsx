@@ -38,17 +38,6 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
             padding: 1rem;
         }
 
-        [data-ag-charts] {
-            overflow: hidden;
-        }
-
-        /* Center charts with explicit width and heights */
-        .ag-chart-wrapper {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
         button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
             --background-color: transparent;
             --text-color: #212529;
