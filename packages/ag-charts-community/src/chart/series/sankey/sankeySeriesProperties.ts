@@ -1,7 +1,7 @@
 import type {
     AgSankeySeriesOptions,
     AgSankeySeriesTooltipRendererParams,
-} from '../../../options/series/sankey/sankeyOptions';
+} from '../../../options/series/flow-proportion/sankeyOptions';
 import { ARRAY, NUMBER, OBJECT, STRING, Validate } from '../../../util/validation';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';

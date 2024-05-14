@@ -1,25 +1,38 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable sonarjs/no-collapsible-if */
 type EnterpriseModuleStub = {
     type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend';
     packageType?: 'enterprise';
     identifier?: string;
     optionsKey: string;
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology' | 'sankey')[];
+    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion')[];
     useCount?: number;
     optionsInnerKey?: string;
 };
 
 export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
-    { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'sankey'] },
+    {
+        type: 'root',
+        optionsKey: 'animation',
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+    },
     { type: 'root', optionsKey: 'annotations', chartTypes: ['cartesian'] },
     {
         type: 'root',
         optionsKey: 'background',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'sankey'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
         optionsInnerKey: 'image',
     },
-    { type: 'root', optionsKey: 'contextMenu', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'sankey'] },
-    { type: 'root', optionsKey: 'dataSource', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'sankey'] },
+    {
+        type: 'root',
+        optionsKey: 'contextMenu',
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+    },
+    {
+        type: 'root',
+        optionsKey: 'dataSource',
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+    },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian', 'topology'] },
     {

@@ -6,7 +6,7 @@ export const SankeySeriesModule: SeriesModule<'sankey'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',
-    chartTypes: ['sankey'],
+    chartTypes: ['flow-proportion'],
 
     identifier: 'sankey',
     instanceConstructor: SankeySeries,

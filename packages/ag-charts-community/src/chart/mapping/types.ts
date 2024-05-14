@@ -80,13 +80,18 @@ export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopo
     return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
 }
 
-export function isAgSankeyChartOptions(input: AgChartOptions): input is AgSankeyChartOptions {
+export function isAgFlowProportionChartOptions(input: AgChartOptions): input is AgSankeyChartOptions {
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
         return false;
     }
 
-    return chartTypes.isSankey(specifiedType) || isEnterpriseTopology(specifiedType);
+    if ((specifiedType as string) === 'flow-proportion') {
+        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
+        return true;
+    }
+
+    return chartTypes.isFlowProportion(specifiedType) || isEnterpriseTopology(specifiedType);
 }
 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {

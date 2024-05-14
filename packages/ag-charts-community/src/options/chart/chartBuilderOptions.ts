@@ -1,7 +1,7 @@
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
+import type { AgBaseFlowRatioChartOptions } from '../series/flow-proportion/sankeyOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
-import type { AgBaseSankeyChartOptions } from '../series/sankey/sankeyOptions';
 import type { AgBaseTopologyChartOptions } from '../series/topology/topologyOptions';
 import type { AgBaseChartOptions } from './chartOptions';
 import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './themeOptions';
@@ -26,7 +26,7 @@ export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, Ag
 export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
-export interface AgSankeyChartOptions extends AgBaseSankeyChartOptions, AgBaseChartOptions {
+export interface AgSankeyChartOptions extends AgBaseFlowRatioChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
 export type AgChartOptions =

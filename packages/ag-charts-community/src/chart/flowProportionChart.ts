@@ -3,16 +3,16 @@ import { BBox } from '../scene/bbox';
 import { Chart } from './chart';
 import type { Series } from './series/series';
 
-interface SankeyLikeSeries extends Series<any, any> {
+interface FlowProportionSeries extends Series<any, any> {
     setChartNodes(nodes: any): void;
 }
 
-function isSankeySeries(series: Series<any, any>): series is SankeyLikeSeries {
+function isFlowProportion(series: Series<any, any>): series is FlowProportionSeries {
     return series.type === 'sankey';
 }
-export class SankeyChart extends Chart {
-    static readonly className = 'SankeyChart';
-    static readonly type = 'sankey' as const;
+export class FlowProportionChart extends Chart {
+    static readonly className = 'FlowProportionChart';
+    static readonly type = 'flow-proportion' as const;
 
     override async updateData() {
         await super.updateData();
@@ -20,7 +20,7 @@ export class SankeyChart extends Chart {
         const { nodes } = this.getOptions() as AgSankeyChartOptions;
 
         this.series.forEach((series) => {
-            if (isSankeySeries(series)) {
+            if (isFlowProportion(series)) {
                 series.setChartNodes(nodes);
             }
         });

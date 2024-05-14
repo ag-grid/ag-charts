@@ -6,10 +6,10 @@ import { type SeriesOptions, seriesRegistry } from '../chart/factory/seriesRegis
 import { getChartTheme } from '../chart/mapping/themes';
 import {
     isAgCartesianChartOptions,
+    isAgFlowProportionChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
-    isAgSankeyChartOptions,
     isAgTopologyChartOptions,
     isAxisOptionType,
     isSeriesOptionType,
@@ -408,7 +408,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return 'treemap';
         } else if (isAgTopologyChartOptions(options)) {
             return 'map-shape';
-        } else if (isAgSankeyChartOptions(options)) {
+        } else if (isAgFlowProportionChartOptions(options)) {
             return 'sankey';
         }
         throw new Error('Invalid chart options type detected.');

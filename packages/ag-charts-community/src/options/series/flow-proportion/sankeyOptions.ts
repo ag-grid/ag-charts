@@ -54,11 +54,11 @@ export interface AgSankeySeriesTooltipRendererParams
     nodes?: any[];
 }
 
-export interface AgBaseSankeyChartOptions {
+export interface AgBaseFlowRatioChartOptions {
     /** Series configurations. */
     series?: AgSankeySeriesOptions[];
     /** Node options */
     nodes?: any[];
 }
 
-export interface AgBaseSankeyThemeOptions extends AgBaseThemeableChartOptions {}
+export interface AgBaseFlowProportionThemeOptions extends AgBaseThemeableChartOptions {}
