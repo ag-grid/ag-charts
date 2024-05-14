@@ -19,6 +19,14 @@ export interface AgSankeySeriesOptionsKeys {
     toIdKey?: string;
     /** The name of the node key containing the size. */
     sizeKey?: string;
+    /** The name of the node key containing the node id. */
+    nodeIdKey?: string;
+    /** The name of the node key containing the node label. */
+    labelKey?: string;
+    /** The name of the node key containing the node size. */
+    nodeSizeKey?: string;
+    /** The name of the node key containing the node position. */
+    positionKey?: string;
 }
 
 export interface AgSankeySeriesOptionsNames {
@@ -28,25 +36,29 @@ export interface AgSankeySeriesOptionsNames {
     toIdName?: string;
     /** The name of the node key containing the size. */
     sizeName?: string;
-}
-
-export interface AgSankeyNodeOptions {
-    /** The name of the node key containing the id. */
-    idKey?: string;
-    /** The name of the node key containing the id. */
-    labelKey?: string;
+    /** The name of the node key containing the node id. */
+    nodeIdName?: string;
+    /** The name of the node key containing the label. */
+    labelName?: string;
+    /** The name of the node key containing the node size. */
+    nodeSizeName?: string;
+    /** The name of the node key containing the node position. */
+    positionName?: string;
 }
 
 export interface AgSankeySeriesTooltipRendererParams
     extends AgSeriesTooltipRendererParams,
         AgSankeySeriesOptionsKeys,
-        AgSankeySeriesOptionsNames {}
+        AgSankeySeriesOptionsNames {
+    /** Node options */
+    nodes?: any[];
+}
 
 export interface AgBaseSankeyChartOptions {
     /** Series configurations. */
     series?: AgSankeySeriesOptions[];
     /** Node options */
-    nodes?: AgSankeyNodeOptions[];
+    nodes?: any[];
 }
 
 export interface AgBaseSankeyThemeOptions extends AgBaseThemeableChartOptions {}
