@@ -103,8 +103,7 @@ export class TextMeasurer {
         for (let line of lines) {
             line = line.trimEnd();
 
-            let limit = line.length + 10;
-            for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; limit > 0 && i < line.length; i++, limit--) {
+            for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; i < line.length; i++) {
                 const char = line.charAt(i);
 
                 estimatedWidth += measurer.textWidth(char);
@@ -149,11 +148,16 @@ export class TextMeasurer {
 
                     const postfix = wrapHyphenate ? '-' : '';
                     let newLine = line.slice(0, i).trim();
-                    while (measurer.textWidth(newLine + postfix) > options.maxWidth) {
+                    while (newLine.length && measurer.textWidth(newLine + postfix) > options.maxWidth) {
                         newLine = newLine.slice(0, -1).trimEnd();
-                        if (!newLine.length) break;
                     }
                     result.push(newLine + postfix);
+
+                    if (!newLine.length) {
+                        line = '';
+                        break;
+                    }
+
                     line = line.slice(newLine.length).trimStart();
 
                     i = -1; // reset the index after cutting the line

@@ -30,8 +30,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
-
-        this.refreshScale();
     }
 
     @Validate(AND(DATE_OR_DATETIME_MS, LESS_THAN('max')), { optional: true })
