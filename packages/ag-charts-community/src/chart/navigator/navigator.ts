@@ -1,3 +1,4 @@
+import { setElementBBox } from '../../module-support';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -71,6 +72,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private readonly minRange = 0.001;
 
+    private readonly proxyNavigatorToolbar: HTMLElement;
+
     constructor(private readonly ctx: ModuleContext) {
         super();
 
@@ -94,7 +97,33 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
+        this.proxyNavigatorToolbar = this.ctx.domManager.addChild('canvas-overlay', `navigator-toolbar`);
+        this.proxyNavigatorToolbar.classList.add('ag-charts-proxy-navigator-toolbar');
+        this.proxyNavigatorToolbar.role = 'toolbar';
+        this.proxyNavigatorToolbar.ariaLabel = 'Navigator';
         this.updateGroupVisibility();
+
+        this.ctx.proxyInteractionService.createProxyElement({
+            type: 'slider',
+            id: 'ag-charts-navigator-pan',
+            textContent: 'Panning',
+            parent: this.proxyNavigatorToolbar,
+            focusable: this.mask,
+        });
+        this.ctx.proxyInteractionService.createProxyElement({
+            type: 'slider',
+            id: 'ag-charts-navigator-min',
+            textContent: 'Minimum',
+            parent: this.proxyNavigatorToolbar,
+            focusable: this.minHandle,
+        });
+        this.ctx.proxyInteractionService.createProxyElement({
+            type: 'slider',
+            id: 'ag-charts-navigator-max',
+            textContent: 'Maximum',
+            parent: this.proxyNavigatorToolbar,
+            focusable: this.maxHandle,
+        });
     }
 
     public updateBackground(oldGroup?: Group, newGroup?: Group) {
@@ -132,6 +161,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (this.enabled) {
             const { y, height } = this;
             this.layoutNodes(x, y, width, height);
+            setElementBBox(this.proxyNavigatorToolbar, { x, y, width, height });
+            this.proxyNavigatorToolbar.style.removeProperty('display');
+        } else {
+            this.proxyNavigatorToolbar.style.display = 'none';
         }
 
         this.x = x;
