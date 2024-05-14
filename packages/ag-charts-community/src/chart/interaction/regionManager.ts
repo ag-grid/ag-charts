@@ -252,19 +252,6 @@ export class RegionManager {
         return undefined;
     }
 
-    private dispatchTabStart(event: KeyNavEvent<'tab'>): boolean {
-        const { delta, sourceEvent } = event;
-        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({
-            type: 'tab-start',
-            delta,
-            sourceEvent,
-        });
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
-
-        this.dispatch(focusedRegion, startEvent);
-        return !!startEvent.consumed;
-    }
-
     private getNextInteractableTabIndex(currentIndex: number, delta: number): number | undefined {
         const direction = delta < 0 ? -1 : 1;
         let i = currentIndex;
@@ -298,9 +285,6 @@ export class RegionManager {
     }
 
     private onTab(event: KeyNavEvent<'tab'>) {
-        const consumed = this.dispatchTabStart(event);
-        if (consumed) return;
-
         this.validateCurrentTabIndex();
         const newTabIndex = this.getNextInteractableTabIndex(this.currentTabIndex, event.delta);
         const newRegion = this.getTabRegion(newTabIndex);

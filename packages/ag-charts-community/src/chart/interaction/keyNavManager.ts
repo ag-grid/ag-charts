@@ -10,7 +10,7 @@ import type {
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
-export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'tab-start' | 'nav-hori' | 'nav-vert' | 'submit';
+export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'nav-hori' | 'nav-vert' | 'submit';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
