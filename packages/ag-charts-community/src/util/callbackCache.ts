@@ -3,6 +3,8 @@ import { Logger } from './logger';
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
+    destroy() {}
+
     call<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         let serialisedParams: string;
         let paramCache = this.cache.get(fn);

@@ -15,6 +15,8 @@ export class SeriesStateManager {
         };
     } = {};
 
+    destroy() {}
+
     public registerSeries({
         id,
         seriesGrouping,

@@ -24,6 +24,8 @@ export class CursorManager {
 
     constructor(private readonly domManager: DOMManager) {}
 
+    destroy() {}
+
     public updateCursor(callerId: string, style?: string) {
         this.stateTracker.set(callerId, style);
         this.domManager.updateCursor(this.stateTracker.stateValue()!);

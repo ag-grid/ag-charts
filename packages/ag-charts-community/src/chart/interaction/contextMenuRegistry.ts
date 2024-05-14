@@ -16,6 +16,8 @@ export class ContextMenuRegistry {
     private readonly defaultActions: Array<ContextMenuAction> = [];
     private readonly disabledActions: Set<string> = new Set();
 
+    destroy() {}
+
     public filterActions(region: string): ContextMenuAction[] {
         return this.defaultActions.filter((action) => ['all', region].includes(action.region));
     }
