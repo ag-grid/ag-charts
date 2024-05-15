@@ -713,7 +713,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkFirstAutoSize(seriesToUpdate: ISeries<any, any>[]) {
-        if (this.autoSize && !this._lastAutoSize) {
+        if (this.autoSize !== false && !this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
             const backOffMs = (count + 1) ** 2 * 40;
 
@@ -869,7 +869,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private parentResize({ width, height }: { width: number; height: number }) {
-        if (!this.autoSize) return;
+        if (this.autoSize === false) return;
 
         width = Math.floor(width);
         height = Math.floor(height);
@@ -885,8 +885,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private resize(inWidth?: number, inHeight?: number, source?: string) {
         const { scene, animationManager } = this.ctx;
-        const width = inWidth ?? this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : scene.canvas.width);
-        const height = inHeight ?? this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : scene.canvas.height);
+        const width = inWidth ?? this.width ?? (this.autoSize === false ? scene.canvas.width : this._lastAutoSize?.[0]);
+        const height =
+            inHeight ?? this.height ?? (this.autoSize === false ? scene.canvas.height : this._lastAutoSize?.[1]);
         this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
@@ -897,7 +898,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             animationManager.reset();
 
             let skipAnimations = true;
-            if (this.autoSize && this._firstAutoSize) {
+            if (this.autoSize !== false && this._firstAutoSize) {
                 skipAnimations = false;
                 this._firstAutoSize = false;
             }
