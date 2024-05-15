@@ -78,8 +78,14 @@ When the chart size changes, the layout process is performed for the new availab
 Most components are typically a fixed size, so typically it is the series-area which shrinks or grows
 and most other components just move around or adjust alignment.
 
-For determining chart size, we have three modes:
+For determining chart size, we monitor the size of the `container` element, and have three modes of operation:
 
--   By default the chart will assume a minimum size of 300x300 px, and grow with the container element.
+-   By default the chart will assume a minimum size of 300x300 px, and grow with the `container` element.
 -   Set `autoSize: true` to remove the minimums (e.g. for use with a CSS-managed layout) and allow collapse to zero width/height.
--   Set `autoSize: false` to disable automatic sizing. In this scenario, set the `width` and `height` options to specify a size.
+    -   NOTE: `<div>` elements default to `height: 0px`; you should explicitly manage the browser calculated `container` element size
+        to achieve the size/layout you want. Our DOM elements do not affect the size of the `container` element to avoid race
+        conditions in this scenario.
+-   Set `autoSize: false` to disable automatic sizing. In this scenario, set the `width` and `height` options to specify a size. We
+    fallback to the default `<canvas>` size if unspecified.
+
+Additionally, if only one of `width` or `height` is specified, we will honour the above `autoSize` mode for the other dimension.

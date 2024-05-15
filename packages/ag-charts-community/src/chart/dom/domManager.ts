@@ -163,26 +163,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     setSize(autoSize?: boolean, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.parentElement.element;
-        if (optionsWidth != null && optionsHeight != null) {
-            // Chart has explicit size, so force wrapper to those dimensions.
-            style.width = `${optionsWidth}px`;
-            style.height = `${optionsHeight}px`;
-            style.minHeight = '';
-            style.minWidth = '';
-        } else if (autoSize === true) {
-            // User has explicitly opted into auto-size, so don't set minimum sizes.
-            style.width = '100%';
-            style.height = '100%';
-            style.minHeight = '';
-            style.minWidth = '';
-        } else {
-            // Fallback to safe-ish defaults for unstyled cases. Minimums might not be 100% right for
-            // flexible layouts, but users can explicitly set `autoSize: true` to avoid this.
-            style.width = '100%';
-            style.height = '100%';
-            style.minHeight = '300px';
-            style.minWidth = '300px';
-        }
+
+        style.width = optionsWidth != null ? `${optionsWidth}px` : '100%';
+        style.minWidth = optionsWidth != null || autoSize === true ? '' : '300px';
+        style.height = optionsHeight != null ? `${optionsHeight}px` : '100%';
+        style.minHeight = optionsHeight != null || autoSize === true ? '' : '300px';
     }
 
     setContainer(newContainer: HTMLElement) {
