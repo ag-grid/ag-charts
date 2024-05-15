@@ -114,12 +114,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @Validate(STRING, { optional: true })
     nodeSizeName: string | undefined = undefined;
 
-    @Validate(STRING, { optional: true })
-    positionKey: string | undefined = undefined;
-
-    @Validate(STRING, { optional: true })
-    positionName: string | undefined = undefined;
-
     @Validate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 

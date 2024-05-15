@@ -2,7 +2,6 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import type { AgChordSeriesFormatterParams, AgChordSeriesLinkStyle } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Sector } from '../../../scene/shape/sector';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
@@ -27,7 +26,13 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 import { ChordLink } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
+enum ChordDatumType {
+    Link,
+    Node,
+}
+
 interface ChordLinkDatum extends SeriesNodeDatum {
+    type: ChordDatumType.Link;
     fromNode: ChordNodeDatum;
     toNode: ChordNodeDatum;
     size: number;
@@ -40,11 +45,13 @@ interface ChordLinkDatum extends SeriesNodeDatum {
     endAngle2: number;
 }
 
-interface ChordNodeDatum {
+interface ChordNodeDatum extends SeriesNodeDatum {
+    type: ChordDatumType.Node;
     id: string;
-    index: number;
     label: string | undefined;
     size: number;
+    fill: string;
+    stroke: string;
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -53,14 +60,14 @@ interface ChordNodeDatum {
     endAngle: number;
 }
 
+type ChordDatum = ChordLinkDatum | ChordNodeDatum;
+
 interface ChordNodeLabelDatum {}
 
-export interface ChordNodeDataContext extends SeriesNodeDataContext<ChordLinkDatum, ChordNodeLabelDatum> {
-    nodes: ChordNodeDatum[];
-}
+export interface ChordNodeDataContext extends SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
 
 export class ChordSeries extends DataModelSeries<
-    ChordLinkDatum,
+    ChordDatum,
     ChordSeriesProperties,
     ChordNodeLabelDatum,
     ChordNodeDataContext
@@ -85,6 +92,8 @@ export class ChordSeries extends DataModelSeries<
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
+    private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
+    private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
     public linkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
@@ -92,8 +101,12 @@ export class ChordSeries extends DataModelSeries<
     public nodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.nodeGroup, () =>
         this.nodeFactory()
     );
-    private highlightLinkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(this.highlightNode, () =>
-        this.linkFactory()
+    private highlightLinkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(
+        this.highlightLinkGroup,
+        () => this.linkFactory()
+    );
+    private highlightNodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.highlightNodeGroup, () =>
+        this.nodeFactory()
     );
 
     constructor(moduleCtx: ModuleContext) {
@@ -101,8 +114,6 @@ export class ChordSeries extends DataModelSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
-
-        this.nodeGroup.pointerEvents = PointerEvents.None;
     }
 
     setChartNodes(nodes: any[] | undefined): void {
@@ -116,7 +127,7 @@ export class ChordSeries extends DataModelSeries<
         return super.hasData && this.nodes != null;
     }
 
-    public override getNodeData(): ChordLinkDatum[] | undefined {
+    public override getNodeData(): (ChordLinkDatum | ChordNodeDatum)[] | undefined {
         return this.contextNodeData?.nodeData;
     }
 
@@ -196,6 +207,8 @@ export class ChordSeries extends DataModelSeries<
             labelKey,
             nodeSizeKey,
             node: { height: nodeHeight, spacing: nodeSpacing },
+            fills,
+            strokes,
         } = this.properties;
         const centerX = seriesRectWidth / 2;
         const centerY = seriesRectHeight / 2;
@@ -224,9 +237,10 @@ export class ChordSeries extends DataModelSeries<
             return { datum, fromId, toId, size };
         });
 
+        const nodeData: ChordDatum[] = [];
         const nodesById = new Map<string, ChordNodeDatum>();
         let totalSize = 0;
-        nodesProcessedData.data.forEach(({ keys, values }, index) => {
+        nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
             const value = values[0];
             const id = keys[nodeIdIdx];
             const label = labelIdx != null ? value[labelIdx] : undefined;
@@ -235,18 +249,28 @@ export class ChordSeries extends DataModelSeries<
                 (entryNodeSize.get(id) ?? 0) + (exitNodeSize.get(id) ?? 0)
             );
             totalSize += size;
-            nodesById.set(id, {
+
+            const fill = fills[index % fills.length];
+            const stroke = strokes[index % strokes.length];
+            const node: ChordNodeDatum = {
+                series: this,
+                itemId: undefined,
+                datum,
+                type: ChordDatumType.Node,
                 id,
-                index,
                 label,
                 size,
+                fill,
+                stroke,
                 centerX,
                 centerY,
                 innerRadius,
                 outerRadius,
                 startAngle: NaN,
                 endAngle: NaN,
-            });
+            };
+            nodesById.set(id, node);
+            nodeData.push(node);
         });
 
         const spacing = (nodesById.size * nodeSpacing) / (2 * Math.PI * radius);
@@ -259,7 +283,6 @@ export class ChordSeries extends DataModelSeries<
             currentAngle += sweep + spacing;
         });
 
-        const nodeData: ChordLinkDatum[] = [];
         const nodeAngles = new Map<string, number>();
         links.forEach(({ datum, fromId, toId, size }) => {
             const fromNode = nodesById.get(fromId);
@@ -279,6 +302,7 @@ export class ChordSeries extends DataModelSeries<
                 series: this,
                 itemId: undefined,
                 datum,
+                type: ChordDatumType.Link,
                 fromNode,
                 toNode,
                 size,
@@ -296,7 +320,6 @@ export class ChordSeries extends DataModelSeries<
             itemId: seriesId,
             nodeData,
             labelData: [],
-            nodes: Array.from(nodesById.values()),
         };
     }
 
@@ -323,39 +346,50 @@ export class ChordSeries extends DataModelSeries<
 
         await this.updateSelections();
 
-        let highlightedDatum: ChordLinkDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        let highlightedDatum: ChordDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
             highlightedDatum = undefined;
         }
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
-        const nodes = this.contextNodeData?.nodes ?? [];
 
-        this.nodeSelection = await this.updateNodeSelection({ nodeData: nodes, datumSelection: this.nodeSelection });
+        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
         await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+
+        this.highlightNodeSelection = await this.updateNodeSelection({
+            nodeData: highlightedDatum?.type === ChordDatumType.Node ? [highlightedDatum] : [],
+            datumSelection: this.highlightNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
 
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
         this.highlightLinkSelection = await this.updateLinkSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum?.type === ChordDatumType.Link ? [highlightedDatum] : [],
             datumSelection: this.highlightLinkSelection,
         });
         await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
     }
 
     private async updateNodeSelection(opts: {
-        nodeData: ChordNodeDatum[];
+        nodeData: ChordDatum[];
         datumSelection: Selection<Sector, ChordNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.id));
+        return opts.datumSelection.update(
+            opts.nodeData.filter((node): node is ChordNodeDatum => node.type === ChordDatumType.Node),
+            undefined,
+            (datum) => createDatumId([datum.type, datum.id])
+        );
     }
 
     private async updateNodeNodes(opts: { datumSelection: Selection<Sector, ChordNodeDatum>; isHighlight: boolean }) {
-        const { datumSelection } = opts;
-        const { fills, strokes } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.properties.node;
+        const { datumSelection, isHighlight } = opts;
+        const { properties } = this;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
+
         datumSelection.each((sector, datum) => {
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -363,22 +397,25 @@ export class ChordSeries extends DataModelSeries<
             sector.outerRadius = datum.outerRadius;
             sector.startAngle = datum.startAngle;
             sector.endAngle = datum.endAngle;
-            sector.fill = fill ?? fills[datum.index % fills.length];
-            sector.fillOpacity = fillOpacity;
-            sector.stroke = stroke ?? strokes[datum.index % strokes.length];
-            sector.strokeOpacity = strokeOpacity;
-            sector.strokeWidth = strokeWidth;
-            sector.lineDash = lineDash;
-            sector.lineDashOffset = lineDashOffset;
+            sector.fill = highlightStyle?.fill ?? fill ?? datum.fill;
+            sector.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
+            sector.stroke = highlightStyle?.stroke ?? stroke ?? datum.fill;
+            sector.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
+            sector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
+            sector.lineDash = highlightStyle?.lineDash ?? lineDash;
+            sector.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            sector.inset = sector.strokeWidth / 2;
         });
     }
 
     private async updateLinkSelection(opts: {
-        nodeData: ChordLinkDatum[];
+        nodeData: ChordDatum[];
         datumSelection: Selection<ChordLink, ChordLinkDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
-            createDatumId([datum.fromNode.id, datum.toNode.id])
+        return opts.datumSelection.update(
+            opts.nodeData.filter((node): node is ChordLinkDatum => node.type === ChordDatumType.Link),
+            undefined,
+            (datum) => createDatumId([datum.type, datum.fromNode.id, datum.toNode.id])
         );
     }
 
@@ -392,18 +429,7 @@ export class ChordSeries extends DataModelSeries<
             properties,
             ctx: { callbackCache },
         } = this;
-        const {
-            fromIdKey,
-            toIdKey,
-            nodeIdKey,
-            labelKey,
-            sizeKey,
-            nodeSizeKey,
-            positionKey,
-            fills,
-            strokes,
-            formatter,
-        } = properties;
+        const { fromIdKey, toIdKey, nodeIdKey, labelKey, sizeKey, nodeSizeKey, formatter } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
@@ -421,7 +447,6 @@ export class ChordSeries extends DataModelSeries<
                     labelKey,
                     sizeKey,
                     nodeSizeKey,
-                    positionKey,
                     fill,
                     fillOpacity,
                     strokeOpacity,
@@ -434,8 +459,6 @@ export class ChordSeries extends DataModelSeries<
                 format = callbackCache.call(formatter, params as AgChordSeriesFormatterParams);
             }
 
-            const index = datum.fromNode.index;
-
             link.centerX = datum.centerX;
             link.centerY = datum.centerY;
             link.radius = datum.radius;
@@ -443,9 +466,9 @@ export class ChordSeries extends DataModelSeries<
             link.endAngle1 = datum.endAngle1;
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
-            link.fill = highlightStyle?.fill ?? format?.fill ?? fill ?? fills[index % fills.length];
+            link.fill = highlightStyle?.fill ?? format?.fill ?? fill ?? datum.fromNode.fill;
             link.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
-            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke ?? strokes[index % strokes.length];
+            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke ?? datum.fromNode.stroke;
             link.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
             link.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
             link.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
@@ -455,7 +478,7 @@ export class ChordSeries extends DataModelSeries<
 
     override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {}
 
-    override getTooltipHtml(nodeDatum: ChordLinkDatum): TooltipContent {
+    override getTooltipHtml(nodeDatum: ChordDatum): TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -480,18 +503,26 @@ export class ChordSeries extends DataModelSeries<
             labelName,
             nodeSizeKey,
             nodeSizeName,
-            positionKey,
-            positionName,
             formatter,
             tooltip,
         } = properties;
-        const { fill, fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
-        const { datum, fromNode, toNode, size, itemId } = nodeDatum;
+        const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
+        const { datum, itemId } = nodeDatum;
 
+        let title: string;
         const contentLines: string[] = [];
-        contentLines.push(sanitizeHtml(`${fromIdName ?? fromIdKey}: ` + (fromNode.label ?? fromNode.id)));
-        contentLines.push(sanitizeHtml(`${toIdName ?? toIdKey}: ` + (toNode.label ?? toNode.id)));
-        contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+        let fill: string;
+        if (nodeDatum.type === ChordDatumType.Link) {
+            const { fromNode, toNode, size } = nodeDatum;
+            title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
+            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            fill = properties.link.fill ?? fromNode.fill;
+        } else {
+            const { id, label, size } = nodeDatum;
+            title = label ?? id;
+            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            fill = properties.node.fill ?? nodeDatum.fill;
+        }
         const content = contentLines.join('<br>');
 
         let format: AgChordSeriesLinkStyle | undefined;
@@ -507,7 +538,6 @@ export class ChordSeries extends DataModelSeries<
                 labelKey,
                 sizeKey,
                 nodeSizeKey,
-                positionKey,
                 fill,
                 fillOpacity,
                 strokeOpacity,
@@ -522,11 +552,11 @@ export class ChordSeries extends DataModelSeries<
         const color = format?.fill ?? fill;
 
         return tooltip.toTooltipHtml(
-            { title: undefined, content, backgroundColor: color },
+            { title, content, backgroundColor: color },
             {
                 seriesId,
                 datum,
-                title: '',
+                title,
                 color,
                 itemId,
                 fromIdKey,
@@ -541,8 +571,6 @@ export class ChordSeries extends DataModelSeries<
                 labelName,
                 nodeSizeKey,
                 nodeSizeName,
-                positionKey,
-                positionName,
                 ...this.getModuleTooltipParams(),
             }
         );

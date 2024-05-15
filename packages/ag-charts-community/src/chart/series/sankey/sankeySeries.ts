@@ -2,7 +2,6 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import type { AgSankeySeriesFormatterParams, AgSankeySeriesLinkStyle } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
@@ -29,7 +28,12 @@ import { SankeyLink } from './sankeyLink';
 import { SankeySeriesProperties } from './sankeySeriesProperties';
 import { computeNodeGraph } from './sankeyUtil';
 
+enum SankeyDatumType {
+    Link,
+    Node,
+}
 interface SankeyLinkDatum extends SeriesNodeDatum {
+    type: SankeyDatumType.Link;
     fromNode: SankeyNodeDatum;
     toNode: SankeyNodeDatum;
     size: number;
@@ -40,25 +44,27 @@ interface SankeyLinkDatum extends SeriesNodeDatum {
     height: number;
 }
 
-interface SankeyNodeDatum {
+interface SankeyNodeDatum extends SeriesNodeDatum {
+    type: SankeyDatumType.Node;
     id: string;
-    index: number;
     label: string | undefined;
     size: number;
+    fill: string;
+    stroke: string;
     x: number;
     y: number;
     width: number;
     height: number;
 }
 
+type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
+
 interface SankeyNodeLabelDatum {}
 
-export interface SankeyNodeDataContext extends SeriesNodeDataContext<SankeyLinkDatum, SankeyNodeLabelDatum> {
-    nodes: SankeyNodeDatum[];
-}
+export interface SankeyNodeDataContext extends SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
 
 export class SankeySeries
-    extends DataModelSeries<SankeyLinkDatum, SankeySeriesProperties, SankeyNodeLabelDatum, SankeyNodeDataContext>
+    extends DataModelSeries<SankeyDatum, SankeySeriesProperties, SankeyNodeLabelDatum, SankeyNodeDataContext>
     implements FlowProportionSeries
 {
     static readonly className = 'SankeySeries';
@@ -81,13 +87,19 @@ export class SankeySeries
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
+    private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
+    private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
     public linkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
     public nodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.nodeGroup, () => this.nodeFactory());
-    private highlightLinkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.highlightNode, () =>
-        this.linkFactory()
+    private highlightLinkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(
+        this.highlightLinkGroup,
+        () => this.linkFactory()
+    );
+    private highlightNodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.highlightNodeGroup, () =>
+        this.nodeFactory()
     );
 
     constructor(moduleCtx: ModuleContext) {
@@ -95,8 +107,6 @@ export class SankeySeries
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
-
-        this.nodeGroup.pointerEvents = PointerEvents.None;
     }
 
     setChartNodes(nodes: any[] | undefined): void {
@@ -110,7 +120,7 @@ export class SankeySeries
         return super.hasData && this.nodes != null;
     }
 
-    public override getNodeData(): SankeyLinkDatum[] | undefined {
+    public override getNodeData(): SankeyDatum[] | undefined {
         return this.contextNodeData?.nodeData;
     }
 
@@ -190,6 +200,8 @@ export class SankeySeries
             labelKey,
             nodeSizeKey,
             node: { spacing: nodeSpacing, width: nodeWidth, justify },
+            fills,
+            strokes,
         } = this.properties;
 
         const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
@@ -213,8 +225,9 @@ export class SankeySeries
             return { datum, fromId, toId, size };
         });
 
+        const nodeData: SankeyDatum[] = [];
         const nodesById = new Map<string, SankeyNodeDatum>();
-        nodesProcessedData.data.forEach(({ keys, values }, index) => {
+        nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
             const value = values[0];
             const id = keys[nodeIdIdx];
             const label = labelIdx != null ? value[labelIdx] : undefined;
@@ -223,16 +236,26 @@ export class SankeySeries
                 entryNodeSize.get(id) ?? 0,
                 exitNodeSize.get(id) ?? 0
             );
-            nodesById.set(id, {
+
+            const fill = fills[index % fills.length];
+            const stroke = strokes[index % strokes.length];
+            const node: SankeyNodeDatum = {
+                series: this,
+                itemId: undefined,
+                datum,
+                type: SankeyDatumType.Node,
                 id,
-                index,
                 label,
                 size,
+                fill,
+                stroke,
                 x: NaN,
                 y: NaN,
                 width: nodeWidth,
                 height: NaN,
-            });
+            };
+            nodesById.set(id, node);
+            nodeData.push(node);
         });
 
         const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.keys(), links);
@@ -300,7 +323,6 @@ export class SankeySeries
             });
         });
 
-        const nodeData: SankeyLinkDatum[] = [];
         const leadingNodeYs = new Map<string, number>();
         const trailingNodeYs = new Map<string, number>();
         links.forEach(({ datum, fromId, toId, size }) => {
@@ -321,6 +343,7 @@ export class SankeySeries
                 series: this,
                 itemId: undefined,
                 datum,
+                type: SankeyDatumType.Link,
                 fromNode,
                 toNode,
                 size,
@@ -336,7 +359,6 @@ export class SankeySeries
             itemId: seriesId,
             nodeData,
             labelData: [],
-            nodes: Array.from(nodesById.values()),
         };
     }
 
@@ -363,60 +385,73 @@ export class SankeySeries
 
         await this.updateSelections();
 
-        let highlightedDatum: SankeyLinkDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        let highlightedDatum: SankeyDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
             highlightedDatum = undefined;
         }
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
-        const nodes = this.contextNodeData?.nodes ?? [];
 
-        this.nodeSelection = await this.updateNodeSelection({ nodeData: nodes, datumSelection: this.nodeSelection });
+        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
         await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+
+        this.highlightNodeSelection = await this.updateNodeSelection({
+            nodeData: highlightedDatum?.type === SankeyDatumType.Node ? [highlightedDatum] : [],
+            datumSelection: this.highlightNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
 
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
         this.highlightLinkSelection = await this.updateLinkSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum?.type === SankeyDatumType.Link ? [highlightedDatum] : [],
             datumSelection: this.highlightLinkSelection,
         });
         await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
     }
 
     private async updateNodeSelection(opts: {
-        nodeData: SankeyNodeDatum[];
+        nodeData: SankeyDatum[];
         datumSelection: Selection<Rect, SankeyNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.id));
+        return opts.datumSelection.update(
+            opts.nodeData.filter((node): node is SankeyNodeDatum => node.type === SankeyDatumType.Node),
+            undefined,
+            (datum) => createDatumId([datum.type, datum.id])
+        );
     }
 
     private async updateNodeNodes(opts: { datumSelection: Selection<Rect, SankeyNodeDatum>; isHighlight: boolean }) {
-        const { datumSelection } = opts;
-        const { fills, strokes } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.properties.node;
+        const { datumSelection, isHighlight } = opts;
+        const { properties } = this;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties.node;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
+
         datumSelection.each((rect, datum) => {
             rect.x = datum.x;
             rect.y = datum.y;
             rect.width = datum.width;
             rect.height = datum.height;
-            rect.fill = fill ?? fills[datum.index % fills.length];
-            rect.fillOpacity = fillOpacity;
-            rect.stroke = stroke ?? strokes[datum.index % strokes.length];
-            rect.strokeOpacity = strokeOpacity;
-            rect.strokeWidth = strokeWidth;
-            rect.lineDash = lineDash;
-            rect.lineDashOffset = lineDashOffset;
+            rect.fill = highlightStyle?.fill ?? fill ?? datum.fill;
+            rect.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
+            rect.stroke = highlightStyle?.stroke ?? stroke ?? datum.stroke;
+            rect.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
+            rect.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
+            rect.lineDash = highlightStyle?.lineDash ?? lineDash;
+            rect.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
         });
     }
 
     private async updateLinkSelection(opts: {
-        nodeData: SankeyLinkDatum[];
+        nodeData: SankeyDatum[];
         datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
-            createDatumId([datum.fromNode.id, datum.toNode.id])
+        return opts.datumSelection.update(
+            opts.nodeData.filter((node): node is SankeyLinkDatum => node.type === SankeyDatumType.Link),
+            undefined,
+            (datum) => createDatumId([datum.type, datum.fromNode.id, datum.toNode.id])
         );
     }
 
@@ -430,18 +465,7 @@ export class SankeySeries
             properties,
             ctx: { callbackCache },
         } = this;
-        const {
-            fromIdKey,
-            toIdKey,
-            nodeIdKey,
-            labelKey,
-            sizeKey,
-            nodeSizeKey,
-            positionKey,
-            fills,
-            strokes,
-            formatter,
-        } = properties;
+        const { fromIdKey, toIdKey, nodeIdKey, labelKey, sizeKey, nodeSizeKey, formatter } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
@@ -459,7 +483,6 @@ export class SankeySeries
                     labelKey,
                     sizeKey,
                     nodeSizeKey,
-                    positionKey,
                     fill,
                     fillOpacity,
                     strokeOpacity,
@@ -472,16 +495,14 @@ export class SankeySeries
                 format = callbackCache.call(formatter, params as AgSankeySeriesFormatterParams);
             }
 
-            const index = datum.fromNode.index;
-
             link.x1 = datum.x1;
             link.y1 = datum.y1;
             link.x2 = datum.x2;
             link.y2 = datum.y2;
             link.height = datum.height;
-            link.fill = highlightStyle?.fill ?? format?.fill ?? fill ?? fills[index % fills.length];
+            link.fill = highlightStyle?.fill ?? format?.fill ?? fill ?? datum.fromNode.fill;
             link.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
-            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke ?? strokes[index % strokes.length];
+            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke ?? datum.fromNode.stroke;
             link.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
             link.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
             link.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
@@ -492,7 +513,7 @@ export class SankeySeries
 
     override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {}
 
-    override getTooltipHtml(nodeDatum: SankeyLinkDatum): TooltipContent {
+    override getTooltipHtml(nodeDatum: SankeyDatum): TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -517,18 +538,26 @@ export class SankeySeries
             labelName,
             nodeSizeKey,
             nodeSizeName,
-            positionKey,
-            positionName,
             formatter,
             tooltip,
         } = properties;
-        const { fill, fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
-        const { datum, fromNode, toNode, size, itemId } = nodeDatum;
+        const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
+        const { datum, itemId } = nodeDatum;
 
+        let title: string;
         const contentLines: string[] = [];
-        contentLines.push(sanitizeHtml(`${fromIdName ?? fromIdKey}: ` + (fromNode.label ?? fromNode.id)));
-        contentLines.push(sanitizeHtml(`${toIdName ?? toIdKey}: ` + (toNode.label ?? toNode.id)));
-        contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+        let fill: string;
+        if (nodeDatum.type === SankeyDatumType.Link) {
+            const { fromNode, toNode, size } = nodeDatum;
+            title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
+            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            fill = properties.link.fill ?? fromNode.fill;
+        } else {
+            const { id, label, size } = nodeDatum;
+            title = label ?? id;
+            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            fill = properties.node.fill ?? nodeDatum.fill;
+        }
         const content = contentLines.join('<br>');
 
         let format: AgSankeySeriesLinkStyle | undefined;
@@ -544,7 +573,6 @@ export class SankeySeries
                 labelKey,
                 sizeKey,
                 nodeSizeKey,
-                positionKey,
                 fill,
                 fillOpacity,
                 strokeOpacity,
@@ -559,11 +587,11 @@ export class SankeySeries
         const color = format?.fill ?? fill;
 
         return tooltip.toTooltipHtml(
-            { title: undefined, content, backgroundColor: color },
+            { title, content, backgroundColor: color },
             {
                 seriesId,
                 datum,
-                title: '',
+                title,
                 color,
                 itemId,
                 fromIdKey,
@@ -578,8 +606,6 @@ export class SankeySeries
                 labelName,
                 nodeSizeKey,
                 nodeSizeName,
-                positionKey,
-                positionName,
                 ...this.getModuleTooltipParams(),
             }
         );

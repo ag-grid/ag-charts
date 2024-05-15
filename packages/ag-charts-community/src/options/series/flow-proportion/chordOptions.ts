@@ -44,12 +44,10 @@ export interface AgChordSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the node id. */
     nodeIdKey?: string;
-    /** The name of the node key containing the node label. */
-    labelKey?: string;
     /** The name of the node key containing the node size. */
     nodeSizeKey?: string;
-    /** The name of the node key containing the node position. */
-    positionKey?: string;
+    /** The name of the node key containing the node label. */
+    labelKey?: string;
 }
 
 export interface AgChordSeriesOptionsNames {
@@ -61,12 +59,10 @@ export interface AgChordSeriesOptionsNames {
     sizeName?: string;
     /** The name of the node key containing the node id. */
     nodeIdName?: string;
-    /** The name of the node key containing the label. */
-    labelName?: string;
     /** The name of the node key containing the node size. */
     nodeSizeName?: string;
-    /** The name of the node key containing the node position. */
-    positionName?: string;
+    /** The name of the node key containing the label. */
+    labelName?: string;
 }
 
 export interface AgChordSeriesTooltipRendererParams
