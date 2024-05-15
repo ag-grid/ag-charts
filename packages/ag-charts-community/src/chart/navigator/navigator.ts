@@ -121,6 +121,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 focusable: this.maxHandle,
             }),
         ];
+        this.destroyFns.push(() => {
+            this.proxyNavigatorElements.forEach((e) => e.remove());
+            this.proxyNavigatorToolbar.remove();
+        });
     }
 
     public updateBackground(oldGroup?: Group, newGroup?: Group) {
