@@ -1,4 +1,5 @@
-import { type PolarChartAxes, PolarCoordinate } from '../axes/axesTypes';
+import { PolarCoordinate } from '../axes/axesEnums';
+import type { PolarChartAxes } from '../axes/axesTypes';
 import type { PolarAxis } from '../axes/polarAxis';
 import { BaseChart } from './baseChart';
 import type { PolarChartOptions } from './chartTypes';

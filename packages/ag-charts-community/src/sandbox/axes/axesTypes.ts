@@ -1,10 +1,17 @@
 import type { IModule } from '../modules/modulesTypes';
+import type { IScale } from '../scales/scaleTypes';
 import type { Direction } from '../types/enums';
-
-export interface IScale {}
+import type { MapTypes } from '../types/generics';
 
 export interface IAxis extends IModule {
-    // reverse: boolean;
+    readonly scale: IScale<any, any>;
+}
+
+export interface AxisTickOptions {
+    enabled?: boolean;
+    color?: string;
+    width?: number;
+    length?: number;
 }
 
 export interface ChartAxisOptions<T extends string> {
@@ -23,11 +30,6 @@ export interface ChartAxisOptions<T extends string> {
     // gridLinesStyle?: { color?: CssColor; width?: PixelSize; lineDash?: number[] }[];
 }
 
-export enum CartesianCoordinate {
-    Horizontal = 'x',
-    Vertical = 'y',
-}
-
 export interface CartesianAxisOptions<T extends string> extends ChartAxisOptions<T> {
     position: `${Direction}`;
     title?: object;
@@ -38,6 +40,9 @@ export interface ContinuousCartesianAxisOptions<T extends string> extends Cartes
     min?: number;
     max?: number;
     nice?: boolean;
+    interval?: number;
+    minSpacing?: number;
+    maxSpacing?: number;
 }
 
 export type CartesianChartAxes =
@@ -47,11 +52,6 @@ export type CartesianChartAxes =
     | ContinuousCartesianAxisOptions<'number'>
     | ContinuousCartesianAxisOptions<'time'>;
 
-export enum PolarCoordinate {
-    Radial = 'radius',
-    Angular = 'angle',
-}
-
 export interface PolarAxisOptions<T extends string> extends ChartAxisOptions<T> {}
 
 export type PolarChartAxes =
@@ -59,3 +59,5 @@ export type PolarChartAxes =
     | PolarAxisOptions<'angle-number'>
     | PolarAxisOptions<'radius-category'>
     | PolarAxisOptions<'radius-number'>;
+
+export type ChartAxesMap = MapTypes<CartesianChartAxes> & MapTypes<PolarChartAxes>;

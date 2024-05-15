@@ -1,3 +1,4 @@
+import { CartesianCoordinate } from '../axes/axesEnums';
 import { DataPipeline } from '../data/dataPipeline';
 import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import type { IStage } from '../drawing/drawingTypes';
@@ -33,7 +34,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
     setOptions(options: ChartOptions<T>) {
         this.pendingOptions = options;
-        this.pipeline.enqueue(PipelinePhase.OptionsUpdate, this.applyPendingOptions);
+        this.pipeline.enqueue(PipelinePhase.OptionsUpdate, this.handlePendingOptions);
     }
 
     waitForUpdate(timeoutMs = 10_000): Promise<void> {
@@ -81,7 +82,10 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
          */
 
         for (const axis of axes) {
-            const direction = axis.position === 'bottom' || axis.position === 'top' ? 'x' : 'y';
+            const direction =
+                axis.position === 'bottom' || axis.position === 'top'
+                    ? CartesianCoordinate.Horizontal
+                    : CartesianCoordinate.Vertical;
             for (const key of keysMap.get(direction)!) {
                 this.dataPipeline.addProcessor(
                     key,
@@ -100,7 +104,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
         // }
     }
 
-    protected applyOptions(options: ChartOptions<T>) {
+    protected onOptionsChange(options: ChartOptions<T>) {
         const { fullOptions, optionsDiff } = options;
 
         this.options = options;
@@ -126,9 +130,9 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
         this.events.emit('change', this.options);
     }
 
-    private applyPendingOptions = () => {
+    private handlePendingOptions = () => {
         if (!this.pendingOptions) return;
-        this.applyOptions(this.pendingOptions);
+        this.onOptionsChange(this.pendingOptions);
         this.pendingOptions = null;
     };
 
