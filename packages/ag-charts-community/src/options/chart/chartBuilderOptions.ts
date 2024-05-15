@@ -1,5 +1,5 @@
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
-import type { AgBaseFlowRatioChartOptions } from '../series/flow-proportion/sankeyOptions';
+import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
 import type { AgBaseTopologyChartOptions } from '../series/topology/topologyOptions';
@@ -26,7 +26,7 @@ export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, Ag
 export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
-export interface AgSankeyChartOptions extends AgBaseFlowRatioChartOptions, AgBaseChartOptions {
+export interface AgFlowProportionChartOptions extends AgBaseFlowProportionChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
 export type AgChartOptions =
@@ -34,7 +34,7 @@ export type AgChartOptions =
     | AgPolarChartOptions
     | AgHierarchyChartOptions
     | AgTopologyChartOptions
-    | AgSankeyChartOptions;
+    | AgFlowProportionChartOptions;
 
 export interface AgChartInstance {
     /** Get the `AgChartOptions` representing the current chart configuration. */

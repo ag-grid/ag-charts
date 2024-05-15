@@ -49,11 +49,14 @@ export * from './series/polar/radarAreaOptions';
 export * from './series/polar/radialBarOptions';
 export * from './series/polar/radialColumnOptions';
 export * from './series/polar/radialOptions';
+export * from './series/topology/topologyOptions';
 export * from './series/topology/mapShapeOptions';
 export * from './series/topology/mapLineOptions';
 export * from './series/topology/mapMarkerOptions';
 export * from './series/topology/mapShapeBackgroundOptions';
 export * from './series/topology/mapLineBackgroundOptions';
+export * from './series/flow-proportion/flowProportionOptions';
+export * from './series/flow-proportion/chordOptions';
 export * from './series/flow-proportion/sankeyOptions';
 export * from './series/markerOptions';
 

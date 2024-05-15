@@ -14,11 +14,9 @@ import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rang
 import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/rangeBarOptions';
 import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
-import type {
-    AgBaseFlowProportionThemeOptions,
-    AgSankeySeriesOptions,
-    AgSankeySeriesThemeableOptions,
-} from '../series/flow-proportion/sankeyOptions';
+import type { AgChordSeriesThemeableOptions } from '../series/flow-proportion/chordOptions';
+import type { AgBaseFlowProportionThemeOptions } from '../series/flow-proportion/flowProportionOptions';
+import type { AgSankeySeriesOptions, AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
@@ -164,6 +162,9 @@ export interface AgMapLineBackgroundThemeOverrides extends AgBaseTopologyThemeOp
 export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgSankeySeriesThemeableOptions;
 }
+export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
+    series?: AgChordSeriesThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -204,7 +205,7 @@ export interface AgChartThemeOverrides {
     'range-area'?: AgRangeAreaSeriesThemeOverrides;
     /** Bullet series theme overrides. */
     bullet?: AgBulletSeriesThemeOverrides;
-    /** Pie series theme overrides. */
+    /** Donut series theme overrides. */
     donut?: AgDonutSeriesThemeOverrides;
     /** Pie series theme overrides. */
     pie?: AgPieSeriesThemeOverrides;
@@ -234,6 +235,8 @@ export interface AgChartThemeOverrides {
     'map-line-background'?: AgMapLineBackgroundThemeOverrides;
     /** sankey series theme overrides. */
     sankey?: AgSankeyThemeOverrides;
+    /** sankey series theme overrides. */
+    chord?: AgChordThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually

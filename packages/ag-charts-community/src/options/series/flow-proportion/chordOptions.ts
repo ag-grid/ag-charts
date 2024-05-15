@@ -1,19 +1,33 @@
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { CssColor } from '../../chart/types';
+import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
-export interface AgSankeySeriesOptions<TDatum = any>
+export interface AgChordSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
-        AgSankeySeriesOptionsKeys,
-        AgSankeySeriesThemeableOptions<TDatum> {
-    /** Configuration for the Sankey Series. */
-    type: 'sankey';
+        AgChordSeriesOptionsKeys,
+        AgChordSeriesThemeableOptions<TDatum> {
+    /** Configuration for the Chord Series. */
+    type: 'chord';
     /** Node options */
-    nodes?: any[];
 }
 
-export interface AgSankeySeriesThemeableOptions<_TDatum = any> {}
+export interface AgChordSeriesThemeableOptions<_TDatum = any> {
+    nodes?: any[];
+    /** The colours to cycle through for the fills of the nodes and links. */
+    fills?: CssColor[];
+    /** The colours to cycle through for the strokes of the nodes and links. */
+    strokes?: CssColor[];
+    /** Options for the links */
+    link?: AgChordSeriesLinkOptions;
+    /** Options for the nodes */
+    node?: AgChordSeriesLinkOptions;
+}
 
-export interface AgSankeySeriesOptionsKeys {
+export interface AgChordSeriesLinkOptions extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgChordSeriesNodeOptions extends FillOptions, StrokeOptions, LineDashOptions {}
+
+export interface AgChordSeriesOptionsKeys {
     /** The name of the node key containing the from id. */
     fromIdKey?: string;
     /** The name of the node key containing the to id. */
@@ -30,7 +44,7 @@ export interface AgSankeySeriesOptionsKeys {
     positionKey?: string;
 }
 
-export interface AgSankeySeriesOptionsNames {
+export interface AgChordSeriesOptionsNames {
     /** The name of the node key containing the from id. */
     fromIdName?: string;
     /** The name of the node key containing the to id. */
@@ -47,7 +61,7 @@ export interface AgSankeySeriesOptionsNames {
     positionName?: string;
 }
 
-export interface AgSankeySeriesTooltipRendererParams
+export interface AgChordSeriesTooltipRendererParams
     extends AgSeriesTooltipRendererParams,
-        AgSankeySeriesOptionsKeys,
-        AgSankeySeriesOptionsNames {}
+        AgChordSeriesOptionsKeys,
+        AgChordSeriesOptionsNames {}

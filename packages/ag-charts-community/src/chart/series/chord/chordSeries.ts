@@ -2,7 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
-import { Rect } from '../../../scene/shape/rect';
+import { Sector } from '../../../scene/shape/sector';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { ARRAY, Validate } from '../../../util/validation';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
@@ -12,48 +12,54 @@ import type { DataModel, ProcessedData } from '../../data/dataModel';
 import { createDatumId } from '../../data/processors';
 import type { TooltipContent } from '../../tooltip/tooltip';
 import { DataModelSeries } from '../dataModelSeries';
-import type { FlowProportionSeries } from '../flowProportionSeries';
 import { type PickFocusInputs, type SeriesNodeDataContext, keyProperty, valueProperty } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import { SankeyLink } from './sankeyLink';
-import { SankeySeriesProperties } from './sankeySeriesProperties';
-import { type NodePathLengthEntry, computePathLength } from './sankeyUtil';
+import { ChordLink } from './chordLink';
+import { ChordSeriesProperties } from './chordSeriesProperties';
 
-interface SankeyLinkDatum extends SeriesNodeDatum {
+interface ChordLinkDatum extends SeriesNodeDatum {
     fromId: string;
     toId: string;
     size: number;
-    x1: number;
-    x2: number;
-    y1: number;
-    y2: number;
-    height: number;
+    fromNodeIndex: number;
+    centerX: number;
+    centerY: number;
+    radius: number;
+    startAngle1: number;
+    endAngle1: number;
+    startAngle2: number;
+    endAngle2: number;
 }
 
-interface SankeyNodeDatum {
+interface ChordNodeDatum {
     id: string;
+    index: number;
     label: string | undefined;
     size: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+    centerX: number;
+    centerY: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
 }
 
-interface SankeyNodeLabelDatum {}
+interface ChordNodeLabelDatum {}
 
-export interface SankeyNodeDataContext extends SeriesNodeDataContext<SankeyLinkDatum, SankeyNodeLabelDatum> {
-    nodes: SankeyNodeDatum[];
+export interface ChordNodeDataContext extends SeriesNodeDataContext<ChordLinkDatum, ChordNodeLabelDatum> {
+    nodes: ChordNodeDatum[];
 }
 
-export class SankeySeries
-    extends DataModelSeries<SankeyLinkDatum, SankeySeriesProperties, SankeyNodeLabelDatum, SankeyNodeDataContext>
-    implements FlowProportionSeries
-{
-    static readonly className = 'SankeySeries';
-    static readonly type = 'sankey' as const;
+export class ChordSeries extends DataModelSeries<
+    ChordLinkDatum,
+    ChordSeriesProperties,
+    ChordNodeLabelDatum,
+    ChordNodeDataContext
+> {
+    static readonly className = 'ChordSeries';
+    static readonly type = 'chord' as const;
 
-    override properties = new SankeySeriesProperties();
+    override properties = new ChordSeriesProperties();
 
     @Validate(ARRAY, { optional: true, property: 'nodes' })
     private _chartNodes?: any[] = undefined;
@@ -66,15 +72,17 @@ export class SankeySeries
     private nodesDataModel: DataModel<any, any, true> | undefined = undefined;
     private nodesProcessedData: ProcessedData<any> | undefined = undefined;
 
-    public contextNodeData?: SankeyNodeDataContext;
+    public contextNodeData?: ChordNodeDataContext;
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
 
-    public linkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.linkGroup, () =>
+    public linkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
-    public nodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.nodeGroup, () => this.nodeFactory());
+    public nodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.nodeGroup, () =>
+        this.nodeFactory()
+    );
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -93,16 +101,16 @@ export class SankeySeries
         return super.hasData && this.nodes != null;
     }
 
-    public override getNodeData(): SankeyLinkDatum[] | undefined {
+    public override getNodeData(): ChordLinkDatum[] | undefined {
         return this.contextNodeData?.nodeData;
     }
 
     private linkFactory() {
-        return new SankeyLink();
+        return new ChordLink();
     }
 
     private nodeFactory() {
-        return new Rect();
+        return new Sector();
     }
 
     override async processData(dataController: DataController): Promise<void> {
@@ -149,7 +157,7 @@ export class SankeySeries
         this.nodesProcessedData = nodesProcessedData;
     }
 
-    override async createNodeData(): Promise<SankeyNodeDataContext | undefined> {
+    override async createNodeData(): Promise<ChordNodeDataContext | undefined> {
         const {
             id: seriesId,
             _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
@@ -169,6 +177,11 @@ export class SankeySeries
         }
 
         const { sizeKey, labelKey, nodeSizeKey, nodeWidth } = this.properties;
+        const centerX = seriesRectWidth / 2;
+        const centerY = seriesRectHeight / 2;
+        const radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeWidth;
+        const innerRadius = radius;
+        const outerRadius = radius + nodeWidth;
 
         const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
         const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toIdValue');
@@ -191,102 +204,59 @@ export class SankeySeries
             return { datum, fromId, toId, size };
         });
 
-        const nodesById = new Map<string, SankeyNodeDatum>();
-        const nodePathsById = new Map<string, NodePathLengthEntry & { ratio: number }>();
-        nodesProcessedData.data.forEach(({ keys, values }) => {
+        const nodesById = new Map<string, ChordNodeDatum>();
+        let totalSize = 0;
+        nodesProcessedData.data.forEach(({ keys, values }, index) => {
             const value = values[0];
             const id = keys[nodeIdIdx];
             const label = labelIdx != null ? value[labelIdx] : undefined;
             const size = Math.max(
                 nodeSizeIdx != null ? value[nodeSizeIdx] : 0,
-                entryNodeSize.get(id) ?? 0,
-                exitNodeSize.get(id) ?? 0
+                (entryNodeSize.get(id) ?? 0) + (exitNodeSize.get(id) ?? 0)
             );
+            totalSize += size;
             nodesById.set(id, {
                 id,
+                index,
                 label,
                 size,
-                x: NaN,
-                y: NaN,
-                width: nodeWidth,
-                height: NaN,
-            });
-            nodePathsById.set(id, {
-                id,
-                maxPathLengthBefore: -1,
-                maxPathLengthAfter: -1,
-                ratio: NaN,
+                centerX,
+                centerY,
+                innerRadius,
+                outerRadius,
+                startAngle: NaN,
+                endAngle: NaN,
             });
         });
 
-        let maxPathLength = 0;
-        nodePathsById.forEach((node) => {
-            maxPathLength = Math.max(
-                maxPathLength,
-                computePathLength(nodePathsById, links, node, -1) + computePathLength(nodePathsById, links, node, 1) + 1
-            );
+        const gapRatio = 0.05;
+        const gap = nodesById.size > 1 ? 2 * Math.PI * gapRatio : 0;
+        const sizeScale = (2 * Math.PI - nodesById.size * gap) / totalSize;
+        let currentAngle = 0;
+        nodesById.forEach((node) => {
+            const sweep = node.size * sizeScale;
+            node.startAngle = currentAngle;
+            node.endAngle = currentAngle + sweep;
+            currentAngle += sweep + gap;
         });
 
-        const nodeGroups = new Map<number, { size: number; nodes: SankeyNodeDatum[] }>();
-        nodePathsById.forEach(({ id, maxPathLengthBefore, maxPathLengthAfter, ratio }) => {
-            const node = nodesById.get(id)!;
-
-            if (!Number.isFinite(ratio)) {
-                ratio = maxPathLengthBefore / (maxPathLengthBefore + maxPathLengthAfter);
-            }
-
-            ratio = Math.min(Math.max(Math.round(ratio * 100) / 100, 0), 1);
-            node.x = (seriesRectWidth - nodeWidth) * ratio;
-
-            let nodeGroup = nodeGroups.get(ratio);
-            if (nodeGroup == null) {
-                nodeGroup = { size: 0, nodes: [node] };
-                nodeGroups.set(ratio, nodeGroup);
-            } else {
-                nodeGroup.nodes.push(node);
-            }
-            nodeGroup.size += node.size;
-        });
-
-        const maxPaddingRatio = 0.5;
-        const minPaddingRatio = 0.25;
-        let maximumSizeScale = Infinity;
-        nodeGroups.forEach(({ size, nodes }) => {
-            const sizeScale = (1 - (nodes.length - 1) * minPaddingRatio) / size;
-            maximumSizeScale = Math.min(maximumSizeScale, sizeScale);
-        });
-
-        nodeGroups.forEach(({ nodes, size }) => {
-            const nodesHeight = seriesRectHeight * size * maximumSizeScale;
-            const gaps = nodes.length - 1;
-            const gap =
-                gaps > 0 ? Math.min((seriesRectHeight - nodesHeight) / gaps, seriesRectHeight * maxPaddingRatio) : 0;
-            const outerPadding = (seriesRectHeight - (nodesHeight + gap * gaps)) / 2;
-            let y = outerPadding;
-            nodes.forEach((node) => {
-                const height = seriesRectHeight * node.size * maximumSizeScale;
-                node.y = y;
-                node.height = height;
-                y += height + gap;
-            });
-        });
-
-        const nodeData: SankeyLinkDatum[] = [];
-        const leadingNodeYs = new Map<string, number>();
-        const trailingNodeYs = new Map<string, number>();
+        const nodeData: ChordLinkDatum[] = [];
+        const nodeAngles = new Map<string, number>();
         links.forEach(({ datum, fromId, toId, size }) => {
             const fromNode = nodesById.get(fromId);
             const toNode = nodesById.get(toId);
             if (fromNode == null || toNode == null) return;
 
-            const height = seriesRectHeight * size * maximumSizeScale;
-            const x1 = fromNode.x + nodeWidth;
-            const x2 = toNode.x;
-            const y1 = trailingNodeYs.get(fromId) ?? fromNode.y;
-            const y2 = leadingNodeYs.get(toId) ?? toNode.y;
+            const fromNodeIndex = fromNode.index;
 
-            trailingNodeYs.set(fromId, y1 + height);
-            leadingNodeYs.set(toId, y2 + height);
+            const sweep = size * sizeScale;
+            const startAngle1 = fromNode.startAngle + (nodeAngles.get(fromId) ?? 0);
+            const endAngle1 = startAngle1 + sweep;
+            const startAngle2 = toNode.startAngle + (nodeAngles.get(toId) ?? 0);
+            const endAngle2 = startAngle2 + sweep;
+
+            nodeAngles.set(fromId, endAngle1 - startAngle1);
+            nodeAngles.set(toId, endAngle2 - startAngle2);
 
             nodeData.push({
                 series: this,
@@ -295,11 +265,14 @@ export class SankeySeries
                 fromId,
                 toId,
                 size,
-                x1,
-                x2,
-                y1,
-                y2,
-                height,
+                fromNodeIndex,
+                centerX,
+                centerY,
+                radius,
+                startAngle1,
+                endAngle1,
+                startAngle2,
+                endAngle2,
             });
         });
 
@@ -345,26 +318,37 @@ export class SankeySeries
     }
 
     private async updateDatumSelection(opts: {
-        nodeData: SankeyNodeDatum[];
-        datumSelection: Selection<Rect, SankeyNodeDatum>;
+        nodeData: ChordNodeDatum[];
+        datumSelection: Selection<Sector, ChordNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.id));
     }
 
-    private async updateDatumNodes(opts: { datumSelection: Selection<Rect, SankeyNodeDatum>; isHighlight: boolean }) {
+    private async updateDatumNodes(opts: { datumSelection: Selection<Sector, ChordNodeDatum>; isHighlight: boolean }) {
         const { datumSelection } = opts;
-        datumSelection.each((rect, datum) => {
-            rect.x = datum.x;
-            rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
-            rect.fill = 'red';
+        const { fills, strokes } = this.properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.properties.node;
+        datumSelection.each((sector, datum) => {
+            sector.centerX = datum.centerX;
+            sector.centerY = datum.centerY;
+            sector.innerRadius = datum.innerRadius;
+            sector.outerRadius = datum.outerRadius;
+            sector.startAngle = datum.startAngle;
+            sector.endAngle = datum.endAngle;
+            sector.fill = fill ?? fills[datum.index % fills.length];
+            sector.fillOpacity = fillOpacity;
+            sector.stroke = stroke ?? strokes[datum.index % strokes.length];
+            sector.strokeOpacity = strokeOpacity;
+            sector.strokeWidth = strokeWidth;
+            sector.lineDash = lineDash;
+            sector.lineDashOffset = lineDashOffset;
         });
     }
 
     private async updateLinkSelection(opts: {
-        nodeData: SankeyLinkDatum[];
-        datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
+        nodeData: ChordLinkDatum[];
+        datumSelection: Selection<ChordLink, ChordLinkDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
             createDatumId([datum.fromId, datum.toId])
@@ -372,18 +356,28 @@ export class SankeySeries
     }
 
     private async updateLinkNodes(opts: {
-        datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
+        datumSelection: Selection<ChordLink, ChordLinkDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection } = opts;
-        datumSelection.each((link, { x1, x2, y1, y2, height }) => {
-            link.x1 = x1;
-            link.y1 = y1;
-            link.x2 = x2;
-            link.y2 = y2;
-            link.height = height;
-            link.fill = 'red';
-            link.opacity = 0.5;
+        const { fills, strokes } = this.properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.properties.link;
+        datumSelection.each((link, datum) => {
+            link.centerX = datum.centerX;
+            link.centerY = datum.centerY;
+            link.radius = datum.radius;
+            link.startAngle1 = datum.startAngle1;
+            link.endAngle1 = datum.endAngle1;
+            link.startAngle2 = datum.startAngle2;
+            link.endAngle2 = datum.endAngle2;
+            link.fill = fill ?? fills[datum.fromNodeIndex % fills.length];
+            link.fillOpacity = fillOpacity;
+            link.stroke = stroke ?? strokes[datum.fromNodeIndex % strokes.length];
+            link.strokeOpacity = strokeOpacity;
+            link.strokeWidth = strokeWidth;
+            link.lineDash = lineDash;
+            link.lineDashOffset = lineDashOffset;
         });
     }
 

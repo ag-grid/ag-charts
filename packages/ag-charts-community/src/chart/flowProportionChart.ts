@@ -1,14 +1,11 @@
-import type { AgSankeyChartOptions } from '../options/agChartOptions';
+import type { AgFlowProportionChartOptions } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { Chart } from './chart';
+import type { FlowProportionSeries } from './series/flowProportionSeries';
 import type { Series } from './series/series';
 
-interface FlowProportionSeries extends Series<any, any> {
-    setChartNodes(nodes: any): void;
-}
-
 function isFlowProportion(series: Series<any, any>): series is FlowProportionSeries {
-    return series.type === 'sankey';
+    return series.type === 'sankey' || series.type === 'chord';
 }
 export class FlowProportionChart extends Chart {
     static readonly className = 'FlowProportionChart';
@@ -17,7 +14,7 @@ export class FlowProportionChart extends Chart {
     override async updateData() {
         await super.updateData();
 
-        const { nodes } = this.getOptions() as AgSankeyChartOptions;
+        const { nodes } = this.getOptions() as AgFlowProportionChartOptions;
 
         this.series.forEach((series) => {
             if (isFlowProportion(series)) {

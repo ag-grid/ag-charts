@@ -1,11 +1,12 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
+import type { AgChordSeriesOptions } from './chordOptions';
 import type { AgSankeySeriesOptions } from './sankeyOptions';
 
-type AgBaseFlowRatioSeriesOptions = AgSankeySeriesOptions;
+export type AgFlowProportionSeriesOptions = AgSankeySeriesOptions | AgChordSeriesOptions;
 
-export interface AgBaseFlowRatioChartOptions {
+export interface AgBaseFlowProportionChartOptions {
     /** Series configurations. */
-    series?: AgBaseFlowRatioSeriesOptions[];
+    series?: AgFlowProportionSeriesOptions[];
     /** Node options */
     nodes?: any[];
 }
