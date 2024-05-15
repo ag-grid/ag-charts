@@ -319,6 +319,10 @@ export abstract class Node extends ChangeDetectable {
         this.zIndex = zIndex ?? 0;
     }
 
+    destroy(): void {
+        this.parent?.removeChild(this);
+    }
+
     containsPoint(_x: number, _y: number): boolean {
         return false;
     }

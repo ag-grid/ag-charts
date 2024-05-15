@@ -16,6 +16,7 @@ import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { Text, getFont } from '../scene/shape/text';
+import { setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
@@ -38,8 +39,6 @@ import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
-import type { KeyNavEvent } from './interaction/keyNavManager';
-import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import type { Marker } from './marker/marker';
@@ -47,8 +46,6 @@ import { type MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
-
-type LegendFocus = { on: boolean; mode: 'item' | 'page'; index: number };
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -225,6 +222,8 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
+    private readonly proxyLegendToolbar;
+
     constructor(private readonly ctx: ModuleContext) {
         super();
 
@@ -254,7 +253,7 @@ export class Legend extends BaseProperties {
         const region = ctx.regionManager.addRegionFromProperties({
             name: 'legend',
             bboxproviders: [this.group],
-            canInteraction: () => this.enabled && this.group.visible,
+            canInteraction: () => false,
         });
         this.destroyFns.push(
             region.addListener('contextmenu', (e) => this.checkContextClick(e), animationState),
@@ -263,21 +262,22 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
-            region.addListener('blur', (e) => this.onBlur(e)),
-            region.addListener('tab', (e) => this.onTab(e)),
-            region.addListener('tab-start', (e) => this.onTab(e)),
-            region.addListener('nav-vert', (e) => this.onNav(e)),
-            region.addListener('nav-hori', (e) => this.onNav(e)),
-            region.addListener('submit', (e) => this.onSubmit(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
+
+        this.proxyLegendToolbar = this.ctx.domManager.addChild('canvas-overlay', `${this.id}-toolbar`);
+        this.proxyLegendToolbar.classList.add('ag-charts-proxy-legend-toolbar');
+        this.proxyLegendToolbar.role = 'toolbar';
+        this.proxyLegendToolbar.ariaLabel = 'Legend';
     }
 
     public destroy() {
+        this.ctx.domManager.removeChild('canvas-overlay', 'ag-charts-proxy-legend-toolbar');
         this.destroyFns.forEach((f) => f());
 
         this.pagination.destroy();
+        this.itemSelection.clear();
     }
 
     public onMarkerShapeChange() {
@@ -488,6 +488,7 @@ export class Legend extends BaseProperties {
 
         return paddedSymbolWidth;
     }
+
     private truncate(
         text: string,
         maxCharLength: number,
@@ -650,28 +651,6 @@ export class Legend extends BaseProperties {
         return { maxPageWidth, maxPageHeight, pages, paginationBBox, paginationVertical };
     }
 
-    private getPageItemCount(pageNumber: number): number {
-        let count = 0;
-        for (const col of this.pages[pageNumber].columns) {
-            count += col.indices.length;
-        }
-        return count;
-    }
-
-    private getNodeIndexFromFocusIndex(): number {
-        const { index } = this.focus;
-        const page = this.pages[this.pagination.currentPage];
-        let itemCount: number = 0;
-        for (const col of page.columns) {
-            if (index < itemCount + col.indices.length) {
-                return col.indices[index - itemCount];
-            } else {
-                itemCount += col.indices.length;
-            }
-        }
-        return -1;
-    }
-
     private updatePositions(pageNumber: number = 0) {
         const {
             item: { paddingY },
@@ -721,14 +700,35 @@ export class Legend extends BaseProperties {
                 return;
             }
 
-            y = itemHeight * rowIndex;
-            x = rowSumColumnWidths[rowIndex] ?? 0;
+            // Round off for pixel grid alignment to work properly.
+            y = Math.floor(itemHeight * rowIndex);
+            x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
 
             rowSumColumnWidths[rowIndex] = (rowSumColumnWidths[rowIndex] ?? 0) + column.columnWidth;
 
-            // Round off for pixel grid alignment to work properly.
-            markerLabel.translationX = Math.floor(x);
-            markerLabel.translationY = Math.floor(y);
+            markerLabel.translationX = x;
+            markerLabel.translationY = y;
+
+            // Create/Update the hidden CSS button.
+            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `ag-charts-legend-item-${i}`,
+                textContext: this.getItemAriaText(i),
+                parent: this.proxyLegendToolbar,
+                focusable: markerLabel,
+                onclick: (_event: MouseEvent): any => {
+                    // Retrieve the datum from the node rather than from the method parameter.
+                    // The method parameter `datum` gets destroyed when the data is refreshed
+                    // using Series.getLegendData(). But the scene node will stay the same.
+                    const datum: CategoryLegendDatum = markerLabel.datum;
+                    this.doClick(datum);
+                },
+            });
+            if (markerLabel.proxyButton != null) {
+                const { width, height } = markerLabel.computeBBox();
+                setElementBBox(markerLabel.proxyButton, { x, y, width, height });
+                markerLabel.proxyButton.style.position = 'absolute';
+            }
         });
     }
 
@@ -1066,141 +1066,14 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private readonly focus: LegendFocus = { on: false, mode: 'item', index: 0 };
-
-    private onBlur(_event: KeyNavEvent<'blur'>) {
-        this.doMouseExit();
-        this.focus.on = false;
-        this.ctx.regionManager.updateFocusIndicatorRect(undefined);
-    }
-
-    // Tab forward/backward between the items and pagination buttons.
-    //
-    // 'tab' is received when legend comes into focus. 'tab-start' is received when the legend is
-    // currently focused and is just about to blur. Consuming the 'tab-start' event prevents the
-    // RegionManager from blurring the legend and dispatching 'tab' events.
-    private onTab(event: KeyNavEvent<'tab' | 'tab-start'>) {
-        const { on: hasFocus, mode } = this.focus;
-        const { delta } = event;
-        const hasPagination = this.pagination.visible && this.pagination.enabled;
-
-        if (delta === 0) {
-            this.updateFocus();
-            event.consume();
-        } else if (hasPagination && ((!hasFocus && delta < 0) || (hasFocus && mode === 'item' && delta > 0))) {
-            // If the user is on the first page then put the initial focus on the next button (index: 1),
-            // because the previous button (index: 0) will be grayed out.
-            this.focus.index = this.pagination.currentPage === 0 ? 1 : 0;
-            this.focus.mode = 'page';
-            this.updateFocus();
-            event.consume();
-        } else if ((!hasFocus && delta > 0) || (hasFocus && mode === 'page' && delta < 0)) {
-            this.focus.index = 0;
-            this.focus.mode = 'item';
-            this.updateFocus();
-            event.consume();
+    private getItemAriaText(nodeIndex: number): string {
+        const datum = this.data[nodeIndex];
+        const label = datum && this.getItemLabel(datum);
+        if (nodeIndex >= 0 && label && datum) {
+            const visibility = datum.enabled ? 'visible' : 'hidden';
+            return `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, ${visibility}`;
         }
-    }
-
-    private onNav(event: KeyNavEvent<'nav-vert' | 'nav-hori'>) {
-        if (this.focus.mode === 'item') {
-            const newIndex = this.focus.index + event.delta;
-            const pageItemCount = this.getPageItemCount(this.pagination.currentPage);
-            this.focus.index = clamp(-1, newIndex, pageItemCount);
-            this.updateFocus();
-            event.consume();
-        } else if (this.focus.mode === 'page') {
-            if (event.delta < 0) this.focus.index = 0;
-            if (event.delta > 0) this.focus.index = 1;
-            this.updateFocus();
-            event.consume();
-        }
-    }
-
-    private onSubmit(event: KeyNavEvent<'submit'>) {
-        if (this.focus.mode === 'item') {
-            this.doClick(this.getFocusedItem().datum);
-        } else if (this.focus.mode === 'page') {
-            if (this.focus.index === 0) this.pagination.clickPrevious();
-            if (this.focus.index === 1) this.pagination.clickNext();
-            this.ctx.ariaAnnouncementService.announceValue(
-                `Legend page ${this.pagination.currentPage + 1} of ${this.pages.length}`
-            );
-        }
-        event.consume();
-    }
-
-    private maybeChangeFocusPage() {
-        // Update the current page by going left or right (or staying on the same page).
-        const oldPage = this.pagination.currentPage;
-        const oldPageItemCount = this.getPageItemCount(oldPage);
-        if (this.focus.index === -1) {
-            this.pagination.setPage(oldPage - 1);
-        } else if (this.focus.index === oldPageItemCount) {
-            this.pagination.setPage(oldPage + 1);
-        } else {
-            return;
-        }
-
-        // Update the current index of the focused item on this update-to-date page.
-        const { currentPage } = this.pagination;
-        if (oldPage === currentPage) {
-            this.focus.index = clamp(0, this.focus.index, oldPageItemCount - 1);
-        } else if (this.focus.index === -1) {
-            this.focus.index = this.getPageItemCount(currentPage) - 1;
-        } else {
-            this.focus.index = 0;
-        }
-    }
-
-    private getFocusedItem(): { nodeIndex: number; node?: MarkerLabel; datum?: CategoryLegendDatum } {
-        if (this.focus.mode !== 'item') {
-            Logger.error(`getFocusedItem() should be called only when focus.mode is 'item'`);
-            return { nodeIndex: -1, node: undefined, datum: undefined };
-        }
-        this.maybeChangeFocusPage();
-
-        const nodeIndex = this.getNodeIndexFromFocusIndex();
-        if (nodeIndex < 0) {
-            Logger.error(`Cannot access negative nodeIndex ${nodeIndex}`);
-            return { nodeIndex: -1, node: undefined, datum: undefined };
-        }
-
-        const node = this.itemSelection.nodes()[nodeIndex];
-        const data = this.data;
-        let datum: CategoryLegendDatum | undefined;
-        if (nodeIndex < data.length) {
-            datum = this.data[nodeIndex];
-        } else {
-            Logger.error(`Cannot access datum[${nodeIndex}]`);
-        }
-
-        return { nodeIndex, node, datum };
-    }
-
-    private updateFocus() {
-        const { focus, pagination } = this;
-        if (focus.mode === 'item') {
-            const { nodeIndex, node, datum } = this.getFocusedItem();
-            if (datum === undefined) return;
-
-            const bbox = node?.computeTransformedBBox();
-            this.doHover(makeKeyboardPointerEvent(this.ctx.regionManager, { bbox, showFocusBox: true }), datum);
-            const label = datum && this.getItemLabel(datum);
-            if (label) {
-                const visibility = datum.enabled ? 'visible' : 'hidden';
-                this.ctx.ariaAnnouncementService.announceValue(
-                    `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, ${visibility}`
-                );
-            }
-        } else if (focus.mode === 'page') {
-            const button = focus.index === 0 ? pagination.previousButton : pagination.nextButton;
-            this.ctx.regionManager.updateFocusIndicatorRect(button.computeTransformedBBox());
-            const value = ['Previous legend page', 'Next legend page'][focus.index];
-            this.ctx.ariaAnnouncementService.announceValue(`${value}, button`);
-        }
-
-        this.focus.on = true;
+        return 'Unknown legend item';
     }
 
     private positionLegend(shrinkRect: BBox) {
@@ -1252,6 +1125,14 @@ export class Legend extends BaseProperties {
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(-legendBBox.x + shrinkRect.x + translationX);
             this.group.translationY = Math.floor(-legendBBox.y + shrinkRect.y + translationY);
+
+            const proxyBBox = this.group.computeTransformedBBox();
+            if (proxyBBox) {
+                setElementBBox(this.proxyLegendToolbar, proxyBBox);
+                this.proxyLegendToolbar.style.removeProperty('display');
+            }
+        } else {
+            this.proxyLegendToolbar.style.display = 'none';
         }
 
         if (this.visible && this.enabled && this.data.length) {

@@ -131,7 +131,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             if (this.garbageBin.has(node)) {
                 this._nodesMap.delete(node);
                 this.garbageBin.delete(node);
-                this.parentNode.removeChild(node);
+                node.destroy();
                 return false;
             }
             return true;

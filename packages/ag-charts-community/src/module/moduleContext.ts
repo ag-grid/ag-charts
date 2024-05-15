@@ -3,6 +3,7 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { DOMManager } from '../chart/dom/domManager';
+import type { ProxyInteractionService } from '../chart/dom/proxyInteractionService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { AriaAnnouncementService } from '../chart/interaction/ariaAnnouncementServices';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
@@ -43,6 +44,7 @@ export interface ModuleContext {
     readonly domManager: DOMManager;
     readonly highlightManager: HighlightManager;
     readonly interactionManager: InteractionManager;
+    readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;
     readonly seriesStateManager: SeriesStateManager;
     readonly syncManager: SyncManager;
