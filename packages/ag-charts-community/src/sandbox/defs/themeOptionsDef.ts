@@ -1,7 +1,7 @@
-import type { PlainObject } from '../../util/types';
+import type { ThemeOptions } from '../themes/themeTypes';
 import { type OptionsDefs, union } from '../util/validation';
 
-export const themeOptionsDef: OptionsDefs<PlainObject> = {
+export const themeOptionsDef: OptionsDefs<ThemeOptions> = {
     baseTheme: union(
         'ag-default',
         'ag-default-dark',
@@ -15,12 +15,16 @@ export const themeOptionsDef: OptionsDefs<PlainObject> = {
         'ag-vivid-dark'
     ),
 
-    variables: {},
-    chartDefaults: {},
-    axesDefaults: { number: { positionOverrides: { top: {}, right: {}, bottom: {}, left: {} } } },
-    axisTypeDefaults: { positionOverrides: { top: {}, right: {}, bottom: {}, left: {} } },
-    seriesDefaults: {},
-    seriesTypeDefaults: {},
+    // variables: {},
+    // chartDefaults: {},
+    // axesDefaults: { number: { positionOverrides: { top: {}, right: {}, bottom: {}, left: {} } } },
+    // axisTypeDefaults: {
+    //     'angle-category': {
+    //         positionOverrides: { top: {}, right: {}, bottom: {}, left: {} },
+    //     },
+    // },
+    // // seriesDefaults: {},
+    // seriesTypeDefaults: {},
 };
 
 // Example:
@@ -59,7 +63,7 @@ export const themeOptionsDef: OptionsDefs<PlainObject> = {
 //     },
 //     seriesTypeDefaults: {
 //         // Type-specific series defaults
-//         bar: { barPadding: 0.1 },
+//         bar: { barPadding: 0.1, chartOverrides: {}, axesOverrides: {} },
 //         line: { lineWidth: 2 },
 //     },
 // };

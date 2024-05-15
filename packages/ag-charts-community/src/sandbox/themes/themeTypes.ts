@@ -19,3 +19,29 @@ export interface IThemeVariables<T extends string> {
     get(varName: T): any;
     use(varName: T): any;
 }
+
+export type AxisOptionsWithPositionOverrides<T> = T & {
+    positionOverrides?: {
+        top?: T;
+        right?: T;
+        bottom?: T;
+        left?: T;
+    };
+};
+
+export interface ThemeOptions {
+    baseTheme?: ThemeName;
+
+    // variables?: object;
+    // chartDefaults?: object;
+    //
+    // axesDefaults?: AxisOptionsWithPositionOverrides<ChartAxisOptions<any>>;
+    // axisTypeDefaults?: { [K in keyof ChartAxesMap]: AxisOptionsWithPositionOverrides<ChartAxesMap[K]> };
+    //
+    // seriesDefaults?: {};
+    // seriesTypeDefaults?:
+    //     | MapTypes<CartesianChartSeries>
+    //     | MapTypes<PolarChartSeries>
+    //     | MapTypes<HierarchyChartSeries>
+    //     | MapTypes<TopologyChartSeries>;
+}
