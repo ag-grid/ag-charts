@@ -147,9 +147,11 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** The height of the chart in pixels. */
     height?: PixelSize;
     /**
-     * By default, the chart will resize automatically to fill the container element. Set this to `false` to disable this behaviour. If `width` or `height` are specified, auto-sizing will be active for the other unspecified dimension.
+     * By default (unset) the chart will assume a minimum size of 300x300 px, and grow with the container element.
      *
-     * __Important:__ if this config is set to `true`, make sure to give the chart's `container` element an explicit size, otherwise you will run into a chicken and egg situation where the container expects to size itself according to the content and the chart expects to size itself according to the container.
+     * Set to true to remove the minimums (e.g. for use with a CSS-managed layout).
+     *
+     * Set to false to disable automatic sizing.
      */
     autoSize?: boolean;
     /** Configuration for the padding shown around the chart. */

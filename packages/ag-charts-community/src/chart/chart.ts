@@ -203,7 +203,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         },
     })
     @Validate(BOOLEAN)
-    autoSize;
+    autoSize?: boolean;
 
     /** NOTE: This is exposed for use by Integrated charts only. */
     get canvasElement() {
@@ -219,7 +219,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private _firstAutoSize = true;
 
     private onAutoSizeChange(value: boolean) {
-        this.ctx.domManager.setSize(this.width, this.height);
+        this.ctx.domManager.setSize(value, this.width, this.height);
         if (value && this._lastAutoSize) {
             this.resize(undefined, undefined, 'autoSize option');
         }
@@ -312,7 +312,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }));
         ctx.scene.setRoot(root);
         ctx.domManager.addListener('resize', (e) => this.parentResize(e.size));
-        this.autoSize = true;
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
@@ -891,7 +890,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
-        this.ctx.domManager.setSize(inWidth ?? this.width, inHeight ?? this.height);
+        this.ctx.domManager.setSize(this.autoSize, inWidth ?? this.width, inHeight ?? this.height);
 
         if (scene.resize(width, height)) {
             this.resetPointer();

@@ -131,6 +131,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             hidden = intersectionRatio === 0;
         });
 
+        this.setSize();
+
         this.sizeMonitor = new SizeMonitor();
         this.sizeMonitor.observe(element, (size) => {
             this.listeners.dispatch('resize', { type: 'resize', size });
@@ -158,18 +160,27 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setSize(width?: number, height?: number) {
+    setSize(autoSize?: boolean, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.parentElement.element;
-        if (width != null && height != null) {
-            style.width = `${width}px`;
-            style.height = `${height}px`;
+        if (optionsWidth != null && optionsHeight != null) {
+            // Chart has explicit size, so force wrapper to those dimensions.
+            style.width = `${optionsWidth}px`;
+            style.height = `${optionsHeight}px`;
+            style.minHeight = '';
+            style.minWidth = '';
+        } else if (autoSize === true) {
+            // User has explicitly opted into auto-size, so don't set minimum sizes.
+            style.width = '100%';
+            style.height = '100%';
             style.minHeight = '';
             style.minWidth = '';
         } else {
-            style.minHeight = '300px';
-            style.minWidth = '300px';
+            // Fallback to safe-ish defaults for unstyled cases. Minimums might not be 100% right for
+            // flexible layouts, but users can explicitly set `autoSize: true` to avoid this.
             style.width = '100%';
             style.height = '100%';
+            style.minHeight = '300px';
+            style.minWidth = '300px';
         }
     }
 
