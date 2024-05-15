@@ -1,6 +1,6 @@
 import { CartesianCoordinate } from '../axes/axesEnums';
 import type { CartesianChartAxes } from '../axes/axesTypes';
-import type { CartesianAxis } from '../axes/cartesianAxis';
+import type { CartesianCoordinator } from '../axes/cartesianCoordinator';
 import { Direction } from '../types/enums';
 import { BaseChart } from './baseChart';
 import type { CartesianChartOptions } from './chartTypes';
@@ -16,7 +16,7 @@ export class CartesianChart extends BaseChart<CartesianChartOptions> {
         [CartesianCoordinate.Vertical]: ['y'],
     };
 
-    protected axes?: CartesianAxis[];
+    protected axesCoordinator?: CartesianCoordinator[];
 
     // protected override createAxes(options: CartesianChartOptions) {
     //     for (const axisOptions of options.axes) {
