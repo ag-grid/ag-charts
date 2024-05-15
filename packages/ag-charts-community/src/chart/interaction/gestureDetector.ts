@@ -2,6 +2,7 @@ import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
+import { buildConsumable } from './consumableEvent';
 
 type PinchEventTypes = 'pinch-start' | 'pinch-move' | 'pinch-end';
 type GestureEventTypes = PinchEventTypes;
@@ -22,6 +23,7 @@ export type PinchEvent<T extends PinchEventTypes = PinchEventTypes> = {
     finger2: Finger;
     origin: { x: number; y: number };
     deltaDistance: number;
+    consume(): void;
 };
 
 enum PinchTrackingStatus {
@@ -61,7 +63,7 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
     public constructor(private readonly domManager: DOMManager) {
         super();
         this.domManager.addEventListener('touchstart', this.touchstart, { passive: true });
-        this.domManager.addEventListener('touchmove', this.touchmove, { passive: true });
+        this.domManager.addEventListener('touchmove', this.touchmove);
         this.domManager.addEventListener('touchend', this.touchend);
         this.domManager.addEventListener('touchcancel', this.touchcancel);
     }
@@ -93,14 +95,14 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
         this.pinch.distance = distance(this.pinch.finger1, this.pinch.finger2);
     }
 
-    private dispatchPinchEvent<T extends PinchEventTypes>(type: T, deltaDistance: number) {
+    private dispatchPinchEvent<T extends PinchEventTypes>(type: T, deltaDistance: number, sourceEvent: Event) {
         const { finger1, finger2, origin } = this.pinch;
-        const newEvent: PinchEvent<T> = { type, finger1, finger2, deltaDistance, origin };
+        const newEvent: PinchEvent<T> = buildConsumable({ sourceEvent, type, finger1, finger2, deltaDistance, origin });
         this.listeners.dispatch(type, newEvent);
     }
 
     private onTouchStart(event: TouchEvent) {
-        this.stopPinchTracking();
+        this.stopPinchTracking(event);
 
         const { pinch } = this;
         if (event.touches.length === 2) {
@@ -123,30 +125,30 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
                 if (Math.abs(deltaDistance) > MIN_DISTANCE_TO_START_PINCH) {
                     pinch.status = PinchTrackingStatus.Running;
                     this.copyTouchData(event);
-                    this.dispatchPinchEvent('pinch-start', 0);
+                    this.dispatchPinchEvent('pinch-start', 0, event);
                 }
             } else if (pinch.status === PinchTrackingStatus.Running) {
                 pinch.distance = newDistance;
                 this.copyTouchData(event);
-                this.dispatchPinchEvent('pinch-move', deltaDistance);
+                this.dispatchPinchEvent('pinch-move', deltaDistance, event);
             } else {
                 Logger.error(`unexpected pinch.status: ${pinch.status}`);
             }
         }
     }
 
-    private onTouchEnd(_event: TouchEvent) {
-        this.stopPinchTracking();
+    private onTouchEnd(event: TouchEvent) {
+        this.stopPinchTracking(event);
     }
 
-    private onTouchCancel(_event: TouchEvent) {
-        this.stopPinchTracking();
+    private onTouchCancel(event: TouchEvent) {
+        this.stopPinchTracking(event);
     }
 
-    private stopPinchTracking() {
+    private stopPinchTracking(event: Event) {
         const { pinch } = this;
         if (pinch.status === PinchTrackingStatus.Running) {
-            this.dispatchPinchEvent('pinch-end', 0);
+            this.dispatchPinchEvent('pinch-end', 0, event);
         }
         this.pinch.status = PinchTrackingStatus.Off;
     }

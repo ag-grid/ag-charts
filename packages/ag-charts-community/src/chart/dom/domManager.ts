@@ -20,7 +20,7 @@ const STYLES = `
 .ag-charts-wrapper {
     position: relative;
     margin: auto;
-    touch-action: none;
+    touch-action: auto;
     box-sizing: border-box;
     display: flex !important;
     align-items: center !important;
