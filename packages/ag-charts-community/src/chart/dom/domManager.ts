@@ -19,6 +19,7 @@ const domElementConfig: Record<
 const STYLES = `
 .ag-charts-wrapper {
     position: relative;
+    margin: auto;
     touch-action: none;
     box-sizing: border-box;
     display: flex !important;
