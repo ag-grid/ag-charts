@@ -132,7 +132,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
 
         this.sizeMonitor = new SizeMonitor();
-        this.sizeMonitor.observe(element, (size) => this.listeners.dispatch('resize', { type: 'resize', size }));
+        this.sizeMonitor.observe(element, (size) => {
+            this.listeners.dispatch('resize', { type: 'resize', size });
+        });
 
         this.addStyles('dom-manager', STYLES);
     }
@@ -156,12 +158,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setAutoSizeStyle(_autoSize: boolean, width?: number, height?: number) {
+    setSize(width?: number, height?: number) {
         const { style } = this.parentElement.element;
         if (width != null && height != null) {
             style.width = `${width}px`;
             style.height = `${height}px`;
+            style.minHeight = '';
+            style.minWidth = '';
         } else {
+            style.minHeight = '300px';
+            style.minWidth = '300px';
             style.width = '100%';
             style.height = '100%';
         }

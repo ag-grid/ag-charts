@@ -219,7 +219,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private _firstAutoSize = true;
 
     private onAutoSizeChange(value: boolean) {
-        this.ctx.domManager.setAutoSizeStyle(value, this.width, this.height);
+        this.ctx.domManager.setSize(this.width, this.height);
         if (value && this._lastAutoSize) {
             this.resize(undefined, undefined, 'autoSize option');
         }
@@ -311,7 +311,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             overrideDevicePixelRatio,
         }));
         ctx.scene.setRoot(root);
-        ctx.domManager.addListener('resize', (e) => this.rawResize(e.size));
+        ctx.domManager.addListener('resize', (e) => this.parentResize(e.size));
         this.autoSize = true;
 
         this.overlays = new ChartOverlays();
@@ -869,7 +869,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private rawResize({ width, height }: { width: number; height: number }) {
+    private parentResize({ width, height }: { width: number; height: number }) {
         if (!this.autoSize) return;
 
         width = Math.floor(width);
@@ -889,9 +889,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const width = inWidth ?? this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : scene.canvas.width);
         const height = inHeight ?? this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : scene.canvas.height);
         this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
-        if (!width || !height || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
+        if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
-        this.ctx.domManager.setAutoSizeStyle(this.autoSize, inWidth ?? this.width, inHeight ?? this.height);
+        this.ctx.domManager.setSize(inWidth ?? this.width, inHeight ?? this.height);
 
         if (scene.resize(width, height)) {
             this.resetPointer();
