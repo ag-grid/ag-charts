@@ -3,5 +3,6 @@ export enum LayoutHierarchy {
     Subtitle,
     Footnote,
     Legend,
+    GradientLegend,
     Navigator,
 }
