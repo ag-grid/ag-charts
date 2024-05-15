@@ -1,11 +1,82 @@
 import type {
+    AgSankeySeriesFormatterParams,
+    AgSankeySeriesLinkOptions,
+    AgSankeySeriesLinkStyle,
+    AgSankeySeriesNodeOptions,
     AgSankeySeriesOptions,
     AgSankeySeriesTooltipRendererParams,
 } from '../../../options/series/flow-proportion/sankeyOptions';
-import { ARRAY, NUMBER, OBJECT, STRING, Validate } from '../../../util/validation';
+import { BaseProperties } from '../../../util/properties';
+import {
+    ARRAY,
+    COLOR_STRING,
+    COLOR_STRING_ARRAY,
+    FUNCTION,
+    LINE_DASH,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    Validate,
+} from '../../../util/validation';
+import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
+export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined = undefined;
+
+    @Validate(RATIO)
+    fillOpacity = 1;
+
+    @Validate(COLOR_STRING, { optional: true })
+    stroke: string | undefined = undefined;
+
+    @Validate(RATIO)
+    strokeOpacity = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+}
+
+export class ChordSeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
+    @Validate(POSITIVE_NUMBER)
+    spacing: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    width: number = 1;
+
+    @Validate(STRING)
+    justify: 'left' | 'right' | 'center' | 'justify' = 'justify';
+
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined = undefined;
+
+    @Validate(RATIO)
+    fillOpacity = 1;
+
+    @Validate(COLOR_STRING, { optional: true })
+    stroke: string | undefined = undefined;
+
+    @Validate(RATIO)
+    strokeOpacity = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+}
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
     @Validate(STRING)
     fromIdKey: string = '';
@@ -52,8 +123,20 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @Validate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 
-    @Validate(NUMBER)
-    nodeWidth: number = 10;
+    @Validate(COLOR_STRING_ARRAY)
+    fills: string[] = Object.values(DEFAULT_FILLS);
+
+    @Validate(COLOR_STRING_ARRAY)
+    strokes: string[] = Object.values(DEFAULT_STROKES);
+
+    @Validate(OBJECT)
+    readonly link = new ChordSeriesLinkProperties();
+
+    @Validate(OBJECT)
+    readonly node = new ChordSeriesNodeProperties();
+
+    @Validate(FUNCTION, { optional: true })
+    formatter?: (params: AgSankeySeriesFormatterParams<any>) => AgSankeySeriesLinkStyle;
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams>();

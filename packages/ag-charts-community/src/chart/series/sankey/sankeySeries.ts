@@ -1,27 +1,37 @@
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AgSankeySeriesFormatterParams, AgSankeySeriesLinkStyle } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
+import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { sanitizeHtml } from '../../../util/sanitize';
+import type { RequireOptional } from '../../../util/types';
 import { ARRAY, Validate } from '../../../util/validation';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataController } from '../../data/dataController';
 import type { DataModel, ProcessedData } from '../../data/dataModel';
 import { createDatumId } from '../../data/processors';
-import type { TooltipContent } from '../../tooltip/tooltip';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { DataModelSeries } from '../dataModelSeries';
 import type { FlowProportionSeries } from '../flowProportionSeries';
-import { type PickFocusInputs, type SeriesNodeDataContext, keyProperty, valueProperty } from '../series';
+import {
+    type PickFocusInputs,
+    type SeriesNodeDataContext,
+    SeriesNodePickMode,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { SankeyLink } from './sankeyLink';
 import { SankeySeriesProperties } from './sankeySeriesProperties';
-import { type NodePathLengthEntry, computePathLength } from './sankeyUtil';
+import { computeNodeGraph } from './sankeyUtil';
 
 interface SankeyLinkDatum extends SeriesNodeDatum {
-    fromId: string;
-    toId: string;
+    fromNode: SankeyNodeDatum;
+    toNode: SankeyNodeDatum;
     size: number;
     x1: number;
     x2: number;
@@ -32,6 +42,7 @@ interface SankeyLinkDatum extends SeriesNodeDatum {
 
 interface SankeyNodeDatum {
     id: string;
+    index: number;
     label: string | undefined;
     size: number;
     x: number;
@@ -75,11 +86,17 @@ export class SankeySeries
         this.linkFactory()
     );
     public nodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.nodeGroup, () => this.nodeFactory());
+    private highlightLinkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.highlightNode, () =>
+        this.linkFactory()
+    );
 
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
+
+        this.nodeGroup.pointerEvents = PointerEvents.None;
     }
 
     setChartNodes(nodes: any[] | undefined): void {
@@ -168,7 +185,12 @@ export class SankeySeries
             return;
         }
 
-        const { sizeKey, labelKey, nodeSizeKey, nodeWidth } = this.properties;
+        const {
+            sizeKey,
+            labelKey,
+            nodeSizeKey,
+            node: { spacing: nodeSpacing, width: nodeWidth, justify },
+        } = this.properties;
 
         const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
         const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toIdValue');
@@ -192,8 +214,7 @@ export class SankeySeries
         });
 
         const nodesById = new Map<string, SankeyNodeDatum>();
-        const nodePathsById = new Map<string, NodePathLengthEntry & { ratio: number }>();
-        nodesProcessedData.data.forEach(({ keys, values }) => {
+        nodesProcessedData.data.forEach(({ keys, values }, index) => {
             const value = values[0];
             const id = keys[nodeIdIdx];
             const label = labelIdx != null ? value[labelIdx] : undefined;
@@ -204,6 +225,7 @@ export class SankeySeries
             );
             nodesById.set(id, {
                 id,
+                index,
                 label,
                 size,
                 x: NaN,
@@ -211,63 +233,70 @@ export class SankeySeries
                 width: nodeWidth,
                 height: NaN,
             });
-            nodePathsById.set(id, {
-                id,
-                maxPathLengthBefore: -1,
-                maxPathLengthAfter: -1,
-                ratio: NaN,
-            });
         });
 
-        let maxPathLength = 0;
-        nodePathsById.forEach((node) => {
-            maxPathLength = Math.max(
-                maxPathLength,
-                computePathLength(nodePathsById, links, node, -1) + computePathLength(nodePathsById, links, node, 1) + 1
-            );
-        });
+        const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.keys(), links);
 
-        const nodeGroups = new Map<number, { size: number; nodes: SankeyNodeDatum[] }>();
-        nodePathsById.forEach(({ id, maxPathLengthBefore, maxPathLengthAfter, ratio }) => {
+        type Column = {
+            nodes: SankeyNodeDatum[];
+            size: number;
+            readonly x: number;
+        };
+        const columns: Column[] = [];
+        for (let i = 0; i < maxPathLength; i += 1) {
+            const x = (seriesRectWidth - nodeWidth) * (i / (maxPathLength - 1));
+            columns.push({ size: 0, nodes: [], x });
+        }
+
+        nodeGraph.forEach(({ linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter }, id) => {
+            let column: Column;
+            switch (justify) {
+                case 'left':
+                    column = columns[maxPathLengthBefore];
+                    break;
+                case 'right':
+                    column = columns[maxPathLength - 1 - maxPathLengthAfter];
+                    break;
+                case 'center': {
+                    if (linksBefore.length !== 0) {
+                        column = columns[maxPathLengthBefore];
+                        // eslint-disable-next-line no-negated-condition
+                    } else if (linksAfter.length !== 0) {
+                        const columnIndex =
+                            linksAfter.reduce((acc, link) => Math.min(acc, link.maxPathLengthBefore), maxPathLength) -
+                            1;
+                        column = columns[columnIndex];
+                    } else {
+                        column = columns[0];
+                    }
+                    break;
+                }
+                case 'justify': {
+                    column = linksAfter.length === 0 ? columns[maxPathLength - 1] : columns[maxPathLengthBefore];
+                    break;
+                }
+            }
+
             const node = nodesById.get(id)!;
-
-            if (!Number.isFinite(ratio)) {
-                ratio = maxPathLengthBefore / (maxPathLengthBefore + maxPathLengthAfter);
-            }
-
-            ratio = Math.min(Math.max(Math.round(ratio * 100) / 100, 0), 1);
-            node.x = (seriesRectWidth - nodeWidth) * ratio;
-
-            let nodeGroup = nodeGroups.get(ratio);
-            if (nodeGroup == null) {
-                nodeGroup = { size: 0, nodes: [node] };
-                nodeGroups.set(ratio, nodeGroup);
-            } else {
-                nodeGroup.nodes.push(node);
-            }
-            nodeGroup.size += node.size;
+            node.x = column.x;
+            column.nodes.push(node);
+            column.size += node.size;
         });
 
-        const maxPaddingRatio = 0.5;
-        const minPaddingRatio = 0.25;
-        let maximumSizeScale = Infinity;
-        nodeGroups.forEach(({ size, nodes }) => {
-            const sizeScale = (1 - (nodes.length - 1) * minPaddingRatio) / size;
-            maximumSizeScale = Math.min(maximumSizeScale, sizeScale);
-        });
+        const maximumSizeScale = columns.reduce((acc, { size, nodes }) => {
+            const sizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
+            return Math.min(acc, sizeScale);
+        }, Infinity);
 
-        nodeGroups.forEach(({ nodes, size }) => {
+        columns.forEach(({ nodes, size }) => {
             const nodesHeight = seriesRectHeight * size * maximumSizeScale;
-            const gaps = nodes.length - 1;
-            const gap =
-                gaps > 0 ? Math.min((seriesRectHeight - nodesHeight) / gaps, seriesRectHeight * maxPaddingRatio) : 0;
-            const outerPadding = (seriesRectHeight - (nodesHeight + gap * gaps)) / 2;
+            const outerPadding = (seriesRectHeight - (nodesHeight + nodeSpacing * (nodes.length - 1))) / 2;
             let y = outerPadding;
             nodes.forEach((node) => {
                 const height = seriesRectHeight * node.size * maximumSizeScale;
                 node.y = y;
                 node.height = height;
-                y += height + gap;
+                y += height + nodeSpacing;
             });
         });
 
@@ -292,8 +321,8 @@ export class SankeySeries
                 series: this,
                 itemId: undefined,
                 datum,
-                fromId,
-                toId,
+                fromNode,
+                toNode,
                 size,
                 x1,
                 x2,
@@ -316,15 +345,6 @@ export class SankeySeries
             this.contextNodeData = await this.createNodeData();
             this.nodeDataRefresh = false;
         }
-
-        const nodeData = this.contextNodeData?.nodeData ?? [];
-        const nodes = this.contextNodeData?.nodes ?? [];
-
-        this.nodeSelection = await this.updateDatumSelection({ nodeData: nodes, datumSelection: this.nodeSelection });
-        await this.updateDatumNodes({ datumSelection: this.nodeSelection, isHighlight: false });
-
-        this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
-        await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
     }
 
     override async update(opts: { seriesRect?: BBox | undefined }): Promise<void> {
@@ -342,23 +362,52 @@ export class SankeySeries
         }
 
         await this.updateSelections();
+
+        let highlightedDatum: SankeyLinkDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
+            highlightedDatum = undefined;
+        }
+
+        const nodeData = this.contextNodeData?.nodeData ?? [];
+        const nodes = this.contextNodeData?.nodes ?? [];
+
+        this.nodeSelection = await this.updateNodeSelection({ nodeData: nodes, datumSelection: this.nodeSelection });
+        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+
+        this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
+        await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
+
+        this.highlightLinkSelection = await this.updateLinkSelection({
+            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            datumSelection: this.highlightLinkSelection,
+        });
+        await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
     }
 
-    private async updateDatumSelection(opts: {
+    private async updateNodeSelection(opts: {
         nodeData: SankeyNodeDatum[];
         datumSelection: Selection<Rect, SankeyNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.id));
     }
 
-    private async updateDatumNodes(opts: { datumSelection: Selection<Rect, SankeyNodeDatum>; isHighlight: boolean }) {
+    private async updateNodeNodes(opts: { datumSelection: Selection<Rect, SankeyNodeDatum>; isHighlight: boolean }) {
         const { datumSelection } = opts;
+        const { fills, strokes } = this.properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.properties.node;
         datumSelection.each((rect, datum) => {
             rect.x = datum.x;
             rect.y = datum.y;
             rect.width = datum.width;
             rect.height = datum.height;
-            rect.fill = 'red';
+            rect.fill = fill ?? fills[datum.index % fills.length];
+            rect.fillOpacity = fillOpacity;
+            rect.stroke = stroke ?? strokes[datum.index % strokes.length];
+            rect.strokeOpacity = strokeOpacity;
+            rect.strokeWidth = strokeWidth;
+            rect.lineDash = lineDash;
+            rect.lineDashOffset = lineDashOffset;
         });
     }
 
@@ -367,7 +416,7 @@ export class SankeySeries
         datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
-            createDatumId([datum.fromId, datum.toId])
+            createDatumId([datum.fromNode.id, datum.toNode.id])
         );
     }
 
@@ -375,22 +424,165 @@ export class SankeySeries
         datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection } = opts;
-        datumSelection.each((link, { x1, x2, y1, y2, height }) => {
-            link.x1 = x1;
-            link.y1 = y1;
-            link.x2 = x2;
-            link.y2 = y2;
-            link.height = height;
-            link.fill = 'red';
-            link.opacity = 0.5;
+        const { datumSelection, isHighlight } = opts;
+        const {
+            id: seriesId,
+            properties,
+            ctx: { callbackCache },
+        } = this;
+        const {
+            fromIdKey,
+            toIdKey,
+            nodeIdKey,
+            labelKey,
+            sizeKey,
+            nodeSizeKey,
+            positionKey,
+            fills,
+            strokes,
+            formatter,
+        } = properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
+
+        datumSelection.each((link, datum) => {
+            let format: AgSankeySeriesLinkStyle | undefined;
+            if (formatter != null) {
+                const params: RequireOptional<AgSankeySeriesFormatterParams> = {
+                    seriesId,
+                    datum: datum.datum,
+                    itemId: datum.itemId,
+                    fromIdKey,
+                    toIdKey,
+                    nodeIdKey,
+                    labelKey,
+                    sizeKey,
+                    nodeSizeKey,
+                    positionKey,
+                    fill,
+                    fillOpacity,
+                    strokeOpacity,
+                    stroke,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                    highlighted: isHighlight,
+                };
+                format = callbackCache.call(formatter, params as AgSankeySeriesFormatterParams);
+            }
+
+            const index = datum.fromNode.index;
+
+            link.x1 = datum.x1;
+            link.y1 = datum.y1;
+            link.x2 = datum.x2;
+            link.y2 = datum.y2;
+            link.height = datum.height;
+            link.fill = highlightStyle?.fill ?? format?.fill ?? fill ?? fills[index % fills.length];
+            link.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
+            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke ?? strokes[index % strokes.length];
+            link.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
+            link.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
+            link.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
+            link.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
+            link.inset = link.strokeWidth / 2;
         });
     }
 
     override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {}
 
-    override getTooltipHtml(_seriesDatum: any): TooltipContent {
-        return { html: '', ariaLabel: '' };
+    override getTooltipHtml(nodeDatum: SankeyLinkDatum): TooltipContent {
+        const {
+            id: seriesId,
+            processedData,
+            ctx: { callbackCache },
+            properties,
+        } = this;
+
+        if (!processedData || !properties.isValid()) {
+            return EMPTY_TOOLTIP_CONTENT;
+        }
+
+        const {
+            fromIdKey,
+            fromIdName,
+            toIdKey,
+            toIdName,
+            nodeIdKey,
+            nodeIdName,
+            sizeKey,
+            sizeName,
+            labelKey,
+            labelName,
+            nodeSizeKey,
+            nodeSizeName,
+            positionKey,
+            positionName,
+            formatter,
+            tooltip,
+        } = properties;
+        const { fill, fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
+        const { datum, fromNode, toNode, size, itemId } = nodeDatum;
+
+        const contentLines: string[] = [];
+        contentLines.push(sanitizeHtml(`${fromIdName ?? fromIdKey}: ` + (fromNode.label ?? fromNode.id)));
+        contentLines.push(sanitizeHtml(`${toIdName ?? toIdKey}: ` + (toNode.label ?? toNode.id)));
+        contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+        const content = contentLines.join('<br>');
+
+        let format: AgSankeySeriesLinkStyle | undefined;
+
+        if (formatter) {
+            format = callbackCache.call(formatter, {
+                seriesId,
+                datum: datum.datum,
+                itemId: datum.itemId,
+                fromIdKey,
+                toIdKey,
+                nodeIdKey,
+                labelKey,
+                sizeKey,
+                nodeSizeKey,
+                positionKey,
+                fill,
+                fillOpacity,
+                strokeOpacity,
+                stroke,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+                highlighted: false,
+            });
+        }
+
+        const color = format?.fill ?? fill;
+
+        return tooltip.toTooltipHtml(
+            { title: undefined, content, backgroundColor: color },
+            {
+                seriesId,
+                datum,
+                title: '',
+                color,
+                itemId,
+                fromIdKey,
+                fromIdName,
+                toIdKey,
+                toIdName,
+                nodeIdKey,
+                nodeIdName,
+                sizeKey,
+                sizeName,
+                labelKey,
+                labelName,
+                nodeSizeKey,
+                nodeSizeName,
+                positionKey,
+                positionName,
+                ...this.getModuleTooltipParams(),
+            }
+        );
     }
 
     override getSeriesDomain(_direction: ChartAxisDirection): any[] {

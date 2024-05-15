@@ -15,6 +15,8 @@ export const ChordSeriesModule: SeriesModule<'chord'> = {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             node: {
+                spacing: 20,
+                height: 10,
                 strokeWidth: 0,
             },
             link: {

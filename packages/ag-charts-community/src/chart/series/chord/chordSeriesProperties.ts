@@ -1,4 +1,6 @@
 import type {
+    AgChordSeriesFormatterParams,
+    AgChordSeriesLinkStyle,
     AgChordSeriesOptions,
     AgChordSeriesTooltipRendererParams,
 } from '../../../options/series/flow-proportion/chordOptions';
@@ -7,8 +9,8 @@ import {
     ARRAY,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
+    FUNCTION,
     LINE_DASH,
-    NUMBER,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -19,14 +21,43 @@ import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
-export class ChordSeriesLinkNodeProperties extends BaseProperties<AgChordSeriesOptions> {
-    @Validate(COLOR_STRING)
+export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
+    @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
     @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
+    stroke: string | undefined = undefined;
+
+    @Validate(RATIO)
+    strokeOpacity = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+}
+
+export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
+    @Validate(POSITIVE_NUMBER)
+    spacing: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    height: number = 1;
+
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined = undefined;
+
+    @Validate(RATIO)
+    fillOpacity = 1;
+
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string | undefined = undefined;
 
     @Validate(RATIO)
@@ -88,9 +119,6 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     @Validate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 
-    @Validate(NUMBER)
-    nodeWidth: number = 10;
-
     @Validate(COLOR_STRING_ARRAY)
     fills: string[] = Object.values(DEFAULT_FILLS);
 
@@ -98,10 +126,13 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
     @Validate(OBJECT)
-    readonly link = new ChordSeriesLinkNodeProperties();
+    readonly link = new ChordSeriesLinkProperties();
 
     @Validate(OBJECT)
-    readonly node = new ChordSeriesLinkNodeProperties();
+    readonly node = new ChordSeriesNodeProperties();
+
+    @Validate(FUNCTION, { optional: true })
+    formatter?: (params: AgChordSeriesFormatterParams<any>) => AgChordSeriesLinkStyle;
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams>();

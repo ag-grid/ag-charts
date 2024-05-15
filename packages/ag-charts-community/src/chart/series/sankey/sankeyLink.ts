@@ -16,14 +16,18 @@ export class SankeyLink extends Path {
     @ScenePathChangeDetection()
     height: number = 0;
 
+    @ScenePathChangeDetection()
+    inset: number = 0;
+
     override updatePath(): void {
-        const { path, x1, x2, y1, y2, height } = this;
+        const { path, x1, x2, y1, y2, height, inset } = this;
         const midX = (x1 + x2) / 2;
         path.clear();
-        path.moveTo(x1, y1);
-        path.cubicCurveTo(midX, y1, midX, y2, x2, y2);
-        path.lineTo(x2, y2 + height);
-        path.cubicCurveTo(midX, y2 + height, midX, y1 + height, x1, y1 + height);
+        if (inset > height || inset > Math.abs(x1 - x2)) return;
+        path.moveTo(x1 + inset, y1 + inset);
+        path.cubicCurveTo(midX, y1 + inset, midX, y2 + inset, x2 - inset, y2 + inset);
+        path.lineTo(x2 - inset, y2 + height - inset);
+        path.cubicCurveTo(midX, y2 + height - inset, midX, y1 + height - inset, x1 + inset, y1 + height - inset);
         path.closePath();
     }
 }
