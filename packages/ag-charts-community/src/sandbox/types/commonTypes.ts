@@ -31,12 +31,12 @@ export interface Size {
 export interface BBox extends Point, Size {}
 
 export interface FillOptions {
-    fill?: CssColor;
+    fill?: CssColor | CanvasGradient | CanvasPattern;
     fillOpacity?: Ratio;
 }
 
 export interface StrokeOptions {
-    stroke?: CssColor;
+    stroke?: CssColor | CanvasGradient | CanvasPattern;
     strokeOpacity?: Ratio;
     strokeWidth?: number;
 }

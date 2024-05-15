@@ -1,4 +1,4 @@
-import { Canvas, PngConfig, createCanvas } from 'canvas';
+import { Canvas, type PngConfig, createCanvas } from 'canvas';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import { mockCanvas } from 'ag-charts-test';
