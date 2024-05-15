@@ -33,6 +33,11 @@ export class MarkerLabel extends Group {
         this.append([this.symbolsGroup, label]);
     }
 
+    override destroy() {
+        super.destroy();
+        this.proxyButton?.remove();
+    }
+
     proxyButton?: HTMLButtonElement;
 
     @ProxyPropertyOnWrite('label')

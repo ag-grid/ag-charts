@@ -277,6 +277,7 @@ export class Legend extends BaseProperties {
         this.destroyFns.forEach((f) => f());
 
         this.pagination.destroy();
+        this.itemSelection.clear();
     }
 
     public onMarkerShapeChange() {
