@@ -19,6 +19,7 @@ const domElementConfig: Record<
 const STYLES = `
 .ag-charts-wrapper {
     position: relative;
+    margin: auto;
     touch-action: none;
     box-sizing: border-box;
     display: flex !important;
@@ -131,8 +132,12 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             hidden = intersectionRatio === 0;
         });
 
+        this.setSize();
+
         this.sizeMonitor = new SizeMonitor();
-        this.sizeMonitor.observe(element, (size) => this.listeners.dispatch('resize', { type: 'resize', size }));
+        this.sizeMonitor.observe(element, (size) => {
+            this.listeners.dispatch('resize', { type: 'resize', size });
+        });
 
         this.addStyles('dom-manager', STYLES);
     }
@@ -156,15 +161,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setAutoSizeStyle(_autoSize: boolean, width?: number, height?: number) {
+    setSize(autoSize?: boolean, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.parentElement.element;
-        if (width != null && height != null) {
-            style.width = `${width}px`;
-            style.height = `${height}px`;
-        } else {
-            style.width = '100%';
-            style.height = '100%';
-        }
+
+        style.width = optionsWidth != null ? `${optionsWidth}px` : '100%';
+        style.minWidth = optionsWidth != null || autoSize === true ? '' : '300px';
+        style.height = optionsHeight != null ? `${optionsHeight}px` : '100%';
+        style.minHeight = optionsHeight != null || autoSize === true ? '' : '300px';
     }
 
     setContainer(newContainer: HTMLElement) {

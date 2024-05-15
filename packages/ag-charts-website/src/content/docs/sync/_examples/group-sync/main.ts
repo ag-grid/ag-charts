@@ -3,6 +3,7 @@ import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-ent
 import { costsProductA, costsProductB, salesProductA, salesProductB } from './data';
 
 const commonOptions: AgCartesianChartOptions = {
+    autoSize: true,
     tooltip: {
         enabled: false,
     },

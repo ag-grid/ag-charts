@@ -2,8 +2,40 @@
 title: 'Layout Test'
 ---
 
-{% chartExampleRunner title="Basic Case" name="layout-basic" type="generated" /%}
+# Unstyled OOB
 
-{% chartExampleRunner title="Matrix of Test Cases" name="layout-matrix" type="generated" /%}
+-   Should render at 300px high and full width of example.
 
-{% chartExampleRunner title="Inline Test Cases" name="layout-inline" type="generated" /%}
+{% chartExampleRunner title="Unstyled OOB layout" name="layout-basic" type="generated" /%}
+
+# Unstyled fixed width/height
+
+-   Should render horizontally CENTERED at 400x300px in size.
+
+{% chartExampleRunner title="Unstyled fixed width/height layout" name="layout-fixed-size" type="generated" /%}
+
+# Styled fixed width
+
+-   Should render with width 500px and full height of example.
+
+{% chartExampleRunner title="Styled fixed width layout" name="layout-fixed-width" type="generated" /%}
+
+# Styled fixed height
+
+-   Should render with height 400px and full width of example.
+
+{% chartExampleRunner title="Styled fixed height layout" name="layout-fixed-height" type="generated" /%}
+
+# Unstyled autoSize: false
+
+-   Should render at canvas default size of 600x300px, horizontally centered.
+
+{% chartExampleRunner title="Unstyled autoSize: false layout" name="layout-fixed" type="generated" /%}
+
+# Matrix of DOM constrained vs. options constrained
+
+{% chartExampleRunner title="Matrix of layout test cases" name="layout-matrix" type="generated" /%}
+
+# Common inline app layouts
+
+{% chartExampleRunner title="Inline layout test cases" name="layout-inline" type="generated" /%}

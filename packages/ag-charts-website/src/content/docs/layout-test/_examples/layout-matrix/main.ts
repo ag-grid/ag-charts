@@ -4,6 +4,7 @@ import { AgCartesianChartOptions } from 'ag-charts-community';
 import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
+    autoSize: true,
     title: {
         text: "Apple's Revenue by Product Category",
     },
