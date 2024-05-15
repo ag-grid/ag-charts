@@ -1,4 +1,5 @@
 import type { FontSize, FontWeight, TextWrap } from '../../../options/chart/types';
+import type { LineMetrics } from '../../../util/textMeasurer';
 import type { CssColor, FontOptions, TextOptions } from '../../types/commonTypes';
 import { SpatialNode } from './spatialNode';
 
@@ -14,11 +15,19 @@ export class TextNode extends SpatialNode implements TextOptions, FontOptions {
     fontWeight?: FontWeight;
     fontStyle?: string;
 
-    override getBBox() {
-        return { x: 0, y: 0, width: 0, height: 0 };
+    protected textMetrics: LineMetrics = { width: 0, height: 0, offsetTop: 0, offsetLeft: 0, lineHeight: 1 };
+
+    hasContent() {
+        return Boolean(this.text);
     }
 
-    override getSize() {
-        return { width: 0, height: 0 };
+    getBBox() {
+        const { width, height, offsetTop, offsetLeft } = this.textMetrics;
+        return { x: offsetLeft, y: offsetTop, width, height };
+    }
+
+    getSize() {
+        const { width, height } = this.textMetrics;
+        return { width, height };
     }
 }

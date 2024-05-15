@@ -50,11 +50,9 @@ export class SceneGroup extends TreeNode implements CanvasContextProperties {
 
     withContextScope(ctx: CanvasRenderingContext2D, callback: WithCallback) {
         ctx.save();
-
         if (this.clipPath) {
             ctx.clip(this.clipPath);
         }
-
         applyContextOptions(ctx, this);
         callback(ctx, this);
         ctx.restore();
