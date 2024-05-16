@@ -270,6 +270,7 @@ export class Legend extends BaseProperties {
         this.proxyLegendToolbar.classList.add('ag-charts-proxy-legend-toolbar');
         this.proxyLegendToolbar.role = 'toolbar';
         this.proxyLegendToolbar.ariaLabel = 'Legend';
+        this.proxyLegendToolbar.style.pointerEvents = 'none';
     }
 
     public destroy() {
