@@ -113,7 +113,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 textContent: 'Minimum',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
-                onchange: (ev) => this.onSliderChange(ev, 1),
+                onchange: (ev) => this.onMinSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
@@ -121,10 +121,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 textContent: 'Maximum',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,
-                onchange: (ev) => this.onSliderChange(ev, 2),
+                onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];
-        this.onSliderChange;
         this.destroyFns.push(() => {
             this.proxyNavigatorElements.forEach((e) => e.remove());
             this.proxyNavigatorToolbar.remove();
@@ -269,25 +268,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.updateZoom();
     }
 
-    private onSliderChange(_event: Event, proxyIndex: 1 | 2) {
-        const { minRange, _min: min, _max: max } = this;
-        const slider = this.proxyNavigatorElements[proxyIndex];
-        const newRatio = this.getSliderRatio(slider);
-        const meta = (
-            [
-                { key: '_min', clampMin: 0, clampMax: max - minRange },
-                { key: '_max', clampMin: min + minRange, clampMax: 1 },
-            ] as const
-        )[proxyIndex - 1];
+    private onMinSliderChange(_event: Event) {
+        const slider = this.proxyNavigatorElements[1];
+        this._min = this.setSliderRatioClamped(slider, 0, this._max - this.minRange);
+        this.updateZoom();
+    }
 
-        // Clamp the user input:
-        const clampedRatio = clamp(meta.clampMin, newRatio, meta.clampMax);
-        if (clampedRatio !== newRatio) {
-            this.setSliderRatio(slider, clampedRatio);
-        }
-
-        // Update the zoom
-        this[meta.key] = clampedRatio;
+    private onMaxSliderChange(_event: Event) {
+        const slider = this.proxyNavigatorElements[2];
+        this._max = this.setSliderRatioClamped(slider, this._min + this.minRange, 1);
         this.updateZoom();
     }
 
@@ -298,6 +287,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         const maxFormat = formatPercentage(maxPercent);
         this.proxyNavigatorElements[0].value = `${minPercent}`;
         this.proxyNavigatorElements[0].ariaValueText = `${minFormat} - ${maxFormat}`;
+    }
+
+    private setSliderRatioClamped(slider: HTMLInputElement, clampMin: number, clampMax: number) {
+        const ratio = this.getSliderRatio(slider);
+        const clampedRatio = clamp(clampMin, ratio, clampMax);
+        if (clampedRatio !== ratio) {
+            this.setSliderRatio(slider, clampedRatio);
+        }
+        return clampedRatio;
     }
 
     private setSliderRatio(slider: HTMLInputElement, ratio: number) {
