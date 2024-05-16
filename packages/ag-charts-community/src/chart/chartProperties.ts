@@ -31,8 +31,11 @@ export class ChartProperties extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
     height?: number;
 
-    @Validate(BOOLEAN, { optional: true })
-    autoSize?: boolean;
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    minWidth?: number;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    minHeight?: number;
 
     @Validate(OBJECT)
     readonly title = new Caption();

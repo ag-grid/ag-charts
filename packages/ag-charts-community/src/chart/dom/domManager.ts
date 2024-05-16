@@ -161,13 +161,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setSize(autoSize?: boolean, optionsWidth?: number, optionsHeight?: number) {
+    setSize(minWidth: number = 0, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.parentElement.element;
 
         style.width = optionsWidth != null ? `${optionsWidth}px` : '100%';
-        style.minWidth = optionsWidth != null || autoSize === true ? '' : '300px';
+        style.minWidth = optionsWidth != null ? '' : `${minWidth}px`;
         style.height = optionsHeight != null ? `${optionsHeight}px` : '100%';
-        style.minHeight = optionsHeight != null || autoSize === true ? '' : '300px';
+        style.minHeight = optionsHeight != null ? '' : `${minHeight}px`;
     }
 
     setContainer(newContainer: HTMLElement) {

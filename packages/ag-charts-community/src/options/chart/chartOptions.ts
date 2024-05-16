@@ -147,13 +147,15 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** The height of the chart in pixels. */
     height?: PixelSize;
     /**
-     * By default (unset) the chart will assume a minimum size of 300x300 px, and grow with the container element.
-     *
-     * Set to true to remove the minimums (e.g. for use with a CSS-managed layout).
-     *
-     * Set to false to disable automatic sizing.
+     * Sets the minimum height of the chart.
+     * Default: `300`
      */
-    autoSize?: boolean;
+    minHeight?: boolean;
+    /**
+     * Sets the minimum width of the chart.
+     * Default: `0`
+     */
+    minWidth?: boolean;
     /** Configuration for the padding shown around the chart. */
     padding?: AgChartPaddingOptions;
     /** Configuration relating to the series area. */
