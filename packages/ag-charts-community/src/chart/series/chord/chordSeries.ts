@@ -307,8 +307,7 @@ export class ChordSeries extends DataModelSeries<
         nodeGraph.forEach(({ datum, linksBefore, linksAfter }) => {
             const midAngle = nodeMidAngle(datum);
 
-            let angle = datum.startAngle;
-            [
+            const combinedLinks = [
                 ...linksBefore.map(({ link, node }) => ({
                     link,
                     distance: angleBetween(nodeMidAngle(node.datum), midAngle),
@@ -319,7 +318,10 @@ export class ChordSeries extends DataModelSeries<
                     distance: angleBetween(nodeMidAngle(node.datum), midAngle),
                     after: true,
                 })),
-            ]
+            ];
+
+            let angle = datum.startAngle;
+            combinedLinks
                 .sort((a, b) => a.distance - b.distance)
                 .forEach(({ link, after }) => {
                     if (after) {

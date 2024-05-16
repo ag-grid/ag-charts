@@ -306,22 +306,32 @@ export class SankeySeries
             sizeScale,
         });
 
-        nodeGraph.forEach(({ datum: { y }, linksBefore, linksAfter }) => {
-            let y2 = y;
-            linksBefore
-                .sort((a, b) => a.node.datum.y - b.node.datum.y)
-                .forEach(({ link }) => {
-                    link.y2 = y2;
-                    y2 += link.size * seriesRectHeight * sizeScale;
+        const nodeMidY = (node: SankeyNodeDatum) => node.y + node.height / 2;
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+            const midY = nodeMidY(node);
+            const x = node.x;
+            const sortNodes = (l: typeof linksBefore) => {
+                return l.sort((a, b) => {
+                    const aMid = nodeMidY(a.node.datum);
+                    const bMid = nodeMidY(b.node.datum);
+                    return (
+                        Math.atan2(aMid - midY, Math.abs(a.node.datum.x - x)) -
+                        Math.atan2(bMid - midY, Math.abs(b.node.datum.x - x))
+                    );
                 });
+            };
 
-            let y1 = y;
-            linksAfter
-                .sort((a, b) => a.node.datum.y - b.node.datum.y)
-                .forEach(({ link }) => {
-                    link.y1 = y1;
-                    y1 += link.size * seriesRectHeight * sizeScale;
-                });
+            let y2 = node.y;
+            sortNodes(linksBefore).forEach(({ link }) => {
+                link.y2 = y2;
+                y2 += link.size * seriesRectHeight * sizeScale;
+            });
+
+            let y1 = node.y;
+            sortNodes(linksAfter).forEach(({ link }) => {
+                link.y1 = y1;
+                y1 += link.size * seriesRectHeight * sizeScale;
+            });
         });
 
         links.forEach(({ datum, fromNode, toNode, size, y1, y2 }) => {

@@ -115,14 +115,16 @@ export function layoutColumns(columns: Column<any>[], layout: Layout) {
         justifyNodesAcrossColumn(column, layout);
     });
 
+    let didLayoutColumnsBackwards = false;
     for (let i = 0; i < 6; i += 1) {
-        let didShift = false;
-        didShift = layoutColumnsForward(columns, layout, 1) || didShift;
-        didShift = layoutColumnsBackwards(columns, layout, 0.5) || didShift;
-        if (!didShift) {
+        const didLayoutColumnsForward = layoutColumnsForward(columns, layout, 1);
+        didLayoutColumnsBackwards = layoutColumnsBackwards(columns, layout, 0.5);
+        if (!didLayoutColumnsForward && !didLayoutColumnsBackwards) {
             break;
         }
     }
 
-    layoutColumnsForward(columns, layout, 1);
+    if (didLayoutColumnsBackwards) {
+        layoutColumnsForward(columns, layout, 1);
+    }
 }
