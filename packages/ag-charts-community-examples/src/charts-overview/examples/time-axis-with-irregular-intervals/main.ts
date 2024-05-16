@@ -20,7 +20,6 @@ const options: AgChartOptions = {
       line: { series: { strokeWidth: 3, marker: { enabled: false } } },
     },
   },
-  autoSize: true,
   title: {
     text: "Earthquake Magnitudes by Source",
     fontSize: 18,

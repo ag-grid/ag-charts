@@ -19,10 +19,13 @@ export class SizeMonitor {
     constructor() {
         if (typeof ResizeObserver === 'undefined') return;
 
-        this.resizeObserver = new ResizeObserver((entries: any) => {
-            for (const { target, contentRect } of entries) {
-                const { width, height } = contentRect;
-                this.checkSize(this.elements.get(target), target, width, height);
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const {
+                target,
+                contentRect: { width, height },
+            } of entries) {
+                const entry = this.elements.get(target as HTMLElement);
+                this.checkSize(entry, target as HTMLElement, width, height);
             }
         });
 

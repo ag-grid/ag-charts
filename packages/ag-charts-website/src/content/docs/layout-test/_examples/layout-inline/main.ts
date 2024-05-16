@@ -3,8 +3,8 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 // Chart Options
 const options: AgCartesianChartOptions = {
+    minHeight: 0,
     container: document.getElementById('myChart'),
-    autoSize: true,
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
         { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302000 },

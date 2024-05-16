@@ -6,7 +6,6 @@ const numFormatter = new Intl.NumberFormat("en-US")
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   title: {
     text: "Religions of London Population",
     fontSize: 18,

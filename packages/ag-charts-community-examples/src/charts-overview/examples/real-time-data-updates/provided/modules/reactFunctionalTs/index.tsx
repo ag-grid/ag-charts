@@ -7,7 +7,6 @@ import { AgChartsReact } from 'ag-charts-react';
 const ChartExample = () => {
     const chartRef = useRef<AgChartsReact>(null);
     const [options, setOptions] = useState<AgCartesianChartOptions>({
-        autoSize: true,
         data: getData(),
         theme: {
             palette: {

@@ -4,7 +4,6 @@ import { getData } from "./data"
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data: getData(),
   title: {
     text: "Change in Number of Jobs in UK\n(June to September)",

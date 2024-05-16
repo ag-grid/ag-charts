@@ -3,7 +3,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { AAPL, MSFT } from './data';
 
 const commonOptions: AgChartOptions = {
-    autoSize: true,
+    minHeight: 0,
     series: [
         {
             type: 'line',

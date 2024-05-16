@@ -98,7 +98,6 @@ describe('Chart', () => {
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
-                autoSize: false,
                 series: [
                     {
                         tooltip,
@@ -537,7 +536,6 @@ describe('Chart', () => {
         beforeEach(async () => {
             const options: AgCartesianChartOptions | AgPolarChartOptions = prepareTestOptions({
                 container: document.body,
-                autoSize: false,
                 series: [
                     {
                         type: 'line',
@@ -578,7 +576,6 @@ describe('Chart', () => {
         it('should cleanup DOM on chart-type switch', async () => {
             const options: AgCartesianChartOptions | AgPolarChartOptions = prepareTestOptions({
                 container: document.body,
-                autoSize: false,
                 series: [
                     {
                         type: 'pie',
