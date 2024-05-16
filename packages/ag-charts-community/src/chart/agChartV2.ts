@@ -15,22 +15,22 @@ import { AgChartInstanceProxy } from './chartProxy';
 import { ChartUpdateType } from './chartUpdateType';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { setupModules } from './factory/setupModules';
+import { FlowProportionChart } from './flowProportionChart';
 import { HierarchyChart } from './hierarchyChart';
 import {
     isAgCartesianChartOptions,
+    isAgFlowProportionChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
-    isAgSankeyChartOptions,
     isAgTopologyChartOptions,
 } from './mapping/types';
 import { MementoCaretaker } from './memento';
 import { PolarChart } from './polarChart';
-import { SankeyChart } from './sankeyChart';
 import { TopologyChart } from './topologyChart';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'sankey' {
+function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
@@ -39,6 +39,8 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topolog
         return 'hierarchy';
     } else if (isAgTopologyChartOptions(options)) {
         return 'topology';
+    } else if (isAgFlowProportionChartOptions(options)) {
+        return 'flow-proportion';
     }
 
     throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
@@ -313,8 +315,8 @@ class AgChartsInternal {
             return PolarChart;
         } else if (isAgTopologyChartOptions(options)) {
             return TopologyChart;
-        } else if (isAgSankeyChartOptions(options)) {
-            return SankeyChart;
+        } else if (isAgFlowProportionChartOptions(options)) {
+            return FlowProportionChart;
         }
 
         throw new Error(

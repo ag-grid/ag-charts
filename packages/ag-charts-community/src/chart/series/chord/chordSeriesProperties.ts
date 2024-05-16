@@ -1,11 +1,9 @@
 import type {
-    AgSankeySeriesFormatterParams,
-    AgSankeySeriesLinkOptions,
-    AgSankeySeriesLinkStyle,
-    AgSankeySeriesNodeOptions,
-    AgSankeySeriesOptions,
-    AgSankeySeriesTooltipRendererParams,
-} from '../../../options/series/flow-proportion/sankeyOptions';
+    AgChordSeriesFormatterParams,
+    AgChordSeriesLinkStyle,
+    AgChordSeriesOptions,
+    AgChordSeriesTooltipRendererParams,
+} from '../../../options/series/flow-proportion/chordOptions';
 import { BaseProperties } from '../../../util/properties';
 import {
     ARRAY,
@@ -23,7 +21,7 @@ import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
-export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
+export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
@@ -46,15 +44,12 @@ export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLink
     lineDashOffset: number = 0;
 }
 
-export class ChordSeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
+export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 
     @Validate(POSITIVE_NUMBER)
-    width: number = 1;
-
-    @Validate(STRING)
-    justify: 'left' | 'right' | 'center' | 'justify' = 'justify';
+    height: number = 1;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
@@ -77,7 +72,8 @@ export class ChordSeriesNodeProperties extends BaseProperties<AgSankeySeriesNode
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 }
-export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
+
+export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {
     @Validate(STRING)
     fromIdKey: string = '';
 
@@ -130,8 +126,8 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly node = new ChordSeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgSankeySeriesFormatterParams<any>) => AgSankeySeriesLinkStyle;
+    formatter?: (params: AgChordSeriesFormatterParams<any>) => AgChordSeriesLinkStyle;
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams>();
 }

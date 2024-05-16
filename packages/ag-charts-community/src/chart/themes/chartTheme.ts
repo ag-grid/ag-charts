@@ -73,8 +73,8 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get topology(): ChartTypeConfig {
         return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
     },
-    get sankey(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
+    get 'flow-proportion'(): ChartTypeConfig {
+        return { seriesTypes: chartTypes.flowProportionTypes, commonOptions: [] };
     },
 };
 
@@ -319,7 +319,7 @@ export class ChartTheme {
             getOverridesByType('polar', chartTypes.polarTypes),
             getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
             getOverridesByType('topology', chartTypes.topologyTypes),
-            getOverridesByType('sankey', chartTypes.sankeyTypes)
+            getOverridesByType('flow-proportion', chartTypes.flowProportionTypes)
         );
     }
 

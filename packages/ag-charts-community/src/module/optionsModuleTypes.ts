@@ -2,9 +2,9 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { AgCartesianSeriesOptions } from '../options/series/cartesian/cartesianSeriesTypes';
+import type { AgFlowProportionSeriesOptions } from '../options/series/flow-proportion/flowProportionOptions';
 import type { AgHierarchySeriesOptions } from '../options/series/hierarchy/hierarchyOptions';
 import type { AgPolarSeriesOptions } from '../options/series/polar/polarOptions';
-import type { AgSankeySeriesOptions } from '../options/series/sankey/sankeyOptions';
 import type { AgTopologySeriesOptions } from '../options/series/topology/topologyOptions';
 import type { ScaleType } from '../scale/scale';
 import type { Point } from '../scene/point';
@@ -18,7 +18,7 @@ export type SeriesType = NonNullable<
     | AgPolarSeriesOptions['type']
     | AgHierarchySeriesOptions['type']
     | AgTopologySeriesOptions['type']
-    | AgSankeySeriesOptions['type']
+    | AgFlowProportionSeriesOptions['type']
 >;
 
 export interface SeriesOptionInstance extends ModuleInstance {

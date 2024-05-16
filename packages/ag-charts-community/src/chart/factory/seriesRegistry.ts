@@ -4,9 +4,9 @@ import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import type {
     AgCartesianSeriesOptions,
+    AgFlowProportionSeriesOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
-    AgSankeySeriesOptions,
 } from '../../options/agChartOptions';
 import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
 import type { AgTopologySeriesOptions } from '../../options/series/topology/topologyOptions';
@@ -21,7 +21,7 @@ export type SeriesOptions =
     | AgPolarSeriesOptions
     | AgHierarchySeriesOptions
     | AgTopologySeriesOptions
-    | AgSankeySeriesOptions;
+    | AgFlowProportionSeriesOptions;
 
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
