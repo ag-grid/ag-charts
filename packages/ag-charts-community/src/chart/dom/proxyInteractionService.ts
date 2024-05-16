@@ -1,6 +1,7 @@
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';
+import type { UpdateService } from '../updateService';
 import type { FocusIndicator } from './focusIndicator';
 
 type ProxyTypeMap = {
@@ -16,6 +17,7 @@ type ProxyParams<T extends keyof ProxyTypeMap> = {
     readonly parent: HTMLElement;
     readonly focusable: BBoxProvider<BBoxValues>;
     readonly onclick?: (ev: MouseEvent) => void;
+    readonly onchange?: (ev: Event) => void;
 };
 
 function check<T extends keyof ProxyTypeMap>(
@@ -29,8 +31,20 @@ export class ProxyInteractionService {
     // This debug option make the proxies button partially transparent instead of fully transparent.
     // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
     private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
+    private focusable?: BBoxProvider<BBoxValues>;
 
-    constructor(private readonly focusIndicator: FocusIndicator) {}
+    constructor(
+        updateService: UpdateService,
+        private readonly focusIndicator: FocusIndicator
+    ) {
+        updateService.addListener('update-complete', () => this.update());
+    }
+
+    private update() {
+        if (this.focusable) {
+            this.focusIndicator.updateBBox(this.focusable.getCachedBBox());
+        }
+    }
 
     private createDivWithRole(role: 'scrollbar') {
         const input = createElement('div');
@@ -79,17 +93,22 @@ export class ProxyInteractionService {
         params: ProxyParams<T>,
         element: TElem
     ) {
-        const { focusable, onclick } = params;
+        const { focusable, onclick, onchange } = params;
         element.addEventListener('focus', (_event: FocusEvent): any => {
+            this.focusable = focusable;
             element.style.setProperty('pointerEvents', null);
             this.focusIndicator.updateBBox(focusable.getCachedBBox());
         });
         element.addEventListener('blur', (_event: FocusEvent): any => {
+            this.focusable = undefined;
             element.style.pointerEvents = 'none';
             this.focusIndicator.updateBBox(undefined);
         });
         if (onclick) {
             element.addEventListener('click', onclick);
+        }
+        if (onchange) {
+            element.addEventListener('change', onchange);
         }
     }
 }
