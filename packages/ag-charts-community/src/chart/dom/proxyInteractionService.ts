@@ -55,7 +55,7 @@ export class ProxyInteractionService {
         return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
     }
 
-    createProxyElement<T extends keyof ProxyMeta>(args: ProxyMeta[T]['params']): ProxyMeta[T]['result'] {
+    createProxyElement<T extends keyof ProxyMeta>(args: BaseProxyParams<T> & ProxyMeta[T]['params']): ProxyMeta[T]['result'] {
         const meta: ProxyMeta[T] = this.allocateMeta(args);
 
         if (checkType('button', meta)) {
