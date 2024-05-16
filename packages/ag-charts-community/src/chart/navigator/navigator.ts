@@ -107,14 +107,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 focusable: this.maskVisibleRange,
             }),
             this.ctx.proxyInteractionService.createProxyElement({
-                type: 'div-slider',
+                type: 'slider',
                 id: 'ag-charts-navigator-min',
                 textContent: 'Minimum',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
             }),
             this.ctx.proxyInteractionService.createProxyElement({
-                type: 'div-slider',
+                type: 'slider',
                 id: 'ag-charts-navigator-max',
                 textContent: 'Maximum',
                 parent: this.proxyNavigatorToolbar,

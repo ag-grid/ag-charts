@@ -5,7 +5,7 @@ import type { FocusIndicator } from './focusIndicator';
 
 type ProxyTypeMap = {
     button: HTMLButtonElement;
-    'div-slider': HTMLDivElement;
+    slider: HTMLInputElement;
     'div-scrollbar': HTMLDivElement;
 };
 
@@ -32,7 +32,7 @@ export class ProxyInteractionService {
 
     constructor(private readonly focusIndicator: FocusIndicator) {}
 
-    private createDivWithRole(role: 'slider' | 'scrollbar') {
+    private createDivWithRole(role: 'scrollbar') {
         const input = createElement('div');
         input.role = role;
         input.tabIndex = 0;
@@ -42,11 +42,18 @@ export class ProxyInteractionService {
         return input;
     }
 
+    private createSlider() {
+        const input = createElement('input');
+        input.type = 'range';
+        input.style.margin = '0px';
+        return input;
+    }
+
     createProxyElement<T extends keyof ProxyTypeMap>(params: ProxyParams<T>): ProxyTypeMap[T] {
         if (check(params, 'button')) {
             return this.initElement(params, createElement('button'));
-        } else if (check(params, 'div-slider')) {
-            return this.initElement(params, this.createDivWithRole('slider'));
+        } else if (check(params, 'slider')) {
+            return this.initElement(params, this.createSlider());
         } else if (check(params, 'div-scrollbar')) {
             return this.initElement(params, this.createDivWithRole('scrollbar'));
         } else {
