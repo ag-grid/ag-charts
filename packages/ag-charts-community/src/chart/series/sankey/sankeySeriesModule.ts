@@ -14,6 +14,11 @@ export const SankeySeriesModule: SeriesModule<'sankey'> = {
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
+            highlightStyle: {
+                series: {
+                    dimOpacity: 0.2,
+                },
+            },
             node: {
                 spacing: 20,
                 width: 10,

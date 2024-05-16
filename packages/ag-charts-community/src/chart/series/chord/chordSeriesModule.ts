@@ -14,6 +14,11 @@ export const ChordSeriesModule: SeriesModule<'chord'> = {
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
+            highlightStyle: {
+                series: {
+                    dimOpacity: 0.2,
+                },
+            },
             node: {
                 spacing: 20,
                 height: 10,
