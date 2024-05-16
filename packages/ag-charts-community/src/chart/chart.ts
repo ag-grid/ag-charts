@@ -1597,6 +1597,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             'navigator.miniChart.label',
             'axes',
             'topology',
+            'nodes',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added

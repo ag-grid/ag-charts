@@ -14,6 +14,9 @@ import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rang
 import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/rangeBarOptions';
 import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
+import type { AgChordSeriesThemeableOptions } from '../series/flow-proportion/chordOptions';
+import type { AgBaseFlowProportionThemeOptions } from '../series/flow-proportion/flowProportionOptions';
+import type { AgSankeySeriesOptions, AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
@@ -25,11 +28,6 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
-import type {
-    AgBaseSankeyThemeOptions,
-    AgSankeySeriesOptions,
-    AgSankeySeriesThemeableOptions,
-} from '../series/sankey/sankeyOptions';
 import type { AgMapLineBackgroundThemeableOptions } from '../series/topology/mapLineBackgroundOptions';
 import type { AgMapLineSeriesThemeableOptions } from '../series/topology/mapLineOptions';
 import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
@@ -161,8 +159,11 @@ export interface AgMapShapeBackgroundThemeOverrides extends AgBaseTopologyThemeO
 export interface AgMapLineBackgroundThemeOverrides extends AgBaseTopologyThemeOptions {
     series?: AgMapLineBackgroundThemeableOptions;
 }
-export interface AgSankeyThemeOverrides extends AgBaseSankeyThemeOptions {
+export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgSankeySeriesThemeableOptions;
+}
+export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
+    series?: AgChordSeriesThemeableOptions;
 }
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
@@ -204,7 +205,7 @@ export interface AgChartThemeOverrides {
     'range-area'?: AgRangeAreaSeriesThemeOverrides;
     /** Bullet series theme overrides. */
     bullet?: AgBulletSeriesThemeOverrides;
-    /** Pie series theme overrides. */
+    /** Donut series theme overrides. */
     donut?: AgDonutSeriesThemeOverrides;
     /** Pie series theme overrides. */
     pie?: AgPieSeriesThemeOverrides;
@@ -234,6 +235,8 @@ export interface AgChartThemeOverrides {
     'map-line-background'?: AgMapLineBackgroundThemeOverrides;
     /** sankey series theme overrides. */
     sankey?: AgSankeyThemeOverrides;
+    /** sankey series theme overrides. */
+    chord?: AgChordThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually

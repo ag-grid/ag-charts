@@ -9,7 +9,7 @@ export interface ModuleInstance {
     destroy(): void;
 }
 
-export type ChartTypes = 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'sankey';
+export type ChartTypes = 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion';
 
 export interface BaseModule<T extends ChartTypes = ChartTypes> {
     optionsKey: string;

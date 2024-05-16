@@ -517,7 +517,7 @@ export class Sector extends Path {
 
         const { startAngle, endAngle, innerRadius, outerRadius } = this.clipSector ?? this;
 
-        return isPointInSector(point.x, point.y, {
+        return isPointInSector(point.x - this.centerX, point.y - this.centerY, {
             startAngle,
             endAngle,
             innerRadius: Math.min(innerRadius, outerRadius),

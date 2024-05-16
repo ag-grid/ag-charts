@@ -1,22 +1,22 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
-import { SankeySeries } from './sankeySeries';
+import { ChordSeries } from './chordSeries';
 
-export const SankeySeriesModule: SeriesModule<'sankey'> = {
+export const ChordSeriesModule: SeriesModule<'chord'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',
     chartTypes: ['flow-proportion'],
 
-    identifier: 'sankey',
-    instanceConstructor: SankeySeries,
+    identifier: 'chord',
+    instanceConstructor: ChordSeries,
 
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             node: {
                 spacing: 20,
-                width: 10,
+                height: 10,
                 strokeWidth: 0,
             },
             link: {
