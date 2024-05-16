@@ -4,8 +4,8 @@ export abstract class BaseScale<D, R> implements IScale<D, R> {
     protected sortCompare?: (a: D, b: D) => number;
 
     constructor(
-        public domain: D[],
-        public range: R[]
+        public readonly domain: D[],
+        public readonly range: R[]
     ) {
         domain.sort(this.sortCompare);
     }
