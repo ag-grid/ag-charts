@@ -66,7 +66,7 @@ export function countFractionDigits(value: number, maximumFractionDigits = 10) {
  * @param locale The locale to use to format the number.
  */
 export function formatNormalizedPercentage(ratio: number, locale?: string) {
-    locale = locale || navigator.language;
+    locale = locale ?? navigator.language;
     return new Intl.NumberFormat(locale, { style: 'percent' }).format(ratio);
 }
 
