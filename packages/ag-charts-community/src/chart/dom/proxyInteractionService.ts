@@ -69,6 +69,7 @@ export class ProxyInteractionService {
             this.initElement(params, slider);
             slider.type = 'range';
             slider.style.margin = '0px';
+            slider.ariaLabel = params.ariaLabel;
         }
 
         return meta.result;
