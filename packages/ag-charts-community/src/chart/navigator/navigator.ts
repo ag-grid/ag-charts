@@ -93,7 +93,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         this.proxyNavigatorToolbar = this.ctx.domManager.addChild('canvas-overlay', `navigator-toolbar`);
         this.proxyNavigatorToolbar.classList.add('ag-charts-proxy-navigator-toolbar');
-        this.proxyNavigatorToolbar.role = 'toolbar';
+        this.proxyNavigatorToolbar.role = 'scrollbar';
+        this.proxyNavigatorToolbar.ariaOrientation = 'horizontal';
         this.proxyNavigatorToolbar.ariaLabel = 'Navigator';
         this.proxyNavigatorToolbar.style.pointerEvents = 'none';
         this.updateGroupVisibility();
