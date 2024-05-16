@@ -1,14 +1,14 @@
-interface Link {
+export interface Link {
     fromId: string;
     toId: string;
 }
 
-interface LinkedNode<T, L extends Link> {
-    node: NodePathLengthEntry<T, L>;
+export interface LinkedNode<T, L extends Link> {
+    node: NodeGraphEntry<T, L>;
     link: L;
 }
 
-export interface NodePathLengthEntry<T, L extends Link> {
+export interface NodeGraphEntry<T, L extends Link> {
     datum: T;
     linksBefore: LinkedNode<T, L>[];
     linksAfter: LinkedNode<T, L>[];
@@ -21,7 +21,7 @@ export function computeNodeGraph<T, L extends Link>(
     links: L[],
     allowCircularReferences: boolean
 ) {
-    const nodeGraph = new Map<string, NodePathLengthEntry<T, L>>();
+    const nodeGraph = new Map<string, NodeGraphEntry<T, L>>();
     for (const [id, datum] of nodes) {
         nodeGraph.set(id, { datum, linksBefore: [], linksAfter: [], maxPathLengthBefore: -1, maxPathLengthAfter: -1 });
     }
@@ -41,9 +41,9 @@ export function computeNodeGraph<T, L extends Link>(
 }
 
 function computePathLength<T, L extends Link>(
-    nodeGraph: Map<string, NodePathLengthEntry<T, L>>,
+    nodeGraph: Map<string, NodeGraphEntry<T, L>>,
     links: L[],
-    node: NodePathLengthEntry<T, L>,
+    node: NodeGraphEntry<T, L>,
     id: string,
     direction: -1 | 1,
     stack: string[] | undefined

@@ -397,96 +397,64 @@ export class ChordSeries extends DataModelSeries<
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
-        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
-        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
-
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
+        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
+        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+
+        let focusLinkSelection: ChordLinkDatum[];
+        let focusNodeSelection: ChordNodeDatum[];
+        let highlightLinkSelection: ChordLinkDatum[];
+        let highlightNodeSelection: ChordNodeDatum[];
         if (highlightedDatum?.type === ChordDatumType.Node) {
-            const focusLinks = nodeData.filter((node): node is ChordLinkDatum => {
+            focusLinkSelection = nodeData.filter((node): node is ChordLinkDatum => {
                 return (
                     node.type === ChordDatumType.Link &&
                     (node.toNode === highlightedDatum || node.fromNode === highlightedDatum)
                 );
             });
-            const focusNodes = focusLinks.map((link) => {
+            focusNodeSelection = focusLinkSelection.map((link) => {
                 return link.fromNode === highlightedDatum ? link.toNode : link.fromNode;
             });
-            focusNodes.push(highlightedDatum);
-
-            this.focusNodeSelection = await this.updateNodeSelection({
-                nodeData: focusNodes,
-                datumSelection: this.focusNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-            this.focusLinkSelection = await this.updateLinkSelection({
-                nodeData: focusLinks,
-                datumSelection: this.focusLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-            this.highlightNodeSelection = await this.updateNodeSelection({
-                nodeData: [highlightedDatum],
-                datumSelection: this.highlightNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-
-            this.highlightLinkSelection = await this.updateLinkSelection({
-                nodeData: [],
-                datumSelection: this.highlightLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+            focusNodeSelection.push(highlightedDatum);
+            highlightLinkSelection = [];
+            highlightNodeSelection = [highlightedDatum];
         } else if (highlightedDatum?.type === ChordDatumType.Link) {
-            this.focusNodeSelection = await this.updateNodeSelection({
-                nodeData: [highlightedDatum.fromNode, highlightedDatum.toNode],
-                datumSelection: this.focusNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-            this.focusLinkSelection = await this.updateLinkSelection({
-                nodeData: [highlightedDatum],
-                datumSelection: this.focusLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-            this.highlightNodeSelection = await this.updateNodeSelection({
-                nodeData: [],
-                datumSelection: this.highlightNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-
-            this.highlightLinkSelection = await this.updateLinkSelection({
-                nodeData: [highlightedDatum],
-                datumSelection: this.highlightLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+            focusLinkSelection = [highlightedDatum];
+            focusNodeSelection = [highlightedDatum.fromNode, highlightedDatum.toNode];
+            highlightLinkSelection = [highlightedDatum];
+            highlightNodeSelection = [];
         } else {
-            this.focusNodeSelection = await this.updateNodeSelection({
-                nodeData: [],
-                datumSelection: this.focusNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-            this.focusLinkSelection = await this.updateLinkSelection({
-                nodeData: [],
-                datumSelection: this.focusLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-            this.highlightNodeSelection = await this.updateNodeSelection({
-                nodeData: [],
-                datumSelection: this.highlightNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-
-            this.highlightLinkSelection = await this.updateLinkSelection({
-                nodeData: [],
-                datumSelection: this.highlightLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+            focusLinkSelection = [];
+            focusNodeSelection = [];
+            highlightLinkSelection = [];
+            highlightNodeSelection = [];
         }
+
+        this.focusLinkSelection = await this.updateLinkSelection({
+            nodeData: focusLinkSelection,
+            datumSelection: this.focusLinkSelection,
+        });
+        await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
+
+        this.focusNodeSelection = await this.updateNodeSelection({
+            nodeData: focusNodeSelection,
+            datumSelection: this.focusNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
+
+        this.highlightLinkSelection = await this.updateLinkSelection({
+            nodeData: highlightLinkSelection,
+            datumSelection: this.highlightLinkSelection,
+        });
+        await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+
+        this.highlightNodeSelection = await this.updateNodeSelection({
+            nodeData: highlightNodeSelection,
+            datumSelection: this.highlightNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
     }
 
     private async updateNodeSelection(opts: {

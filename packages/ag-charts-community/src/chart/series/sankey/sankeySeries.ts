@@ -23,43 +23,17 @@ import {
     keyProperty,
     valueProperty,
 } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import { layoutColumns } from './sankeyLayout';
 import { SankeyLink } from './sankeyLink';
-import { SankeySeriesProperties } from './sankeySeriesProperties';
-import { computeNodeGraph } from './sankeyUtil';
-
-enum SankeyDatumType {
-    Link,
-    Node,
-}
-interface SankeyLinkDatum extends SeriesNodeDatum {
-    type: SankeyDatumType.Link;
-    fromNode: SankeyNodeDatum;
-    toNode: SankeyNodeDatum;
-    size: number;
-    x1: number;
-    x2: number;
-    y1: number;
-    y2: number;
-    height: number;
-}
-
-interface SankeyNodeDatum extends SeriesNodeDatum {
-    type: SankeyDatumType.Node;
-    id: string;
-    label: string | undefined;
-    size: number;
-    fill: string;
-    stroke: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
-
-interface SankeyNodeLabelDatum {}
+import {
+    type SankeyDatum,
+    SankeyDatumType,
+    type SankeyLinkDatum,
+    type SankeyNodeDatum,
+    type SankeyNodeLabelDatum,
+    SankeySeriesProperties,
+} from './sankeySeriesProperties';
+import { type NodeGraphEntry, computeNodeGraph } from './sankeyUtil';
 
 export interface SankeyNodeDataContext extends SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
 
@@ -267,7 +241,7 @@ export class SankeySeries
         const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById, links, false);
 
         type Column = {
-            nodes: SankeyNodeDatum[];
+            nodes: NodeGraphEntry<SankeyNodeDatum, (typeof links)[0]>[];
             size: number;
             readonly x: number;
         };
@@ -277,7 +251,8 @@ export class SankeySeries
             columns.push({ size: 0, nodes: [], x });
         }
 
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter }) => {
+        nodeGraph.forEach((graphNode) => {
+            const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
             const size = Math.max(
                 node.size,
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0),
@@ -316,25 +291,19 @@ export class SankeySeries
 
             node.x = column.x;
             node.size = size;
-            column.nodes.push(node);
+            column.nodes.push(graphNode);
             column.size += size;
         });
 
-        const maximumSizeScale = columns.reduce((acc, { size, nodes }) => {
-            const sizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
-            return Math.min(acc, sizeScale);
+        const sizeScale = columns.reduce((acc, { size, nodes }) => {
+            const columnSizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
+            return Math.min(acc, columnSizeScale);
         }, Infinity);
 
-        columns.forEach(({ nodes, size }) => {
-            const nodesHeight = seriesRectHeight * size * maximumSizeScale;
-            const outerPadding = (seriesRectHeight - (nodesHeight + nodeSpacing * (nodes.length - 1))) / 2;
-            let y = outerPadding;
-            nodes.forEach((node) => {
-                const height = seriesRectHeight * node.size * maximumSizeScale;
-                node.y = y;
-                node.height = height;
-                y += height + nodeSpacing;
-            });
+        layoutColumns(columns, {
+            seriesRectHeight,
+            nodeSpacing,
+            sizeScale,
         });
 
         nodeGraph.forEach(({ datum: { y }, linksBefore, linksAfter }) => {
@@ -343,7 +312,7 @@ export class SankeySeries
                 .sort((a, b) => a.node.datum.y - b.node.datum.y)
                 .forEach(({ link }) => {
                     link.y2 = y2;
-                    y2 += link.size * seriesRectHeight * maximumSizeScale;
+                    y2 += link.size * seriesRectHeight * sizeScale;
                 });
 
             let y1 = y;
@@ -351,12 +320,12 @@ export class SankeySeries
                 .sort((a, b) => a.node.datum.y - b.node.datum.y)
                 .forEach(({ link }) => {
                     link.y1 = y1;
-                    y1 += link.size * seriesRectHeight * maximumSizeScale;
+                    y1 += link.size * seriesRectHeight * sizeScale;
                 });
         });
 
         links.forEach(({ datum, fromNode, toNode, size, y1, y2 }) => {
-            const height = seriesRectHeight * size * maximumSizeScale;
+            const height = seriesRectHeight * size * sizeScale;
             const x1 = fromNode.x + nodeWidth;
             const x2 = toNode.x;
 
@@ -417,96 +386,64 @@ export class SankeySeries
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
-        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
-        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
-
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
+        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
+        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+
+        let focusLinkSelection: SankeyLinkDatum[];
+        let focusNodeSelection: SankeyNodeDatum[];
+        let highlightLinkSelection: SankeyLinkDatum[];
+        let highlightNodeSelection: SankeyNodeDatum[];
         if (highlightedDatum?.type === SankeyDatumType.Node) {
-            const focusLinks = nodeData.filter((node): node is SankeyLinkDatum => {
+            focusLinkSelection = nodeData.filter((node): node is SankeyLinkDatum => {
                 return (
                     node.type === SankeyDatumType.Link &&
                     (node.toNode === highlightedDatum || node.fromNode === highlightedDatum)
                 );
             });
-            const focusNodes = focusLinks.map((link) => {
+            focusNodeSelection = focusLinkSelection.map((link) => {
                 return link.fromNode === highlightedDatum ? link.toNode : link.fromNode;
             });
-            focusNodes.push(highlightedDatum);
-
-            this.focusNodeSelection = await this.updateNodeSelection({
-                nodeData: focusNodes,
-                datumSelection: this.focusNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-            this.focusLinkSelection = await this.updateLinkSelection({
-                nodeData: focusLinks,
-                datumSelection: this.focusLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-            this.highlightNodeSelection = await this.updateNodeSelection({
-                nodeData: [highlightedDatum],
-                datumSelection: this.highlightNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-
-            this.highlightLinkSelection = await this.updateLinkSelection({
-                nodeData: [],
-                datumSelection: this.highlightLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+            focusNodeSelection.push(highlightedDatum);
+            highlightLinkSelection = [];
+            highlightNodeSelection = [highlightedDatum];
         } else if (highlightedDatum?.type === SankeyDatumType.Link) {
-            this.focusNodeSelection = await this.updateNodeSelection({
-                nodeData: [highlightedDatum.fromNode, highlightedDatum.toNode],
-                datumSelection: this.focusNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-            this.focusLinkSelection = await this.updateLinkSelection({
-                nodeData: [highlightedDatum],
-                datumSelection: this.focusLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-            this.highlightNodeSelection = await this.updateNodeSelection({
-                nodeData: [],
-                datumSelection: this.highlightNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-
-            this.highlightLinkSelection = await this.updateLinkSelection({
-                nodeData: [highlightedDatum],
-                datumSelection: this.highlightLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+            focusLinkSelection = [highlightedDatum];
+            focusNodeSelection = [highlightedDatum.fromNode, highlightedDatum.toNode];
+            highlightLinkSelection = [highlightedDatum];
+            highlightNodeSelection = [];
         } else {
-            this.focusNodeSelection = await this.updateNodeSelection({
-                nodeData: [],
-                datumSelection: this.focusNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-            this.focusLinkSelection = await this.updateLinkSelection({
-                nodeData: [],
-                datumSelection: this.focusLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-            this.highlightNodeSelection = await this.updateNodeSelection({
-                nodeData: [],
-                datumSelection: this.highlightNodeSelection,
-            });
-            await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-
-            this.highlightLinkSelection = await this.updateLinkSelection({
-                nodeData: [],
-                datumSelection: this.highlightLinkSelection,
-            });
-            await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+            focusLinkSelection = [];
+            focusNodeSelection = [];
+            highlightLinkSelection = [];
+            highlightNodeSelection = [];
         }
+
+        this.focusLinkSelection = await this.updateLinkSelection({
+            nodeData: focusLinkSelection,
+            datumSelection: this.focusLinkSelection,
+        });
+        await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
+
+        this.focusNodeSelection = await this.updateNodeSelection({
+            nodeData: focusNodeSelection,
+            datumSelection: this.focusNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
+
+        this.highlightLinkSelection = await this.updateLinkSelection({
+            nodeData: highlightLinkSelection,
+            datumSelection: this.highlightLinkSelection,
+        });
+        await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+
+        this.highlightNodeSelection = await this.updateNodeSelection({
+            nodeData: highlightNodeSelection,
+            datumSelection: this.highlightNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
     }
 
     private async updateNodeSelection(opts: {
