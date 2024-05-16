@@ -4,26 +4,31 @@ import { createElement } from '../../util/dom';
 import type { UpdateService } from '../updateService';
 import type { FocusIndicator } from './focusIndicator';
 
-type ProxyTypeMap = {
-    button: HTMLButtonElement;
-    slider: HTMLInputElement;
-};
-
-type ProxyParams<T extends keyof ProxyTypeMap> = {
+type BaseProxyParams<T extends keyof ProxyMeta> = {
     readonly type: T;
     readonly id: string;
-    readonly textContent: string;
     readonly parent: HTMLElement;
     readonly focusable: BBoxProvider<BBoxValues>;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
 };
 
-function check<T extends keyof ProxyTypeMap>(
-    params: ProxyParams<keyof ProxyTypeMap>,
-    type: T
-): params is ProxyParams<T> {
-    return params.type === type;
+type ProxyMeta = {
+    button: {
+        params: BaseProxyParams<'button'> & { readonly textContent: string };
+        result: HTMLButtonElement;
+    };
+    slider: {
+        params: BaseProxyParams<'slider'> & { readonly ariaLabel: string };
+        result: HTMLInputElement;
+    };
+};
+
+function checkType<T extends keyof ProxyMeta>(
+    type: T,
+    meta: Pick<ProxyMeta[keyof ProxyMeta], 'params'>
+): meta is Pick<ProxyMeta[T], 'params'> {
+    return meta.params?.type === type;
 }
 
 export class ProxyInteractionService {
@@ -45,42 +50,43 @@ export class ProxyInteractionService {
         }
     }
 
-    private createSlider() {
-        const input = createElement('input');
-        input.type = 'range';
-        input.style.margin = '0px';
-        return input;
+    private allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']): ProxyMeta[T] {
+        const map = { button: 'button', slider: 'input' } as const;
+        return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
     }
 
-    createProxyElement<T extends keyof ProxyTypeMap>(params: ProxyParams<T>): ProxyTypeMap[T] {
-        if (check(params, 'button')) {
-            return this.initElement(params, createElement('button'));
-        } else if (check(params, 'slider')) {
-            return this.initElement(params, this.createSlider());
-        } else {
-            throw new Error(`unexpected type [${params.type}]`);
+    createProxyElement<T extends keyof ProxyMeta>(args: ProxyMeta[T]['params']): ProxyMeta[T]['result'] {
+        const meta: ProxyMeta[T] = this.allocateMeta(args);
+
+        if (checkType('button', meta)) {
+            const { params, result: button } = meta;
+            this.initElement(params, button);
+            button.textContent = params.textContent;
         }
+
+        if (checkType('slider', meta)) {
+            const { params, result: slider } = meta;
+            this.initElement(params, slider);
+            slider.type = 'range';
+            slider.style.margin = '0px';
+        }
+
+        return meta.result;
     }
 
-    private initElement<T extends keyof ProxyTypeMap>(params: ProxyParams<T>, element: ProxyTypeMap[T]) {
-        const { id, parent, textContent } = params;
+    private initElement<T extends keyof ProxyMeta, TElem extends HTMLElement>(
+        params: ProxyMeta[T]['params'],
+        element: TElem
+    ) {
+        const { focusable, onclick, onchange, id, parent } = params;
 
         element.id = id;
-        element.textContent = textContent;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
-        this.initListeners(params, element);
 
         parent.appendChild(element);
-        return element;
-    }
 
-    private initListeners<T extends keyof ProxyTypeMap, TElem extends HTMLElement>(
-        params: ProxyParams<T>,
-        element: TElem
-    ) {
-        const { focusable, onclick, onchange } = params;
         element.addEventListener('focus', (_event: FocusEvent): any => {
             this.focusable = focusable;
             element.style.setProperty('pointerEvents', null);
