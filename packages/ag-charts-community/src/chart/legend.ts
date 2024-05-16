@@ -250,11 +250,7 @@ export class Legend extends BaseProperties {
         });
 
         const animationState = InteractionState.Default | InteractionState.Animation;
-        const region = ctx.regionManager.addRegionFromProperties({
-            name: 'legend',
-            bboxproviders: [this.group],
-            canInteraction: () => false,
-        });
+        const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
             region.addListener('contextmenu', (e) => this.checkContextClick(e), animationState),
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
