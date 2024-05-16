@@ -27,11 +27,11 @@ describe('convertDomain', () => {
 
 describe('niceDomain', () => {
     it('should apply Math.floor to the lower bound and Math.ceil to the upper bound', () => {
-        expect(niceDomain([0.1, 5.9])).toEqual([0, 6]);
+        expect(niceDomain([0.1, 5.9], Math)).toEqual([0, 6]);
     });
 
     it('should handle negative numbers correctly', () => {
-        expect(niceDomain([-5.9, -0.1])).toEqual([-6, 0]);
+        expect(niceDomain([-5.9, -0.1], Math)).toEqual([-6, 0]);
     });
 
     it('should use provided floor and ceil functions', () => {
@@ -51,13 +51,15 @@ describe('niceDomain', () => {
     it('should not mutate the original domain array', () => {
         const originalDomain = [1.2, 3.7];
         const copyDomain = [...originalDomain];
-        niceDomain(originalDomain, { floor: Math.floor, ceil: Math.ceil });
+
+        niceDomain(originalDomain, Math);
         expect(originalDomain).toEqual(copyDomain);
     });
 
     it('should work with custom rounding functions', () => {
         const floor = (n: number) => Math.round(n) - 1;
         const ceil = (n: number) => Math.round(n) + 1;
+
         expect(niceDomain([1.5, 3.5], { floor, ceil })).toEqual([1, 5]);
     });
 });

@@ -1,9 +1,7 @@
 import { convertDomain } from '../util/domain.util';
-import { BaseScale } from './baseScale';
+import { ContinuousScale } from './continuousScale';
 
-export class LinearScale extends BaseScale<number, number> {
-    nice = false;
-
+export class LinearScale extends ContinuousScale<number, number> {
     convert(value: number, clamp?: boolean) {
         return convertDomain(value, this.domain, this.range, clamp);
     }

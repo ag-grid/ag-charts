@@ -23,10 +23,7 @@ export function convertDomain(
     return r0 + ((n - d0) / (d1 - d0)) * (r1 - r0);
 }
 
-export function niceDomain(
-    domain: number[],
-    options: { floor: (n: number) => number; ceil: (n: number) => number } = Math
-) {
+export function niceDomain(domain: number[], options: { floor: (n: number) => number; ceil: (n: number) => number }) {
     const d = [...domain];
 
     if (d.length === 0) {

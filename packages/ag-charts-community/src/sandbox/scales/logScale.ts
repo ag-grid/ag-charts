@@ -1,9 +1,9 @@
 import { convertDomain } from '../util/domain.util';
-import { LinearScale } from './linearScale';
+import { ContinuousScale } from './continuousScale';
 
-export class LogScale extends LinearScale {
-    readonly log: (n: number) => number;
-    readonly pow: (n: number) => number;
+export class LogScale extends ContinuousScale<number, number> {
+    private readonly log: (n: number) => number;
+    private readonly pow: (n: number) => number;
 
     constructor(
         domain: number[],
@@ -12,11 +12,23 @@ export class LogScale extends LinearScale {
     ) {
         super(domain, range);
 
+        if (domain[0] <= 0 && domain[1] >= 0) {
+            throw new Error('Log scale domain must be strictly-positive or strictly-negative.');
+        }
+
         const log = LogScale.logMethodByBase(base);
         const pow = LogScale.powMethodByBase(base);
 
         this.log = (n: number) => (this.domain[0] >= 0 ? log(n) : -log(-n));
         this.pow = (n: number) => (this.domain[0] >= 0 ? pow(n) : -pow(-n));
+    }
+
+    override niceCeil(n: number): number {
+        return this.pow(super.niceCeil(this.log(n)));
+    }
+
+    override niceFloor(n: number): number {
+        return this.pow(super.niceFloor(this.log(n)));
     }
 
     override convert(value: number, clamp?: boolean): number {
