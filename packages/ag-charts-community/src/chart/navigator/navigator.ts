@@ -5,7 +5,7 @@ import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import { setElementBBox } from '../../util/dom';
 import { Logger } from '../../util/logger';
-import { clamp } from '../../util/number';
+import { clamp, formatPercentage } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -74,7 +74,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly minRange = 0.001;
 
     private readonly proxyNavigatorToolbar: HTMLElement;
-    private readonly proxyNavigatorElements: [HTMLDivElement, HTMLDivElement, HTMLDivElement];
+    private readonly proxyNavigatorElements: [HTMLDivElement, HTMLInputElement, HTMLInputElement];
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -112,6 +112,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 textContent: 'Minimum',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
+                onchange: (ev) => this.onSliderChange(ev, 1),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
@@ -119,8 +120,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 textContent: 'Maximum',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,
+                onchange: (ev) => this.onSliderChange(ev, 2),
             }),
         ];
+        this.onSliderChange;
         this.destroyFns.push(() => {
             this.proxyNavigatorElements.forEach((e) => e.remove());
             this.proxyNavigatorToolbar.remove();
@@ -257,6 +260,38 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.updateNodes(x.min, x.max);
     }
 
+    private onSliderChange(_event: Event, proxyIndex: 1 | 2) {
+        const { minRange, _min: min, _max: max } = this;
+        const slider = this.proxyNavigatorElements[proxyIndex];
+        const newRatio = this.getSliderRatio(slider);
+        const meta = (
+            [
+                { key: '_min', clampMin: 0, clampMax: max - minRange },
+                { key: '_max', clampMin: min + minRange, clampMax: 1 },
+            ] as const
+        )[proxyIndex - 1];
+
+        // Clamp the user input:
+        const clampedRatio = clamp(meta.clampMin, newRatio, meta.clampMax);
+        if (clampedRatio !== newRatio) {
+            this.setSliderRatio(slider, clampedRatio);
+        }
+
+        // Update the zoom
+        this[meta.key] = clampedRatio;
+        this.updateZoom();
+    }
+
+    private setSliderRatio(slider: HTMLInputElement, ratio: number) {
+        const value = Math.round(ratio * 100);
+        slider.value = `${value}`;
+        slider.ariaValueText = formatPercentage(value);
+    }
+
+    private getSliderRatio(slider: HTMLInputElement) {
+        return parseFloat(slider.value) / 100;
+    }
+
     private layoutNodes(x: number, y: number, width: number, height: number) {
         const { rangeSelector, mask, minHandle, maxHandle, _min: min, _max: max } = this;
 
@@ -298,6 +333,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             );
         };
 
+        this.setSliderRatio(this.proxyNavigatorElements[1], min);
+        this.setSliderRatio(this.proxyNavigatorElements[2], max);
         return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false, warnOnConflict);
     }
 }

@@ -60,3 +60,20 @@ export function countFractionDigits(value: number, maximumFractionDigits = 10) {
         .split('.');
     return decimal.length;
 }
+
+/**
+ * @param ratio A number from 0 to 1.
+ * @param locale The locale to use to format the number.
+ */
+export function formatNormalizedPercentage(ratio: number, locale?: string) {
+    locale = locale || navigator.language;
+    return new Intl.NumberFormat(locale, { style: 'percent' }).format(ratio);
+}
+
+/**
+ * @param percent A number from 0 to 100.
+ * @param locale The locale to use to format the number.
+ */
+export function formatPercentage(percent: number, locale?: string) {
+    return formatNormalizedPercentage(percent / 100, locale);
+}
