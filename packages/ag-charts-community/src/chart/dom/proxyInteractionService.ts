@@ -7,7 +7,6 @@ import type { FocusIndicator } from './focusIndicator';
 type ProxyTypeMap = {
     button: HTMLButtonElement;
     slider: HTMLInputElement;
-    'div-scrollbar': HTMLDivElement;
 };
 
 type ProxyParams<T extends keyof ProxyTypeMap> = {
@@ -46,16 +45,6 @@ export class ProxyInteractionService {
         }
     }
 
-    private createDivWithRole(role: 'scrollbar') {
-        const input = createElement('div');
-        input.role = role;
-        input.tabIndex = 0;
-        if (this.debugShowDOMProxies) {
-            input.style.background = ({ slider: 'red', scrollbar: 'green' } as const)[role];
-        }
-        return input;
-    }
-
     private createSlider() {
         const input = createElement('input');
         input.type = 'range';
@@ -68,8 +57,6 @@ export class ProxyInteractionService {
             return this.initElement(params, createElement('button'));
         } else if (check(params, 'slider')) {
             return this.initElement(params, this.createSlider());
-        } else if (check(params, 'div-scrollbar')) {
-            return this.initElement(params, this.createDivWithRole('scrollbar'));
         } else {
             throw new Error(`unexpected type [${params.type}]`);
         }

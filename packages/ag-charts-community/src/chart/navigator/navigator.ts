@@ -74,7 +74,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly minRange = 0.001;
 
     private readonly proxyNavigatorToolbar: HTMLElement;
-    private readonly proxyNavigatorElements: [HTMLDivElement, HTMLInputElement, HTMLInputElement];
+    private readonly proxyNavigatorElements: [HTMLInputElement, HTMLInputElement, HTMLInputElement];
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -100,11 +100,12 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         this.proxyNavigatorElements = [
             this.ctx.proxyInteractionService.createProxyElement({
-                type: 'div-scrollbar',
+                type: 'slider',
                 id: 'ag-charts-navigator-pan',
                 textContent: 'Panning',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maskVisibleRange,
+                onchange: (ev) => this.onPanSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
@@ -260,6 +261,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.updateNodes(x.min, x.max);
     }
 
+    private onPanSliderChange(_event: Event) {
+        const ratio = this.getSliderRatio(this.proxyNavigatorElements[0]);
+        const span = this._max - this._min;
+        this._min = clamp(0, ratio, 1 - span);
+        this._max = this._min + span;
+        this.updateZoom();
+    }
+
     private onSliderChange(_event: Event, proxyIndex: 1 | 2) {
         const { minRange, _min: min, _max: max } = this;
         const slider = this.proxyNavigatorElements[proxyIndex];
@@ -280,6 +289,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         // Update the zoom
         this[meta.key] = clampedRatio;
         this.updateZoom();
+    }
+
+    private setPanSliderValue(min: number, max: number) {
+        const minPercent = Math.round(min * 100);
+        const maxPercent = Math.round(max * 100);
+        const minFormat = formatPercentage(minPercent);
+        const maxFormat = formatPercentage(maxPercent);
+        this.proxyNavigatorElements[0].value = `${minPercent}`;
+        this.proxyNavigatorElements[0].ariaValueText = `${minFormat} - ${maxFormat}`;
     }
 
     private setSliderRatio(slider: HTMLInputElement, ratio: number) {
@@ -333,6 +351,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             );
         };
 
+        this.setPanSliderValue(min, max);
         this.setSliderRatio(this.proxyNavigatorElements[1], min);
         this.setSliderRatio(this.proxyNavigatorElements[2], max);
         return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false, warnOnConflict);
