@@ -10,17 +10,18 @@ export class LogScale extends ContinuousScale<number, number> {
         range: number[],
         public readonly base: number = 10
     ) {
-        super(domain, range);
-
         if (domain[0] <= 0 && domain[1] >= 0) {
             throw new Error('Log scale domain must be strictly-positive or strictly-negative.');
         }
 
+        super(domain, range);
+
+        const isPositive = this.domain[0] >= 0;
         const log = LogScale.logMethodByBase(base);
         const pow = LogScale.powMethodByBase(base);
 
-        this.log = (n: number) => (this.domain[0] >= 0 ? log(n) : -log(-n));
-        this.pow = (n: number) => (this.domain[0] >= 0 ? pow(n) : -pow(-n));
+        this.log = isPositive ? log : (n: number) => -log(-n);
+        this.pow = isPositive ? pow : (n: number) => -pow(-n);
     }
 
     override niceCeil(n: number): number {
@@ -36,17 +37,17 @@ export class LogScale extends ContinuousScale<number, number> {
     }
 
     override invert(value: number, clamp?: boolean): number {
-        return convertDomain(value, this.range, this.domain, clamp);
+        return this.pow(convertDomain(value, this.range, this.domain.map(this.log), clamp));
     }
 
     private static logMethodByBase(base: number) {
         switch (base) {
             case 10:
                 return Math.log10;
-            case Math.E:
-                return Math.log;
             case 2:
                 return Math.log2;
+            case Math.E:
+                return Math.log;
             default:
                 const logBase = Math.log(base);
                 return (x: number) => Math.log(x) / logBase;
