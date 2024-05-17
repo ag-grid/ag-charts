@@ -1,11 +1,13 @@
 import type {
     AgSankeySeriesFormatterParams,
+    AgSankeySeriesLabelFormatterParams,
     AgSankeySeriesLinkOptions,
     AgSankeySeriesLinkStyle,
     AgSankeySeriesNodeOptions,
     AgSankeySeriesOptions,
     AgSankeySeriesTooltipRendererParams,
 } from '../../../options/series/flow-proportion/sankeyOptions';
+import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { BaseProperties } from '../../../util/properties';
 import {
     ARRAY,
@@ -19,6 +21,7 @@ import {
     STRING,
     Validate,
 } from '../../../util/validation';
+import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -55,9 +58,17 @@ export interface SankeyNodeDatum extends SeriesNodeDatum {
 
 export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
 
-export interface SankeyNodeLabelDatum {}
+export interface SankeyNodeLabelDatum extends PointLabelDatum {
+    x: number;
+    leading: boolean;
+}
 
-export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
+export class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
+    @Validate(POSITIVE_NUMBER)
+    spacing: number = 1;
+}
+
+export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
@@ -80,7 +91,7 @@ export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLink
     lineDashOffset: number = 0;
 }
 
-export class ChordSeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
+export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 
@@ -158,10 +169,13 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
     @Validate(OBJECT)
-    readonly link = new ChordSeriesLinkProperties();
+    readonly label = new SankeySeriesLabelProperties();
 
     @Validate(OBJECT)
-    readonly node = new ChordSeriesNodeProperties();
+    readonly link = new SankeySeriesLinkProperties();
+
+    @Validate(OBJECT)
+    readonly node = new SankeySeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgSankeySeriesFormatterParams<any>) => AgSankeySeriesLinkStyle;

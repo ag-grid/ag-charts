@@ -1,4 +1,5 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -15,6 +16,8 @@ export interface AgSankeySeriesOptions<TDatum = any>
 }
 
 export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
+    /** Options for the label for each node. */
+    label?: AgSankeySeriesLabelOptions<TDatum>;
     /** The colours to cycle through for the fills of the nodes and links. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the nodes and links. */
@@ -23,6 +26,12 @@ export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeri
     link?: AgSankeySeriesLinkOptions;
     /** Options for the nodes */
     node?: AgSankeySeriesNodeOptions;
+}
+
+export interface AgSankeySeriesLabelOptions<TDatum>
+    extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>> {
+    /** Spacing between a node and its label */
+    spacing?: PixelSize;
 }
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -79,3 +88,5 @@ export interface AgSankeySeriesFormatterParams<TDatum = any>
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
 }
+
+export interface AgSankeySeriesLabelFormatterParams<_TDatum = any> extends AgSankeySeriesOptionsKeys {}

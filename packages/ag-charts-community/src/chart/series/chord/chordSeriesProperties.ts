@@ -1,5 +1,6 @@
 import type {
     AgChordSeriesFormatterParams,
+    AgChordSeriesLabelFormatterParams,
     AgChordSeriesLinkStyle,
     AgChordSeriesOptions,
     AgChordSeriesTooltipRendererParams,
@@ -17,9 +18,18 @@ import {
     STRING,
     Validate,
 } from '../../../util/validation';
+import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
+
+export class SankeySeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
+    @Validate(POSITIVE_NUMBER)
+    spacing: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    maxWidth: number = 1;
+}
 
 export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(COLOR_STRING, { optional: true })
@@ -118,6 +128,9 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
 
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);
+
+    @Validate(OBJECT)
+    readonly label = new SankeySeriesLabelProperties();
 
     @Validate(OBJECT)
     readonly link = new ChordSeriesLinkProperties();

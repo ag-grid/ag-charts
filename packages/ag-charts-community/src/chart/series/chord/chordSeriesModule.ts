@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
+import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
 import { ChordSeries } from './chordSeries';
 
 export const ChordSeriesModule: SeriesModule<'chord'> = {
@@ -19,8 +19,14 @@ export const ChordSeriesModule: SeriesModule<'chord'> = {
                     dimOpacity: 0.2,
                 },
             },
+            label: {
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
+                spacing: 5,
+                maxWidth: 100,
+            },
             node: {
-                spacing: 20,
+                spacing: 8,
                 height: 10,
                 strokeWidth: 0,
             },

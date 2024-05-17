@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
+import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
 import { SankeySeries } from './sankeySeries';
 
 export const SankeySeriesModule: SeriesModule<'sankey'> = {
@@ -18,6 +18,12 @@ export const SankeySeriesModule: SeriesModule<'sankey'> = {
                 series: {
                     dimOpacity: 0.2,
                 },
+            },
+            label: {
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
+                fontSize: 12,
+                spacing: 10,
             },
             node: {
                 spacing: 20,

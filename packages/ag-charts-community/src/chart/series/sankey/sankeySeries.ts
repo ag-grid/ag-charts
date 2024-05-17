@@ -4,7 +4,8 @@ import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { Text } from '../../../scene/shape/text';
+import type { PlacedLabel, PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { sanitizeHtml } from '../../../util/sanitize';
 import type { RequireOptional } from '../../../util/types';
 import { ARRAY, Validate } from '../../../util/validation';
@@ -66,6 +67,7 @@ export class SankeySeries
     private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
+    private labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> = Selection.select(this.labelGroup, Text);
     public linkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
@@ -99,12 +101,20 @@ export class SankeySeries
         }
     }
 
+    private isLabelEnabled() {
+        return this.properties.labelKey != null && this.properties.label.enabled;
+    }
+
     override get hasData() {
         return super.hasData && this.nodes != null;
     }
 
     public override getNodeData(): SankeyDatum[] | undefined {
         return this.contextNodeData?.nodeData;
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        return this.contextNodeData?.labelData ?? [];
     }
 
     private linkFactory() {
@@ -182,6 +192,7 @@ export class SankeySeries
             sizeKey,
             labelKey,
             nodeSizeKey,
+            label: { spacing: labelSpacing },
             node: { spacing: nodeSpacing, width: nodeWidth, justify },
             fills,
             strokes,
@@ -201,9 +212,9 @@ export class SankeySeries
         const nodesById = new Map<string, SankeyNodeDatum>();
         nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
             const value = values[0];
-            const id = keys[nodeIdIdx];
-            const label = labelIdx != null ? value[labelIdx] : undefined;
-            const size = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
+            const id: string = keys[nodeIdIdx];
+            const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
+            const size: number = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
 
             const fill = fills[index % fills.length];
             const stroke = strokes[index % strokes.length];
@@ -240,6 +251,9 @@ export class SankeySeries
 
         const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById, links, false);
 
+        const inset = labelKey != null ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1)) : 0;
+        const columnWidth = (seriesRectWidth - nodeWidth - 2 * inset) / (maxPathLength - 1);
+
         type Column = {
             nodes: NodeGraphEntry<SankeyNodeDatum, (typeof links)[0]>[];
             size: number;
@@ -247,7 +261,7 @@ export class SankeySeries
         };
         const columns: Column[] = [];
         for (let i = 0; i < maxPathLength; i += 1) {
-            const x = (seriesRectWidth - nodeWidth) * (i / (maxPathLength - 1));
+            const x = inset + i * columnWidth;
             columns.push({ size: 0, nodes: [], x });
         }
 
@@ -355,10 +369,61 @@ export class SankeySeries
             });
         });
 
+        const labelData: SankeyNodeLabelDatum[] = [];
+        const { fontSize, fontFamily } = this.properties.label;
+        const canvasFont = `${fontSize}px ${fontFamily}`;
+        columns.forEach((column, index) => {
+            const leading = index === 0;
+            const trailing = index === columns.length - 1;
+
+            column.nodes.forEach(({ datum: node }) => {
+                if (node.label == null) return;
+
+                const x = leading ? node.x - labelSpacing : node.x + node.width + labelSpacing;
+                const y = node.y + node.height / 2;
+                let text: string | undefined;
+                if (!leading && !trailing) {
+                    const y1 = y - fontSize * Text.defaultLineHeightRatio;
+                    const y2 = y + fontSize * Text.defaultLineHeightRatio;
+                    let maxX = seriesRectWidth;
+                    nodeGraph.forEach(({ datum }) => {
+                        const intersectsLabel =
+                            datum.x > node.x && Math.max(datum.y, y1) <= Math.min(datum.y + datum.height, y2);
+                        if (intersectsLabel) {
+                            maxX = Math.min(maxX, datum.x - labelSpacing);
+                        }
+                    });
+                    const maxWidth = maxX - node.x - 2 * labelSpacing;
+                    text = Text.wrap(node.label, maxWidth, node.height, this.properties.label, 'never', 'hide');
+                }
+                if (text == null || text === '') {
+                    const labelInset = leading || trailing ? labelSpacing : labelSpacing * 2;
+                    text = Text.wrap(node.label, columnWidth - labelInset, node.height, this.properties.label, 'never');
+                }
+                if (text === '') return;
+
+                const { width, height } = Text.measureText(text, canvasFont, 'middle', 'left');
+
+                labelData.push({
+                    point: {
+                        x: leading ? x - width / 2 : x + width / 2,
+                        y: node.y + node.height / 2,
+                        size: 0,
+                    },
+                    label: { text, width, height },
+                    marker: undefined,
+                    placement: 'right',
+                    // Improves the alignment
+                    leading,
+                    x,
+                });
+            });
+        });
+
         return {
             itemId: seriesId,
             nodeData,
-            labelData: [],
+            labelData,
         };
     }
 
@@ -395,6 +460,9 @@ export class SankeySeries
             highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
+
+        this.labelSelection = await this.updateLabelSelection({ labelSelection: this.labelSelection });
+        await this.updateLabelNodes({ labelSelection: this.labelSelection });
 
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
@@ -454,6 +522,31 @@ export class SankeySeries
             datumSelection: this.highlightNodeSelection,
         });
         await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
+    }
+
+    private async updateLabelSelection(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
+        const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
+        return opts.labelSelection.update(placedLabels);
+    }
+
+    private async updateLabelNodes(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
+        const { labelSelection } = opts;
+        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
+
+        labelSelection.each((label, { datum, y, height, text }) => {
+            const { x, leading } = datum as SankeyNodeLabelDatum;
+            label.visible = true;
+            label.x = x;
+            label.y = y + height / 2;
+            label.text = text;
+            label.fill = fill;
+            label.fontStyle = fontStyle;
+            label.fontWeight = fontWeight;
+            label.fontSize = fontSize;
+            label.fontFamily = fontFamily;
+            label.textAlign = leading ? 'right' : 'left';
+            label.textBaseline = 'middle';
+        });
     }
 
     private async updateNodeSelection(opts: {
@@ -657,10 +750,6 @@ export class SankeySeries
     }
 
     override getSeriesDomain(_direction: ChartAxisDirection): any[] {
-        return [];
-    }
-
-    override getLabelData(): PointLabelDatum[] {
         return [];
     }
 

@@ -32,7 +32,7 @@ export class SankeyLink extends Path {
             Math.min(
                 (dy * dy) / (2 * width),
                 // Prioritize the link having a 'wave' shape over the consistent width
-                width / 4,
+                width / 8,
                 height / 2
             );
         path.moveTo(x1 + inset, y1 + inset);
