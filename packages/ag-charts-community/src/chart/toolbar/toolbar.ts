@@ -23,6 +23,7 @@ import {
     type ToolbarGroup,
     ToolbarPosition,
 } from './toolbarTypes';
+import { initToolbarKeyNav } from './toolbarUtil';
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @ObserveChanges<Toolbar>((target) => {
@@ -75,6 +76,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     };
 
     private groupButtons: Record<ToolbarGroup, Array<HTMLButtonElement>> = {
+        annotations: [],
+        ranges: [],
+        zoom: [],
+    };
+
+    private groupDestroyFns: Record<ToolbarGroup, (() => void)[]> = {
         annotations: [],
         ranges: [],
         zoom: [],
@@ -251,6 +258,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.remove();
         }
         this.groupButtons[group] = [];
+        this.groupDestroyFns[group].forEach((d) => d());
+        this.groupDestroyFns[group] = [];
 
         const align = this[group].align ?? 'start';
         const position = this[group].position ?? 'top';
@@ -260,6 +269,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const button = this.createButtonElement(group, options);
             parent?.appendChild(button);
             this.groupButtons[group].push(button);
+        }
+        if (parent) {
+            this.groupDestroyFns[group] = initToolbarKeyNav('horizontal', parent, this.groupButtons[group]);
         }
     }
 
