@@ -174,8 +174,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     setSizeOptions(minWidth: number = 0, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.parentElement.element;
 
-        style.minWidth = `${optionsWidth ?? minWidth}px`;
-        style.minHeight = `${optionsHeight ?? minHeight}px`;
+        style.width = `${optionsWidth ?? minWidth}px`;
+        style.height = `${optionsHeight ?? minHeight}px`;
     }
 
     private updateContainerSize() {
