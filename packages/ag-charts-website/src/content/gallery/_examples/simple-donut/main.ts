@@ -53,7 +53,7 @@ const options: AgChartOptions = {
                     };
                 },
             },
-            strokeWidth: 3,
+            sectorSpacing: 3,
         },
     ],
 };

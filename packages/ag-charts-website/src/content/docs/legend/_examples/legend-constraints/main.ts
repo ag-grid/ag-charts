@@ -10,7 +10,6 @@ const options: AgChartOptions = {
             type: 'pie',
             angleKey: 'value',
             calloutLabelKey: 'label',
-            strokeWidth: 3,
         },
     ],
     legend: {
