@@ -1,15 +1,22 @@
-import type {
-    AgSankeySeriesFormatterParams,
-    AgSankeySeriesLabelFormatterParams,
-    AgSankeySeriesLinkOptions,
-    AgSankeySeriesLinkStyle,
-    AgSankeySeriesNodeOptions,
-    AgSankeySeriesOptions,
-    AgSankeySeriesTooltipRendererParams,
-} from '../../../options/series/flow-proportion/sankeyOptions';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
-import { BaseProperties } from '../../../util/properties';
 import {
+    type AgSankeySeriesFormatterParams,
+    type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesLinkOptions,
+    type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeOptions,
+    type AgSankeySeriesOptions,
+    type AgSankeySeriesTooltipRendererParams,
+    _ModuleSupport,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
+
+import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
+
+const {
+    BaseProperties,
+    SeriesTooltip,
+    SeriesProperties,
     ARRAY,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
@@ -20,12 +27,8 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validation';
-import { Label } from '../../label';
-import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
-import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
-import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+} = _ModuleSupport;
+const { Label } = _Scene;
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum {
     x: number;
@@ -43,7 +46,7 @@ export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum
 
 export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
 
-export interface SankeyNodeLabelDatum extends PointLabelDatum {
+export interface SankeyNodeLabelDatum extends _Util.PointLabelDatum {
     x: number;
     leading: boolean;
 }
@@ -148,10 +151,10 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     nodeSizeName: string | undefined = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = Object.values(DEFAULT_FILLS);
+    fills: string[] = [];
 
     @Validate(COLOR_STRING_ARRAY)
-    strokes: string[] = Object.values(DEFAULT_STROKES);
+    strokes: string[] = [];
 
     @Validate(OBJECT)
     readonly label = new SankeySeriesLabelProperties();

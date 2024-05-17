@@ -1,4 +1,6 @@
-import { Path, ScenePathChangeDetection } from '../../../scene/shape/path';
+import { _Scene } from 'ag-charts-community';
+
+const { Path, ScenePathChangeDetection } = _Scene;
 
 export class ChordLink extends Path {
     @ScenePathChangeDetection()

@@ -21,6 +21,7 @@ import { injectWatermark } from './license/watermark';
 import { BoxPlotModule } from './series/box-plot/main';
 import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
+import { ChordModule } from './series/chord/main';
 import { HeatmapModule } from './series/heatmap/main';
 import { MapLineBackgroundModule } from './series/map-line-background/main';
 import { MapLineModule } from './series/map-line/main';
@@ -33,8 +34,9 @@ import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
 import { RadialBarModule } from './series/radial-bar/main';
 import { RadialColumnModule } from './series/radial-column/main';
-import { RangeAreaModule } from './series/range-area/rangeAreaModule';
+import { RangeAreaModule } from './series/range-area/main';
 import { RangeBarModule } from './series/range-bar/main';
+import { SankeyModule } from './series/sankey/main';
 import { SunburstModule } from './series/sunburst/main';
 import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
@@ -48,6 +50,7 @@ export function setupEnterpriseModules() {
         BackgroundModule,
         BoxPlotModule,
         CandlestickModule,
+        ChordModule,
         OhlcModule,
         BulletModule,
         ContextMenuModule,
@@ -72,6 +75,7 @@ export function setupEnterpriseModules() {
         RadiusNumberAxisModule,
         RangeBarModule,
         RangeAreaModule,
+        SankeyModule,
         SunburstModule,
         SyncModule,
         TreemapModule,

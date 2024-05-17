@@ -1,11 +1,13 @@
-import type { SeriesModule } from '../../../module/coreModules';
-import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+
 import { SankeySeries } from './sankeySeries';
 
-export const SankeySeriesModule: SeriesModule<'sankey'> = {
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } = _Theme;
+
+export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['flow-proportion'],
 
     identifier: 'sankey',

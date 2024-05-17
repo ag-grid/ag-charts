@@ -73,6 +73,7 @@ export * from './chart/series/polar/pieUtil';
 export * from './chart/series/hierarchy/hierarchySeries';
 export * from './chart/series/hierarchy/hierarchySeriesProperties';
 export * from './chart/series/topologySeries';
+export * from './chart/series/flowProportionSeries';
 export * from './chart/series/topology/geojson';
 export * from './chart/series/topology/lonLatBbox';
 export * from './chart/series/topology/mercatorScale';
