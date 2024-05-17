@@ -35,10 +35,14 @@ type ProxyMeta = {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
+    scrollbar: {
+        params: ContainerParams<'scrollbar'>;
+        result: HTMLDivElement;
+    };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar';
+type ProxyContainerType = 'toolbar' | 'scrollbar';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -48,7 +52,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div', scrollbar: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -81,8 +85,8 @@ export class ProxyInteractionService {
         this.domManager.addChild('canvas-overlay', params.id, div);
         div.classList.add(...params.classList);
         div.style.pointerEvents = 'none';
-        div.role = args.type;
-        div.ariaLabel = 'Legend';
+        div.role = params.type;
+        div.ariaLabel = params.ariaLabel;
         div.ariaOrientation = params.ariaOrientation ?? null;
         return div;
     }
