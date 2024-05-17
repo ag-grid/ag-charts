@@ -171,7 +171,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setSizeOptions(minWidth: number = 0, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
+    setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.parentElement.element;
 
         style.width = `${optionsWidth ?? minWidth}px`;
