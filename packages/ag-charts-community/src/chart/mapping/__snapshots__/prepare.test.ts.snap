@@ -166,6 +166,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -699,6 +700,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -1197,6 +1199,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -1892,6 +1895,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -2642,6 +2646,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -3008,6 +3013,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -3545,6 +3551,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -4181,6 +4188,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -4557,6 +4565,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -4930,6 +4939,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -5294,6 +5304,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -5657,6 +5668,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -6099,6 +6111,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -6546,6 +6559,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -7247,6 +7261,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -8401,6 +8416,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -8764,6 +8780,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -9550,6 +9567,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -10055,6 +10073,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -10724,6 +10743,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -11284,6 +11304,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -11569,6 +11590,7 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "overlays": {
     "loading": {
       "darkTheme": false,
@@ -11893,6 +11915,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -12237,6 +12260,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "overlays": {
     "loading": {
       "darkTheme": false,
@@ -12532,6 +12556,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -12893,6 +12918,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -13630,6 +13656,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -14172,6 +14199,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
   },
   "listeners": {},
   "minHeight": 300,
+  "minWidth": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
