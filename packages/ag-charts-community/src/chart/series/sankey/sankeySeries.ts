@@ -212,9 +212,9 @@ export class SankeySeries
         const nodesById = new Map<string, SankeyNodeDatum>();
         nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
             const value = values[0];
-            const id = keys[nodeIdIdx];
-            const label = labelIdx != null ? value[labelIdx] : undefined;
-            const size = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
+            const id: string = keys[nodeIdIdx];
+            const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
+            const size: number = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
 
             const fill = fills[index % fills.length];
             const stroke = strokes[index % strokes.length];

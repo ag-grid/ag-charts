@@ -88,4 +88,5 @@ export interface AgSankeySeriesFormatterParams<TDatum = any>
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
 }
+
 export interface AgSankeySeriesLabelFormatterParams<_TDatum = any> extends AgSankeySeriesOptionsKeys {}

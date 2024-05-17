@@ -4,8 +4,9 @@ import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { Sector } from '../../../scene/shape/sector';
+import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
-import { angleBetween } from '../../../util/angle';
+import { angleBetween, isBetweenAngles, normalizeAngle360 } from '../../../util/angle';
 import { sanitizeHtml } from '../../../util/sanitize';
 import type { RequireOptional } from '../../../util/types';
 import { ARRAY, Validate } from '../../../util/validation';
@@ -64,7 +65,14 @@ interface ChordNodeDatum extends SeriesNodeDatum {
 
 type ChordDatum = ChordLinkDatum | ChordNodeDatum;
 
-interface ChordNodeLabelDatum {}
+interface ChordNodeLabelDatum {
+    id: string;
+    text: string;
+    centerX: number;
+    centerY: number;
+    angle: number;
+    radius: number;
+}
 
 export interface ChordNodeDataContext extends SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
 
@@ -100,6 +108,7 @@ export class ChordSeries extends DataModelSeries<
     private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
+    private labelSelection: Selection<Text, ChordNodeLabelDatum> = Selection.select(this.labelGroup, Text);
     public linkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
@@ -133,6 +142,10 @@ export class ChordSeries extends DataModelSeries<
         if (this.nodes === nodes) {
             this.nodeDataRefresh = true;
         }
+    }
+
+    private isLabelEnabled() {
+        return this.properties.labelKey != null && this.properties.label.enabled;
     }
 
     override get hasData() {
@@ -218,15 +231,14 @@ export class ChordSeries extends DataModelSeries<
             sizeKey,
             labelKey,
             nodeSizeKey,
+            label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize, fontFamily },
             node: { height: nodeHeight, spacing: nodeSpacing },
             fills,
             strokes,
         } = this.properties;
         const centerX = seriesRectWidth / 2;
         const centerY = seriesRectHeight / 2;
-        const radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeHeight;
-        const innerRadius = radius;
-        const outerRadius = radius + nodeHeight;
+        const canvasFont = `${fontSize}px ${fontFamily}`;
 
         const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
         const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toIdValue');
@@ -239,12 +251,62 @@ export class ChordSeries extends DataModelSeries<
             nodeSizeKey != null ? nodesDataModel.resolveProcessedDataIndexById(this, 'nodeSizeValue') : undefined;
 
         const nodeData: ChordDatum[] = [];
+        let labelData: ChordNodeLabelDatum[] = [];
         const nodesById = new Map<string, ChordNodeDatum>();
+
+        let labelInset = 0;
+        if (labelKey != null) {
+            let maxMeasuredLabelWidth = 0;
+            nodesProcessedData.data.forEach(({ keys, values }) => {
+                const id: string = keys[nodeIdIdx];
+                const value = values[0];
+                const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
+                if (label == null) return;
+
+                const text = Text.wrap(label, labelMaxWidth, Infinity, this.properties.label, 'never', 'ellipsis');
+                const { width } = Text.measureText(text, canvasFont, 'middle', 'left');
+                maxMeasuredLabelWidth = Math.max(width, maxMeasuredLabelWidth);
+
+                labelData.push({
+                    id,
+                    text,
+                    centerX,
+                    centerY,
+                    angle: NaN,
+                    radius: NaN,
+                });
+            });
+
+            labelInset = maxMeasuredLabelWidth + labelSpacing;
+        }
+
+        const nodeCount = nodesProcessedData.data.length;
+        let radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeHeight - labelInset;
+        let spacingSweep = nodeSpacing / radius;
+
+        if (labelInset != null && nodeCount * spacingSweep >= 1.5 * Math.PI) {
+            // Spacing taking up more than 3/4 the circle
+            labelData = [];
+            radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeHeight;
+            spacingSweep = nodeSpacing / radius;
+        }
+
+        if (nodeCount * spacingSweep >= 2 * Math.PI) {
+            return {
+                itemId: this.id,
+                nodeData: [],
+                labelData: [],
+            };
+        }
+
+        const innerRadius = radius;
+        const outerRadius = radius + nodeHeight;
+
         nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
             const value = values[0];
-            const id = keys[nodeIdIdx];
-            const label = labelIdx != null ? value[labelIdx] : undefined;
-            const size = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
+            const id: string = keys[nodeIdIdx];
+            const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
+            const size: number = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
 
             const fill = fills[index % fills.length];
             const stroke = strokes[index % strokes.length];
@@ -294,14 +356,13 @@ export class ChordSeries extends DataModelSeries<
             totalSize += node.size;
         });
 
-        const spacing = (nodesById.size * nodeSpacing) / (2 * Math.PI * radius);
-        const sizeScale = (2 * Math.PI - nodesById.size * spacing) / totalSize;
+        const sizeScale = Math.max((2 * Math.PI - nodesById.size * spacingSweep) / totalSize, 0);
         let nodeAngle = 0;
         nodesById.forEach((node) => {
             const sweep = node.size * sizeScale;
             node.startAngle = nodeAngle;
             node.endAngle = nodeAngle + sweep;
-            nodeAngle += sweep + spacing;
+            nodeAngle += sweep + spacingSweep;
         });
 
         nodeGraph.forEach(({ datum, linksBefore, linksAfter }) => {
@@ -358,10 +419,36 @@ export class ChordSeries extends DataModelSeries<
             });
         });
 
+        labelData.forEach((label) => {
+            const node = nodesById.get(label.id);
+            if (node == null) return;
+            label.radius = outerRadius + labelSpacing;
+            label.angle = normalizeAngle360(node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2);
+        });
+        labelData.sort((a, b) => a.angle - b.angle);
+
+        let minAngle = Infinity;
+        let maxAngle = -Infinity;
+        labelData = labelData.filter((label) => {
+            const labelHeight = fontSize * Text.defaultLineHeightRatio;
+            const da = Math.atan2(labelHeight / 2, label.radius);
+
+            const a0 = label.angle - da;
+            const a1 = label.angle + da;
+
+            if (isBetweenAngles(minAngle, a0, a1)) return false;
+            if (isBetweenAngles(maxAngle, a0, a1)) return false;
+
+            minAngle = Math.min(a0, minAngle);
+            maxAngle = Math.max(a1, maxAngle);
+
+            return true;
+        });
+
         return {
             itemId: seriesId,
             nodeData,
-            labelData: [],
+            labelData,
         };
     }
 
@@ -398,6 +485,13 @@ export class ChordSeries extends DataModelSeries<
             highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+
+        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
+        await this.updateLabelNodes({ labelSelection: this.labelSelection });
+
+        this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
+        await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
@@ -457,6 +551,39 @@ export class ChordSeries extends DataModelSeries<
             datumSelection: this.highlightNodeSelection,
         });
         await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
+    }
+
+    private async updateLabelSelection(opts: {
+        labelData: ChordNodeLabelDatum[];
+        labelSelection: Selection<Text, ChordNodeLabelDatum>;
+    }) {
+        const labels = this.isLabelEnabled() ? opts.labelData : [];
+        return opts.labelSelection.update(labels);
+    }
+
+    private async updateLabelNodes(opts: { labelSelection: Selection<Text, ChordNodeLabelDatum> }) {
+        const { labelSelection } = opts;
+        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
+
+        labelSelection.each((label, { text, centerX, centerY, radius, angle }) => {
+            label.visible = true;
+            label.translationX = centerX + radius * Math.cos(angle);
+            label.translationY = centerY + radius * Math.sin(angle);
+            label.text = text;
+            label.fill = fill;
+            label.fontStyle = fontStyle;
+            label.fontWeight = fontWeight;
+            label.fontSize = fontSize;
+            label.fontFamily = fontFamily;
+            label.textBaseline = 'middle';
+            if (Math.cos(angle) >= 0) {
+                label.textAlign = 'left';
+                label.rotation = angle;
+            } else {
+                label.textAlign = 'right';
+                label.rotation = angle - Math.PI;
+            }
+        });
     }
 
     private async updateNodeSelection(opts: {
