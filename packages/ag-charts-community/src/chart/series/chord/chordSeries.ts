@@ -1,7 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AgChordSeriesFormatterParams, AgChordSeriesLinkStyle } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
@@ -9,36 +8,30 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { angleBetween, isBetweenAngles, normalizeAngle360 } from '../../../util/angle';
 import { sanitizeHtml } from '../../../util/sanitize';
 import type { RequireOptional } from '../../../util/types';
-import { ARRAY, Validate } from '../../../util/validation';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxisDirection } from '../../chartAxisDirection';
-import { DataController } from '../../data/dataController';
-import type { DataModel, ProcessedData } from '../../data/dataModel';
 import { createDatumId } from '../../data/processors';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { DataModelSeries } from '../dataModelSeries';
-import { computeNodeGraph } from '../sankey/sankeyUtil';
 import {
-    type PickFocusInputs,
-    type SeriesNodeDataContext,
-    SeriesNodePickMode,
-    keyProperty,
-    valueProperty,
-} from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
+    FlowProportionDatumType,
+    type FlowProportionLinkDatum,
+    type FlowProportionNodeDatum,
+    FlowProportionSeries,
+} from '../flow-proportion/flowProportionSeries';
+import { computeNodeGraph } from '../flow-proportion/flowProportionUtil';
+import { type PickFocusInputs, type SeriesNodeDataContext, SeriesNodePickMode } from '../series';
 import { ChordLink } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-enum ChordDatumType {
-    Link,
-    Node,
+interface ChordNodeDatum extends FlowProportionNodeDatum {
+    centerX: number;
+    centerY: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
 }
-
-interface ChordLinkDatum extends SeriesNodeDatum {
-    type: ChordDatumType.Link;
-    fromNode: ChordNodeDatum;
-    toNode: ChordNodeDatum;
-    size: number;
+interface ChordLinkDatum extends FlowProportionLinkDatum<ChordNodeDatum> {
     centerX: number;
     centerY: number;
     radius: number;
@@ -46,21 +39,6 @@ interface ChordLinkDatum extends SeriesNodeDatum {
     endAngle1: number;
     startAngle2: number;
     endAngle2: number;
-}
-
-interface ChordNodeDatum extends SeriesNodeDatum {
-    type: ChordDatumType.Node;
-    id: string;
-    label: string | undefined;
-    size: number;
-    fill: string;
-    stroke: string;
-    centerX: number;
-    centerY: number;
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
 }
 
 type ChordDatum = ChordLinkDatum | ChordNodeDatum;
@@ -77,57 +55,19 @@ interface ChordNodeLabelDatum {
 export interface ChordNodeDataContext extends SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
 
 const nodeMidAngle = (node: ChordNodeDatum) => node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
-export class ChordSeries extends DataModelSeries<
-    ChordDatum,
-    ChordSeriesProperties,
+export class ChordSeries extends FlowProportionSeries<
+    ChordNodeDatum,
+    ChordLinkDatum,
     ChordNodeLabelDatum,
-    ChordNodeDataContext
+    ChordNodeLabelDatum,
+    ChordSeriesProperties,
+    Sector,
+    ChordLink
 > {
     static readonly className = 'ChordSeries';
     static readonly type = 'chord' as const;
 
     override properties = new ChordSeriesProperties();
-
-    @Validate(ARRAY, { optional: true, property: 'nodes' })
-    private _chartNodes?: any[] = undefined;
-
-    private get nodes() {
-        return this.properties.nodes ?? this._chartNodes;
-    }
-
-    private readonly nodesDataController = new DataController('standalone');
-    private nodesDataModel: DataModel<any, any, true> | undefined = undefined;
-    private nodesProcessedData: ProcessedData<any> | undefined = undefined;
-
-    public contextNodeData?: ChordNodeDataContext;
-
-    private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
-    private readonly focusLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly focusNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
-    private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
-
-    private labelSelection: Selection<Text, ChordNodeLabelDatum> = Selection.select(this.labelGroup, Text);
-    public linkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(this.linkGroup, () =>
-        this.linkFactory()
-    );
-    public nodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.nodeGroup, () =>
-        this.nodeFactory()
-    );
-    private focusLinkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(this.focusLinkGroup, () =>
-        this.linkFactory()
-    );
-    private focusNodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.focusNodeGroup, () =>
-        this.nodeFactory()
-    );
-    private highlightLinkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(
-        this.highlightLinkGroup,
-        () => this.linkFactory()
-    );
-    private highlightNodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.highlightNodeGroup, () =>
-        this.nodeFactory()
-    );
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -137,75 +77,16 @@ export class ChordSeries extends DataModelSeries<
         });
     }
 
-    setChartNodes(nodes: any[] | undefined): void {
-        this._chartNodes = nodes;
-        if (this.nodes === nodes) {
-            this.nodeDataRefresh = true;
-        }
-    }
-
     private isLabelEnabled() {
         return this.properties.labelKey != null && this.properties.label.enabled;
     }
 
-    override get hasData() {
-        return super.hasData && this.nodes != null;
-    }
-
-    public override getNodeData(): (ChordLinkDatum | ChordNodeDatum)[] | undefined {
-        return this.contextNodeData?.nodeData;
-    }
-
-    private linkFactory() {
+    protected linkFactory() {
         return new ChordLink();
     }
 
-    private nodeFactory() {
+    protected nodeFactory() {
         return new Sector();
-    }
-
-    override async processData(dataController: DataController): Promise<void> {
-        const { nodesDataController, data, nodes } = this;
-
-        if (data == null || nodes == null || !this.properties.isValid()) {
-            return;
-        }
-
-        const { fromIdKey, toIdKey, sizeKey, nodeIdKey, labelKey, nodeSizeKey } = this.properties;
-
-        const nodesDataModelPromise = this.requestDataModel<any, any, true>(nodesDataController, nodes, {
-            props: [
-                keyProperty(nodeIdKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
-                ...(labelKey != null
-                    ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                    : []),
-                ...(nodeSizeKey != null
-                    ? [valueProperty(nodeSizeKey, undefined, { id: 'nodeSizeValue', includeProperty: false })]
-                    : []),
-            ],
-            groupByKeys: true,
-        });
-
-        const linksDataModelPromise = this.requestDataModel<any, any, false>(dataController, data, {
-            props: [
-                valueProperty(fromIdKey, undefined, { id: 'fromIdValue', includeProperty: false }),
-                valueProperty(toIdKey, undefined, { id: 'toIdValue', includeProperty: false }),
-                ...(sizeKey != null
-                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false })]
-                    : []),
-            ],
-            groupByKeys: false,
-        });
-
-        nodesDataController.execute();
-
-        const [{ dataModel: nodesDataModel, processedData: nodesProcessedData }] = await Promise.all([
-            nodesDataModelPromise,
-            linksDataModelPromise,
-        ]);
-
-        this.nodesDataModel = nodesDataModel;
-        this.nodesProcessedData = nodesProcessedData;
     }
 
     override async createNodeData(): Promise<ChordNodeDataContext | undefined> {
@@ -315,7 +196,7 @@ export class ChordSeries extends DataModelSeries<
                 series: this,
                 itemId: undefined,
                 datum,
-                type: ChordDatumType.Node,
+                type: FlowProportionDatumType.Node,
                 id,
                 label,
                 size,
@@ -405,7 +286,7 @@ export class ChordSeries extends DataModelSeries<
                 series: this,
                 itemId: undefined,
                 datum,
-                type: ChordDatumType.Link,
+                type: FlowProportionDatumType.Link,
                 fromNode,
                 toNode,
                 size,
@@ -452,108 +333,7 @@ export class ChordSeries extends DataModelSeries<
         };
     }
 
-    async updateSelections(): Promise<void> {
-        if (this.nodeDataRefresh) {
-            this.contextNodeData = await this.createNodeData();
-            this.nodeDataRefresh = false;
-        }
-    }
-
-    override async update(opts: { seriesRect?: BBox | undefined }): Promise<void> {
-        const { seriesRect } = opts;
-        const newNodeDataDependencies = {
-            seriesRectWidth: seriesRect?.width ?? 0,
-            seriesRectHeight: seriesRect?.height ?? 0,
-        };
-        if (
-            this._nodeDataDependencies == null ||
-            this.nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
-            this.nodeDataDependencies.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight
-        ) {
-            this._nodeDataDependencies = newNodeDataDependencies;
-        }
-
-        await this.updateSelections();
-
-        let highlightedDatum: ChordDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
-            highlightedDatum = undefined;
-        }
-
-        this.contentGroup.visible = this.visible;
-        this.contentGroup.opacity =
-            highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
-
-        const nodeData = this.contextNodeData?.nodeData ?? [];
-        const labelData = this.contextNodeData?.labelData ?? [];
-
-        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
-        await this.updateLabelNodes({ labelSelection: this.labelSelection });
-
-        this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
-        await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
-
-        this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
-        await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
-
-        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
-        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
-
-        let focusLinkSelection: ChordLinkDatum[];
-        let focusNodeSelection: ChordNodeDatum[];
-        let highlightLinkSelection: ChordLinkDatum[];
-        let highlightNodeSelection: ChordNodeDatum[];
-        if (highlightedDatum?.type === ChordDatumType.Node) {
-            focusLinkSelection = nodeData.filter((node): node is ChordLinkDatum => {
-                return (
-                    node.type === ChordDatumType.Link &&
-                    (node.toNode === highlightedDatum || node.fromNode === highlightedDatum)
-                );
-            });
-            focusNodeSelection = focusLinkSelection.map((link) => {
-                return link.fromNode === highlightedDatum ? link.toNode : link.fromNode;
-            });
-            focusNodeSelection.push(highlightedDatum);
-            highlightLinkSelection = [];
-            highlightNodeSelection = [highlightedDatum];
-        } else if (highlightedDatum?.type === ChordDatumType.Link) {
-            focusLinkSelection = [highlightedDatum];
-            focusNodeSelection = [highlightedDatum.fromNode, highlightedDatum.toNode];
-            highlightLinkSelection = [highlightedDatum];
-            highlightNodeSelection = [];
-        } else {
-            focusLinkSelection = [];
-            focusNodeSelection = [];
-            highlightLinkSelection = [];
-            highlightNodeSelection = [];
-        }
-
-        this.focusLinkSelection = await this.updateLinkSelection({
-            nodeData: focusLinkSelection,
-            datumSelection: this.focusLinkSelection,
-        });
-        await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-        this.focusNodeSelection = await this.updateNodeSelection({
-            nodeData: focusNodeSelection,
-            datumSelection: this.focusNodeSelection,
-        });
-        await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-        this.highlightLinkSelection = await this.updateLinkSelection({
-            nodeData: highlightLinkSelection,
-            datumSelection: this.highlightLinkSelection,
-        });
-        await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
-
-        this.highlightNodeSelection = await this.updateNodeSelection({
-            nodeData: highlightNodeSelection,
-            datumSelection: this.highlightNodeSelection,
-        });
-        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-    }
-
-    private async updateLabelSelection(opts: {
+    protected async updateLabelSelection(opts: {
         labelData: ChordNodeLabelDatum[];
         labelSelection: Selection<Text, ChordNodeLabelDatum>;
     }) {
@@ -561,7 +341,7 @@ export class ChordSeries extends DataModelSeries<
         return opts.labelSelection.update(labels);
     }
 
-    private async updateLabelNodes(opts: { labelSelection: Selection<Text, ChordNodeLabelDatum> }) {
+    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, ChordNodeLabelDatum> }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
@@ -586,18 +366,18 @@ export class ChordSeries extends DataModelSeries<
         });
     }
 
-    private async updateNodeSelection(opts: {
+    protected async updateNodeSelection(opts: {
         nodeData: ChordDatum[];
         datumSelection: Selection<Sector, ChordNodeDatum>;
     }) {
         return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is ChordNodeDatum => node.type === ChordDatumType.Node),
+            opts.nodeData.filter((node): node is ChordNodeDatum => node.type === FlowProportionDatumType.Node),
             undefined,
             (datum) => createDatumId([datum.type, datum.id])
         );
     }
 
-    private async updateNodeNodes(opts: { datumSelection: Selection<Sector, ChordNodeDatum>; isHighlight: boolean }) {
+    protected async updateNodeNodes(opts: { datumSelection: Selection<Sector, ChordNodeDatum>; isHighlight: boolean }) {
         const { datumSelection, isHighlight } = opts;
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
@@ -622,18 +402,18 @@ export class ChordSeries extends DataModelSeries<
         });
     }
 
-    private async updateLinkSelection(opts: {
+    protected async updateLinkSelection(opts: {
         nodeData: ChordDatum[];
         datumSelection: Selection<ChordLink, ChordLinkDatum>;
     }) {
         return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is ChordLinkDatum => node.type === ChordDatumType.Link),
+            opts.nodeData.filter((node): node is ChordLinkDatum => node.type === FlowProportionDatumType.Link),
             undefined,
             (datum) => createDatumId([datum.type, datum.fromNode.id, datum.toNode.id])
         );
     }
 
-    private async updateLinkNodes(opts: {
+    protected async updateLinkNodes(opts: {
         datumSelection: Selection<ChordLink, ChordLinkDatum>;
         isHighlight: boolean;
     }) {
@@ -726,7 +506,7 @@ export class ChordSeries extends DataModelSeries<
         let title: string;
         const contentLines: string[] = [];
         let fill: string;
-        if (nodeDatum.type === ChordDatumType.Link) {
+        if (nodeDatum.type === FlowProportionDatumType.Link) {
             const { fromNode, toNode, size } = nodeDatum;
             title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
             contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));

@@ -23,36 +23,21 @@ import {
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
+import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { SeriesNodeDatum } from '../seriesTypes';
 
-export enum SankeyDatumType {
-    Link,
-    Node,
+export interface SankeyNodeDatum extends FlowProportionNodeDatum {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 }
-export interface SankeyLinkDatum extends SeriesNodeDatum {
-    type: SankeyDatumType.Link;
-    fromNode: SankeyNodeDatum;
-    toNode: SankeyNodeDatum;
-    size: number;
+export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum> {
     x1: number;
     x2: number;
     y1: number;
     y2: number;
-    height: number;
-}
-
-export interface SankeyNodeDatum extends SeriesNodeDatum {
-    type: SankeyDatumType.Node;
-    id: string;
-    label: string | undefined;
-    size: number;
-    fill: string;
-    stroke: string;
-    x: number;
-    y: number;
-    width: number;
     height: number;
 }
 
@@ -123,6 +108,9 @@ export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNod
     lineDashOffset: number = 0;
 }
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
+    @Validate(ARRAY, { optional: true })
+    nodes: any[] | undefined = undefined;
+
     @Validate(STRING)
     fromIdKey: string = '';
 
@@ -158,9 +146,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Validate(STRING, { optional: true })
     nodeSizeName: string | undefined = undefined;
-
-    @Validate(ARRAY, { optional: true })
-    nodes: any[] | undefined = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
     fills: string[] = Object.values(DEFAULT_FILLS);

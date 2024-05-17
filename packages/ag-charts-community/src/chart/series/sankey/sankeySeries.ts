@@ -1,90 +1,41 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AgSankeySeriesFormatterParams, AgSankeySeriesLinkStyle } from '../../../options/agChartOptions';
-import type { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel, PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { sanitizeHtml } from '../../../util/sanitize';
 import type { RequireOptional } from '../../../util/types';
-import { ARRAY, Validate } from '../../../util/validation';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
-import type { ChartAxisDirection } from '../../chartAxisDirection';
-import { DataController } from '../../data/dataController';
-import type { DataModel, ProcessedData } from '../../data/dataModel';
 import { createDatumId } from '../../data/processors';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { DataModelSeries } from '../dataModelSeries';
-import type { FlowProportionSeries } from '../flowProportionSeries';
-import {
-    type PickFocusInputs,
-    type SeriesNodeDataContext,
-    SeriesNodePickMode,
-    keyProperty,
-    valueProperty,
-} from '../series';
+import { FlowProportionDatumType, FlowProportionSeries } from '../flow-proportion/flowProportionSeries';
+import { type NodeGraphEntry, computeNodeGraph } from '../flow-proportion/flowProportionUtil';
+import { type SeriesNodeDataContext, SeriesNodePickMode } from '../series';
 import { layoutColumns } from './sankeyLayout';
 import { SankeyLink } from './sankeyLink';
 import {
     type SankeyDatum,
-    SankeyDatumType,
     type SankeyLinkDatum,
     type SankeyNodeDatum,
     type SankeyNodeLabelDatum,
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
-import { type NodeGraphEntry, computeNodeGraph } from './sankeyUtil';
 
 export interface SankeyNodeDataContext extends SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
 
-export class SankeySeries
-    extends DataModelSeries<SankeyDatum, SankeySeriesProperties, SankeyNodeLabelDatum, SankeyNodeDataContext>
-    implements FlowProportionSeries
-{
+export class SankeySeries extends FlowProportionSeries<
+    SankeyNodeDatum,
+    SankeyLinkDatum,
+    SankeyNodeLabelDatum,
+    PlacedLabel<PointLabelDatum>,
+    SankeySeriesProperties,
+    Rect,
+    SankeyLink
+> {
     static readonly className = 'SankeySeries';
     static readonly type = 'sankey' as const;
 
     override properties = new SankeySeriesProperties();
-
-    @Validate(ARRAY, { optional: true, property: 'nodes' })
-    private _chartNodes?: any[] = undefined;
-
-    private get nodes() {
-        return this.properties.nodes ?? this._chartNodes;
-    }
-
-    private readonly nodesDataController = new DataController('standalone');
-    private nodesDataModel: DataModel<any, any, true> | undefined = undefined;
-    private nodesProcessedData: ProcessedData<any> | undefined = undefined;
-
-    public contextNodeData?: SankeyNodeDataContext;
-
-    private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
-    private readonly focusLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly focusNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
-    private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
-
-    private labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> = Selection.select(this.labelGroup, Text);
-    public linkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.linkGroup, () =>
-        this.linkFactory()
-    );
-    public nodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.nodeGroup, () => this.nodeFactory());
-    private focusLinkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.focusLinkGroup, () =>
-        this.linkFactory()
-    );
-    private focusNodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.focusNodeGroup, () =>
-        this.nodeFactory()
-    );
-    private highlightLinkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(
-        this.highlightLinkGroup,
-        () => this.linkFactory()
-    );
-    private highlightNodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.highlightNodeGroup, () =>
-        this.nodeFactory()
-    );
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -92,13 +43,6 @@ export class SankeySeries
             contentGroupVirtual: false,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
-    }
-
-    setChartNodes(nodes: any[] | undefined): void {
-        this._chartNodes = nodes;
-        if (this.nodes === nodes) {
-            this.nodeDataRefresh = true;
-        }
     }
 
     private isLabelEnabled() {
@@ -117,56 +61,12 @@ export class SankeySeries
         return this.contextNodeData?.labelData ?? [];
     }
 
-    private linkFactory() {
+    protected linkFactory() {
         return new SankeyLink();
     }
 
-    private nodeFactory() {
+    protected nodeFactory() {
         return new Rect();
-    }
-
-    override async processData(dataController: DataController): Promise<void> {
-        const { nodesDataController, data, nodes } = this;
-
-        if (data == null || nodes == null || !this.properties.isValid()) {
-            return;
-        }
-
-        const { fromIdKey, toIdKey, sizeKey, nodeIdKey, labelKey, nodeSizeKey } = this.properties;
-
-        const nodesDataModelPromise = this.requestDataModel<any, any, true>(nodesDataController, nodes, {
-            props: [
-                keyProperty(nodeIdKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
-                ...(labelKey != null
-                    ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                    : []),
-                ...(nodeSizeKey != null
-                    ? [valueProperty(nodeSizeKey, undefined, { id: 'nodeSizeValue', includeProperty: false })]
-                    : []),
-            ],
-            groupByKeys: true,
-        });
-
-        const linksDataModelPromise = this.requestDataModel<any, any, false>(dataController, data, {
-            props: [
-                valueProperty(fromIdKey, undefined, { id: 'fromIdValue', includeProperty: false }),
-                valueProperty(toIdKey, undefined, { id: 'toIdValue', includeProperty: false }),
-                ...(sizeKey != null
-                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false })]
-                    : []),
-            ],
-            groupByKeys: false,
-        });
-
-        nodesDataController.execute();
-
-        const [{ dataModel: nodesDataModel, processedData: nodesProcessedData }] = await Promise.all([
-            nodesDataModelPromise,
-            linksDataModelPromise,
-        ]);
-
-        this.nodesDataModel = nodesDataModel;
-        this.nodesProcessedData = nodesProcessedData;
     }
 
     override async createNodeData(): Promise<SankeyNodeDataContext | undefined> {
@@ -223,7 +123,7 @@ export class SankeySeries
                 series: this,
                 itemId: undefined,
                 datum,
-                type: SankeyDatumType.Node,
+                type: FlowProportionDatumType.Node,
                 id,
                 label,
                 size,
@@ -357,7 +257,7 @@ export class SankeySeries
                 series: this,
                 itemId: undefined,
                 datum,
-                type: SankeyDatumType.Link,
+                type: FlowProportionDatumType.Link,
                 fromNode,
                 toNode,
                 size,
@@ -427,109 +327,12 @@ export class SankeySeries
         };
     }
 
-    async updateSelections(): Promise<void> {
-        if (this.nodeDataRefresh) {
-            this.contextNodeData = await this.createNodeData();
-            this.nodeDataRefresh = false;
-        }
-    }
-
-    override async update(opts: { seriesRect?: BBox | undefined }): Promise<void> {
-        const { seriesRect } = opts;
-        const newNodeDataDependencies = {
-            seriesRectWidth: seriesRect?.width ?? 0,
-            seriesRectHeight: seriesRect?.height ?? 0,
-        };
-        if (
-            this._nodeDataDependencies == null ||
-            this.nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
-            this.nodeDataDependencies.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight
-        ) {
-            this._nodeDataDependencies = newNodeDataDependencies;
-        }
-
-        await this.updateSelections();
-
-        let highlightedDatum: SankeyDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
-            highlightedDatum = undefined;
-        }
-
-        this.contentGroup.visible = this.visible;
-        this.contentGroup.opacity =
-            highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
-
-        const nodeData = this.contextNodeData?.nodeData ?? [];
-
-        this.labelSelection = await this.updateLabelSelection({ labelSelection: this.labelSelection });
-        await this.updateLabelNodes({ labelSelection: this.labelSelection });
-
-        this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
-        await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
-
-        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
-        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
-
-        let focusLinkSelection: SankeyLinkDatum[];
-        let focusNodeSelection: SankeyNodeDatum[];
-        let highlightLinkSelection: SankeyLinkDatum[];
-        let highlightNodeSelection: SankeyNodeDatum[];
-        if (highlightedDatum?.type === SankeyDatumType.Node) {
-            focusLinkSelection = nodeData.filter((node): node is SankeyLinkDatum => {
-                return (
-                    node.type === SankeyDatumType.Link &&
-                    (node.toNode === highlightedDatum || node.fromNode === highlightedDatum)
-                );
-            });
-            focusNodeSelection = focusLinkSelection.map((link) => {
-                return link.fromNode === highlightedDatum ? link.toNode : link.fromNode;
-            });
-            focusNodeSelection.push(highlightedDatum);
-            highlightLinkSelection = [];
-            highlightNodeSelection = [highlightedDatum];
-        } else if (highlightedDatum?.type === SankeyDatumType.Link) {
-            focusLinkSelection = [highlightedDatum];
-            focusNodeSelection = [highlightedDatum.fromNode, highlightedDatum.toNode];
-            highlightLinkSelection = [highlightedDatum];
-            highlightNodeSelection = [];
-        } else {
-            focusLinkSelection = [];
-            focusNodeSelection = [];
-            highlightLinkSelection = [];
-            highlightNodeSelection = [];
-        }
-
-        this.focusLinkSelection = await this.updateLinkSelection({
-            nodeData: focusLinkSelection,
-            datumSelection: this.focusLinkSelection,
-        });
-        await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
-
-        this.focusNodeSelection = await this.updateNodeSelection({
-            nodeData: focusNodeSelection,
-            datumSelection: this.focusNodeSelection,
-        });
-        await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
-
-        this.highlightLinkSelection = await this.updateLinkSelection({
-            nodeData: highlightLinkSelection,
-            datumSelection: this.highlightLinkSelection,
-        });
-        await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
-
-        this.highlightNodeSelection = await this.updateNodeSelection({
-            nodeData: highlightNodeSelection,
-            datumSelection: this.highlightNodeSelection,
-        });
-        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
-    }
-
-    private async updateLabelSelection(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
+    protected async updateLabelSelection(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
         const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
         return opts.labelSelection.update(placedLabels);
     }
 
-    private async updateLabelNodes(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
+    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
@@ -549,18 +352,18 @@ export class SankeySeries
         });
     }
 
-    private async updateNodeSelection(opts: {
+    protected async updateNodeSelection(opts: {
         nodeData: SankeyDatum[];
         datumSelection: Selection<Rect, SankeyNodeDatum>;
     }) {
         return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is SankeyNodeDatum => node.type === SankeyDatumType.Node),
+            opts.nodeData.filter((node): node is SankeyNodeDatum => node.type === FlowProportionDatumType.Node),
             undefined,
             (datum) => createDatumId([datum.type, datum.id])
         );
     }
 
-    private async updateNodeNodes(opts: { datumSelection: Selection<Rect, SankeyNodeDatum>; isHighlight: boolean }) {
+    protected async updateNodeNodes(opts: { datumSelection: Selection<Rect, SankeyNodeDatum>; isHighlight: boolean }) {
         const { datumSelection, isHighlight } = opts;
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties.node;
@@ -582,18 +385,18 @@ export class SankeySeries
         });
     }
 
-    private async updateLinkSelection(opts: {
+    protected async updateLinkSelection(opts: {
         nodeData: SankeyDatum[];
         datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
     }) {
         return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is SankeyLinkDatum => node.type === SankeyDatumType.Link),
+            opts.nodeData.filter((node): node is SankeyLinkDatum => node.type === FlowProportionDatumType.Link),
             undefined,
             (datum) => createDatumId([datum.type, datum.fromNode.id, datum.toNode.id])
         );
     }
 
-    private async updateLinkNodes(opts: {
+    protected async updateLinkNodes(opts: {
         datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
         isHighlight: boolean;
     }) {
@@ -649,8 +452,6 @@ export class SankeySeries
         });
     }
 
-    override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {}
-
     override getTooltipHtml(nodeDatum: SankeyDatum): TooltipContent {
         const {
             id: seriesId,
@@ -685,7 +486,7 @@ export class SankeySeries
         let title: string;
         const contentLines: string[] = [];
         let fill: string;
-        if (nodeDatum.type === SankeyDatumType.Link) {
+        if (nodeDatum.type === FlowProportionDatumType.Link) {
             const { fromNode, toNode, size } = nodeDatum;
             title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
             contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
@@ -747,17 +548,5 @@ export class SankeySeries
                 ...this.getModuleTooltipParams(),
             }
         );
-    }
-
-    override getSeriesDomain(_direction: ChartAxisDirection): any[] {
-        return [];
-    }
-
-    override getLegendData(_legendType: unknown) {
-        return [];
-    }
-
-    protected override computeFocusBounds(_opts: PickFocusInputs): BBox | undefined {
-        return;
     }
 }

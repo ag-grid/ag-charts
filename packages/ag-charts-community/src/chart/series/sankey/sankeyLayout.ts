@@ -1,5 +1,5 @@
+import type { Link, LinkedNode, NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
 import type { SankeyNodeDatum } from './sankeySeriesProperties';
-import type { Link, LinkedNode, NodeGraphEntry } from './sankeyUtil';
 
 type Column<L extends Link> = {
     nodes: NodeGraphEntry<SankeyNodeDatum, L>[];
