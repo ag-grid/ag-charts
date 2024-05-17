@@ -1,17 +1,11 @@
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { AgChordSeriesFormatterParams, AgChordSeriesLinkStyle } from '../../../options/agChartOptions';
-import type { BBox } from '../../../scene/bbox';
-import { Selection } from '../../../scene/selection';
-import { Sector } from '../../../scene/shape/sector';
-import { Text } from '../../../scene/shape/text';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
-import { angleBetween, isBetweenAngles, normalizeAngle360 } from '../../../util/angle';
-import { sanitizeHtml } from '../../../util/sanitize';
-import type { RequireOptional } from '../../../util/types';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
-import type { ChartAxisDirection } from '../../chartAxisDirection';
-import { createDatumId } from '../../data/processors';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import {
+    type AgChordSeriesFormatterParams,
+    type AgChordSeriesLinkStyle,
+    _ModuleSupport,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
+
 import {
     FlowProportionDatumType,
     type FlowProportionLinkDatum,
@@ -19,9 +13,12 @@ import {
     FlowProportionSeries,
 } from '../flow-proportion/flowProportionSeries';
 import { computeNodeGraph } from '../flow-proportion/flowProportionUtil';
-import { type PickFocusInputs, type SeriesNodeDataContext, SeriesNodePickMode } from '../series';
 import { ChordLink } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
+
+const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml } = _Util;
+const { Sector, Text } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
     centerX: number;
@@ -52,7 +49,7 @@ interface ChordNodeLabelDatum {
     radius: number;
 }
 
-export interface ChordNodeDataContext extends SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
+export interface ChordNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
 
 const nodeMidAngle = (node: ChordNodeDatum) => node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
 export class ChordSeries extends FlowProportionSeries<
@@ -61,7 +58,7 @@ export class ChordSeries extends FlowProportionSeries<
     ChordNodeLabelDatum,
     ChordNodeLabelDatum,
     ChordSeriesProperties,
-    Sector,
+    _Scene.Sector,
     ChordLink
 > {
     static readonly className = 'ChordSeries';
@@ -69,7 +66,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     override properties = new ChordSeriesProperties();
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
             contentGroupVirtual: false,
@@ -335,13 +332,13 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: ChordNodeLabelDatum[];
-        labelSelection: Selection<Text, ChordNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.Text, ChordNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, ChordNodeLabelDatum> }) {
+    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, ChordNodeLabelDatum> }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
@@ -368,7 +365,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateNodeSelection(opts: {
         nodeData: ChordDatum[];
-        datumSelection: Selection<Sector, ChordNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Sector, ChordNodeDatum>;
     }) {
         return opts.datumSelection.update(
             opts.nodeData.filter((node): node is ChordNodeDatum => node.type === FlowProportionDatumType.Node),
@@ -377,7 +374,10 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    protected async updateNodeNodes(opts: { datumSelection: Selection<Sector, ChordNodeDatum>; isHighlight: boolean }) {
+    protected async updateNodeNodes(opts: {
+        datumSelection: _Scene.Selection<_Scene.Sector, ChordNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const { datumSelection, isHighlight } = opts;
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
@@ -404,7 +404,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateLinkSelection(opts: {
         nodeData: ChordDatum[];
-        datumSelection: Selection<ChordLink, ChordLinkDatum>;
+        datumSelection: _Scene.Selection<ChordLink, ChordLinkDatum>;
     }) {
         return opts.datumSelection.update(
             opts.nodeData.filter((node): node is ChordLinkDatum => node.type === FlowProportionDatumType.Link),
@@ -414,7 +414,7 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected async updateLinkNodes(opts: {
-        datumSelection: Selection<ChordLink, ChordLinkDatum>;
+        datumSelection: _Scene.Selection<ChordLink, ChordLinkDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -431,7 +431,7 @@ export class ChordSeries extends FlowProportionSeries<
         datumSelection.each((link, datum) => {
             let format: AgChordSeriesLinkStyle | undefined;
             if (formatter != null) {
-                const params: RequireOptional<AgChordSeriesFormatterParams> = {
+                const params: _Util.RequireOptional<AgChordSeriesFormatterParams> = {
                     seriesId,
                     datum: datum.datum,
                     itemId: datum.itemId,
@@ -470,9 +470,9 @@ export class ChordSeries extends FlowProportionSeries<
         });
     }
 
-    override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {}
+    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
 
-    override getTooltipHtml(nodeDatum: ChordDatum): TooltipContent {
+    override getTooltipHtml(nodeDatum: ChordDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             processedData,
@@ -570,19 +570,7 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    override getSeriesDomain(_direction: ChartAxisDirection): any[] {
+    override getLabelData(): _Util.PointLabelDatum[] {
         return [];
-    }
-
-    override getLabelData(): PointLabelDatum[] {
-        return [];
-    }
-
-    override getLegendData(_legendType: unknown) {
-        return [];
-    }
-
-    protected override computeFocusBounds(_opts: PickFocusInputs): BBox | undefined {
-        return;
     }
 }

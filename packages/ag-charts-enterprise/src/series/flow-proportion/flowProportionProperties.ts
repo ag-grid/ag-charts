@@ -1,6 +1,7 @@
-import { SeriesProperties } from '../seriesProperties';
+import type { _ModuleSupport } from 'ag-charts-community';
 
-export interface FlowProportionSeriesProperties<SeriesOptions extends {}> extends SeriesProperties<SeriesOptions> {
+export interface FlowProportionSeriesProperties<SeriesOptions extends {}>
+    extends _ModuleSupport.SeriesProperties<SeriesOptions> {
     nodes: any[] | undefined;
     fromIdKey: string;
     fromIdName: string | undefined;

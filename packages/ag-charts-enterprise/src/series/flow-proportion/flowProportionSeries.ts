@@ -1,32 +1,24 @@
-import type { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import type { Node } from '../../../scene/node';
-import { Selection } from '../../../scene/selection';
-import { Text } from '../../../scene/shape/text';
-import { ARRAY, Validate } from '../../../util/validation';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
-import type { ChartAxisDirection } from '../../chartAxisDirection';
-import { DataController } from '../../data/dataController';
-import type { DataModel, ProcessedData } from '../../data/dataModel';
-import { DataModelSeries } from '../dataModelSeries';
-import type { FlowProportionSeries as BaseFlowProportionSeries } from '../flowProportionSeries';
-import { type PickFocusInputs, type SeriesNodeDataContext, keyProperty, valueProperty } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
+
+const { DataModelSeries, DataController, Validate, ARRAY, keyProperty, valueProperty } = _ModuleSupport;
+const { Selection, Group, Text } = _Scene;
 
 export enum FlowProportionDatumType {
     Link,
     Node,
 }
 
-export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDatum> extends SeriesNodeDatum {
+export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDatum>
+    extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Link;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
     size: number;
 }
 
-export interface FlowProportionNodeDatum extends SeriesNodeDatum {
+export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Node;
     id: string;
     label: string | undefined;
@@ -46,16 +38,16 @@ export abstract class FlowProportionSeries<
         TLabel,
         TPlacedLabel,
         TProps extends FlowProportionSeriesProperties<any>,
-        TNode extends Node,
-        TLink extends Node,
+        TNode extends _Scene.Node,
+        TLink extends _Scene.Node,
     >
     extends DataModelSeries<
         TDatum<TNodeDatum, TLinkDatum>,
         TProps,
         TLabel,
-        SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
+        _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
     >
-    implements BaseFlowProportionSeries
+    implements _ModuleSupport.FlowProportionSeries
 {
     abstract override properties: TProps;
 
@@ -67,10 +59,10 @@ export abstract class FlowProportionSeries<
     }
 
     private readonly nodesDataController = new DataController('standalone');
-    protected nodesDataModel: DataModel<any, any, true> | undefined = undefined;
-    protected nodesProcessedData: ProcessedData<any> | undefined = undefined;
+    protected nodesDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
+    protected nodesProcessedData: _ModuleSupport.ProcessedData<any> | undefined = undefined;
 
-    public contextNodeData?: SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>;
+    public contextNodeData?: _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>;
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
@@ -79,20 +71,26 @@ export abstract class FlowProportionSeries<
     private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
-    private labelSelection: Selection<Text, TPlacedLabel> = Selection.select(this.labelGroup, Text);
-    public linkSelection: Selection<TLink, TLinkDatum> = Selection.select(this.linkGroup, () => this.linkFactory());
-    public nodeSelection: Selection<TNode, TNodeDatum> = Selection.select(this.nodeGroup, () => this.nodeFactory());
-    private focusLinkSelection: Selection<TLink, TLinkDatum> = Selection.select(this.focusLinkGroup, () =>
+    private labelSelection: _Scene.Selection<_Scene.Text, TPlacedLabel> = Selection.select(this.labelGroup, Text);
+    public linkSelection: _Scene.Selection<TLink, TLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
-    private focusNodeSelection: Selection<TNode, TNodeDatum> = Selection.select(this.focusNodeGroup, () =>
+    public nodeSelection: _Scene.Selection<TNode, TNodeDatum> = Selection.select(this.nodeGroup, () =>
         this.nodeFactory()
     );
-    private highlightLinkSelection: Selection<TLink, TLinkDatum> = Selection.select(this.highlightLinkGroup, () =>
+    private focusLinkSelection: _Scene.Selection<TLink, TLinkDatum> = Selection.select(this.focusLinkGroup, () =>
         this.linkFactory()
     );
-    private highlightNodeSelection: Selection<TNode, TNodeDatum> = Selection.select(this.highlightNodeGroup, () =>
+    private focusNodeSelection: _Scene.Selection<TNode, TNodeDatum> = Selection.select(this.focusNodeGroup, () =>
         this.nodeFactory()
+    );
+    private highlightLinkSelection: _Scene.Selection<TLink, TLinkDatum> = Selection.select(
+        this.highlightLinkGroup,
+        () => this.linkFactory()
+    );
+    private highlightNodeSelection: _Scene.Selection<TNode, TNodeDatum> = Selection.select(
+        this.highlightNodeGroup,
+        () => this.nodeFactory()
     );
 
     setChartNodes(nodes: any[] | undefined): void {
@@ -113,7 +111,7 @@ export abstract class FlowProportionSeries<
     protected abstract linkFactory(): TLink;
     protected abstract nodeFactory(): TNode;
 
-    override async processData(dataController: DataController): Promise<void> {
+    override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { nodesDataController, data, nodes } = this;
 
         if (data == null || nodes == null || !this.properties.isValid()) {
@@ -164,7 +162,7 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    override async update(opts: { seriesRect?: BBox | undefined }): Promise<void> {
+    override async update(opts: { seriesRect?: _Scene.BBox | undefined }): Promise<void> {
         const { seriesRect } = opts;
         const newNodeDataDependencies = {
             seriesRectWidth: seriesRect?.width ?? 0,
@@ -191,8 +189,9 @@ export abstract class FlowProportionSeries<
             highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
 
-        this.labelSelection = await this.updateLabelSelection({ labelSelection: this.labelSelection });
+        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         await this.updateLabelNodes({ labelSelection: this.labelSelection });
 
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
@@ -256,34 +255,37 @@ export abstract class FlowProportionSeries<
     }
 
     protected abstract updateLabelSelection(opts: {
-        labelSelection: Selection<Text, TPlacedLabel>;
-    }): Promise<Selection<Text, TPlacedLabel>>;
+        labelData: TLabel[];
+        labelSelection: _Scene.Selection<_Scene.Text, TPlacedLabel>;
+    }): Promise<_Scene.Selection<_Scene.Text, TPlacedLabel>>;
 
-    protected abstract updateLabelNodes(opts: { labelSelection: Selection<Text, TPlacedLabel> }): Promise<void>;
+    protected abstract updateLabelNodes(opts: {
+        labelSelection: _Scene.Selection<_Scene.Text, TPlacedLabel>;
+    }): Promise<void>;
 
     protected abstract updateNodeSelection(opts: {
         nodeData: TDatum<TNodeDatum, TLinkDatum>[];
-        datumSelection: Selection<TNode, TNodeDatum>;
-    }): Promise<Selection<TNode, TNodeDatum>>;
+        datumSelection: _Scene.Selection<TNode, TNodeDatum>;
+    }): Promise<_Scene.Selection<TNode, TNodeDatum>>;
 
     protected abstract updateNodeNodes(opts: {
-        datumSelection: Selection<TNode, TNodeDatum>;
+        datumSelection: _Scene.Selection<TNode, TNodeDatum>;
         isHighlight: boolean;
     }): Promise<void>;
 
     protected abstract updateLinkSelection(opts: {
         nodeData: TDatum<TNodeDatum, TLinkDatum>[];
-        datumSelection: Selection<TLink, TLinkDatum>;
-    }): Promise<Selection<TLink, TLinkDatum>>;
+        datumSelection: _Scene.Selection<TLink, TLinkDatum>;
+    }): Promise<_Scene.Selection<TLink, TLinkDatum>>;
 
     protected abstract updateLinkNodes(opts: {
-        datumSelection: Selection<TLink, TLinkDatum>;
+        datumSelection: _Scene.Selection<TLink, TLinkDatum>;
         isHighlight: boolean;
     }): Promise<void>;
 
-    override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {}
+    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
 
-    override getSeriesDomain(_direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [];
     }
 
@@ -291,7 +293,7 @@ export abstract class FlowProportionSeries<
         return [];
     }
 
-    protected override computeFocusBounds(_opts: PickFocusInputs): BBox | undefined {
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
         return;
     }
 }

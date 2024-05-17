@@ -1,11 +1,13 @@
-import type { SeriesModule } from '../../../module/coreModules';
-import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } from '../../themes/symbols';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
+
 import { ChordSeries } from './chordSeries';
 
-export const ChordSeriesModule: SeriesModule<'chord'> = {
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } = _Theme;
+
+export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['flow-proportion'],
 
     identifier: 'chord',

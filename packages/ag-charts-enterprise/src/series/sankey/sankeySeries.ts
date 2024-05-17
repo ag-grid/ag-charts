@@ -1,16 +1,13 @@
-import type { ModuleContext } from '../../../module/moduleContext';
-import type { AgSankeySeriesFormatterParams, AgSankeySeriesLinkStyle } from '../../../options/agChartOptions';
-import { Selection } from '../../../scene/selection';
-import { Rect } from '../../../scene/shape/rect';
-import { Text } from '../../../scene/shape/text';
-import type { PlacedLabel, PointLabelDatum } from '../../../scene/util/labelPlacement';
-import { sanitizeHtml } from '../../../util/sanitize';
-import type { RequireOptional } from '../../../util/types';
-import { createDatumId } from '../../data/processors';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import {
+    type AgSankeySeriesFormatterParams,
+    type AgSankeySeriesLinkStyle,
+    _ModuleSupport,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
+
 import { FlowProportionDatumType, FlowProportionSeries } from '../flow-proportion/flowProportionSeries';
 import { type NodeGraphEntry, computeNodeGraph } from '../flow-proportion/flowProportionUtil';
-import { type SeriesNodeDataContext, SeriesNodePickMode } from '../series';
 import { layoutColumns } from './sankeyLayout';
 import { SankeyLink } from './sankeyLink';
 import {
@@ -21,15 +18,20 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-export interface SankeyNodeDataContext extends SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
+const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { sanitizeHtml } = _Util;
+const { Rect, Text } = _Scene;
+
+export interface SankeyNodeDataContext
+    extends _ModuleSupport.SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
 
 export class SankeySeries extends FlowProportionSeries<
     SankeyNodeDatum,
     SankeyLinkDatum,
     SankeyNodeLabelDatum,
-    PlacedLabel<PointLabelDatum>,
+    _Util.PlacedLabel<_Util.PointLabelDatum>,
     SankeySeriesProperties,
-    Rect,
+    _Scene.Rect,
     SankeyLink
 > {
     static readonly className = 'SankeySeries';
@@ -37,7 +39,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     override properties = new SankeySeriesProperties();
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
             contentGroupVirtual: false,
@@ -49,15 +51,7 @@ export class SankeySeries extends FlowProportionSeries<
         return this.properties.labelKey != null && this.properties.label.enabled;
     }
 
-    override get hasData() {
-        return super.hasData && this.nodes != null;
-    }
-
-    public override getNodeData(): SankeyDatum[] | undefined {
-        return this.contextNodeData?.nodeData;
-    }
-
-    override getLabelData(): PointLabelDatum[] {
+    override getLabelData(): _Util.PointLabelDatum[] {
         return this.contextNodeData?.labelData ?? [];
     }
 
@@ -327,12 +321,16 @@ export class SankeySeries extends FlowProportionSeries<
         };
     }
 
-    protected async updateLabelSelection(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
+    protected async updateLabelSelection(opts: {
+        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+    }) {
         const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
         return opts.labelSelection.update(placedLabels);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, PlacedLabel<PointLabelDatum>> }) {
+    protected async updateLabelNodes(opts: {
+        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+    }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
@@ -354,7 +352,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected async updateNodeSelection(opts: {
         nodeData: SankeyDatum[];
-        datumSelection: Selection<Rect, SankeyNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Rect, SankeyNodeDatum>;
     }) {
         return opts.datumSelection.update(
             opts.nodeData.filter((node): node is SankeyNodeDatum => node.type === FlowProportionDatumType.Node),
@@ -363,7 +361,10 @@ export class SankeySeries extends FlowProportionSeries<
         );
     }
 
-    protected async updateNodeNodes(opts: { datumSelection: Selection<Rect, SankeyNodeDatum>; isHighlight: boolean }) {
+    protected async updateNodeNodes(opts: {
+        datumSelection: _Scene.Selection<_Scene.Rect, SankeyNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const { datumSelection, isHighlight } = opts;
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties.node;
@@ -387,7 +388,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected async updateLinkSelection(opts: {
         nodeData: SankeyDatum[];
-        datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
+        datumSelection: _Scene.Selection<SankeyLink, SankeyLinkDatum>;
     }) {
         return opts.datumSelection.update(
             opts.nodeData.filter((node): node is SankeyLinkDatum => node.type === FlowProportionDatumType.Link),
@@ -397,7 +398,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected async updateLinkNodes(opts: {
-        datumSelection: Selection<SankeyLink, SankeyLinkDatum>;
+        datumSelection: _Scene.Selection<SankeyLink, SankeyLinkDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -414,7 +415,7 @@ export class SankeySeries extends FlowProportionSeries<
         datumSelection.each((link, datum) => {
             let format: AgSankeySeriesLinkStyle | undefined;
             if (formatter != null) {
-                const params: RequireOptional<AgSankeySeriesFormatterParams> = {
+                const params: _Util.RequireOptional<AgSankeySeriesFormatterParams> = {
                     seriesId,
                     datum: datum.datum,
                     itemId: datum.itemId,
@@ -452,7 +453,7 @@ export class SankeySeries extends FlowProportionSeries<
         });
     }
 
-    override getTooltipHtml(nodeDatum: SankeyDatum): TooltipContent {
+    override getTooltipHtml(nodeDatum: SankeyDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
             processedData,
