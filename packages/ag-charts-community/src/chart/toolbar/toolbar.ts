@@ -22,6 +22,7 @@ import {
     type ToolbarButton,
     type ToolbarGroup,
     ToolbarPosition,
+    isFloatingPosition,
 } from './toolbarTypes';
 import { initToolbarKeyNav } from './toolbarUtil';
 
@@ -157,9 +158,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const topDetectionY = top.offsetTop + top.offsetHeight + floatingDetectionRange;
         const topVisible = (offsetY > 0 && offsetY < topDetectionY) || target === top;
 
-        bottom.classList.toggle(styles.modifiers.floatingHidden, !bottomVisible);
-        top.classList.toggle(styles.modifiers.floatingHidden, !topVisible);
-
         this.translateFloatingElements(FloatingBottom, bottomVisible);
         this.translateFloatingElements(FloatingTop, topVisible);
     }
@@ -179,9 +177,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             this.groupButtons[group].some((button) => button === relatedElement)
         );
         if (isTargetButton) return;
-
-        elements[FloatingBottom].classList.add(styles.modifiers.floatingHidden);
-        elements[FloatingTop].classList.add(styles.modifiers.floatingHidden);
 
         this.translateFloatingElements(FloatingBottom, false);
         this.translateFloatingElements(FloatingTop, false);
@@ -271,7 +266,19 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             this.groupButtons[group].push(button);
         }
         if (parent) {
-            this.groupDestroyFns[group] = initToolbarKeyNav('horizontal', parent, this.groupButtons[group]);
+            let onfocus: ((ev: FocusEvent) => void) | undefined;
+            let onblur: ((ev: FocusEvent) => void) | undefined;
+            if (isFloatingPosition(position)) {
+                onfocus = () => this.translateFloatingElements(position, true);
+                onblur = () => this.translateFloatingElements(position, false);
+            }
+            this.groupDestroyFns[group] = initToolbarKeyNav({
+                orientation: 'horizontal',
+                toolbar: parent,
+                buttons: this.groupButtons[group],
+                onfocus,
+                onblur,
+            });
         }
     }
 
@@ -376,6 +383,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const element = elements[position];
         const alignments = Object.values(positionAlignments[position]);
+        element.classList.toggle(styles.modifiers.floatingHidden, !visible);
 
         for (const align of alignments) {
             align.style.transform =
