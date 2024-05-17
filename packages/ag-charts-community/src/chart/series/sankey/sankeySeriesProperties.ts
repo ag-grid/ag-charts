@@ -22,6 +22,40 @@ import {
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { SeriesNodeDatum } from '../seriesTypes';
+
+export enum SankeyDatumType {
+    Link,
+    Node,
+}
+export interface SankeyLinkDatum extends SeriesNodeDatum {
+    type: SankeyDatumType.Link;
+    fromNode: SankeyNodeDatum;
+    toNode: SankeyNodeDatum;
+    size: number;
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    height: number;
+}
+
+export interface SankeyNodeDatum extends SeriesNodeDatum {
+    type: SankeyDatumType.Node;
+    id: string;
+    label: string | undefined;
+    size: number;
+    fill: string;
+    stroke: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
+
+export interface SankeyNodeLabelDatum {}
 
 export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
     @Validate(COLOR_STRING, { optional: true })

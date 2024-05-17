@@ -2,7 +2,7 @@ import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgChordSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
@@ -13,7 +13,7 @@ export interface AgChordSeriesOptions<TDatum = any>
     /** Node options */
 }
 
-export interface AgChordSeriesThemeableOptions<_TDatum = any> {
+export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     nodes?: any[];
     /** The colours to cycle through for the fills of the nodes and links. */
     fills?: CssColor[];

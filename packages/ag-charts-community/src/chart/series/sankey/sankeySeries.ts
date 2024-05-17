@@ -23,43 +23,17 @@ import {
     keyProperty,
     valueProperty,
 } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import { layoutColumns } from './sankeyLayout';
 import { SankeyLink } from './sankeyLink';
-import { SankeySeriesProperties } from './sankeySeriesProperties';
-import { computeNodeGraph } from './sankeyUtil';
-
-enum SankeyDatumType {
-    Link,
-    Node,
-}
-interface SankeyLinkDatum extends SeriesNodeDatum {
-    type: SankeyDatumType.Link;
-    fromNode: SankeyNodeDatum;
-    toNode: SankeyNodeDatum;
-    size: number;
-    x1: number;
-    x2: number;
-    y1: number;
-    y2: number;
-    height: number;
-}
-
-interface SankeyNodeDatum extends SeriesNodeDatum {
-    type: SankeyDatumType.Node;
-    id: string;
-    label: string | undefined;
-    size: number;
-    fill: string;
-    stroke: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
-
-interface SankeyNodeLabelDatum {}
+import {
+    type SankeyDatum,
+    SankeyDatumType,
+    type SankeyLinkDatum,
+    type SankeyNodeDatum,
+    type SankeyNodeLabelDatum,
+    SankeySeriesProperties,
+} from './sankeySeriesProperties';
+import { type NodeGraphEntry, computeNodeGraph } from './sankeyUtil';
 
 export interface SankeyNodeDataContext extends SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
 
@@ -87,6 +61,8 @@ export class SankeySeries
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
+    private readonly focusLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
+    private readonly focusNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
     private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
@@ -94,6 +70,12 @@ export class SankeySeries
         this.linkFactory()
     );
     public nodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.nodeGroup, () => this.nodeFactory());
+    private focusLinkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(this.focusLinkGroup, () =>
+        this.linkFactory()
+    );
+    private focusNodeSelection: Selection<Rect, SankeyNodeDatum> = Selection.select(this.focusNodeGroup, () =>
+        this.nodeFactory()
+    );
     private highlightLinkSelection: Selection<SankeyLink, SankeyLinkDatum> = Selection.select(
         this.highlightLinkGroup,
         () => this.linkFactory()
@@ -105,6 +87,7 @@ export class SankeySeries
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            contentGroupVirtual: false,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
     }
@@ -214,31 +197,17 @@ export class SankeySeries
         const nodeSizeIdx =
             nodeSizeKey != null ? nodesDataModel.resolveProcessedDataIndexById(this, 'nodeSizeValue') : undefined;
 
-        const entryNodeSize = new Map<string, number>();
-        const exitNodeSize = new Map<string, number>();
-        const links = linksProcessedData.data.map(({ datum, values }) => {
-            const fromId: string = values[fromIdIdx];
-            const toId: string = values[toIdIdx];
-            const size: number = sizeIdx != null ? values[sizeIdx] : 0;
-            exitNodeSize.set(fromId, (exitNodeSize.get(fromId) ?? 0) + size);
-            entryNodeSize.set(toId, (entryNodeSize.get(toId) ?? 0) + size);
-            return { datum, fromId, toId, size };
-        });
-
         const nodeData: SankeyDatum[] = [];
         const nodesById = new Map<string, SankeyNodeDatum>();
         nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
             const value = values[0];
             const id = keys[nodeIdIdx];
             const label = labelIdx != null ? value[labelIdx] : undefined;
-            const size = Math.max(
-                nodeSizeIdx != null ? value[nodeSizeIdx] : 0,
-                entryNodeSize.get(id) ?? 0,
-                exitNodeSize.get(id) ?? 0
-            );
+            const size = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
 
             const fill = fills[index % fills.length];
             const stroke = strokes[index % strokes.length];
+
             const node: SankeyNodeDatum = {
                 series: this,
                 itemId: undefined,
@@ -258,10 +227,21 @@ export class SankeySeries
             nodeData.push(node);
         });
 
-        const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.keys(), links);
+        const links = linksProcessedData.data
+            .map(({ datum, values }) => {
+                const fromId: string = values[fromIdIdx];
+                const toId: string = values[toIdIdx];
+                const size: number = sizeIdx != null ? values[sizeIdx] : 0;
+                const fromNode = nodesById.get(fromId)!;
+                const toNode = nodesById.get(toId)!;
+                return { datum, fromId, toId, fromNode, toNode, size, y1: NaN, y2: NaN };
+            })
+            .filter((link) => link.fromNode != null && link.toNode != null);
+
+        const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById, links, false);
 
         type Column = {
-            nodes: SankeyNodeDatum[];
+            nodes: NodeGraphEntry<SankeyNodeDatum, (typeof links)[0]>[];
             size: number;
             readonly x: number;
         };
@@ -271,7 +251,14 @@ export class SankeySeries
             columns.push({ size: 0, nodes: [], x });
         }
 
-        nodeGraph.forEach(({ linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter }, id) => {
+        nodeGraph.forEach((graphNode) => {
+            const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
+            const size = Math.max(
+                node.size,
+                linksBefore.reduce((acc, { link }) => acc + link.size, 0),
+                linksAfter.reduce((acc, { link }) => acc + link.size, 0)
+            );
+
             let column: Column;
             switch (justify) {
                 case 'left':
@@ -286,8 +273,10 @@ export class SankeySeries
                         // eslint-disable-next-line no-negated-condition
                     } else if (linksAfter.length !== 0) {
                         const columnIndex =
-                            linksAfter.reduce((acc, link) => Math.min(acc, link.maxPathLengthBefore), maxPathLength) -
-                            1;
+                            linksAfter.reduce(
+                                (acc, link) => Math.min(acc, link.node.maxPathLengthBefore),
+                                maxPathLength
+                            ) - 1;
                         column = columns[columnIndex];
                     } else {
                         column = columns[0];
@@ -300,44 +289,55 @@ export class SankeySeries
                 }
             }
 
-            const node = nodesById.get(id)!;
             node.x = column.x;
-            column.nodes.push(node);
-            column.size += node.size;
+            node.size = size;
+            column.nodes.push(graphNode);
+            column.size += size;
         });
 
-        const maximumSizeScale = columns.reduce((acc, { size, nodes }) => {
-            const sizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
-            return Math.min(acc, sizeScale);
+        const sizeScale = columns.reduce((acc, { size, nodes }) => {
+            const columnSizeScale = (1 - (nodes.length - 1) * (nodeSpacing / seriesRectHeight)) / size;
+            return Math.min(acc, columnSizeScale);
         }, Infinity);
 
-        columns.forEach(({ nodes, size }) => {
-            const nodesHeight = seriesRectHeight * size * maximumSizeScale;
-            const outerPadding = (seriesRectHeight - (nodesHeight + nodeSpacing * (nodes.length - 1))) / 2;
-            let y = outerPadding;
-            nodes.forEach((node) => {
-                const height = seriesRectHeight * node.size * maximumSizeScale;
-                node.y = y;
-                node.height = height;
-                y += height + nodeSpacing;
+        layoutColumns(columns, {
+            seriesRectHeight,
+            nodeSpacing,
+            sizeScale,
+        });
+
+        const nodeMidY = (node: SankeyNodeDatum) => node.y + node.height / 2;
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+            const midY = nodeMidY(node);
+            const x = node.x;
+            const sortNodes = (l: typeof linksBefore) => {
+                return l.sort((a, b) => {
+                    const aMid = nodeMidY(a.node.datum);
+                    const bMid = nodeMidY(b.node.datum);
+                    return (
+                        Math.atan2(aMid - midY, Math.abs(a.node.datum.x - x)) -
+                        Math.atan2(bMid - midY, Math.abs(b.node.datum.x - x))
+                    );
+                });
+            };
+
+            let y2 = node.y;
+            sortNodes(linksBefore).forEach(({ link }) => {
+                link.y2 = y2;
+                y2 += link.size * seriesRectHeight * sizeScale;
+            });
+
+            let y1 = node.y;
+            sortNodes(linksAfter).forEach(({ link }) => {
+                link.y1 = y1;
+                y1 += link.size * seriesRectHeight * sizeScale;
             });
         });
 
-        const leadingNodeYs = new Map<string, number>();
-        const trailingNodeYs = new Map<string, number>();
-        links.forEach(({ datum, fromId, toId, size }) => {
-            const fromNode = nodesById.get(fromId);
-            const toNode = nodesById.get(toId);
-            if (fromNode == null || toNode == null) return;
-
-            const height = seriesRectHeight * size * maximumSizeScale;
+        links.forEach(({ datum, fromNode, toNode, size, y1, y2 }) => {
+            const height = seriesRectHeight * size * sizeScale;
             const x1 = fromNode.x + nodeWidth;
             const x2 = toNode.x;
-            const y1 = trailingNodeYs.get(fromId) ?? fromNode.y;
-            const y2 = leadingNodeYs.get(toId) ?? toNode.y;
-
-            trailingNodeYs.set(fromId, y1 + height);
-            leadingNodeYs.set(toId, y2 + height);
 
             nodeData.push({
                 series: this,
@@ -390,25 +390,70 @@ export class SankeySeries
             highlightedDatum = undefined;
         }
 
+        this.contentGroup.visible = this.visible;
+        this.contentGroup.opacity =
+            highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
+
         const nodeData = this.contextNodeData?.nodeData ?? [];
-
-        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
-        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
-
-        this.highlightNodeSelection = await this.updateNodeSelection({
-            nodeData: highlightedDatum?.type === SankeyDatumType.Node ? [highlightedDatum] : [],
-            datumSelection: this.highlightNodeSelection,
-        });
-        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
 
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
+        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
+        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+
+        let focusLinkSelection: SankeyLinkDatum[];
+        let focusNodeSelection: SankeyNodeDatum[];
+        let highlightLinkSelection: SankeyLinkDatum[];
+        let highlightNodeSelection: SankeyNodeDatum[];
+        if (highlightedDatum?.type === SankeyDatumType.Node) {
+            focusLinkSelection = nodeData.filter((node): node is SankeyLinkDatum => {
+                return (
+                    node.type === SankeyDatumType.Link &&
+                    (node.toNode === highlightedDatum || node.fromNode === highlightedDatum)
+                );
+            });
+            focusNodeSelection = focusLinkSelection.map((link) => {
+                return link.fromNode === highlightedDatum ? link.toNode : link.fromNode;
+            });
+            focusNodeSelection.push(highlightedDatum);
+            highlightLinkSelection = [];
+            highlightNodeSelection = [highlightedDatum];
+        } else if (highlightedDatum?.type === SankeyDatumType.Link) {
+            focusLinkSelection = [highlightedDatum];
+            focusNodeSelection = [highlightedDatum.fromNode, highlightedDatum.toNode];
+            highlightLinkSelection = [highlightedDatum];
+            highlightNodeSelection = [];
+        } else {
+            focusLinkSelection = [];
+            focusNodeSelection = [];
+            highlightLinkSelection = [];
+            highlightNodeSelection = [];
+        }
+
+        this.focusLinkSelection = await this.updateLinkSelection({
+            nodeData: focusLinkSelection,
+            datumSelection: this.focusLinkSelection,
+        });
+        await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
+
+        this.focusNodeSelection = await this.updateNodeSelection({
+            nodeData: focusNodeSelection,
+            datumSelection: this.focusNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
+
         this.highlightLinkSelection = await this.updateLinkSelection({
-            nodeData: highlightedDatum?.type === SankeyDatumType.Link ? [highlightedDatum] : [],
+            nodeData: highlightLinkSelection,
             datumSelection: this.highlightLinkSelection,
         });
         await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+
+        this.highlightNodeSelection = await this.updateNodeSelection({
+            nodeData: highlightNodeSelection,
+            datumSelection: this.highlightNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
     }
 
     private async updateNodeSelection(opts: {

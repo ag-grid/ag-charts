@@ -5,6 +5,7 @@ import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { Sector } from '../../../scene/shape/sector';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { angleBetween } from '../../../util/angle';
 import { sanitizeHtml } from '../../../util/sanitize';
 import type { RequireOptional } from '../../../util/types';
 import { ARRAY, Validate } from '../../../util/validation';
@@ -15,6 +16,7 @@ import type { DataModel, ProcessedData } from '../../data/dataModel';
 import { createDatumId } from '../../data/processors';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { DataModelSeries } from '../dataModelSeries';
+import { computeNodeGraph } from '../sankey/sankeyUtil';
 import {
     type PickFocusInputs,
     type SeriesNodeDataContext,
@@ -66,6 +68,7 @@ interface ChordNodeLabelDatum {}
 
 export interface ChordNodeDataContext extends SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
 
+const nodeMidAngle = (node: ChordNodeDatum) => node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
 export class ChordSeries extends DataModelSeries<
     ChordDatum,
     ChordSeriesProperties,
@@ -92,6 +95,8 @@ export class ChordSeries extends DataModelSeries<
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
+    private readonly focusLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
+    private readonly focusNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
     private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
@@ -99,6 +104,12 @@ export class ChordSeries extends DataModelSeries<
         this.linkFactory()
     );
     public nodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.nodeGroup, () =>
+        this.nodeFactory()
+    );
+    private focusLinkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(this.focusLinkGroup, () =>
+        this.linkFactory()
+    );
+    private focusNodeSelection: Selection<Sector, ChordNodeDatum> = Selection.select(this.focusNodeGroup, () =>
         this.nodeFactory()
     );
     private highlightLinkSelection: Selection<ChordLink, ChordLinkDatum> = Selection.select(
@@ -112,6 +123,7 @@ export class ChordSeries extends DataModelSeries<
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            contentGroupVirtual: false,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
     }
@@ -226,32 +238,17 @@ export class ChordSeries extends DataModelSeries<
         const nodeSizeIdx =
             nodeSizeKey != null ? nodesDataModel.resolveProcessedDataIndexById(this, 'nodeSizeValue') : undefined;
 
-        const entryNodeSize = new Map<string, number>();
-        const exitNodeSize = new Map<string, number>();
-        const links = linksProcessedData.data.map(({ datum, values }) => {
-            const fromId: string = values[fromIdIdx];
-            const toId: string = values[toIdIdx];
-            const size: number = sizeIdx != null ? values[sizeIdx] : 0;
-            exitNodeSize.set(fromId, (exitNodeSize.get(fromId) ?? 0) + size);
-            entryNodeSize.set(toId, (entryNodeSize.get(toId) ?? 0) + size);
-            return { datum, fromId, toId, size };
-        });
-
         const nodeData: ChordDatum[] = [];
         const nodesById = new Map<string, ChordNodeDatum>();
-        let totalSize = 0;
         nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
             const value = values[0];
             const id = keys[nodeIdIdx];
             const label = labelIdx != null ? value[labelIdx] : undefined;
-            const size = Math.max(
-                nodeSizeIdx != null ? value[nodeSizeIdx] : 0,
-                (entryNodeSize.get(id) ?? 0) + (exitNodeSize.get(id) ?? 0)
-            );
-            totalSize += size;
+            const size = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
 
             const fill = fills[index % fills.length];
             const stroke = strokes[index % strokes.length];
+
             const node: ChordNodeDatum = {
                 series: this,
                 itemId: undefined,
@@ -273,30 +270,75 @@ export class ChordSeries extends DataModelSeries<
             nodeData.push(node);
         });
 
-        const spacing = (nodesById.size * nodeSpacing) / (2 * Math.PI * radius);
-        const sizeScale = (2 * Math.PI - nodesById.size * spacing) / totalSize;
-        let currentAngle = 0;
-        nodesById.forEach((node) => {
-            const sweep = node.size * sizeScale;
-            node.startAngle = currentAngle;
-            node.endAngle = currentAngle + sweep;
-            currentAngle += sweep + spacing;
+        const links = linksProcessedData.data
+            .map(({ datum, values }) => {
+                const fromId: string = values[fromIdIdx];
+                const toId: string = values[toIdIdx];
+                const size: number = sizeIdx != null ? values[sizeIdx] : 0;
+                const fromNode = nodesById.get(fromId)!;
+                const toNode = nodesById.get(toId)!;
+                return { datum, fromId, toId, fromNode, toNode, size, angle1: NaN, angle2: NaN };
+            })
+            .filter((link) => link.fromNode != null && link.toNode != null);
+
+        const { nodeGraph } = computeNodeGraph(nodesById, links, true);
+
+        let totalSize = 0;
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+            const size = Math.max(
+                node.size,
+                linksBefore.reduce((acc, { link }) => acc + link.size, 0) +
+                    linksAfter.reduce((acc, { link }) => acc + link.size, 0)
+            );
+            node.size = size;
+            totalSize += node.size;
         });
 
-        const nodeAngles = new Map<string, number>();
-        links.forEach(({ datum, fromId, toId, size }) => {
-            const fromNode = nodesById.get(fromId);
-            const toNode = nodesById.get(toId);
-            if (fromNode == null || toNode == null) return;
+        const spacing = (nodesById.size * nodeSpacing) / (2 * Math.PI * radius);
+        const sizeScale = (2 * Math.PI - nodesById.size * spacing) / totalSize;
+        let nodeAngle = 0;
+        nodesById.forEach((node) => {
+            const sweep = node.size * sizeScale;
+            node.startAngle = nodeAngle;
+            node.endAngle = nodeAngle + sweep;
+            nodeAngle += sweep + spacing;
+        });
 
+        nodeGraph.forEach(({ datum, linksBefore, linksAfter }) => {
+            const midAngle = nodeMidAngle(datum);
+
+            const combinedLinks = [
+                ...linksBefore.map(({ link, node }) => ({
+                    link,
+                    distance: angleBetween(nodeMidAngle(node.datum), midAngle),
+                    after: false,
+                })),
+                ...linksAfter.map(({ link, node }) => ({
+                    link,
+                    distance: angleBetween(nodeMidAngle(node.datum), midAngle),
+                    after: true,
+                })),
+            ];
+
+            let angle = datum.startAngle;
+            combinedLinks
+                .sort((a, b) => a.distance - b.distance)
+                .forEach(({ link, after }) => {
+                    if (after) {
+                        link.angle1 = angle;
+                    } else {
+                        link.angle2 = angle;
+                    }
+                    angle += link.size * sizeScale;
+                });
+        });
+
+        links.forEach(({ datum, fromNode, toNode, size, angle1, angle2 }) => {
             const sweep = size * sizeScale;
-            const startAngle1 = fromNode.startAngle + (nodeAngles.get(fromId) ?? 0);
+            const startAngle1 = angle1;
             const endAngle1 = startAngle1 + sweep;
-            const startAngle2 = toNode.startAngle + (nodeAngles.get(toId) ?? 0);
+            const startAngle2 = angle2;
             const endAngle2 = startAngle2 + sweep;
-
-            nodeAngles.set(fromId, endAngle1 - startAngle1);
-            nodeAngles.set(toId, endAngle2 - startAngle2);
 
             nodeData.push({
                 series: this,
@@ -351,25 +393,70 @@ export class ChordSeries extends DataModelSeries<
             highlightedDatum = undefined;
         }
 
+        this.contentGroup.visible = this.visible;
+        this.contentGroup.opacity =
+            highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
+
         const nodeData = this.contextNodeData?.nodeData ?? [];
-
-        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
-        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
-
-        this.highlightNodeSelection = await this.updateNodeSelection({
-            nodeData: highlightedDatum?.type === ChordDatumType.Node ? [highlightedDatum] : [],
-            datumSelection: this.highlightNodeSelection,
-        });
-        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
 
         this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
+        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
+        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+
+        let focusLinkSelection: ChordLinkDatum[];
+        let focusNodeSelection: ChordNodeDatum[];
+        let highlightLinkSelection: ChordLinkDatum[];
+        let highlightNodeSelection: ChordNodeDatum[];
+        if (highlightedDatum?.type === ChordDatumType.Node) {
+            focusLinkSelection = nodeData.filter((node): node is ChordLinkDatum => {
+                return (
+                    node.type === ChordDatumType.Link &&
+                    (node.toNode === highlightedDatum || node.fromNode === highlightedDatum)
+                );
+            });
+            focusNodeSelection = focusLinkSelection.map((link) => {
+                return link.fromNode === highlightedDatum ? link.toNode : link.fromNode;
+            });
+            focusNodeSelection.push(highlightedDatum);
+            highlightLinkSelection = [];
+            highlightNodeSelection = [highlightedDatum];
+        } else if (highlightedDatum?.type === ChordDatumType.Link) {
+            focusLinkSelection = [highlightedDatum];
+            focusNodeSelection = [highlightedDatum.fromNode, highlightedDatum.toNode];
+            highlightLinkSelection = [highlightedDatum];
+            highlightNodeSelection = [];
+        } else {
+            focusLinkSelection = [];
+            focusNodeSelection = [];
+            highlightLinkSelection = [];
+            highlightNodeSelection = [];
+        }
+
+        this.focusLinkSelection = await this.updateLinkSelection({
+            nodeData: focusLinkSelection,
+            datumSelection: this.focusLinkSelection,
+        });
+        await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
+
+        this.focusNodeSelection = await this.updateNodeSelection({
+            nodeData: focusNodeSelection,
+            datumSelection: this.focusNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
+
         this.highlightLinkSelection = await this.updateLinkSelection({
-            nodeData: highlightedDatum?.type === ChordDatumType.Link ? [highlightedDatum] : [],
+            nodeData: highlightLinkSelection,
             datumSelection: this.highlightLinkSelection,
         });
         await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+
+        this.highlightNodeSelection = await this.updateNodeSelection({
+            nodeData: highlightNodeSelection,
+            datumSelection: this.highlightNodeSelection,
+        });
+        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
     }
 
     private async updateNodeSelection(opts: {
