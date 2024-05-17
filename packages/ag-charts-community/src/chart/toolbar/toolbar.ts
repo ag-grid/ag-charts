@@ -165,7 +165,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private onLeave(event: PointerInteractionEvent<'leave'>) {
         const {
             enabled,
-            elements,
             ctx: { scene },
         } = this;
         const { relatedElement, targetElement } = event;
