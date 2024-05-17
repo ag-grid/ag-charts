@@ -222,7 +222,7 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
-    private readonly proxyLegendToolbar;
+    private readonly proxyLegendToolbar: HTMLDivElement;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -262,11 +262,12 @@ export class Legend extends BaseProperties {
             () => this.detachLegend()
         );
 
-        this.proxyLegendToolbar = this.ctx.domManager.addChild('canvas-overlay', `${this.id}-toolbar`);
-        this.proxyLegendToolbar.classList.add('ag-charts-proxy-legend-toolbar');
-        this.proxyLegendToolbar.role = 'toolbar';
-        this.proxyLegendToolbar.ariaLabel = 'Legend';
-        this.proxyLegendToolbar.style.pointerEvents = 'none';
+        this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
+            type: 'toolbar',
+            id: `${this.id}-toolbar`,
+            classList: ['ag-charts-proxy-legend-toolbar'],
+            ariaLabel: 'Legend',
+        });
     }
 
     public destroy() {
@@ -1126,6 +1127,7 @@ export class Legend extends BaseProperties {
                 setElementBBox(this.proxyLegendToolbar, proxyBBox);
                 this.proxyLegendToolbar.style.removeProperty('display');
             }
+            this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
         } else {
             this.proxyLegendToolbar.style.display = 'none';
         }

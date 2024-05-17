@@ -2,9 +2,10 @@ import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';
 import type { UpdateService } from '../updateService';
+import type { DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
 
-type BaseProxyParams<T extends keyof ProxyMeta> = {
+type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly id: string;
     readonly parent: HTMLElement;
@@ -13,22 +14,42 @@ type BaseProxyParams<T extends keyof ProxyMeta> = {
     readonly onchange?: (ev: Event) => void;
 };
 
+type ContainerParams<T extends ProxyContainerType> = {
+    type: T;
+    id: string;
+    classList: string[];
+    ariaLabel: string;
+    ariaOrientation?: 'horizontal' | 'vertical';
+};
+
 type ProxyMeta = {
     button: {
-        params: BaseProxyParams<'button'> & { readonly textContent: string };
+        params: ElemParams<'button'> & { readonly textContent: string };
         result: HTMLButtonElement;
     };
     slider: {
-        params: BaseProxyParams<'slider'> & { readonly ariaLabel: string };
+        params: ElemParams<'slider'> & { readonly ariaLabel: string };
         result: HTMLInputElement;
     };
+    toolbar: {
+        params: ContainerParams<'toolbar'>;
+        result: HTMLDivElement;
+    };
 };
+
+type ProxyElementType = 'button' | 'slider';
+type ProxyContainerType = 'toolbar';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
     meta: Pick<ProxyMeta[keyof ProxyMeta], 'params'>
 ): meta is Pick<ProxyMeta[T], 'params'> {
     return meta.params?.type === type;
+}
+
+function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
+    const map = { button: 'button', slider: 'input', toolbar: 'div' } as const;
+    return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
 export class ProxyInteractionService {
@@ -39,6 +60,7 @@ export class ProxyInteractionService {
 
     constructor(
         updateService: UpdateService,
+        private readonly domManager: DOMManager,
         private readonly focusIndicator: FocusIndicator
     ) {
         updateService.addListener('update-complete', () => this.update());
@@ -50,15 +72,23 @@ export class ProxyInteractionService {
         }
     }
 
-    private allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']): ProxyMeta[T] {
-        const map = { button: 'button', slider: 'input' } as const;
-        return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
+    createProxyContainer<T extends ProxyContainerType>(
+        args: { type: T } & ProxyMeta[T]['params']
+    ): ProxyMeta[T]['result'] {
+        const meta: ProxyMeta[T] = allocateMeta(args);
+        const { params, result: div } = meta;
+
+        this.domManager.addChild('canvas-overlay', params.id, div);
+        div.classList.add(...params.classList);
+        div.style.pointerEvents = 'none';
+        div.role = args.type;
+        div.ariaLabel = 'Legend';
+        div.ariaOrientation = params.ariaOrientation ?? null;
+        return div;
     }
 
-    createProxyElement<T extends keyof ProxyMeta>(
-        args: BaseProxyParams<T> & ProxyMeta[T]['params']
-    ): ProxyMeta[T]['result'] {
-        const meta: ProxyMeta[T] = this.allocateMeta(args);
+    createProxyElement<T extends ProxyElementType>(args: { type: T } & ProxyMeta[T]['params']): ProxyMeta[T]['result'] {
+        const meta: ProxyMeta[T] = allocateMeta(args);
 
         if (checkType('button', meta)) {
             const { params, result: button } = meta;
@@ -77,7 +107,7 @@ export class ProxyInteractionService {
         return meta.result;
     }
 
-    private initElement<T extends keyof ProxyMeta, TElem extends HTMLElement>(
+    private initElement<T extends ProxyElementType, TElem extends HTMLElement>(
         params: ProxyMeta[T]['params'],
         element: TElem
     ) {
