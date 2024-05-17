@@ -30,7 +30,6 @@
     "@carbon/icons-react": "^11.21.0",
     "@nanostores/persistent": "^0.9.0",
     "@nanostores/react": "^0.7.1",
-    "@nrwl/linter": "18.3.4",
     "@nx/cypress": "18.3.4",
     "@nx/esbuild": "18.3.4",
     "@nx/eslint": "18.3.4",
@@ -116,12 +115,6 @@
     "vitest": "1.5.3",
     "ws": "8.9.0",
     "yargs": "^17.7.2"
-  },
-  "overrides": {
-    "@nxtensions/astro": {
-      "nx": "$nx",
-      "@nrwl/linter": "$@nrwl/linter"
-    }
   },
   "workspaces": {
     "packages": [

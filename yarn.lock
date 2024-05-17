@@ -4551,13 +4551,6 @@
   dependencies:
     "@nx/js" "18.3.4"
 
-"@nrwl/linter@18.3.4":
-  version "18.3.4"
-  resolved "https://registry.yarnpkg.com/@nrwl/linter/-/linter-18.3.4.tgz#2ebd9a8e8ccc5412829bfd5de79a3b1b69a91ebc"
-  integrity sha512-lbmlW1aFcz5sAFxE3o8Y1zUllANbu4TRFvUOqLNMDR/J5xOO1hNUyYigiwDcsFl3awJPJ2Xj5j/XtR9bilHmMA==
-  dependencies:
-    "@nx/eslint" "18.3.4"
-
 "@nrwl/nx-cloud@18.0.1":
   version "18.0.1"
   resolved "https://registry.yarnpkg.com/@nrwl/nx-cloud/-/nx-cloud-18.0.1.tgz#adbc7202f5e0478c14ddb9c65d3ef80f5613b65c"
