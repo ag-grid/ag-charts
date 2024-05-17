@@ -4,6 +4,9 @@ import { getData } from "./data"
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
+  data: getData(),
+  theme: {
+    palette: {
       fills: ["#3d7ab0", "#b03d65", "#80b03d"],
       strokes: ["#3d7ab0", "#b03d65", "#80b03d"],
     },

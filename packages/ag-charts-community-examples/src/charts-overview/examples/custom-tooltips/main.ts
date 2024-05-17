@@ -26,6 +26,8 @@ function tooltipRenderer(params: AgCartesianSeriesTooltipRendererParams) {
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
+  data: getData(),
+  theme: {
     overrides: {
       bar: {
         series: {

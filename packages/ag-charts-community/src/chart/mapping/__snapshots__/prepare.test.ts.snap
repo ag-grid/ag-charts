@@ -2,7 +2,6 @@
 
 exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -166,6 +165,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "spacing": 10,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -509,7 +509,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
 
 exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -699,6 +698,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -1055,7 +1055,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
 
 exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -1197,6 +1196,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -1751,7 +1751,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
 
 exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -1892,6 +1891,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -2504,7 +2504,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
 
 exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -2642,6 +2641,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -2869,7 +2869,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
 
 exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -3008,6 +3007,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -3405,7 +3405,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
 
 exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -3545,6 +3544,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -4041,7 +4041,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
 
 exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -4181,6 +4180,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -4417,7 +4417,6 @@ by Occupation",
 
 exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -4557,6 +4556,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -4785,7 +4785,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
 
 exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -4930,6 +4929,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -5150,7 +5150,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
 
 exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -5294,6 +5293,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -5517,7 +5517,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
 
 exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -5657,6 +5656,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -5959,7 +5959,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
 
 exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -6099,6 +6098,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -6405,7 +6405,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
 
 exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -6546,6 +6545,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -7103,7 +7103,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
 
 exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -7247,6 +7246,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -8400,6 +8400,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -8622,7 +8623,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
 
 exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -8763,6 +8763,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -9407,7 +9408,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
 
 exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -9549,6 +9549,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -9913,7 +9914,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
 
 exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -10054,6 +10054,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -10579,7 +10580,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
 
 exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -10723,6 +10723,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -11142,7 +11143,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
 
 exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -11283,6 +11283,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -11511,7 +11512,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
 
 exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "background": {
     "fill": "white",
     "visible": true,
@@ -11568,6 +11568,7 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "overlays": {
     "loading": {
       "darkTheme": false,
@@ -11747,7 +11748,6 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
 
 exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -11892,6 +11892,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -12179,7 +12180,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
 
 exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "background": {
     "fill": "white",
     "visible": true,
@@ -12236,6 +12236,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "overlays": {
     "loading": {
       "darkTheme": false,
@@ -12393,7 +12394,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
 
 exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -12531,6 +12531,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -12746,7 +12747,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
 
 exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -12892,6 +12892,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -13488,7 +13489,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
 
 exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -13629,6 +13629,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
@@ -14029,7 +14030,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
 
 exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
-  "autoSize": true,
   "axes": [
     {
       "gridLine": {
@@ -14171,6 +14171,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "spacing": 30,
   },
   "listeners": {},
+  "minHeight": 300,
   "navigator": {
     "enabled": false,
     "height": 30,
