@@ -279,7 +279,6 @@ class AgChartsInternal {
             {
                 container: document.createElement('div'),
                 overrideDevicePixelRatio: 1,
-                autoSize: false,
                 width,
                 height,
             },

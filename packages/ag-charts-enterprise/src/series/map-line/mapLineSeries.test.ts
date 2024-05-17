@@ -154,7 +154,6 @@ describe('MapLineSeries', () => {
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
-                autoSize: false,
                 series: [
                     {
                         tooltip,

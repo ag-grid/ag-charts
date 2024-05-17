@@ -21,7 +21,6 @@ const axes: AgCartesianChartOptions['axes'] = [
 let chartIndex = 1;
 const chartOptions1: AgCartesianChartOptions = {
     container: document.getElementById('myChart1'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -39,7 +38,6 @@ AgCharts.create(chartOptions1);
 
 const chartOptions2: AgCartesianChartOptions = {
     container: document.getElementById('myChart2'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -57,7 +55,6 @@ AgCharts.create(chartOptions2);
 
 const chartOptions3: AgCartesianChartOptions = {
     container: document.getElementById('myChart3'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -75,7 +72,6 @@ AgCharts.create(chartOptions3);
 
 const chartOptions4: AgCartesianChartOptions = {
     container: document.getElementById('myChart4'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -93,7 +89,6 @@ AgCharts.create(chartOptions4);
 
 const chartOptions5: AgCartesianChartOptions = {
     container: document.getElementById('myChart5'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -111,7 +106,6 @@ AgCharts.create(chartOptions5);
 
 const chartOptions6: AgCartesianChartOptions = {
     container: document.getElementById('myChart6'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -129,7 +123,6 @@ AgCharts.create(chartOptions6);
 
 const chartOptions7: AgCartesianChartOptions = {
     container: document.getElementById('myChart7'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -147,7 +140,6 @@ AgCharts.create(chartOptions7);
 
 const chartOptions8: AgCartesianChartOptions = {
     container: document.getElementById('myChart8'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -165,7 +157,6 @@ AgCharts.create(chartOptions8);
 
 const chartOptions9: AgCartesianChartOptions = {
     container: document.getElementById('myChart9'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -183,7 +174,6 @@ AgCharts.create(chartOptions9);
 
 const chartOptions10: AgCartesianChartOptions = {
     container: document.getElementById('myChart10'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -201,7 +191,6 @@ AgCharts.create(chartOptions10);
 
 const chartOptions11: AgCartesianChartOptions = {
     container: document.getElementById('myChart11'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -219,7 +208,6 @@ AgCharts.create(chartOptions11);
 
 const chartOptions12: AgCartesianChartOptions = {
     container: document.getElementById('myChart12'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -237,7 +225,6 @@ AgCharts.create(chartOptions12);
 
 const chartOptions13: AgCartesianChartOptions = {
     container: document.getElementById('myChart13'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -255,7 +242,6 @@ AgCharts.create(chartOptions13);
 
 const chartOptions14: AgCartesianChartOptions = {
     container: document.getElementById('myChart14'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -273,7 +259,6 @@ AgCharts.create(chartOptions14);
 
 const chartOptions15: AgCartesianChartOptions = {
     container: document.getElementById('myChart15'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),
@@ -291,7 +276,6 @@ AgCharts.create(chartOptions15);
 
 const chartOptions16: AgCartesianChartOptions = {
     container: document.getElementById('myChart16'),
-    autoSize: true,
     theme,
     axes,
     data: getData(50, chartIndex++),

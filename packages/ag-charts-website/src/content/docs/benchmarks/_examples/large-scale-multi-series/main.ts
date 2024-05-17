@@ -60,7 +60,6 @@ const options: AgCartesianChartOptions = {
         text: '#6806 - AG-Chart: Bad performance on 100+ series objects',
         fontSize: 18,
     },
-    autoSize: true,
     data: generatedData,
     series: generatedSeries,
 };

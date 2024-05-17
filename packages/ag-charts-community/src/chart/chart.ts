@@ -185,25 +185,31 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     @ActionOnSet<Chart>({
         newValue(value) {
-            this.resize(value, undefined, 'width option');
+            this.resize('width option', { inWidth: value });
         },
     })
     width?: number;
 
     @ActionOnSet<Chart>({
         newValue(value) {
-            this.resize(undefined, value, 'height option');
+            this.resize('height option', { inHeight: value });
         },
     })
     height?: number;
 
     @ActionOnSet<Chart>({
         newValue(value) {
-            this.onAutoSizeChange(value);
+            this.resize('minWidth option', { inMinWidth: value });
         },
     })
-    @Validate(BOOLEAN)
-    autoSize?: boolean;
+    minWidth?: number;
+
+    @ActionOnSet<Chart>({
+        newValue(value) {
+            this.resize('minHeight option', { inMinHeight: value });
+        },
+    })
+    minHeight?: number;
 
     /** NOTE: This is exposed for use by Integrated charts only. */
     get canvasElement() {
@@ -217,13 +223,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private _lastAutoSize?: [number, number];
     private _firstAutoSize = true;
-
-    private onAutoSizeChange(value: boolean) {
-        this.ctx.domManager.setSize(value, this.width, this.height);
-        if (value && this._lastAutoSize) {
-            this.resize(undefined, undefined, 'autoSize option');
-        }
-    }
 
     download(fileName?: string, fileFormat?: string) {
         this.ctx.scene.download(fileName, fileFormat);
@@ -713,7 +712,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkFirstAutoSize(seriesToUpdate: ISeries<any, any>[]) {
-        if (this.autoSize !== false && !this._lastAutoSize) {
+        if (this.width != null && this.height != null) {
+            // Auto-size isn't in use in this case, don't wait for it.
+        } else if (!this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
             const backOffMs = (count + 1) ** 2 * 40;
 
@@ -869,7 +870,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private parentResize({ width, height }: { width: number; height: number }) {
-        if (this.autoSize === false) return;
+        if (this.width != null && this.height != null) return;
 
         width = Math.floor(width);
         height = Math.floor(height);
@@ -880,25 +881,34 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (autoWidth === width && authHeight === height) return;
 
         this._lastAutoSize = [width, height];
-        this.resize(undefined, undefined, 'SizeMonitor');
+        this.resize('SizeMonitor', {});
     }
 
-    private resize(inWidth?: number, inHeight?: number, source?: string) {
+    private resize(
+        source: string,
+        opts: { inWidth?: number; inHeight?: number; inMinWidth?: number; inMinHeight?: number }
+    ) {
         const { scene, animationManager } = this.ctx;
-        const width = inWidth ?? this.width ?? (this.autoSize === false ? scene.canvas.width : this._lastAutoSize?.[0]);
-        const height =
-            inHeight ?? this.height ?? (this.autoSize === false ? scene.canvas.height : this._lastAutoSize?.[1]);
+        const { inWidth, inHeight, inMinWidth, inMinHeight } = opts;
+
+        this.ctx.domManager.setSizeOptions(
+            inMinWidth ?? this.minWidth,
+            inMinHeight ?? this.minHeight,
+            inWidth ?? this.width,
+            inHeight ?? this.height
+        );
+
+        const width = inWidth ?? this.width ?? this._lastAutoSize?.[0];
+        const height = inHeight ?? this.height ?? this._lastAutoSize?.[1];
         this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
-
-        this.ctx.domManager.setSize(this.autoSize, inWidth ?? this.width, inHeight ?? this.height);
 
         if (scene.resize(width, height)) {
             this.resetPointer();
             animationManager.reset();
 
             let skipAnimations = true;
-            if (this.autoSize !== false && this._firstAutoSize) {
+            if ((this.width == null || this.height == null) && this._firstAutoSize) {
                 skipAnimations = false;
                 this._firstAutoSize = false;
             }

@@ -51,7 +51,6 @@ const sharedSeriesOptions: AgPieSeriesOptions = {
 
 const options: AgPolarChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   title: {
     text: "Desktop Browser Market Share 2020 vs 2022",
     fontSize: 18,

@@ -7,7 +7,6 @@ import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    autoSize: true,
     data: getData(),
     theme: {
         overrides: {

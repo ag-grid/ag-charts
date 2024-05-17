@@ -95,7 +95,6 @@ export function getData(): any[] {
 }
 
 const OPTIONS: AgCartesianChartOptions = {
-    autoSize: true,
     data: getData(),
     title: {
         text: 'Fruit & Vegetable Consumption',
