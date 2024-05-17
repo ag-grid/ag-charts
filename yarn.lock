@@ -11347,7 +11347,7 @@ esbuild@^0.19.3:
     "@esbuild/win32-ia32" "0.19.10"
     "@esbuild/win32-x64" "0.19.10"
 
-esbuild@^0.20.1, esbuild@^0.20.2:
+esbuild@^0.20.1, esbuild@^0.20.2, esbuild@~0.20.2:
   version "0.20.2"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.20.2.tgz#9d6b2386561766ee6b5a55196c6d766d28c87ea1"
   integrity sha512-WdOOppmUNU+IbZ0PaDiTst80zjnrOkyJNHoKupIcVyU8Lvla3Ugx94VzkQ32Ijqd7UhHJy75gNWDMUekcrSJ6g==
@@ -12603,6 +12603,13 @@ get-symbol-description@^1.0.0:
   dependencies:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
+
+get-tsconfig@^4.7.3:
+  version "4.7.5"
+  resolved "https://registry.yarnpkg.com/get-tsconfig/-/get-tsconfig-4.7.5.tgz#5e012498579e9a6947511ed0cd403272c7acbbaf"
+  integrity sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==
+  dependencies:
+    resolve-pkg-maps "^1.0.0"
 
 getos@^3.2.1:
   version "3.2.1"
@@ -19629,6 +19636,11 @@ resolve-from@^5.0.0:
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-5.0.0.tgz#c35225843df8f776df21c57557bc087e9dfdfc69"
   integrity sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==
 
+resolve-pkg-maps@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/resolve-pkg-maps/-/resolve-pkg-maps-1.0.0.tgz#616b3dc2c57056b5588c31cdf4b3d64db133720f"
+  integrity sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==
+
 resolve-url-loader@5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/resolve-url-loader/-/resolve-url-loader-5.0.0.tgz#ee3142fb1f1e0d9db9524d539cfa166e9314f795"
@@ -21712,6 +21724,16 @@ tsutils@^3.21.0:
   integrity sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==
   dependencies:
     tslib "^1.8.1"
+
+tsx@4.8.2:
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/tsx/-/tsx-4.8.2.tgz#0897b1ef4b5aca4b2bc6803e5058a2b2633fce4f"
+  integrity sha512-hmmzS4U4mdy1Cnzpl/NQiPUC2k34EcNSTZYVJThYKhdqTwuBeF+4cG9KUK/PFQ7KHaAaYwqlb7QfmsE2nuj+WA==
+  dependencies:
+    esbuild "~0.20.2"
+    get-tsconfig "^4.7.3"
+  optionalDependencies:
+    fsevents "~2.3.3"
 
 tuf-js@^1.1.7:
   version "1.1.7"
