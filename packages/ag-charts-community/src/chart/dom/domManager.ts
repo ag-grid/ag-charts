@@ -120,10 +120,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.parentElement = new GuardedAgChartsWrapperElement();
         const { element } = this.parentElement;
-        if (container) {
-            this.setContainer(container);
-        }
-
         this.rootElements = domElementClasses.reduce(
             (r, c) => {
                 const cssClass = `ag-charts-${c}`;
@@ -150,6 +146,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.setSizeOptions();
 
         this.addStyles('dom-manager', STYLES);
+
+        if (container) {
+            this.setContainer(container);
+        }
     }
 
     override destroy() {
@@ -157,7 +157,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         const { element } = this.parentElement;
         this.observer?.unobserve(element);
-        this.sizeMonitor.unobserve(element);
+        if (this.container) {
+            this.sizeMonitor.unobserve(this.container);
+        }
 
         Object.values(this.rootElements).forEach((el) => {
             el.children.forEach((c) => c.remove());
