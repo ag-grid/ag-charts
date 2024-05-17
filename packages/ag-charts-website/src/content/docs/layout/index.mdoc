@@ -85,14 +85,14 @@ For determining chart size, we either:
 
 If auto-sizing is used for one or both dimenions:
 
--   by default the chart will assume a minimum height of 300px, and grow with the dimensions of the `container` element.
--   set `minHeight: 0` to remove the minimum height constraint, or set `minWidth` to add a minimum width constraint.
+-   by default the chart will assume a minimum width and height of 300px, and grow with the dimensions of the `container` element.
+-   set `minHeight: 0` and/or `minWidth: 0` to effectively remove the constraints.
 
 {% note %}
 When auto-sizing, our DOM elements do not affect the size of the `container` element to avoid infinite loops between
 chart (re)size and resulting `container` resize.
 
-A `<div>` element is commontly used for the `container`, and it should be noted that the default height for this element
+A `<div>` element is commonly used for the `container`, and it should be noted that the default height for this element
 is `0px`; you should explicitly manage the browser calculated `container` element size to achieve the dynamic size you
 require.
 {% /note %}
