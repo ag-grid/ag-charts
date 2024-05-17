@@ -74,7 +74,11 @@ export class SizeMonitor {
         } else {
             this.resizeObserver?.observe(element);
         }
-        this.elements.set(element, { cb });
+        const entry = { cb };
+        this.elements.set(element, entry);
+
+        // Dispatch current size initially.
+        this.checkSize(entry, element, element.offsetWidth, element.offsetHeight);
     }
 
     unobserve(element: HTMLElement) {

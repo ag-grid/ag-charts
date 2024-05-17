@@ -891,17 +891,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const { scene, animationManager } = this.ctx;
         const { inWidth, inHeight, inMinWidth, inMinHeight } = opts;
 
-        const width = inWidth ?? this.width ?? this._lastAutoSize?.[0];
-        const height = inHeight ?? this.height ?? this._lastAutoSize?.[1];
-        this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
-        if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
-
-        this.ctx.domManager.setSize(
+        this.ctx.domManager.setSizeOptions(
             inMinWidth ?? this.minWidth,
             inMinHeight ?? this.minHeight,
             inWidth ?? this.width,
             inHeight ?? this.height
         );
+
+        const width = inWidth ?? this.width ?? this._lastAutoSize?.[0];
+        const height = inHeight ?? this.height ?? this._lastAutoSize?.[1];
+        this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
+        if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
         if (scene.resize(width, height)) {
             this.resetPointer();

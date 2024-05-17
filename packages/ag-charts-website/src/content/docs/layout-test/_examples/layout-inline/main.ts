@@ -3,7 +3,6 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 // Chart Options
 const options: AgCartesianChartOptions = {
-    minHeight: 0,
     container: document.getElementById('myChart'),
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
@@ -55,7 +54,7 @@ doc?.write(`
         </div>
         <h1>Small Grid Example</h1>
         <div style="display: grid; grid: 'a' 1fr / 1fr; width: 100px; height: 100px; border: 1px solid black">
-            <div class="chart"></div>
+            <div class="chart" data-min-height="0"></div>
         </div>
         <h1>Small Grid Example Via Min/Max Height</h1>
         <div
@@ -69,7 +68,7 @@ doc?.write(`
                 border: 1px solid black;
             "
         >
-            <div class="chart"></div>
+            <div class="chart" data-min-height="0"></div>
         </div>
         <h1>Grid with Small Chart Example</h1>
         <div style="display: grid; grid: 'a b' auto 'c d' 1fr / auto 1fr; aspect-ratio: 2 / 1; border: 1px solid black">
@@ -83,9 +82,11 @@ doc?.write(`
             for (const container of document.getElementsByClassName('chart')) {
                 const width = Number(container.getAttribute('data-width'));
                 const height = Number(container.getAttribute('data-height'));
+                const minHeight = Number(container.getAttribute('data-min-height') ?? -1);
                 const chartOptions = { ...options, container };
                 if (width > 0) chartOptions.width = width;
                 if (height > 0) chartOptions.height = height;
+                if (minHeight === 0 || minHeight > 0) chartOptions.minHeight = minHeight;
                 AgCharts.create(chartOptions);
             }
         </script>
