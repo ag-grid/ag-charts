@@ -147,12 +147,12 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** The height of the chart in pixels. */
     height?: PixelSize;
     /**
-     * Sets the minimum height of the chart.
+     * Sets the minimum height of the chart. Ignored if `height` is specified.
      * Default: `300`
      */
     minHeight?: PixelSize;
     /**
-     * Sets the minimum width of the chart.
+     * Sets the minimum width of the chart. Ignored if `width` is specified.
      * Default: `0`
      */
     minWidth?: PixelSize;
