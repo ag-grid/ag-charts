@@ -283,11 +283,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     isEventOverElement(event: Event | MouseEvent | TouchEvent) {
-        return (
-            event.target === this.parentElement.element ||
-            (event.target as any)?.parentElement === this.parentElement.element ||
-            (event.target as any)?.parentElement?.parentElement === this.parentElement.element
-        );
+        let element = event.target;
+
+        if (element == null) return false;
+
+        while (element !== this.parentElement.element) {
+            element = (element as HTMLElement).parentElement;
+            if (element == null) return false;
+        }
+
+        return true;
     }
 
     addStyles(id: string, styles: string) {
