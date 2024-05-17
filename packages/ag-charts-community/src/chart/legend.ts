@@ -250,11 +250,7 @@ export class Legend extends BaseProperties {
         });
 
         const animationState = InteractionState.Default | InteractionState.Animation;
-        const region = ctx.regionManager.addRegionFromProperties({
-            name: 'legend',
-            bboxproviders: [this.group],
-            canInteraction: () => false,
-        });
+        const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
             region.addListener('contextmenu', (e) => this.checkContextClick(e), animationState),
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
@@ -714,7 +710,7 @@ export class Legend extends BaseProperties {
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
                 type: 'button',
                 id: `ag-charts-legend-item-${i}`,
-                textContext: this.getItemAriaText(i),
+                textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
                 focusable: markerLabel,
                 onclick: (_event: MouseEvent): any => {
@@ -725,11 +721,9 @@ export class Legend extends BaseProperties {
                     this.doClick(datum);
                 },
             });
-            if (markerLabel.proxyButton != null) {
-                const { width, height } = markerLabel.computeBBox();
-                setElementBBox(markerLabel.proxyButton, { x, y, width, height });
-                markerLabel.proxyButton.style.position = 'absolute';
-            }
+
+            const { width, height } = markerLabel.computeBBox();
+            setElementBBox(markerLabel.proxyButton, { x, y, width, height });
         });
     }
 

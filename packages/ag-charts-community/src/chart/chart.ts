@@ -348,9 +348,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             ctx.scene.attachNode(this.subtitle.node),
             ctx.scene.attachNode(this.footnote.node),
 
-            this.title.registerInteraction(moduleContext, 'title'),
-            this.subtitle.registerInteraction(moduleContext, 'subtitle'),
-            this.footnote.registerInteraction(moduleContext, 'footnote'),
+            this.title.registerInteraction(moduleContext),
+            this.subtitle.registerInteraction(moduleContext),
+            this.footnote.registerInteraction(moduleContext),
 
             ctx.interactionManager.addListener('click', (event) => this.onClick(event)),
             ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),

@@ -80,20 +80,8 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private truncated = false;
 
-    private getOrAddRegion(moduleCtx: ModuleContext, regionName: 'root' | 'title' | 'subtitle' | 'footnote') {
-        if (regionName === 'root') {
-            return moduleCtx.regionManager.getRegion('root');
-        } else {
-            return moduleCtx.regionManager.addRegionFromProperties({
-                name: regionName,
-                bboxproviders: [this.node],
-                canInteraction: () => this.enabled && this.node.visible,
-            });
-        }
-    }
-
-    registerInteraction(moduleCtx: ModuleContext, regionName: 'root' | 'title' | 'subtitle' | 'footnote') {
-        const region = this.getOrAddRegion(moduleCtx, regionName);
+    registerInteraction(moduleCtx: ModuleContext) {
+        const region = moduleCtx.regionManager.getRegion('root');
         const destroyFns = [
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
