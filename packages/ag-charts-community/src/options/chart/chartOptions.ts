@@ -153,7 +153,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     minHeight?: PixelSize;
     /**
      * Sets the minimum width of the chart. Ignored if `width` is specified.
-     * Default: `0`
+     * Default: `300`
      */
     minWidth?: PixelSize;
     /** Configuration for the padding shown around the chart. */

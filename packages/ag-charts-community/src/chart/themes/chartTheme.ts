@@ -160,6 +160,7 @@ export class ChartTheme {
     private static getChartDefaults() {
         return {
             minHeight: 300,
+            minWidth: 300,
             background: { visible: true, fill: DEFAULT_BACKGROUND_COLOUR },
             padding: { top: 20, right: 20, bottom: 20, left: 20 },
             keyboard: { enabled: true },
