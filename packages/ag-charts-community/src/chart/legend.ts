@@ -876,6 +876,7 @@ export class Legend extends BaseProperties {
 
     private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
         this.contextMenuDatum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        this.ctx.highlightManager.updateLegendItem(this.id, this.contextMenuDatum);
 
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction('legend-visibility');
@@ -1062,6 +1063,7 @@ export class Legend extends BaseProperties {
         // is in a state when highlighting is possible.
         if (this.ctx.interactionManager.getState() === InteractionState.Default) {
             this.ctx.highlightManager.updateHighlight(this.id);
+            this.ctx.highlightManager.updateLegendItem(this.id);
         }
     }
 

@@ -1,4 +1,4 @@
-import type { _Scene } from 'ag-charts-community';
+import type { AgChartLegendContextMenuEvent, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import {
@@ -53,6 +53,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // State
     private readonly groups: ContextMenuGroups;
     private pickedNode?: _ModuleSupport.SeriesNodeDatum;
+    private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent?: MouseEvent;
     private x: number = 0;
     private y: number = 0;
@@ -137,6 +138,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.groups.default = this.registry.filterActions(event.region ?? 'all');
 
         this.pickedNode = this.highlightManager.getActivePicked();
+        this.pickedLegendItem = this.highlightManager.getActiveLegendItem();
         if (this.extraActions.length > 0) {
             this.groups.extra = [...this.extraActions];
         }
@@ -145,7 +147,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.groups.extraNode = [...this.extraNodeActions];
         }
 
-        if (this.extraLegendItemActions.length > 0 && event.region === 'legend') {
+        if (this.extraLegendItemActions.length > 0 && this.pickedLegendItem) {
             this.groups.extraLegendItem = [...this.extraLegendItemActions];
         }
 
@@ -207,8 +209,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.appendMenuGroup(menuElement, this.groups.extraNode);
         }
 
-        if (event.region === 'legend') {
-            this.appendMenuGroup(menuElement, this.groups.extraLegendItem);
+        if (this.pickedLegendItem) {
+            const extraLegendItem = this.groups.extraLegendItem
+                .filter((value): value is ContextMenuAction => typeof value !== 'string')
+                .map((contextMenuItem: ContextMenuAction) => {
+                    return {
+                        ...contextMenuItem,
+                        region: 'legend' as const,
+                    };
+                });
+            this.appendMenuGroup(menuElement, extraLegendItem);
         }
 
         return menuElement;
@@ -236,28 +246,58 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return el;
     }
 
-    private createActionElement({ id, label, action }: ContextMenuAction): HTMLElement {
+    private createActionElement({ id, label, region, action }: ContextMenuAction): HTMLElement {
         if (id && this.registry.isDisabled(id)) {
             return this.createDisabledElement(label);
         }
-        return this.createButtonElement(label, action);
+        return this.createButtonElement(region, label, action);
     }
 
-    private createButtonElement(label: string, callback: (params: ContextMenuActionParams) => void): HTMLElement {
+    private createButtonOnClick(
+        region: ContextMenuAction['region'],
+        callback: (params: ContextMenuActionParams) => void
+    ): () => void {
+        if (region === 'legend') {
+            return () => {
+                if (this.pickedLegendItem) {
+                    const { seriesId, itemId, enabled } = this.pickedLegendItem;
+                    const event: AgChartLegendContextMenuEvent & ContextMenuActionParams = {
+                        type: 'contextmenu',
+                        seriesId,
+                        itemId,
+                        enabled,
+                        event: this.showEvent!,
+                    };
+                    callback(event);
+                }
+            };
+        } else {
+            return () => {
+                const event = this.pickedNode?.series.createNodeContextMenuActionEvent(
+                    this.showEvent!,
+                    this.pickedNode
+                );
+                if (event) {
+                    callback(event);
+                } else {
+                    callback({ event: this.showEvent! });
+                }
+
+                this.hide();
+            };
+        }
+    }
+
+    private createButtonElement(
+        region: ContextMenuAction['region'],
+        label: string,
+        callback: (params: ContextMenuActionParams) => void
+    ): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.innerHTML = label;
-        el.onclick = () => {
-            const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
-            if (event) {
-                callback(event);
-            } else {
-                callback({ event: this.showEvent! });
-            }
-
-            this.hide();
-        };
+        el.onclick = this.createButtonOnClick(region, callback);
         return el;
     }
 
