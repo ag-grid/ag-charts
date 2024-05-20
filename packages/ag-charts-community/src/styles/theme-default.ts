@@ -15,6 +15,10 @@ export default `
     --ag-charts-border: var(--ag-borders, solid 1px);
     --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
 
+    /* Layout */
+    --ag-charts-align: center;
+    --ag-charts-justify: center;
+
     /* Toolbar */
     --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-foreground-color));
     --ag-charts-toolbar-background-color: var(

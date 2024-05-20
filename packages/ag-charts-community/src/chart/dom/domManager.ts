@@ -30,8 +30,8 @@ const STYLES = `
     touch-action: auto;
 
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: var(--ag-charts-align);
+    justify-content: var(--ag-charts-justify);
 }
 
 .ag-charts-canvas {
