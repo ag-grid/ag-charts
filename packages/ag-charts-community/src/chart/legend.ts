@@ -783,6 +783,14 @@ export class Legend extends BaseProperties {
             markerLabel.opacity = datum.enabled ? 1 : 0.5;
             markerLabel.color = color;
         });
+
+        this.updateContextMenu();
+    }
+
+    private updateContextMenu() {
+        const { toggleSeriesVisible } = this.item;
+        this.ctx.contextMenuRegistry.setActionVisiblity('legend-visibility', toggleSeriesVisible);
+        this.ctx.contextMenuRegistry.setActionVisiblity('legend-other-series', toggleSeriesVisible);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -868,6 +876,12 @@ export class Legend extends BaseProperties {
 
     private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
         this.contextMenuDatum = this.getDatumForPoint(event.offsetX, event.offsetY);
+
+        if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
+            this.ctx.contextMenuRegistry.disableAction('legend-visibility');
+        } else {
+            this.ctx.contextMenuRegistry.enableAction('legend-visibility');
+        }
     }
 
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
@@ -875,6 +889,10 @@ export class Legend extends BaseProperties {
         if (this.doClick(datum)) {
             event.consume();
         }
+    }
+
+    private getVisibleItemCount(): number {
+        return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
     private doClick(datum: CategoryLegendDatum | undefined): boolean {
@@ -900,10 +918,7 @@ export class Legend extends BaseProperties {
             newEnabled = !enabled;
 
             if (preventHidingAll && !newEnabled) {
-                const numVisibleItems = chartService.series
-                    .flatMap((s) => s.getLegendData('category'))
-                    .filter((d) => d.enabled).length;
-
+                const numVisibleItems = this.getVisibleItemCount();
                 if (numVisibleItems < 2) {
                     newEnabled = true;
                 }
