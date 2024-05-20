@@ -7,8 +7,8 @@ import {
 } from 'ag-charts-community';
 
 import { FlowProportionDatumType, FlowProportionSeries } from '../flow-proportion/flowProportionSeries';
-import { type NodeGraphEntry, computeNodeGraph } from '../flow-proportion/flowProportionUtil';
-import { layoutColumns } from './sankeyLayout';
+import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
+import { type Column, layoutColumns } from './sankeyLayout';
 import { SankeyLink } from './sankeyLink';
 import {
     type SankeyDatum,
@@ -48,7 +48,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     private isLabelEnabled() {
-        return this.properties.labelKey != null && this.properties.label.enabled;
+        return (this.properties.labelKey != null || this.nodes == null) && this.properties.label.enabled;
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
@@ -67,102 +67,57 @@ export class SankeySeries extends FlowProportionSeries<
         const {
             id: seriesId,
             _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
-            nodesDataModel,
-            nodesProcessedData,
-            dataModel: linksDataModel,
-            processedData: linksProcessedData,
         } = this;
 
-        if (
-            nodesDataModel == null ||
-            nodesProcessedData == null ||
-            linksDataModel == null ||
-            linksProcessedData == null
-        ) {
-            return;
-        }
-
         const {
-            sizeKey,
-            labelKey,
-            nodeSizeKey,
             label: { spacing: labelSpacing },
             node: { spacing: nodeSpacing, width: nodeWidth, justify },
-            fills,
-            strokes,
         } = this.properties;
 
-        const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
-        const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toIdValue');
-        const sizeIdx = sizeKey != null ? linksDataModel.resolveProcessedDataIndexById(this, 'sizeValue') : undefined;
-
-        const nodeIdIdx = nodesDataModel.resolveProcessedDataIndexById(this, 'nodeIdValue');
-        const labelIdx =
-            labelKey != null ? nodesDataModel.resolveProcessedDataIndexById(this, 'labelValue') : undefined;
-        const nodeSizeIdx =
-            nodeSizeKey != null ? nodesDataModel.resolveProcessedDataIndexById(this, 'nodeSizeValue') : undefined;
-
-        const nodeData: SankeyDatum[] = [];
-        const nodesById = new Map<string, SankeyNodeDatum>();
-        nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
-            const value = values[0];
-            const id: string = keys[nodeIdIdx];
-            const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
-            const size: number = nodeSizeIdx != null ? value[nodeSizeIdx] : 0;
-
-            const fill = fills[index % fills.length];
-            const stroke = strokes[index % strokes.length];
-
-            const node: SankeyNodeDatum = {
-                series: this,
-                itemId: undefined,
-                datum,
-                type: FlowProportionDatumType.Node,
-                id,
-                label,
-                size,
-                fill,
-                stroke,
+        const {
+            nodeGraph: baseNodeGraph,
+            links,
+            maxPathLength,
+        } = this.getNodeGraph(
+            (node) => ({
+                ...node,
+                size: 0,
                 x: NaN,
                 y: NaN,
                 width: nodeWidth,
                 height: NaN,
-            };
-            nodesById.set(id, node);
-            nodeData.push(node);
-        });
+            }),
+            (link) => ({
+                ...link,
+                x1: NaN,
+                x2: NaN,
+                y1: NaN,
+                y2: NaN,
+                height: NaN,
+            }),
+            { allowCircularReferences: false }
+        );
+        type EnhancedNodeGraphEntry = NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & {
+            columnIndex: number;
+            closestColumnIndex: number;
+            maxSizeOfClosestNodesAfter: number;
+        };
+        const nodeGraph = baseNodeGraph as Map<string, EnhancedNodeGraphEntry>;
 
-        const links = linksProcessedData.data
-            .map(({ datum, values }) => {
-                const fromId: string = values[fromIdIdx];
-                const toId: string = values[toIdIdx];
-                const size: number = sizeIdx != null ? values[sizeIdx] : 0;
-                const fromNode = nodesById.get(fromId)!;
-                const toNode = nodesById.get(toId)!;
-                return { datum, fromId, toId, fromNode, toNode, size, y1: NaN, y2: NaN };
-            })
-            .filter((link) => link.fromNode != null && link.toNode != null);
-
-        const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById, links, false);
-
-        const inset = labelKey != null ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1)) : 0;
+        const inset = this.isLabelEnabled()
+            ? (seriesRectWidth - nodeWidth) * (1 - maxPathLength / (maxPathLength + 1))
+            : 0;
         const columnWidth = (seriesRectWidth - nodeWidth - 2 * inset) / (maxPathLength - 1);
 
-        type Column = {
-            nodes: NodeGraphEntry<SankeyNodeDatum, (typeof links)[0]>[];
-            size: number;
-            readonly x: number;
-        };
         const columns: Column[] = [];
-        for (let i = 0; i < maxPathLength; i += 1) {
-            const x = inset + i * columnWidth;
-            columns.push({ size: 0, nodes: [], x });
+        for (let index = 0; index < maxPathLength; index += 1) {
+            const x = inset + index * columnWidth;
+            columns.push({ index, size: 0, nodes: [], x });
         }
 
         nodeGraph.forEach((graphNode) => {
             const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
             const size = Math.max(
-                node.size,
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0),
                 linksAfter.reduce((acc, { link }) => acc + link.size, 0)
             );
@@ -201,6 +156,25 @@ export class SankeySeries extends FlowProportionSeries<
             node.size = size;
             column.nodes.push(graphNode);
             column.size += size;
+
+            graphNode.columnIndex = column.index;
+        });
+
+        nodeGraph.forEach((graphNode) => {
+            let closestColumnIndex = Infinity;
+            let maxSizeOfClosestNodesAfter = 0;
+            graphNode.linksAfter.forEach((link) => {
+                const node = link.node as EnhancedNodeGraphEntry;
+                const { columnIndex } = node;
+                if (columnIndex < closestColumnIndex) {
+                    closestColumnIndex = columnIndex;
+                    maxSizeOfClosestNodesAfter = node.datum.size;
+                } else if (columnIndex === closestColumnIndex) {
+                    maxSizeOfClosestNodesAfter = Math.max(maxSizeOfClosestNodesAfter, node.datum.size);
+                }
+            });
+            graphNode.closestColumnIndex = closestColumnIndex;
+            graphNode.maxSizeOfClosestNodesAfter = maxSizeOfClosestNodesAfter;
         });
 
         const sizeScale = columns.reduce((acc, { size, nodes }) => {
@@ -208,24 +182,37 @@ export class SankeySeries extends FlowProportionSeries<
             return Math.min(acc, columnSizeScale);
         }, Infinity);
 
+        for (let i = columns.length - 1; i >= 0; i -= 1) {
+            const nodes = columns[i].nodes as EnhancedNodeGraphEntry[];
+            nodes.sort(
+                (a, b) =>
+                    a.closestColumnIndex - b.closestColumnIndex ||
+                    a.maxSizeOfClosestNodesAfter - b.maxSizeOfClosestNodesAfter ||
+                    a.datum.size - b.datum.size
+            );
+        }
+
         layoutColumns(columns, {
             seriesRectHeight,
             nodeSpacing,
             sizeScale,
         });
 
-        const nodeMidY = (node: SankeyNodeDatum) => node.y + node.height / 2;
         nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
-            const midY = nodeMidY(node);
-            const x = node.x;
+            const bottom = node.y + node.height;
             const sortNodes = (l: typeof linksBefore) => {
                 return l.sort((a, b) => {
-                    const aMid = nodeMidY(a.node.datum);
-                    const bMid = nodeMidY(b.node.datum);
-                    return (
-                        Math.atan2(aMid - midY, Math.abs(a.node.datum.x - x)) -
-                        Math.atan2(bMid - midY, Math.abs(b.node.datum.x - x))
-                    );
+                    const aNode = a.node.datum;
+                    const bNode = b.node.datum;
+                    const aBottom = aNode.y + aNode.height;
+                    const bBottom = bNode.y + bNode.height;
+                    const dAngleTop =
+                        Math.atan2(aNode.y - node.y, Math.abs(aNode.x - node.x)) -
+                        Math.atan2(bNode.y - node.y, Math.abs(bNode.x - node.x));
+                    const dAngleBottom =
+                        Math.atan2(aBottom - bottom, Math.abs(aNode.x - node.x)) -
+                        Math.atan2(bBottom - bottom, Math.abs(bNode.x - node.x));
+                    return dAngleTop + dAngleBottom;
                 });
             };
 
@@ -242,27 +229,7 @@ export class SankeySeries extends FlowProportionSeries<
             });
         });
 
-        links.forEach(({ datum, fromNode, toNode, size, y1, y2 }) => {
-            const height = seriesRectHeight * size * sizeScale;
-            const x1 = fromNode.x + nodeWidth;
-            const x2 = toNode.x;
-
-            nodeData.push({
-                series: this,
-                itemId: undefined,
-                datum,
-                type: FlowProportionDatumType.Link,
-                fromNode,
-                toNode,
-                size,
-                x1,
-                x2,
-                y1,
-                y2,
-                height,
-            });
-        });
-
+        const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize, fontFamily } = this.properties.label;
         const canvasFont = `${fontSize}px ${fontFamily}`;
@@ -271,6 +238,8 @@ export class SankeySeries extends FlowProportionSeries<
             const trailing = index === columns.length - 1;
 
             column.nodes.forEach(({ datum: node }) => {
+                nodeData.push(node);
+
                 if (node.label == null) return;
 
                 const x = leading ? node.x - labelSpacing : node.x + node.width + labelSpacing;
@@ -312,6 +281,14 @@ export class SankeySeries extends FlowProportionSeries<
                     x,
                 });
             });
+        });
+        links.forEach((link) => {
+            const { fromNode, toNode, size } = link;
+            link.height = seriesRectHeight * size * sizeScale;
+            link.x1 = fromNode.x + nodeWidth;
+            link.x2 = toNode.x;
+
+            nodeData.push(link);
         });
 
         return {

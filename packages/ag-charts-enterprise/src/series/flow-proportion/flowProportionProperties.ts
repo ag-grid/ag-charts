@@ -13,6 +13,6 @@ export interface FlowProportionSeriesProperties<SeriesOptions extends {}>
     labelName: string | undefined;
     sizeKey: string | undefined;
     sizeName: string | undefined;
-    nodeSizeKey: string | undefined;
-    nodeSizeName: string | undefined;
+    fills: string[];
+    strokes: string[];
 }
