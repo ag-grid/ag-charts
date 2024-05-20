@@ -92,7 +92,11 @@ export class ChartContext implements ModuleContext {
         this.gestureDetector = new GestureDetector(this.domManager);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService(updateCallback);
-        this.proxyInteractionService = new ProxyInteractionService(this.updateService, this.focusIndicator);
+        this.proxyInteractionService = new ProxyInteractionService(
+            this.updateService,
+            this.domManager,
+            this.focusIndicator
+        );
         this.seriesStateManager = new SeriesStateManager();
         this.callbackCache = new CallbackCache();
 

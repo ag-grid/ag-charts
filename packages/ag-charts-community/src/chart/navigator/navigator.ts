@@ -91,12 +91,13 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
-        this.proxyNavigatorToolbar = this.ctx.domManager.addChild('canvas-overlay', `navigator-toolbar`);
-        this.proxyNavigatorToolbar.classList.add('ag-charts-proxy-navigator-toolbar');
-        this.proxyNavigatorToolbar.role = 'scrollbar';
-        this.proxyNavigatorToolbar.ariaOrientation = 'horizontal';
-        this.proxyNavigatorToolbar.ariaLabel = 'Navigator';
-        this.proxyNavigatorToolbar.style.pointerEvents = 'none';
+        this.proxyNavigatorToolbar = this.ctx.proxyInteractionService.createProxyContainer({
+            type: 'scrollbar',
+            id: `navigator-toolbar`,
+            classList: ['ag-charts-proxy-navigator-toolbar'],
+            ariaOrientation: 'horizontal',
+            ariaLabel: 'Navigator',
+        });
         this.updateGroupVisibility();
 
         this.proxyNavigatorElements = [
