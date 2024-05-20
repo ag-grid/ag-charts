@@ -271,21 +271,17 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     callback(event);
                 }
             };
-        } else {
-            return () => {
-                const event = this.pickedNode?.series.createNodeContextMenuActionEvent(
-                    this.showEvent!,
-                    this.pickedNode
-                );
-                if (event) {
-                    callback(event);
-                } else {
-                    callback({ event: this.showEvent! });
-                }
-
-                this.hide();
-            };
         }
+        return () => {
+            const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
+            if (event) {
+                callback(event);
+            } else {
+                callback({ event: this.showEvent! });
+            }
+
+            this.hide();
+        };
     }
 
     private createButtonElement(
