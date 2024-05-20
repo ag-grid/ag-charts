@@ -19,20 +19,20 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 
 <Layout title={`AG Charts Gallery: ${page.title}`} showSearchBar={true}>
     <div class="gallery-page-container layout-max-width-small text-base">
-        <h1>
+        <div class="title-container">
+            <h1>{page.title}</h1>
             <span>
-                {page.title}
                 {
                     page.enterprise && (
                         <span class="enterpriseIcon">
-                            <Icon client:only name="enterprise" />
+                            <Icon client:only="react" name="enterprise" />
                         </span>
                     )
                 }
             </span>
 
-            <GallerySeriesLink client:only series={page.seriesTitle} link={page.seriesLink} />
-        </h1>
+            <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
+        </div>
 
         <GalleryExampleRunner title={page.name} name={page.slug} />
 
@@ -62,11 +62,17 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
         }
     }
 
+    .title-container {
+        display: flex;
+        align-items: center;
+    }
+
     h1 {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-end;
         margin-bottom: $spacing-size-2;
+        margin-right: $spacing-size-2;
     }
 
     .enterpriseIcon {
