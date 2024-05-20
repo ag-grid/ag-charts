@@ -12,6 +12,7 @@ type ContextMenuGroups = {
     node: Array<ContextMenuItem>;
     extra: Array<ContextMenuItem>;
     extraNode: Array<ContextMenuItem>;
+    extraLegendItem: Array<ContextMenuItem>;
 };
 type ContextMenuAction = _ModuleSupport.ContextMenuAction;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
@@ -37,6 +38,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
      * Extra menu actions that only appear when clicking on a node.
      */
     public extraNodeActions: Array<ContextMenuAction> = [];
+
+    /**
+     * Extra menu actions that only appear when clicking on a legend item
+     */
+    public extraLegendItemActions: Array<ContextMenuAction> = [];
 
     // Module context
     private readonly scene: _Scene.Scene;
@@ -73,7 +79,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         );
 
         // State
-        this.groups = { default: [], node: [], extra: [], extraNode: [] };
+        this.groups = { default: [], node: [], extra: [], extraNode: [], extraLegendItem: [] };
 
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
@@ -139,8 +145,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.groups.extraNode = [...this.extraNodeActions];
         }
 
-        const { default: def, node, extra, extraNode } = this.groups;
-        const groupCount = def.length + node.length + extra.length + extraNode.length;
+        if (this.extraLegendItemActions.length > 0 && event.region === 'legend') {
+            this.groups.extraLegendItem = [...this.extraLegendItemActions];
+        }
+
+        const { default: def, node, extra, extraNode, extraLegendItem } = this.groups;
+        const groupCount = [def, node, extra, extraNode, extraLegendItem].reduce((count, e) => {
+            return e.length + count;
+        }, 0);
 
         if (groupCount === 0) return;
 
@@ -193,6 +205,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.pickedNode) {
             this.appendMenuGroup(menuElement, this.groups.extraNode);
+        }
+
+        if (event.region === 'legend') {
+            this.appendMenuGroup(menuElement, this.groups.extraLegendItem);
         }
 
         return menuElement;
