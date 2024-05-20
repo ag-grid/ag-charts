@@ -242,7 +242,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     getBoundingClientRect() {
-        return this.parent.element.getBoundingClientRect();
+        return this.rootElements['canvas'].element.getBoundingClientRect();
     }
 
     getChildBoundingClientRect(type: DOMElementClass) {
