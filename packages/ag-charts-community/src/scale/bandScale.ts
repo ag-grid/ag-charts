@@ -166,7 +166,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         const [r0, r1] = this.range;
         let { _paddingInner: paddingInner } = this;
         const { _paddingOuter: paddingOuter, round } = this;
-        const rangeDistance = Math.abs(r1 - r0);
+        const rangeDistance = r1 - r0;
 
         let rawStep: number, step: number, start: number;
 
@@ -174,11 +174,11 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
             paddingInner = 0;
             rawStep = rangeDistance * (1 - paddingOuter * 2);
             step = round ? Math.round(rawStep) : rawStep;
-            start = Math.min(r0, r1) + rangeDistance * paddingOuter;
+            start = rangeDistance * paddingOuter;
         } else {
             rawStep = rangeDistance / Math.max(1, count - paddingInner + paddingOuter * 2);
             step = round ? Math.floor(rawStep) : rawStep;
-            start = Math.min(r0, r1) + (rangeDistance - step * (count - paddingInner)) / 2;
+            start = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
         }
 
         let bandwidth = step * (1 - paddingInner);
