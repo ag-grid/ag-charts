@@ -16,6 +16,12 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     protected invalid = true;
 
     @Invalidating
+    range: number[] = [0, 1];
+
+    @Invalidating
+    round = false;
+
+    @Invalidating
     interval?: I = undefined;
 
     protected refresh() {
@@ -31,7 +37,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
 
     /**
      * Maps datum to its index in the {@link domain} array.
-     * Used to check for duplicate datums (not allowed).
+     * Used to check for duplicate data (not allowed).
      */
     protected index = new Map<D | D[], number>();
 
@@ -41,61 +47,41 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     protected ordinalRange: number[] = [];
 
     /**
-     * Contains unique datums only. Since `{}` is used in place of `Map`
-     * for IE11 compatibility, the datums are converted `toString` before
-     * the uniqueness check.
+     * Contains unique data only.
      */
     protected _domain: D[] = [];
     set domain(values: D[]) {
-        this.invalid = true;
-
-        const domain: D[] = [];
-
         this.index = new Map<D, number>();
-        const index = this.index;
+        this.invalid = true;
+        this._domain = [];
 
         // In case one wants to have duplicate domain values, for example, two 'Italy' categories,
         // one should use objects rather than strings for domain values like so:
         // { toString: () => 'Italy' }
         // { toString: () => 'Italy' }
-        values.forEach((value) => {
-            if (this.getIndex(value) === undefined) {
-                index.set(value, domain.push(value) - 1);
+        for (const value of values) {
+            const key = value instanceof Date ? (value.getTime() as D) : value;
+            if (this.getIndex(key) === undefined) {
+                this.index.set(key, this._domain.push(value) - 1);
             }
-        });
-
-        this._domain = domain;
+        }
     }
     get domain(): D[] {
         return this._domain;
     }
 
-    @Invalidating
-    range: number[] = [0, 1];
-
     ticks(): { ticks: D[]; fractionDigits: number } {
         this.refresh();
-        let { interval = 1 } = this;
-        if (typeof interval !== 'number') {
-            interval = Number(interval);
-        }
-        const step = Math.abs(Math.round(interval));
-        return { ticks: this._domain.filter((_, i) => i % step === 0), fractionDigits: 0 };
+        return { ticks: this._domain, fractionDigits: 0 };
     }
 
     convert(d: D): number {
         this.refresh();
         const i = this.getIndex(d);
-        if (i === undefined) {
+        if (i == null) {
             return NaN;
         }
-
-        const r = this.ordinalRange[i];
-        if (r === undefined) {
-            return NaN;
-        }
-
-        return r;
+        return this.ordinalRange[i] ?? NaN;
     }
 
     invert(position: number) {
@@ -172,64 +158,43 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return this._paddingOuter;
     }
 
-    @Invalidating
-    round = false;
-
     update() {
         const count = this._domain.length;
-        if (count === 0) {
-            return;
-        }
 
-        const round = this.round;
-        const paddingInner = this._paddingInner;
-        const paddingOuter = this._paddingOuter;
+        if (count === 0) return;
+
         const [r0, r1] = this.range;
-        const width = r1 - r0;
+        let { _paddingInner: paddingInner } = this;
+        const { _paddingOuter: paddingOuter, round } = this;
+        const rangeDistance = r1 - r0;
 
-        let start: number;
-        let bandwidth: number;
-        let rawBandwidth: number;
-        let step: number;
+        let rawStep: number, step: number, start: number;
+
         if (count === 1) {
-            rawBandwidth = width * (1 - 2 * paddingOuter);
-            bandwidth = round ? Math.round(rawBandwidth) : rawBandwidth;
-            step = bandwidth;
-            start = round ? Math.round(width * paddingOuter) : width * paddingOuter;
+            paddingInner = 0;
+            rawStep = rangeDistance * (1 - paddingOuter * 2);
+            step = round ? Math.round(rawStep) : rawStep;
+            start = rangeDistance * paddingOuter;
         } else {
-            const rawStep = width / Math.max(1, count + 2 * paddingOuter - paddingInner);
+            rawStep = rangeDistance / Math.max(1, count - paddingInner + paddingOuter * 2);
             step = round ? Math.floor(rawStep) : rawStep;
-            const fullBandWidth = step * (count - paddingInner);
-            const x0 = r0 + (width - fullBandWidth) / 2;
-            start = round ? Math.round(x0) : x0;
-            const bw = step * (1 - paddingInner);
-            bandwidth = round ? Math.round(bw) : bw;
-            rawBandwidth = rawStep * (1 - paddingInner);
+            start = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
         }
 
-        const values: number[] = [];
-        for (let i = 0; i < count; i++) {
-            values.push(start + step * i);
+        let bandwidth = step * (1 - paddingInner);
+
+        if (round) {
+            start = Math.round(start);
+            bandwidth = Math.round(bandwidth);
         }
 
-        this._bandwidth = bandwidth;
-        this._rawBandwidth = rawBandwidth;
         this._step = step;
-        this.ordinalRange = values;
+        this._bandwidth = bandwidth;
+        this._rawBandwidth = rawStep * (1 - paddingInner);
+        this.ordinalRange = this._domain.map((_, i) => start + step * i);
     }
 
     private getIndex(value: D) {
-        if (!(value instanceof Date)) {
-            return this.index.get(value);
-        }
-
-        const valueOf = value.valueOf();
-        let index = 0;
-        for (const key of this.index.keys()) {
-            if (key instanceof Date && key.valueOf() === valueOf) {
-                return index;
-            }
-            index++;
-        }
+        return this.index.get(value instanceof Date ? (value.getTime() as D) : value);
     }
 }
