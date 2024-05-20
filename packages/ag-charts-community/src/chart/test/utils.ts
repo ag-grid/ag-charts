@@ -59,7 +59,6 @@ export async function delay(ms: number): Promise<void> {
 }
 
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument('body')) {
-    options.autoSize = false;
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
     options.container = container;
@@ -133,7 +132,7 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
     const chart = deproxy(chartOrProxy);
     const chartAny = chart as any; // to access private properties
     await chart.waitForUpdate(timeoutMs, true);
-    if (chart.autoSize === true && !chartAny._lastAutoSize) {
+    if ((chart.width == null || chart.height == null) && !chartAny._lastAutoSize) {
         // Bypass wait for SizeObservable callback - it's never going to be invoked.
         const width = chart.width ?? chart.ctx.scene.canvas.width;
         const height = chart.height ?? chart.ctx.scene.canvas.height;

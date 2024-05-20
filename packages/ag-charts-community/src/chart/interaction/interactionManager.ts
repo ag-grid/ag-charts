@@ -166,9 +166,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         this.rootElement = getDocument('body');
 
         for (const type of EVENT_HANDLERS) {
-            if (type.startsWith('touch')) {
-                this.domManager.addEventListener(type, this.eventHandler, { passive: true });
-            } else if (type === 'wheel') {
+            if (type.startsWith('touch') || type === 'wheel') {
                 this.domManager.addEventListener(type, this.eventHandler, { passive: false });
             } else {
                 this.domManager.addEventListener(type, this.eventHandler);

@@ -13,6 +13,12 @@ export enum ToolbarPosition {
     FloatingBottom = 'floating-bottom',
 }
 
+export function isFloatingPosition(
+    position: ToolbarPosition
+): position is ToolbarPosition.FloatingTop | ToolbarPosition.FloatingBottom {
+    return ['floating-top', 'floating-bottom'].includes(position);
+}
+
 export const TOOLBAR_POSITIONS: ToolbarPosition[] = Object.values(ToolbarPosition);
 
 export interface ToolbarButton {

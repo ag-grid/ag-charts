@@ -222,7 +222,7 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
-    private readonly proxyLegendToolbar;
+    private readonly proxyLegendToolbar: HTMLDivElement;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -250,11 +250,7 @@ export class Legend extends BaseProperties {
         });
 
         const animationState = InteractionState.Default | InteractionState.Animation;
-        const region = ctx.regionManager.addRegionFromProperties({
-            name: 'legend',
-            bboxproviders: [this.group],
-            canInteraction: () => false,
-        });
+        const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
             region.addListener('contextmenu', (e) => this.checkContextClick(e), animationState),
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
@@ -266,10 +262,12 @@ export class Legend extends BaseProperties {
             () => this.detachLegend()
         );
 
-        this.proxyLegendToolbar = this.ctx.domManager.addChild('canvas-overlay', `${this.id}-toolbar`);
-        this.proxyLegendToolbar.classList.add('ag-charts-proxy-legend-toolbar');
-        this.proxyLegendToolbar.role = 'toolbar';
-        this.proxyLegendToolbar.ariaLabel = 'Legend';
+        this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
+            type: 'toolbar',
+            id: `${this.id}-toolbar`,
+            classList: ['ag-charts-proxy-legend-toolbar'],
+            ariaLabel: 'Legend',
+        });
     }
 
     public destroy() {
@@ -713,7 +711,7 @@ export class Legend extends BaseProperties {
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
                 type: 'button',
                 id: `ag-charts-legend-item-${i}`,
-                textContext: this.getItemAriaText(i),
+                textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
                 focusable: markerLabel,
                 onclick: (_event: MouseEvent): any => {
@@ -724,11 +722,9 @@ export class Legend extends BaseProperties {
                     this.doClick(datum);
                 },
             });
-            if (markerLabel.proxyButton != null) {
-                const { width, height } = markerLabel.computeBBox();
-                setElementBBox(markerLabel.proxyButton, { x, y, width, height });
-                markerLabel.proxyButton.style.position = 'absolute';
-            }
+
+            const { width, height } = markerLabel.computeBBox();
+            setElementBBox(markerLabel.proxyButton, { x, y, width, height });
         });
     }
 
@@ -1131,6 +1127,7 @@ export class Legend extends BaseProperties {
                 setElementBBox(this.proxyLegendToolbar, proxyBBox);
                 this.proxyLegendToolbar.style.removeProperty('display');
             }
+            this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
         } else {
             this.proxyLegendToolbar.style.display = 'none';
         }

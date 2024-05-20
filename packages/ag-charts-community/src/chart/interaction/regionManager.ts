@@ -17,7 +17,7 @@ export type RegionName =
     | 'series'
     | 'toolbar';
 
-const REGION_TAB_ORDERING: RegionName[] = ['series', 'navigator'];
+const REGION_TAB_ORDERING: RegionName[] = ['series'];
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
@@ -39,7 +39,6 @@ type Region = {
 export interface RegionProperties {
     readonly name: RegionName;
     readonly bboxproviders: RegionBBoxProvider[];
-    canInteraction(): boolean;
 }
 
 function addHandler<T extends RegionEvent['type']>(
@@ -102,18 +101,13 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    public addRegionFromProperties(properties: RegionProperties) {
-        const region = { properties, listeners: new RegionListeners() };
-        this.regions.set(properties.name, region);
-        return this.makeObserver(region);
-    }
-
     public addRegion(name: RegionName, bboxprovider: RegionBBoxProvider, ...extraProviders: RegionBBoxProvider[]) {
-        return this.addRegionFromProperties({
-            name,
-            bboxproviders: [bboxprovider, ...extraProviders],
-            canInteraction: () => true,
-        });
+        const region = {
+            properties: { name, bboxproviders: [bboxprovider, ...extraProviders] },
+            listeners: new RegionListeners(),
+        };
+        this.regions.set(name, region);
+        return this.makeObserver(region);
     }
 
     public getRegion(name: RegionName) {
@@ -252,19 +246,6 @@ export class RegionManager {
         return undefined;
     }
 
-    private dispatchTabStart(event: KeyNavEvent<'tab'>): boolean {
-        const { delta, sourceEvent } = event;
-        const startEvent: KeyNavEvent<'tab-start'> = buildConsumable({
-            type: 'tab-start',
-            delta,
-            sourceEvent,
-        });
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
-
-        this.dispatch(focusedRegion, startEvent);
-        return !!startEvent.consumed;
-    }
-
     private getNextInteractableTabIndex(currentIndex: number, delta: number): number | undefined {
         const direction = delta < 0 ? -1 : 1;
         let i = currentIndex;
@@ -272,7 +253,7 @@ export class RegionManager {
             const region = this.getTabRegion(i + direction);
             if (region === undefined) {
                 return undefined;
-            } else if (region.properties.canInteraction()) {
+            } else {
                 delta = delta - direction;
             }
             i = i + direction;
@@ -284,7 +265,7 @@ export class RegionManager {
         // This currentTabIndex might be referencing a region that is no longer interactable.
         // If that's the case, then refresh the focus to the first interactable region.
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
-        if (focusedRegion !== undefined && !focusedRegion.properties.canInteraction()) {
+        if (focusedRegion !== undefined) {
             this.currentTabIndex = this.getNextInteractableTabIndex(-1, 1) ?? 0;
         }
     }
@@ -298,9 +279,6 @@ export class RegionManager {
     }
 
     private onTab(event: KeyNavEvent<'tab'>) {
-        const consumed = this.dispatchTabStart(event);
-        if (consumed) return;
-
         this.validateCurrentTabIndex();
         const newTabIndex = this.getNextInteractableTabIndex(this.currentTabIndex, event.delta);
         const newRegion = this.getTabRegion(newTabIndex);
@@ -315,7 +293,7 @@ export class RegionManager {
             const blurEvent = buildConsumable({ type: 'blur' as const, delta, sourceEvent });
             this.dispatch(focusedRegion, blurEvent);
         }
-        if (newRegion === undefined || !newRegion.properties.canInteraction()) {
+        if (newRegion === undefined) {
             this.updateFocusIndicatorRect(undefined);
         } else {
             this.dispatch(newRegion, event);

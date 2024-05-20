@@ -13,10 +13,8 @@ import { BubbleSeriesModule } from '../series/cartesian/bubbleSeriesModule';
 import { HistogramSeriesModule } from '../series/cartesian/histogramSeriesModule';
 import { LineSeriesModule } from '../series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
-import { ChordSeriesModule } from '../series/chord/chordSeriesModule';
 import { DonutSeriesModule } from '../series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
-import { SankeySeriesModule } from '../series/sankey/sankeySeriesModule';
 import { ToolbarModule } from '../toolbar/toolbarModule';
 import { axisRegistry } from './axisRegistry';
 
@@ -33,9 +31,7 @@ export function registerInbuiltModules() {
         ScatterSeriesModule,
         DonutSeriesModule,
         PieSeriesModule,
-        HistogramSeriesModule,
-        SankeySeriesModule,
-        ChordSeriesModule
+        HistogramSeriesModule
     );
 
     for (const AxisConstructor of [NumberAxis, CategoryAxis, TimeAxis, GroupedCategoryAxis, LogAxis]) {

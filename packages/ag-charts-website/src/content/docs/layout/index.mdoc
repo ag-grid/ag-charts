@@ -78,14 +78,21 @@ When the chart size changes, the layout process is performed for the new availab
 Most components are typically a fixed size, so typically it is the series-area which shrinks or grows
 and most other components just move around or adjust alignment.
 
-For determining chart size, we monitor the size of the `container` element, and have three modes of operation:
+For determining chart size, we either:
 
--   By default the chart will assume a minimum size of 300x300 px, and grow with the `container` element.
--   Set `autoSize: true` to remove the minimums (e.g. for use with a CSS-managed layout) and allow collapse to zero width/height.
-    -   NOTE: `<div>` elements default to `height: 0px`; you should explicitly manage the browser calculated `container` element size
-        to achieve the size/layout you want. Our DOM elements do not affect the size of the `container` element to avoid race
-        conditions in this scenario.
--   Set `autoSize: false` to disable automatic sizing. In this scenario, set the `width` and `height` options to specify a size. We
-    fallback to the default `<canvas>` size if unspecified.
+-   auto-size by monitoring the size of the `container` element, and resize the chart dynamically.
+-   use fixed sizes if `width` and/or `height` options are specified.
 
-Additionally, if only one of `width` or `height` is specified, we will honour the above `autoSize` mode for the other dimension.
+If auto-sizing is used for one or both dimenions:
+
+-   by default the chart will assume a minimum width and height of 300px, and grow with the dimensions of the `container` element.
+-   set `minHeight: 0` and/or `minWidth: 0` to effectively remove the constraints.
+
+{% note %}
+When auto-sizing, our DOM elements do not affect the size of the `container` element to avoid infinite loops between
+chart (re)size and resulting `container` resize.
+
+A `<div>` element is commonly used for the `container`, and it should be noted that the default height for this element
+is `0px`; you should explicitly manage the browser calculated `container` element size to achieve the dynamic size you
+require.
+{% /note %}

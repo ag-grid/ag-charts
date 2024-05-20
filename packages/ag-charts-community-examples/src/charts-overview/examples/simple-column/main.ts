@@ -9,7 +9,6 @@ function formatNumber(value: number) {
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
-  autoSize: true,
   data: getData(),
   title: {
     text: "Total Visitors to Museums and Galleries",

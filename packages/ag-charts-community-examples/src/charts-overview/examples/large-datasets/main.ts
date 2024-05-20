@@ -51,7 +51,6 @@ const series: AgCartesianSeriesOptions[] = [
 ]
 
 const options: AgCartesianChartOptions = {
-  autoSize: true,
   container: document.getElementById("myChart"),
   title: {
     text: `${series.length}x ${Intl.NumberFormat().format(count)} data points!`,

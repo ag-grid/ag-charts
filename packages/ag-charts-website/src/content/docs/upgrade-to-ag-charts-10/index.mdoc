@@ -1,0 +1,71 @@
+---
+title: 'Upgrade to AG Charts 10'
+---
+
+## What's New
+
+See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-10/) for feature highlights of what's new in this major version.
+
+Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid 32.
+
+## Breaking Changes
+
+This release includes the following breaking changes:
+
+-   The `AgChart` entrypoint has been renamed to `AgCharts`.
+-   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
+
+**Series Changes**
+
+-   `innerRadiusOffset`, `innerRadiusRatio`, `innerCircle`, `innerLabels` are removed from `pie` series. Use `donut` series instead.
+-   `pie` and `donut` series strokes are now rendered on the inside of each sector. Instead of using `strokeWidth` to add spacing between the sectors, use `sectorSpacing`.
+
+**Axes Changes**
+
+-   `groupPaddingInner` on category axis has no effect when series are not grouped. Use `paddingInner` instead.
+
+**Miscellaneous**
+
+-   `legend.item.line.length` is now the length of the entire legend item line, regardless of whether or not a marker is present.
+-   `AgGradientLegendOptions.stop` has been removed, use `scale` instead.
+-   `AgContextMenuActionParams` has been replaced by `AgNodeContextMenuActionEvent`.
+-   `AgNodeContextMenuActionEvent.itemId` has been removed, use `xKey`, `yKey`, `angleKey` etc instead.
+-   `AgChartThemeOptionalPalette` has been renamed and replaces `AgChartThemePalette`.
+-   `type` property removed without replacement from
+    -   `AgAngleCategoryAxisThemeOptions`
+    -   `AgAngleNumberAxisThemeOptions`
+    -   `AgRadiusCategoryAxisThemeOptions`
+    -   `AgRadiusNumberAxisThemeOptions`.
+
+**ag-charts-react**
+
+-   The height of the chart container is no longer automatically set to 100%.
+-   `containerStyle` is renamed to `style`.
+
+## Behaviour Changes
+
+This release includes the following behaviour changes:
+
+**Theme Defaults**
+
+-   Gradient Legend values default to descending order when `position` is `'left'` or `'right'`. Use `reverseOrder` to change this.
+-   `pie` and `donut` series strokes now default to palette colours.
+-   `pie` and `donut` series `strokeWidth` now defaults to `0`.
+
+**Other Changes**
+
+-   Wrapped and truncated text may display differently.
+    -   More precise text measurement allows display of more characters from longer labels to be displayed before wrapping or truncating.
+    -   Wrapping strategy is improved to give more balanced lines.
+    -   Manual line breaks are respected even if `wrapping: 'never'`.
+    -   When manual line breaks are provided, wrapping and truncation is applied to each line separately.
+
+## Deprecations
+
+This release includes the following deprecations:
+
+-
+
+## Changes List
+
+If you would like to see the full list of changes in this release, please see the [Changelog](/changelog/?fixVersion=10.0.0).

@@ -187,7 +187,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             region.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
             region.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
-            region.addListener('drag-end', () => this.onDragEnd(), draggableState),
+            region.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), clickableState),
             region.addListener('hover', () => this.onAxisLeave(), clickableState),
             region.addListener('leave', () => this.onAxisLeave(), clickableState),
@@ -255,6 +255,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } = this;
 
         if (!enabled || !enableDoubleClickToReset) return;
+        event.consume();
 
         const { x, y } = this.getResetZoom();
 
@@ -283,6 +284,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!enabled || !paddedRect) return;
 
+        event.consume();
         this.panner.stopInteractions();
 
         // Determine which ZoomDrag behaviour to use.
@@ -341,14 +343,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 this.updateAxisZoom(direction, newZoom);
+                event.consume();
                 break;
 
             case DragState.Pan:
                 panner.update(event);
+                event.consume();
                 break;
 
             case DragState.Select:
                 selector.update(event, this.getModuleProperties(), paddedRect, zoom);
+                event.consume();
                 break;
 
             case DragState.None:
@@ -359,7 +364,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd() {
+    private onDragEnd(event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
         const {
             axisDragger,
             dragState,
@@ -377,10 +382,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         switch (dragState) {
             case DragState.Axis:
                 axisDragger.stop();
+                event.consume();
                 break;
 
             case DragState.Pan:
                 panner.stop();
+                event.consume();
                 break;
 
             case DragState.Select:
@@ -389,6 +396,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 if (this.isMinZoom(zoom)) break;
                 const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
                 this.updateZoom(newZoom);
+                event.consume();
                 break;
         }
 
@@ -431,7 +439,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enablePanning && isHorizontalScrolling) {
             event.consume();
-            event.sourceEvent.preventDefault();
 
             const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
             for (const { direction, zoom: newZoom } of Object.values(newZooms)) {
@@ -443,7 +450,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!isSeriesScrolling && !isAxisScrolling) return;
 
         event.consume();
-        event.sourceEvent.preventDefault();
 
         const newZoom = scroller.update(
             event,
@@ -506,6 +512,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.updateZoom(constrainZoom(newZoom));
+        event.consume();
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

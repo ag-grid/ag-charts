@@ -1,11 +1,17 @@
-import type {
-    AgChordSeriesFormatterParams,
-    AgChordSeriesLinkStyle,
-    AgChordSeriesOptions,
-    AgChordSeriesTooltipRendererParams,
-} from '../../../options/series/flow-proportion/chordOptions';
-import { BaseProperties } from '../../../util/properties';
 import {
+    type AgChordSeriesFormatterParams,
+    type AgChordSeriesLabelFormatterParams,
+    type AgChordSeriesLinkStyle,
+    type AgChordSeriesOptions,
+    type AgChordSeriesTooltipRendererParams,
+    _ModuleSupport,
+    _Scene,
+} from 'ag-charts-community';
+
+const {
+    BaseProperties,
+    SeriesTooltip,
+    SeriesProperties,
     ARRAY,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
@@ -16,10 +22,16 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validation';
-import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
-import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+} = _ModuleSupport;
+const { Label } = _Scene;
+
+export class SankeySeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
+    @Validate(POSITIVE_NUMBER)
+    spacing: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    maxWidth: number = 1;
+}
 
 export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(COLOR_STRING, { optional: true })
@@ -114,10 +126,13 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     nodes: any[] | undefined = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = Object.values(DEFAULT_FILLS);
+    fills: string[] = [];
 
     @Validate(COLOR_STRING_ARRAY)
-    strokes: string[] = Object.values(DEFAULT_STROKES);
+    strokes: string[] = [];
+
+    @Validate(OBJECT)
+    readonly label = new SankeySeriesLabelProperties();
 
     @Validate(OBJECT)
     readonly link = new ChordSeriesLinkProperties();

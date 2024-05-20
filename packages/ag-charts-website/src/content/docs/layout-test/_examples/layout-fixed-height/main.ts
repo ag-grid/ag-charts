@@ -4,7 +4,6 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 // Chart Options
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    autoSize: true,
     height: 400,
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },

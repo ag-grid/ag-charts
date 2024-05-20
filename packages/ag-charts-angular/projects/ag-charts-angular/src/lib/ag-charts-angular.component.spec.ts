@@ -24,7 +24,6 @@ const DATA_UK_LABOUR_MARKET_FEB_2020 = [
 })
 class TestHostComponent {
     options: AgChartOptions = {
-        autoSize: true,
         data: DATA_UK_LABOUR_MARKET_FEB_2020,
         title: {
             text: 'Gross Weekly Earnings\nby Occupation (Q4 2019)',

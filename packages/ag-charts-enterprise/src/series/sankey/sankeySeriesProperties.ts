@@ -1,13 +1,22 @@
-import type {
-    AgSankeySeriesFormatterParams,
-    AgSankeySeriesLinkOptions,
-    AgSankeySeriesLinkStyle,
-    AgSankeySeriesNodeOptions,
-    AgSankeySeriesOptions,
-    AgSankeySeriesTooltipRendererParams,
-} from '../../../options/series/flow-proportion/sankeyOptions';
-import { BaseProperties } from '../../../util/properties';
 import {
+    type AgSankeySeriesFormatterParams,
+    type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesLinkOptions,
+    type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeOptions,
+    type AgSankeySeriesOptions,
+    type AgSankeySeriesTooltipRendererParams,
+    _ModuleSupport,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
+
+import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
+
+const {
+    BaseProperties,
+    SeriesTooltip,
+    SeriesProperties,
     ARRAY,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
@@ -18,12 +27,36 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validation';
-import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
-import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+} = _ModuleSupport;
+const { Label } = _Scene;
 
-export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
+export interface SankeyNodeDatum extends FlowProportionNodeDatum {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum> {
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    height: number;
+}
+
+export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
+
+export interface SankeyNodeLabelDatum extends _Util.PointLabelDatum {
+    x: number;
+    leading: boolean;
+}
+
+export class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
+    @Validate(POSITIVE_NUMBER)
+    spacing: number = 1;
+}
+
+export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
@@ -46,7 +79,7 @@ export class ChordSeriesLinkProperties extends BaseProperties<AgSankeySeriesLink
     lineDashOffset: number = 0;
 }
 
-export class ChordSeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
+export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 
@@ -78,6 +111,9 @@ export class ChordSeriesNodeProperties extends BaseProperties<AgSankeySeriesNode
     lineDashOffset: number = 0;
 }
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
+    @Validate(ARRAY, { optional: true })
+    nodes: any[] | undefined = undefined;
+
     @Validate(STRING)
     fromIdKey: string = '';
 
@@ -114,20 +150,20 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @Validate(STRING, { optional: true })
     nodeSizeName: string | undefined = undefined;
 
-    @Validate(ARRAY, { optional: true })
-    nodes: any[] | undefined = undefined;
+    @Validate(COLOR_STRING_ARRAY)
+    fills: string[] = [];
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = Object.values(DEFAULT_FILLS);
-
-    @Validate(COLOR_STRING_ARRAY)
-    strokes: string[] = Object.values(DEFAULT_STROKES);
+    strokes: string[] = [];
 
     @Validate(OBJECT)
-    readonly link = new ChordSeriesLinkProperties();
+    readonly label = new SankeySeriesLabelProperties();
 
     @Validate(OBJECT)
-    readonly node = new ChordSeriesNodeProperties();
+    readonly link = new SankeySeriesLinkProperties();
+
+    @Validate(OBJECT)
+    readonly node = new SankeySeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgSankeySeriesFormatterParams<any>) => AgSankeySeriesLinkStyle;

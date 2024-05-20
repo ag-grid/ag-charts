@@ -86,7 +86,6 @@ describe('AgChart', () => {
             container: document.body,
             width: 500,
             height: 500,
-            autoSize: false,
             padding: {
                 top: 30,
                 right: 40,

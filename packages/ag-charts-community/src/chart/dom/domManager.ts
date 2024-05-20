@@ -4,7 +4,7 @@ import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
 
-const domElementClasses = ['styles', 'canvas', 'canvas-overlay'] as const;
+const domElementClasses = ['styles', 'canvas-center', 'canvas', 'canvas-overlay'] as const;
 export type DOMElementClass = (typeof domElementClasses)[number];
 
 const domElementConfig: Record<
@@ -14,21 +14,28 @@ const domElementConfig: Record<
     styles: { childElementType: 'style' },
     canvas: { childElementType: 'canvas' },
     'canvas-overlay': { childElementType: 'div' },
+    'canvas-center': { childElementType: 'div' },
 };
 
 const STYLES = `
 .ag-charts-wrapper {
     position: relative;
-    margin: auto;
-    touch-action: none;
-    box-sizing: border-box;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+}
+
+.ag-charts-canvas-center {
+    width: 100%;
+    height: 100%;
+
+    position: absolute;
+    touch-action: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .ag-charts-canvas {
-    position: absolute;
+    position: relative;
 }
 
 .ag-charts-canvas > * {
@@ -47,8 +54,10 @@ const STYLES = `
 
 const BASE_DOM = `
 <div class="ag-charts-wrapper ag-charts-styles" data-ag-charts>
-    <div class="ag-charts-canvas">
-        <div class="ag-charts-canvas-overlay"></div>
+    <div class="ag-charts-canvas-center">
+        <div class="ag-charts-canvas">
+            <div class="ag-charts-canvas-overlay"></div>
+        </div>
     </div>
 </div>
 `;
@@ -95,24 +104,24 @@ export class GuardedAgChartsWrapperElement extends GuardedElement {
 type Events = { type: 'hidden' } | { type: 'resize'; size: Size };
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
-    private readonly rootElements: Map<DOMElementClass, { element: HTMLElement; children: Map<string, HTMLElement> }>;
+    private readonly rootElements: Record<
+        DOMElementClass,
+        { element: HTMLElement; children: Map<string, HTMLElement> }
+    >;
     private readonly parentElement: GuardedElement;
     private container?: HTMLElement;
+    private containerSize?: Size;
 
     private readonly observer?: IntersectionObserver;
-    private readonly sizeMonitor: SizeMonitor;
+    private readonly sizeMonitor = new SizeMonitor();
 
     constructor(container?: HTMLElement) {
         super();
 
         this.parentElement = new GuardedAgChartsWrapperElement();
         const { element } = this.parentElement;
-        if (container) {
-            this.setContainer(container);
-        }
-
-        this.rootElements = new Map(
-            domElementClasses.map((c) => {
+        this.rootElements = domElementClasses.reduce(
+            (r, c) => {
                 const cssClass = `ag-charts-${c}`;
                 const el = element.classList.contains(cssClass)
                     ? element
@@ -120,8 +129,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
                 if (!el) throw new Error(`AG Charts - unable to find DOM element ${cssClass}`);
 
-                return [c, { element: el, children: new Map<string, HTMLElement>() }];
-            })
+                r[c] = { element: el, children: new Map<string, HTMLElement>() };
+                return r;
+            },
+            {} as typeof this.rootElements
         );
 
         let hidden = false;
@@ -132,14 +143,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             hidden = intersectionRatio === 0;
         });
 
-        this.setSize();
-
-        this.sizeMonitor = new SizeMonitor();
-        this.sizeMonitor.observe(element, (size) => {
-            this.listeners.dispatch('resize', { type: 'resize', size });
-        });
+        this.setSizeOptions();
 
         this.addStyles('dom-manager', STYLES);
+
+        if (container) {
+            this.setContainer(container);
+        }
     }
 
     override destroy() {
@@ -147,9 +157,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         const { element } = this.parentElement;
         this.observer?.unobserve(element);
-        this.sizeMonitor.unobserve(element);
+        if (this.container) {
+            this.sizeMonitor.unobserve(this.container);
+        }
 
-        this.rootElements.forEach((el) => {
+        Object.values(this.rootElements).forEach((el) => {
             el.children.forEach((c) => c.remove());
             el.element.remove();
         });
@@ -161,24 +173,37 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.parentElement;
     }
 
-    setSize(autoSize?: boolean, optionsWidth?: number, optionsHeight?: number) {
+    setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.parentElement.element;
 
-        style.width = optionsWidth != null ? `${optionsWidth}px` : '100%';
-        style.minWidth = optionsWidth != null || autoSize === true ? '' : '300px';
-        style.height = optionsHeight != null ? `${optionsHeight}px` : '100%';
-        style.minHeight = optionsHeight != null || autoSize === true ? '' : '300px';
+        style.width = `${optionsWidth ?? minWidth}px`;
+        style.height = `${optionsHeight ?? minHeight}px`;
+    }
+
+    private updateContainerSize() {
+        const { style: centerStyle } = this.rootElements['canvas-center'].element;
+
+        centerStyle.width = `${this.containerSize?.width ?? 0}px`;
+        centerStyle.height = `${this.containerSize?.height ?? 0}px`;
     }
 
     setContainer(newContainer: HTMLElement) {
         if (newContainer === this.container) return;
 
-        this.container?.removeChild(this.parentElement.topTabGuard);
-        this.container?.removeChild(this.parentElement.element);
-        this.container?.removeChild(this.parentElement.bottomTabGuard);
+        if (this.container) {
+            this.container.removeChild(this.parentElement.topTabGuard);
+            this.container.removeChild(this.parentElement.element);
+            this.container.removeChild(this.parentElement.bottomTabGuard);
+            this.sizeMonitor.unobserve(this.container);
+        }
         newContainer.appendChild(this.parentElement.topTabGuard);
         newContainer.appendChild(this.parentElement.element);
         newContainer.appendChild(this.parentElement.bottomTabGuard);
+        this.sizeMonitor.observe(newContainer, (size) => {
+            this.containerSize = size;
+            this.updateContainerSize();
+            this.listeners.dispatch('resize', { type: 'resize', size });
+        });
 
         this.container = newContainer;
     }
@@ -221,8 +246,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     getChildBoundingClientRect(type: DOMElementClass) {
-        const { children } = this.rootElements.get(type) ?? {};
-        if (!children) return;
+        const { children } = this.rootElements[type];
 
         const childRects: BBox[] = [];
         for (const child of children.values()) {
@@ -254,18 +278,23 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     isManagedChildDOMElement(el: HTMLElement, domElementClass: DOMElementClass, id: string) {
-        const { children } = this.rootElements.get(domElementClass) ?? {};
+        const { children } = this.rootElements[domElementClass];
 
         const search = children?.get(id);
         return search != null && this.isManagedDOMElement(el, search);
     }
 
     isEventOverElement(event: Event | MouseEvent | TouchEvent) {
-        return (
-            event.target === this.parentElement.element ||
-            (event.target as any)?.parentElement === this.parentElement.element ||
-            (event.target as any)?.parentElement?.parentElement === this.parentElement.element
-        );
+        let element = event.target;
+
+        if (element == null) return false;
+
+        while (element !== this.parentElement.element) {
+            element = (element as HTMLElement).parentElement;
+            if (element == null) return false;
+        }
+
+        return true;
     }
 
     addStyles(id: string, styles: string) {
@@ -286,7 +315,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement) {
-        const { element, children } = this.rootElements.get(domElementClass) ?? {};
+        const { element, children } = this.rootElements[domElementClass];
         if (!children) {
             throw new Error('AG Charts - unable to create DOM elements after destroy()');
         }
@@ -305,7 +334,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     removeChild(domElementClass: DOMElementClass, id: string) {
-        const { children } = this.rootElements.get(domElementClass) ?? {};
+        const { children } = this.rootElements[domElementClass];
         if (!children) return;
 
         if (!children.has(id)) return;

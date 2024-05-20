@@ -8,7 +8,6 @@ import { integratedChartOptions } from './data';
 const options: AgCartesianChartOptions = {
     ...integratedChartOptions,
     container: document.getElementById('myChart'),
-    autoSize: true,
 };
 /* @ag-options-end */
 

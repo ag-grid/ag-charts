@@ -1,8 +1,9 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgChordSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
@@ -11,10 +12,12 @@ export interface AgChordSeriesOptions<TDatum = any>
     /** Configuration for the Chord Series. */
     type: 'chord';
     /** Node options */
+    nodes?: any[];
 }
 
-export interface AgChordSeriesThemeableOptions<_TDatum = any> {
-    nodes?: any[];
+export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
+    /** Options for the label for each node. */
+    label?: AgChordSeriesLabelOptions<TDatum>;
     /** The colours to cycle through for the fills of the nodes and links. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the nodes and links. */
@@ -23,6 +26,14 @@ export interface AgChordSeriesThemeableOptions<_TDatum = any> {
     link?: AgChordSeriesLinkOptions;
     /** Options for the nodes */
     node?: AgChordSeriesNodeOptions;
+}
+
+export interface AgChordSeriesLabelOptions<TDatum>
+    extends AgChartLabelOptions<TDatum, AgChordSeriesLabelFormatterParams<TDatum>> {
+    /** Spacing between a node and its label */
+    spacing?: PixelSize;
+    /** Maximum width labels */
+    maxWidth?: PixelSize;
 }
 
 export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -77,3 +88,5 @@ export interface AgChordSeriesFormatterParams<TDatum = any>
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
 }
+
+export interface AgChordSeriesLabelFormatterParams<_TDatum = any> extends AgChordSeriesOptionsKeys {}
