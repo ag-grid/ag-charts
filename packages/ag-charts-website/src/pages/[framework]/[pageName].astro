@@ -32,16 +32,19 @@ const headings = getHeadings({
 
 const menuEntry = await getEntry('menu', 'data');
 
-const appendSeoToDescription = `Download AG Charts today: The best ${getFrameworkDisplayText(
-    currentFramework
-)} charts in the world.`;
-const description =
-    page.data.description || `${getFirstParagraphText(page.body, currentFramework)} ${appendSeoToDescription}`;
+const { data: versionsData } = await getEntry('versions', 'data');
+const version = versionsData[0]?.version;
+const frameworkDisplayText = getFrameworkDisplayText(currentFramework);
+const seoTagline = `Download AG Charts v${version} today: The best ${frameworkDisplayText} Charts and ${frameworkDisplayText} Graphs, in the world.`;
+const description = page.data.description
+    ? page.data.description.replace('$framework', frameworkDisplayText) // Use front-matter description
+    : getFirstParagraphText(page.body, currentFramework); // Default to 1st paragraph text
+const descriptionWithSeoTagline = `${description} ${seoTagline}`;
 ---
 
 <Layout
     title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title} | AG Charts`}
-    description={description}
+    description={descriptionWithSeoTagline}
     showTopBar={true}
     showSearchBar={true}
     showDocsNav={true}
