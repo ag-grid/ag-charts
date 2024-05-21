@@ -166,6 +166,9 @@ export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     darkTheme = false;
 
+    @Validate(BOOLEAN)
+    nestedDOM = true;
+
     private enableInteraction: boolean = false;
     private lastVisibilityChange: number = Date.now();
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
@@ -216,7 +219,6 @@ export class Tooltip extends BaseProperties {
         const yOffset = meta.position?.yOffset ?? 0;
 
         const tooltipBounds = this.getTooltipBounds({ positionType, meta, yOffset, xOffset, canvasRect });
-        const windowBounds = this.getWindowSize();
 
         const position = calculatePlacement(
             element.clientWidth,
@@ -226,12 +228,14 @@ export class Tooltip extends BaseProperties {
             tooltipBounds
         );
 
-        const minX = -canvasRect.left;
-        const maxX = windowBounds.width - element.clientWidth - 1 + minX;
-        const left = clamp(minX, position.x, maxX);
+        const windowBounds = this.nestedDOM ? canvasRect : this.getWindowSize();
+        const minX = this.nestedDOM ? 0 : -canvasRect.left;
+        const minY = this.nestedDOM ? 0 : -canvasRect.top;
 
-        const minY = -canvasRect.top;
+        const maxX = windowBounds.width - element.clientWidth - 1 + minX;
         const maxY = windowBounds.height - element.clientHeight + minY;
+
+        const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
 
         const constrained = left !== position.x || top !== position.y;

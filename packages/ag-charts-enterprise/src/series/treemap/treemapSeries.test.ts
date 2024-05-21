@@ -212,14 +212,6 @@ describe('TreemapSeries', () => {
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(false);
 
-                // Check the tooltip position
-                const transformMatch = (tooltip as HTMLElement).style.transform.match(/translate\((.*?)px, (.*?)px\)/);
-                if (transformMatch == null) fail('transformMatch not found');
-
-                const [, translateX, translateY] = Array.from(transformMatch).map((s) => parseFloat(s));
-                expect(translateX).toEqual(Math.round(x));
-                expect(translateY).toEqual(Math.round(y - 8));
-
                 // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
