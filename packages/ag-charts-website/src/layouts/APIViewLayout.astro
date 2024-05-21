@@ -3,12 +3,13 @@ import Layout from '@layouts/Layout.astro';
 
 interface Props {
     title: string;
+    description: string;
 }
 
-const { title } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
-<Layout title={`AG Charts: ${title}`} showSearchBar={true}>
+<Layout title={`AG Charts: ${title}`} description={description} showSearchBar={true}>
     <div id="top" class="container">
         <slot />
     </div>
