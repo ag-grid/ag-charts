@@ -360,9 +360,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
+            seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), All),
             ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
-            ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
             ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
 
             ctx.animationManager.addListener('animation-frame', () => {
@@ -1173,6 +1173,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.checkSeriesNodeRange(event, () => {
                 this.ctx.highlightManager.updateHighlight(this.id);
             });
+
+            const { pageX, pageY, sourceEvent } = event;
+            event.consume();
+            this.ctx.contextMenuRegistry.dispatchContext({ type: 'series', pageX, pageY, sourceEvent });
         }
     }
 

@@ -241,13 +241,13 @@ export class Legend extends BaseProperties {
 
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_VISIBILITY,
-            region: 'legend',
+            type: 'legend',
             label: 'Toggle Visibility',
             action: (_params) => this.contextToggleVisibility(),
         });
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_OTHER_SERIES,
-            region: 'legend',
+            type: 'legend',
             label: 'Toggle Other Series',
             action: (_params) => this.contextToggleOtherSeries(),
         });
@@ -887,6 +887,10 @@ export class Legend extends BaseProperties {
         } else {
             this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
         }
+
+        const { pageX, pageY, sourceEvent } = event;
+        event.consume();
+        this.ctx.contextMenuRegistry.dispatchContext({ type: 'legend', pageX, pageY, sourceEvent });
     }
 
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
