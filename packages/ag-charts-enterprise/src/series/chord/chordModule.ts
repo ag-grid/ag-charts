@@ -37,6 +37,9 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
                 strokeWidth: 0,
             },
         },
+        legend: {
+            enabled: false,
+        },
     },
     paletteFactory({ takeColors, colorsCount }) {
         const { fills, strokes } = takeColors(colorsCount);

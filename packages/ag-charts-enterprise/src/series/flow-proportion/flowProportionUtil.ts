@@ -37,12 +37,11 @@ export function computeNodeGraph<N extends Node, L extends Link<N>>(
     }
 
     let maxPathLength = 0;
-    const stack: string[] | undefined = allowCircularReferences ? [] : undefined;
     nodeGraph.forEach((node, id) => {
         maxPathLength = Math.max(
             maxPathLength,
-            computePathLength(nodeGraph, links, node, id, -1, stack) +
-                computePathLength(nodeGraph, links, node, id, 1, stack) +
+            computePathLength(nodeGraph, links, node, id, -1, allowCircularReferences) +
+                computePathLength(nodeGraph, links, node, id, 1, allowCircularReferences) +
                 1
         );
     });
@@ -50,16 +49,21 @@ export function computeNodeGraph<N extends Node, L extends Link<N>>(
     return { nodeGraph, maxPathLength };
 }
 
+const stack: string[] = [];
 function computePathLength<N extends Node, L extends Link<N>>(
     nodeGraph: Map<string, NodeGraphEntry<N, L>>,
     links: L[],
     node: NodeGraphEntry<N, L>,
     id: string,
     direction: -1 | 1,
-    stack: string[] | undefined
+    allowCircularReferences: boolean
 ) {
-    if (stack?.includes(id) === true) {
-        throw new Error(`Circular reference: ${[...stack, id].join(', ')}`);
+    if (stack.includes(id)) {
+        if (allowCircularReferences) {
+            return Infinity;
+        } else {
+            throw new Error(`Circular reference: ${[...stack, id].join(', ')}`);
+        }
     }
 
     let maxPathLength = direction === -1 ? node.maxPathLengthBefore : node.maxPathLengthAfter;
@@ -78,7 +82,7 @@ function computePathLength<N extends Node, L extends Link<N>>(
             stack?.push(id);
             maxPathLength = Math.max(
                 maxPathLength,
-                computePathLength(nodeGraph, links, nextNode, nextNodeId, direction, stack) + 1
+                computePathLength(nodeGraph, links, nextNode, nextNodeId, direction, allowCircularReferences) + 1
             );
             stack?.pop();
         }
