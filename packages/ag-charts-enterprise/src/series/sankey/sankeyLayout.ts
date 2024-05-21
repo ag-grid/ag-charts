@@ -1,8 +1,9 @@
-import type { Link, LinkedNode, NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
-import type { SankeyNodeDatum } from './sankeySeriesProperties';
+import type { LinkedNode, NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
+import type { SankeyLinkDatum, SankeyNodeDatum } from './sankeySeriesProperties';
 
-type Column<L extends Link> = {
-    nodes: NodeGraphEntry<SankeyNodeDatum, L>[];
+export type Column = {
+    index: number;
+    nodes: NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum>[];
     size: number;
     readonly x: number;
 };
@@ -13,7 +14,7 @@ interface Layout {
     sizeScale: number;
 }
 
-function justifyNodesAcrossColumn({ nodes, size }: Column<any>, { seriesRectHeight, nodeSpacing, sizeScale }: Layout) {
+function justifyNodesAcrossColumn({ nodes, size }: Column, { seriesRectHeight, nodeSpacing, sizeScale }: Layout) {
     const nodesHeight = seriesRectHeight * size * sizeScale;
     const outerPadding = (seriesRectHeight - (nodesHeight + nodeSpacing * (nodes.length - 1))) / 2;
     let y = outerPadding;
@@ -25,10 +26,10 @@ function justifyNodesAcrossColumn({ nodes, size }: Column<any>, { seriesRectHeig
     });
 }
 
-function separateNodesInColumn(column: Column<any>, layout: Layout) {
+function separateNodesInColumn(column: Column, layout: Layout) {
     const { nodes } = column;
     const { seriesRectHeight, nodeSpacing } = layout;
-    nodes.sort((a, b) => Math.round(a.datum.y - b.datum.y * 100) / 100);
+    nodes.sort((a, b) => Math.round(a.datum.y - b.datum.y * 100) / 100 || -(a.datum.size - b.datum.size));
 
     let totalShift = 0;
     let currentTop = 0;
@@ -79,7 +80,7 @@ function weightedNodeY(links: LinkedNode<SankeyNodeDatum, any>[]): number | unde
     return totalYValues / totalSize;
 }
 
-function layoutColumn(column: Column<any>, layout: Layout, weight: number, direction: -1 | 1) {
+function layoutColumn(column: Column, layout: Layout, weight: number, direction: -1 | 1) {
     column.nodes.forEach(({ datum: node, linksBefore, linksAfter }) => {
         const forwardLinks = direction === 1 ? linksBefore : linksAfter;
         const backwardsLinks = direction === 1 ? linksAfter : linksBefore;
@@ -94,7 +95,7 @@ function layoutColumn(column: Column<any>, layout: Layout, weight: number, direc
     return separateNodesInColumn(column, layout);
 }
 
-function layoutColumnsForward(columns: Column<any>[], layout: Layout, weight: number) {
+function layoutColumnsForward(columns: Column[], layout: Layout, weight: number) {
     let didShift = false;
     for (let i = 0; i < columns.length; i += 1) {
         didShift = layoutColumn(columns[i], layout, weight, 1) || didShift;
@@ -102,7 +103,7 @@ function layoutColumnsForward(columns: Column<any>[], layout: Layout, weight: nu
     return didShift;
 }
 
-function layoutColumnsBackwards(columns: Column<any>[], layout: Layout, weight: number) {
+function layoutColumnsBackwards(columns: Column[], layout: Layout, weight: number) {
     let didShift = false;
     for (let i = columns.length - 1; i >= 0; i -= 1) {
         didShift = layoutColumn(columns[i], layout, weight, -1) || didShift;
@@ -110,7 +111,7 @@ function layoutColumnsBackwards(columns: Column<any>[], layout: Layout, weight: 
     return didShift;
 }
 
-export function layoutColumns(columns: Column<any>[], layout: Layout) {
+export function layoutColumns(columns: Column[], layout: Layout) {
     columns.forEach((column) => {
         justifyNodesAcrossColumn(column, layout);
     });

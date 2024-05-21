@@ -1,0 +1,30 @@
+---
+title: 'Sankey Series'
+---
+
+A Sankey Series visualises movement or change between different items, and the proportions between these movements or changes.
+
+## Simple Sankey
+
+{% chartExampleRunner title="Sankey Diagram" name="simple-sankey" type="generated" /%}
+
+To create a Sankey Series, use the `sankey` series type.
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromIdKey: 'fromId',
+        toIdKey: 'toId',
+        sizeKey: 'size',
+    },
+],
+```
+
+In this configuration:
+
+-   `fromIdKey` defines the start of each link.
+-   `toIdKey` defines the end of each link.
+-   `sizeKey` defines the size of each link.
+
+Circular loops are not allowed in Sankey diagrams

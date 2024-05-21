@@ -390,6 +390,12 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Waterfall",
+                        "icon": "chartsWaterfall",
+                        "path": "waterfall-series",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Sunburst",
                         "icon": "chartsSunburst",
                         "path": "sunburst-series",
@@ -402,9 +408,15 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Waterfall",
-                        "icon": "chartsWaterfall",
-                        "path": "waterfall-series",
+                        "title": "Sankey",
+                        "icon": "chartsSunburst",
+                        "path": "sankey-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Chord",
+                        "icon": "chartsSunburst",
+                        "path": "chord-series",
                         "isEnterprise": true
                     }
                 ]

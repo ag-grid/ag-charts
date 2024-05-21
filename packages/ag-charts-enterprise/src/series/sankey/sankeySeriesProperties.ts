@@ -31,6 +31,7 @@ const {
 const { Label } = _Scene;
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum {
+    size: number;
     x: number;
     y: number;
     width: number;

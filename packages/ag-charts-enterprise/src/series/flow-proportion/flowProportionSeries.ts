@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
+import { computeNodeGraph } from './flowProportionUtil';
 
 const { DataModelSeries, DataController, Validate, ARRAY, keyProperty, valueProperty } = _ModuleSupport;
 const { Selection, Group, Text } = _Scene;
@@ -22,7 +23,6 @@ export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum 
     type: FlowProportionDatumType.Node;
     id: string;
     label: string | undefined;
-    size: number;
     fill: string;
     stroke: string;
 }
@@ -100,10 +100,6 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    override get hasData() {
-        return super.hasData && this.nodes != null;
-    }
-
     public override getNodeData(): TDatum<TNodeDatum, TLinkDatum>[] | undefined {
         return this.contextNodeData?.nodeData;
     }
@@ -114,24 +110,11 @@ export abstract class FlowProportionSeries<
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { nodesDataController, data, nodes } = this;
 
-        if (data == null || nodes == null || !this.properties.isValid()) {
+        if (data == null || !this.properties.isValid()) {
             return;
         }
 
-        const { fromIdKey, toIdKey, sizeKey, nodeIdKey, labelKey, nodeSizeKey } = this.properties;
-
-        const nodesDataModelPromise = this.requestDataModel<any, any, true>(nodesDataController, nodes, {
-            props: [
-                keyProperty(nodeIdKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
-                ...(labelKey != null
-                    ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                    : []),
-                ...(nodeSizeKey != null
-                    ? [valueProperty(nodeSizeKey, undefined, { id: 'nodeSizeValue', includeProperty: false })]
-                    : []),
-            ],
-            groupByKeys: true,
-        });
+        const { fromIdKey, toIdKey, sizeKey, nodeIdKey, labelKey } = this.properties;
 
         const linksDataModelPromise = this.requestDataModel<any, any, false>(dataController, data, {
             props: [
@@ -144,15 +127,126 @@ export abstract class FlowProportionSeries<
             groupByKeys: false,
         });
 
-        nodesDataController.execute();
+        const nodesDataModelPromise =
+            nodes != null
+                ? this.requestDataModel<any, any, true>(nodesDataController, nodes, {
+                      props: [
+                          keyProperty(nodeIdKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
+                          ...(labelKey != null
+                              ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
+                              : []),
+                      ],
+                      groupByKeys: true,
+                  })
+                : null;
 
-        const [{ dataModel: nodesDataModel, processedData: nodesProcessedData }] = await Promise.all([
-            nodesDataModelPromise,
-            linksDataModelPromise,
-        ]);
+        if (nodes != null) {
+            nodesDataController.execute();
+        }
 
-        this.nodesDataModel = nodesDataModel;
-        this.nodesProcessedData = nodesProcessedData;
+        const [nodesDataModel] = await Promise.all([nodesDataModelPromise, linksDataModelPromise]);
+
+        this.nodesDataModel = nodesDataModel?.dataModel;
+        this.nodesProcessedData = nodesDataModel?.processedData;
+    }
+
+    protected getNodeGraph(
+        createNode: (node: FlowProportionNodeDatum) => TNodeDatum,
+        createLink: (link: FlowProportionLinkDatum<TNodeDatum>) => TLinkDatum,
+        { allowCircularReferences }: { allowCircularReferences: boolean }
+    ) {
+        const {
+            nodesDataModel,
+            nodesProcessedData,
+            dataModel: linksDataModel,
+            processedData: linksProcessedData,
+        } = this;
+
+        const nodesById = new Map<string, TNodeDatum>();
+        const links: TLinkDatum[] = [];
+
+        if (linksDataModel == null || linksProcessedData == null) {
+            const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.values(), links, allowCircularReferences);
+            return { nodeGraph, links, maxPathLength };
+        }
+
+        const { sizeKey, labelKey, fills, strokes } = this.properties;
+
+        const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
+        const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toIdValue');
+        const sizeIdx = sizeKey != null ? linksDataModel.resolveProcessedDataIndexById(this, 'sizeValue') : undefined;
+
+        let createImplicitNode: ((id: string) => TNodeDatum) | undefined = undefined;
+        if (nodesDataModel != null && nodesProcessedData != null) {
+            const nodeIdIdx = nodesDataModel.resolveProcessedDataIndexById(this, 'nodeIdValue');
+            const labelIdx =
+                labelKey != null ? nodesDataModel.resolveProcessedDataIndexById(this, 'labelValue') : undefined;
+
+            nodesProcessedData.data.forEach(({ datum, keys, values }, index) => {
+                const value = values[0];
+                const id: string = keys[nodeIdIdx];
+                const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
+
+                const fill = fills[index % fills.length];
+                const stroke = strokes[index % strokes.length];
+
+                const node = createNode({
+                    series: this,
+                    itemId: undefined,
+                    datum,
+                    type: FlowProportionDatumType.Node,
+                    id,
+                    label,
+                    fill,
+                    stroke,
+                });
+                nodesById.set(id, node);
+            });
+        } else {
+            createImplicitNode = (id) => {
+                const fill = fills[nodesById.size % fills.length];
+                const stroke = strokes[nodesById.size % strokes.length];
+
+                const node = createNode({
+                    series: this,
+                    itemId: undefined,
+                    datum: undefined,
+                    type: FlowProportionDatumType.Node,
+                    id: id,
+                    label: id,
+                    fill,
+                    stroke,
+                });
+
+                nodesById.set(id, node);
+
+                return node;
+            };
+        }
+
+        linksProcessedData.data.forEach(({ datum, values }) => {
+            const fromId: string = values[fromIdIdx];
+            const toId: string = values[toIdIdx];
+            const size: number = sizeIdx != null ? values[sizeIdx] : 0;
+            const fromNode = nodesById.get(fromId) ?? createImplicitNode?.(fromId);
+            const toNode = nodesById.get(toId) ?? createImplicitNode?.(toId);
+            if (fromNode == null || toNode == null) return;
+
+            const link = createLink({
+                series: this,
+                itemId: undefined,
+                datum,
+                type: FlowProportionDatumType.Link,
+                fromNode,
+                toNode,
+                size,
+            });
+            links.push(link);
+        });
+
+        const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.values(), links, allowCircularReferences);
+
+        return { nodeGraph, links, maxPathLength };
     }
 
     async updateSelections(): Promise<void> {
@@ -180,7 +274,7 @@ export abstract class FlowProportionSeries<
 
         let highlightedDatum: TDatum<TNodeDatum, TLinkDatum> | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
+        if (highlightedDatum != null && highlightedDatum.series !== this) {
             highlightedDatum = undefined;
         }
 

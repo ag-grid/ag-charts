@@ -1,0 +1,28 @@
+---
+title: 'Chord Series'
+---
+
+A Chord Series visualises movement or change between different items, and the proportions between these movements or changes.
+
+## Simple Chord
+
+{% chartExampleRunner title="Chord Diagram" name="simple-chord" type="generated" /%}
+
+To create a Chord Series, use the `chord` series type.
+
+```js
+series: [
+    {
+        type: 'chord',
+        fromIdKey: 'fromId',
+        toIdKey: 'toId',
+        sizeKey: 'size',
+    },
+],
+```
+
+In this configuration:
+
+-   `fromIdKey` defines the start of each link.
+-   `toIdKey` defines the end of each link.
+-   `sizeKey` defines the size of each link.
