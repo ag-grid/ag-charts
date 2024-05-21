@@ -202,7 +202,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         if (interval instanceof TimeInterval) {
             const ticks = interval.range(new Date(start), new Date(stop));
-            if (isDenseInterval({ start, stop, interval, count: ticks.length, availableRange })) {
+            if (isDenseInterval(ticks.length, availableRange)) {
                 return;
             }
 
@@ -211,13 +211,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         const absInterval = Math.abs(interval);
 
-        if (isDenseInterval({ start, stop, interval: absInterval, availableRange })) {
-            return;
-        }
+        if (isDenseInterval((stop - start) / absInterval, availableRange)) return;
 
-        const reversedInterval = [...TimeScale.tickIntervals];
-        reversedInterval.reverse();
-
+        const reversedInterval = [...TimeScale.tickIntervals].reverse();
         const timeInterval = reversedInterval.find((tickInterval) => absInterval % tickInterval[2] === 0);
 
         if (timeInterval) {

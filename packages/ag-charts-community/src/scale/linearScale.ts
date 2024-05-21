@@ -28,8 +28,7 @@ export class LinearScale extends ContinuousScale<number> {
 
         if (interval) {
             const step = Math.abs(interval);
-            const availableRange = this.getPixelRange();
-            if (!isDenseInterval({ start: d0, stop: d1, interval: step, availableRange })) {
+            if (!isDenseInterval((d1 - d0) / step, this.getPixelRange())) {
                 return range(d0, d1, step);
             }
         }

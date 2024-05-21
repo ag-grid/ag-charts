@@ -34,9 +34,7 @@ function getTicks(start: number, step: number, count: number): { ticks: number[]
     // power of the step will be negative if the step is a fraction (between 0 and 1)
     const stepPower = Math.floor(Math.log10(step));
     const fractionDigits = step > 0 && step < 1 ? Math.abs(stepPower) : 0;
-
     const f = Math.pow(10, fractionDigits);
-
     const ticks: number[] = [];
 
     for (let i = 0; i < count; i++) {

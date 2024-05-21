@@ -14,14 +14,14 @@ export class LinearAngleScale extends LinearScale {
             return { ticks: [], fractionDigits: 0 };
         }
         this.refresh();
-        const [d0, d1] = this.getDomain();
 
         const { interval } = this;
+        const [d0, d1] = this.getDomain();
 
         if (interval) {
             const step = Math.abs(interval);
             const availableRange = this.getPixelRange();
-            if (!isDenseInterval({ start: d0, stop: d1, interval: step, availableRange })) {
+            if (!isDenseInterval((d1 - d0) / step, availableRange)) {
                 return range(d0, d1, step);
             }
         }

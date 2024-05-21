@@ -100,8 +100,7 @@ export class LogScale extends ContinuousScale<number> {
             let { ticks, fractionDigits } = range(p0, p1, Math.min(absDiff, step));
             ticks = ticks.map((x) => this.pow(x)).filter((t) => t >= start && t <= stop);
 
-            const availableRange = this.getPixelRange();
-            if (!isDenseInterval({ start, stop, interval: step, count: ticks.length, availableRange })) {
+            if (!isDenseInterval(ticks.length, this.getPixelRange())) {
                 return { ticks, fractionDigits };
             }
         }

@@ -1,11 +1,7 @@
 import { Logger } from './logger';
 import { countFractionDigits } from './number';
-import type { TimeInterval } from './time/interval';
 
-// @todo(AG-10085): Improve types for this
-export type NumericTicks = number[] & {
-    fractionDigits: number;
-};
+const TickMultipliers = [1, 2, 5, 10];
 
 export default function (
     start: number,
@@ -26,30 +22,32 @@ export default function (
     return range(start, stop, step);
 }
 
-const tickMultipliers = [1, 2, 5, 10];
-
-export function tickStep(a: number, b: number, count: number, minCount = 0, maxCount = Infinity): number {
-    const extent = Math.abs(b - a);
-    const rawStep = extent / count;
-    const power = Math.floor(Math.log10(rawStep));
-    const step = Math.pow(10, power);
-    const m = tickMultipliers
-        .map((multiplier) => {
-            const s = multiplier * step;
-            const c = Math.ceil(extent / s);
-            const isWithinBounds = c >= minCount && c <= maxCount;
-            const diffCount = Math.abs(c - count);
-            return { multiplier, isWithinBounds, diffCount };
-        })
-        .sort((a2, b2) => {
-            if (a2.isWithinBounds !== b2.isWithinBounds) {
-                return a2.isWithinBounds ? -1 : 1;
-            }
-            return a2.diffCount - b2.diffCount;
-        })[0].multiplier;
-    if (!m || isNaN(m)) {
+export function tickStep(from: number, to: number, count: number, minCount = 0, maxCount = Infinity): number {
+    if (count < 1) {
         return NaN;
     }
+    if (from === to) {
+        return 1;
+    }
+
+    const extent = Math.abs(to - from);
+    const step = 10 ** Math.floor(Math.log10(extent / count));
+
+    let d: number = Infinity,
+        m: number = NaN,
+        isInBounds = false;
+    for (const multiplier of TickMultipliers) {
+        const c = Math.ceil(extent / (multiplier * step));
+        const validBounds = c >= minCount && c <= maxCount;
+        if (isInBounds && !validBounds) continue;
+        const diffCount = Math.abs(c - count);
+        if (d > diffCount || isInBounds !== validBounds) {
+            isInBounds ||= validBounds;
+            d = diffCount;
+            m = multiplier;
+        }
+    }
+
     return m * step;
 }
 
@@ -61,16 +59,14 @@ export function singleTickDomain(a: number, b: number): number[] {
     const roundStart = a > b ? Math.ceil : Math.floor;
     const roundStop = b < a ? Math.floor : Math.ceil;
 
-    return tickMultipliers
-        .map((multiplier) => {
-            const s = multiplier * step;
-            const start = roundStart(a / s) * s;
-            const end = roundStop(b / s) * s;
-            const error = 1 - extent / Math.abs(end - start);
-            const domain = [start, end];
-            return { error, domain };
-        })
-        .sort((a2, b2) => a2.error - b2.error)[0].domain;
+    return TickMultipliers.map((multiplier) => {
+        const s = multiplier * step;
+        const start = roundStart(a / s) * s;
+        const end = roundStop(b / s) * s;
+        const error = 1 - extent / Math.abs(end - start);
+        const domain = [start, end];
+        return { error, domain };
+    }).sort((a2, b2) => a2.error - b2.error)[0].domain;
 }
 
 export function range(start: number, stop: number, step: number): { ticks: number[]; fractionDigits: number } {
@@ -90,29 +86,12 @@ export function range(start: number, stop: number, step: number): { ticks: numbe
     return { ticks, fractionDigits };
 }
 
-export function isDenseInterval({
-    start,
-    stop,
-    interval,
-    count,
-    availableRange,
-}: {
-    start: number;
-    stop: number;
-    interval: number | TimeInterval;
-    count?: number;
-    availableRange: number;
-}): boolean {
-    const domain = stop - start;
-
-    const step = typeof interval === 'number' ? interval : 1;
-    count ??= domain / step;
+export function isDenseInterval(count: number, availableRange: number) {
     if (count >= availableRange) {
         Logger.warnOnce(
             `the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration`
         );
         return true;
     }
-
     return false;
 }
