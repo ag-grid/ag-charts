@@ -1,15 +1,22 @@
 import { Listeners } from '../../util/listeners';
+import { type ConsumableEvent, buildConsumable } from './consumableEvent';
 import { InteractionState, type PointerInteractionEvent } from './interactionManager';
 import type { RegionManager } from './regionManager';
 
 type ContextTypeMap = {
-    all: { type: 'all'; pageX: number; pageY: number; sourceEvent: Event };
-    legend: { type: 'legend'; pageX: number; pageY: number; sourceEvent: Event };
-    series: { type: 'series'; pageX: number; pageY: number; sourceEvent: Event };
+    all: {};
+    legend: {};
+    series: {};
+};
+
+type ContextEventProperties<K extends ContextType = ContextType> = {
+    type: K;
+    context: ContextTypeMap[K];
+    sourceEvent: PointerInteractionEvent<'contextmenu'>;
 };
 
 export type ContextType = keyof ContextTypeMap;
-export type ContextMenuEvent<T extends ContextType = ContextType> = ContextTypeMap[T];
+export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEventProperties<K> & ConsumableEvent;
 
 export type ContextMenuAction = {
     id?: string;
@@ -44,9 +51,7 @@ export class ContextMenuRegistry {
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>) {
         const type = ContextMenuRegistry.toContextType(event.region);
         if (type === 'all') {
-            const { pageX, pageY, sourceEvent } = event;
-            event.consume();
-            this.dispatchContext({ type: 'all', pageX, pageY, sourceEvent });
+            this.dispatchContext('all', event, {});
         }
     }
 
@@ -61,8 +66,16 @@ export class ContextMenuRegistry {
         return event.type === type;
     }
 
-    public dispatchContext<T extends ContextType>(event: ContextMenuEvent<T>) {
-        this.listeners.dispatch('', event);
+    public dispatchContext<T extends ContextType>(
+        type: T,
+        sourceEvent: PointerInteractionEvent<'contextmenu'>,
+        context: ContextTypeMap[T]
+    ) {
+        this.listeners.dispatch('', this.buildConsumable({ type, context, sourceEvent }));
+    }
+
+    private buildConsumable<T extends ContextType>(nonconsumble: ContextEventProperties<T>): ContextMenuEvent<T> {
+        return buildConsumable(nonconsumble);
     }
 
     public addListener(handler: (event: ContextMenuEvent) => void) {

@@ -888,9 +888,7 @@ export class Legend extends BaseProperties {
             this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
         }
 
-        const { pageX, pageY, sourceEvent } = event;
-        event.consume();
-        this.ctx.contextMenuRegistry.dispatchContext({ type: 'legend', pageX, pageY, sourceEvent });
+        this.ctx.contextMenuRegistry.dispatchContext('legend', event, {});
     }
 
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {

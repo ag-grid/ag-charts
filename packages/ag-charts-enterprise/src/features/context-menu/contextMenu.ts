@@ -128,10 +128,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onContext(event: ContextMenuEvent) {
         if (!this.enabled) return;
+        event.consume();
 
-        this.showEvent = event.sourceEvent as MouseEvent;
-        this.x = event.pageX;
-        this.y = event.pageY;
+        this.showEvent = event.sourceEvent.sourceEvent as MouseEvent;
+        this.x = event.sourceEvent.pageX;
+        this.y = event.sourceEvent.pageY;
 
         this.groups.default = this.registry.filterActions(event.type);
 

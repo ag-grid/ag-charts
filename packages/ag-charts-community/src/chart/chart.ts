@@ -1174,9 +1174,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.ctx.highlightManager.updateHighlight(this.id);
             });
 
-            const { pageX, pageY, sourceEvent } = event;
-            event.consume();
-            this.ctx.contextMenuRegistry.dispatchContext({ type: 'series', pageX, pageY, sourceEvent });
+            this.ctx.contextMenuRegistry.dispatchContext('series', event, {});
         }
     }
 
