@@ -1,6 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ColorScale should interpolate colors correctly within the domain range 1`] = `
+exports[`ColorScale should interpolate colors correctly within the domain range for a 2-point domain and a 3-point range 1`] = `
+[
+  "rgba(255,0,0,1)",
+  "rgba(255,86,0,1)",
+  "rgba(249,149,0,1)",
+  "rgba(194,206,0,1)",
+  "rgba(0,255,0,1)",
+  "rgba(0,248,98,1)",
+  "rgba(0,223,178,1)",
+  "rgba(0,171,241,1)",
+  "rgba(0,96,255,1)",
+  "rgba(0,15,255,1)",
+  "rgba(0,0,255,1)",
+]
+`;
+
+exports[`ColorScale should interpolate colors correctly within the domain range for a 3-point domain and range 1`] = `
 [
   "rgba(255,0,0,1)",
   "rgba(255,86,0,1)",

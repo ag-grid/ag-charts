@@ -4,8 +4,8 @@ import { clamp } from '../../util/number';
 export type RGBA = { r: number; g: number; b: number; a: number };
 export type OKLCH = { l: number; c: number; h: number; a: number };
 
-export function stringToRgba(colorName: string): RGBA {
-    const span = getDocument('body').appendChild(createElement('span', { color: colorName }));
+export function stringToRgba(colorName: string, container = getDocument('body')): RGBA {
+    const span = container.appendChild(createElement('span', { color: colorName }));
     const { color } = getComputedStyle(span);
     const [r, g, b, a = 1] = color
         .slice(color.indexOf('(') + 1, -1)
