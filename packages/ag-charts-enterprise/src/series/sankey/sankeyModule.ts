@@ -37,6 +37,9 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                 strokeWidth: 0,
             },
         },
+        legend: {
+            enabled: false,
+        },
     },
     paletteFactory({ takeColors, colorsCount }) {
         const { fills, strokes } = takeColors(colorsCount);
