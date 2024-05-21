@@ -384,7 +384,7 @@ export class SankeySeries extends FlowProportionSeries<
             properties,
             ctx: { callbackCache },
         } = this;
-        const { fromIdKey, toIdKey, nodeIdKey, labelKey, sizeKey, nodeSizeKey, formatter } = properties;
+        const { fromKey, toKey, idKey, labelKey, sizeKey, formatter } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
@@ -396,12 +396,11 @@ export class SankeySeries extends FlowProportionSeries<
                     seriesId,
                     datum: datum.datum,
                     itemId: datum.itemId,
-                    fromIdKey,
-                    toIdKey,
-                    nodeIdKey,
+                    fromKey,
+                    toKey,
+                    idKey,
                     labelKey,
                     sizeKey,
-                    nodeSizeKey,
                     fill,
                     fillOpacity,
                     strokeOpacity,
@@ -443,18 +442,16 @@ export class SankeySeries extends FlowProportionSeries<
         }
 
         const {
-            fromIdKey,
+            fromKey,
             fromIdName,
-            toIdKey,
+            toKey,
             toIdName,
-            nodeIdKey,
-            nodeIdName,
+            idKey,
+            idName,
             sizeKey,
             sizeName,
             labelKey,
             labelName,
-            nodeSizeKey,
-            nodeSizeName,
             formatter,
             tooltip,
         } = properties;
@@ -484,12 +481,11 @@ export class SankeySeries extends FlowProportionSeries<
                 seriesId,
                 datum: datum.datum,
                 itemId: datum.itemId,
-                fromIdKey,
-                toIdKey,
-                nodeIdKey,
+                fromKey,
+                toKey,
+                idKey,
                 labelKey,
                 sizeKey,
-                nodeSizeKey,
                 fill,
                 fillOpacity,
                 strokeOpacity,
@@ -511,18 +507,16 @@ export class SankeySeries extends FlowProportionSeries<
                 title,
                 color,
                 itemId,
-                fromIdKey,
+                fromKey,
                 fromIdName,
-                toIdKey,
+                toKey,
                 toIdName,
-                nodeIdKey,
-                nodeIdName,
+                idKey,
+                idName,
                 sizeKey,
                 sizeName,
                 labelKey,
                 labelName,
-                nodeSizeKey,
-                nodeSizeName,
                 ...this.getModuleTooltipParams(),
             }
         );

@@ -111,6 +111,45 @@ function layoutColumnsBackwards(columns: Column[], layout: Layout, weight: numbe
     return didShift;
 }
 
+function removeColumnCrossovers(column: Column) {
+    console.group(column.index);
+    const singleCrossoverColumns = column.nodes.filter((node) => node.linksAfter.length === 1);
+    for (const { datum: node, linksAfter } of singleCrossoverColumns) {
+        const nodeAfter = linksAfter[0].node.datum;
+        // Use reciprocal gradients because there will always be a change in x so no infinities
+        const recM0 = (nodeAfter.x - node.x) / (nodeAfter.y - node.y);
+        for (const { datum: other, linksAfter: otherLinksAfter } of singleCrossoverColumns) {
+            if (other === node) continue;
+
+            const otherNodeAfter = otherLinksAfter[0].node.datum;
+            const recM1 = (otherNodeAfter.x - other.x) / (otherNodeAfter.y - other.y);
+
+            const x = ((other.y - node.y) * (recM0 * recM1) + node.x * recM1 + other.x * recM0) / (recM1 - recM0);
+
+            const crossover = x > node.x && x < Math.max(nodeAfter.x, otherNodeAfter.x);
+
+            if (crossover) {
+                console.log('Swap', node.id, other.id, node.y, other.y);
+                if (node.y < other.y) {
+                    console.log('1');
+                    const y = node.y;
+                    node.y = other.y + other.height - node.height;
+                    other.y = y;
+                } else {
+                    console.log('2');
+                    const y = other.y;
+                    other.y = node.y + node.height - other.height;
+                    node.y = y;
+                }
+                console.groupEnd();
+                return;
+            }
+        }
+    }
+
+    console.groupEnd();
+}
+
 export function layoutColumns(columns: Column[], layout: Layout) {
     columns.forEach((column) => {
         justifyNodesAcrossColumn(column, layout);
@@ -128,4 +167,6 @@ export function layoutColumns(columns: Column[], layout: Layout) {
     if (didLayoutColumnsBackwards) {
         layoutColumnsForward(columns, layout, 1);
     }
+
+    columns.forEach(removeColumnCrossovers);
 }

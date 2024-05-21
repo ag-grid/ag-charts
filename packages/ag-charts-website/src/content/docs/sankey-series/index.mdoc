@@ -14,8 +14,8 @@ To create a Sankey Series, use the `sankey` series type.
 series: [
     {
         type: 'sankey',
-        fromIdKey: 'fromId',
-        toIdKey: 'toId',
+        fromKey: 'from',
+        toKey: 'to',
         sizeKey: 'size',
     },
 ],
@@ -23,11 +23,38 @@ series: [
 
 In this configuration:
 
--   `fromIdKey` defines the start of each link.
--   `toIdKey` defines the end of each link.
+-   `fromKey` defines the start of each link.
+-   `toKey` defines the end of each link.
 -   `sizeKey` defines the size of each link.
 
 Circular loops are not allowed in Sankey diagrams.
+
+## Justification
+
+{% chartExampleRunner title="Justification" name="justification" type="generated" /%}
+
+The justification for the nodes can be customised using the `justify` property on `node`.
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromKey: 'from',
+        toKey: 'to',
+        sizeKey: 'size',
+        node: {
+            justify: 'justify',
+        },
+    },
+],
+```
+
+There are four values supported:
+
+-   `left` moves nodes as far left as possible.
+-   `right` moves nodes as far right as possible.
+-   `center` moves nodes as close to the centre as possible.
+-   `justify` moves nodes as far left as possible, except for the last nodes, which are pushed right.
 
 ## API Reference
 
