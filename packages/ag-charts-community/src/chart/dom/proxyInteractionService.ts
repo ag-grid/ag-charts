@@ -1,3 +1,4 @@
+import type { Direction } from '../../options/agChartOptions';
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';
@@ -15,11 +16,11 @@ type ElemParams<T extends ProxyElementType> = {
 };
 
 type ContainerParams<T extends ProxyContainerType> = {
-    type: T;
-    id: string;
-    classList: string[];
-    ariaLabel: string;
-    ariaOrientation?: 'horizontal' | 'vertical';
+    readonly type: T;
+    readonly id: string;
+    readonly classList: string[];
+    readonly ariaLabel: string;
+    readonly ariaOrientation: Direction;
 };
 
 type ProxyMeta = {
@@ -28,21 +29,17 @@ type ProxyMeta = {
         result: HTMLButtonElement;
     };
     slider: {
-        params: ElemParams<'slider'> & { readonly ariaLabel: string };
+        params: ElemParams<'slider'> & { readonly ariaLabel: string; readonly ariaOrientation: Direction };
         result: HTMLInputElement;
     };
     toolbar: {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
-    scrollbar: {
-        params: ContainerParams<'scrollbar'>;
-        result: HTMLDivElement;
-    };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar' | 'scrollbar';
+type ProxyContainerType = 'toolbar';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -52,7 +49,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div', scrollbar: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -87,7 +84,7 @@ export class ProxyInteractionService {
         div.style.pointerEvents = 'none';
         div.role = params.type;
         div.ariaLabel = params.ariaLabel;
-        div.ariaOrientation = params.ariaOrientation ?? null;
+        div.ariaOrientation = params.ariaOrientation;
         return div;
     }
 
@@ -104,8 +101,10 @@ export class ProxyInteractionService {
             const { params, result: slider } = meta;
             this.initElement(params, slider);
             slider.type = 'range';
+            slider.role = 'presentation';
             slider.style.margin = '0px';
             slider.ariaLabel = params.ariaLabel;
+            slider.ariaOrientation = params.ariaOrientation;
         }
 
         return meta.result;
