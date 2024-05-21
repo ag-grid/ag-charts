@@ -101,7 +101,7 @@ export class GuardedAgChartsWrapperElement extends GuardedElement {
     }
 }
 
-type Events = { type: 'hidden' } | { type: 'resize'; size: Size };
+type Events = { type: 'hidden' } | { type: 'resize'; size: Size } | { type: 'container-changed' };
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<
@@ -206,6 +206,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
 
         this.container = newContainer;
+
+        this.listeners.dispatch('container-changed', { type: 'container-changed' });
     }
 
     setThemeClass(themeClassName: string) {
@@ -243,6 +245,24 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     getBoundingClientRect() {
         return this.rootElements['canvas'].element.getBoundingClientRect();
+    }
+
+    getDocumentRoot() {
+        const docRoot = getDocument('body');
+        let parent = this.container;
+
+        while (parent != null) {
+            if (parent === docRoot) {
+                return docRoot;
+            }
+            if (parent.parentElement == null) {
+                return parent;
+            }
+
+            parent = parent.parentElement as HTMLElement;
+        }
+
+        return docRoot;
     }
 
     getChildBoundingClientRect(type: DOMElementClass) {
