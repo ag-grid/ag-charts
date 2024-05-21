@@ -9,7 +9,6 @@ import {
 
 type ContextMenuGroups = {
     default: Array<ContextMenuItem>;
-    node: Array<ContextMenuItem>;
     extra: Array<ContextMenuItem>;
     extraNode: Array<ContextMenuItem>;
     extraLegendItem: Array<ContextMenuItem>;
@@ -80,7 +79,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         );
 
         // State
-        this.groups = { default: [], node: [], extra: [], extraNode: [], extraLegendItem: [] };
+        this.groups = { default: [], extra: [], extraNode: [], extraLegendItem: [] };
 
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
@@ -151,8 +150,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.groups.extraLegendItem = [...this.extraLegendItemActions];
         }
 
-        const { default: def, node, extra, extraNode, extraLegendItem } = this.groups;
-        const groupCount = [def, node, extra, extraNode, extraLegendItem].reduce((count, e) => {
+        const { default: def, extra, extraNode, extraLegendItem } = this.groups;
+        const groupCount = [def, extra, extraNode, extraLegendItem].reduce((count, e) => {
             return e.length + count;
         }, 0);
 
@@ -198,10 +197,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
         this.appendMenuGroup(menuElement, this.groups.default, false);
-
-        if (this.pickedNode) {
-            this.appendMenuGroup(menuElement, this.groups.node);
-        }
 
         this.appendMenuGroup(menuElement, this.groups.extra);
 
