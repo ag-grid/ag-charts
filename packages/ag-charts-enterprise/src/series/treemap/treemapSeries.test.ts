@@ -206,7 +206,7 @@ describe('TreemapSeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
-            await hoverChartNodes(chart, async ({ series, item, x, y }) => {
+            await hoverChartNodes(chart, async ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);

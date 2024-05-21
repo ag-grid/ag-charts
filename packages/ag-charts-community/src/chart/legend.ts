@@ -147,6 +147,9 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
+const ID_LEGEND_VISIBILITY = 'legend-visibility';
+const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
+
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
 
@@ -237,13 +240,13 @@ export class Legend extends BaseProperties {
         this.pagination.attachPagination(this.group);
 
         ctx.contextMenuRegistry.registerDefaultAction({
-            id: 'legend-visibility',
+            id: ID_LEGEND_VISIBILITY,
             region: 'legend',
             label: 'Toggle Visibility',
             action: (_params) => this.contextToggleVisibility(),
         });
         ctx.contextMenuRegistry.registerDefaultAction({
-            id: 'legend-other-series',
+            id: ID_LEGEND_OTHER_SERIES,
             region: 'legend',
             label: 'Toggle Other Series',
             action: (_params) => this.contextToggleOtherSeries(),
@@ -789,8 +792,8 @@ export class Legend extends BaseProperties {
 
     private updateContextMenu() {
         const { toggleSeriesVisible } = this.item;
-        this.ctx.contextMenuRegistry.setActionVisiblity('legend-visibility', toggleSeriesVisible);
-        this.ctx.contextMenuRegistry.setActionVisiblity('legend-other-series', toggleSeriesVisible);
+        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_VISIBILITY, toggleSeriesVisible);
+        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_OTHER_SERIES, toggleSeriesVisible);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -879,9 +882,9 @@ export class Legend extends BaseProperties {
         this.ctx.highlightManager.updateLegendItem(this.id, this.contextMenuDatum);
 
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
-            this.ctx.contextMenuRegistry.disableAction('legend-visibility');
+            this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
         } else {
-            this.ctx.contextMenuRegistry.enableAction('legend-visibility');
+            this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
         }
     }
 

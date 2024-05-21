@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { fail } from 'assert';
 
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from '../options/agChartOptions';
 import type { Node } from '../scene/node';
@@ -175,7 +174,7 @@ describe('Chart', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = await createChartPreset({ hasTooltip: true });
-            await hoverChartNodes(chart, async ({ series, item, x, y }) => {
+            await hoverChartNodes(chart, async ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
