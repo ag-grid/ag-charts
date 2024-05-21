@@ -1,11 +1,12 @@
 import { Listeners } from '../../util/listeners';
+import type { CategoryLegendDatum } from '../legendDatum';
 import { type ConsumableEvent, buildConsumable } from './consumableEvent';
 import { InteractionState, type PointerInteractionEvent } from './interactionManager';
 import type { RegionManager } from './regionManager';
 
 type ContextTypeMap = {
     all: {};
-    legend: {};
+    legend: { legendItem: CategoryLegendDatum | undefined };
     series: {};
 };
 

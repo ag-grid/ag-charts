@@ -243,13 +243,13 @@ export class Legend extends BaseProperties {
             id: ID_LEGEND_VISIBILITY,
             type: 'legend',
             label: 'Toggle Visibility',
-            action: (_params) => this.contextToggleVisibility(),
+            action: (params: { datum?: CategoryLegendDatum }) => this.contextToggleVisibility(params.datum),
         });
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_OTHER_SERIES,
             type: 'legend',
             label: 'Toggle Other Series',
-            action: (_params) => this.contextToggleOtherSeries(),
+            action: (params: { datum?: CategoryLegendDatum }) => this.contextToggleOtherSeries(params.datum),
         });
 
         const animationState = InteractionState.Default | InteractionState.Animation;
@@ -870,17 +870,16 @@ export class Legend extends BaseProperties {
         return actualBBox;
     }
 
-    private contextToggleVisibility() {
-        this.doClick(this.contextMenuDatum);
+    private contextToggleVisibility(datum: CategoryLegendDatum | undefined) {
+        this.doClick(datum);
     }
 
-    private contextToggleOtherSeries() {
-        this.doDoubleClick(this.contextMenuDatum);
+    private contextToggleOtherSeries(datum: CategoryLegendDatum | undefined) {
+        this.doDoubleClick(datum);
     }
 
     private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
-        this.contextMenuDatum = this.getDatumForPoint(event.offsetX, event.offsetY);
-        this.ctx.highlightManager.updateLegendItem(this.id, this.contextMenuDatum);
+        const legendItem = this.getDatumForPoint(event.offsetX, event.offsetY);
 
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
@@ -888,7 +887,7 @@ export class Legend extends BaseProperties {
             this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
         }
 
-        this.ctx.contextMenuRegistry.dispatchContext('legend', event, {});
+        this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
@@ -1069,7 +1068,6 @@ export class Legend extends BaseProperties {
         // is in a state when highlighting is possible.
         if (this.ctx.interactionManager.getState() === InteractionState.Default) {
             this.ctx.highlightManager.updateHighlight(this.id);
-            this.ctx.highlightManager.updateLegendItem(this.id);
         }
     }
 

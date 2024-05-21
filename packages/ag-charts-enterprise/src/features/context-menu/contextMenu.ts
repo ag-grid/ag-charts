@@ -137,7 +137,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.groups.default = this.registry.filterActions(event.type);
 
         this.pickedNode = this.highlightManager.getActivePicked();
-        this.pickedLegendItem = this.highlightManager.getActiveLegendItem();
+        this.pickedLegendItem = undefined;
 
         if (this.extraActions.length > 0) {
             this.groups.extra = [...this.extraActions];
@@ -150,9 +150,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         if (ContextMenuRegistry.check('legend', event)) {
-            if (this.extraLegendItemActions.length > 0 && this.pickedLegendItem) {
-                this.groups.extraLegendItem = [...this.extraLegendItemActions];
-            }
+            this.pickedLegendItem = event.context.legendItem;
+            this.groups.extraLegendItem = [...this.extraLegendItemActions];
         }
 
         const { default: def, extra, extraNode, extraLegendItem } = this.groups;
@@ -165,7 +164,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.show();
     }
 
-    public show() {
+    private show() {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
@@ -182,7 +181,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'block';
     }
 
-    public hide() {
+    private hide() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
 
         if (this.menuElement) {
