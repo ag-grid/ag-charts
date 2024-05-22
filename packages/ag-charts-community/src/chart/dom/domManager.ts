@@ -248,7 +248,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     getDocumentRoot() {
-        const docRoot = getDocument('body');
+        const docRoot = this.container?.ownerDocument?.body ?? getDocument('body');
         let parent = this.container;
 
         while (parent != null) {
