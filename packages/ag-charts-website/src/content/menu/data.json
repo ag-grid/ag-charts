@@ -409,13 +409,13 @@
                     },
                     {
                         "title": "Sankey",
-                        "icon": "chartsSunburst",
+                        "icon": "chartsSankey",
                         "path": "sankey-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Chord",
-                        "icon": "chartsSunburst",
+                        "icon": "chartsChord",
                         "path": "chord-series",
                         "isEnterprise": true
                     }
