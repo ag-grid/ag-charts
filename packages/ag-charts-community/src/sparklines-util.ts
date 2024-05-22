@@ -15,7 +15,7 @@ export { toFixed, isEqual as isNumberEqual } from './util/number';
 export { tickFormat } from './util/numberFormat';
 
 export * from './util/time';
-export { default as ticks, tickStep, range, isDenseInterval } from './util/ticks';
+export { createTicks as ticks, tickStep, range, isDenseInterval } from './util/ticks';
 export { Color } from './util/color';
 export * from './util/debug';
 export type { LabelPlacement, MeasuredLabel, PointLabelDatum, PlacedLabel } from './scene/util/labelPlacement';

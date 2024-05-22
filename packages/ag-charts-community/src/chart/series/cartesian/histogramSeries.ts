@@ -9,7 +9,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
-import ticks, { tickStep } from '../../../util/ticks';
+import { createTicks, tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
@@ -77,7 +77,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     // During processData phase, used to unify different ways of the user specifying
     // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
     private deriveBins(xDomain: [number, number]): [number, number][] {
-        const binStarts = ticks(xDomain[0], xDomain[1], defaultBinCount).ticks;
+        const binStarts = createTicks(xDomain[0], xDomain[1], defaultBinCount);
         const binSize = tickStep(xDomain[0], xDomain[1], defaultBinCount);
         const [firstBinEnd] = binStarts;
 
