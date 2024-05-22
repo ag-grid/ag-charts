@@ -13,8 +13,10 @@ type ContextTypeMap = {
 
 type ContextEventProperties<K extends ContextType = ContextType> = {
     type: K;
+    x: number;
+    y: number;
     context: ContextTypeMap[K];
-    sourceEvent: PointerInteractionEvent<'contextmenu'>;
+    sourceEvent: Event;
 };
 
 export type ContextType = keyof ContextTypeMap;
@@ -70,10 +72,11 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends ContextType>(
         type: T,
-        sourceEvent: PointerInteractionEvent<'contextmenu'>,
+        pointerEvent: PointerInteractionEvent<'contextmenu'>,
         context: ContextTypeMap[T]
     ) {
-        this.listeners.dispatch('', this.buildConsumable({ type, context, sourceEvent }));
+        const { pageX: x, pageY: y, sourceEvent } = pointerEvent;
+        this.listeners.dispatch('', this.buildConsumable({ type, x, y, context, sourceEvent }));
     }
 
     private buildConsumable<T extends ContextType>(nonconsumble: ContextEventProperties<T>): ContextMenuEvent<T> {
