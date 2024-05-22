@@ -163,8 +163,14 @@ export function renderPartialPath(
     line: AgLineStyle | undefined
 ) {
     let previousTo: PathPoint['to'];
-    const partialPaths: Point[][] = [];
-    let current: Point[] | undefined;
+    let points: Point[] | undefined = undefined;
+
+    const flushCurrent = () => {
+        if (points != null) {
+            plotPath(points, path, line);
+        }
+    };
+
     for (const data of pairData) {
         const { from, to } = data;
         const ratio = ratios[data.change];
@@ -173,23 +179,25 @@ export function renderPartialPath(
 
         const { x, y } = calculatePoint(from, to, ratio);
         if (data.moveTo === false) {
-            current?.push({ x, y });
+            points ??= [];
+            points.push({ x, y });
         } else if (data.moveTo === true || !previousTo) {
-            current = [{ x, y }];
-            partialPaths.push(current);
+            flushCurrent();
+            points = [{ x, y }];
         } else if (previousTo) {
             const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
             const { x: midPointX, y: midPointY } = calculatePoint(previousTo, { x, y }, moveToRatio);
-            current?.push({ x: midPointX, y: midPointY });
-            current = [{ x, y }];
-            partialPaths.push(current);
+
+            points ??= [];
+            points.push({ x: midPointX, y: midPointY });
+
+            flushCurrent();
+            points = [{ x, y }];
         }
         previousTo = { x, y };
     }
 
-    partialPaths.forEach((points) => {
-        plotPath(points, path, line);
-    });
+    flushCurrent();
 }
 
 export function pathSwipeInAnimation(

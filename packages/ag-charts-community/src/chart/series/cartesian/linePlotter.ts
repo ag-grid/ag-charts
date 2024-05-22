@@ -15,7 +15,7 @@ export function plotLinearPoints(path: ExtendedPath2D, points: Iterable<Point>) 
 
 export function plotSmoothPoints(path: ExtendedPath2D, iPoints: Iterable<Point>, tension: number) {
     const points = Array.isArray(iPoints) ? iPoints : Array.from(iPoints);
-    if (points.length <= 1) return;
+    if (points.length === 0) return;
 
     const gradients = points.map((c, i) => {
         const p = i === 0 ? c : points[i - 1];
