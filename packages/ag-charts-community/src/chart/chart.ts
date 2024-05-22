@@ -1169,12 +1169,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // We check InteractionState.Default too just in case we were in ContextMenu and the
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
+
+        let pickedNode: SeriesNodeDatum | undefined;
         if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            this.checkSeriesNodeRange(event, (_series, pickedNode) => {
+            this.checkSeriesNodeRange(event, (_series, datum) => {
                 this.ctx.highlightManager.updateHighlight(this.id);
-                this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode });
+                pickedNode = datum;
             });
         }
+
+        this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode });
     }
 
     protected focus: ChartFocusData = {
