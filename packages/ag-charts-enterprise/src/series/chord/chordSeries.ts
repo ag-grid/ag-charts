@@ -317,7 +317,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
 
         datumSelection.each((sector, datum) => {
             sector.centerX = datum.centerX;

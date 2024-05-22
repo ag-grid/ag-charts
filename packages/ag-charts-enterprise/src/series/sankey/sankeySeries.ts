@@ -346,7 +346,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties.node;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
 
         datumSelection.each((rect, datum) => {
             rect.x = datum.x;

@@ -14,6 +14,10 @@ interface Layout {
     sizeScale: number;
 }
 
+function sortNodesByY(column: Column) {
+    column.nodes.sort((a, b) => Math.round((a.datum.y - b.datum.y) * 100) / 100 || -(a.datum.size - b.datum.size));
+}
+
 function justifyNodesAcrossColumn({ nodes, size }: Column, { seriesRectHeight, nodeSpacing, sizeScale }: Layout) {
     const nodesHeight = seriesRectHeight * size * sizeScale;
     const outerPadding = (seriesRectHeight - (nodesHeight + nodeSpacing * (nodes.length - 1))) / 2;
@@ -29,7 +33,7 @@ function justifyNodesAcrossColumn({ nodes, size }: Column, { seriesRectHeight, n
 function separateNodesInColumn(column: Column, layout: Layout) {
     const { nodes } = column;
     const { seriesRectHeight, nodeSpacing } = layout;
-    nodes.sort((a, b) => Math.round(a.datum.y - b.datum.y * 100) / 100 || -(a.datum.size - b.datum.size));
+    sortNodesByY(column);
 
     let totalShift = 0;
     let currentTop = 0;
@@ -63,6 +67,99 @@ function separateNodesInColumn(column: Column, layout: Layout) {
     }
 
     return true;
+}
+
+function hasCrossOver(
+    x00: number,
+    y00: number,
+    x01: number,
+    y01: number,
+    x10: number,
+    y10: number,
+    x11: number,
+    y11: number
+) {
+    const recM0 = (x01 - x00) / (y01 - y00);
+    const recM1 = (x11 - x10) / (y11 - y10);
+
+    const x = ((y10 - y00) * (recM0 * recM1) + x00 * recM1 - x10 * recM0) / (recM1 - recM0);
+
+    if (x00 < x01) {
+        return x > x00 && x < Math.min(x01, x11);
+    } else {
+        return x < x00 && x > Math.max(x01, x11);
+    }
+}
+
+function removeColumnCrossoversInDirection(
+    column: Column,
+    getLinks: (link: NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum>) => LinkedNode<SankeyNodeDatum, SankeyLinkDatum>[]
+) {
+    let didShift = false;
+    const singleCrossoverColumns = column.nodes.filter((node) => getLinks(node).length === 1);
+    let didRemoveCrossover = true;
+    for (let runs = 0; didRemoveCrossover && runs < singleCrossoverColumns.length; runs += 1) {
+        didRemoveCrossover = false;
+        for (let i = 0; i < singleCrossoverColumns.length - 1; i += 1) {
+            const { datum: node } = singleCrossoverColumns[i];
+            const nodeAfter = getLinks(singleCrossoverColumns[i])[0].node.datum;
+            const { datum: otherNode } = singleCrossoverColumns[i + 1];
+            const otherNodeAfter = getLinks(singleCrossoverColumns[i + 1])[0].node.datum;
+
+            const crossover =
+                hasCrossOver(
+                    node.x,
+                    node.y,
+                    nodeAfter.x,
+                    nodeAfter.y,
+                    otherNode.x,
+                    otherNode.y,
+                    otherNodeAfter.x,
+                    otherNodeAfter.y
+                ) ||
+                hasCrossOver(
+                    node.x,
+                    node.y + node.height / 2,
+                    nodeAfter.x,
+                    nodeAfter.y + nodeAfter.height / 2,
+                    otherNode.x,
+                    otherNode.y + otherNode.height / 2,
+                    otherNodeAfter.x,
+                    otherNodeAfter.y + otherNodeAfter.height / 2
+                ) ||
+                hasCrossOver(
+                    node.x,
+                    node.y + node.height,
+                    nodeAfter.x,
+                    nodeAfter.y + nodeAfter.height,
+                    otherNode.x,
+                    otherNode.y + otherNode.height,
+                    otherNodeAfter.x,
+                    otherNodeAfter.y + otherNodeAfter.height
+                );
+
+            if (!crossover) continue;
+
+            const current = singleCrossoverColumns[i];
+            singleCrossoverColumns[i] = singleCrossoverColumns[i + 1];
+            singleCrossoverColumns[i + 1] = current;
+            const y = node.y;
+            node.y = otherNode.y + otherNode.height - node.height;
+            otherNode.y = y;
+
+            didShift = true;
+            didRemoveCrossover = true;
+        }
+    }
+    return didShift;
+}
+
+function removeColumnCrossovers(column: Column) {
+    let didShift = false;
+    sortNodesByY(column);
+    didShift = removeColumnCrossoversInDirection(column, (node) => node.linksBefore) || didShift;
+    didShift = removeColumnCrossoversInDirection(column, (node) => node.linksAfter) || didShift;
+    return didShift;
 }
 
 function weightedNodeY(links: LinkedNode<SankeyNodeDatum, any>[]): number | undefined {
@@ -111,43 +208,12 @@ function layoutColumnsBackwards(columns: Column[], layout: Layout, weight: numbe
     return didShift;
 }
 
-function removeColumnCrossovers(column: Column) {
-    console.group(column.index);
-    const singleCrossoverColumns = column.nodes.filter((node) => node.linksAfter.length === 1);
-    for (const { datum: node, linksAfter } of singleCrossoverColumns) {
-        const nodeAfter = linksAfter[0].node.datum;
-        // Use reciprocal gradients because there will always be a change in x so no infinities
-        const recM0 = (nodeAfter.x - node.x) / (nodeAfter.y - node.y);
-        for (const { datum: other, linksAfter: otherLinksAfter } of singleCrossoverColumns) {
-            if (other === node) continue;
-
-            const otherNodeAfter = otherLinksAfter[0].node.datum;
-            const recM1 = (otherNodeAfter.x - other.x) / (otherNodeAfter.y - other.y);
-
-            const x = ((other.y - node.y) * (recM0 * recM1) + node.x * recM1 + other.x * recM0) / (recM1 - recM0);
-
-            const crossover = x > node.x && x < Math.max(nodeAfter.x, otherNodeAfter.x);
-
-            if (crossover) {
-                console.log('Swap', node.id, other.id, node.y, other.y);
-                if (node.y < other.y) {
-                    console.log('1');
-                    const y = node.y;
-                    node.y = other.y + other.height - node.height;
-                    other.y = y;
-                } else {
-                    console.log('2');
-                    const y = other.y;
-                    other.y = node.y + node.height - other.height;
-                    node.y = y;
-                }
-                console.groupEnd();
-                return;
-            }
-        }
+function removeColumnsCrossovers(columns: Column[]) {
+    let didShift = false;
+    for (let i = columns.length - 1; i >= 0; i -= 1) {
+        didShift = removeColumnCrossovers(columns[i]) || didShift;
     }
-
-    console.groupEnd();
+    return didShift;
 }
 
 export function layoutColumns(columns: Column[], layout: Layout) {
@@ -159,14 +225,14 @@ export function layoutColumns(columns: Column[], layout: Layout) {
     for (let i = 0; i < 6; i += 1) {
         const didLayoutColumnsForward = layoutColumnsForward(columns, layout, 1);
         didLayoutColumnsBackwards = layoutColumnsBackwards(columns, layout, 0.5);
-        if (!didLayoutColumnsForward && !didLayoutColumnsBackwards) {
+        const didRemoveColumnCrossovers = removeColumnsCrossovers(columns);
+        if (!didLayoutColumnsForward && !didLayoutColumnsBackwards && !didRemoveColumnCrossovers) {
             break;
         }
     }
 
     if (didLayoutColumnsBackwards) {
         layoutColumnsForward(columns, layout, 1);
+        removeColumnsCrossovers(columns);
     }
-
-    columns.forEach(removeColumnCrossovers);
 }
