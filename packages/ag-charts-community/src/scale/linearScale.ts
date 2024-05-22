@@ -1,6 +1,6 @@
 import { countFractionDigits } from '../util/number';
 import { tickFormat } from '../util/numberFormat';
-import { createTicks, isDenseInterval, range, singleTickDomain, tickStep } from '../util/ticks';
+import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 
 /**
@@ -48,15 +48,14 @@ export class LinearScale extends ContinuousScale<number> {
     }
 
     protected getTickStep(start: number, stop: number) {
-        const count = this.tickCount ?? ContinuousScale.defaultTickCount;
-        return this.interval ?? tickStep(start, stop, count, this.minTickCount, this.maxTickCount);
+        return this.interval ?? tickStep(start, stop, this.tickCount, this.minTickCount, this.maxTickCount);
     }
 
     /**
      * Extends the domain so that it starts and ends on nice round values.
      */
     protected updateNiceDomain() {
-        const count = this.tickCount ?? ContinuousScale.defaultTickCount;
+        const count = this.tickCount;
         if (count < 1) {
             this.niceDomain = [...this.domain];
             return;
@@ -65,7 +64,7 @@ export class LinearScale extends ContinuousScale<number> {
         let [start, stop] = this.domain;
 
         if (count === 1) {
-            [start, stop] = singleTickDomain(start, stop);
+            [start, stop] = niceTicksDomain(start, stop);
         } else {
             const roundStart = start > stop ? Math.ceil : Math.floor;
             const roundStop = stop < start ? Math.floor : Math.ceil;
