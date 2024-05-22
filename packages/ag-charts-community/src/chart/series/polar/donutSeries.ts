@@ -734,7 +734,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
             sector.cornerRadius = this.properties.cornerRadius;
-            sector.inset = (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2;
+            const inset = Math.max(
+                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2,
+                0
+            );
+            sector.inset = inset;
+            sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
