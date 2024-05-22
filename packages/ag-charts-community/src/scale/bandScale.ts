@@ -70,9 +70,9 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return this._domain;
     }
 
-    ticks(): { ticks: D[]; fractionDigits: number } {
+    ticks(): D[] {
         this.refresh();
-        return { ticks: this._domain, fractionDigits: 0 };
+        return this._domain;
     }
 
     convert(d: D): number {

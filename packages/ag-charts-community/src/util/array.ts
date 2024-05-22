@@ -1,3 +1,11 @@
+export function times<T>(n: number, callback: (index: number) => T): T[] {
+    const results: any[] = [];
+    for (let i = 0; i < n; i++) {
+        results.push(callback(i));
+    }
+    return results;
+}
+
 export function extent(values: Array<number | Date>): [number, number] | undefined {
     if (values.length === 0) {
         return;

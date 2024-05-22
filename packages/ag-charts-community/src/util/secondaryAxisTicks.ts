@@ -4,7 +4,7 @@ export function calculateNiceSecondaryAxis(
     domain: number[],
     primaryTickCount: number,
     reverse?: boolean
-): { domain: [number, number]; ticks: number[]; fractionDigits: number } {
+): { domain: [number, number]; ticks: number[] } {
     // Make secondary axis domain nice using strict tick count, matching the tick count from the primary axis.
     // This is to make the secondary axis grid lines/ tick positions align with the ones from the primary axis.
 
@@ -17,9 +17,9 @@ export function calculateNiceSecondaryAxis(
     stop = start + segments * step;
 
     const d: [number, number] = reverse ? [stop, start] : [start, stop];
-    const { ticks, fractionDigits } = getTicks(start, step, primaryTickCount);
+    const ticks = getTicks(start, step, primaryTickCount);
 
-    return { domain: d, ticks, fractionDigits };
+    return { domain: d, ticks };
 }
 
 function calculateNiceStart(a: number, b: number, count: number): number {
@@ -30,7 +30,7 @@ function calculateNiceStart(a: number, b: number, count: number): number {
     return Math.floor(a / magnitude) * magnitude;
 }
 
-function getTicks(start: number, step: number, count: number): { ticks: number[]; fractionDigits: number } {
+function getTicks(start: number, step: number, count: number): number[] {
     // power of the step will be negative if the step is a fraction (between 0 and 1)
     const stepPower = Math.floor(Math.log10(step));
     const fractionDigits = step > 0 && step < 1 ? Math.abs(stepPower) : 0;
@@ -42,7 +42,7 @@ function getTicks(start: number, step: number, count: number): { ticks: number[]
         ticks[i] = Math.round(tick * f) / f;
     }
 
-    return { ticks, fractionDigits };
+    return ticks;
 }
 
 function getTickStep(start: number, stop: number, count: number): number {

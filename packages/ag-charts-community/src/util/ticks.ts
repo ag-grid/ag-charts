@@ -1,3 +1,4 @@
+import { times } from './array';
 import { Logger } from './logger';
 import { countFractionDigits } from './number';
 
@@ -11,7 +12,7 @@ export function createTicks(
     maxCount?: number
 ): number[] {
     if (count < 2) {
-        return range(start, stop, stop - start).ticks;
+        return range(start, stop, stop - start);
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
     if (isNaN(step)) {
@@ -19,22 +20,22 @@ export function createTicks(
     }
     start = Math.ceil(start / step) * step;
     stop = Math.floor(stop / step) * step;
-    return range(start, stop, step).ticks;
+    return range(start, stop, step);
 }
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {
-    if (count < 1) {
-        return NaN;
-    }
     if (start === end) {
         return 1;
+    }
+    if (count < 1) {
+        return NaN;
     }
 
     const extent = Math.abs(end - start);
     const step = 10 ** Math.floor(Math.log10(extent / count));
 
-    let m: number = NaN,
-        minDiff: number = Infinity,
+    let m = NaN,
+        minDiff = Infinity,
         isInBounds = false;
     for (const multiplier of TickMultipliers) {
         const c = Math.ceil(extent / (multiplier * step));
@@ -51,21 +52,12 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
     return m * step;
 }
 
-export function range(start: number, stop: number, step: number): { ticks: number[]; fractionDigits: number } {
-    const d0 = Math.min(start, stop);
-    const d1 = Math.max(start, stop);
+export function range(start: number, end: number, step: number): number[] {
+    const n = Math.ceil(Math.abs(end - start) / step);
+    const f = 10 ** countFractionDigits(step);
+    const d0 = Math.min(start, end);
 
-    const fractionDigits = countFractionDigits(step);
-    const f = Math.pow(10, fractionDigits);
-    const n = Math.ceil((d1 - d0) / step);
-    const ticks = [];
-
-    for (let i = 0; i <= n; i++) {
-        const value = d0 + step * i;
-        ticks.push(Math.round(value * f) / f);
-    }
-
-    return { ticks, fractionDigits };
+    return times(n + 1, (i) => Math.round((d0 + step * i) * f) / f);
 }
 
 export function isDenseInterval(count: number, availableRange: number) {

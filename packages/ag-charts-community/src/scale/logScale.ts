@@ -78,10 +78,10 @@ export class LogScale extends ContinuousScale<number> {
         this.niceDomain = [n0, n1];
     }
 
-    ticks(): { ticks: number[]; fractionDigits: number } {
+    ticks(): number[] {
         const count = this.tickCount ?? 10;
         if (!this.domain || this.domain.length < 2 || count < 1) {
-            return { ticks: [], fractionDigits: 0 };
+            return [];
         }
         this.refresh();
         const base = this.base;
@@ -94,14 +94,12 @@ export class LogScale extends ContinuousScale<number> {
         let p1 = this.log(stop);
 
         if (this.interval) {
-            const step = Math.abs(this.interval);
-            const absDiff = Math.abs(p1 - p0);
-            // eslint-disable-next-line prefer-const
-            let { ticks, fractionDigits } = range(p0, p1, Math.min(absDiff, step));
-            ticks = ticks.map((x) => this.pow(x)).filter((t) => t >= start && t <= stop);
+            const inBounds = (tick: number) => tick >= start && tick <= stop;
+            const step = Math.min(Math.abs(this.interval), Math.abs(p1 - p0));
+            const ticks = range(p0, p1, step).map(this.pow).filter(inBounds);
 
             if (!isDenseInterval(ticks.length, this.getPixelRange())) {
-                return { ticks, fractionDigits };
+                return ticks;
             }
         }
 
@@ -111,7 +109,7 @@ export class LogScale extends ContinuousScale<number> {
         if (!isBaseInteger || isDiffLarge) {
             // Returns [10^1, 10^2, 10^3, 10^4, ...]
             // eslint-disable-next-line prefer-const
-            return { ticks: createTicks(p0, p1, Math.min(p1 - p0, count)).map(this.pow), fractionDigits: 0 };
+            return createTicks(p0, p1, Math.min(p1 - p0, count)).map(this.pow);
         }
 
         const ticks: number[] = [];
@@ -136,7 +134,7 @@ export class LogScale extends ContinuousScale<number> {
                 }
             }
         }
-        return { ticks, fractionDigits: 0 };
+        return ticks;
     }
 
     tickFormat({
