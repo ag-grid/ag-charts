@@ -2,9 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Global Migrations between Continents',
-    },
     data: [
         { from: 'Asia', to: 'Europe', size: 20 },
         { from: 'Asia', to: 'Americas', size: 19 },
@@ -31,6 +28,11 @@ const options: AgChartOptions = {
             fromKey: 'from',
             toKey: 'to',
             sizeKey: 'size',
+            node: {
+                fill: '#34495e',
+                stroke: '#2c3e50',
+                strokeWidth: 2,
+            },
         },
     ],
 };

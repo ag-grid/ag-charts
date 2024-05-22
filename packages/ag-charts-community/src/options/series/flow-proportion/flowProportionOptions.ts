@@ -7,7 +7,7 @@ export type AgFlowProportionSeriesOptions = AgSankeySeriesOptions | AgChordSerie
 export interface AgBaseFlowProportionChartOptions {
     /** Series configurations. */
     series?: AgFlowProportionSeriesOptions[];
-    /** Node options */
+    /** Nodes to use instead of inferring from data. */
     nodes?: any[];
 }
 

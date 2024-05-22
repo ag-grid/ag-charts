@@ -14,8 +14,8 @@ To create a Chord Series, use the `chord` series type.
 series: [
     {
         type: 'chord',
-        fromIdKey: 'fromId',
-        toIdKey: 'toId',
+        fromKey: 'from',
+        toKey: 'to',
         sizeKey: 'size',
     },
 ],
@@ -23,9 +23,57 @@ series: [
 
 In this configuration:
 
--   `fromIdKey` defines the start of each link.
--   `toIdKey` defines the end of each link.
+-   `fromKey` defines the start of each link.
+-   `toKey` defines the end of each link.
 -   `sizeKey` defines the size of each link.
+
+## Customisation
+
+### Node Style
+
+{% chartExampleRunner title="Node Style" name="node-style" type="generated" /%}
+
+The styling of all nodes can be customised using the `node` property.
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromKey: 'from',
+        toKey: 'to',
+        sizeKey: 'size',
+        node: {
+            fill: '#34495e',
+            stroke: '#2c3e50',
+            strokeWidth: 2,
+        },
+    },
+],
+```
+
+### Link Style
+
+{% chartExampleRunner title="Link Style" name="link-style" type="generated" /%}
+
+The styling of all links can be customised using the `link` property.
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromKey: 'from',
+        toKey: 'to',
+        sizeKey: 'size',
+        link: {
+            fill: '#34495e',
+            fillOpacity: 0.25,
+            stroke: '#2c3e50',
+            strokeWidth: 1,
+            strokeOpacity: 0.25,
+        },
+    },
+],
+```
 
 ## API Reference
 

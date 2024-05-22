@@ -116,22 +116,22 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     nodes: any[] | undefined = undefined;
 
     @Validate(STRING)
-    fromIdKey: string = '';
+    fromKey: string = '';
 
     @Validate(STRING, { optional: true })
     fromIdName: string | undefined = undefined;
 
     @Validate(STRING)
-    toIdKey: string = '';
+    toKey: string = '';
 
     @Validate(STRING, { optional: true })
     toIdName: string | undefined = undefined;
 
     @Validate(STRING)
-    nodeIdKey: string = '';
+    idKey: string = '';
 
     @Validate(STRING, { optional: true })
-    nodeIdName: string | undefined = undefined;
+    idName: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
@@ -144,12 +144,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Validate(STRING, { optional: true })
     sizeName: string | undefined = undefined;
-
-    @Validate(STRING, { optional: true })
-    nodeSizeKey: string | undefined = undefined;
-
-    @Validate(STRING, { optional: true })
-    nodeSizeName: string | undefined = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
     fills: string[] = [];

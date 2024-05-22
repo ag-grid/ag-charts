@@ -116,13 +116,13 @@ export abstract class FlowProportionSeries<
             return;
         }
 
-        const { fromIdKey, toIdKey, sizeKey, nodeIdKey, labelKey } = this.properties;
+        const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 
         const nodesDataModelPromise =
             nodes != null
                 ? nodesDataController.request<any, any, true>(this.id, nodes, {
                       props: [
-                          keyProperty(nodeIdKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
+                          keyProperty(idKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
                           ...(labelKey != null
                               ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
                               : []),
@@ -133,8 +133,8 @@ export abstract class FlowProportionSeries<
 
         const linksDataModelPromise = this.requestDataModel<any, any, false>(dataController, data, {
             props: [
-                valueProperty(fromIdKey, undefined, { id: 'fromIdValue', includeProperty: false }),
-                valueProperty(toIdKey, undefined, { id: 'toIdValue', includeProperty: false }),
+                valueProperty(fromKey, undefined, { id: 'fromIdValue', includeProperty: false }),
+                valueProperty(toKey, undefined, { id: 'toIdValue', includeProperty: false }),
                 ...(sizeKey != null
                     ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false })]
                     : []),

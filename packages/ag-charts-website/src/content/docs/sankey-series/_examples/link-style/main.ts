@@ -20,6 +20,13 @@ const options: AgChartOptions = {
             fromKey: 'from',
             toKey: 'to',
             sizeKey: 'size',
+            link: {
+                fill: '#34495e',
+                fillOpacity: 0.25,
+                stroke: '#2c3e50',
+                strokeWidth: 1,
+                strokeOpacity: 0.25,
+            },
         },
     ],
 };
