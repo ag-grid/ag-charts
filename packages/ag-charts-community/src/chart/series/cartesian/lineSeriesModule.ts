@@ -17,6 +17,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
 
     identifier: 'line',
     instanceConstructor: LineSeries,
+    stackable: true,
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
