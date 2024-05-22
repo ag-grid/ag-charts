@@ -1,4 +1,5 @@
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
+import type { AgLineStyle } from '../../../options/agChartOptions';
 import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
@@ -340,17 +341,23 @@ export function prepareLinePathAnimationFns(
     oldData: LineContextLike,
     pairData: PathPoint[],
     visibleToggleMode: 'fade' | 'none',
-    render: (pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) => void
+    line: AgLineStyle | undefined,
+    render: (
+        pairData: PathPoint[],
+        ratios: Partial<Record<PathPointChange, number>>,
+        path: Path,
+        line: AgLineStyle | undefined
+    ) => void
 ) {
     const status = determinePathStatus(newData, oldData, pairData);
     const removePhaseFn = (ratio: number, path: Path) => {
-        render(pairData, { move: 0, out: ratio }, path);
+        render(pairData, { move: 0, out: ratio }, path, line);
     };
     const updatePhaseFn = (ratio: number, path: Path) => {
-        render(pairData, { move: ratio }, path);
+        render(pairData, { move: ratio }, path, line);
     };
     const addPhaseFn = (ratio: number, path: Path) => {
-        render(pairData, { move: 1, in: ratio }, path);
+        render(pairData, { move: 1, in: ratio }, path, line);
     };
     const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
@@ -360,7 +367,8 @@ export function prepareLinePathAnimationFns(
 export function prepareLinePathAnimation(
     newData: LineContextLike,
     oldData: LineContextLike,
-    diff?: ProcessedOutputDiff
+    diff: ProcessedOutputDiff | undefined,
+    line: AgLineStyle | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
@@ -385,7 +393,7 @@ export function prepareLinePathAnimation(
     }
 
     const hasMotion = (diff?.changed ?? true) || scalesChanged(newData, oldData) || status !== 'updated';
-    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', renderPartialPath);
+    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', line, renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap, status);
     return { ...pathFns, marker, hasMotion };
 }
