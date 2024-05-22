@@ -351,8 +351,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.subtitle.registerInteraction(moduleContext),
             this.footnote.registerInteraction(moduleContext),
 
-            ctx.interactionManager.addListener('click', (event) => this.onClick(event)),
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
+            ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
+            ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             seriesRegion.addListener('blur', () => this.onBlur()),
@@ -1359,6 +1359,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected onClick(event: PointerInteractionEvent<'click'>) {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
+            event.consume();
             return;
         }
         this.fireEvent<AgChartClickEvent>({
@@ -1370,6 +1371,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
+            event.consume();
             return;
         }
         this.fireEvent<AgChartDoubleClickEvent>({
