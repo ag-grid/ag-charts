@@ -111,9 +111,7 @@ export class LogScale extends ContinuousScale<number> {
         if (!isBaseInteger || isDiffLarge) {
             // Returns [10^1, 10^2, 10^3, 10^4, ...]
             // eslint-disable-next-line prefer-const
-            let { ticks, fractionDigits } = createTicks(p0, p1, Math.min(p1 - p0, count));
-            ticks = ticks.map((x) => this.pow(x));
-            return { ticks, fractionDigits };
+            return { ticks: createTicks(p0, p1, Math.min(p1 - p0, count)).map(this.pow), fractionDigits: 0 };
         }
 
         const ticks: number[] = [];

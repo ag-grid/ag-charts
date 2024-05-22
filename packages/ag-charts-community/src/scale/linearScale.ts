@@ -1,3 +1,4 @@
+import { countFractionDigits } from '../util/number';
 import { tickFormat } from '../util/numberFormat';
 import { createTicks, isDenseInterval, range, singleTickDomain, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
@@ -18,22 +19,23 @@ export class LinearScale extends ContinuousScale<number> {
 
     ticks(): { ticks: number[]; fractionDigits: number } {
         const count = this.tickCount ?? ContinuousScale.defaultTickCount;
-        if (!this.domain || this.domain.length < 2 || count < 1 || this.domain.some((d) => !isFinite(d))) {
+        if (!this.domain || this.domain.length < 2 || count < 1 || !this.domain.every(isFinite)) {
             return { ticks: [], fractionDigits: 0 };
         }
         this.refresh();
         const [d0, d1] = this.getDomain();
 
-        const { interval } = this;
-
-        if (interval) {
-            const step = Math.abs(interval);
+        if (this.interval) {
+            const step = Math.abs(this.interval);
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange())) {
                 return range(d0, d1, step);
             }
         }
 
-        return createTicks(d0, d1, count, this.minTickCount, this.maxTickCount);
+        const ticks = createTicks(d0, d1, count, this.minTickCount, this.maxTickCount);
+        const step = count < 2 ? d1 - d0 : tickStep(d0, d1, count, this.minTickCount, this.maxTickCount);
+        const fractionDigits = countFractionDigits(step);
+        return { ticks, fractionDigits };
     }
 
     update() {

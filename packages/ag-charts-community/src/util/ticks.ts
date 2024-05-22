@@ -9,17 +9,17 @@ export function createTicks(
     count: number,
     minCount?: number,
     maxCount?: number
-): { ticks: number[]; fractionDigits: number } {
+): number[] {
     if (count < 2) {
-        return range(start, stop, stop - start);
+        return range(start, stop, stop - start).ticks;
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
     if (isNaN(step)) {
-        return { ticks: [], fractionDigits: 0 };
+        return [];
     }
     start = Math.ceil(start / step) * step;
     stop = Math.floor(stop / step) * step;
-    return range(start, stop, step);
+    return range(start, stop, step).ticks;
 }
 
 export function tickStep(from: number, to: number, count: number, minCount = 0, maxCount = Infinity): number {
