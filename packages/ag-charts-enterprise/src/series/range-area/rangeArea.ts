@@ -188,8 +188,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const { size } = marker;
 
             return [
-                { point: { x, y: yHighCoordinate }, size, itemId: `high`, yValue: yHigh, xValue, enabled: true },
-                { point: { x, y: yLowCoordinate }, size, itemId: `low`, yValue: yLow, xValue, enabled: false },
+                {
+                    point: { x, y: yHighCoordinate, moveTo: false },
+                    size,
+                    itemId: `high`,
+                    yValue: yHigh,
+                    xValue,
+                    enabled: true,
+                },
+                {
+                    point: { x, y: yLowCoordinate, moveTo: false },
+                    size,
+                    itemId: `low`,
+                    yValue: yLow,
+                    xValue,
+                    enabled: false,
+                },
             ];
         };
 

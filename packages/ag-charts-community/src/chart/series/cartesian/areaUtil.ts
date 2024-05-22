@@ -157,7 +157,7 @@ export function prepareAreaPathAnimation(
     const pairData = [...top.result, ...bottom.result.reverse()];
     const stackVisible = oldData.stackVisible ? newData.stackVisible : false;
     const fadeMode = stackVisible ? 'none' : 'fade';
-    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, fadeMode, renderPartialPath);
+    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, fadeMode, undefined, renderPartialPath);
     const marker = prepareMarkerAnimation(markerPairMap, status);
     return { status: fill.status, fill, marker };
 }

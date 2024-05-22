@@ -186,6 +186,16 @@ export function UNION(options: string[], message: string = 'a') {
 export const MIN_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), LESS_THAN('maxSpacing')), NAN);
 export const MAX_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), GREATER_THAN('minSpacing')), NAN);
 
+const stepAlignments = ['leading', 'center', 'trailing'];
+export const LINE = predicateWithMessage((obj: any) => {
+    if (obj === undefined) return true;
+    if (typeof obj !== 'object' || obj === null) return false;
+    if (obj.style === 'linear') return true;
+    if (obj.style === 'smooth') return obj.tension === undefined || typeof obj.tension === 'number';
+    if (obj.style === 'step') return obj.alignment === undefined || stepAlignments.includes(obj.alignment);
+    return false;
+}, 'a valid line style');
+
 export function predicateWithMessage(
     predicate: ValidatePredicate,
     message: Exclude<ValidatePredicate['message'], undefined>

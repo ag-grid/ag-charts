@@ -1,10 +1,16 @@
 import { staticFromToMotion } from '../../../motion/fromToMotion';
+import type { AgLineStyle } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { NodeDataDependant } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import { plotLinearPoints, plotSmoothPoints, plotStepPoints } from './linePlotter';
+
+export interface PartialPathPoint extends Point {
+    moveTo: boolean;
+}
 
 export type PathPointChange = 'move' | 'in' | 'out';
 
@@ -118,9 +124,47 @@ function calculatePoint(from: Point, to: Point, ratio: number): Point {
     };
 }
 
-export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) {
+const lineSteps = {
+    leading: 0,
+    center: 0.5,
+    trailing: 1,
+};
+
+export function splitPartialPaths(points: Iterable<PartialPathPoint>) {
+    const out: Point[][] = [];
+    let current: Point[] | undefined;
+    for (const { x, y, moveTo } of points) {
+        if (moveTo) {
+            current = [{ x, y }];
+            out.push(current);
+        } else {
+            current?.push({ x, y });
+        }
+    }
+    return out;
+}
+
+export function plotPath(points: Point[], path: Path, line: AgLineStyle | undefined) {
     const { path: linePath } = path;
+
+    if (line?.style === 'smooth') {
+        plotSmoothPoints(linePath, points, line.tension ?? 1);
+    } else if (line?.style === 'step') {
+        plotStepPoints(linePath, points, lineSteps[line.alignment ?? 'center']);
+    } else {
+        plotLinearPoints(linePath, points);
+    }
+}
+
+export function renderPartialPath(
+    pairData: PathPoint[],
+    ratios: Partial<Record<PathPointChange, number>>,
+    path: Path,
+    line: AgLineStyle | undefined
+) {
     let previousTo: PathPoint['to'];
+    const partialPaths: Point[][] = [];
+    let current: Point[] | undefined;
     for (const data of pairData) {
         const { from, to } = data;
         const ratio = ratios[data.change];
@@ -129,17 +173,23 @@ export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<
 
         const { x, y } = calculatePoint(from, to, ratio);
         if (data.moveTo === false) {
-            linePath.lineTo(x, y);
+            current?.push({ x, y });
         } else if (data.moveTo === true || !previousTo) {
-            linePath.moveTo(x, y);
+            current = [{ x, y }];
+            partialPaths.push(current);
         } else if (previousTo) {
             const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
             const { x: midPointX, y: midPointY } = calculatePoint(previousTo, { x, y }, moveToRatio);
-            linePath.lineTo(midPointX, midPointY);
-            linePath.moveTo(x, y);
+            current?.push({ x: midPointX, y: midPointY });
+            current = [{ x, y }];
+            partialPaths.push(current);
         }
         previousTo = { x, y };
     }
+
+    partialPaths.forEach((points) => {
+        plotPath(points, path, line);
+    });
 }
 
 export function pathSwipeInAnimation(

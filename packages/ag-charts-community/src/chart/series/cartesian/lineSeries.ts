@@ -40,7 +40,14 @@ import {
     resetMarkerFn,
     resetMarkerPositionFn,
 } from './markerUtil';
-import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import {
+    buildResetPathFn,
+    pathFadeInAnimation,
+    pathSwipeInAnimation,
+    plotPath,
+    splitPartialPaths,
+    updateClipPath,
+} from './pathUtil';
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
@@ -424,13 +431,9 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const { path: linePath } = lineNode;
 
         linePath.clear(true);
-        for (const data of nodeData) {
-            if (data.point.moveTo) {
-                linePath.moveTo(data.point.x, data.point.y);
-            } else {
-                linePath.lineTo(data.point.x, data.point.y);
-            }
-        }
+        splitPartialPaths(nodeData.map((d) => d.point)).forEach((points) => {
+            plotPath(points, lineNode, this.properties.line);
+        });
         lineNode.checkPathDirty();
     }
 
@@ -486,7 +489,12 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        const fns = prepareLinePathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
+        const fns = prepareLinePathAnimation(
+            contextData,
+            previousContextData,
+            this.processedData?.reduced?.diff,
+            this.properties.line
+        );
         if (fns === undefined) {
             skip();
             return;
