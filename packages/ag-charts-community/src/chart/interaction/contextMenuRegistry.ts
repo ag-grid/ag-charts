@@ -1,5 +1,6 @@
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legendDatum';
+import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { type ConsumableEvent, buildConsumable } from './consumableEvent';
 import { InteractionState, type PointerInteractionEvent } from './interactionManager';
 import type { RegionManager } from './regionManager';
@@ -7,7 +8,7 @@ import type { RegionManager } from './regionManager';
 type ContextTypeMap = {
     all: {};
     legend: { legendItem: CategoryLegendDatum | undefined };
-    series: {};
+    series: { pickedNode: SeriesNodeDatum | undefined };
 };
 
 type ContextEventProperties<K extends ContextType = ContextType> = {

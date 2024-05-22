@@ -47,7 +47,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     // Module context
     private readonly scene: _Scene.Scene;
-    private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly interactionManager: _ModuleSupport.InteractionManager;
     private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
@@ -68,7 +67,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         super();
 
         // Module context
-        this.highlightManager = ctx.highlightManager;
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
         this.scene = ctx.scene;
@@ -136,7 +134,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.groups.default = this.registry.filterActions(event.type);
 
-        this.pickedNode = this.highlightManager.getActivePicked();
+        this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
 
         if (this.extraActions.length > 0) {
@@ -144,6 +142,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         if (ContextMenuRegistry.check('series', event)) {
+            this.pickedNode = event.context.pickedNode;
             if (this.extraNodeActions.length > 0 && this.pickedNode) {
                 this.groups.extraNode = [...this.extraNodeActions];
             }

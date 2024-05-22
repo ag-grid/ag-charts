@@ -1170,11 +1170,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
         if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            this.checkSeriesNodeRange(event, () => {
+            this.checkSeriesNodeRange(event, (_series, pickedNode) => {
                 this.ctx.highlightManager.updateHighlight(this.id);
+                this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode });
             });
-
-            this.ctx.contextMenuRegistry.dispatchContext('series', event, {});
         }
     }
 
@@ -1406,11 +1405,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Find the node if exactly matched and update the highlight picked node
         let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
-        if (pickedNode) {
-            this.ctx.highlightManager.updatePicked(this.id, pickedNode.datum);
-        } else {
-            this.ctx.highlightManager.updatePicked(this.id);
-        }
 
         // First check if we should trigger the callback based on nearest node
         if (datum && nodeClickRange === 'nearest') {

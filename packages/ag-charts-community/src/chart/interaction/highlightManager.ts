@@ -23,10 +23,7 @@ export interface HighlightChangeEvent {
  */
 export class HighlightManager extends BaseManager<'highlight-change', HighlightChangeEvent> {
     private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
-    private readonly pickedStates = new StateTracker<SeriesNodeDatum>();
-
     private activeHighlight?: HighlightNodeDatum;
-    private activePicked?: SeriesNodeDatum;
 
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum) {
         const { activeHighlight: previousHighlight } = this;
@@ -43,15 +40,6 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {
         return this.activeHighlight;
-    }
-
-    public updatePicked(callerId: string, clickableDatum?: SeriesNodeDatum) {
-        this.pickedStates.set(callerId, clickableDatum);
-        this.activePicked = this.pickedStates.stateValue();
-    }
-
-    public getActivePicked(): SeriesNodeDatum | undefined {
-        return this.activePicked;
     }
 
     private isEqual(a?: SeriesNodeDatum, b?: SeriesNodeDatum) {
