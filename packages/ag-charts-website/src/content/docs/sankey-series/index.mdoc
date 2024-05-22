@@ -1,0 +1,115 @@
+---
+title: 'Sankey Series'
+---
+
+A Sankey Series visualises movement or change between different items, and the proportions between these movements or changes.
+
+## Simple Sankey
+
+{% chartExampleRunner title="Sankey Diagram" name="simple-sankey" type="generated" /%}
+
+To create a Sankey Series, use the `sankey` series type.
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromKey: 'from',
+        toKey: 'to',
+        sizeKey: 'size',
+    },
+],
+```
+
+In this configuration:
+
+-   `fromKey` defines the start of each link.
+-   `toKey` defines the end of each link.
+-   `sizeKey` defines the size of each link.
+
+Circular loops are not allowed in Sankey diagrams.
+
+## Justification
+
+The horizontal placement of the nodes can be customised using the `justify` property on `node`.
+
+{% chartExampleRunner title="Justification" name="justification" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromKey: 'from',
+        toKey: 'to',
+        sizeKey: 'size',
+        node: {
+            justify: 'justify',
+        },
+    },
+],
+```
+
+There are four values supported:
+
+-   `left` moves nodes as far left as possible.
+-   `right` moves nodes as far right as possible.
+-   `center` moves nodes as close to the centre as possible.
+-   `justify` moves nodes as far left as possible, except for the last nodes, which are pushed right.
+
+## Customisation
+
+### Node Style
+
+{% chartExampleRunner title="Node Style" name="node-style" type="generated" /%}
+
+The styling of all nodes can be customised using the `node` property.
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromKey: 'from',
+        toKey: 'to',
+        sizeKey: 'size',
+        node: {
+            fill: '#34495e',
+            stroke: '#2c3e50',
+            strokeWidth: 2,
+        },
+    },
+],
+```
+
+### Link Style
+
+{% chartExampleRunner title="Link Style" name="link-style" type="generated" /%}
+
+The styling of all links can be customised using the `link` property.
+
+```js
+series: [
+    {
+        type: 'sankey',
+        fromKey: 'from',
+        toKey: 'to',
+        sizeKey: 'size',
+        link: {
+            fill: '#34495e',
+            fillOpacity: 0.25,
+            stroke: '#2c3e50',
+            strokeWidth: 1,
+            strokeOpacity: 0.25,
+        },
+    },
+],
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgSankeySeriesOptions" label="Sankey Series" %}
+{% apiReference id="AgSankeySeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

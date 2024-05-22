@@ -11,7 +11,7 @@ export interface AgSankeySeriesOptions<TDatum = any>
         AgSankeySeriesThemeableOptions<TDatum> {
     /** Configuration for the Sankey Series. */
     type: 'sankey';
-    /** Node options */
+    /** Nodes to use instead of inferring from data. */
     nodes?: any[];
 }
 
@@ -22,15 +22,15 @@ export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeri
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the nodes and links. */
     strokes?: CssColor[];
-    /** Options for the links */
+    /** Options for the links. */
     link?: AgSankeySeriesLinkOptions;
-    /** Options for the nodes */
+    /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions;
 }
 
 export interface AgSankeySeriesLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>> {
-    /** Spacing between a node and its label */
+    /** Spacing between a node and its label. */
     spacing?: PixelSize;
 }
 
@@ -47,31 +47,27 @@ export interface AgSankeySeriesNodeOptions extends FillOptions, StrokeOptions, L
 }
 
 export interface AgSankeySeriesOptionsKeys {
-    /** The name of the node key containing the from id. */
-    fromIdKey?: string;
-    /** The name of the node key containing the to id. */
-    toIdKey?: string;
-    /** The name of the node key containing the size. */
+    /** The key containing the from node. If using the `nodes` property, this will be an id to the node. */
+    fromKey?: string;
+    /** The key containing the to node. If using the `nodes` property, this will be an id to the node. */
+    toKey?: string;
+    /** The key containing the size. */
     sizeKey?: string;
-    /** The name of the node key containing the node id. */
-    nodeIdKey?: string;
-    /** The name of the node key containing the node size. */
-    nodeSizeKey?: string;
-    /** The name of the node key containing the node label. */
+    /** The node key containing the id when using the `nodes` property. */
+    idKey?: string;
+    /** The label key containing the id when using the `nodes` property. */
     labelKey?: string;
 }
 
 export interface AgSankeySeriesOptionsNames {
-    /** The name of the node key containing the from id. */
+    /** The name of the node key containing the from node. */
     fromIdName?: string;
-    /** The name of the node key containing the to id. */
+    /** The name of the node key containing the to node. */
     toIdName?: string;
     /** The name of the node key containing the size. */
     sizeName?: string;
     /** The name of the node key containing the node id. */
-    nodeIdName?: string;
-    /** The name of the node key containing the node size. */
-    nodeSizeName?: string;
+    idName?: string;
     /** The name of the node key containing the label. */
     labelName?: string;
 }

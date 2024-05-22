@@ -1,118 +1,90 @@
+import { times } from './array';
 import { Logger } from './logger';
 import { countFractionDigits } from './number';
-import type { TimeInterval } from './time/interval';
 
-// @todo(AG-10085): Improve types for this
-export type NumericTicks = number[] & {
-    fractionDigits: number;
-};
+export const TickMultipliers = [1, 2, 5, 10];
 
-export default function (
+export function createTicks(
     start: number,
     stop: number,
     count: number,
     minCount?: number,
     maxCount?: number
-): { ticks: number[]; fractionDigits: number } {
+): number[] {
     if (count < 2) {
         return range(start, stop, stop - start);
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
     if (isNaN(step)) {
-        return { ticks: [], fractionDigits: 0 };
+        return [];
     }
     start = Math.ceil(start / step) * step;
     stop = Math.floor(stop / step) * step;
     return range(start, stop, step);
 }
 
-const tickMultipliers = [1, 2, 5, 10];
-
-export function tickStep(a: number, b: number, count: number, minCount = 0, maxCount = Infinity): number {
-    const extent = Math.abs(b - a);
-    const rawStep = extent / count;
-    const power = Math.floor(Math.log10(rawStep));
-    const step = Math.pow(10, power);
-    const m = tickMultipliers
-        .map((multiplier) => {
-            const s = multiplier * step;
-            const c = Math.ceil(extent / s);
-            const isWithinBounds = c >= minCount && c <= maxCount;
-            const diffCount = Math.abs(c - count);
-            return { multiplier, isWithinBounds, diffCount };
-        })
-        .sort((a2, b2) => {
-            if (a2.isWithinBounds !== b2.isWithinBounds) {
-                return a2.isWithinBounds ? -1 : 1;
-            }
-            return a2.diffCount - b2.diffCount;
-        })[0].multiplier;
-    if (!m || isNaN(m)) {
+export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {
+    if (start === end) {
+        return 1;
+    }
+    if (count < 1) {
         return NaN;
     }
+
+    const extent = Math.abs(end - start);
+    const step = 10 ** Math.floor(Math.log10(extent / count));
+
+    let m = NaN,
+        minDiff = Infinity,
+        isInBounds = false;
+    for (const multiplier of TickMultipliers) {
+        const c = Math.ceil(extent / (multiplier * step));
+        const validBounds = c >= minCount && c <= maxCount;
+        if (isInBounds && !validBounds) continue;
+        const diffCount = Math.abs(c - count);
+        if (minDiff > diffCount || isInBounds !== validBounds) {
+            isInBounds ||= validBounds;
+            minDiff = diffCount;
+            m = multiplier;
+        }
+    }
+
     return m * step;
 }
 
-export function singleTickDomain(a: number, b: number): number[] {
-    const extent = Math.abs(b - a);
-    const power = Math.floor(Math.log10(extent));
-    const step = Math.pow(10, power);
+export function range(start: number, end: number, step: number): number[] {
+    const n = Math.ceil(Math.abs(end - start) / step);
+    const f = 10 ** countFractionDigits(step);
+    const d0 = Math.min(start, end);
 
-    const roundStart = a > b ? Math.ceil : Math.floor;
-    const roundStop = b < a ? Math.floor : Math.ceil;
-
-    return tickMultipliers
-        .map((multiplier) => {
-            const s = multiplier * step;
-            const start = roundStart(a / s) * s;
-            const end = roundStop(b / s) * s;
-            const error = 1 - extent / Math.abs(end - start);
-            const domain = [start, end];
-            return { error, domain };
-        })
-        .sort((a2, b2) => a2.error - b2.error)[0].domain;
+    return times(n + 1, (i) => Math.round((d0 + step * i) * f) / f);
 }
 
-export function range(start: number, stop: number, step: number): { ticks: number[]; fractionDigits: number } {
-    const d0 = Math.min(start, stop);
-    const d1 = Math.max(start, stop);
-
-    const fractionDigits = countFractionDigits(step);
-    const f = Math.pow(10, fractionDigits);
-    const n = Math.ceil((d1 - d0) / step);
-    const ticks = [];
-
-    for (let i = 0; i <= n; i++) {
-        const value = d0 + step * i;
-        ticks.push(Math.round(value * f) / f);
-    }
-
-    return { ticks, fractionDigits };
-}
-
-export function isDenseInterval({
-    start,
-    stop,
-    interval,
-    count,
-    availableRange,
-}: {
-    start: number;
-    stop: number;
-    interval: number | TimeInterval;
-    count?: number;
-    availableRange: number;
-}): boolean {
-    const domain = stop - start;
-
-    const step = typeof interval === 'number' ? interval : 1;
-    count ??= domain / step;
+export function isDenseInterval(count: number, availableRange: number) {
     if (count >= availableRange) {
         Logger.warnOnce(
             `the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration`
         );
         return true;
     }
-
     return false;
+}
+
+export function niceTicksDomain(start: number, end: number) {
+    const extent = Math.abs(end - start);
+    const step = 10 ** Math.floor(Math.log10(extent));
+
+    let minError = Infinity,
+        ticks = [start, end];
+    for (const multiplier of TickMultipliers) {
+        const m = multiplier * step;
+        const d0 = Math.floor(start / m) * m;
+        const d1 = Math.ceil(end / m) * m;
+        const error = 1 - extent / Math.abs(d1 - d0);
+        if (minError > error) {
+            minError = error;
+            ticks = [d0, d1];
+        }
+    }
+    return ticks;
 }

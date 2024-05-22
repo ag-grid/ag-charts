@@ -11,7 +11,12 @@ const framework = getFrameworkFromPath(path);
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title="AG Charts Changelog" showDocsNav={true} showSearchBar={true}>
+<Layout
+    title="AG Charts Changelog"
+    description="Identify the specific version in which a feature request or bug fix was included. Find changelog items by issue number, summary content, or version."
+    showDocsNav={true}
+    showSearchBar={true}
+>
     <div class="layout-grid">
         <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} framework={framework} />
         <Changelog currentFramework={framework} client:only="react" />

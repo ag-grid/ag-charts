@@ -98,9 +98,9 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return domain;
     }
 
-    override ticks(): { ticks: Date[]; fractionDigits: number } {
+    override ticks(): Date[] {
         if (!this.domain) {
-            return { ticks: [], fractionDigits: 0 };
+            return [];
         }
 
         this.refresh();
@@ -137,7 +137,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
         // max one tick per band
         const tickPositions = new Set<number>();
-        ticks = ticks.filter((tick) => {
+        return ticks.filter((tick) => {
             const position = this.convert(tick);
             if (isNaN(position) || tickPositions.has(position)) {
                 return false;
@@ -145,8 +145,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
             tickPositions.add(position);
             return true;
         });
-
-        return { ticks, fractionDigits: 0 };
     }
 
     private getDefaultTicks({

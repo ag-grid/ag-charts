@@ -33,7 +33,7 @@ import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
-import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
+import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
@@ -922,13 +922,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let unchanged = true;
         while (unchanged && index <= maxIterations) {
             const prevTicks = tickData.rawTicks;
-            const prevFractionDigits = tickData.fractionDigits;
             tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
 
             const { rawTicks, fractionDigits, ticks, labelCount } = this.getTicks({
                 tickGenerationType,
                 previousTicks: prevTicks,
-                previousFractionDigits: prevFractionDigits,
                 tickCount,
                 minTickCount,
                 maxTickCount,
@@ -994,7 +992,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private getTicks({
         tickGenerationType,
         previousTicks,
-        previousFractionDigits,
         tickCount,
         minTickCount,
         maxTickCount,
@@ -1002,7 +999,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }: {
         tickGenerationType: TickGenerationType;
         previousTicks: TickDatum[];
-        previousFractionDigits: number;
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
@@ -1011,35 +1007,33 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { range, scale, visibleRange } = this;
 
         let rawTicks: any[];
-        let fractionDigits: number = 0;
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
+                rawTicks = this.tick.values!;
                 if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(scale.getDomain().map(Number));
-                    rawTicks = this.tick.values!.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
-                } else {
-                    rawTicks = this.tick.values!;
+                    rawTicks = rawTicks.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
                 }
                 break;
             case TickGenerationType.CREATE_SECONDARY:
                 if (ContinuousScale.is(scale)) {
                     // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`
-                    ({ ticks: rawTicks, fractionDigits } = this.updateSecondaryAxisTicks(primaryTickCount));
+                    rawTicks = this.updateSecondaryAxisTicks(primaryTickCount);
                 } else {
-                    // AG-10654 Just use normal ticks for categoric axes.
-                    ({ ticks: rawTicks, fractionDigits } = this.createTicks(tickCount, minTickCount, maxTickCount));
+                    // AG-10654 Just use normal ticks for categorical axes.
+                    rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
                 }
                 break;
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
-                fractionDigits = previousFractionDigits;
                 break;
             default:
-                ({ ticks: rawTicks, fractionDigits } = this.createTicks(tickCount, minTickCount, maxTickCount));
+                rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
                 break;
         }
 
+        const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
 
@@ -1091,11 +1085,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return ticks.filter((_: any, i: number) => i % keepEvery === 0);
     }
 
-    private createTicks(
-        tickCount: number,
-        minTickCount: number,
-        maxTickCount: number
-    ): { ticks: D[]; fractionDigits: number } {
+    private createTicks(tickCount: number, minTickCount: number, maxTickCount: number): D[] {
         const { scale } = this;
 
         if (tickCount && (ContinuousScale.is(scale) || OrdinalTimeScale.is(scale))) {
@@ -1108,7 +1098,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
         }
 
-        return scale.ticks?.() ?? { ticks: [], fractionDigits: 0 };
+        return scale.ticks?.() ?? [];
     }
 
     protected estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
@@ -1262,7 +1252,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    updateSecondaryAxisTicks(_primaryTickCount: number | undefined): { ticks: any[]; fractionDigits: number } {
+    updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
         throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
     }
 

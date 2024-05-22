@@ -30,25 +30,26 @@ export const Header: FunctionComponent<Props> = ({
 
     return (
         <header className={styles.docsPageHeader}>
-            <h1 id="top" className={styles.docsPageTitle}>
-                <div className={styles.pageTitleContainer}>
-                    <div className={styles.pageTitleGroup}>
+            <div className={styles.pageTitleContainer}>
+                <div className={styles.pageTitleGroup}>
+                    <h1 id="top" className={styles.docsPageTitle}>
                         {!suppressFrameworkHeader && (
-                            <span className={styles.headerFramework}>{getFrameworkDisplayText(framework)} Charts</span>
+                            <span className={styles.headerFramework}>
+                                {`${getFrameworkDisplayText(framework)} Charts`}
+                            </span>
                         )}
                         <span>{title}</span>
-                    </div>
-
-                    <FrameworkSelectorInsideDocs path={path} currentFramework={framework} menuItems={menuItems} />
+                    </h1>
                 </div>
+                <FrameworkSelectorInsideDocs path={path} currentFramework={framework} menuItems={menuItems} />
+            </div>
 
-                {isEnterprise && (
-                    <span className={styles.enterpriseLabel}>
-                        Enterprise
-                        <Icon name="enterprise" />
-                    </span>
-                )}
-            </h1>
+            {isEnterprise && (
+                <span className={styles.enterpriseLabel}>
+                    Enterprise
+                    <Icon name="enterprise" />
+                </span>
+            )}
         </header>
     );
 };

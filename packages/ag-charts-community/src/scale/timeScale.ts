@@ -1,3 +1,4 @@
+import { findMinMax } from '../util/number';
 import { isDenseInterval, tickStep } from '../util/ticks';
 import timeDay from '../util/time/day';
 import {
@@ -132,34 +133,26 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     /**
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
-    ticks(): { ticks: Date[]; fractionDigits: 0 } {
+    ticks(): Date[] {
         if (!this.domain || this.domain.length < 2) {
-            return { ticks: [], fractionDigits: 0 };
+            return [];
         }
         this.refresh();
 
-        const [t0, t1] = this.getDomain().map(dateToNumber);
-
-        const start = Math.min(t0, t1);
-        const stop = Math.max(t0, t1);
-
         const { interval, nice, tickCount, minTickCount, maxTickCount } = this;
+        const [start, stop] = findMinMax(this.getDomain().map(dateToNumber));
 
-        let ticks: Date[];
-        if (interval !== undefined) {
-            const availableRange = this.getPixelRange();
-            ticks =
-                TimeScale.getTicksForInterval({ start, stop, interval, availableRange }) ??
-                TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+        if (interval != null) {
+            return (
+                TimeScale.getTicksForInterval({ start, stop, interval, availableRange: this.getPixelRange() }) ??
+                TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount })
+            );
         } else if (nice && tickCount === 2) {
-            ticks = this.niceDomain;
+            return this.niceDomain;
         } else if (nice && tickCount === 1) {
-            ticks = this.niceDomain.slice(0, 1);
-        } else {
-            ticks = TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+            return this.niceDomain.slice(0, 1);
         }
-
-        return { ticks, fractionDigits: 0 };
+        return TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
     }
 
     static getDefaultTicks({
@@ -202,7 +195,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         if (interval instanceof TimeInterval) {
             const ticks = interval.range(new Date(start), new Date(stop));
-            if (isDenseInterval({ start, stop, interval, count: ticks.length, availableRange })) {
+            if (isDenseInterval(ticks.length, availableRange)) {
                 return;
             }
 
@@ -211,13 +204,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         const absInterval = Math.abs(interval);
 
-        if (isDenseInterval({ start, stop, interval: absInterval, availableRange })) {
-            return;
-        }
+        if (isDenseInterval((stop - start) / absInterval, availableRange)) return;
 
-        const reversedInterval = [...TimeScale.tickIntervals];
-        reversedInterval.reverse();
-
+        const reversedInterval = [...TimeScale.tickIntervals].reverse();
         const timeInterval = reversedInterval.find((tickInterval) => absInterval % tickInterval[2] === 0);
 
         if (timeInterval) {

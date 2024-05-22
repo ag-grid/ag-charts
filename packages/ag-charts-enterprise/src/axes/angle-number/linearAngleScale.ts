@@ -9,19 +9,19 @@ export class LinearAngleScale extends LinearScale {
 
     private niceTickStep = 0;
 
-    override ticks(): { ticks: number[]; fractionDigits: number } {
+    override ticks(): number[] {
         if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d)) || this.arcLength <= 0) {
-            return { ticks: [], fractionDigits: 0 };
+            return [];
         }
         this.refresh();
-        const [d0, d1] = this.getDomain();
 
         const { interval } = this;
+        const [d0, d1] = this.getDomain();
 
         if (interval) {
             const step = Math.abs(interval);
             const availableRange = this.getPixelRange();
-            if (!isDenseInterval({ start: d0, stop: d1, interval: step, availableRange })) {
+            if (!isDenseInterval((d1 - d0) / step, availableRange)) {
                 return range(d0, d1, step);
             }
         }

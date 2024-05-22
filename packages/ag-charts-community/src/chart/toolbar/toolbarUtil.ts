@@ -1,8 +1,8 @@
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
-    button: HTMLButtonElement,
+    button: HTMLElement,
     type: K,
-    listener?: (this: HTMLButtonElement, ev: HTMLElementEventMap[K]) => any
+    listener?: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
 ): void {
     if (listener) {
         button.addEventListener(type, listener);
@@ -14,21 +14,21 @@ function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
 export function initToolbarKeyNav(opts: {
     orientation: 'horizontal' | 'vertical';
     toolbar: HTMLElement;
-    buttons: HTMLButtonElement[];
+    buttons: HTMLElement[];
     onfocus?: (ev: FocusEvent) => void;
     onblur?: (ev: FocusEvent) => void;
 }): (() => void)[] {
     const { orientation, toolbar, buttons, onfocus, onblur } = opts;
     const { nextKey, prevKey } = {
         horizontal: { nextKey: 'ArrowRight', prevKey: 'ArrowLeft' },
-        vertical: { nextKey: 'ArrowUp', prevKey: 'ArrowDown' },
+        vertical: { nextKey: 'ArrowDown', prevKey: 'ArrowUp' },
     }[orientation];
 
     toolbar.role = 'toolbar';
     toolbar.ariaOrientation = orientation;
 
     const destroyFns: (() => void)[] = [];
-    const linkButtons = (src: HTMLButtonElement, dst: HTMLButtonElement | undefined, key: string) => {
+    const linkButtons = (src: HTMLElement, dst: HTMLElement | undefined, key: string) => {
         if (dst) {
             addRemovableEventListener(destroyFns, src, 'keydown', (ev: KeyboardEvent) => {
                 if (ev.key === key) {
@@ -47,6 +47,11 @@ export function initToolbarKeyNav(opts: {
         const next = buttons[i + 1];
         linkButtons(curr, prev, prevKey);
         linkButtons(curr, next, nextKey);
+        addRemovableEventListener(destroyFns, curr, 'keydown', (ev: KeyboardEvent) => {
+            if (ev.key === nextKey || ev.key === prevKey) {
+                ev.preventDefault();
+            }
+        });
         curr.tabIndex = i === 0 ? 0 : -1;
     }
 

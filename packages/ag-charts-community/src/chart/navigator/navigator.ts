@@ -10,6 +10,7 @@ import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
+import { initToolbarKeyNav } from '../toolbar/toolbarUtil';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -92,10 +93,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         );
 
         this.proxyNavigatorToolbar = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'scrollbar',
+            type: 'toolbar',
             id: `navigator-toolbar`,
             classList: ['ag-charts-proxy-navigator-toolbar'],
-            ariaOrientation: 'horizontal',
+            ariaOrientation: 'vertical',
             ariaLabel: 'Navigator',
         });
         this.updateGroupVisibility();
@@ -105,6 +106,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 type: 'slider',
                 id: 'ag-charts-navigator-pan',
                 ariaLabel: 'Panning',
+                ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maskVisibleRange,
                 onchange: (ev) => this.onPanSliderChange(ev),
@@ -113,6 +115,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 type: 'slider',
                 id: 'ag-charts-navigator-min',
                 ariaLabel: 'Minimum',
+                ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
                 onchange: (ev) => this.onMinSliderChange(ev),
@@ -121,11 +124,17 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 type: 'slider',
                 id: 'ag-charts-navigator-max',
                 ariaLabel: 'Maximum',
+                ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];
+        initToolbarKeyNav({
+            orientation: 'vertical',
+            toolbar: this.proxyNavigatorToolbar,
+            buttons: this.proxyNavigatorElements,
+        });
         this.destroyFns.push(() => {
             this.proxyNavigatorElements.forEach((e) => e.remove());
             this.proxyNavigatorToolbar.remove();

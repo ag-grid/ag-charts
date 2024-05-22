@@ -1,6 +1,6 @@
 import { allInStringUnion } from '../../util/array';
 import { Debug } from '../../util/debug';
-import { getDocument, getWindow } from '../../util/dom';
+import { getWindow } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
@@ -53,7 +53,8 @@ type SUPPORTED_EVENTS =
     | 'touchcancel'
     | 'pagehide'
     | 'wheel';
-const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
+const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
+const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide'];
 const EVENT_HANDLERS = [
     'click',
     'dblclick',
@@ -141,7 +142,7 @@ export enum InteractionState {
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
-    private readonly rootElement: HTMLElement;
+    private rootElement: HTMLElement;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -163,7 +164,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     ) {
         super();
 
-        this.rootElement = getDocument('body');
+        this.rootElement = this.domManager.getDocumentRoot();
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch') || type === 'wheel') {
@@ -176,6 +177,20 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
         }
+
+        this.domManager.addListener('container-changed', () => this.containerChanged());
+    }
+
+    private containerChanged() {
+        for (const type of SHADOW_DOM_HANDLERS) {
+            this.rootElement.removeEventListener(type, this.eventHandler);
+        }
+
+        this.rootElement = this.domManager.getDocumentRoot();
+
+        for (const type of SHADOW_DOM_HANDLERS) {
+            this.rootElement.addEventListener(type, this.eventHandler);
+        }
     }
 
     override destroy() {
@@ -183,6 +198,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().removeEventListener(type, this.eventHandler);
+        }
+        for (const type of SHADOW_DOM_HANDLERS) {
+            this.rootElement.removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {

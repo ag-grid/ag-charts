@@ -78,6 +78,8 @@ export interface AgChartLegendClickEvent extends AgChartLegendEvent<'click'> {}
 
 export interface AgChartLegendDoubleClickEvent extends AgChartLegendEvent<'dblclick'> {}
 
+export interface AgChartLegendContextMenuEvent extends AgChartLegendEvent<'contextmenu'> {}
+
 export interface AgChartLegendListeners {
     /** The listener to call when a legend item is clicked. */
     legendItemClick?: (event: AgChartLegendClickEvent) => void;

@@ -14,10 +14,6 @@
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         line-height: var(--line-height-ultra-tight);
     }
-
-    > span {
-        margin-bottom: $spacing-size-2;
-    }
 }
 
 .pageTitleContainer {

@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
+import { computeNodeGraph } from './flowProportionUtil';
 
 const { DataModelSeries, DataController, Validate, ARRAY, keyProperty, valueProperty } = _ModuleSupport;
 const { Selection, Group, Text } = _Scene;
@@ -22,7 +23,6 @@ export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum 
     type: FlowProportionDatumType.Node;
     id: string;
     label: string | undefined;
-    size: number;
     fill: string;
     stroke: string;
 }
@@ -64,6 +64,8 @@ export abstract class FlowProportionSeries<
 
     public contextNodeData?: _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>;
 
+    private processedNodes = new Map<string, FlowProportionNodeDatum>();
+
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
     private readonly focusLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
@@ -100,10 +102,6 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    override get hasData() {
-        return super.hasData && this.nodes != null;
-    }
-
     public override getNodeData(): TDatum<TNodeDatum, TLinkDatum>[] | undefined {
         return this.contextNodeData?.nodeData;
     }
@@ -114,29 +112,29 @@ export abstract class FlowProportionSeries<
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         const { nodesDataController, data, nodes } = this;
 
-        if (data == null || nodes == null || !this.properties.isValid()) {
+        if (data == null || !this.properties.isValid()) {
             return;
         }
 
-        const { fromIdKey, toIdKey, sizeKey, nodeIdKey, labelKey, nodeSizeKey } = this.properties;
+        const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 
-        const nodesDataModelPromise = this.requestDataModel<any, any, true>(nodesDataController, nodes, {
-            props: [
-                keyProperty(nodeIdKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
-                ...(labelKey != null
-                    ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
-                    : []),
-                ...(nodeSizeKey != null
-                    ? [valueProperty(nodeSizeKey, undefined, { id: 'nodeSizeValue', includeProperty: false })]
-                    : []),
-            ],
-            groupByKeys: true,
-        });
+        const nodesDataModelPromise =
+            nodes != null
+                ? nodesDataController.request<any, any, true>(this.id, nodes, {
+                      props: [
+                          keyProperty(idKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
+                          ...(labelKey != null
+                              ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
+                              : []),
+                      ],
+                      groupByKeys: true,
+                  })
+                : null;
 
         const linksDataModelPromise = this.requestDataModel<any, any, false>(dataController, data, {
             props: [
-                valueProperty(fromIdKey, undefined, { id: 'fromIdValue', includeProperty: false }),
-                valueProperty(toIdKey, undefined, { id: 'toIdValue', includeProperty: false }),
+                valueProperty(fromKey, undefined, { id: 'fromIdValue', includeProperty: false }),
+                valueProperty(toKey, undefined, { id: 'toIdValue', includeProperty: false }),
                 ...(sizeKey != null
                     ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false })]
                     : []),
@@ -144,15 +142,130 @@ export abstract class FlowProportionSeries<
             groupByKeys: false,
         });
 
-        nodesDataController.execute();
+        if (nodes != null) {
+            nodesDataController.execute();
+        }
 
-        const [{ dataModel: nodesDataModel, processedData: nodesProcessedData }] = await Promise.all([
-            nodesDataModelPromise,
-            linksDataModelPromise,
-        ]);
+        const [nodesDataModel, linksDataModel] = await Promise.all([nodesDataModelPromise, linksDataModelPromise]);
 
-        this.nodesDataModel = nodesDataModel;
-        this.nodesProcessedData = nodesProcessedData;
+        this.nodesDataModel = nodesDataModel?.dataModel;
+        this.nodesProcessedData = nodesDataModel?.processedData;
+
+        const { fills, strokes } = this.properties;
+        const processedNodes = new Map<string, FlowProportionNodeDatum>();
+        if (nodesDataModel == null) {
+            const fromIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
+            const toIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'toIdValue');
+
+            const createImplicitNode = (id: string): FlowProportionNodeDatum => {
+                const label = id;
+                const fill = fills[processedNodes.size % fills.length];
+                const stroke = strokes[processedNodes.size % strokes.length];
+
+                return {
+                    series: this,
+                    itemId: undefined,
+                    datum: undefined,
+                    type: FlowProportionDatumType.Node,
+                    id,
+                    label,
+                    fill,
+                    stroke,
+                };
+            };
+
+            linksDataModel.processedData.data.forEach(({ values }) => {
+                const fromId: string = values[fromIdIdx];
+                const toId: string = values[toIdIdx];
+
+                if (!processedNodes.has(fromId)) {
+                    processedNodes.set(fromId, createImplicitNode(fromId));
+                }
+
+                if (!processedNodes.has(toId)) {
+                    processedNodes.set(toId, createImplicitNode(toId));
+                }
+            });
+        } else {
+            const nodeIdIdx = nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'nodeIdValue');
+            const labelIdx =
+                labelKey != null
+                    ? nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'labelValue')
+                    : undefined;
+
+            nodesDataModel.processedData.data.forEach(({ datum, keys, values }, index) => {
+                const value = values[0];
+                const id: string = keys[nodeIdIdx];
+                const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
+
+                const fill = fills[index % fills.length];
+                const stroke = strokes[index % strokes.length];
+
+                processedNodes.set(id, {
+                    series: this,
+                    itemId: undefined,
+                    datum,
+                    type: FlowProportionDatumType.Node,
+                    id,
+                    label,
+                    fill,
+                    stroke,
+                });
+            });
+        }
+
+        this.processedNodes = processedNodes;
+    }
+
+    protected getNodeGraph(
+        createNode: (node: FlowProportionNodeDatum) => TNodeDatum,
+        createLink: (link: FlowProportionLinkDatum<TNodeDatum>) => TLinkDatum,
+        { allowCircularReferences }: { allowCircularReferences: boolean }
+    ) {
+        const { dataModel: linksDataModel, processedData: linksProcessedData } = this;
+
+        const nodesById = new Map<string, TNodeDatum>();
+        const links: TLinkDatum[] = [];
+
+        if (linksDataModel == null || linksProcessedData == null) {
+            const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.values(), links, allowCircularReferences);
+            return { nodeGraph, links, maxPathLength };
+        }
+
+        const { sizeKey } = this.properties;
+
+        const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
+        const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toIdValue');
+        const sizeIdx = sizeKey != null ? linksDataModel.resolveProcessedDataIndexById(this, 'sizeValue') : undefined;
+
+        this.processedNodes.forEach((datum) => {
+            const node = createNode(datum);
+            nodesById.set(datum.id, node);
+        });
+
+        linksProcessedData.data.forEach(({ datum, values }) => {
+            const fromId: string = values[fromIdIdx];
+            const toId: string = values[toIdIdx];
+            const size: number = sizeIdx != null ? values[sizeIdx] : 1;
+            const fromNode = nodesById.get(fromId);
+            const toNode = nodesById.get(toId);
+            if (fromNode == null || toNode == null) return;
+
+            const link = createLink({
+                series: this,
+                itemId: undefined,
+                datum,
+                type: FlowProportionDatumType.Link,
+                fromNode,
+                toNode,
+                size,
+            });
+            links.push(link);
+        });
+
+        const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.values(), links, allowCircularReferences);
+
+        return { nodeGraph, links, maxPathLength };
     }
 
     async updateSelections(): Promise<void> {
@@ -178,18 +291,25 @@ export abstract class FlowProportionSeries<
 
         await this.updateSelections();
 
+        const nodeData = this.contextNodeData?.nodeData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+
         let highlightedDatum: TDatum<TNodeDatum, TLinkDatum> | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
+        if (highlightedDatum?.series === this && (highlightedDatum as any).type == null) {
+            // Handle highlighting legend items
+            const { itemId } = highlightedDatum;
+            highlightedDatum =
+                itemId != null
+                    ? nodeData.find((node) => node.type === FlowProportionDatumType.Node && node.id === itemId)
+                    : undefined;
+        } else if (highlightedDatum?.series !== this) {
             highlightedDatum = undefined;
         }
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity =
             highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
-
-        const nodeData = this.contextNodeData?.nodeData ?? [];
-        const labelData = this.contextNodeData?.labelData ?? [];
 
         this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         await this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -289,8 +409,31 @@ export abstract class FlowProportionSeries<
         return [];
     }
 
-    override getLegendData(_legendType: unknown) {
-        return [];
+    override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+        if (legendType !== 'category') return [];
+
+        return Array.from(
+            this.processedNodes.values(),
+            ({ id, label, fill, stroke }): _ModuleSupport.CategoryLegendDatum => ({
+                legendType: 'category',
+                id: this.id,
+                itemId: id,
+                seriesId: this.id,
+                enabled: true,
+                label: { text: label ?? id },
+                symbols: [
+                    {
+                        marker: {
+                            fill,
+                            fillOpacity: 1,
+                            stroke,
+                            strokeWidth: 0,
+                            strokeOpacity: 1,
+                        },
+                    },
+                ],
+            })
+        );
     }
 
     protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {

@@ -1,5 +1,3 @@
-import { describe, expect, it, test } from '@jest/globals';
-
 import { LogScale } from './logScale';
 
 describe('LogScale', () => {
@@ -7,21 +5,14 @@ describe('LogScale', () => {
         {
             const scale = new LogScale();
             scale.domain = [100, 1000000];
-            expect(scale.ticks()).toEqual({ ticks: [100, 1000, 10000, 100000, 1000000], fractionDigits: 0 });
+            expect(scale.ticks()).toEqual([100, 1000, 10000, 100000, 1000000]);
             scale.tickCount = 4;
-            expect(scale.ticks()).toEqual({ ticks: [100, 1000, 10000, 100000, 1000000], fractionDigits: 0 });
+            expect(scale.ticks()).toEqual([100, 1000, 10000, 100000, 1000000]);
         }
-
-        {
-            // const scale = new LogScale();
-            // scale.domain = [-100, 10000];
-            // expect(scale.ticks()).toEqual([]);
-        }
-
         {
             const scale = new LogScale();
             scale.domain = [-1000, -10];
-            expect(scale.ticks()).toEqual({ ticks: [-1000, -300, -100, -30, -10], fractionDigits: 0 });
+            expect(scale.ticks()).toEqual([-1000, -300, -100, -30, -10]);
         }
     });
 
@@ -123,15 +114,12 @@ describe('LogScale', () => {
     });
 
     test('base', () => {
-        const expTicks = {
-            ticks: [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351],
-            fractionDigits: 0,
-        };
+        const expTicks = [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351];
         const scale = new LogScale();
         scale.domain = [10, 1000];
-        expect({ ...scale.ticks() }).not.toEqual({ ...expTicks });
+        expect(scale.ticks()).not.toEqual(expTicks);
         scale.base = Math.E;
-        expect({ ...scale.ticks() }).toEqual({ ...expTicks });
+        expect(scale.ticks()).toEqual(expTicks);
     });
 
     test('nice', () => {

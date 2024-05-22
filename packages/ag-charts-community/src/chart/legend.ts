@@ -147,6 +147,9 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
+const ID_LEGEND_VISIBILITY = 'legend-visibility';
+const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
+
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
 
@@ -237,13 +240,13 @@ export class Legend extends BaseProperties {
         this.pagination.attachPagination(this.group);
 
         ctx.contextMenuRegistry.registerDefaultAction({
-            id: 'legend-visibility',
+            id: ID_LEGEND_VISIBILITY,
             region: 'legend',
             label: 'Toggle Visibility',
             action: (_params) => this.contextToggleVisibility(),
         });
         ctx.contextMenuRegistry.registerDefaultAction({
-            id: 'legend-other-series',
+            id: ID_LEGEND_OTHER_SERIES,
             region: 'legend',
             label: 'Toggle Other Series',
             action: (_params) => this.contextToggleOtherSeries(),
@@ -267,6 +270,7 @@ export class Legend extends BaseProperties {
             id: `${this.id}-toolbar`,
             classList: ['ag-charts-proxy-legend-toolbar'],
             ariaLabel: 'Legend',
+            ariaOrientation: 'horizontal',
         });
     }
 
@@ -783,6 +787,14 @@ export class Legend extends BaseProperties {
             markerLabel.opacity = datum.enabled ? 1 : 0.5;
             markerLabel.color = color;
         });
+
+        this.updateContextMenu();
+    }
+
+    private updateContextMenu() {
+        const { toggleSeriesVisible } = this.item;
+        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_VISIBILITY, toggleSeriesVisible);
+        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_OTHER_SERIES, toggleSeriesVisible);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -868,6 +880,13 @@ export class Legend extends BaseProperties {
 
     private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
         this.contextMenuDatum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        this.ctx.highlightManager.updateLegendItem(this.id, this.contextMenuDatum);
+
+        if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
+            this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
+        } else {
+            this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
+        }
     }
 
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
@@ -875,6 +894,10 @@ export class Legend extends BaseProperties {
         if (this.doClick(datum)) {
             event.consume();
         }
+    }
+
+    private getVisibleItemCount(): number {
+        return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
     private doClick(datum: CategoryLegendDatum | undefined): boolean {
@@ -900,10 +923,7 @@ export class Legend extends BaseProperties {
             newEnabled = !enabled;
 
             if (preventHidingAll && !newEnabled) {
-                const numVisibleItems = chartService.series
-                    .flatMap((s) => s.getLegendData('category'))
-                    .filter((d) => d.enabled).length;
-
+                const numVisibleItems = this.getVisibleItemCount();
                 if (numVisibleItems < 2) {
                     newEnabled = true;
                 }
@@ -1047,6 +1067,7 @@ export class Legend extends BaseProperties {
         // is in a state when highlighting is possible.
         if (this.ctx.interactionManager.getState() === InteractionState.Default) {
             this.ctx.highlightManager.updateHighlight(this.id);
+            this.ctx.highlightManager.updateLegendItem(this.id);
         }
     }
 

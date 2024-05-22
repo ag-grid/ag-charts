@@ -3,16 +3,16 @@ import type { _ModuleSupport } from 'ag-charts-community';
 export interface FlowProportionSeriesProperties<SeriesOptions extends {}>
     extends _ModuleSupport.SeriesProperties<SeriesOptions> {
     nodes: any[] | undefined;
-    fromIdKey: string;
+    fromKey: string;
     fromIdName: string | undefined;
-    toIdKey: string;
+    toKey: string;
     toIdName: string | undefined;
-    nodeIdKey: string;
-    nodeIdName: string | undefined;
+    idKey: string;
+    idName: string | undefined;
     labelKey: string | undefined;
     labelName: string | undefined;
     sizeKey: string | undefined;
     sizeName: string | undefined;
-    nodeSizeKey: string | undefined;
-    nodeSizeName: string | undefined;
+    fills: string[];
+    strokes: string[];
 }

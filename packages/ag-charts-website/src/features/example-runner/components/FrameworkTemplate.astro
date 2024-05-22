@@ -135,3 +135,9 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
 }
 
 {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+
+<style>
+    :global(astro-dev-toolbar) {
+        display: none !important;
+    }
+</style>

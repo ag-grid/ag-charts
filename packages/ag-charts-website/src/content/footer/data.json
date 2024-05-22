@@ -57,6 +57,10 @@
             {
                 "name": "Cookies Policy",
                 "url": "/cookies"
+            },
+            {
+                "name": "Sitemap",
+                "url": "/sitemap"
             }
         ]
     },

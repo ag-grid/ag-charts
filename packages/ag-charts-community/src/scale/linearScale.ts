@@ -1,5 +1,5 @@
 import { tickFormat } from '../util/numberFormat';
-import ticks, { isDenseInterval, range, singleTickDomain, tickStep } from '../util/ticks';
+import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 
 /**
@@ -16,25 +16,22 @@ export class LinearScale extends ContinuousScale<number> {
         return d;
     }
 
-    ticks(): { ticks: number[]; fractionDigits: number } {
+    ticks(): number[] {
         const count = this.tickCount ?? ContinuousScale.defaultTickCount;
-        if (!this.domain || this.domain.length < 2 || count < 1 || this.domain.some((d) => !isFinite(d))) {
-            return { ticks: [], fractionDigits: 0 };
+        if (!this.domain || this.domain.length < 2 || count < 1 || !this.domain.every(isFinite)) {
+            return [];
         }
         this.refresh();
         const [d0, d1] = this.getDomain();
 
-        const { interval } = this;
-
-        if (interval) {
-            const step = Math.abs(interval);
-            const availableRange = this.getPixelRange();
-            if (!isDenseInterval({ start: d0, stop: d1, interval: step, availableRange })) {
+        if (this.interval) {
+            const step = Math.abs(this.interval);
+            if (!isDenseInterval((d1 - d0) / step, this.getPixelRange())) {
                 return range(d0, d1, step);
             }
         }
 
-        return ticks(d0, d1, count, this.minTickCount, this.maxTickCount);
+        return createTicks(d0, d1, count, this.minTickCount, this.maxTickCount);
     }
 
     update() {
@@ -47,15 +44,14 @@ export class LinearScale extends ContinuousScale<number> {
     }
 
     protected getTickStep(start: number, stop: number) {
-        const count = this.tickCount ?? ContinuousScale.defaultTickCount;
-        return this.interval ?? tickStep(start, stop, count, this.minTickCount, this.maxTickCount);
+        return this.interval ?? tickStep(start, stop, this.tickCount, this.minTickCount, this.maxTickCount);
     }
 
     /**
      * Extends the domain so that it starts and ends on nice round values.
      */
     protected updateNiceDomain() {
-        const count = this.tickCount ?? ContinuousScale.defaultTickCount;
+        const count = this.tickCount;
         if (count < 1) {
             this.niceDomain = [...this.domain];
             return;
@@ -64,7 +60,7 @@ export class LinearScale extends ContinuousScale<number> {
         let [start, stop] = this.domain;
 
         if (count === 1) {
-            [start, stop] = singleTickDomain(start, stop);
+            [start, stop] = niceTicksDomain(start, stop);
         } else {
             const roundStart = start > stop ? Math.ceil : Math.floor;
             const roundStop = stop < start ? Math.floor : Math.ceil;
@@ -93,6 +89,6 @@ export class LinearScale extends ContinuousScale<number> {
     }
 
     tickFormat({ ticks: specifiedTicks, specifier }: { ticks?: any[]; specifier?: string }) {
-        return tickFormat(specifiedTicks ?? this.ticks().ticks, specifier);
+        return tickFormat(specifiedTicks ?? this.ticks(), specifier);
     }
 }

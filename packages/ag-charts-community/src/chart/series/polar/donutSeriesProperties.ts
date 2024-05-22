@@ -180,7 +180,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @Validate(NUMBER)
     sectorSpacing: number = 0;
 
     @Validate(OBJECT_ARRAY)

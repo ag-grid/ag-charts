@@ -6,12 +6,22 @@ import { urlWithPrefix } from '@utils/urlWithPrefix';
 export async function getStaticPaths() {
     return getDocsFrameworkPages();
 }
+
+const frameworkOverride = Astro.params.framework;
 ---
 
-<meta
-    http-equiv="refresh"
-    content={`0;url=${urlWithPrefix({
-        framework: Astro.params.framework,
-        url: DOCS_FRAMEWORK_REDIRECT_PAGE,
-    })}`}
-/>
+<div id="redirectUrl" data-framework-override={frameworkOverride} data-redirect-url={DOCS_FRAMEWORK_REDIRECT_PAGE}>
+</div>
+<script>
+    import { $internalFramework } from '@stores/frameworkStore';
+    import { getFrameworkFromInternalFramework } from '@utils/framework';
+    import { urlWithPrefix } from '@utils/urlWithPrefix';
+
+    const data = document.getElementById('redirectUrl')?.dataset;
+    const dataAttrFrameworkOverride = data.frameworkOverride;
+    const dataAttrUrl = data.redirectUrl;
+    const framework = dataAttrFrameworkOverride ?? getFrameworkFromInternalFramework($internalFramework.get());
+    const redirectUrl = urlWithPrefix({ framework, url: dataAttrUrl });
+
+    window.location.replace(redirectUrl);
+</script>

@@ -49,7 +49,7 @@ export class PolarChart extends Chart {
         }
 
         const angleScale: Scale<number, number> = angleAxis.scale;
-        const angles = angleScale.ticks?.().ticks.map((value) => angleScale.convert(value));
+        const angles = angleScale.ticks?.().map((value) => angleScale.convert(value));
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
