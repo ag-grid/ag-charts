@@ -252,10 +252,12 @@ export class Legend extends BaseProperties {
             action: (params: { datum?: CategoryLegendDatum }) => this.contextToggleOtherSeries(params.datum),
         });
 
-        const animationState = InteractionState.Default | InteractionState.Animation;
+        const { Default, Animation, ContextMenu } = InteractionState;
+        const animationState = Default | Animation;
+        const contextMenuState = Default | Animation | ContextMenu;
         const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
-            region.addListener('contextmenu', (e) => this.checkContextClick(e), animationState),
+            region.addListener('contextmenu', (e) => this.checkContextClick(e), contextMenuState),
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
