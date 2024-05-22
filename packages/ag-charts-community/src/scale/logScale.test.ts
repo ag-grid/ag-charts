@@ -1,5 +1,3 @@
-import { describe, expect, it, test } from '@jest/globals';
-
 import { LogScale } from './logScale';
 
 describe('LogScale', () => {
@@ -129,9 +127,9 @@ describe('LogScale', () => {
         };
         const scale = new LogScale();
         scale.domain = [10, 1000];
-        expect({ ...scale.ticks() }).not.toEqual({ ...expTicks });
+        expect(scale.ticks()).not.toEqual(expTicks);
         scale.base = Math.E;
-        expect({ ...scale.ticks() }).toEqual({ ...expTicks });
+        expect(scale.ticks()).toEqual(expTicks);
     });
 
     test('nice', () => {

@@ -2,7 +2,7 @@ import { identity } from '../util/function';
 import { Logger } from '../util/logger';
 import { findRangeExtent } from '../util/number';
 import { format } from '../util/numberFormat';
-import generateTicks, { isDenseInterval, range } from '../util/ticks';
+import { createTicks, isDenseInterval, range } from '../util/ticks';
 import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
@@ -111,7 +111,7 @@ export class LogScale extends ContinuousScale<number> {
         if (!isBaseInteger || isDiffLarge) {
             // Returns [10^1, 10^2, 10^3, 10^4, ...]
             // eslint-disable-next-line prefer-const
-            let { ticks, fractionDigits } = generateTicks(p0, p1, Math.min(p1 - p0, count));
+            let { ticks, fractionDigits } = createTicks(p0, p1, Math.min(p1 - p0, count));
             ticks = ticks.map((x) => this.pow(x));
             return { ticks, fractionDigits };
         }

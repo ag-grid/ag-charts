@@ -1,5 +1,5 @@
 import { tickFormat } from '../util/numberFormat';
-import ticks, { isDenseInterval, range, singleTickDomain, tickStep } from '../util/ticks';
+import { createTicks, isDenseInterval, range, singleTickDomain, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 
 /**
@@ -33,7 +33,7 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        return ticks(d0, d1, count, this.minTickCount, this.maxTickCount);
+        return createTicks(d0, d1, count, this.minTickCount, this.maxTickCount);
     }
 
     update() {

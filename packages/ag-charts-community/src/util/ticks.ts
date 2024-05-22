@@ -3,7 +3,7 @@ import { countFractionDigits } from './number';
 
 const TickMultipliers = [1, 2, 5, 10];
 
-export default function (
+export function createTicks(
     start: number,
     stop: number,
     count: number,
