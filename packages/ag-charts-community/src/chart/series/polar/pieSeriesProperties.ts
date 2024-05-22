@@ -138,7 +138,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
+    @Validate(NUMBER)
     sectorSpacing: number = 0;
 
     @Validate(OBJECT)
