@@ -15,9 +15,9 @@ type ContextMenuGroups = {
 };
 type ContextType = _ModuleSupport.ContextType;
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
-type ContextMenuAction = _ModuleSupport.ContextMenuAction;
-type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
+type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuItem = 'download' | ContextMenuAction;
+type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
 const { BOOLEAN, Validate, createElement, getWindow, ContextMenuRegistry } = _ModuleSupport;
 
@@ -248,17 +248,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return this.createButtonElement(type, label, action);
     }
 
-    private createButtonOnClick(type: ContextType, callback: (params: ContextMenuActionParams) => void): () => void {
-        if (type === 'legend') {
+    private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
+        if (ContextMenuRegistry.checkCallback('legend', type, callback)) {
             return () => {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, enabled } = this.pickedLegendItem;
-                    const event: AgChartLegendContextMenuEvent & ContextMenuActionParams = {
+                    const event: AgChartLegendContextMenuEvent = {
                         type: 'contextmenu',
                         seriesId,
                         itemId,
                         enabled,
-                        event: this.showEvent!,
                     };
                     callback(event);
                 }
@@ -269,17 +268,17 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             if (event) {
                 callback(event);
             } else {
-                callback({ event: this.showEvent! });
+                callback({ event: this.showEvent! } as any); // TODO(olegat) shouldn't this event just be dropped or log an error?
             }
 
             this.hide();
         };
     }
 
-    private createButtonElement(
-        type: ContextType,
+    private createButtonElement<T extends ContextType>(
+        type: T,
         label: string,
-        callback: (params: ContextMenuActionParams) => void
+        callback: ContextMenuCallback<T>
     ): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);

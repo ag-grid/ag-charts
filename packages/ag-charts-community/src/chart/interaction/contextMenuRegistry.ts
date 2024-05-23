@@ -1,3 +1,4 @@
+import type { AgContextMenuOptions } from '../../options/chart/contextMenuOptions';
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
@@ -22,22 +23,25 @@ type ContextEventProperties<K extends ContextType = ContextType> = {
 export type ContextType = keyof ContextTypeMap;
 export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEventProperties<K> & ConsumableEvent;
 
-export type ContextMenuAction = {
+// Extract the TEvent types from the AgContextMenuOptions contract:
+type TEventOfContextMenuActions<K extends keyof Omit<AgContextMenuOptions, 'enabled'>> = Parameters<
+    NonNullable<AgContextMenuOptions[K]>[number]['action']
+>[0];
+export type ContextMenuCallback<K extends ContextType> = {
+    all: (params: TEventOfContextMenuActions<'extraActions'>) => void;
+    series: (params: TEventOfContextMenuActions<'extraNodeActions'>) => void;
+    legend: (params: TEventOfContextMenuActions<'extraLegendItemActions'>) => void;
+}[K];
+
+export type ContextMenuAction<K extends ContextType> = {
     id?: string;
     label: string;
-    type: ContextType;
-    action: (params: ContextMenuActionParams) => void;
-};
-
-export type ContextMenuActionParams = {
-    datum?: any;
-    itemId?: string;
-    seriesId?: string;
-    event: MouseEvent;
+    type: K;
+    action: ContextMenuCallback<K>;
 };
 
 export class ContextMenuRegistry {
-    private readonly defaultActions: Array<ContextMenuAction> = [];
+    private readonly defaultActions: Array<ContextMenuAction<ContextType>> = [];
     private readonly disabledActions: Set<string> = new Set();
     private readonly hiddenActions: Set<string> = new Set();
     private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
@@ -70,6 +74,14 @@ export class ContextMenuRegistry {
         return event.type === type;
     }
 
+    public static checkCallback<T extends ContextType>(
+        desiredType: T,
+        type: ContextType,
+        _callback: ContextMenuCallback<ContextType>
+    ): _callback is ContextMenuCallback<T> {
+        return desiredType === type;
+    }
+
     public dispatchContext<T extends ContextType>(
         type: T,
         pointerEvent: PointerInteractionEvent<'contextmenu'>,
@@ -87,13 +99,13 @@ export class ContextMenuRegistry {
         return this.listeners.addListener('', handler);
     }
 
-    public filterActions(type: ContextType): ContextMenuAction[] {
+    public filterActions(type: ContextType): ContextMenuAction<ContextType>[] {
         return this.defaultActions.filter((action) => {
             return action.id && !this.hiddenActions.has(action.id) && ['all', type].includes(action.type);
         });
     }
 
-    public registerDefaultAction(action: ContextMenuAction) {
+    public registerDefaultAction<T extends ContextType>(action: ContextMenuAction<T>) {
         if (action.id && this.defaultActions.find(({ id }) => id === action.id)) {
             return;
         }
