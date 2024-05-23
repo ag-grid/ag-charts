@@ -46,7 +46,8 @@ export interface AgNodeDoubleClickEvent<TDatum> extends AgNodeBaseClickEvent<'no
     /** Event type. */ type: 'nodeDoubleClick';
 }
 
-export interface AgNodeContextMenuActionEvent<TDatum = any> extends AgNodeBaseClickEvent<'nodeContextMenuAction', TDatum> {
+export interface AgNodeContextMenuActionEvent<TDatum = any>
+    extends AgNodeBaseClickEvent<'nodeContextMenuAction', TDatum> {
     /** Event type. */ type: 'nodeContextMenuAction';
 }
 
@@ -56,6 +57,10 @@ export interface AgChartClickEvent extends AgChartEvent<'click'> {
 
 export interface AgChartDoubleClickEvent extends AgChartEvent<'doubleClick'> {
     /** Event type. */ type: 'doubleClick';
+}
+
+export interface AgChartContextMenuEvent extends AgChartEvent<'contextMenuEvent'> {
+    /** Event type. */ type: 'contextMenuEvent';
 }
 
 export interface AgBaseChartListeners<TDatum> {

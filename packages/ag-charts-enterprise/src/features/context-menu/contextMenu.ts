@@ -260,17 +260,24 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                         enabled,
                     };
                     callback(event);
+                    this.hide();
                 }
+            };
+        } else if (ContextMenuRegistry.checkCallback('series', type, callback)) {
+            return () => {
+                const { pickedNode, showEvent } = this;
+                const event = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
+
+                if (event) {
+                    callback(event);
+                } else {
+                    _Util.Logger.error('series node not found');
+                }
+                this.hide();
             };
         }
         return () => {
-            const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
-            if (event) {
-                callback(event);
-            } else {
-                callback({ event: this.showEvent! } as any); // TODO(olegat) shouldn't this event just be dropped or log an error?
-            }
-
+            callback({ type: 'contextMenuEvent', event: this.showEvent! });
             this.hide();
         };
     }
