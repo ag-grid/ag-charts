@@ -1,4 +1,15 @@
-export type AgLineStyle =
-    | { style: 'linear' }
-    | { style: 'smooth'; tension?: number }
-    | { style: 'step'; alignment?: 'leading' | 'center' | 'trailing' };
+export type AgLineStyle = AgLineLinearStyle | AgLineSmoothStyle | AgLineStepStyle;
+
+interface AgLineLinearStyle {
+    style: 'linear';
+}
+
+interface AgLineSmoothStyle {
+    style: 'smooth';
+    tension?: number;
+}
+
+interface AgLineStepStyle {
+    style: 'step';
+    alignment?: 'leading' | 'center' | 'trailing';
+}
