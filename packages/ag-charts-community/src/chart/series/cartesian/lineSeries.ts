@@ -240,7 +240,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 const yDatum = values[yIdx];
                 const yCumulativeDatum = values[yCumulativeIdx];
 
-                if (yCumulativeDatum === undefined) {
+                if (yDatum == null) {
                     moveTo = !connectMissingData;
                     return;
                 }
