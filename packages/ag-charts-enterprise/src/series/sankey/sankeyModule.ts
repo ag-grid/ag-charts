@@ -9,11 +9,18 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     optionsKey: 'series[]',
     packageType: 'enterprise',
     chartTypes: ['flow-proportion'],
+    solo: true,
 
     identifier: 'sankey',
     instanceConstructor: SankeySeries,
 
     themeTemplate: {
+        seriesArea: {
+            padding: {
+                top: 10,
+                bottom: 10,
+            },
+        },
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
             highlightStyle: {
@@ -39,6 +46,9 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
         },
         legend: {
             enabled: false,
+            item: {
+                toggleSeriesVisible: false,
+            },
         },
     },
     paletteFactory({ takeColors, colorsCount }) {

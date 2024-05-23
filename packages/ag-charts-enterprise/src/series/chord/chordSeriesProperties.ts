@@ -61,7 +61,7 @@ export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptio
     spacing: number = 1;
 
     @Validate(POSITIVE_NUMBER)
-    height: number = 1;
+    width: number = 1;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
@@ -87,13 +87,13 @@ export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptio
 
 export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {
     @Validate(STRING)
-    fromKey: string = '';
+    fromKey!: string;
 
     @Validate(STRING, { optional: true })
     fromIdName: string | undefined = undefined;
 
     @Validate(STRING)
-    toKey: string = '';
+    toKey!: string;
 
     @Validate(STRING, { optional: true })
     toIdName: string | undefined = undefined;

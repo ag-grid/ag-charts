@@ -1,6 +1,6 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
-import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -11,8 +11,6 @@ export interface AgSankeySeriesOptions<TDatum = any>
         AgSankeySeriesThemeableOptions<TDatum> {
     /** Configuration for the Sankey Series. */
     type: 'sankey';
-    /** Nodes to use instead of inferring from data. */
-    nodes?: any[];
 }
 
 export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
@@ -26,6 +24,8 @@ export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeri
     link?: AgSankeySeriesLinkOptions;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams>;
 }
 
 export interface AgSankeySeriesLabelOptions<TDatum>
@@ -53,10 +53,6 @@ export interface AgSankeySeriesOptionsKeys {
     toKey?: string;
     /** The key containing the size. */
     sizeKey?: string;
-    /** The node key containing the id when using the `nodes` property. */
-    idKey?: string;
-    /** The label key containing the id when using the `nodes` property. */
-    labelKey?: string;
 }
 
 export interface AgSankeySeriesOptionsNames {
@@ -66,10 +62,6 @@ export interface AgSankeySeriesOptionsNames {
     toIdName?: string;
     /** The name of the node key containing the size. */
     sizeName?: string;
-    /** The name of the node key containing the node id. */
-    idName?: string;
-    /** The name of the node key containing the label. */
-    labelName?: string;
 }
 
 export interface AgSankeySeriesTooltipRendererParams

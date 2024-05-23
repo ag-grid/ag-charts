@@ -56,7 +56,6 @@ export class ChordSeries extends FlowProportionSeries<
     ChordNodeDatum,
     ChordLinkDatum,
     ChordNodeLabelDatum,
-    ChordNodeLabelDatum,
     ChordSeriesProperties,
     _Scene.Sector,
     ChordLink
@@ -92,26 +91,45 @@ export class ChordSeries extends FlowProportionSeries<
             _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
         } = this;
         const {
-            label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize, fontFamily },
-            node: { height: nodeHeight, spacing: nodeSpacing },
+            fromKey,
+            toKey,
+            sizeKey,
+            label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize },
+            node: { width: nodeWidth, spacing: nodeSpacing },
         } = this.properties;
         const centerX = seriesRectWidth / 2;
         const centerY = seriesRectHeight / 2;
-        const canvasFont = `${fontSize}px ${fontFamily}`;
+        const canvasFont = new Text().setProperties(this.properties.label).font;
 
         let labelData: ChordNodeLabelDatum[] = [];
 
+        const defaultLabelFormatter = (v: any) => String(v);
         const { nodeGraph, links } = this.getNodeGraph(
-            (node) => ({
-                ...node,
-                size: 0,
-                centerX,
-                centerY,
-                innerRadius: NaN,
-                outerRadius: NaN,
-                startAngle: NaN,
-                endAngle: NaN,
-            }),
+            (node) => {
+                const label = this.getLabelText(
+                    this.properties.label,
+                    {
+                        datum: node.datum,
+                        value: node.label,
+                        fromKey,
+                        toKey,
+                        sizeKey,
+                    },
+                    defaultLabelFormatter
+                );
+
+                return {
+                    ...node,
+                    label,
+                    size: 0,
+                    centerX,
+                    centerY,
+                    innerRadius: NaN,
+                    outerRadius: NaN,
+                    startAngle: NaN,
+                    endAngle: NaN,
+                };
+            },
             (link) => ({
                 ...link,
                 centerX,
@@ -150,17 +168,17 @@ export class ChordSeries extends FlowProportionSeries<
         }
 
         const nodeCount = nodeGraph.size;
-        let radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeHeight - labelInset;
+        let radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeWidth - labelInset;
         let spacingSweep = nodeSpacing / radius;
 
         if (labelInset != null && nodeCount * spacingSweep >= 1.5 * Math.PI) {
             // Spacing taking up more than 3/4 the circle
             labelData = [];
-            radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeHeight;
+            radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeWidth;
             spacingSweep = nodeSpacing / radius;
         }
 
-        if (nodeCount * spacingSweep >= 2 * Math.PI) {
+        if (nodeCount * spacingSweep >= 2 * Math.PI || radius <= 0) {
             return {
                 itemId: this.id,
                 nodeData: [],
@@ -169,7 +187,7 @@ export class ChordSeries extends FlowProportionSeries<
         }
 
         const innerRadius = radius;
-        const outerRadius = radius + nodeHeight;
+        const outerRadius = radius + nodeWidth;
 
         let totalSize = 0;
         nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
@@ -344,7 +362,7 @@ export class ChordSeries extends FlowProportionSeries<
         return opts.datumSelection.update(
             opts.nodeData.filter((node): node is ChordLinkDatum => node.type === FlowProportionDatumType.Link),
             undefined,
-            (datum) => createDatumId([datum.type, datum.fromNode.id, datum.toNode.id])
+            (datum) => createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
         );
     }
 
@@ -358,7 +376,7 @@ export class ChordSeries extends FlowProportionSeries<
             properties,
             ctx: { callbackCache },
         } = this;
-        const { fromKey, toKey, idKey, labelKey, sizeKey, formatter } = properties;
+        const { fromKey, toKey, sizeKey, formatter } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
@@ -372,8 +390,6 @@ export class ChordSeries extends FlowProportionSeries<
                     itemId: datum.itemId,
                     fromKey,
                     toKey,
-                    idKey,
-                    labelKey,
                     sizeKey,
                     fill,
                     fillOpacity,
@@ -418,20 +434,7 @@ export class ChordSeries extends FlowProportionSeries<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const {
-            fromKey,
-            fromIdName,
-            toKey,
-            toIdName,
-            idKey,
-            idName,
-            sizeKey,
-            sizeName,
-            labelKey,
-            labelName,
-            formatter,
-            tooltip,
-        } = properties;
+        const { fromKey, fromIdName, toKey, toIdName, sizeKey, sizeName, formatter, tooltip } = properties;
         const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
         const { datum, itemId } = nodeDatum;
 
@@ -441,12 +444,16 @@ export class ChordSeries extends FlowProportionSeries<
         if (nodeDatum.type === FlowProportionDatumType.Link) {
             const { fromNode, toNode, size } = nodeDatum;
             title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
-            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            if (sizeKey != null) {
+                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            }
             fill = properties.link.fill ?? fromNode.fill;
         } else {
             const { id, label, size } = nodeDatum;
             title = label ?? id;
-            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            if (sizeKey != null) {
+                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            }
             fill = properties.node.fill ?? nodeDatum.fill;
         }
         const content = contentLines.join('<br>');
@@ -460,8 +467,6 @@ export class ChordSeries extends FlowProportionSeries<
                 itemId: datum.itemId,
                 fromKey,
                 toKey,
-                idKey,
-                labelKey,
                 sizeKey,
                 fill,
                 fillOpacity,
@@ -488,12 +493,8 @@ export class ChordSeries extends FlowProportionSeries<
                 fromIdName,
                 toKey,
                 toIdName,
-                idKey,
-                idName,
                 sizeKey,
                 sizeName,
-                labelKey,
-                labelName,
                 ...this.getModuleTooltipParams(),
             }
         );
