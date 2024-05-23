@@ -201,7 +201,7 @@ export interface INodeEventConstructor<
     TSeries extends Series<TDatum, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > {
-    new (type: TEvent, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<TEvent>;
+    new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<T>;
 }
 
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
@@ -708,7 +708,7 @@ export abstract class Series<
         this.fireEvent(new this.NodeEvent('nodeDoubleClick', event, datum, this));
     }
 
-    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent {
+    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
     }
 
