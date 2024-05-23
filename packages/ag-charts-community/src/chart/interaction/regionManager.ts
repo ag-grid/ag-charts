@@ -166,8 +166,8 @@ export class RegionManager {
 
     private dispatch(region: Region | undefined, event: RegionEvent) {
         event.region = region?.properties.name;
-        region?.listeners.dispatch(event.type, event);
         this.allRegionsListeners.dispatch(event.type, event);
+        region?.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
