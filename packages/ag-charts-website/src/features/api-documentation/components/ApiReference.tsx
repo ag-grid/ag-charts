@@ -74,11 +74,14 @@ export function ApiReferenceWithContext({
     exclude,
     hideHeader,
     hideRequired,
+    specialTypes,
     ...props
 }: ApiReferenceOptions & ApiReferenceConfig) {
     return (
         <QueryClientProvider client={queryClient}>
-            <ApiReferenceConfigContext.Provider value={{ prioritise, include, exclude, hideHeader, hideRequired }}>
+            <ApiReferenceConfigContext.Provider
+                value={{ prioritise, include, exclude, specialTypes, hideHeader, hideRequired }}
+            >
                 <ApiReferenceWithReferenceContext {...props} />
             </ApiReferenceConfigContext.Provider>
         </QueryClientProvider>
