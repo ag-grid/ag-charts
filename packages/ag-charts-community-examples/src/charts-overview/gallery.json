@@ -132,6 +132,12 @@
             "example": "treemap-with-color-range"
         }
     },
+    "Chord": {
+        "Stack Overflow Survey": {
+            "description": "What technologies developers want to learn.",
+            "example": "chord"
+        }
+    },
     "Feature Highlights": {
         "Cross Lines": {
             "description": "Cross lines or shaded regions will emphasise trends and draw attention to important information such as a threshold.",

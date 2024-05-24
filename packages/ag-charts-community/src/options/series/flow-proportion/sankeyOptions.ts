@@ -8,6 +8,7 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 export interface AgSankeySeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgSankeySeriesOptionsKeys,
+        AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum> {
     /** Configuration for the Sankey Series. */
     type: 'sankey';
