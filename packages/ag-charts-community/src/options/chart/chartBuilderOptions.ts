@@ -66,6 +66,9 @@ export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
     /** Get the `AgChartOptions` representing the current chart configuration. */
     getOptions(): O;
 
+    /** @returns a Promise that resolves once any pending changes have been rendered */
+    waitForUpdate(): Promise<void>;
+
     /**
      * Starts a browser-based image download for the given `AgChartInstance`.
      *

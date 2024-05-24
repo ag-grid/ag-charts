@@ -82,6 +82,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return deepClone(this.chart.getOptions());
     }
 
+    waitForUpdate() {
+        return this.chart.waitForUpdate();
+    }
+
     async download(opts?: DownloadOptions) {
         const clone = await this.prepareResizedChart(this, opts);
         try {
