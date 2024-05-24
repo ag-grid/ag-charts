@@ -16,10 +16,10 @@ const RESET = '\x1b[m';
 function success(msg) {
     console.log(`*** ${GREEN}${msg}${RESET}`);
 }
-function warning() {
+function warning(msg) {
     console.log(`*** ${YELLOW}${msg}${RESET}`);
 }
-function error() {
+function error(msg) {
     console.log(`*** ${RED}${msg}${RESET}`);
 }
 
