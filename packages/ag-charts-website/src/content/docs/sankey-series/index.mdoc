@@ -2,7 +2,7 @@
 title: 'Sankey Series'
 ---
 
-A Sankey Series visualises movement or change between different items, and the proportions between these movements or changes.
+A Sankey Series visualises movement or change between different items, using nodes and links.
 
 ## Simple Sankey
 
@@ -23,11 +23,13 @@ series: [
 
 In this configuration:
 
--   `fromKey` defines the start of each link.
--   `toKey` defines the end of each link.
+-   `fromKey` defines the start node of each link.
+-   `toKey` defines the end node of each link.
 -   `sizeKey` defines the size of each link.
 
+{% warning %}
 Circular loops are not allowed in Sankey diagrams.
+{% /warning %}
 
 ## Justification
 

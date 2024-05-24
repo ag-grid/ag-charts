@@ -683,7 +683,17 @@
                         "title": "Chord Customisation",
                         "description": "",
                         "name": "chord-customisation"
-                    },
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Sankey",
+                "seriesName": "sankey",
+                "icon": "chartsSankey",
+                "enterprise": true,
+                "examples": [
                     {
                         "title": "Sankey",
                         "description": "",
