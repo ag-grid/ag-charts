@@ -84,11 +84,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null) {
+        if (this.data == null || !this.properties.isValid()) {
             return;
         }
 
-        const { visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
@@ -104,6 +104,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             `line-stack-${groupIndex}-yValues-marker`,
         ];
 
+        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
+        if (connectMissingData && stackCount > 1) {
+            common.invalidValue = 0;
+        }
+        if (!visible) {
+            common.forceValue = 0;
+        }
+
         const props: DataModelOptions<any, false>['props'] = [];
 
         // If two or more datum share an x-value, i.e. lined up vertically, they will have the same datum id.
@@ -113,28 +121,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         if (!isContinuousX) {
             props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
         }
-        if (isDefined(normalizedTo)) {
-            props.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
-            props.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
-        }
-        if (animationEnabled) {
-            props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
-            if (this.processedData) {
-                props.push(diff(this.processedData));
-            }
-        }
-
-        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
-        if (connectMissingData && stackCount > 1) {
-            common.invalidValue = 0;
-        }
-        if (!visible) {
-            common.forceValue = 0;
-        }
 
         props.push(
             valueProperty(xKey, xScaleType, { id: 'xValue' }),
-            valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
+            valueProperty(yKey, yScaleType, {
+                id: `yValueRaw`,
+                ...common,
+                invalidValue: undefined,
+            }),
             ...groupAccumulativeValueProperty(
                 yKey,
                 'window',
@@ -192,7 +186,18 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             )
         );
 
-        await this.requestDataModel<any>(dataController, this.data, { props, groupByKeys: true, groupByData: false });
+        if (isDefined(normalizedTo)) {
+            props.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
+            props.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
+        }
+        if (animationEnabled) {
+            props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
+            if (this.processedData) {
+                props.push(diff(this.processedData));
+            }
+        }
+
+        await this.requestDataModel<any>(dataController, data, { props });
 
         this.animationState.transition('updateData');
     }
@@ -213,7 +218,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
             return fixNumericExtent(extent(domain), xAxis);
         } else {
-            const domain = dataModel.getDomain(this, `yValueEnd`, 'value', processedData);
+            const domain = [
+                dataModel.getDomain(this, `yValueRaw`, 'value', processedData)[0],
+                dataModel.getDomain(this, `yValueEnd`, 'value', processedData)[1],
+            ];
             return fixNumericExtent(domain as any, yAxis);
         }
     }
@@ -236,64 +244,63 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const nodeData: LineNodeDatum[] = [];
         const size = marker.enabled ? marker.size : 0;
 
+        const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
         const yCumulativeIdx = dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`);
 
         let moveTo = true;
         // let nextPoint: UngroupedDataItem<any, any> | undefined;
-        processedData.data?.forEach(({ keys: [xDatum], datum: datumArray, values: valuesArray }) => {
-            valuesArray.forEach((values, valueIdx) => {
-                const seriesDatum = datumArray[valueIdx];
-                const yDatum = values[yIdx];
-                const yCumulativeDatum = values[yCumulativeIdx];
+        processedData.data?.forEach(({ datum, values }) => {
+            const xDatum = values[xIdx];
+            const yDatum = values[yIdx];
+            const yCumulativeDatum = values[yCumulativeIdx];
 
-                if (yDatum == null) {
-                    moveTo = !connectMissingData;
-                    return;
-                }
+            if (yDatum == null) {
+                moveTo = !connectMissingData;
+                return;
+            }
 
-                const x = xScale.convert(xDatum) + xOffset;
-                if (isNaN(x)) {
-                    moveTo = !connectMissingData;
-                    return;
-                }
+            const x = xScale.convert(xDatum) + xOffset;
+            if (isNaN(x)) {
+                moveTo = !connectMissingData;
+                return;
+            }
 
-                const y = yScale.convert(yCumulativeDatum) + yOffset;
+            const y = yScale.convert(yCumulativeDatum) + yOffset;
 
-                const labelText = this.getLabelText(
-                    label,
-                    { value: yDatum, datum: seriesDatum, xKey, yKey, xName, yName, legendItemName },
-                    (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
-                );
+            const labelText = this.getLabelText(
+                label,
+                { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
+                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
+            );
 
-                nodeData.push({
-                    series: this,
-                    datum: seriesDatum,
-                    yKey,
-                    xKey,
-                    point: { x, y, moveTo, size },
-                    midPoint: { x, y },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                    capDefaults: {
-                        lengthRatioMultiplier: this.properties.marker.getDiameter(),
-                        lengthMax: Infinity,
-                    },
-                    label: labelText
-                        ? {
-                              text: labelText,
-                              fontStyle: label.fontStyle,
-                              fontWeight: label.fontWeight,
-                              fontSize: label.fontSize,
-                              fontFamily: label.fontFamily,
-                              textAlign: 'center',
-                              textBaseline: 'bottom',
-                              fill: label.color,
-                          }
-                        : undefined,
-                });
-                moveTo = false;
+            nodeData.push({
+                series: this,
+                datum,
+                yKey,
+                xKey,
+                point: { x, y, moveTo, size },
+                midPoint: { x, y },
+                yValue: yDatum,
+                xValue: xDatum,
+                capDefaults: {
+                    lengthRatioMultiplier: this.properties.marker.getDiameter(),
+                    lengthMax: Infinity,
+                },
+                label: labelText
+                    ? {
+                          text: labelText,
+                          fontStyle: label.fontStyle,
+                          fontWeight: label.fontWeight,
+                          fontSize: label.fontSize,
+                          fontFamily: label.fontFamily,
+                          textAlign: 'center',
+                          textBaseline: 'bottom',
+                          fill: label.color,
+                      }
+                    : undefined,
             });
+            moveTo = false;
         });
 
         return {
