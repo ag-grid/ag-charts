@@ -1,6 +1,6 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
-import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -11,8 +11,6 @@ export interface AgChordSeriesOptions<TDatum = any>
         AgChordSeriesThemeableOptions<TDatum> {
     /** Configuration for the Chord Series. */
     type: 'chord';
-    /** Nodes to use instead of inferring from data. */
-    nodes?: any[];
 }
 
 export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
@@ -26,6 +24,8 @@ export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSerie
     link?: AgChordSeriesLinkOptions;
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams>;
 }
 
 export interface AgChordSeriesLabelOptions<TDatum>
@@ -42,8 +42,8 @@ export interface AgChordSeriesLinkOptions extends AgChordSeriesLinkStyle {}
 export interface AgChordSeriesNodeOptions extends FillOptions, StrokeOptions, LineDashOptions {
     /** Spacing of the nodes. */
     spacing?: PixelSize;
-    /** Height of the nodes. */
-    height?: PixelSize;
+    /** Width of the nodes. */
+    width?: PixelSize;
 }
 
 export interface AgChordSeriesOptionsKeys {
@@ -53,10 +53,6 @@ export interface AgChordSeriesOptionsKeys {
     toKey?: string;
     /** The key containing the size. */
     sizeKey?: string;
-    /** The node key containing the id when using the `nodes` property. */
-    idKey?: string;
-    /** The label key containing the id when using the `nodes` property. */
-    labelKey?: string;
 }
 
 export interface AgChordSeriesOptionsNames {
@@ -66,10 +62,6 @@ export interface AgChordSeriesOptionsNames {
     toIdName?: string;
     /** The name of the node key containing the size. */
     sizeName?: string;
-    /** The name of the node key containing the node id. */
-    idName?: string;
-    /** The name of the node key containing the label. */
-    labelName?: string;
 }
 
 export interface AgChordSeriesTooltipRendererParams

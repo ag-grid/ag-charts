@@ -49,7 +49,7 @@ export class FlowProportionChart extends Chart {
             group.translationX = Math.floor(shrinkRect.x);
             group.translationY = Math.floor(shrinkRect.y);
             group.setClipRectInGroupCoordinateSpace(
-                new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
+                new BBox(fullSeriesRect.x, fullSeriesRect.y, fullSeriesRect.width, fullSeriesRect.height)
             );
         }
 

@@ -29,7 +29,6 @@ export class SankeySeries extends FlowProportionSeries<
     SankeyNodeDatum,
     SankeyLinkDatum,
     SankeyNodeLabelDatum,
-    _Util.PlacedLabel<_Util.PointLabelDatum>,
     SankeySeriesProperties,
     _Scene.Rect,
     SankeyLink
@@ -51,10 +50,6 @@ export class SankeySeries extends FlowProportionSeries<
         return (this.properties.labelKey != null || this.nodes == null) && this.properties.label.enabled;
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
-        return this.contextNodeData?.labelData ?? [];
-    }
-
     protected linkFactory() {
         return new SankeyLink();
     }
@@ -70,23 +65,42 @@ export class SankeySeries extends FlowProportionSeries<
         } = this;
 
         const {
+            fromKey,
+            toKey,
+            sizeKey,
             label: { spacing: labelSpacing },
             node: { spacing: nodeSpacing, width: nodeWidth, justify },
         } = this.properties;
 
+        const defaultLabelFormatter = (v: any) => String(v);
         const {
             nodeGraph: baseNodeGraph,
             links,
             maxPathLength,
         } = this.getNodeGraph(
-            (node) => ({
-                ...node,
-                size: 0,
-                x: NaN,
-                y: NaN,
-                width: nodeWidth,
-                height: NaN,
-            }),
+            (node) => {
+                const label = this.getLabelText(
+                    this.properties.label,
+                    {
+                        datum: node.datum,
+                        value: node.label,
+                        fromKey,
+                        toKey,
+                        sizeKey,
+                    },
+                    defaultLabelFormatter
+                );
+
+                return {
+                    ...node,
+                    label,
+                    size: 0,
+                    x: NaN,
+                    y: NaN,
+                    width: nodeWidth,
+                    height: NaN,
+                };
+            },
             (link) => ({
                 ...link,
                 x1: NaN,
@@ -231,12 +245,14 @@ export class SankeySeries extends FlowProportionSeries<
 
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
-        const { fontSize, fontFamily } = this.properties.label;
-        const canvasFont = `${fontSize}px ${fontFamily}`;
+        const { fontSize } = this.properties.label;
+        const canvasFont = new Text().setProperties(this.properties.label).font;
         columns.forEach((column, index) => {
             const leading = index === 0;
             const trailing = index === columns.length - 1;
 
+            let bottom = -Infinity;
+            column.nodes.sort((a, b) => a.datum.y - b.datum.y);
             column.nodes.forEach(({ datum: node }) => {
                 nodeData.push(node);
 
@@ -265,21 +281,14 @@ export class SankeySeries extends FlowProportionSeries<
                 }
                 if (text === '') return;
 
-                const { width, height } = Text.measureText(text, canvasFont, 'middle', 'left');
+                const { height } = Text.measureText(text, canvasFont, 'middle', 'left');
+                const y0 = y - height / 2;
+                const y1 = y + height / 2;
 
-                labelData.push({
-                    point: {
-                        x: leading ? x - width / 2 : x + width / 2,
-                        y: node.y + node.height / 2,
-                        size: 0,
-                    },
-                    label: { text, width, height },
-                    marker: undefined,
-                    placement: 'right',
-                    // Improves the alignment
-                    leading,
-                    x,
-                });
+                if (y0 >= bottom) {
+                    labelData.push({ x, y, leading, text });
+                    bottom = y1;
+                }
             });
         });
         links.forEach((link) => {
@@ -299,23 +308,21 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected async updateLabelSelection(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        labelData: SankeyNodeLabelDatum[];
+        labelSelection: _Scene.Selection<_Scene.Text, SankeyNodeLabelDatum>;
     }) {
-        const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
-        return opts.labelSelection.update(placedLabels);
+        const labels = this.isLabelEnabled() ? opts.labelData : [];
+        return opts.labelSelection.update(labels);
     }
 
-    protected async updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
-    }) {
+    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, SankeyNodeLabelDatum> }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
-        labelSelection.each((label, { datum, y, height, text }) => {
-            const { x, leading } = datum as SankeyNodeLabelDatum;
+        labelSelection.each((label, { x, y, leading, text }) => {
             label.visible = true;
             label.x = x;
-            label.y = y + height / 2;
+            label.y = y;
             label.text = text;
             label.fill = fill;
             label.fontStyle = fontStyle;
@@ -370,7 +377,7 @@ export class SankeySeries extends FlowProportionSeries<
         return opts.datumSelection.update(
             opts.nodeData.filter((node): node is SankeyLinkDatum => node.type === FlowProportionDatumType.Link),
             undefined,
-            (datum) => createDatumId([datum.type, datum.fromNode.id, datum.toNode.id])
+            (datum) => createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
         );
     }
 
@@ -384,7 +391,7 @@ export class SankeySeries extends FlowProportionSeries<
             properties,
             ctx: { callbackCache },
         } = this;
-        const { fromKey, toKey, idKey, labelKey, sizeKey, formatter } = properties;
+        const { fromKey, toKey, sizeKey, formatter } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
@@ -398,8 +405,6 @@ export class SankeySeries extends FlowProportionSeries<
                     itemId: datum.itemId,
                     fromKey,
                     toKey,
-                    idKey,
-                    labelKey,
                     sizeKey,
                     fill,
                     fillOpacity,
@@ -422,7 +427,10 @@ export class SankeySeries extends FlowProportionSeries<
             link.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
             link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke ?? datum.fromNode.stroke;
             link.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
-            link.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
+            link.strokeWidth = Math.min(
+                highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth,
+                datum.height / 2
+            );
             link.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
             link.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
             link.inset = link.strokeWidth / 2;
@@ -441,20 +449,7 @@ export class SankeySeries extends FlowProportionSeries<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const {
-            fromKey,
-            fromIdName,
-            toKey,
-            toIdName,
-            idKey,
-            idName,
-            sizeKey,
-            sizeName,
-            labelKey,
-            labelName,
-            formatter,
-            tooltip,
-        } = properties;
+        const { fromKey, fromIdName, toKey, toIdName, sizeKey, sizeName, formatter, tooltip } = properties;
         const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
         const { datum, itemId } = nodeDatum;
 
@@ -464,12 +459,16 @@ export class SankeySeries extends FlowProportionSeries<
         if (nodeDatum.type === FlowProportionDatumType.Link) {
             const { fromNode, toNode, size } = nodeDatum;
             title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
-            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            if (sizeKey != null) {
+                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            }
             fill = properties.link.fill ?? fromNode.fill;
         } else {
             const { id, label, size } = nodeDatum;
             title = label ?? id;
-            contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            if (sizeKey != null) {
+                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
+            }
             fill = properties.node.fill ?? nodeDatum.fill;
         }
         const content = contentLines.join('<br>');
@@ -483,8 +482,6 @@ export class SankeySeries extends FlowProportionSeries<
                 itemId: datum.itemId,
                 fromKey,
                 toKey,
-                idKey,
-                labelKey,
                 sizeKey,
                 fill,
                 fillOpacity,
@@ -511,14 +508,14 @@ export class SankeySeries extends FlowProportionSeries<
                 fromIdName,
                 toKey,
                 toIdName,
-                idKey,
-                idName,
                 sizeKey,
                 sizeName,
-                labelKey,
-                labelName,
                 ...this.getModuleTooltipParams(),
             }
         );
+    }
+
+    override getLabelData(): _Util.PointLabelDatum[] {
+        return [];
     }
 }
