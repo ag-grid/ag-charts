@@ -44,7 +44,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
 
     componentDidUpdate() {
         if (this.chart != null) {
-            AgCharts.update(this.chart, this.applyContainer(this.props.options));
+            this.chart.update(this.applyContainer(this.props.options));
         }
     }
 
