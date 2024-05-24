@@ -6,7 +6,7 @@ import type { Degree, Ratio } from './types';
 export type AgPolarAxisType = 'angle-category' | 'angle-number' | 'radius-category' | 'radius-number';
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
-export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
+export interface AgAngleCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgAngleAxisLabelOptions>, 'keys'> {
     type: 'angle-category';
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
@@ -30,7 +30,7 @@ export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxi
     paddingInner?: Ratio;
 }
 
-export interface AgAngleNumberAxisOptions extends AgBaseAxisOptions<AgAngleAxisLabelOptions> {
+export interface AgAngleNumberAxisOptions extends Omit<AgBaseAxisOptions<AgAngleAxisLabelOptions>, 'keys'> {
     type: 'angle-number';
     /** Configuration for the axis ticks. */
     tick?: AgAxisNumberTickOptions;
