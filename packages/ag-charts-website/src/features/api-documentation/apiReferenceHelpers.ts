@@ -130,6 +130,17 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
         let nodeType = normalizeType(apiNode.type);
         if (typeof apiNode.type === 'object' && apiNode.type.kind === 'union') {
             nodeType = '\n    ' + nodeType.replaceAll('|', '\n  |');
+            return [`type ${apiNode.name} = ${nodeType};`]
+                .concat(
+                    apiNode.type.type
+                        .map((type) => {
+                            if (typeof type === 'string' && reference.has(type) && !hiddenInterfaces.includes(type)) {
+                                return formatTypeToCode(reference.get(type)!, reference);
+                            }
+                        })
+                        .filter(<T>(x: T | undefined): x is T => Boolean(x))
+                )
+                .join('\n\n');
         }
         return `type ${apiNode.name} = ${nodeType};`;
     }

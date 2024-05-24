@@ -351,8 +351,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.subtitle.registerInteraction(moduleContext),
             this.footnote.registerInteraction(moduleContext),
 
-            ctx.interactionManager.addListener('click', (event) => this.onClick(event)),
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
+            ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
+            ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             seriesRegion.addListener('blur', () => this.onBlur()),
@@ -360,9 +360,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
+            seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), All),
             ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
-            ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
             ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
 
             ctx.animationManager.addListener('animation-frame', () => {
@@ -1169,11 +1169,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // We check InteractionState.Default too just in case we were in ContextMenu and the
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
+
+        let pickedNode: SeriesNodeDatum | undefined;
         if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            this.checkSeriesNodeRange(event, () => {
+            this.checkSeriesNodeRange(event, (_series, datum) => {
                 this.ctx.highlightManager.updateHighlight(this.id);
+                pickedNode = datum;
             });
         }
+
+        this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode });
     }
 
     protected focus: ChartFocusData = {
@@ -1357,6 +1362,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected onClick(event: PointerInteractionEvent<'click'>) {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
+            event.consume();
             return;
         }
         this.fireEvent<AgChartClickEvent>({
@@ -1368,6 +1374,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
+            event.consume();
             return;
         }
         this.fireEvent<AgChartDoubleClickEvent>({
@@ -1402,11 +1409,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Find the node if exactly matched and update the highlight picked node
         let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
-        if (pickedNode) {
-            this.ctx.highlightManager.updatePicked(this.id, pickedNode.datum);
-        } else {
-            this.ctx.highlightManager.updatePicked(this.id);
-        }
 
         // First check if we should trigger the callback based on nearest node
         if (datum && nodeClickRange === 'nearest') {

@@ -26,9 +26,12 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    UNION,
     Validate,
 } = _ModuleSupport;
 const { Label } = _Scene;
+
+const JUSTIFY = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum {
     size: number;
@@ -47,9 +50,11 @@ export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum
 
 export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
 
-export interface SankeyNodeLabelDatum extends _Util.PointLabelDatum {
+export interface SankeyNodeLabelDatum {
     x: number;
+    y: number;
     leading: boolean;
+    text: string;
 }
 
 export class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
@@ -87,7 +92,7 @@ export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNod
     @Validate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @Validate(STRING)
+    @Validate(JUSTIFY)
     justify: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
     @Validate(COLOR_STRING, { optional: true })
@@ -116,13 +121,13 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     nodes: any[] | undefined = undefined;
 
     @Validate(STRING)
-    fromKey: string = '';
+    fromKey!: string;
 
     @Validate(STRING, { optional: true })
     fromIdName: string | undefined = undefined;
 
     @Validate(STRING)
-    toKey: string = '';
+    toKey!: string;
 
     @Validate(STRING, { optional: true })
     toIdName: string | undefined = undefined;

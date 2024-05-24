@@ -3,12 +3,14 @@ import type {
     AgLineSeriesOptions,
     AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
+    AgLineStyle,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
 import {
     BOOLEAN,
     COLOR_STRING,
+    LINE,
     LINE_DASH,
     OBJECT,
     POSITIVE_NUMBER,
@@ -71,6 +73,9 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(LINE)
+    line?: AgLineStyle = undefined;
 
     @Validate(OBJECT)
     readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();

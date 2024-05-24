@@ -254,4 +254,30 @@ describe('Zoom', () => {
             await compare();
         });
     });
+
+    describe('listeners', () => {
+        it('should fire series click listeners', async () => {
+            let clickCount: number = 0;
+            await prepareChart({}, { ...EXAMPLE_OPTIONS, listeners: { click: () => clickCount++ } });
+            expect(clickCount).toBe(1);
+            await scrollAction(cx, cy, -1)(chart);
+            await clickAction(cx, cy)(chart);
+            expect(clickCount).toBe(2);
+        });
+
+        it('should fire series dblclick listeners', async () => {
+            let dblclickCount: number = 0;
+            await prepareChart({}, { ...EXAMPLE_OPTIONS, listeners: { doubleClick: () => dblclickCount++ } });
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleClickAction(cx, cy)(chart);
+            expect(dblclickCount).toBe(1);
+        });
+
+        it('should not zoom out when double clicking a node', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleClickAction(148, 154)(chart); // this is the position of the 1st visible node
+            await compare(); // this should be a zoomed-in snapshot
+        });
+    });
 });

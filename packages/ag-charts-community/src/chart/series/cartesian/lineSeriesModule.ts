@@ -36,6 +36,9 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             strokeOpacity: 1,
             lineDash: [0],
             lineDashOffset: 0,
+            line: {
+                style: 'linear',
+            },
             marker: {
                 __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
                 fillOpacity: 1,

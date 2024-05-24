@@ -9,6 +9,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     optionsKey: 'series[]',
     packageType: 'enterprise',
     chartTypes: ['flow-proportion'],
+    solo: true,
 
     identifier: 'chord',
     instanceConstructor: ChordSeries,
@@ -29,7 +30,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             },
             node: {
                 spacing: 8,
-                height: 10,
+                width: 10,
                 strokeWidth: 0,
             },
             link: {
@@ -39,6 +40,9 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
         },
         legend: {
             enabled: false,
+            item: {
+                toggleSeriesVisible: false,
+            },
         },
     },
     paletteFactory({ takeColors, colorsCount }) {

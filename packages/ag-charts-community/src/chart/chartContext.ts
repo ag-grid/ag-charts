@@ -81,13 +81,13 @@ export class ChartContext implements ModuleContext {
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.ariaAnnouncementService = new AriaAnnouncementService(this.scene.canvas.element);
         this.chartEventManager = new ChartEventManager();
-        this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(this.domManager);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
         this.keyNavManager = new KeyNavManager(this.interactionManager, this.domManager);
         this.focusIndicator = new FocusIndicator(this.domManager);
         this.regionManager = new RegionManager(this.interactionManager, this.keyNavManager, this.focusIndicator);
+        this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(this.domManager);
         this.layoutService = new LayoutService();
@@ -111,6 +111,7 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene and zoomManager.
         this.tooltipManager.destroy();
+        this.contextMenuRegistry.destroy();
         this.regionManager.destroy();
         this.focusIndicator.destroy();
         this.keyNavManager.destroy();

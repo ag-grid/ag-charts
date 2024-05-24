@@ -101,6 +101,10 @@ export function isEnterpriseTopology(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'topology');
     return type === 'topology';
 }
+export function isEnterpriseFlowProportion(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'flow-proportion');
+    return type === 'flow-proportion';
+}
 
 type UnknownPackage = { packageType: string } | EnterpriseModuleStub;
 function isEnterpriseModule(module: UnknownPackage): module is EnterpriseModuleStub {

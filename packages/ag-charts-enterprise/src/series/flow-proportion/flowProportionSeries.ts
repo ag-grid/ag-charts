@@ -14,6 +14,7 @@ export enum FlowProportionDatumType {
 export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDatum>
     extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Link;
+    index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
     size: number;
@@ -36,7 +37,6 @@ export abstract class FlowProportionSeries<
         TNodeDatum extends FlowProportionNodeDatum,
         TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>,
         TLabel,
-        TPlacedLabel,
         TProps extends FlowProportionSeriesProperties<any>,
         TNode extends _Scene.Node,
         TLink extends _Scene.Node,
@@ -73,7 +73,7 @@ export abstract class FlowProportionSeries<
     private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
-    private labelSelection: _Scene.Selection<_Scene.Text, TPlacedLabel> = Selection.select(this.labelGroup, Text);
+    private labelSelection: _Scene.Selection<_Scene.Text, TLabel> = Selection.select(this.labelGroup, Text);
     public linkSelection: _Scene.Selection<TLink, TLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
@@ -122,7 +122,7 @@ export abstract class FlowProportionSeries<
             nodes != null
                 ? nodesDataController.request<any, any, true>(this.id, nodes, {
                       props: [
-                          keyProperty(idKey, undefined, { id: 'nodeIdValue', includeProperty: false }),
+                          keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
                           ...(labelKey != null
                               ? [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]
                               : []),
@@ -133,10 +133,10 @@ export abstract class FlowProportionSeries<
 
         const linksDataModelPromise = this.requestDataModel<any, any, false>(dataController, data, {
             props: [
-                valueProperty(fromKey, undefined, { id: 'fromIdValue', includeProperty: false }),
-                valueProperty(toKey, undefined, { id: 'toIdValue', includeProperty: false }),
+                valueProperty(fromKey, undefined, { id: 'fromValue', includeProperty: false }),
+                valueProperty(toKey, undefined, { id: 'toValue', includeProperty: false }),
                 ...(sizeKey != null
-                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false })]
+                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false, missingValue: 1 })]
                     : []),
             ],
             groupByKeys: false,
@@ -154,8 +154,8 @@ export abstract class FlowProportionSeries<
         const { fills, strokes } = this.properties;
         const processedNodes = new Map<string, FlowProportionNodeDatum>();
         if (nodesDataModel == null) {
-            const fromIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
-            const toIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'toIdValue');
+            const fromIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'fromValue');
+            const toIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'toValue');
 
             const createImplicitNode = (id: string): FlowProportionNodeDatum => {
                 const label = id;
@@ -175,8 +175,9 @@ export abstract class FlowProportionSeries<
             };
 
             linksDataModel.processedData.data.forEach(({ values }) => {
-                const fromId: string = values[fromIdIdx];
-                const toId: string = values[toIdIdx];
+                const fromId: string | undefined = values[fromIdIdx];
+                const toId: string | undefined = values[toIdIdx];
+                if (fromId == null || toId == null) return;
 
                 if (!processedNodes.has(fromId)) {
                     processedNodes.set(fromId, createImplicitNode(fromId));
@@ -187,7 +188,7 @@ export abstract class FlowProportionSeries<
                 }
             });
         } else {
-            const nodeIdIdx = nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'nodeIdValue');
+            const nodeIdIdx = nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'idValue');
             const labelIdx =
                 labelKey != null
                     ? nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'labelValue')
@@ -234,8 +235,8 @@ export abstract class FlowProportionSeries<
 
         const { sizeKey } = this.properties;
 
-        const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromIdValue');
-        const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toIdValue');
+        const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromValue');
+        const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toValue');
         const sizeIdx = sizeKey != null ? linksDataModel.resolveProcessedDataIndexById(this, 'sizeValue') : undefined;
 
         this.processedNodes.forEach((datum) => {
@@ -243,6 +244,8 @@ export abstract class FlowProportionSeries<
             nodesById.set(datum.id, node);
         });
 
+        const linkIndices = new Map<string, { value: number }>();
+        const linkIndexId = (a: string, b: string) => JSON.stringify([a, b]);
         linksProcessedData.data.forEach(({ datum, values }) => {
             const fromId: string = values[fromIdIdx];
             const toId: string = values[toIdIdx];
@@ -250,12 +253,22 @@ export abstract class FlowProportionSeries<
             const fromNode = nodesById.get(fromId);
             const toNode = nodesById.get(toId);
             if (fromNode == null || toNode == null) return;
+            const indexId = linkIndexId(fromId, toId);
+            let indexCell = linkIndices.get(indexId);
+            if (indexCell == null) {
+                indexCell = { value: 0 };
+                linkIndices.set(indexId, indexCell);
+            }
+
+            const index = indexCell.value;
+            indexCell.value += 1;
 
             const link = createLink({
                 series: this,
                 itemId: undefined,
                 datum,
                 type: FlowProportionDatumType.Link,
+                index,
                 fromNode,
                 toNode,
                 size,
@@ -376,12 +389,10 @@ export abstract class FlowProportionSeries<
 
     protected abstract updateLabelSelection(opts: {
         labelData: TLabel[];
-        labelSelection: _Scene.Selection<_Scene.Text, TPlacedLabel>;
-    }): Promise<_Scene.Selection<_Scene.Text, TPlacedLabel>>;
+        labelSelection: _Scene.Selection<_Scene.Text, TLabel>;
+    }): Promise<_Scene.Selection<_Scene.Text, TLabel>>;
 
-    protected abstract updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, TPlacedLabel>;
-    }): Promise<void>;
+    protected abstract updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, TLabel> }): Promise<void>;
 
     protected abstract updateNodeSelection(opts: {
         nodeData: TDatum<TNodeDatum, TLinkDatum>[];
