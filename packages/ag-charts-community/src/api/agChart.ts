@@ -63,6 +63,9 @@ export abstract class AgCharts {
         this.licenseChecked = true;
     }
 
+    /** @private - for use by Charts website dark-mode support. */
+    static optionsMutationFn?: (opts: AgChartOptions) => AgChartOptions;
+
     public static setLicenseKey(licenseKey: string) {
         this.licenseKey = licenseKey;
     }
@@ -128,6 +131,10 @@ class AgChartsInternal {
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgChartV2.createOrUpdate() user options', options);
+        if (AgCharts.optionsMutationFn) {
+            options = AgCharts.optionsMutationFn(options);
+            debug('>>> AgChartV2.createOrUpdate() MUTATED user options', options);
+        }
 
         const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = options;
         const chartOptions = new ChartOptions(userOptions, { overrideDevicePixelRatio, document, window: userWindow });

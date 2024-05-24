@@ -21,8 +21,7 @@ const getDarkmodeTheme = (theme = 'ag-default') => {
     return darkmode ? baseTheme + '-dark' : baseTheme;
 };
 
-const defaultUpdate = __chartAPI.update;
-__chartAPI.update = function update(chart, options) {
+__chartAPI.optionsMutationFn = function update(options) {
     const nextOptions = { ...options };
     const theme = options.theme;
     if (isAgThemeOrUndefined(theme)) {
@@ -33,21 +32,7 @@ __chartAPI.update = function update(chart, options) {
             baseTheme: getDarkmodeTheme(theme.baseTheme),
         };
     }
-    defaultUpdate(chart, nextOptions);
-};
-
-const defaultUpdateDelta = __chartAPI.updateDelta;
-__chartAPI.updateDelta = function updateDelta(chart, options) {
-    const nextOptions = { ...options };
-    // Allow setting theme overrides updateDelta (see api-create-update)
-    if (typeof options.theme === 'object') {
-        const theme = options.theme.baseTheme || 'ag-default';
-        nextOptions.theme = {
-            ...options.theme,
-            baseTheme: getDarkmodeTheme(theme),
-        };
-    }
-    defaultUpdateDelta(chart, nextOptions);
+    return nextOptions;
 };
 
 const applyDarkmode = () => {
@@ -56,9 +41,8 @@ const applyDarkmode = () => {
     charts.forEach((element) => {
         const chart = __chartAPI.getInstance(element.parentElement);
         if (chart == null) return;
-        // .update is monkey-patched to apply theme to options
         // This is just needed to trigger the theme update
-        __chartAPI.update(chart, chart.getOptions());
+        chart.update(chart.getOptions());
     });
     return charts.length !== 0;
 };
