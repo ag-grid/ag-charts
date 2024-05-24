@@ -1,3 +1,4 @@
+// Source: https://secfilings.nasdaq.com/filingFrameset.asp?FilingID=13146567&RcvdDate=1/8/2019&CoName=NIKE%20INC&FormType=10-Q&View=html
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });

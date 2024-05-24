@@ -1,3 +1,4 @@
+// Source: https://survey.stackoverflow.co
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });
@@ -50,7 +51,7 @@ const options: AgChartOptions = {
                 renderer: ({ datum, fromKey, toKey, sizeKey }) => ({
                     content:
                         datum != null
-                            ? `${numberFormatter.format(datum[sizeKey])} ${datum[fromKey]} developers want to learn ${datum[toKey]}`
+                            ? `${numberFormatter.format(datum[sizeKey!])} ${datum[fromKey!]} developers want to learn ${datum[toKey!]}`
                             : '',
                 }),
             },
