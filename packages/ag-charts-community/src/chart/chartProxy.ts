@@ -134,7 +134,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             },
             // Disable enterprise features that may interfere with image generation.
             moduleRegistry.hasEnterpriseModules() && { animation: { enabled: false } },
-            chart.userOptions
+            chart.getOptions()
         );
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);
