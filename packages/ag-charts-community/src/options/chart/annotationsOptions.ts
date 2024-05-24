@@ -8,14 +8,17 @@ import type {
 
 // --- Theme ---
 export interface AgAnnotationsThemeableOptions {
-    line?: AgLineAnnotationStyles & { handle?: AgAnnotationHandleStyles };
-    'disjoint-channel'?: AgChannelAnnotationStyles & { handle?: AgAnnotationHandleStyles };
-    'parallel-channel'?: AgChannelAnnotationStyles & { handle?: AgAnnotationHandleStyles };
+    line?: AgLineAnnotationStyles;
+    'disjoint-channel'?: AgChannelAnnotationStyles;
+    'parallel-channel'?: AgChannelAnnotationStyles;
 }
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
-export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {}
+export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+    handle?: AgAnnotationHandleStyles;
+}
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+    handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
     background?: AgChannelAnnotationBackground;
 }
