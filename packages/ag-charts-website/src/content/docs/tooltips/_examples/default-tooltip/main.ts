@@ -16,11 +16,11 @@ const chart = AgCharts.create(options);
 function removeYNames() {
     (options.series![0] as AgBarSeriesOptions).yName = undefined;
     (options.series![1] as AgBarSeriesOptions).yName = undefined;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function addYNames() {
     (options.series![0] as AgBarSeriesOptions).yName = 'Sweaters Made';
     (options.series![1] as AgBarSeriesOptions).yName = 'Hats Made';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

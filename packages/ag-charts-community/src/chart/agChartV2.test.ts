@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from '../api/agChart';
 import type {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
 } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
 import type { TestCase } from './test/utils';
@@ -116,7 +116,7 @@ describe('AgChartV2', () => {
             let previousSnapshot: any = undefined;
             for (let round = 0; round <= 1; round++) {
                 for (let index = 0; index < exampleCycle.length; index++) {
-                    AgCharts.update(chart, exampleCycle[index]);
+                    await chart.update(exampleCycle[index]);
 
                     const exampleSnapshot = await snapshot();
                     if (snapshots[index] != null) {
@@ -165,9 +165,7 @@ describe('AgChartV2', () => {
             // generated.
             for (let round = 0; round <= 1; round++) {
                 for (let index = 0; index < exampleCycle.length; index++) {
-                    AgCharts.update(chart, exampleCycle[index]);
-
-                    await waitForChartStability(chart);
+                    await chart.update(exampleCycle[index]);
                 }
             }
         });

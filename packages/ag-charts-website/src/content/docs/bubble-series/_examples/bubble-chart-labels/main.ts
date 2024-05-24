@@ -86,7 +86,7 @@ function updateFontSize(event: any) {
 
     (options.series![0] as AgBubbleSeriesOptions).label!.fontSize = value;
     (options.series![1] as AgBubbleSeriesOptions).label!.fontSize = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('fontSizeSliderValue')!.innerHTML = String(value);
 }

@@ -35,5 +35,5 @@ function addValue() {
     const randomIndex = Math.floor(Math.random() * optionsData.length);
     optionsData.splice(randomIndex, 0, newDatum);
     options.data = optionsData;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

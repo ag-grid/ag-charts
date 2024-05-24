@@ -92,6 +92,6 @@ const chart = AgCharts.create(options)
 
 function updateData() {
   options.data = getData()
-  AgCharts.update(chart, options)
+  chart.update(options)
 }
 setInterval(updateData, refreshRateInMilliseconds)

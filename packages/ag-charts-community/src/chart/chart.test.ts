@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { AgCharts } from '../api/agChart';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from '../options/agChartOptions';
 import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
-import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
@@ -363,19 +363,19 @@ describe('Chart', () => {
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);
 
-            AgCharts.updateDelta(chartProxy, {
+            await chartProxy.updateDelta({
                 data: datasets.economy.data,
             });
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(3);
 
-            AgCharts.updateDelta(chartProxy, {
+            await chartProxy.updateDelta({
                 data: datasets.economy.data.slice(0, 2),
             });
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(2);
 
-            AgCharts.updateDelta(chartProxy, {
+            await chartProxy.updateDelta({
                 data: datasets.economy.data,
             });
             await waitForChartStability(chart);
@@ -452,7 +452,7 @@ describe('Chart', () => {
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
-            AgCharts.update(chartProxy, chartOptions);
+            await chartProxy.update(chartOptions);
             await waitForChartStability(deproxy(chartProxy));
         }
 
@@ -576,7 +576,7 @@ describe('Chart', () => {
                     },
                 ],
             });
-            AgCharts.update(agChartInstance, options);
+            await agChartInstance.update(options);
             await waitForChartStability(agChartInstance);
 
             const elements = document.querySelectorAll('.ag-charts-wrapper');

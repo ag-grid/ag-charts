@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { memoryUsage } from 'process';
 
-import { AgCharts } from './agChartV2';
+import { AgCharts } from '../api/agChart';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
@@ -99,7 +99,7 @@ describe('Chart Heap Memory', () => {
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
-            AgCharts.update(chartProxy, chartOptions);
+            await chartProxy.update(chartOptions);
             await waitForChartStability(deproxy(chartProxy));
         }
 

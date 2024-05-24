@@ -179,7 +179,7 @@ export class Legend extends BaseProperties {
         return this._data;
     }
 
-    private contextMenuDatum?: CategoryLegendDatum;
+    private readonly contextMenuDatum?: CategoryLegendDatum;
 
     @Validate(OBJECT)
     readonly pagination: Pagination;

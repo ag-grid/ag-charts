@@ -20,7 +20,7 @@ const chart = AgCharts.create(options);
 
 function reset() {
     options.data = getData();
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function randomise() {
@@ -37,5 +37,5 @@ function randomise() {
 
     options.data = data;
 
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }

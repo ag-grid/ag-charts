@@ -38,5 +38,5 @@ const chart = AgCharts.create(options);
 function toggleAxisReverse() {
     const numberAxisOptions = options.axes![1];
     numberAxisOptions.reverse = !numberAxisOptions.reverse;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

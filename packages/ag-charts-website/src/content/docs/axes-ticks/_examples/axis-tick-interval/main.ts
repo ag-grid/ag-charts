@@ -39,10 +39,10 @@ const chart = AgCharts.create(options);
 
 function setTickInterval(interval: number) {
     options.axes![1].tick = { interval };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function resetInterval() {
     options.axes![1].tick = {};
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

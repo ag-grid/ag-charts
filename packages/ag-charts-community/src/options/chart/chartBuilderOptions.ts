@@ -1,4 +1,3 @@
-import type { DeepPartial } from '../../util/types';
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
@@ -36,6 +35,8 @@ export type AgChartOptions =
     | AgHierarchyChartOptions
     | AgTopologyChartOptions
     | AgFlowProportionChartOptions;
+
+type DeepPartial<T> = T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
 export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
     /**

@@ -29,5 +29,5 @@ function removeValue() {
     const removeIndex = Math.floor(dataLength * Math.random());
     data.splice(removeIndex, 1);
     options.data = data;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

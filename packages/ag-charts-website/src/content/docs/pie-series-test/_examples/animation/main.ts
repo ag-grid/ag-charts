@@ -41,7 +41,7 @@ const chart = AgCharts.create(options);
 
 function reset() {
     options.data = [...data];
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function randomIndex(array: unknown[]) {
@@ -57,7 +57,7 @@ function randomise() {
             value: (d.originalValue ?? d.value) * (Math.random() * 5 + 0.5),
         })),
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function addData(position: 'start' | 'mid' | 'end' | number = 'end', inData: any[]) {
@@ -79,7 +79,7 @@ function addData(position: 'start' | 'mid' | 'end' | number = 'end', inData: any
 
 function add(position: 'start' | 'mid' | 'end' = 'end') {
     options.data = addData(position, options.data!);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function removeData(position: 'start' | 'mid' | 'end' | number = 'end', inData: any[]) {
@@ -97,13 +97,13 @@ function removeData(position: 'start' | 'mid' | 'end' | number = 'end', inData: 
 
 function remove(position: 'start' | 'mid' | 'end' = 'end') {
     options.data = removeData(position, options.data!);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function change() {
     const index = Math.floor(options.data!.length / 2);
     options.data = removeData(index, addData(index + 1, options.data!));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function shuffle() {
@@ -111,7 +111,7 @@ function shuffle() {
     newData.sort(() => Math.random() - 0.5);
 
     options.data = newData;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function rapidUpdates() {

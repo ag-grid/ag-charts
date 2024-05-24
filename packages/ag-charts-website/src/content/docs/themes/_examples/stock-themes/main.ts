@@ -23,29 +23,29 @@ const chart = AgCharts.create(options);
 function setThemeDefault() {
     options.theme = 'ag-default';
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setThemeSheets() {
     options.theme = 'ag-sheets';
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setThemePolychroma() {
     options.theme = 'ag-polychroma';
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setThemeVivid() {
     options.theme = 'ag-vivid';
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setThemeMaterial() {
     options.theme = 'ag-material';
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
