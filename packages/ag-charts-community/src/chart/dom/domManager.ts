@@ -251,6 +251,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         const docRoot = this.container?.ownerDocument?.body ?? getDocument('body');
         let parent = this.container;
 
+        // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
+        // to attach listeners etc.. to that node, not the document body.
         while (parent != null) {
             if (parent === docRoot) {
                 return docRoot;
