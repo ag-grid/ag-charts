@@ -1,6 +1,8 @@
 const { spawn } = require('child_process');
 
 const QUIET_PERIOD_MS = 1000;
+const BATCH_LIMIT = 50;
+const PROJECT_ECHO_LIMIT = 3;
 const IGNORED_PROJECTS = ['all', 'ag-charts-website'];
 const NX_ARGS = ['--output-style', 'compact'];
 
@@ -32,10 +34,7 @@ function spawnNxWatch(outputCb) {
         exitReject = reject;
     });
 
-    const nxWatch = spawn('nx', [
-        ...NX_ARGS,
-        ...'watch --all -- echo ${NX_PROJECT_NAME} ${NX_FILE_CHANGES}'.split(' '),
-    ]);
+    const nxWatch = spawn('nx', [...NX_ARGS, ...'watch --all -- echo ${NX_PROJECT_NAME}'.split(' ')]);
     spawnedChildren.add(nxWatch);
     nxWatch.on('error', (e) => {
         console.error(e);
@@ -47,23 +46,30 @@ function spawnNxWatch(outputCb) {
     });
     nxWatch.stdout.on('data', (data) => {
         const lines = data.toString().split('\n');
-        for (const line of lines) {
-            const [project, ...files] = line.split(' ');
-            outputCb(project, files);
+        for (const project of lines) {
+            if (project.trim().length === 0) continue;
+
+            outputCb(project);
         }
     });
 
     return exitPromise;
 }
 
-function spawnNxRun(targets) {
+function spawnNxRun(target, config, projects) {
     let exitResolve, exitReject;
     const exitPromise = new Promise((resolve, reject) => {
         exitResolve = resolve;
         exitReject = reject;
     });
 
-    const nxRun = spawn(`nx`, [...NX_ARGS, 'run', ...targets], { stdio: 'inherit' });
+    const nxRunArgs = [...NX_ARGS, 'run-many', '-t', target];
+    if (config != null) {
+        nxRunArgs.push('-c', config);
+    }
+    nxRunArgs.push('-p', ...projects);
+
+    const nxRun = spawn(`nx`, nxRunArgs, { stdio: 'inherit' });
     spawnedChildren.add(nxRun);
     nxRun.on('error', (e) => {
         console.error(e);
@@ -109,21 +115,21 @@ function hasValidFiles(files) {
 
 let timeout;
 function scheduleBuild() {
-    if (buildBuffer.size > 0) {
+    if (buildBuffer.length > 0) {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(() => build(), QUIET_PERIOD_MS);
     }
 }
 
-const buildBuffer = new Set();
-function processWatchOutput(rawProject, files) {
-    if (!hasValidFiles(files)) return;
+let buildBuffer = [];
+function processWatchOutput(rawProject) {
     if (IGNORED_PROJECTS.includes(rawProject)) return;
+    if (rawProject === '') return;
 
     const [project, targets, config] = nxProjectBuildTarget(rawProject);
 
     for (const target of targets) {
-        buildBuffer.add(`${project}:${target}${config ? `:${config}` : ''}`);
+        buildBuffer.push([project, config, target]);
     }
 
     scheduleBuild();
@@ -134,21 +140,28 @@ async function build() {
     if (buildRunning) return;
     buildRunning = true;
 
-    const targets = [...buildBuffer.values()];
-    buildBuffer.clear();
+    const [, config, target] = buildBuffer.at(0);
+    const newBuildBuffer = [];
+    const projects = new Set();
+    for (const next of buildBuffer) {
+        if (projects.size < BATCH_LIMIT && next[2] === target && next[1] === config) {
+            projects.add(next[0]);
+        } else {
+            newBuildBuffer.push(next);
+        }
+    }
+    buildBuffer = newBuildBuffer;
 
-    const targetMsg = targets.length > 5 ? `(${targets.length} targets)` : targets.join(' ');
+    let targetMsg = [...projects.values()].slice(0, PROJECT_ECHO_LIMIT).join(' ');
+    if (projects.size > PROJECT_ECHO_LIMIT) {
+        targetMsg += ` (+${projects.size - PROJECT_ECHO_LIMIT} targets)`;
+    }
     try {
         success(`Starting build for: ${targetMsg}`);
-        await spawnNxRun(targets);
+        await spawnNxRun(target, config, [...projects.values()]);
         success(`Completed build for: ${targetMsg}`);
     } catch (e) {
         error(`Build failed for: ${targetMsg}`);
-
-        if (!targets.includes('all:dev:setup')) {
-            // Fallback to trying to build everything next time around.
-            buildBuffer.add('all:dev:setup');
-        }
     } finally {
         buildRunning = false;
         scheduleBuild();
