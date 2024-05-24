@@ -1,8 +1,8 @@
 const { spawn } = require('child_process');
 
 const QUIET_PERIOD_MS = 1000;
-
 const IGNORED_PROJECTS = ['all', 'ag-charts-website'];
+const NX_ARGS = ['--output-style', 'compact'];
 
 if ((process.env.BUILD_FWS ?? '0') !== '1') {
     IGNORED_PROJECTS.push('ag-charts-angular', 'ag-charts-react', 'ag-charts-vue3');
@@ -13,14 +13,14 @@ const GREEN = '\x1b[;32m';
 const YELLOW = '\x1b[;33m';
 const RESET = '\x1b[m';
 
-function success(msg) {
-    console.log(`*** ${GREEN}${msg}${RESET}`);
+function success(msg, ...args) {
+    console.log(`*** ${GREEN}${msg}${RESET}`, ...args);
 }
-function warning(msg) {
-    console.log(`*** ${YELLOW}${msg}${RESET}`);
+function warning(msg, ...args) {
+    console.log(`*** ${YELLOW}${msg}${RESET}`, ...args);
 }
-function error(msg) {
-    console.log(`*** ${RED}${msg}${RESET}`);
+function error(msg, ...args) {
+    console.log(`*** ${RED}${msg}${RESET}`, ...args);
 }
 
 const spawnedChildren = new Set();
@@ -32,10 +32,10 @@ function spawnNxWatch(outputCb) {
         exitReject = reject;
     });
 
-    const nxWatch = spawn(
-        'nx',
-        '--output-style compact watch --all -- echo ${NX_PROJECT_NAME} ${NX_FILE_CHANGES}'.split(' ')
-    );
+    const nxWatch = spawn('nx', [
+        ...NX_ARGS,
+        ...'watch --all -- echo ${NX_PROJECT_NAME} ${NX_FILE_CHANGES}'.split(' '),
+    ]);
     spawnedChildren.add(nxWatch);
     nxWatch.on('error', (e) => {
         console.error(e);
@@ -63,15 +63,19 @@ function spawnNxRun(targets) {
         exitReject = reject;
     });
 
-    const nxRun = spawn(`nx`, ['run', ...targets], { stdio: 'inherit' });
+    const nxRun = spawn(`nx`, [...NX_ARGS, 'run', ...targets], { stdio: 'inherit' });
     spawnedChildren.add(nxRun);
-    nxWatch.on('error', (e) => {
+    nxRun.on('error', (e) => {
         console.error(e);
         exitReject(e);
     });
-    nxRun.on('exit', () => {
+    nxRun.on('exit', (code) => {
         spawnedChildren.delete(nxRun);
-        exitResolve();
+        if (code === 0) {
+            exitResolve();
+        } else {
+            exitReject();
+        }
     });
 
     return exitPromise;
@@ -139,7 +143,7 @@ async function build() {
         await spawnNxRun(targets);
         success(`Completed build for: ${targetMsg}`);
     } catch (e) {
-        error('Build failed.');
+        error(`Build failed for: ${targetMsg}`);
 
         if (!targets.includes('all:dev:setup')) {
             // Fallback to trying to build everything next time around.
