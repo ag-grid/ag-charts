@@ -67,7 +67,7 @@ export class AgChartsVue extends Vue {
 
     public processChanges(currentValue: any, previousValue: any) {
         if (this.isCreated && this.chart) {
-            AgCharts.update(this.chart, toRaw(this.applyContainerIfNotSet(toRaw(this.options))));
+            this.chart.update(toRaw(this.applyContainerIfNotSet(toRaw(this.options))));
         }
     }
 

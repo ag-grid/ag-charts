@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { AgCharts } from '../../../api/agChart';
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -219,7 +219,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
                 animate(1200, ratio);
@@ -239,7 +239,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
                 animate(1200, ratio);
@@ -263,12 +263,12 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
                 await waitForChartStability(chart);
 
-                AgCharts.update(chart, options);
+                chart.update(options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -286,12 +286,12 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
                 await waitForChartStability(chart);
 
-                AgCharts.update(chart, options);
+                chart.update(options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -313,7 +313,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
                 animate(1200, ratio);
@@ -333,7 +333,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
                 animate(1200, ratio);

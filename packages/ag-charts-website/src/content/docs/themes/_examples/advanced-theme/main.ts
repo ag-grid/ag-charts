@@ -133,5 +133,5 @@ function applyOptions(type: 'bar' | 'pie') {
         ];
     }
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

@@ -39,10 +39,10 @@ const chart = AgCharts.create(options);
 
 function setMinMaxSpacing(minSpacing: number, maxSpacing: number) {
     options.axes![1].tick = { minSpacing, maxSpacing };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reset() {
     options.axes![1].tick = {};
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

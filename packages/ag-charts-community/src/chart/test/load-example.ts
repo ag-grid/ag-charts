@@ -1,7 +1,7 @@
 import * as test from 'ag-charts-test';
 
+import { AgCharts } from '../../api/agChart';
 import * as time from '../../util/time/index';
-import { AgCharts } from '../agChartV2';
 // Undocumented APIs used by examples.
 import { Marker } from '../marker/marker';
 

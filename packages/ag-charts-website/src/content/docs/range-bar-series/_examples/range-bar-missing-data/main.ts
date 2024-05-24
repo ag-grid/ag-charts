@@ -41,7 +41,7 @@ function missingYValues() {
     data[5].low = undefined;
     options.data = data;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function missingXValue() {
@@ -50,10 +50,10 @@ function missingXValue() {
     data[6].date = undefined;
     options.data = data;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reset() {
     options.data = getData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

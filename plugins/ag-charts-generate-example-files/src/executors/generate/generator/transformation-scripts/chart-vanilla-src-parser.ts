@@ -35,7 +35,7 @@ const chartVariableName = 'chart';
 const optionsVariableName = 'options';
 
 function tsGenerateWithOptionReferences(node, srcFile) {
-    return tsGenerate(node, srcFile).replace(new RegExp(`AgCharts\\.update\\(chart, options\\);?`, 'g'), '');
+    return tsGenerate(node, srcFile).replace(/chart[A-Za-z0-9]*\.update\(options\);?/g, '');
 }
 
 export function parser({

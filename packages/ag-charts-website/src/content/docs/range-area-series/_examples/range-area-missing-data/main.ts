@@ -46,10 +46,10 @@ function toggleConnectMissingData() {
         connectMissingData: !series.connectMissingData,
     }));
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reset() {
     options.data = getData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

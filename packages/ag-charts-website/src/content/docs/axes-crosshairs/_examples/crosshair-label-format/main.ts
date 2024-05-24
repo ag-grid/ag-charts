@@ -75,7 +75,7 @@ function crosshairLabelFormat() {
     crosshair.label = {
         format: `%b %Y`,
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function axisLabelFormat() {
@@ -85,7 +85,7 @@ function axisLabelFormat() {
         delete axes0.crosshair!.label!.format;
     }
     axes0.label = { format: `%Y` };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function defaultFormat() {
@@ -97,5 +97,5 @@ function defaultFormat() {
     if (axes0.label && axes0.label.format) {
         delete axes0.label!.format;
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

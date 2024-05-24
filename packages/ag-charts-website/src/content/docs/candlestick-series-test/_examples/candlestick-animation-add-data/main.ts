@@ -42,5 +42,5 @@ function updateData() {
     });
     flag *= -1;
     options.data = newData;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

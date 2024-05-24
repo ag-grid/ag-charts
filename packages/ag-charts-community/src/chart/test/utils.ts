@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
+import { AgCharts } from '../../api/agChart';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,
@@ -19,7 +20,6 @@ import {
     setupMockCanvas,
     toMatchImage,
 } from '../../util/test/mockCanvas';
-import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -90,7 +90,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     return options;
 }
 
-function isChartInstance(chartOrProxy: AgChartInstance): chartOrProxy is Chart {
+function isChartInstance(chartOrProxy: AgChartInstance | Chart): chartOrProxy is Chart {
     return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || (chartOrProxy as Chart).className != null;
 }
 

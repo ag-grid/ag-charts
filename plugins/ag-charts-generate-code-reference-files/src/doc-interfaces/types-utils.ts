@@ -393,8 +393,9 @@ export function formatNode(node: ts.Node) {
             return printNode(node);
 
         case ts.SyntaxKind.MappedType:
+        case ts.SyntaxKind.ConditionalType:
             const output = printNode(node);
-            console.warn('Avoid using MappedType in user facing typings.', output);
+            console.warn('Avoid using MappedType/ConditionalType in user facing typings.', output);
             return output;
 
         default:

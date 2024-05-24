@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from '../../api/agChart';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { getDocument } from '../../util/dom';
-import { AgCharts } from '../agChartV2';
 import {
     AgChartProxy,
     createChart,
@@ -81,7 +81,7 @@ describe('Tooltip', () => {
             const nextValue = async (time: number, voltage: number) => {
                 opts.data!.shift();
                 opts.data!.push({ time, voltage });
-                AgCharts.update(chart, opts);
+                await chart.update(opts);
                 await waitForChartStability(chart);
             };
 

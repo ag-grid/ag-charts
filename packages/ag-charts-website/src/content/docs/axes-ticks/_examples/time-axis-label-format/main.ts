@@ -68,10 +68,10 @@ const chart = AgCharts.create(options);
 
 function setOneMonthInterval() {
     options.axes![0].tick!.interval = time.month;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setTwoMonthInterval() {
     options.axes![0].tick!.interval = time.month.every(2);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

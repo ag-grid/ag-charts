@@ -49,7 +49,7 @@ function changeRangeWeek() {
         start: new Date('2024-12-24'),
         end: undefined,
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeRangeMonth() {
@@ -57,7 +57,7 @@ function changeRangeMonth() {
         start: new Date('2024-12-01'),
         end: new Date('2024-12-30 23:59:59'),
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeRangeAugust() {
@@ -65,7 +65,7 @@ function changeRangeAugust() {
         start: new Date('2024-08-01'),
         end: new Date('2024-08-30 23:59:59'),
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeRangeAll() {
@@ -73,5 +73,5 @@ function changeRangeAll() {
         start: new Date('2024-01-01'),
         end: new Date('2024-12-30 23:59:59'),
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

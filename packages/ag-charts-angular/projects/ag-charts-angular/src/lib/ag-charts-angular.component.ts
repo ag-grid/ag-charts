@@ -63,7 +63,7 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
             if (!this._initialised || !this.chart) {
                 return;
             }
-            AgCharts.update(this.chart, this.patchChartOptions(this.options));
+            this.chart.update(this.patchChartOptions(this.options));
         });
     }
 

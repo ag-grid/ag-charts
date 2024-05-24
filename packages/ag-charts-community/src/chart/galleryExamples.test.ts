@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from '../api/agChart';
 import type { AgChartOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { EXAMPLES } from './test/examples-gallery';
 import {
@@ -85,7 +85,7 @@ describe('Gallery Examples', () => {
             });
 
             it(`it should update chart instance as expected`, async () => {
-                AgCharts.update(chart, options);
+                chart.update(options);
                 await waitForChartStability(chart);
 
                 await example.assertions(chart);
@@ -98,10 +98,10 @@ describe('Gallery Examples', () => {
                     return ctx.nodeCanvas.toBuffer('raw');
                 };
 
-                AgCharts.update(chart, options);
+                chart.update(options);
 
                 const before = await snapshot();
-                AgCharts.update(chart, options);
+                chart.update(options);
                 const after = await snapshot();
 
                 expect(after).toMatchImage(before);

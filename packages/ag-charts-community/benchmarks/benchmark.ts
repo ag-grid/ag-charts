@@ -30,8 +30,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     }
 
     async update() {
-        AgCharts.update(this.chart, this.options);
-        await this.waitForUpdate();
+        await this.chart.update(this.options);
     }
 
     async waitForUpdate() {

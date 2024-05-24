@@ -102,7 +102,7 @@ function reset() {
     data = toIntegratedData('quarter', getData());
     options.data = data;
     options.series = [...series];
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function randomise() {
@@ -112,22 +112,22 @@ function randomise() {
             iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
         })),
     ];
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function removeData() {
     options.data = options.data?.slice(0, options.data.length - 1);
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function removeSeries() {
     options.series = series.slice(0, options.series!.length - 1);
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function addSeries() {
     options.series = series.slice(0, options.series!.length + 1);
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function switchDirection() {
@@ -136,7 +136,7 @@ function switchDirection() {
     if (options.mode === 'integrated') {
         chart.resetAnimations();
     }
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function switchToGrouped() {
@@ -145,7 +145,7 @@ function switchToGrouped() {
     if (options.mode === 'integrated') {
         chart.resetAnimations();
     }
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function switchToStacked() {
@@ -156,7 +156,7 @@ function switchToStacked() {
     if (options.mode === 'integrated') {
         chart.resetAnimations();
     }
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function moveLegend() {
@@ -167,7 +167,7 @@ function moveLegend() {
     if (options.mode === 'integrated') {
         chart.skipAnimations();
     }
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function changeTheme() {
@@ -179,7 +179,7 @@ function changeTheme() {
     if (options.mode === 'integrated') {
         chart.skipAnimations();
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function toggleMode() {
@@ -187,5 +187,5 @@ function toggleMode() {
     options.mode = nextMode;
     modeButton.textContent = `Mode: ${nextMode}`;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

@@ -28,7 +28,7 @@ function fixTooltipToTopRight() {
             yOffset: 0,
         },
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function fixTooltipToPointer() {
@@ -39,7 +39,7 @@ function fixTooltipToPointer() {
             yOffset: 8,
         },
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reset() {
@@ -50,5 +50,5 @@ function reset() {
             yOffset: 0,
         },
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

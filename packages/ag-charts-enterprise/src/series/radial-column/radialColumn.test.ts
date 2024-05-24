@@ -209,7 +209,7 @@ describe('RadialColumnSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: options.data!.slice(0, 4),
                 });
                 animate(1200, ratio);
@@ -234,7 +234,7 @@ describe('RadialColumnSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: fullData,
                 });
                 animate(1200, ratio);
@@ -258,7 +258,7 @@ describe('RadialColumnSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: options.data!.map((d: any) => {
                         return Object.entries(d).reduce((obj, [key, value], i) => {
                             return Object.assign(obj, { [key]: typeof value === 'number' ? value * i : value });

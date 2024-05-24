@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from '../api/agChart';
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
 import { seedRandom } from './test/random';

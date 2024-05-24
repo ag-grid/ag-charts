@@ -67,5 +67,5 @@ const chart = AgCharts.create(options);
 
 function toggleSeriesStroke() {
     options.legend!.item!.showSeriesStroke = !options.legend!.item!.showSeriesStroke;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

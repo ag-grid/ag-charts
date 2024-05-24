@@ -41,7 +41,7 @@ function reset() {
     delete options.axes![1].label!.avoidCollisions;
 
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function disableRotation() {
@@ -50,7 +50,7 @@ function disableRotation() {
     options.axes![0].label!.autoRotate = false;
     options.axes![1].label!.autoRotate = false;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function fixedRotation() {
@@ -59,7 +59,7 @@ function fixedRotation() {
     options.axes![0].label!.autoRotate = false;
     options.axes![1].label!.autoRotate = false;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function autoRotation() {
@@ -68,29 +68,29 @@ function autoRotation() {
     options.axes![0].label!.autoRotate = true;
     options.axes![1].label!.autoRotate = true;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function shortLabels() {
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function longLabels() {
     (options.series![0] as AgBarSeriesOptions).xKey = 'country';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function noCollisionDetection() {
     options.axes![0].label!.avoidCollisions = false;
     options.axes![1].label!.avoidCollisions = false;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function autoCollisionDetection() {
     options.axes![0].label!.avoidCollisions = true;
     options.axes![1].label!.avoidCollisions = true;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

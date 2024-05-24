@@ -83,7 +83,7 @@ function setNumberAxis() {
     text: "linear scale",
   }
   options.axes = linearAxes
-  AgCharts.update(chart, options)
+  chart.update(options)
 }
 
 function setLogAxis() {
@@ -91,5 +91,5 @@ function setLogAxis() {
     text: "log scale",
   }
   options.axes = logAxes
-  AgCharts.update(chart, options)
+  chart.update(options)
 }

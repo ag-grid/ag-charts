@@ -36,13 +36,54 @@ export type AgChartOptions =
     | AgTopologyChartOptions
     | AgFlowProportionChartOptions;
 
-export interface AgChartInstance {
+type DeepPartial<T> = T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
+
+export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
+    /**
+     * Update an existing `AgChartInstance`. Options provided should be complete and not
+     * partial.
+     *
+     * __NOTE__: As each call could trigger a chart redraw, multiple calls to update options in
+     * quick succession could result in undesirable flickering, so callers should batch up and/or
+     * debounce changes to avoid unintended partial update renderings.
+     *
+     * @returns a Promise that resolves once the requested change has been rendered
+     */
+    update(options: O): Promise<void>;
+
+    /**
+     * Update an existing `AgChartInstance` by applying a partial set of option changes.
+     *
+     * __NOTE__: As each call could trigger a chart redraw, each individual delta options update
+     * should leave the chart in a valid options state. Also, multiple calls to update options in
+     * quick succession could result in undesirable flickering, so callers should batch up and/or
+     * debounce changes to avoid unintended partial update renderings.
+     *
+     * @returns a Promise that resolves once the requested change has been rendered
+     */
+    updateDelta(deltaOptions: DeepPartial<O>): Promise<void>;
+
     /** Get the `AgChartOptions` representing the current chart configuration. */
-    getOptions(): AgChartOptions;
-    /** Reset animation state; treat the next AgChart.update() as-if the chart is being created from scratch. */
+    getOptions(): O;
+
+    /**
+     * Starts a browser-based image download for the given `AgChartInstance`.
+     *
+     * @returns a Promise that resolves once the download has been initiated
+     */
+    download(options?: DownloadOptions): Promise<void>;
+
+    /** Reset animation state; treat the next AgChartInstance.update() as-if the chart is being created from scratch. */
     resetAnimations(): void;
     /** Skip animations on the next redraw. */
     skipAnimations(): void;
+
+    /** Returns a base64-encoded image data URL for the given `AgChartInstance`.*/
+    getImageDataURL(options?: ImageDataUrlOptions): Promise<string>;
+
+    saveAnnotations(): Promise<unknown>;
+    restoreAnnotations(blob: unknown): Promise<void>;
+
     /** Destroy the chart instance and any allocated resources to support its rendering. */
     destroy(): void;
 }

@@ -88,7 +88,7 @@ const chart = AgCharts.create(options)
 function updateData() {
   const now = Date.now()
   options.data = getData()
-  AgCharts.update(chart, options)
+  chart.update(options)
 }
 //@ts-ignore
 setInterval(this.updateData, refreshRateInMilliseconds)

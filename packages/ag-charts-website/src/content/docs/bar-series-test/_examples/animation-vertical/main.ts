@@ -64,7 +64,7 @@ const chart = AgCharts.create(options);
 
 function reset() {
     options.data = getData();
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function randomise() {
@@ -74,7 +74,7 @@ function randomise() {
             iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
         })),
     ];
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function remove() {
@@ -84,5 +84,5 @@ function remove() {
                 !d.quarter.startsWith("Q1'19") && !d.quarter.startsWith("Q3'19") && !d.quarter.startsWith("Q4'18")
         ),
     ];
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }

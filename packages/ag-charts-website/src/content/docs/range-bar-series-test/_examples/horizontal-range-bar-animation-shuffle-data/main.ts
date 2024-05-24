@@ -37,5 +37,5 @@ function shuffleValues() {
     }
 
     options.data = data;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

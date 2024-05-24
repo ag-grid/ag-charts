@@ -27,5 +27,5 @@ function randomColor() {
     options.background = {
         fill: color,
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

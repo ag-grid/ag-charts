@@ -31,20 +31,20 @@ const chart = AgCharts.create(options);
 
 function justifyLeft() {
     (options.series![0] as AgSankeySeriesOptions).node!.justify = 'left';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function justifyRight() {
     (options.series![0] as AgSankeySeriesOptions).node!.justify = 'right';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function justifyCenter() {
     (options.series![0] as AgSankeySeriesOptions).node!.justify = 'center';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function justifyJustify() {
     (options.series![0] as AgSankeySeriesOptions).node!.justify = 'justify';
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
