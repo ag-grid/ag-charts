@@ -141,8 +141,10 @@ async function build() {
     } catch (e) {
         error('Build failed.');
 
-        // Fallback to trying to build everything next time around.
-        buildBuffer.push('all:dev:setup');
+        if (!targets.includes('all:dev:setup')) {
+            // Fallback to trying to build everything next time around.
+            buildBuffer.add('all:dev:setup');
+        }
     } finally {
         buildRunning = false;
         scheduleBuild();
