@@ -44,7 +44,7 @@ export interface AgSankeySeriesNodeOptions extends FillOptions, StrokeOptions, L
     /** Width of the nodes */
     width?: PixelSize;
     /** Justification of the nodes */
-    justify?: 'left' | 'right' | 'center' | 'justify';
+    alignment?: 'left' | 'right' | 'center' | 'justify';
 }
 
 export interface AgSankeySeriesOptionsKeys {
@@ -57,10 +57,6 @@ export interface AgSankeySeriesOptionsKeys {
 }
 
 export interface AgSankeySeriesOptionsNames {
-    /** The name of the node key containing the from node. */
-    fromIdName?: string;
-    /** The name of the node key containing the to node. */
-    toIdName?: string;
     /** The name of the node key containing the size. */
     sizeName?: string;
 }

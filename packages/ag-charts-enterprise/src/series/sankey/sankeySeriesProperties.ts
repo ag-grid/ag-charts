@@ -31,7 +31,7 @@ const {
 } = _ModuleSupport;
 const { Label } = _Scene;
 
-const JUSTIFY = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
+const ALIGNMENT = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum {
     size: number;
@@ -92,8 +92,8 @@ export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNod
     @Validate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @Validate(JUSTIFY)
-    justify: 'left' | 'right' | 'center' | 'justify' = 'justify';
+    @Validate(ALIGNMENT)
+    alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
@@ -123,14 +123,8 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @Validate(STRING)
     fromKey!: string;
 
-    @Validate(STRING, { optional: true })
-    fromIdName: string | undefined = undefined;
-
     @Validate(STRING)
     toKey!: string;
-
-    @Validate(STRING, { optional: true })
-    toIdName: string | undefined = undefined;
 
     @Validate(STRING)
     idKey: string = '';

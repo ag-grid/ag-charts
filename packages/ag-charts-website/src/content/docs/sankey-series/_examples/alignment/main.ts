@@ -22,7 +22,7 @@ const options: AgChartOptions = {
             toKey: 'to',
             sizeKey: 'size',
             node: {
-                justify: 'left',
+                alignment: 'left',
             },
         },
     ],
@@ -30,22 +30,22 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function justifyLeft() {
-    (options.series![0] as AgSankeySeriesOptions).node!.justify = 'left';
+function alignLeft() {
+    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'left';
     chart.update(options);
 }
 
-function justifyRight() {
-    (options.series![0] as AgSankeySeriesOptions).node!.justify = 'right';
+function alignRight() {
+    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'right';
     chart.update(options);
 }
 
-function justifyCenter() {
-    (options.series![0] as AgSankeySeriesOptions).node!.justify = 'center';
+function alignCenter() {
+    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'center';
     chart.update(options);
 }
 
-function justifyJustify() {
-    (options.series![0] as AgSankeySeriesOptions).node!.justify = 'justify';
+function alignJustify() {
+    (options.series![0] as AgSankeySeriesOptions).node!.alignment = 'justify';
     chart.update(options);
 }

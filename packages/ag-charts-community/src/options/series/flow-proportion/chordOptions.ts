@@ -57,10 +57,6 @@ export interface AgChordSeriesOptionsKeys {
 }
 
 export interface AgChordSeriesOptionsNames {
-    /** The name of the node key containing the from node. */
-    fromIdName?: string;
-    /** The name of the node key containing the to node. */
-    toIdName?: string;
     /** The name of the node key containing the size. */
     sizeName?: string;
 }

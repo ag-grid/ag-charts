@@ -38,7 +38,7 @@ const options: AgChartOptions = {
             sizeKey: 'sales',
             sizeName: 'Sales',
             node: {
-                justify: 'center',
+                alignment: 'center',
             },
         },
     ],

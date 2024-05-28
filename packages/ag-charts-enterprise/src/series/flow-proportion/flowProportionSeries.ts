@@ -38,8 +38,8 @@ export abstract class FlowProportionSeries<
         TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>,
         TLabel,
         TProps extends FlowProportionSeriesProperties<any>,
-        TNode extends _Scene.Node,
-        TLink extends _Scene.Node,
+        TNode extends _Scene.Node & _ModuleSupport.DistantObject,
+        TLink extends _Scene.Node & _ModuleSupport.DistantObject,
     >
     extends DataModelSeries<
         TDatum<TNodeDatum, TLinkDatum>,
@@ -136,7 +136,7 @@ export abstract class FlowProportionSeries<
                 valueProperty(fromKey, undefined, { id: 'fromValue', includeProperty: false }),
                 valueProperty(toKey, undefined, { id: 'toValue', includeProperty: false }),
                 ...(sizeKey != null
-                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false, missingValue: 1 })]
+                    ? [valueProperty(sizeKey, undefined, { id: 'sizeValue', includeProperty: false, missingValue: 0 })]
                     : []),
             ],
             groupByKeys: false,
@@ -221,15 +221,16 @@ export abstract class FlowProportionSeries<
     protected getNodeGraph(
         createNode: (node: FlowProportionNodeDatum) => TNodeDatum,
         createLink: (link: FlowProportionLinkDatum<TNodeDatum>) => TLinkDatum,
-        { allowCircularReferences }: { allowCircularReferences: boolean }
+        { includeCircularReferences }: { includeCircularReferences: boolean }
     ) {
         const { dataModel: linksDataModel, processedData: linksProcessedData } = this;
 
-        const nodesById = new Map<string, TNodeDatum>();
-        const links: TLinkDatum[] = [];
-
         if (linksDataModel == null || linksProcessedData == null) {
-            const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.values(), links, allowCircularReferences);
+            const { links, nodeGraph, maxPathLength } = computeNodeGraph(
+                new Map<string, TNodeDatum>().values(),
+                [],
+                includeCircularReferences
+            );
             return { nodeGraph, links, maxPathLength };
         }
 
@@ -239,11 +240,13 @@ export abstract class FlowProportionSeries<
         const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toValue');
         const sizeIdx = sizeKey != null ? linksDataModel.resolveProcessedDataIndexById(this, 'sizeValue') : undefined;
 
+        const nodesById = new Map<string, TNodeDatum>();
         this.processedNodes.forEach((datum) => {
             const node = createNode(datum);
             nodesById.set(datum.id, node);
         });
 
+        const baseLinks: TLinkDatum[] = [];
         const linkIndices = new Map<string, { value: number }>();
         const linkIndexId = (a: string, b: string) => JSON.stringify([a, b]);
         linksProcessedData.data.forEach(({ datum, values }) => {
@@ -252,7 +255,7 @@ export abstract class FlowProportionSeries<
             const size: number = sizeIdx != null ? values[sizeIdx] : 1;
             const fromNode = nodesById.get(fromId);
             const toNode = nodesById.get(toId);
-            if (fromNode == null || toNode == null) return;
+            if (size <= 0 || fromNode == null || toNode == null) return;
             const indexId = linkIndexId(fromId, toId);
             let indexCell = linkIndices.get(indexId);
             if (indexCell == null) {
@@ -273,10 +276,14 @@ export abstract class FlowProportionSeries<
                 toNode,
                 size,
             });
-            links.push(link);
+            baseLinks.push(link);
         });
 
-        const { nodeGraph, maxPathLength } = computeNodeGraph(nodesById.values(), links, allowCircularReferences);
+        const { links, nodeGraph, maxPathLength } = computeNodeGraph(
+            nodesById.values(),
+            baseLinks,
+            includeCircularReferences
+        );
 
         return { nodeGraph, links, maxPathLength };
     }
@@ -445,6 +452,28 @@ export abstract class FlowProportionSeries<
                 ],
             })
         );
+    }
+
+    override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        let minDistanceSquared = Infinity;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+
+        this.linkSelection.each((node, datum) => {
+            const distanceSquared = node.distanceSquared(x, y);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
+                minDatum = datum;
+            }
+        });
+        this.nodeSelection.each((node, datum) => {
+            const distanceSquared = node.distanceSquared(x, y);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
+                minDatum = datum;
+            }
+        });
+
+        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
     protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
