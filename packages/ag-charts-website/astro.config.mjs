@@ -52,6 +52,9 @@ export default defineConfig({
     site: PUBLIC_SITE_URL,
     base: PUBLIC_BASE_URL,
     outDir: OUTPUT_DIR,
+    devToolbar: {
+        enabled: false,
+    },
     vite: {
         plugins: [mkcert(), svgr(), agHotModuleReload()],
         resolve: {
