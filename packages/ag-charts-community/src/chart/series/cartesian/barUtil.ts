@@ -3,6 +3,7 @@ import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromTo
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Node } from '../../../scene/node';
@@ -134,10 +135,24 @@ export function getRectConfig<
     };
 }
 
-export function checkCrisp(visibleRange: number[] = []): boolean {
-    const [visibleMin, visibleMax] = visibleRange;
-    const isZoomed = visibleMin !== 0 || visibleMax !== 1;
-    return !isZoomed;
+export function checkCrisp(
+    scale: Scale<any, any> | undefined,
+    visibleRange: number[] | undefined,
+    smallestDataInterval: number | undefined,
+    largestDataInterval: number | undefined
+): boolean {
+    if (visibleRange != null) {
+        const [visibleMin, visibleMax] = visibleRange;
+        const isZoomed = visibleMin !== 0 || visibleMax !== 1;
+        if (isZoomed) return false;
+    }
+
+    if (ContinuousScale.is(scale)) {
+        const spacing = scale.calcBandwidth(largestDataInterval) - scale.calcBandwidth(smallestDataInterval);
+        if (spacing > 0 && spacing < 1) return false;
+    }
+
+    return true;
 }
 
 const isDatumNegative = (datum: AnimatableBarDatum) => {

@@ -182,12 +182,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     missingValue: undefined,
                     validation: totalTypeValue,
                 }),
-                ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL] : []),
+                ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL, _ModuleSupport.LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
+        this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
         this.updateSeriesItemTypes();
 
@@ -541,7 +542,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
 
         const categoryAxis = this.getCategoryAxis();
-        const crisp = checkCrisp(categoryAxis?.visibleRange);
+        const crisp = checkCrisp(
+            categoryAxis?.scale,
+            categoryAxis?.visibleRange,
+            this.smallestDataInterval,
+            this.largestDataInterval
+        );
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 

@@ -22,6 +22,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
+    LARGEST_KEY_INTERVAL,
     SMALLEST_KEY_INTERVAL,
     animationValidation,
     createDatumId,
@@ -184,7 +185,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     },
                     yScaleType
                 ),
-                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
+                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
             groupByKeys: true,
@@ -192,6 +193,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
+        this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
         this.animationState.transition('updateData');
     }
@@ -420,7 +422,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp = checkCrisp(xAxis?.visibleRange);
+        const crisp = checkCrisp(
+            xAxis?.scale,
+            xAxis?.visibleRange,
+            this.smallestDataInterval,
+            this.largestDataInterval
+        );
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         opts.datumSelection.each((rect, datum) => {
