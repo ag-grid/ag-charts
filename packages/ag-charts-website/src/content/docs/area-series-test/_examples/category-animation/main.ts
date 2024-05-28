@@ -111,7 +111,7 @@ function rapidUpdate() {
     options.data = [...data, { quarter: 'week 12', iphone: 78 }];
     chart.update(options);
 
-    (chart as any).chart.waitForUpdate().then(() => {
+    chart.waitForUpdate().then(() => {
         options.data = [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }];
         chart.update(options);
     });

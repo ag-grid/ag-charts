@@ -108,7 +108,7 @@ function rapidUpdate() {
         data: [...data, { quarter: 'week 12', iphone: 78 }],
     });
 
-    (chart as any).chart.waitForUpdate().then(() => {
+    chart.waitForUpdate().then(() => {
         chart.updateDelta({
             data: [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
         });

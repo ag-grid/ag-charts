@@ -39,7 +39,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
         const chart = AgCharts.create(options);
         this.chart = chart;
 
-        (chart as any).chart.waitForUpdate().then(() => this.props.onChartReady?.(chart));
+        chart.waitForUpdate().then(() => this.props.onChartReady?.(chart));
     }
 
     componentDidUpdate() {
