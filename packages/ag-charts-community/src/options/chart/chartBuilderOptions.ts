@@ -84,7 +84,7 @@ export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
     /** Returns a base64-encoded image data URL for the given `AgChartInstance`.*/
     getImageDataURL(options?: ImageDataUrlOptions): Promise<string>;
 
-    saveAnnotations(): Promise<unknown>;
+    saveAnnotations(): Promise<string>;
     restoreAnnotations(blob: unknown): Promise<void>;
 
     /** Destroy the chart instance and any allocated resources to support its rendering. */
