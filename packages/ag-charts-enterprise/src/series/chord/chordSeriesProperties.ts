@@ -89,14 +89,8 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     @Validate(STRING)
     fromKey!: string;
 
-    @Validate(STRING, { optional: true })
-    fromIdName: string | undefined = undefined;
-
     @Validate(STRING)
     toKey!: string;
-
-    @Validate(STRING, { optional: true })
-    toIdName: string | undefined = undefined;
 
     @Validate(STRING)
     idKey: string = '';

@@ -23,8 +23,12 @@ export interface NodeGraphEntry<N extends Node, L extends Link<N>> {
 export function computeNodeGraph<N extends Node, L extends Link<N>>(
     nodes: Iterable<N>,
     links: L[],
-    allowCircularReferences: boolean
+    includeCircularReferences: boolean
 ) {
+    if (!includeCircularReferences) {
+        links = removeCircularLinks(links);
+    }
+
     const nodeGraph = new Map<string, NodeGraphEntry<N, L>>();
     for (const datum of nodes) {
         nodeGraph.set(datum.id, {
@@ -40,30 +44,53 @@ export function computeNodeGraph<N extends Node, L extends Link<N>>(
     nodeGraph.forEach((node, id) => {
         maxPathLength = Math.max(
             maxPathLength,
-            computePathLength(nodeGraph, links, node, id, -1, allowCircularReferences) +
-                computePathLength(nodeGraph, links, node, id, 1, allowCircularReferences) +
+            computePathLength(nodeGraph, links, node, id, -1, []) +
+                computePathLength(nodeGraph, links, node, id, 1, []) +
                 1
         );
     });
 
-    return { nodeGraph, maxPathLength };
+    return { links, nodeGraph, maxPathLength };
 }
 
-const stack: string[] = [];
+function findCircularLinks<N extends Node, L extends Link<N>>(links: L[], link: L, into: Set<L>, stack: L[]) {
+    const stackIndex = stack.indexOf(link);
+    if (stackIndex !== -1) {
+        for (let i = stackIndex; i < stack.length; i += 1) {
+            into.add(stack[i] as any);
+        }
+        return;
+    }
+
+    stack.push(link);
+    const { toNode } = link;
+    for (const next of links) {
+        if (next.fromNode === toNode) {
+            findCircularLinks(links, next, into, stack);
+        }
+    }
+    stack.pop();
+}
+
+function removeCircularLinks<N extends Node, L extends Link<N>>(links: L[]) {
+    const circularLinks = new Set<L>();
+    for (const link of links) {
+        findCircularLinks(links, link, circularLinks, []);
+    }
+
+    return circularLinks.size === 0 ? links : links.filter((link) => !circularLinks.has(link));
+}
+
 function computePathLength<N extends Node, L extends Link<N>>(
     nodeGraph: Map<string, NodeGraphEntry<N, L>>,
     links: L[],
     node: NodeGraphEntry<N, L>,
     id: string,
     direction: -1 | 1,
-    allowCircularReferences: boolean
+    stack: string[]
 ) {
     if (stack.includes(id)) {
-        if (allowCircularReferences) {
-            return Infinity;
-        } else {
-            throw new Error(`Circular reference: ${[...stack, id].join(', ')}`);
-        }
+        return Infinity;
     }
 
     let maxPathLength = direction === -1 ? node.maxPathLengthBefore : node.maxPathLengthAfter;
@@ -82,7 +109,7 @@ function computePathLength<N extends Node, L extends Link<N>>(
             stack?.push(id);
             maxPathLength = Math.max(
                 maxPathLength,
-                computePathLength(nodeGraph, links, nextNode, nextNodeId, direction, allowCircularReferences) + 1
+                computePathLength(nodeGraph, links, nextNode, nextNodeId, direction, stack) + 1
             );
             stack?.pop();
         }

@@ -140,7 +140,7 @@ export class ChordSeries extends FlowProportionSeries<
                 startAngle2: NaN,
                 endAngle2: NaN,
             }),
-            { allowCircularReferences: true }
+            { includeCircularReferences: true }
         );
 
         let labelInset = 0;
@@ -243,10 +243,28 @@ export class ChordSeries extends FlowProportionSeries<
 
         const nodeData: ChordDatum[] = [];
         nodeGraph.forEach(({ datum: node }) => {
+            const r = (node.innerRadius + node.outerRadius) / 2;
+            const a = node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
+            node.midPoint = {
+                x: node.centerX + r * Math.cos(a),
+                y: node.centerY + r * Math.sin(a),
+            };
             nodeData.push(node);
         });
         links.forEach((link) => {
             link.radius = radius;
+            const cpa0 = link.startAngle1 + angleBetween(link.startAngle1, link.endAngle1) / 2;
+            const cpa3 = link.startAngle2 + angleBetween(link.startAngle2, link.endAngle2) / 2;
+            const cp0x = radius * Math.cos(cpa0);
+            const cp0y = radius * Math.sin(cpa0);
+            const cp3x = radius * Math.cos(cpa3);
+            const cp3y = radius * Math.sin(cpa3);
+
+            link.midPoint = {
+                x: link.centerX + (cp0x + cp3x) * 0.125,
+                y: link.centerY + (cp0y + cp3y) * 0.125,
+            };
+
             nodeData.push(link);
         });
 
@@ -434,7 +452,7 @@ export class ChordSeries extends FlowProportionSeries<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { fromKey, fromIdName, toKey, toIdName, sizeKey, sizeName, formatter, tooltip } = properties;
+        const { fromKey, toKey, sizeKey, sizeName, formatter, tooltip } = properties;
         const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
         const { datum, itemId } = nodeDatum;
 
@@ -490,9 +508,7 @@ export class ChordSeries extends FlowProportionSeries<
                 color,
                 itemId,
                 fromKey,
-                fromIdName,
                 toKey,
-                toIdName,
                 sizeKey,
                 sizeName,
                 ...this.getModuleTooltipParams(),

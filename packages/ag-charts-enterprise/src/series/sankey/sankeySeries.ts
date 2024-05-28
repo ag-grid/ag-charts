@@ -69,7 +69,7 @@ export class SankeySeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             label: { spacing: labelSpacing },
-            node: { spacing: nodeSpacing, width: nodeWidth, justify },
+            node: { spacing: nodeSpacing, width: nodeWidth, alignment },
         } = this.properties;
 
         const defaultLabelFormatter = (v: any) => String(v);
@@ -109,7 +109,7 @@ export class SankeySeries extends FlowProportionSeries<
                 y2: NaN,
                 height: NaN,
             }),
-            { allowCircularReferences: false }
+            { includeCircularReferences: false }
         );
         type EnhancedNodeGraphEntry = NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & {
             columnIndex: number;
@@ -131,13 +131,18 @@ export class SankeySeries extends FlowProportionSeries<
 
         nodeGraph.forEach((graphNode) => {
             const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
+            if (linksBefore.length === 0 && linksAfter.length === 0) {
+                graphNode.columnIndex = -1;
+                return;
+            }
+
             const size = Math.max(
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0),
                 linksAfter.reduce((acc, { link }) => acc + link.size, 0)
             );
 
             let column: Column;
-            switch (justify) {
+            switch (alignment) {
                 case 'left':
                     column = columns[maxPathLengthBefore];
                     break;
@@ -254,6 +259,10 @@ export class SankeySeries extends FlowProportionSeries<
             let bottom = -Infinity;
             column.nodes.sort((a, b) => a.datum.y - b.datum.y);
             column.nodes.forEach(({ datum: node }) => {
+                node.midPoint = {
+                    x: node.x + node.width / 2,
+                    y: node.y + node.height / 2,
+                };
                 nodeData.push(node);
 
                 if (node.label == null) return;
@@ -296,6 +305,10 @@ export class SankeySeries extends FlowProportionSeries<
             link.height = seriesRectHeight * size * sizeScale;
             link.x1 = fromNode.x + nodeWidth;
             link.x2 = toNode.x;
+            link.midPoint = {
+                x: (link.x1 + link.x2) / 2,
+                y: (link.y1 + link.y2) / 2 + link.height / 2,
+            };
 
             nodeData.push(link);
         });
@@ -449,7 +462,7 @@ export class SankeySeries extends FlowProportionSeries<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { fromKey, fromIdName, toKey, toIdName, sizeKey, sizeName, formatter, tooltip } = properties;
+        const { fromKey, toKey, sizeKey, sizeName, formatter, tooltip } = properties;
         const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
         const { datum, itemId } = nodeDatum;
 
@@ -505,9 +518,7 @@ export class SankeySeries extends FlowProportionSeries<
                 color,
                 itemId,
                 fromKey,
-                fromIdName,
                 toKey,
-                toIdName,
                 sizeKey,
                 sizeName,
                 ...this.getModuleTooltipParams(),

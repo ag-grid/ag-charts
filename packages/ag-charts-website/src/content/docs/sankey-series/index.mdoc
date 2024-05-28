@@ -28,14 +28,14 @@ In this configuration:
 -   `sizeKey` defines the size of each link.
 
 {% warning %}
-Circular loops are not allowed in Sankey diagrams.
+Circular loops are not allowed in Sankey diagrams, and links forming a circular loop will be removed.
 {% /warning %}
 
-## Justification
+## Alignment
 
-The horizontal placement of the nodes can be customised using the `justify` property on `node`.
+The horizontal placement of the nodes can be customised using the `align` property on `node`.
 
-{% chartExampleRunner title="Justification" name="justification" type="generated" /%}
+{% chartExampleRunner title="Alignment" name="alignment" type="generated" /%}
 
 ```js
 series: [
@@ -45,7 +45,7 @@ series: [
         toKey: 'to',
         sizeKey: 'size',
         node: {
-            justify: 'justify',
+            align: 'justify',
         },
     },
 ],
