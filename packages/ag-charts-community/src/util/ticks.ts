@@ -1,6 +1,56 @@
 import { times } from './array';
 import { Logger } from './logger';
 import { countFractionDigits } from './number';
+import timeDay from './time/day';
+import {
+    durationDay,
+    durationHour,
+    durationMinute,
+    durationMonth,
+    durationSecond,
+    durationWeek,
+    durationYear,
+} from './time/duration';
+import timeHour from './time/hour';
+import { type CountableTimeInterval, TimeInterval } from './time/interval';
+import timeMillisecond from './time/millisecond';
+import timeMinute from './time/minute';
+import timeMonth from './time/month';
+import timeSecond from './time/second';
+import timeWeek from './time/week';
+import timeYear from './time/year';
+
+const tInterval = (timeInterval: CountableTimeInterval, baseDuration: number, step: number) => ({
+    duration: baseDuration * step,
+    timeInterval,
+    step,
+});
+
+export const TickIntervals = [
+    tInterval(timeSecond, durationSecond, 1),
+    tInterval(timeSecond, durationSecond, 5),
+    tInterval(timeSecond, durationSecond, 15),
+    tInterval(timeSecond, durationSecond, 30),
+    tInterval(timeMinute, durationMinute, 1),
+    tInterval(timeMinute, durationMinute, 5),
+    tInterval(timeMinute, durationMinute, 15),
+    tInterval(timeMinute, durationMinute, 30),
+    tInterval(timeHour, durationHour, 1),
+    tInterval(timeHour, durationHour, 3),
+    tInterval(timeHour, durationHour, 6),
+    tInterval(timeHour, durationHour, 12),
+    tInterval(timeDay, durationDay, 1),
+    tInterval(timeDay, durationDay, 2),
+    tInterval(timeWeek, durationWeek, 1),
+    tInterval(timeWeek, durationWeek, 2),
+    tInterval(timeWeek, durationWeek, 3),
+    tInterval(timeMonth, durationMonth, 1),
+    tInterval(timeMonth, durationMonth, 2),
+    tInterval(timeMonth, durationMonth, 3),
+    tInterval(timeMonth, durationMonth, 4),
+    tInterval(timeMonth, durationMonth, 6),
+    tInterval(timeYear, durationYear, 1),
+];
 
 export const TickMultipliers = [1, 2, 5, 10];
 
@@ -21,6 +71,37 @@ export function createTicks(
     start = Math.ceil(start / step) * step;
     stop = Math.floor(stop / step) * step;
     return range(start, stop, step);
+}
+
+export function getTickInterval(
+    start: number,
+    stop: number,
+    count: number,
+    minCount?: number,
+    maxCount?: number,
+    targetInterval?: number
+): TimeInterval {
+    const target = targetInterval ?? Math.abs(stop - start) / Math.max(count, 1);
+
+    let i = 0;
+    for (const tickInterval of TickIntervals) {
+        if (target <= tickInterval.duration) break;
+        i++;
+    }
+
+    if (i === 0) {
+        const step = Math.max(tickStep(start, stop, count, minCount, maxCount), 1);
+        return timeMillisecond.every(step);
+    } else if (i === TickIntervals.length) {
+        const step =
+            targetInterval == null ? tickStep(start / durationYear, stop / durationYear, count, minCount, maxCount) : 1;
+        return timeYear.every(step);
+    }
+
+    const i0 = TickIntervals[i - 1];
+    const i1 = TickIntervals[i];
+    const { timeInterval, step } = target - i0.duration < i1.duration - target ? i0 : i1;
+    return timeInterval.every(step);
 }
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {
