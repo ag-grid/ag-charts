@@ -13,6 +13,7 @@ const {
     checkCrisp,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
+    LARGEST_KEY_INTERVAL,
     diff,
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
@@ -147,13 +148,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue`, ...visibleProps }),
                 valueProperty(yHighKey, yScaleType, { id: `yHighValue`, ...visibleProps }),
-                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
+                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
             groupByKeys: true,
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
+        this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
         this.animationState.transition('updateData');
     }
@@ -391,7 +393,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp = checkCrisp(xAxis?.visibleRange);
+        const crisp = checkCrisp(
+            xAxis?.scale,
+            xAxis?.visibleRange,
+            this.smallestDataInterval,
+            this.largestDataInterval
+        );
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 

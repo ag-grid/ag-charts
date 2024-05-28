@@ -29,6 +29,7 @@ export interface UngroupedData<D> {
     reduced?: {
         diff?: ProcessedOutputDiff;
         smallestKeyInterval?: number;
+        largestKeyInterval?: number;
         sortedGroupDomain?: any[][];
         animationValidation?: {
             uniqueKeys: boolean;

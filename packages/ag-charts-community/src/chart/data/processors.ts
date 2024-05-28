@@ -31,6 +31,24 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     },
 };
 
+export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyInterval'> = {
+    type: 'reducer',
+    property: 'largestKeyInterval',
+    initialValue: -Infinity,
+    reducer: () => {
+        let prevX = NaN;
+        return (largestSoFar = -Infinity, next) => {
+            const nextX = next.keys[0];
+            const interval = Math.abs(nextX - prevX);
+            prevX = nextX;
+            if (!isNaN(interval) && interval > 0 && interval > largestSoFar) {
+                return interval;
+            }
+            return largestSoFar;
+        };
+    },
+};
+
 export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
     type: 'processor',
     property: 'sortedGroupDomain',

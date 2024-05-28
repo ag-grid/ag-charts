@@ -32,6 +32,7 @@ export abstract class AbstractBarSeries<
     protected groupScale = new BandScale<string>();
 
     protected smallestDataInterval?: number = undefined;
+    protected largestDataInterval?: number = undefined;
 
     override getBandScalePadding() {
         return { inner: 0.3, outer: 0.15 };
