@@ -96,14 +96,6 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
-        const ids = [
-            `line-stack-${groupIndex}-yValues`,
-            `line-stack-${groupIndex}-yValues-trailing`,
-            `line-stack-${groupIndex}-yValues-prev`,
-            `line-stack-${groupIndex}-yValues-trailing-prev`,
-            `line-stack-${groupIndex}-yValues-marker`,
-        ];
-
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if (connectMissingData && stackCount > 1) {
             common.invalidValue = 0;
@@ -128,68 +120,82 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 id: `yValueRaw`,
                 ...common,
                 invalidValue: undefined,
-            }),
-            ...groupAccumulativeValueProperty(
-                yKey,
-                'window',
-                'current',
-                {
-                    id: `yValueEnd`,
-                    ...common,
-                    groupId: ids[0],
-                },
-                yScaleType
-            ),
-            ...groupAccumulativeValueProperty(
-                yKey,
-                'window-trailing',
-                'current',
-                {
-                    id: `yValueStart`,
-                    ...common,
-                    groupId: ids[1],
-                },
-                yScaleType
-            ),
-            ...groupAccumulativeValueProperty(
-                yKey,
-                'window',
-                'last',
-                {
-                    id: `yValuePreviousEnd`,
-                    ...common,
-                    groupId: ids[2],
-                },
-                yScaleType
-            ),
-            ...groupAccumulativeValueProperty(
-                yKey,
-                'window-trailing',
-                'last',
-                {
-                    id: `yValuePreviousStart`,
-                    ...common,
-                    groupId: ids[3],
-                },
-                yScaleType
-            ),
-            ...groupAccumulativeValueProperty(
-                yKey,
-                'normal',
-                'current',
-                {
-                    id: `yValueCumulative`,
-                    ...common,
-                    groupId: ids[4],
-                },
-                yScaleType
-            )
+            })
         );
 
-        if (isDefined(normalizedTo)) {
-            props.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
-            props.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
+        if (stackCount > 1) {
+            const ids = [
+                `line-stack-${groupIndex}-yValues`,
+                `line-stack-${groupIndex}-yValues-trailing`,
+                `line-stack-${groupIndex}-yValues-prev`,
+                `line-stack-${groupIndex}-yValues-trailing-prev`,
+                `line-stack-${groupIndex}-yValues-marker`,
+            ];
+
+            props.push(
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'current',
+                    {
+                        id: `yValueEnd`,
+                        ...common,
+                        groupId: ids[0],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'current',
+                    {
+                        id: `yValueStart`,
+                        ...common,
+                        groupId: ids[1],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'last',
+                    {
+                        id: `yValuePreviousEnd`,
+                        ...common,
+                        groupId: ids[2],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'last',
+                    {
+                        id: `yValuePreviousStart`,
+                        ...common,
+                        groupId: ids[3],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `yValueCumulative`,
+                        ...common,
+                        groupId: ids[4],
+                    },
+                    yScaleType
+                )
+            );
+
+            if (isDefined(normalizedTo)) {
+                props.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
+                props.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
+            }
         }
+
         if (animationEnabled) {
             props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
             if (this.processedData) {
@@ -238,6 +244,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         const { xKey, yKey, xName, yName, marker, label, connectMissingData, legendItemName } = this.properties;
+        const stackCount = this.seriesGrouping?.stackCount ?? 1;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -247,7 +254,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
-        const yCumulativeIdx = dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`);
+        const yCumulativeIdx =
+            stackCount > 1 ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
 
         let moveTo = true;
         // let nextPoint: UngroupedDataItem<any, any> | undefined;
