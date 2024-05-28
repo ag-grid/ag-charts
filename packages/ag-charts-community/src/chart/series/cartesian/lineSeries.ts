@@ -218,10 +218,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
             return fixNumericExtent(extent(domain), xAxis);
         } else {
-            const domain = [
-                dataModel.getDomain(this, `yValueRaw`, 'value', processedData)[0],
-                dataModel.getDomain(this, `yValueEnd`, 'value', processedData)[1],
-            ];
+            const stackCount = this.seriesGrouping?.stackCount ?? 1;
+            const domain =
+                stackCount > 1
+                    ? dataModel.getDomain(this, `yValueEnd`, 'value', processedData)
+                    : dataModel.getDomain(this, `yValueRaw`, 'value', processedData);
             return fixNumericExtent(domain as any, yAxis);
         }
     }
