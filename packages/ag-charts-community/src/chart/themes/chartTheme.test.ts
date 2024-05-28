@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { fail } from 'assert';
 
+import { AgCharts } from '../../api/agCharts';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartTheme,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
-import { AgCharts } from '../agChartV2';
 import { CartesianChart } from '../cartesianChart';
 import { PolarChart } from '../polarChart';
 import type { AreaSeries } from '../series/cartesian/areaSeries';

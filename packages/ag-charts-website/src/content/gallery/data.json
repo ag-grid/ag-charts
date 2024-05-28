@@ -669,6 +669,41 @@
         ],
         [
             {
+                "title": "Chord",
+                "seriesName": "chord",
+                "icon": "chartsChord",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Chord",
+                        "description": "",
+                        "name": "chord"
+                    },
+                    {
+                        "title": "Chord Customisation",
+                        "description": "",
+                        "name": "chord-customisation"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Sankey",
+                "seriesName": "sankey",
+                "icon": "chartsSankey",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Sankey",
+                        "description": "",
+                        "name": "sankey"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Bullet Chart",
                 "seriesName": "bullet-chart",
                 "icon": "chartsBullet",

@@ -77,7 +77,7 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["{projectRoot}/watch.sh", "nx run ag-charts-website:dev"]
+        "commands": ["node {projectRoot}/watch.js", "nx run ag-charts-website:dev"]
       },
       "configurations": {
         "windows": {
@@ -98,7 +98,7 @@
         "parallel": true,
         "commands": [
           "nx run generate-gallery-thumbnail --example=simple-bar",
-          "{projectRoot}/watch.sh",
+          "node {projectRoot}/watch.js",
           "nx run ag-charts-website:dev"
         ]
       },

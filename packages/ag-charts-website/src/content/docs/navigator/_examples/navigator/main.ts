@@ -93,5 +93,5 @@ const chart = AgCharts.create(options);
 
 function toggleEnabled(value: boolean) {
     options.navigator!.enabled = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

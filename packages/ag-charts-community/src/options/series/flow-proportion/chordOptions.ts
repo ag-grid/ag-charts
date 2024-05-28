@@ -8,6 +8,7 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 export interface AgChordSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
         AgChordSeriesOptionsKeys,
+        AgChordSeriesOptionsNames,
         AgChordSeriesThemeableOptions<TDatum> {
     /** Configuration for the Chord Series. */
     type: 'chord';

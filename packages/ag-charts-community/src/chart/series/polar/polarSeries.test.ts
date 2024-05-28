@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { AgCharts } from '../../../api/agCharts';
 import type { AgPolarChartOptions } from '../../../options/agChartOptions';
-import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import { ChartUpdateType } from '../../chartUpdateType';
 import type { PolarTestCase } from '../../test/utils';
@@ -164,7 +164,7 @@ describe('PolarSeries', () => {
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                AgCharts.update(chart, {
+                chart.update({
                     ...options,
                     data: options.data!.slice(0, options.data!.length - 2),
                 });
@@ -190,7 +190,7 @@ describe('PolarSeries', () => {
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                AgCharts.update(chart, { ...options });
+                chart.update({ ...options });
 
                 await compare();
             });
@@ -211,7 +211,7 @@ describe('PolarSeries', () => {
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                AgCharts.update(chart, {
+                chart.update({
                     ...options,
                     data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),
                 });

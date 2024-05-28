@@ -46,7 +46,7 @@ function stopUpdates() {
 
 function update() {
     options.data = getUpdatedData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function getUpdatedData() {

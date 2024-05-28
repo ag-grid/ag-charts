@@ -27,5 +27,5 @@ function toggleConnectMissingData() {
         ...series,
         connectMissingData: !series.connectMissingData,
     }));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from '../api/agCharts';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
 import * as examples from './test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -42,7 +42,7 @@ describe('Scene', () => {
             await waitForChartStability(chart);
 
             (options.legend as AgChartLegendOptions).position = 'top';
-            AgCharts.update(chart, options);
+            await chart.update(options);
 
             await compare();
         });
@@ -56,7 +56,7 @@ describe('Scene', () => {
             await waitForChartStability(chart);
 
             (options.legend as AgChartLegendOptions).position = 'top';
-            AgCharts.update(chart, options);
+            await chart.update(options);
 
             await compare();
         });

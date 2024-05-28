@@ -29,5 +29,5 @@ function removeData() {
     const newData = [...options.data!];
     newData.pop();
     options.data = newData;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

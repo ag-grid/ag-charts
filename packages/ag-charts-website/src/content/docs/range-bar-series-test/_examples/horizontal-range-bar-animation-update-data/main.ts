@@ -32,5 +32,5 @@ function updateValues() {
         high: Math.random() * d.high,
     }));
     options.data = updatedData;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

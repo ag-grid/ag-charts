@@ -64,7 +64,7 @@ function line() {
             opt.type = 'line';
         }
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function bar() {
@@ -73,7 +73,7 @@ function bar() {
             opt.type = 'bar';
         }
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function resetData() {
@@ -81,7 +81,7 @@ function resetData() {
         options.series[0].data = getData();
         options.series[1].data = getData2();
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function removeOdds() {
@@ -92,7 +92,7 @@ function removeOdds() {
         options.series[0].data = getData().filter(fn);
         options.series[1].data = getData2().filter(fn);
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function removeOddsErrors() {
@@ -108,7 +108,7 @@ function removeOddsErrors() {
         options.series[0].data = getData().map(fn);
         options.series[1].data = getData2().map(fn);
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function randomDelta(min: number, max: number) {
@@ -137,7 +137,7 @@ function randomiseData() {
         options.series[0].data = options.series[0].data?.map(fn);
         options.series[1].data = options.series[1].data?.map(fn);
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function randomiseErrors() {
@@ -157,5 +157,5 @@ function randomiseErrors() {
         options.series[0].data = options.series[0].data?.map(fn);
         options.series[1].data = options.series[1].data?.map(fn);
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

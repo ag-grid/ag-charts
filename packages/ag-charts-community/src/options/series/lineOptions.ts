@@ -1,3 +1,5 @@
+import type { Ratio } from '../chart/types';
+
 export type AgLineStyle = AgLineLinearStyle | AgLineSmoothStyle | AgLineStepStyle;
 
 interface AgLineLinearStyle {
@@ -6,7 +8,7 @@ interface AgLineLinearStyle {
 
 interface AgLineSmoothStyle {
     style: 'smooth';
-    tension?: number;
+    tension?: Ratio;
 }
 
 interface AgLineStepStyle {

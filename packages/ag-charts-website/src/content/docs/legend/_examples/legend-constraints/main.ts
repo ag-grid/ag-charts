@@ -31,7 +31,7 @@ function updateLegendItemPaddingX(event: any) {
     var value = +event.target.value;
 
     options.legend!.item!.paddingX = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('xPaddingValue')!.innerHTML = String(value);
 }
@@ -40,7 +40,7 @@ function updateLegendItemPaddingY(event: any) {
     var value = event.target.value;
 
     options.legend!.item!.paddingY = +event.target.value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('yPaddingValue')!.innerHTML = String(value);
 }
@@ -49,7 +49,7 @@ function updateLegendItemSpacing(event: any) {
     var value = +event.target.value;
 
     options.legend!.item!.marker!.padding = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('markerPaddingValue')!.innerHTML = String(value);
 }
@@ -58,7 +58,7 @@ function updateLegendItemMaxWidth(event: any) {
     var value = +event.target.value;
 
     options.legend!.item!.maxWidth = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('maxWidthValue')!.innerHTML = String(value);
 }

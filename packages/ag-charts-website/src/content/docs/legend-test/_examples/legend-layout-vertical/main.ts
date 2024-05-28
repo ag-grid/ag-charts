@@ -44,7 +44,7 @@ function updateHeight(event: any) {
     var value = +event.target.value;
 
     options.height = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('sliderValue')!.innerHTML = String(value);
 }

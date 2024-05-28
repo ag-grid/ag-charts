@@ -40,7 +40,7 @@ const chart = AgCharts.create(options);
 
 function reset() {
     options.data = getData();
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function randomise() {
@@ -50,10 +50,10 @@ function randomise() {
             age: Math.max(17, Math.min(33, d.age + Math.floor(Math.random() * 4) - 2)),
         })),
     ];
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }
 
 function remove() {
     options.data = [...getData().filter((d: any) => (d.age < 20 || d.age >= 22) && d.age < 32)];
-    AgCharts.update(chart, options as any);
+    chart.update(options as any);
 }

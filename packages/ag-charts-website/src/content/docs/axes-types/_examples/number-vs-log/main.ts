@@ -46,7 +46,7 @@ function setNumberAxis() {
             },
         },
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setLogAxis() {
@@ -64,7 +64,7 @@ function setLogAxis() {
             },
         },
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setBaseTwoLogAxis() {
@@ -83,7 +83,7 @@ function setBaseTwoLogAxis() {
             base: 2,
         },
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setLogAxisWithFewerTicks() {
@@ -104,5 +104,5 @@ function setLogAxisWithFewerTicks() {
             },
         },
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

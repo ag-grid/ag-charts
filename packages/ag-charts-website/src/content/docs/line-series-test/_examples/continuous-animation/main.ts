@@ -63,33 +63,33 @@ function times<T>(cb: () => T, count: number) {
 
 function actionReset() {
     options.data = getData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddSeries() {
     options.series = [...options.series!, series[options.series!.length % series.length]] as any;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionRemoveSeries() {
     options.series = options.series!.slice(0, options.series!.length - 1);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionRemovePoints() {
     options.data = [...(options.data ?? [])];
     options.data.splice(options.data.length / 2 - 5, 10);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionRemoveFirstPoint() {
     options.data = [...(options.data ?? []).slice(1)];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionRemoveLastPoint() {
     options.data = [...(options.data ?? []).slice(0, -1)];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionRemoveHalf() {
@@ -97,7 +97,7 @@ function actionRemoveHalf() {
     const { length } = data;
     options.data = data.slice(Math.floor((length * 1) / 4), Math.floor((length * 3) / 4));
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddPoints() {
@@ -110,7 +110,7 @@ function actionAddPoints() {
         const date = new Date((datum.date.getTime() + nextDatum.date.getTime()) / 2);
         options.data.splice(dataIdx + 1, 0, genDataPoint({ ...datum, date }, 0));
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddPointsBefore() {
@@ -118,7 +118,7 @@ function actionAddPointsBefore() {
 
     const ref = options.data[0];
     options.data.splice(0, 0, genDataPoint(ref, -14), genDataPoint(ref, -7));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddPointsAfter(count = 2) {
@@ -128,7 +128,7 @@ function actionAddPointsAfter(count = 2) {
     for (let idx = 0; idx < count; idx++) {
         options.data.push(genDataPoint(ref, (idx + 1) * 7));
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddDouble() {
@@ -143,7 +143,7 @@ function actionAddDouble() {
         ...data,
         ...times(() => (end = genDataPoint(end, 7)), count),
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionUpdatePoints() {
@@ -152,7 +152,7 @@ function actionUpdatePoints() {
         petrol: d.petrol + Math.random() * 4 - 2,
         diesel: d.diesel + Math.random() * 4 - 2,
     }));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionUpdatePointUndefined() {
@@ -161,7 +161,7 @@ function actionUpdatePointUndefined() {
         petrol: Math.random() > 0.9 ? undefined : d.petrol,
         diesel: Math.random() > 0.9 ? undefined : d.diesel,
     }));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionShiftLeft() {
@@ -169,7 +169,7 @@ function actionShiftLeft() {
     const [ref] = data.slice(-1);
     options.data = [...data.slice(1), genDataPoint(ref, 7)];
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionShiftRight() {
@@ -177,7 +177,7 @@ function actionShiftRight() {
     const [ref] = data.slice(0);
     options.data = [genDataPoint(ref, -7), ...data.slice(0, -1)];
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 let tick: NodeJS.Timeout;

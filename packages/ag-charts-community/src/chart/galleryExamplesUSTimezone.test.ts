@@ -3,8 +3,8 @@
  */
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from '../api/agCharts';
 import type { AgChartOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { isAgCartesianChartOptions } from './mapping/types';
 import { EXAMPLES } from './test/examples-gallery';

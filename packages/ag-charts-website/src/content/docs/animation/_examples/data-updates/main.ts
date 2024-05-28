@@ -224,7 +224,7 @@ function changeSeriesBar() {
     options.axes = barOptions.axes;
     options.data = getGeneratedData();
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeSeriesLine() {
@@ -237,7 +237,7 @@ function changeSeriesLine() {
     options.axes = lineOptions.axes;
     options.data = getGeneratedData();
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeSeriesArea() {
@@ -250,7 +250,7 @@ function changeSeriesArea() {
     options.axes = areaOptions.axes;
     options.data = getGeneratedData();
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeSeriesDonut() {
@@ -263,33 +263,33 @@ function changeSeriesDonut() {
     options.axes = donutOptions.axes;
     options.data = getGeneratedData();
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function add() {
     offset++;
     length++;
     options.data = getGeneratedData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function remove() {
     length = Math.max(0, length - 1);
     options.data = getGeneratedData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function update() {
     seed = Math.floor(random() * 1000);
     options.data = getGeneratedData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function addRemoveUpdate() {
     offset++;
     seed = Math.floor(random() * 1000);
     options.data = getGeneratedData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function getGeneratedData() {

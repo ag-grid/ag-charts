@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 import { fail } from 'assert';
 
+import { AgCharts } from '../api/agCharts';
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';

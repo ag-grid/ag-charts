@@ -1,5 +1,6 @@
 ---
 title: 'Themes'
+description: 'Themes customise the appearance of your $framework charts. Browse stock $framework chart themes or create your own by overriding default chart options.'
 ---
 
 Themes allow you customise the appearance of your charts. They provide defaults for different properties of the chart that will be used unless overridden by the chart options.
@@ -33,7 +34,7 @@ type AgChartThemeName =
 
 ### Example: Stock Themes
 
-In the example below, you can click the buttons to change the theme used in the chart. Notice how changing from one theme to another is a simple matter of changing the `theme` property on the original `options` object and passing it to `AgCharts.update(chart, options)` along with the chart instance.
+In the example below, you can click the buttons to change the theme used in the chart. Notice how changing from one theme to another is a simple matter of changing the `theme` property on the original `options` object and passing it to `chart.update(options)` along with the chart instance.
 
 {% chartExampleRunner title="Stock Themes" name="stock-themes" type="generated" /%}
 

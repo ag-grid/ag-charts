@@ -67,7 +67,7 @@ const chart = AgCharts.create(options);
 
 function actionReset() {
     options.data = [...data].map(toIntegratedKey);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddEndWeek() {
@@ -82,7 +82,7 @@ function actionAddEndWeek() {
             android: 65 * (Math.random() - 0.5),
         },
     ].map(toIntegratedKey);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddStartWeek() {
@@ -97,7 +97,7 @@ function actionAddStartWeek() {
         },
         ...data,
     ].map(toIntegratedKey);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddWeek12and13() {
@@ -107,7 +107,7 @@ function actionAddWeek12and13() {
         { quarter: 'week 13', week: 13, iphone: 138, android: 120 },
     ].map(toIntegratedKey);
     options.data.sort((a: any, b: any) => a.week - b.week);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddWeek7and8() {
@@ -117,7 +117,7 @@ function actionAddWeek7and8() {
         { quarter: 'week 8', week: 8, iphone: 87, android: 120 },
     ].map(toIntegratedKey);
     options.data.sort((a: any, b: any) => a.week - b.week);
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reorder() {
@@ -126,16 +126,16 @@ function reorder() {
     options.data?.sort((a, b) => a.random - b.random);
     options.data = options.data?.map(toIntegratedKey);
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function rapidUpdate() {
-    AgCharts.updateDelta(chart, {
+    chart.updateDelta({
         data: [...data, { quarter: 'week 12', iphone: 78, android: 67 }],
     });
 
     (chart as any).chart.waitForUpdate().then(() => {
-        AgCharts.updateDelta(chart, {
+        chart.updateDelta({
             data: [
                 ...data,
                 { quarter: 'week 12', week: 12, iphone: 78, android: 67 },

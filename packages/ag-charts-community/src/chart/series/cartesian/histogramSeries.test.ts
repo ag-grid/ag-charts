@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from '../../../api/agCharts';
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgCharts } from '../../agChartV2';
 import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -234,7 +234,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -262,7 +262,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -271,7 +271,7 @@ describe('HistogramSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                AgCharts.update(chart, options);
+                chart.update(options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -293,7 +293,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                chart.updateDelta({
                     data: [
                         ...options.data!.map((d: any, index: number) => ({
                             ...d,

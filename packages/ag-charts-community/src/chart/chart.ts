@@ -5,7 +5,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
+import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
@@ -136,7 +136,7 @@ class SeriesArea extends BaseProperties {
     padding = new Padding(0);
 }
 
-export abstract class Chart extends Observable implements AgChartInstance {
+export abstract class Chart extends Observable {
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
     static getInstance(element: HTMLElement): Chart | undefined {
@@ -216,16 +216,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this.ctx.scene.canvas.element;
     }
 
-    /** NOTE: This is exposed for use by Integrated charts only. */
-    getCanvasDataURL(fileFormat?: string) {
-        return this.ctx.scene.getDataURL(fileFormat);
-    }
-
     private _lastAutoSize?: [number, number];
     private _firstAutoSize = true;
 
     download(fileName?: string, fileFormat?: string) {
         this.ctx.scene.download(fileName, fileFormat);
+    }
+    getCanvasDataURL(fileFormat?: string) {
+        return this.ctx.scene.getDataURL(fileFormat);
     }
 
     @Validate(OBJECT)

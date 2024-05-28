@@ -60,7 +60,7 @@ function missingYValues() {
 
     options.data = data;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function missingXValues() {
@@ -72,20 +72,20 @@ function missingXValues() {
 
     options.data = data;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function stack() {
     options.series = series.map((s) => ({ ...s, stacked: true }));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function group() {
     options.series = series.map((s) => ({ ...s, stacked: false }));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reset() {
     options.data = getData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

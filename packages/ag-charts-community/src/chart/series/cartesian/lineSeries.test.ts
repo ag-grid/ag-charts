@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { AgCharts } from '../../../api/agCharts';
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { deepClone } from '../../../util/json';
-import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -291,7 +291,7 @@ describe('LineSeries', () => {
                     await waitForChartStability(chart);
 
                     animate(duration, ratio);
-                    AgCharts.updateDelta(chart, { data: changedData });
+                    chart.updateDelta({ data: changedData });
                     await waitForChartStability(chart);
                     await compare();
                 });
@@ -347,7 +347,7 @@ describe('LineSeries', () => {
 
                     animate(1200, ratio);
                     options.series![0].visible = false;
-                    AgCharts.update(chart, { ...options });
+                    chart.update({ ...options });
 
                     await compare();
                 });
@@ -368,7 +368,7 @@ describe('LineSeries', () => {
 
                     animate(1200, ratio);
                     options.series![1].visible = true;
-                    AgCharts.update(chart, options);
+                    chart.update(options);
 
                     await compare();
                 });

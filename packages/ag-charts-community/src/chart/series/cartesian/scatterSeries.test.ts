@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { AgCharts } from '../../../api/agCharts';
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import * as examples from '../../test/examples';
 import {

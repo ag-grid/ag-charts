@@ -25,10 +25,10 @@ const chart = AgCharts.create(options);
 
 function data1() {
     options.data = getData1();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function data2() {
     options.data = getData2();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
