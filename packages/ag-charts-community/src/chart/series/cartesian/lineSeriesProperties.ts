@@ -71,7 +71,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(LINE)
+    @Validate(LINE, { optional: true })
     line?: AgLineStyle = undefined;
 
     @Validate(OBJECT)

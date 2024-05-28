@@ -230,9 +230,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -281,9 +278,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -331,9 +325,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -877,9 +868,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -1276,9 +1264,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -1327,9 +1312,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -1380,9 +1362,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -1431,9 +1410,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -1484,9 +1460,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -1536,9 +1509,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -1587,9 +1557,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -3110,9 +3077,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -3160,9 +3124,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -3212,9 +3173,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -3262,9 +3220,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -7371,9 +7326,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -7422,9 +7374,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -7475,9 +7424,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -7526,9 +7472,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -7579,9 +7522,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -7630,9 +7570,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -7683,9 +7620,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -7734,9 +7668,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -7787,9 +7718,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -7838,9 +7766,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -7891,9 +7816,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -7942,9 +7864,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -7995,9 +7914,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -8046,9 +7962,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -8099,9 +8012,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -8150,9 +8060,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -8572,9 +8479,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
@@ -12076,9 +11980,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "line": {
-        "style": "linear",
-      },
       "lineDash": [
         0,
       ],
@@ -12127,9 +12028,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "style": "linear",
       },
       "lineDash": [
         0,
