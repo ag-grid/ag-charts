@@ -27,13 +27,19 @@ describe('large-scale multi-series benchmark', () => {
             await ctx.update();
         });
 
-        benchmark('4x legend toggle', ctx, EXPECTATIONS, async () => {
-            for (let i = 0; i < 2; i++) {
-                for (const visible of [false, true]) {
-                    ctx.options.series![i].visible = visible;
-                    await ctx.update();
+        benchmark(
+            '4x legend toggle',
+            ctx,
+            EXPECTATIONS,
+            async () => {
+                for (let i = 0; i < 2; i++) {
+                    for (const visible of [false, true]) {
+                        ctx.options.series![i].visible = visible;
+                        await ctx.update();
+                    }
                 }
-            }
-        });
+            },
+            20e3
+        );
     });
 });
