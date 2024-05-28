@@ -8,7 +8,7 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
+import { sanitizeKeyValuePairs } from '../../../util/tooltips.util';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -294,6 +294,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             return EMPTY_TOOLTIP_CONTENT;
         }
 
+        const { datum, xValue, yValue, sizeValue, label, itemId } = nodeDatum;
         const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, marker, tooltip } = this.properties;
         const title = this.properties.title ?? yName;
 
@@ -308,28 +309,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             baseStyle
         );
 
-        const {
-            datum,
-            xValue,
-            yValue,
-            sizeValue,
-            label: { text: labelText },
-            itemId,
-        } = nodeDatum;
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (sizeKey) {
-            content += `<br><b>${sanitizeHtml(sizeName ?? sizeKey)}</b>: ${sanitizeHtml(String(sizeValue))}`;
-        }
-
-        if (labelKey) {
-            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(labelText)}<br>` + content;
-        }
+        const content = sanitizeKeyValuePairs([
+            labelKey && [labelName ?? labelKey, label.text],
+            [xName ?? xKey, xAxis.formatDatum(xValue)],
+            [yName ?? yKey, yAxis.formatDatum(yValue)],
+            sizeKey && [sizeName ?? sizeKey, String(sizeValue)],
+        ]);
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

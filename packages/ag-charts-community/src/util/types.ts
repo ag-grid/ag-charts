@@ -1,3 +1,5 @@
+export type FalsyValue = '' | 0 | false | null | undefined;
+
 export type PlainObject = { [key: string | number | symbol]: any };
 
 export type Has<P extends keyof T, T> = T & { [K in P]-?: T[P] };

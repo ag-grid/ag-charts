@@ -1,5 +1,5 @@
 import type { AgBarSeriesStyle } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { BulletColorRange, BulletSeriesProperties } from './bulletSeriesProperties';
 
@@ -15,9 +15,9 @@ const {
     valueProperty,
     createDatumId,
     computeBarFocusBounds,
+    sanitizeKeyValuePairs,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
-const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly x: number;
@@ -284,16 +284,11 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const makeLine = (key: string, name: string | undefined, value: number) => {
-            const nameString = sanitizeHtml(name ?? key);
-            const valueString = sanitizeHtml(axis.formatDatum(value));
-            return `<b>${nameString}</b>: ${valueString}`;
-        };
         const title = undefined;
-        const content =
-            targetKey === undefined || targetValue === undefined
-                ? makeLine(valueKey, valueName, valueValue)
-                : `${makeLine(valueKey, valueName, valueValue)}<br/>${makeLine(targetKey, targetName, targetValue)}`;
+        const content = sanitizeKeyValuePairs([
+            [valueName ?? valueKey, axis.formatDatum(valueValue)],
+            targetKey && targetValue && [targetName ?? targetKey, axis.formatDatum(targetValue)],
+        ]);
 
         return this.properties.tooltip.toTooltipHtml(
             { title, content, backgroundColor: this.properties.fill },

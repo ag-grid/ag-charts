@@ -27,6 +27,7 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     isFiniteNumber,
     computeBarFocusBounds,
+    sanitizeKeyValuePairs,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
@@ -640,13 +641,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             });
         }
 
-        const color = format?.fill ?? fill ?? 'gray';
-
-        const xString = sanitizeHtml(categoryAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(valueAxis.formatDatum(yValue));
-
         const isTotal = this.isTotal(itemId);
         const isSubtotal = this.isSubtotal(itemId);
+        const color = format?.fill ?? fill ?? 'gray';
+
         let ySubheading;
         if (isTotal) {
             ySubheading = 'Total';
@@ -657,9 +655,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const title = sanitizeHtml(yName);
-        const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
-            `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
+        const content = sanitizeKeyValuePairs([
+            [xName ?? xKey, categoryAxis.formatDatum(xValue)],
+            [ySubheading, valueAxis.formatDatum(yValue)],
+        ]);
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

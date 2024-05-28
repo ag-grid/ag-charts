@@ -224,9 +224,7 @@ describe('BulletSeries', () => {
             await waitForChartStability(chart);
 
             const tooltipHtml = getTooltipHtml();
-            expect(tooltipHtml).toEqual(
-                '<div class="ag-chart-tooltip-content"><b>income</b>: 11.0<br/><b>objective</b>: 7.0</div>'
-            );
+            expect(tooltipHtml).toMatchSnapshot();
         });
 
         test('tooltip with names', async () => {
@@ -248,9 +246,7 @@ describe('BulletSeries', () => {
             await waitForChartStability(chart);
 
             const tooltipHtml = getTooltipHtml();
-            expect(tooltipHtml).toEqual(
-                '<div class="ag-chart-tooltip-content"><b>Actual income</b>: 11.0<br/><b>Target income</b>: 7.0</div>'
-            );
+            expect(tooltipHtml).toMatchSnapshot();
         });
     });
 

@@ -12,10 +12,11 @@ const {
     ChartAxisDirection,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
+    sanitizeKeyValuePairs,
 } = _ModuleSupport;
 const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
-const { sanitizeHtml, Color, Logger } = _Util;
+const { Color, Logger } = _Util;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<_Scene.SizedPoint>;
@@ -447,16 +448,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         const color = format?.fill ?? fill ?? 'gray';
         const title = this.properties.title ?? yName;
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (colorKey) {
-            content = `<b>${sanitizeHtml(colorName ?? colorKey)}</b>: ${sanitizeHtml(colorValue)}<br>` + content;
-        }
+        const content = sanitizeKeyValuePairs([
+            colorKey && [colorName ?? colorKey, colorValue],
+            [xName ?? xKey, xAxis.formatDatum(xValue)],
+            [yName ?? yKey, yAxis.formatDatum(yValue)],
+        ]);
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

@@ -1,6 +1,5 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -10,6 +9,7 @@ import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { createTicks, tickStep } from '../../../util/ticks';
+import { sanitizeKeyValuePairs } from '../../../util/tooltips.util';
 import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
@@ -476,43 +476,39 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         if (!this.properties.isValid() || !xAxis || !yAxis) {
             return EMPTY_TOOLTIP_CONTENT;
         }
-
+        ``;
         const { xKey, yKey, xName, yName, fill: color, aggregation, tooltip } = this.properties;
         const {
+            domain: [rangeMin, rangeMax],
             aggregatedValue,
             frequency,
-            domain: [rangeMin, rangeMax],
             itemId,
         } = nodeDatum;
         const title = `${sanitizeHtml(xName ?? xKey)}: ${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`;
-        let content = yKey
-            ? `<b>${sanitizeHtml(yName ?? yKey)} (${aggregation})</b>: ${yAxis.formatDatum(aggregatedValue)}<br>`
-            : '';
+        const content = sanitizeKeyValuePairs([
+            yKey && [`${yName ?? yKey} (${aggregation})`, yAxis.formatDatum(aggregatedValue)],
+            ['Frequency', String(frequency)],
+        ]);
 
-        content += `<b>Frequency</b>: ${frequency}`;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum: {
-                data: nodeDatum.datum,
-                aggregatedValue: nodeDatum.aggregatedValue,
-                domain: nodeDatum.domain,
-                frequency: nodeDatum.frequency,
-            },
-            itemId,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            color,
-            title,
-            seriesId: this.id,
-        });
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                datum: {
+                    data: nodeDatum.datum,
+                    aggregatedValue: nodeDatum.aggregatedValue,
+                    domain: nodeDatum.domain,
+                    frequency: nodeDatum.frequency,
+                },
+                itemId,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                color,
+                title,
+                seriesId: this.id,
+            }
+        );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {

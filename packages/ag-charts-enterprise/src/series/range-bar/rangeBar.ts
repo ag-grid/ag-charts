@@ -24,6 +24,7 @@ const {
     createDatumId,
     isFiniteNumber,
     computeBarFocusBounds,
+    sanitizeKeyValuePairs,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -496,21 +497,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const color = format?.fill ?? fill ?? 'gray';
 
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yLowString = sanitizeHtml(yAxis.formatDatum(yLowValue));
-        const yHighString = sanitizeHtml(yAxis.formatDatum(yHighValue));
-
-        const xSubheading = xName ?? xKey;
-        const yLowSubheading = yLowName ?? yLowKey;
-        const yHighSubheading = yHighName ?? yHighKey;
+        const xString = xAxis.formatDatum(xValue);
+        const yLowString = yAxis.formatDatum(yLowValue);
+        const yHighString = yAxis.formatDatum(yHighValue);
 
         const title = sanitizeHtml(yName);
-
         const content = yName
-            ? `<b>${sanitizeHtml(xSubheading)}</b>: ${xString}<br>` +
-              `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
-              `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`
-            : `${xString}: ${yLowString} - ${yHighString}`;
+            ? sanitizeKeyValuePairs([
+                  [xName ?? xKey, xString],
+                  [yLowName ?? yLowKey, yLowString],
+                  [yHighName ?? yHighKey, yHighString],
+              ])
+            : sanitizeHtml(`${xString}: ${yLowString} - ${yHighString}`);
 
         const defaults: AgTooltipRendererResult = {
             title,

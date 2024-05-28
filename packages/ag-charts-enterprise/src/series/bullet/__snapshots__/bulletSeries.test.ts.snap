@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BulletSeries rendering tooltip no names 1`] = `"<div class="ag-chart-tooltip-content"><b>income</b>: 11.0<br><b>objective</b>: 7.0</div>"`;
+
+exports[`BulletSeries rendering tooltip with names 1`] = `"<div class="ag-chart-tooltip-content"><b>Actual income</b>: 11.0<br><b>Target income</b>: 7.0</div>"`;

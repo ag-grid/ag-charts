@@ -9,7 +9,7 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
+import { sanitizeKeyValuePairs } from '../../../util/tooltips.util';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -277,16 +277,11 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             baseStyle
         );
 
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (labelKey) {
-            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(label.text)}<br>` + content;
-        }
+        const content = sanitizeKeyValuePairs([
+            labelKey && [labelName ?? labelKey, label.text],
+            [xName ?? xKey, xAxis.formatDatum(xValue)],
+            [yName ?? yKey, yAxis.formatDatum(yValue)],
+        ]);
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

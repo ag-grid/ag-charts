@@ -2,13 +2,10 @@ import { createElement } from './dom';
 
 let element: HTMLElement | null = null;
 
-export function sanitizeHtml(text: string): string;
-export function sanitizeHtml(text: string | undefined): string | undefined;
-
-export function sanitizeHtml(text: string | undefined): string | undefined {
-    if (text == null) {
-        return;
-    } else if (text === '') {
+export function sanitizeHtml<T extends string | undefined>(text: T): T;
+export function sanitizeHtml(text: string | undefined) {
+    if (text == null) return;
+    if (text === '') {
         return '';
     }
     element ??= createElement('div');

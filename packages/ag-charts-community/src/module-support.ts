@@ -13,6 +13,7 @@ export * from './util/properties';
 export * from './util/proxy';
 export * from './util/timeFormatDefaults';
 export * from './util/timeFormat';
+export * from './util/tooltips.util';
 export * from './util/types';
 export * from './util/type-guards';
 export * from './module/theme';

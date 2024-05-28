@@ -1,4 +1,8 @@
-import type { PlainObject } from './types';
+import type { FalsyValue, PlainObject } from './types';
+
+export function isTruthy<T>(val: T | FalsyValue): val is T {
+    return Boolean(val);
+}
 
 export function isDefined<T>(val: T | undefined | null): val is T {
     return val != null;
