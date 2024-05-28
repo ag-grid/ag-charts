@@ -102,17 +102,6 @@ function nxProjectBuildTarget(project) {
     return [project, ['build'], undefined];
 }
 
-function hasValidFiles(files) {
-    for (const file of files) {
-        if (file.includes('/dist/')) continue;
-        if (file.includes('/node_modules/')) continue;
-
-        return true;
-    }
-
-    return false;
-}
-
 let timeout;
 function scheduleBuild() {
     if (buildBuffer.length > 0) {
@@ -160,6 +149,7 @@ async function build() {
         success(`Starting build for: ${targetMsg}`);
         await spawnNxRun(target, config, [...projects.values()]);
         success(`Completed build for: ${targetMsg}`);
+        success(`Build queue has ${buildBuffer.length} remaining.`);
     } catch (e) {
         error(`Build failed for: ${targetMsg}`);
     } finally {
