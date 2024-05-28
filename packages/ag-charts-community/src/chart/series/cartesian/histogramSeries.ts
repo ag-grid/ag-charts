@@ -476,7 +476,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         if (!this.properties.isValid() || !xAxis || !yAxis) {
             return EMPTY_TOOLTIP_CONTENT;
         }
-        ``;
         const { xKey, yKey, xName, yName, fill: color, aggregation, tooltip } = this.properties;
         const {
             domain: [rangeMin, rangeMax],
