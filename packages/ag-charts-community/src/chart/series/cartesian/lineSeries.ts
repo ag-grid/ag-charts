@@ -12,18 +12,24 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isFiniteNumber } from '../../../util/type-guards';
+import { isDefined, isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
+import type { DataModelOptions, DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { animationValidation, createDatumId, diff } from '../../data/processors';
+import { animationValidation, createDatumId, diff, normaliseGroupTo } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import {
+    type PickFocusInputs,
+    SeriesNodePickMode,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    valueProperty,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
 import {
@@ -78,16 +84,25 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     override async processData(dataController: DataController) {
-        if (!this.properties.isValid() || this.data == null) {
+        if (this.data == null || !this.properties.isValid()) {
             return;
         }
 
-        const { xKey, yKey } = this.properties;
+        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+
+        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
+        if (connectMissingData && stackCount > 1) {
+            common.invalidValue = 0;
+        }
+        if (!visible) {
+            common.forceValue = 0;
+        }
 
         const props: DataModelOptions<any, false>['props'] = [];
 
@@ -98,6 +113,89 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         if (!isContinuousX) {
             props.push(keyProperty(xKey, xScaleType, { id: 'xKey' }));
         }
+
+        props.push(
+            valueProperty(xKey, xScaleType, { id: 'xValue' }),
+            valueProperty(yKey, yScaleType, {
+                id: `yValueRaw`,
+                ...common,
+                invalidValue: undefined,
+            })
+        );
+
+        if (stackCount > 1) {
+            const ids = [
+                `line-stack-${groupIndex}-yValues`,
+                `line-stack-${groupIndex}-yValues-trailing`,
+                `line-stack-${groupIndex}-yValues-prev`,
+                `line-stack-${groupIndex}-yValues-trailing-prev`,
+                `line-stack-${groupIndex}-yValues-marker`,
+            ];
+
+            props.push(
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'current',
+                    {
+                        id: `yValueEnd`,
+                        ...common,
+                        groupId: ids[0],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'current',
+                    {
+                        id: `yValueStart`,
+                        ...common,
+                        groupId: ids[1],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'last',
+                    {
+                        id: `yValuePreviousEnd`,
+                        ...common,
+                        groupId: ids[2],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'last',
+                    {
+                        id: `yValuePreviousStart`,
+                        ...common,
+                        groupId: ids[3],
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'normal',
+                    'current',
+                    {
+                        id: `yValueCumulative`,
+                        ...common,
+                        groupId: ids[4],
+                    },
+                    yScaleType
+                )
+            );
+
+            if (isDefined(normalizedTo)) {
+                props.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
+                props.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
+            }
+        }
+
         if (animationEnabled) {
             props.push(animationValidation(isContinuousX ? ['xValue'] : undefined));
             if (this.processedData) {
@@ -105,19 +203,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             }
         }
 
-        props.push(
-            valueProperty(xKey, xScaleType, { id: 'xValue' }),
-            valueProperty(yKey, yScaleType, { id: 'yValue', invalidValue: undefined })
-        );
-
-        await this.requestDataModel<any>(dataController, this.data, { props });
+        await this.requestDataModel<any>(dataController, data, { props });
 
         this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { axes, dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        const { processedData, dataModel, axes } = this;
+        if (!processedData || !dataModel || processedData.data.length === 0) return [];
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -131,7 +224,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
             return fixNumericExtent(extent(domain), xAxis);
         } else {
-            const domain = dataModel.getDomain(this, `yValue`, 'value', processedData);
+            const stackCount = this.seriesGrouping?.stackCount ?? 1;
+            const domain =
+                stackCount > 1
+                    ? dataModel.getDomain(this, `yValueEnd`, 'value', processedData)
+                    : dataModel.getDomain(this, `yValueRaw`, 'value', processedData);
             return fixNumericExtent(domain as any, yAxis);
         }
     }
@@ -147,6 +244,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         const { xKey, yKey, xName, yName, marker, label, connectMissingData, legendItemName } = this.properties;
+        const stackCount = this.seriesGrouping?.stackCount ?? 1;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -155,62 +253,64 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const size = marker.enabled ? marker.size : 0;
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
-        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
+        const yCumulativeIdx =
+            stackCount > 1 ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
 
         let moveTo = true;
-        let nextPoint: UngroupedDataItem<any, any> | undefined;
-        for (let i = 0; i < processedData.data.length; i++) {
-            const { datum, values } = nextPoint ?? processedData.data[i];
+        // let nextPoint: UngroupedDataItem<any, any> | undefined;
+        processedData.data?.forEach(({ datum, values }) => {
             const xDatum = values[xIdx];
             const yDatum = values[yIdx];
+            const yCumulativeDatum = values[yCumulativeIdx];
 
-            if (yDatum === undefined) {
+            if (yDatum == null) {
                 moveTo = !connectMissingData;
-            } else {
-                const x = xScale.convert(xDatum) + xOffset;
-                if (isNaN(x)) {
-                    moveTo = !connectMissingData;
-                    nextPoint = undefined;
-                    continue;
-                }
-
-                nextPoint =
-                    processedData.data[i + 1]?.values[yIdx] === undefined ? undefined : processedData.data[i + 1];
-
-                const y = yScale.convert(yDatum) + yOffset;
-
-                const labelText = this.getLabelText(
-                    label,
-                    { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
-                    (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
-                );
-
-                nodeData.push({
-                    series: this,
-                    datum,
-                    yKey,
-                    xKey,
-                    point: { x, y, moveTo, size },
-                    midPoint: { x, y },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                    capDefaults: { lengthRatioMultiplier: this.properties.marker.getDiameter(), lengthMax: Infinity },
-                    label: labelText
-                        ? {
-                              text: labelText,
-                              fontStyle: label.fontStyle,
-                              fontWeight: label.fontWeight,
-                              fontSize: label.fontSize,
-                              fontFamily: label.fontFamily,
-                              textAlign: 'center',
-                              textBaseline: 'bottom',
-                              fill: label.color,
-                          }
-                        : undefined,
-                });
-                moveTo = false;
+                return;
             }
-        }
+
+            const x = xScale.convert(xDatum) + xOffset;
+            if (isNaN(x)) {
+                moveTo = !connectMissingData;
+                return;
+            }
+
+            const y = yScale.convert(yCumulativeDatum) + yOffset;
+
+            const labelText = this.getLabelText(
+                label,
+                { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
+                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
+            );
+
+            nodeData.push({
+                series: this,
+                datum,
+                yKey,
+                xKey,
+                point: { x, y, moveTo, size },
+                midPoint: { x, y },
+                yValue: yDatum,
+                xValue: xDatum,
+                capDefaults: {
+                    lengthRatioMultiplier: this.properties.marker.getDiameter(),
+                    lengthMax: Infinity,
+                },
+                label: labelText
+                    ? {
+                          text: labelText,
+                          fontStyle: label.fontStyle,
+                          fontWeight: label.fontWeight,
+                          fontSize: label.fontSize,
+                          fontFamily: label.fontFamily,
+                          textAlign: 'center',
+                          textBaseline: 'bottom',
+                          fill: label.color,
+                      }
+                    : undefined,
+            });
+            moveTo = false;
+        });
 
         return {
             itemId: yKey,
