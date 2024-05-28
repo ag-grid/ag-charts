@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCharts } from '../../api/agChart';
+import { AgCharts } from '../../api/agCharts';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,

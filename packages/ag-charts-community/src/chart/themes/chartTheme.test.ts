@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { fail } from 'assert';
 
-import { AgCharts } from '../../api/agChart';
+import { AgCharts } from '../../api/agCharts';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,

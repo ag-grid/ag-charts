@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgCharts } from '../../api/agChart';
+import { AgCharts } from '../../api/agCharts';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { getDocument } from '../../util/dom';
 import {

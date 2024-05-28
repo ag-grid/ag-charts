@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { AgCharts } from '../../../api/agChart';
+import { AgCharts } from '../../../api/agCharts';
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { deepClone } from '../../../util/json';
 import type { Chart } from '../../chart';

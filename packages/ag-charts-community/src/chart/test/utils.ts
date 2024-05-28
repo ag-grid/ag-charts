@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { AgCharts } from '../../api/agChart';
+import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,

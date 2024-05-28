@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from '@jest/globals';
 
-import { AgCharts } from '../api/agChart';
+import { AgCharts } from '../api/agCharts';
 import type { AgChartInstance } from '../options/agChartOptions';
 import { NumberAxis } from './axis/numberAxis';
 import { AreaSeries } from './series/cartesian/areaSeries';

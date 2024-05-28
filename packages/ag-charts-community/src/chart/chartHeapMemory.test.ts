@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { memoryUsage } from 'process';
 
-import { AgCharts } from '../api/agChart';
+import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
