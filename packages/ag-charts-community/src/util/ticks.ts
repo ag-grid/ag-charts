@@ -48,7 +48,6 @@ export const TickIntervals = [
     tInterval(timeMonth, durationMonth, 2),
     tInterval(timeMonth, durationMonth, 3),
     tInterval(timeMonth, durationMonth, 4),
-    tInterval(timeMonth, durationMonth, 5),
     tInterval(timeMonth, durationMonth, 6),
     tInterval(timeYear, durationYear, 1),
 ];
@@ -91,18 +90,18 @@ export function getTickInterval(
     }
 
     if (i === 0) {
-        return timeMillisecond.every(Math.max(tickStep(start, stop, count, minCount, maxCount), 1));
+        const step = Math.max(tickStep(start, stop, count, minCount, maxCount), 1);
+        return timeMillisecond.every(step);
     } else if (i === TickIntervals.length) {
-        return timeYear.every(
-            targetInterval == null ? tickStep(start / durationYear, stop / durationYear, count, minCount, maxCount) : 1
-        );
+        const step =
+            targetInterval == null ? tickStep(start / durationYear, stop / durationYear, count, minCount, maxCount) : 1;
+        return timeYear.every(step);
     }
 
     const i0 = TickIntervals[i - 1];
     const i1 = TickIntervals[i];
-    return target - i0.duration < i1.duration - target
-        ? i0.timeInterval.every(i0.step)
-        : i1.timeInterval.every(i1.step);
+    const { timeInterval, step } = target - i0.duration < i1.duration - target ? i0 : i1;
+    return timeInterval.every(step);
 }
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {

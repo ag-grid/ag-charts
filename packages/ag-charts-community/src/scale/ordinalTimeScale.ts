@@ -1,3 +1,4 @@
+import { TickIntervals, getTickInterval } from '../util/ticks';
 import type { TimeInterval } from '../util/time/interval';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
@@ -85,9 +86,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
                 ? (extents[middleIndex - 1] + extents[middleIndex + 1]) / 2
                 : extents[middleIndex];
 
-        const intervalIndex = Math.max(0, TimeScale.getIntervalIndex(this.medianInterval) - 1);
-        const [countableTimeInterval, step] = TimeScale.tickIntervals[intervalIndex];
-        const interval = countableTimeInterval.every(step);
+        const interval = OrdinalTimeScale.getTickInterval(this.medianInterval);
 
         const i = isReversed ? values.length - 1 : 0;
         const e1 = values[i];
@@ -111,8 +110,10 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const isReversed = t0 > t1;
 
         let ticks;
-        if (this.interval !== undefined) {
-            ticks = this.getTicksForInterval({ start, stop, interval: this.interval });
+        if (this.interval != null) {
+            const [r0, r1] = this.range;
+            const availableRange = Math.abs(r1 - r0);
+            ticks = TimeScale.getTicksForInterval({ start, stop, interval: this.interval, availableRange }) ?? [];
         }
 
         const n = this.domain.length;
@@ -147,6 +148,19 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         });
     }
 
+    static getTickInterval(target: number) {
+        let prevInterval: (typeof TickIntervals)[number];
+        for (const tickInterval of TickIntervals) {
+            if (target <= tickInterval.duration) {
+                prevInterval ??= tickInterval;
+                break;
+            }
+            prevInterval = tickInterval;
+        }
+        const { timeInterval, step } = prevInterval!;
+        return timeInterval.every(step);
+    }
+
     private getDefaultTicks({
         start,
         stop,
@@ -164,14 +178,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         isReversed: boolean;
         interval?: number;
     }) {
-        const tickInterval = TimeScale.getTickInterval({
-            start,
-            stop,
-            count: tickCount,
-            minCount: minTickCount,
-            maxCount: maxTickCount,
-            target: interval,
-        });
+        const tickInterval = getTickInterval(start, stop, tickCount, minTickCount, maxTickCount, interval);
 
         if (!tickInterval) {
             return [];
@@ -180,29 +187,13 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const tickEvery = Math.ceil(this.domain.length / maxTickCount);
         const ticks: Date[] = [];
         for (const [dateRange, index] of this.index.entries()) {
-            if (index % tickEvery > 0) {
-                continue;
-            }
+            if (index % tickEvery > 0) continue;
 
             const tick = isReversed ? tickInterval.ceil(dateRange[0]) : tickInterval.floor(dateRange[1]);
             ticks.splice(index, 0, tick);
         }
 
         return ticks;
-    }
-
-    private getTicksForInterval({
-        start,
-        stop,
-        interval,
-    }: {
-        start: number;
-        stop: number;
-        interval: number | TimeInterval;
-    }) {
-        const [r0, r1] = this.range;
-        const availableRange = Math.abs(r1 - r0);
-        return TimeScale.getTicksForInterval({ start, stop, interval, availableRange }) ?? [];
     }
 
     override convert(d: Date): number {
