@@ -20,7 +20,7 @@ export function plotSmoothPoints(path: ExtendedPath2D, iPoints: Iterable<Point>,
     const gradients = points.map((c, i) => {
         const p = i === 0 ? c : points[i - 1];
         const n = i === points.length - 1 ? c : points[i + 1];
-        if (Math.sign(p.y - c.y) === Math.sign(n.y - c.y)) {
+        if (Math.sign(p.y - c.y) === Math.sign(n.y - c.y) || p.y === c.y || c.y === n.y) {
             // Local maxima/minima
             return 0;
         } else {
