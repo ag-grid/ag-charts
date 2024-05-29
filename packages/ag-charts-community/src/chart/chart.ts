@@ -1048,24 +1048,40 @@ export abstract class Chart extends Observable {
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickNode(point: Point, pickModes:                     (SeriesNodePickMode[]|undefined)[],                     maxDistance?: number): PickedNode | undefined {
+    private pickNode(
+        point: Point,
+        useSeriesTooltipRange: boolean,
+        exactMatchOnly: boolean,
+        maxDistance?: number
+    ): PickedNode | undefined {
         const start = performance.now();
+
+        // Disable 'nearest match' options if looking for exact matches only
+        const sharedPickModes =
+            !useSeriesTooltipRange && exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
-        const reverseSeries = [...this.series].reverse();
-        let pickModeIndex = pickModes.length - 1;
+        const reverseSeries: Series<SeriesNodeDatum, SeriesProperties<object[]>>[] = [...this.series].reverse();
 
         let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
-            const { match, distance } = series.pickNode(point, pickModes[pickModeIndex--]) ?? {};
+            const tooltipRange = series.properties.tooltip.range;
+            const pickModes = useSeriesTooltipRange
+                ? tooltipRange === 'exact'
+                    ? [SeriesNodePickMode.EXACT_SHAPE_MATCH]
+                    : undefined
+                : sharedPickModes;
+            const { match, distance } = series.pickNode(point, pickModes) ?? {};
             if (!match || distance == null) {
                 continue;
             }
-            if ((!result || result.distance > distance) && distance <= (maxDistance ?? Infinity)) {
+            const max: number =
+                useSeriesTooltipRange && typeof tooltipRange === 'number' ? tooltipRange : maxDistance ?? Infinity;
+            if ((!result || result.distance > distance) && distance <= max) {
                 result = { series, distance, datum: match };
             }
             if (distance === 0) {
@@ -1082,17 +1098,11 @@ export abstract class Chart extends Observable {
 
     private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
         // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-        return this.pickNode(point, this.series.map(()=>pickModes), maxDistance);
+        return this.pickNode(point, false, exactMatchOnly, maxDistance);
     }
 
     private pickTooltip(point: Point): PickedNode | undefined {
-        const pickModes = this.series.map((s: Series<SeriesNodeDatum, SeriesProperties<object>>) => {
-            const range = s.properties.tooltip.range ??
-                Logger.error(`series.tooltip.range is undefined for ${s.id}.`);
-            return range === 'exact' ?[SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-        });
-        return this.pickNode(point,pickModes);
+        return this.pickNode(point, true, false);
     }
 
     private lastPick?: SeriesNodeDatum;
@@ -1312,7 +1322,7 @@ export abstract class Chart extends Observable {
             return;
         }
 
-        const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
+        const pick = this.pickTooltip({ x: offsetX, y: offsetY });
         if (!pick) {
             this.ctx.tooltipManager.removeTooltip(this.id);
             if (this.highlight.range === 'tooltip') {
@@ -1332,11 +1342,8 @@ export abstract class Chart extends Observable {
             }
         }
 
-        const isPixelRange = pixelRange != null;
         const tooltipEnabled = this.tooltip.enabled && pick.series.tooltipEnabled;
-        const exactlyMatched = range === 'exact' && pick.distance === 0;
-        const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
-        const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
+        const shouldUpdateTooltip = tooltipEnabled && (!isNewDatum || html !== undefined);
 
         const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
 
