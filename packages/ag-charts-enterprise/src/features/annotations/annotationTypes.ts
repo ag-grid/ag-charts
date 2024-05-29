@@ -1,5 +1,8 @@
+import { _ModuleSupport } from 'ag-charts-community';
+
 export enum AnnotationType {
     Line = 'line',
+    CrossLine = 'cross-line',
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 }
@@ -25,10 +28,12 @@ export interface StateHoverEvent<Annotation, Scene> {
     datum: Annotation;
     node: Scene;
     point: Coords;
+    region?: _ModuleSupport.RegionName;
 }
 
 export interface StateClickEvent<Annotation, Scene> {
     datum?: Annotation;
     node?: Scene;
     point: Coords;
+    region?: _ModuleSupport.RegionName;
 }

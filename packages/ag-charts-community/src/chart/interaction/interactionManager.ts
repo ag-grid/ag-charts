@@ -73,9 +73,22 @@ const EVENT_HANDLERS = [
     'keyup',
 ] as const;
 
+export type RegionName =
+    | 'title'
+    | 'subtitle'
+    | 'footnote'
+    | 'legend'
+    | 'navigator'
+    | 'pagination'
+    | 'root'
+    | 'series'
+    | 'horizontal-axes'
+    | 'vertical-axes'
+    | 'toolbar';
+
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
-    region?: string;
+    region?: RegionName;
     sourceEvent: TEvent;
     relatedElement?: HTMLElement;
     targetElement?: HTMLElement;

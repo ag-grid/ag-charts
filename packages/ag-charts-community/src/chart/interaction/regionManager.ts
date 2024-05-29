@@ -2,22 +2,14 @@ import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bb
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import { buildConsumable } from './consumableEvent';
-import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
+import type {
+    InteractionManager,
+    PointerInteractionEvent,
+    PointerInteractionTypes,
+    RegionName,
+} from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
-
-export type RegionName =
-    | 'title'
-    | 'subtitle'
-    | 'footnote'
-    | 'legend'
-    | 'navigator'
-    | 'pagination'
-    | 'root'
-    | 'series'
-    | 'horizontal-axes'
-    | 'vertical-axes'
-    | 'toolbar';
 
 const REGION_TAB_ORDERING: RegionName[] = ['series'];
 

@@ -1,7 +1,20 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
-const { BOOLEAN, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, BaseProperties, Validate } =
-    _ModuleSupport;
+const {
+    BOOLEAN,
+    COLOR_STRING,
+    DATE,
+    LINE_DASH,
+    NUMBER,
+    RATIO,
+    STRING,
+    OBJECT,
+    OR,
+    UNION,
+    DIRECTION,
+    BaseProperties,
+    Validate,
+} = _ModuleSupport;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -37,6 +50,17 @@ export function AnnotationLine<T extends Constructor>(Parent: T) {
         end = new AnnotationPoint();
     }
     return AnnotationLinePoints;
+}
+
+export function AnnotationCrossLine<T extends Constructor>(Parent: T) {
+    class AnnotationCrossLineOptions extends Parent {
+        @Validate(OR(STRING, NUMBER, DATE))
+        value?: string | number | Date;
+
+        @Validate(DIRECTION)
+        direction: Direction = 'vertical';
+    }
+    return AnnotationCrossLineOptions;
 }
 
 export function ChannelAnnotation<T extends Constructor>(Parent: T) {

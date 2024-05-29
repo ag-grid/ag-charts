@@ -9,6 +9,7 @@ import type {
 // --- Theme ---
 export interface AgAnnotationsThemeableOptions {
     line?: AgLineAnnotationStyles;
+    'cross-line'?: AgLineAnnotationStyles;
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
 }
