@@ -1070,11 +1070,17 @@ export abstract class Chart extends Observable {
                 continue;
             }
             const tooltipRange = series.properties.tooltip.range;
-            const pickModes = useSeriesTooltipRange
-                ? tooltipRange === 'exact'
-                    ? [SeriesNodePickMode.EXACT_SHAPE_MATCH]
-                    : undefined
-                : sharedPickModes;
+            let pickModes: SeriesNodePickMode[] | undefined;
+            if (useSeriesTooltipRange) {
+                if (tooltipRange === 'exact') {
+                    pickModes = [SeriesNodePickMode.EXACT_SHAPE_MATCH];
+                } else {
+                    pickModes = undefined;
+                }
+            } else {
+                pickModes = sharedPickModes;
+            }
+
             const { match, distance } = series.pickNode(point, pickModes) ?? {};
             if (!match || distance == null) {
                 continue;
