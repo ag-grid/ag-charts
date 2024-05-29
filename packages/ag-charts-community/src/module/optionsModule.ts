@@ -111,7 +111,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.processedOptions.legend?.enabled == null
         ) {
             this.processedOptions.legend ??= {};
-            this.processedOptions.legend.enabled = (this.processedOptions.series?.length ?? 0) > 1;
+            this.processedOptions.legend.enabled = this.processedOptions.series!.length > 1;
         }
 
         this.enableConfiguredOptions(this.processedOptions);
@@ -211,7 +211,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
         };
 
-        const processedSeries = options.series?.map((series) => {
+        const processedSeries = options.series!.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
@@ -235,7 +235,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return this.activeTheme.templateTheme(seriesOptions);
         });
 
-        options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
+        options.series = this.setSeriesGroupingOptions(processedSeries);
     }
 
     protected processMiniChartSeriesOptions(options: T) {
