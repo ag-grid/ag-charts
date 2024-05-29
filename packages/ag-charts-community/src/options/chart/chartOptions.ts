@@ -204,10 +204,6 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
 export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions<TDatum> {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
-    /**
-     * The element to place the rendered chart into.
-     *
-     * __Important:__ Make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default).
-     */
+    /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
 }
