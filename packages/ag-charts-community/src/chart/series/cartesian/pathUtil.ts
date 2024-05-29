@@ -177,24 +177,24 @@ export function renderPartialPath(
 
         if (ratio == null || from == null || to == null) continue;
 
-        const { x, y } = calculatePoint(from, to, ratio);
+        const point = calculatePoint(from, to, ratio);
         if (data.moveTo === false) {
             points ??= [];
-            points.push({ x, y });
+            points.push(point);
         } else if (data.moveTo === true || !previousTo) {
             flushCurrent();
-            points = [{ x, y }];
+            points = [point];
         } else if (previousTo) {
             const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
-            const { x: midPointX, y: midPointY } = calculatePoint(previousTo, { x, y }, moveToRatio);
+            const { x: midPointX, y: midPointY } = calculatePoint(previousTo, point, moveToRatio);
 
             points ??= [];
             points.push({ x: midPointX, y: midPointY });
 
             flushCurrent();
-            points = [{ x, y }];
+            points = [point];
         }
-        previousTo = { x, y };
+        previousTo = point;
     }
 
     flushCurrent();
