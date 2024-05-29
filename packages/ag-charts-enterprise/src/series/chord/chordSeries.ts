@@ -335,14 +335,10 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected async updateNodeSelection(opts: {
-        nodeData: ChordDatum[];
+        nodeData: ChordNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Sector, ChordNodeDatum>;
     }) {
-        return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is ChordNodeDatum => node.type === FlowProportionDatumType.Node),
-            undefined,
-            (datum) => createDatumId([datum.type, datum.id])
-        );
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
     protected async updateNodeNodes(opts: {
@@ -374,13 +370,11 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected async updateLinkSelection(opts: {
-        nodeData: ChordDatum[];
+        nodeData: ChordLinkDatum[];
         datumSelection: _Scene.Selection<ChordLink, ChordLinkDatum>;
     }) {
-        return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is ChordLinkDatum => node.type === FlowProportionDatumType.Link),
-            undefined,
-            (datum) => createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
+            createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
         );
     }
 

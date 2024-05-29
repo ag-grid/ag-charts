@@ -130,6 +130,16 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
         enterprise: true,
     },
+    SIMPLE_SANKEY_EXAMPLE: {
+        options: examples.SIMPLE_SANKEY_EXAMPLE,
+        assertions: hierarchyChartAssertions({ seriesTypes: ['flow-proportion'] }),
+        enterprise: true,
+    },
+    SIMPLE_CHORD_EXAMPLE: {
+        options: examples.SIMPLE_CHORD_EXAMPLE,
+        assertions: hierarchyChartAssertions({ seriesTypes: ['flow-proportion'] }),
+        enterprise: true,
+    },
     HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: {
         options: examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
