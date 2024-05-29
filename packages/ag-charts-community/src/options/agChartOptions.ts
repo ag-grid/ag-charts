@@ -1,3 +1,4 @@
+export * from './api/presetOptions';
 export * from './chart/axisOptions';
 export * from './chart/crosshairOptions';
 export * from './chart/chartOptions';

@@ -18,7 +18,7 @@ import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { ChartOptions } from '../module/optionsModule';
-import type { AgChartInstance, AgChartOptions } from '../options/agChartOptions';
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
@@ -88,14 +88,18 @@ export abstract class AgCharts {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create(options: AgChartOptions): AgChartInstance {
+    public static create<O extends AgChartOptions = AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
         const chart = AgChartsInternal.createOrUpdate(options);
 
         if (this.licenseManager?.isDisplayWatermark()) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
-        return chart;
+        return chart as unknown as AgChartInstance<O>;
+    }
+
+    public static createFinancialChart(opts: AgFinancialChartOptions) {
+        return this.create<AgFinancialChartOptions>(opts);
     }
 }
 

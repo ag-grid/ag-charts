@@ -1,3 +1,4 @@
+import type { CandlestickVolumePreset, Preset } from '../api/presetOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
@@ -202,8 +203,15 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
 
 /** Configuration common to all charts.  */
 export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions<TDatum> {
+    preset?: Preset | Preset['type'];
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
 }
+
+type AgPresetOptions<P extends Preset> = AgBaseChartOptions & {
+    preset: P | P['type'];
+};
+
+export type AgFinancialChartOptions = AgPresetOptions<CandlestickVolumePreset>;

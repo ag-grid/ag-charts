@@ -1,3 +1,4 @@
+import { PRESETS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -70,6 +71,8 @@ enum GroupingType {
 
 const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
 
+const debug = Debug.create(true, 'opts');
+
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
@@ -97,7 +100,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        this.processedOptions = deepClone(mergeDefaults(options, themeDefaults, this.defaultAxes), cloneOptions) as T;
+        const presetOptions = this.processPreset(options);
+
+        this.processedOptions = deepClone(
+            mergeDefaults(options, presetOptions, themeDefaults, this.defaultAxes),
+            cloneOptions
+        ) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
@@ -167,6 +175,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
+    protected processPreset(options: T) {
+        const { preset } = options;
+        if (preset == null) return {};
+
+        let presetInput = preset;
+        if (typeof presetInput === 'string') {
+            presetInput = { type: presetInput };
+        }
+
+        const result = PRESETS[presetInput.type](presetInput);
+
+        debug('>>> AgCharts.processPreset() - applying preset', presetInput, result);
+
+        return result;
+    }
+
     protected swapAxesPosition(options: T) {
         if (isAgCartesianChartOptions(options)) {
             const [axis0, axis1] = options.axes ?? [];
@@ -211,7 +235,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
         };
 
-        const processedSeries = options.series!.map((series) => {
+        const processedSeries = options.series?.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
@@ -235,7 +259,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return this.activeTheme.templateTheme(seriesOptions);
         });
 
-        options.series = this.setSeriesGroupingOptions(processedSeries);
+        options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
     }
 
     protected processMiniChartSeriesOptions(options: T) {
@@ -458,8 +482,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private seriesTypeIntegrity(options: Partial<T>) {
-        const series = (options.series ?? []) as SeriesOptions[];
-        options.series = series.filter(({ type }) => {
+        options.series = options.series?.filter(({ type }) => {
             if (type == null || isSeriesOptionType(type) || isEnterpriseSeriesType(type)) {
                 return true;
             }
