@@ -248,12 +248,12 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
     };
 }
 
-export function sankeyChartAssertions(params?: { seriesTypes?: string[] }) {
-    const { seriesTypes = ['map-shape'] } = params ?? {};
+export function flowProportionChartAssertions(params?: { seriesTypes?: string[] }) {
+    const { seriesTypes = ['flow-proportion'] } = params ?? {};
 
     return async (chartOrProxy: Chart | AgChartProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('SankeyChart');
+        expect(chart?.constructor?.name).toEqual('FlowProportionChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };

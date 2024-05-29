@@ -1,7 +1,13 @@
 import type { AgChartOptions } from '../../options/agChartOptions';
 import type { Chart } from '../chart';
 import * as examples from './examples';
-import { cartesianChartAssertions, hierarchyChartAssertions, polarChartAssertions, repeat } from './utils';
+import {
+    cartesianChartAssertions,
+    flowProportionChartAssertions,
+    hierarchyChartAssertions,
+    polarChartAssertions,
+    repeat,
+} from './utils';
 
 export type TestCase = {
     options: AgChartOptions;
@@ -132,12 +138,12 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     },
     SIMPLE_SANKEY_EXAMPLE: {
         options: examples.SIMPLE_SANKEY_EXAMPLE,
-        assertions: hierarchyChartAssertions({ seriesTypes: ['flow-proportion'] }),
+        assertions: flowProportionChartAssertions({ seriesTypes: ['sankey'] }),
         enterprise: true,
     },
     SIMPLE_CHORD_EXAMPLE: {
         options: examples.SIMPLE_CHORD_EXAMPLE,
-        assertions: hierarchyChartAssertions({ seriesTypes: ['flow-proportion'] }),
+        assertions: flowProportionChartAssertions({ seriesTypes: ['chord'] }),
         enterprise: true,
     },
     HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: {
