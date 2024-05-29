@@ -1,9 +1,9 @@
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
-import type { AgLineStyle } from '../../../options/agChartOptions';
 import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
+import type { LineSeriesLine } from './lineSeriesProperties';
 import { prepareMarkerAnimation } from './markerUtil';
 import type { BackfillSplitMode, PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
 import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
@@ -341,12 +341,12 @@ export function prepareLinePathAnimationFns(
     oldData: LineContextLike,
     pairData: PathPoint[],
     visibleToggleMode: 'fade' | 'none',
-    line: AgLineStyle | undefined,
+    line: LineSeriesLine | undefined,
     render: (
         pairData: PathPoint[],
         ratios: Partial<Record<PathPointChange, number>>,
         path: Path,
-        line: AgLineStyle | undefined
+        line: LineSeriesLine | undefined
     ) => void
 ) {
     const status = determinePathStatus(newData, oldData, pairData);
@@ -368,7 +368,7 @@ export function prepareLinePathAnimation(
     newData: LineContextLike,
     oldData: LineContextLike,
     diff: ProcessedOutputDiff | undefined,
-    line: AgLineStyle | undefined
+    line: LineSeriesLine | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';

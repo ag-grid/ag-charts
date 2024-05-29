@@ -1,5 +1,4 @@
 import { staticFromToMotion } from '../../../motion/fromToMotion';
-import type { AgLineStyle } from '../../../options/agChartOptions';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
@@ -7,6 +6,7 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import type { NodeDataDependant } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 import { plotLinearPoints, plotSmoothPoints, plotStepPoints } from './linePlotter';
+import type { LineSeriesLine } from './lineSeriesProperties';
 
 export interface PartialPathPoint extends Point {
     moveTo: boolean;
@@ -125,9 +125,9 @@ function calculatePoint(from: Point, to: Point, ratio: number): Point {
 }
 
 const lineSteps = {
-    leading: 0,
-    center: 0.5,
-    trailing: 1,
+    start: 0,
+    middle: 0.5,
+    end: 1,
 };
 
 export function splitPartialPaths(points: Iterable<PartialPathPoint>) {
@@ -144,13 +144,13 @@ export function splitPartialPaths(points: Iterable<PartialPathPoint>) {
     return out;
 }
 
-export function plotPath(points: Point[], path: Path, line: AgLineStyle | undefined) {
+export function plotPath(points: Point[], path: Path, line: LineSeriesLine | undefined) {
     const { path: linePath } = path;
 
     if (line?.style === 'smooth') {
         plotSmoothPoints(linePath, points, line.tension ?? 1);
     } else if (line?.style === 'step') {
-        plotStepPoints(linePath, points, lineSteps[line.alignment ?? 'center']);
+        plotStepPoints(linePath, points, lineSteps[line.position ?? 'end']);
     } else {
         plotLinearPoints(linePath, points);
     }
@@ -160,7 +160,7 @@ export function renderPartialPath(
     pairData: PathPoint[],
     ratios: Partial<Record<PathPointChange, number>>,
     path: Path,
-    line: AgLineStyle | undefined
+    line: LineSeriesLine | undefined
 ) {
     let previousTo: PathPoint['to'];
     let points: Point[] | undefined = undefined;

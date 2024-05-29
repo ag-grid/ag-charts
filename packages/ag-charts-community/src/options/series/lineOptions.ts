@@ -13,5 +13,5 @@ interface AgLineSmoothStyle {
 
 interface AgLineStepStyle {
     style: 'step';
-    alignment?: 'leading' | 'center' | 'trailing';
+    position?: 'start' | 'middle' | 'end';
 }
