@@ -80,12 +80,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
-        const options = deepClone(userOptions, cloneOptions);
-        const chartType = this.optionsType(options);
+        this.userOptions = deepClone(userOptions, cloneOptions);
+        const chartType = this.optionsType(this.userOptions);
 
+        const options = deepClone(userOptions, cloneOptions);
         this.sanityCheckAndCleanup(options);
 
-        this.userOptions = options;
         this.activeTheme = getChartTheme(options.theme);
         this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
@@ -97,10 +97,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        this.processedOptions = deepClone(
-            mergeDefaults(this.userOptions, themeDefaults, this.defaultAxes),
-            cloneOptions
-        ) as T;
+        this.processedOptions = deepClone(mergeDefaults(options, themeDefaults, this.defaultAxes), cloneOptions) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
@@ -114,7 +111,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.processedOptions.legend?.enabled == null
         ) {
             this.processedOptions.legend ??= {};
-            this.processedOptions.legend.enabled = this.processedOptions.series!.length > 1;
+            this.processedOptions.legend.enabled = (this.processedOptions.series?.length ?? 0) > 1;
         }
 
         this.enableConfiguredOptions(this.processedOptions);
@@ -214,7 +211,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
         };
 
-        const processedSeries = options.series!.map((series) => {
+        const processedSeries = options.series?.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
@@ -238,7 +235,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return this.activeTheme.templateTheme(seriesOptions);
         });
 
-        options.series = this.setSeriesGroupingOptions(processedSeries);
+        options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
     }
 
     protected processMiniChartSeriesOptions(options: T) {
