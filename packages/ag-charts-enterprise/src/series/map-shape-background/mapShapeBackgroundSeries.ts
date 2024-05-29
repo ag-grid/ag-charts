@@ -67,6 +67,7 @@ export class MapShapeBackgroundSeries
             contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            defaultTooltipRange: 'exact',
         });
     }
 

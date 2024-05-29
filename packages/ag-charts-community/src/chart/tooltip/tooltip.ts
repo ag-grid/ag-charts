@@ -154,8 +154,8 @@ export class Tooltip extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     delay: number = 0;
 
-    @Validate(INTERACTION_RANGE)
-    range: InteractionRange = 'nearest';
+    @Validate(INTERACTION_RANGE, { optional: true })
+    range?: InteractionRange = undefined;
 
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'hyphenate';

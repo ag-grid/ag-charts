@@ -65,6 +65,7 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import type { SeriesProperties } from './series/seriesProperties';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import {
@@ -1923,6 +1924,7 @@ export abstract class Chart extends Observable {
         }
 
         target.properties.set(seriesOptions);
+        this.applySeriesTooltipDefaults(target);
 
         if ('data' in options) {
             target.setOptionsData(data);
@@ -1939,6 +1941,12 @@ export abstract class Chart extends Observable {
                 target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
             }
         }
+    }
+
+    private applySeriesTooltipDefaults(target: Series<any, any>) {
+        const properties: SeriesProperties<never> = target.properties;
+        properties.tooltip.range ??= this.tooltip.range;
+        properties.tooltip.range ??= target.defaultTooltipRange;
     }
 
     private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {

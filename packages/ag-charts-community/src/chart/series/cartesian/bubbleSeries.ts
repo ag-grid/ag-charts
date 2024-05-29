@@ -65,6 +65,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             ],
             pathsPerSeries: 0,
             hasMarkers: true,
+            defaultTooltipRange: 'nearest',
             markerSelectionGarbageCollection: false,
             animationResetFns: {
                 label: resetLabelFn,

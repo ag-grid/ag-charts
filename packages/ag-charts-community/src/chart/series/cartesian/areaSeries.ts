@@ -85,6 +85,7 @@ export class AreaSeries extends CartesianSeries<
             pathsPerSeries: 2,
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
+            defaultTooltipRange: 'nearest',
             markerSelectionGarbageCollection: false,
             pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {

@@ -75,6 +75,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
                 _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
                 _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
+            defaultTooltipRange: 'exact',
             hasHighlightedLabels: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
