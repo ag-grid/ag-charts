@@ -9,6 +9,7 @@ import { BOOLEAN, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type {
     ToolbarButtonToggledEvent,
+    ToolbarFloatingAnchorChangedEvent,
     ToolbarGroupToggledEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
@@ -22,7 +23,7 @@ import {
     type ToolbarButton,
     type ToolbarGroup,
     ToolbarPosition,
-    isFloatingPosition,
+    isAnimatingFloatingPosition,
 } from './toolbarTypes';
 import { initToolbarKeyNav } from './toolbarUtil';
 
@@ -37,6 +38,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     public annotations = new ToolbarGroupProperties(
         this.onGroupChanged.bind(this, 'annotations'),
         this.onGroupButtonsChanged.bind(this, 'annotations')
+    );
+    public annotationOptions = new ToolbarGroupProperties(
+        this.onGroupChanged.bind(this, 'annotationOptions'),
+        this.onGroupButtonsChanged.bind(this, 'annotationOptions')
     );
     public ranges = new ToolbarGroupProperties(
         this.onGroupChanged.bind(this, 'ranges'),
@@ -57,6 +62,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         [ToolbarPosition.Right]: new Set(),
         [ToolbarPosition.Bottom]: new Set(),
         [ToolbarPosition.Left]: new Set(),
+        [ToolbarPosition.Floating]: new Set(),
         [ToolbarPosition.FloatingTop]: new Set(),
         [ToolbarPosition.FloatingBottom]: new Set(),
     };
@@ -66,24 +72,28 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         [ToolbarPosition.Right]: {},
         [ToolbarPosition.Bottom]: {},
         [ToolbarPosition.Left]: {},
+        [ToolbarPosition.Floating]: {},
         [ToolbarPosition.FloatingTop]: {},
         [ToolbarPosition.FloatingBottom]: {},
     };
 
-    private groupCallers: Record<ToolbarGroup, number> = {
-        annotations: 0,
-        ranges: 0,
-        zoom: 0,
+    private readonly groupCallers: Record<ToolbarGroup, Set<string>> = {
+        annotations: new Set(),
+        annotationOptions: new Set(),
+        ranges: new Set(),
+        zoom: new Set(),
     };
 
     private groupButtons: Record<ToolbarGroup, Array<HTMLButtonElement>> = {
         annotations: [],
+        annotationOptions: [],
         ranges: [],
         zoom: [],
     };
 
-    private groupDestroyFns: Record<ToolbarGroup, (() => void)[]> = {
+    private groupDestroyFns: Record<ToolbarGroup, Array<() => void>> = {
         annotations: [],
+        annotationOptions: [],
         ranges: [],
         zoom: [],
     };
@@ -96,23 +106,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         super();
 
         ctx.domManager.addStyles(styles.block, styles.css);
-        this.elements = Object.values(ToolbarPosition)
-            .filter((v) => typeof v === 'string')
-            .reduce(
-                (r, n) => {
-                    r[n] = ctx.domManager.addChild('canvas-overlay', `toolbar-${n}`);
-                    return r;
-                },
-                {} as Record<ToolbarPosition, HTMLElement>
-            );
 
-        this.renderToolbar(ToolbarPosition.Top);
-        this.renderToolbar(ToolbarPosition.Right);
-        this.renderToolbar(ToolbarPosition.Bottom);
-        this.renderToolbar(ToolbarPosition.Left);
-        this.renderToolbar(ToolbarPosition.FloatingTop);
-        this.renderToolbar(ToolbarPosition.FloatingBottom);
-
+        this.elements = {} as Record<ToolbarPosition, HTMLElement>;
+        for (const position of TOOLBAR_POSITIONS) {
+            this.elements[position] = ctx.domManager.addChild('canvas-overlay', `toolbar-${position}`);
+            this.renderToolbar(position);
+        }
         this.toggleVisibilities();
 
         this.destroyFns.push(
@@ -120,6 +119,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
+            ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
             () => this.destroyElements()
@@ -216,20 +216,30 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onGroupToggled(event: ToolbarGroupToggledEvent) {
-        const { group, visible } = event;
+        const { caller, group, visible } = event;
 
-        this.toggleGroup(group, visible);
+        this.toggleGroup(caller, group, visible);
         this.toggleVisibilities();
     }
 
+    private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
+        const { group, anchor } = event;
+
+        if (!this.positions[ToolbarPosition.Floating].has(group)) return;
+
+        const element = this.elements[ToolbarPosition.Floating];
+        element.style.top = `${anchor.y - element.offsetHeight - this.margin}px`;
+        element.style.left = `${anchor.x - element.offsetWidth / 2}px`;
+    }
+
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {
-        const { group, options } = event;
+        const { caller, group, options } = event;
 
         this.groupProxied.add(group);
 
         this.createGroup(group, options.enabled, options.position);
         this.createGroupButtons(group, options.buttons);
-        this.toggleGroup(group, options.enabled);
+        this.toggleGroup(caller, group, options.enabled);
 
         this[group].set(options);
     }
@@ -259,33 +269,36 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const position = this[group].position ?? 'top';
         const parent = this.positionAlignments[position][align];
 
+        if (!parent) return;
+
         for (const options of buttons ?? []) {
             const button = this.createButtonElement(group, options);
-            parent?.appendChild(button);
+            parent.appendChild(button);
             this.groupButtons[group].push(button);
         }
-        if (parent) {
-            let onfocus: ((ev: FocusEvent) => void) | undefined;
-            let onblur: ((ev: FocusEvent) => void) | undefined;
-            if (isFloatingPosition(position)) {
-                onfocus = () => this.translateFloatingElements(position, true);
-                onblur = () => this.translateFloatingElements(position, false);
-            }
-            this.groupDestroyFns[group] = initToolbarKeyNav({
-                orientation: 'horizontal',
-                toolbar: parent,
-                buttons: this.groupButtons[group],
-                onfocus,
-                onblur,
-            });
+
+        let onFocus;
+        let onBlur;
+
+        if (isAnimatingFloatingPosition(position)) {
+            onFocus = () => this.translateFloatingElements(position, true);
+            onBlur = () => this.translateFloatingElements(position, false);
         }
+
+        this.groupDestroyFns[group] = initToolbarKeyNav({
+            orientation: 'horizontal',
+            toolbar: parent,
+            buttons: this.groupButtons[group],
+            onFocus,
+            onBlur,
+        });
     }
 
-    private toggleGroup(group: ToolbarGroup, enabled?: boolean) {
+    private toggleGroup(caller: string, group: ToolbarGroup, enabled?: boolean) {
         if (enabled) {
-            this.groupCallers[group] += 1;
+            this.groupCallers[group].add(caller);
         } else {
-            this.groupCallers[group] = Math.max(0, this.groupCallers[group] - 1);
+            this.groupCallers[group].delete(caller);
         }
     }
 
@@ -343,17 +356,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.left.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
 
         elements[FloatingTop].style.top = `${seriesRect.y}px`;
-        elements[FloatingTop].style.paddingTop = `${margin}px`;
 
         elements[FloatingBottom].style.top =
             `${seriesRect.y + seriesRect.height - elements[FloatingBottom].offsetHeight}px`;
-        elements[FloatingBottom].style.paddingBottom = `${margin}px`;
     }
 
     private toggleVisibilities() {
         if (this.elements == null) return;
 
-        const isGroupVisible = (group: ToolbarGroup) => this[group].enabled && this.groupCallers[group] > 0;
+        const isGroupVisible = (group: ToolbarGroup) => this[group].enabled && this.groupCallers[group].size > 0;
         const isButtonVisible = (element: HTMLButtonElement) => (button: ToolbarButton) =>
             (typeof button.value !== 'string' && typeof button.value !== 'number') ||
             `${button.value}` === element.dataset.toolbarValue;
@@ -384,11 +395,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const alignments = Object.values(positionAlignments[position]);
         element.classList.toggle(styles.modifiers.floatingHidden, !visible);
 
+        const dir = position === ToolbarPosition.FloatingBottom ? 1 : -1;
+
         for (const align of alignments) {
             align.style.transform =
                 visible && align.style.transform !== ''
                     ? 'translateY(0)'
-                    : `translateY(${element.offsetHeight + margin}px)`;
+                    : `translateY(${(element.offsetHeight + margin) * dir}px)`;
         }
     }
 
@@ -396,7 +409,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const element = this.elements[position];
         element.classList.add(styles.block, styles.modifiers[position], styles.modifiers.preventFlash);
 
-        if (position === ToolbarPosition.FloatingTop || position === ToolbarPosition.FloatingBottom) {
+        if (isAnimatingFloatingPosition(position)) {
             element.classList.add(styles.modifiers.floatingHidden);
         }
 

@@ -402,6 +402,18 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -949,6 +961,18 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -1646,6 +1670,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -2399,6 +2435,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -2766,6 +2814,18 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -3303,6 +3363,18 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -3940,6 +4012,18 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -4317,6 +4401,18 @@ by Occupation",
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -4686,6 +4782,18 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -5052,6 +5160,18 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -5420,6 +5540,18 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -5863,6 +5995,18 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -6310,6 +6454,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -7009,6 +7165,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -8168,6 +8336,18 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -8531,6 +8711,18 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -9317,6 +9509,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -9824,6 +10028,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -10491,6 +10707,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -11055,6 +11283,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -11425,6 +11665,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -12095,6 +12347,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -12664,6 +12928,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -13407,6 +13683,18 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -13949,6 +14237,18 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [
@@ -14567,6 +14867,18 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "wrapping": "hyphenate",
   },
   "toolbar": {
+    "annotationOptions": {
+      "align": "start",
+      "buttons": [
+        {
+          "icon": "delete",
+          "tooltip": "Delete Annotation",
+          "value": "delete",
+        },
+      ],
+      "enabled": false,
+      "position": "floating",
+    },
     "annotations": {
       "align": "start",
       "buttons": [

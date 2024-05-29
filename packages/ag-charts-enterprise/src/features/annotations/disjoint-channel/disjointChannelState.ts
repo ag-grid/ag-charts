@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { StateClickEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point, StateClickEvent, StateHoverEvent } from '../annotationTypes';
 import { DisjointChannelAnnotation } from './disjointChannelProperties';
 import type { DisjointChannel } from './disjointChannelScene';
 
@@ -11,13 +11,13 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        createDatum: (datum: DisjointChannelAnnotation) => void,
-        validateDatumPoint: (point: { x?: number | string | Date; y?: number | string | Date }) => boolean
+        appendDatum: (datum: DisjointChannelAnnotation) => void,
+        validateDatumPoint: (point: Point) => boolean
     ) {
         const onStartClick = ({ point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
             const datum = new DisjointChannelAnnotation();
             datum.set({ start: point, end: point, startSize: 0, endSize: 0 });
-            createDatum(datum);
+            appendDatum(datum);
         };
 
         const onEndHover = ({ datum, node, point }: StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>) => {

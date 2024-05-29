@@ -17,6 +17,13 @@ const annotations: AgToolbarOptions['annotations'] = {
     ],
 };
 
+const annotationOptions: AgToolbarOptions['annotationOptions'] = {
+    enabled: false,
+    position: 'floating',
+    align: 'start',
+    buttons: [{ icon: 'delete', tooltip: 'Delete Annotation', value: 'delete' }],
+};
+
 const ranges: AgToolbarOptions['ranges'] = {
     enabled: false,
     position: 'top',
@@ -84,6 +91,7 @@ export const ToolbarModule: Module = {
         toolbar: {
             enabled: true,
             annotations,
+            annotationOptions,
             ranges,
             zoom,
         },
