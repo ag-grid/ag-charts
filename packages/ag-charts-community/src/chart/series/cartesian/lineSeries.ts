@@ -244,7 +244,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         const { xKey, yKey, xName, yName, marker, label, connectMissingData, legendItemName } = this.properties;
-        const stackCount = this.seriesGrouping?.stackCount ?? 1;
+        const stacked = (this.seriesGrouping?.stackCount ?? 1) > 1;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -254,8 +254,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
-        const yCumulativeIdx =
-            stackCount > 1 ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
+        const yCumulativeIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
+        const yEndIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueEnd`) : undefined;
 
         let moveTo = true;
         // let nextPoint: UngroupedDataItem<any, any> | undefined;
@@ -263,6 +263,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             const xDatum = values[xIdx];
             const yDatum = values[yIdx];
             const yCumulativeDatum = values[yCumulativeIdx];
+            const yEndDatum = yEndIdx != null ? values[yEndIdx] : undefined;
 
             if (yDatum == null) {
                 moveTo = !connectMissingData;
@@ -290,6 +291,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 xKey,
                 point: { x, y, moveTo, size },
                 midPoint: { x, y },
+                cumulativeValue: yEndDatum,
                 yValue: yDatum,
                 xValue: xDatum,
                 capDefaults: {
