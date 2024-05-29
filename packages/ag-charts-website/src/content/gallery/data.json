@@ -669,6 +669,21 @@
         ],
         [
             {
+                "title": "Sankey",
+                "seriesName": "sankey",
+                "icon": "chartsSankey",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Sankey",
+                        "description": "",
+                        "name": "sankey"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Chord",
                 "seriesName": "chord",
                 "icon": "chartsChord",
@@ -683,21 +698,6 @@
                         "title": "Chord Customisation",
                         "description": "",
                         "name": "chord-customisation"
-                    }
-                ]
-            }
-        ],
-        [
-            {
-                "title": "Sankey",
-                "seriesName": "sankey",
-                "icon": "chartsSankey",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Sankey",
-                        "description": "",
-                        "name": "sankey"
                     }
                 ]
             }
