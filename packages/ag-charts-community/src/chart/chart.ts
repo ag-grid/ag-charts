@@ -1591,7 +1591,7 @@ export abstract class Chart extends Observable {
 
         if (deltaOptions == null) return;
 
-        debug('AgChartV2.updateDelta() - applying delta', deltaOptions);
+        debug('Chart.applyOptions() - applying delta', deltaOptions);
 
         const completeOptions = mergeDefaults(deltaOptions, oldOpts);
         const modulesChanged = this.applyModules(completeOptions);
@@ -1669,7 +1669,7 @@ export abstract class Chart extends Observable {
         const updateType = majorChange ? ChartUpdateType.FULL : ChartUpdateType.PERFORM_LAYOUT;
         this.maybeResetAnimations(seriesStatus);
 
-        debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType], {
+        debug('Chart.applyOptions() - update type', ChartUpdateType[updateType], {
             seriesStatus,
             forceNodeDataRefresh,
         });
@@ -1792,15 +1792,12 @@ export abstract class Chart extends Observable {
 
         const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries);
         if (matchResult.status === 'no-overlap') {
-            debug(
-                `AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`,
-                matchResult
-            );
+            debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             chart.series = optSeries.map((opts) => this.createSeries(opts));
             return 'replaced';
         }
 
-        debug(`AgChartV2.applySeries() - matchResult`, matchResult);
+        debug(`Chart.applySeries() - matchResult`, matchResult);
 
         const seriesInstances = [];
         let dataChanged = false;
@@ -1816,23 +1813,23 @@ export abstract class Chart extends Observable {
                 case 'add':
                     const newSeries = this.createSeries(change.opts);
                     seriesInstances.push(newSeries);
-                    debug(`AgChartV2.applySeries() - created new series`, newSeries);
+                    debug(`Chart.applySeries() - created new series`, newSeries);
                     break;
 
                 case 'remove':
-                    debug(`AgChartV2.applySeries() - removing series at previous idx ${change.idx}`, change.series);
+                    debug(`Chart.applySeries() - removing series at previous idx ${change.idx}`, change.series);
                     break;
 
                 case 'no-op':
                     seriesInstances.push(change.series);
-                    debug(`AgChartV2.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
+                    debug(`Chart.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
                     break;
 
                 case 'series-grouping':
                 case 'update':
                 default:
                     const { series, diff, idx } = change;
-                    debug(`AgChartV2.applySeries() - applying series diff previous idx ${idx}`, diff, series);
+                    debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
                     this.applySeriesValues(series, diff);
                     series.markNodeDataDirty();
                     seriesInstances.push(series);
@@ -1843,7 +1840,7 @@ export abstract class Chart extends Observable {
             seriesInstances[idx]._declarationOrder = idx;
         }
 
-        debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
+        debug(`Chart.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;
 
         if (groupingChanged) {
@@ -1879,7 +1876,7 @@ export abstract class Chart extends Observable {
                 const previousOpts = oldOpts.axes?.[index] ?? {};
                 const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
 
-                debug(`AgChartV2.applyAxes() - applying axis diff idx ${index}`, axisDiff);
+                debug(`Chart.applyAxes() - applying axis diff idx ${index}`, axisDiff);
 
                 const path = `axes[${index}]`;
                 jsonApply(axis, axisDiff, { ...JSON_APPLY_PLUGINS, path, skip });
@@ -1887,7 +1884,7 @@ export abstract class Chart extends Observable {
             return true;
         }
 
-        debug(`AgChartV2.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
+        debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
         return true;
     }

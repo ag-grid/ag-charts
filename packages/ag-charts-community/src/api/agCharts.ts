@@ -130,10 +130,10 @@ class AgChartsInternal {
     static createOrUpdate(options: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
         AgChartsInternal.initialiseModules();
 
-        debug('>>> AgChartV2.createOrUpdate() user options', options);
+        debug('>>> AgCharts.createOrUpdate() user options', options);
         if (AgCharts.optionsMutationFn) {
             options = AgCharts.optionsMutationFn(options);
-            debug('>>> AgChartV2.createOrUpdate() MUTATED user options', options);
+            debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
         const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = options;
@@ -185,8 +185,8 @@ class AgChartsInternal {
         const { chart } = proxy;
         const lastUpdateOptions = chart.getOptions();
         const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
-        debug('>>> AgChartV2.updateUserDelta() user delta', deltaOptions);
-        debug('AgChartV2.updateUserDelta() - base options', lastUpdateOptions);
+        debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
+        debug('AgCharts.updateUserDelta() - base options', lastUpdateOptions);
         AgChartsInternal.createOrUpdate(userOptions, proxy);
     }
 
