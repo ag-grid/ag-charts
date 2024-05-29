@@ -160,7 +160,8 @@ class AgChartsInternal {
             chartRef.applyOptions(chartOptions);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
-            chartRef.queuedUserOptions.splice(0, chartRef.queuedUserOptions.indexOf(userOptions));
+            const queueIdx = chartRef.queuedUserOptions.indexOf(userOptions) + 1;
+            chartRef.queuedUserOptions.splice(0, queueIdx);
         });
 
         return proxy;
