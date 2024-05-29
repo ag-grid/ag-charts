@@ -11,7 +11,8 @@
     "noUnusedLocals": true
   },
   "files": [],
-  "include": [],
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

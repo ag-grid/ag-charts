@@ -5,6 +5,6 @@
         "emitDeclarationOnly": true,
         "types": ["node"]
     },
-    "include": ["src/*.ts"],
-    "exclude": ["src/main-test.ts"]
+    "include": ["src/**/*.ts"],
+    "exclude": ["src/main-test.ts", "src/**/*.test.ts"]
 }
