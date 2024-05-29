@@ -20,17 +20,20 @@ type ContextEventProperties<K extends ContextType = ContextType> = {
     sourceEvent: Event;
 };
 
+// Extract the TEvent types from the AgContextMenuOptions contract:
+type ContextMenuActionEventMap = {
+    all: Parameters<NonNullable<AgContextMenuOptions['extraActions']>[number]['action']>[0];
+    legend: Parameters<NonNullable<AgContextMenuOptions['extraLegendItemActions']>[number]['action']>[0];
+    series: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
+};
+
 export type ContextType = keyof ContextTypeMap;
 export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEventProperties<K> & ConsumableEvent;
 
-// Extract the TEvent types from the AgContextMenuOptions contract:
-type TEventOfContextMenuActions<K extends keyof Omit<AgContextMenuOptions, 'enabled'>> = Parameters<
-    NonNullable<AgContextMenuOptions[K]>[number]['action']
->[0];
 export type ContextMenuCallback<K extends ContextType> = {
-    all: (params: TEventOfContextMenuActions<'extraActions'>) => void;
-    series: (params: TEventOfContextMenuActions<'extraNodeActions'>) => void;
-    legend: (params: TEventOfContextMenuActions<'extraLegendItemActions'>) => void;
+    all: (params: ContextMenuActionEventMap['all']) => void;
+    series: (params: ContextMenuActionEventMap['series']) => void;
+    legend: (params: ContextMenuActionEventMap['legend']) => void;
 }[K];
 
 export type ContextMenuAction<K extends ContextType> = {
