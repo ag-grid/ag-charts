@@ -26,7 +26,6 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     themeTemplate: WATERFALL_SERIES_THEME,
     swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);
         return userPalette
             ? {
@@ -47,9 +46,9 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
               }
             : {
                   item: {
-                      positive: properties.get(_Theme.DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS),
-                      negative: properties.get(_Theme.DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS),
-                      total: properties.get(_Theme.DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS),
+                      positive: themeTemplateParameters.get(_Theme.DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS),
+                      negative: themeTemplateParameters.get(_Theme.DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS),
+                      total: themeTemplateParameters.get(_Theme.DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS),
                   },
               };
     },

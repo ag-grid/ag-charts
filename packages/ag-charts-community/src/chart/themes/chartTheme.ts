@@ -8,12 +8,12 @@ import type {
 } from '../../options/agChartOptions';
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
-import { isArray, isObject } from '../../util/type-guards';
+import { isArray } from '../../util/type-guards';
 import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
+import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE, POSITION } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -38,12 +38,6 @@ import {
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-    EXTENDS_AXES_DEFAULTS,
-    EXTENDS_AXES_GRID_LINE_DEFAULTS,
-    EXTENDS_AXES_LINE_DEFAULTS,
-    EXTENDS_AXES_TICK_DEFAULTS,
-    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-    EXTENDS_SERIES_DEFAULTS,
     IS_DARK_THEME,
 } from './symbols';
 
@@ -140,22 +134,18 @@ export class ChartTheme {
         });
     }
 
-    private static getSeriesDefaults() {
-        return {
-            visible: true,
-            showInLegend: true,
-            highlightStyle: {
-                item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 2 },
-                series: { dimOpacity: 1 },
-            },
-            nodeClickRange: 'exact' as InteractionRange,
-            tooltip: { enabled: true },
-        };
-    }
-
-    private static getCartesianSeriesMarkerDefaults() {
-        return { enabled: true, shape: 'circle', size: 7, strokeWidth: 1 };
-    }
+    // private static getSeriesDefaults() {
+    //     return {
+    //         highlightStyle: {
+    //             item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 2 },
+    //         },
+    //         nodeClickRange: 'exact' as InteractionRange,
+    //     };
+    // }
+    //
+    // private static getCartesianSeriesMarkerDefaults() {
+    //     return { enabled: true, shape: 'circle', size: 7, strokeWidth: 1 };
+    // }
 
     private static getChartDefaults() {
         return {
@@ -239,6 +229,31 @@ export class ChartTheme {
             gridLine: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
+            groupPaddingInner: 0,
+            label: { autoRotate: false },
+            gridLine: { enabled: false },
+            crosshair: {
+                enabled: true,
+                snap: true,
+                stroke: DEFAULT_MUTED_LABEL_COLOUR,
+                strokeWidth: 1,
+                strokeOpacity: 1,
+                lineDash: [5, 6],
+                lineDashOffset: 0,
+                label: { enabled: true },
+            },
+        }),
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
+        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
+            line: { enabled: false },
+            tick: { enabled: false },
+        }),
+        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
+            line: { enabled: false },
+            tick: { enabled: false },
+        }),
         'grouped-category': ChartTheme.getAxisDefaults(),
     };
 
@@ -308,7 +323,7 @@ export class ChartTheme {
                     axes[axisType] = mergeDefaults(
                         axes[axisType],
                         axisRegistry.getThemeTemplate(axisType),
-                        chartType === 'cartesian' && (ChartTheme.cartesianAxisDefault as any)[axisType]
+                        (ChartTheme.cartesianAxisDefault as any)[axisType]
                     );
                 }
             }
@@ -327,36 +342,20 @@ export class ChartTheme {
 
     templateTheme<T>(themeTemplate: T): T {
         const themeInstance = deepClone(themeTemplate);
-        const { extensions, properties } = this.getTemplateParameters();
+        const params = this.getTemplateParameters();
 
         jsonWalk(themeInstance, (node: any) => {
-            if (node['__extends__']) {
-                const extendsValue = node['__extends__'];
-                const source = extensions.get(extendsValue);
-                if (source == null) {
-                    throw new Error(`AG Charts - no template variable provided for: ${extendsValue}`);
-                }
-                Object.keys(source).forEach((key) => {
-                    if (!(key in node)) {
-                        node[key] = source[key];
-                    } else if (isObject(node[key])) {
-                        node[key] = mergeDefaults(node[key], source[key]);
-                    }
-                });
-                delete node['__extends__'];
-            }
-
             if (isArray(node)) {
                 for (let i = 0; i < node.length; i++) {
                     const symbol = node[i];
-                    if (properties.has(symbol)) {
-                        node[i] = properties.get(symbol);
+                    if (params.has(symbol)) {
+                        node[i] = params.get(symbol);
                     }
                 }
             } else {
                 for (const [name, value] of Object.entries(node)) {
-                    if (properties.has(value)) {
-                        node[name] = properties.get(value);
+                    if (params.has(value)) {
+                        node[name] = params.get(value);
                     }
                 }
             }
@@ -403,51 +402,38 @@ export class ChartTheme {
     }
 
     getTemplateParameters() {
-        const extensions = new Map();
-
-        extensions.set(EXTENDS_AXES_DEFAULTS, ChartTheme.getAxisDefaults());
-        extensions.set(EXTENDS_AXES_LINE_DEFAULTS, ChartTheme.getAxisDefaults().line);
-        extensions.set(EXTENDS_AXES_TICK_DEFAULTS, ChartTheme.getAxisDefaults().tick);
-        extensions.set(EXTENDS_AXES_GRID_LINE_DEFAULTS, ChartTheme.getAxisDefaults().gridLine);
-
-        extensions.set(EXTENDS_SERIES_DEFAULTS, ChartTheme.getSeriesDefaults());
-        extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
-
-        const properties = new Map();
-        properties.set(IS_DARK_THEME, false);
-        properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
-        properties.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
-        properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
-        properties.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
-        properties.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
-        properties.set(DEFAULT_AXIS_LINE_COLOUR, 'rgb(195, 195, 195)');
-        properties.set(DEFAULT_CROSS_LINES_COLOUR, 'rgb(70, 70, 70)');
-        properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
-        properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
-        properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
-        properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        const params = new Map();
+        params.set(IS_DARK_THEME, false);
+        params.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
+        params.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
+        params.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
+        params.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
+        params.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
+        params.set(DEFAULT_AXIS_LINE_COLOUR, 'rgb(195, 195, 195)');
+        params.set(DEFAULT_CROSS_LINES_COLOUR, 'rgb(70, 70, 70)');
+        params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
+        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
+        params.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
             DEFAULT_FILLS.ORANGE,
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
-        properties.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
-        properties.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
-        properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
-        properties.set(DEFAULT_COLOURS, ChartTheme.getDefaultColors());
-        properties.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
-        properties.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
-        properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());
-        properties.set(
+        params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
+        params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
+        params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
+        params.set(DEFAULT_COLOURS, ChartTheme.getDefaultColors());
+        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
+        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
+        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());
+        params.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke
         );
-        properties.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_STROKES.BLUE);
-        properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
-        properties.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
+        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
 
-        return {
-            extensions,
-            properties,
-        };
+        return params;
     }
 }

@@ -84,36 +84,30 @@ export class PolychromaLight extends ChartTheme {
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, PolychromaLight.getDefaultColors());
-        result.properties.set(
+        params.set(DEFAULT_COLOURS, PolychromaLight.getDefaultColors());
+        params.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             PolychromaLight.getWaterfallSeriesDefaultPositiveColors()
         );
-        result.properties.set(
+        params.set(
             DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
             PolychromaLight.getWaterfallSeriesDefaultNegativeColors()
         );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            PolychromaLight.getWaterfallSeriesDefaultTotalColors()
-        );
+        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, PolychromaLight.getWaterfallSeriesDefaultTotalColors());
 
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            POLYCHROMA_LIGHT_FILLS.BLUE,
-            POLYCHROMA_LIGHT_FILLS.RED,
-        ]);
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [POLYCHROMA_LIGHT_FILLS.BLUE, POLYCHROMA_LIGHT_FILLS.RED]);
 
-        result.properties.set(
+        params.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             PolychromaLight.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_LIGHT_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_LIGHT_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_LIGHT_FILLS.BLUE);
 
-        return result;
+        return params;
     }
     protected override getPalette(): AgChartThemePalette {
         return palette;

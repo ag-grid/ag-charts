@@ -24,9 +24,8 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     themeTemplate: CANDLESTICK_SERIES_THEME,
     groupable: false,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);
-        const { fills: DEFAULT_FILLS, strokes: DEFAULT_STROKES } = properties.get(
+        const { fills: DEFAULT_FILLS, strokes: DEFAULT_STROKES } = themeTemplateParameters.get(
             _Theme.DEFAULT_COLOURS
         ) as unknown as _ModuleSupport.DefaultColors;
         return {

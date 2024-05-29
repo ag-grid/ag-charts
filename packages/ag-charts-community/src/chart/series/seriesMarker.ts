@@ -22,7 +22,7 @@ import { isMarkerShape } from '../marker/util';
 
 export const MARKER_SHAPE = predicateWithMessage(
     (value: any) =>
-        isMarkerShape(value) || (typeof Marker === 'function' && Object.create(value.prototype) instanceof Marker),
+        isMarkerShape(value) || (typeof value === 'function' && Object.create(value.prototype) instanceof Marker),
     `a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
 );
 

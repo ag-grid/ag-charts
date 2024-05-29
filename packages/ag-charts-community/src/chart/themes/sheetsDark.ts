@@ -81,37 +81,28 @@ export class SheetsDark extends DarkTheme {
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, SheetsDark.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            SheetsDark.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            SheetsDark.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            SheetsDark.getWaterfallSeriesDefaultTotalColors()
-        );
+        params.set(DEFAULT_COLOURS, SheetsDark.getDefaultColors());
+        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, SheetsDark.getWaterfallSeriesDefaultPositiveColors());
+        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, SheetsDark.getWaterfallSeriesDefaultNegativeColors());
+        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, SheetsDark.getWaterfallSeriesDefaultTotalColors());
 
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
             SHEETS_DARK_FILLS.ORANGE,
             SHEETS_DARK_FILLS.YELLOW,
             SHEETS_DARK_FILLS.GREEN,
         ]);
 
-        result.properties.set(
+        params.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             SheetsDark.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, SHEETS_DARK_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, SHEETS_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, SHEETS_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, SHEETS_DARK_FILLS.BLUE);
 
-        return result;
+        return params;
     }
 
     protected override getPalette(): AgChartThemePalette {

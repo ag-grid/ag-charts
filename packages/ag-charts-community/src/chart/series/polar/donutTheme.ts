@@ -7,12 +7,10 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
-    EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
-        __extends__: EXTENDS_SERIES_DEFAULTS,
         title: {
             enabled: true,
             fontStyle: undefined,

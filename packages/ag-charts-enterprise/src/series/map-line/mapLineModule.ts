@@ -3,13 +3,8 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineSeries } from './mapLineSeries';
 
-const {
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    EXTENDS_SERIES_DEFAULTS,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_LABEL_COLOUR,
-    singleSeriesPaletteFactory,
-} = _Theme;
+const { DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, singleSeriesPaletteFactory } =
+    _Theme;
 
 export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     type: 'series',
@@ -22,7 +17,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             strokeWidth: 1,
             maxStrokeWidth: 3,
             lineDash: [0],
@@ -40,8 +34,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
         const { fill } = singleSeriesPaletteFactory(opts);
-        const { properties } = themeTemplateParameters;
-        const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
             colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,

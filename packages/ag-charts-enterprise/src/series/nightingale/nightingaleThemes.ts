@@ -2,7 +2,6 @@ import { _Theme } from 'ag-charts-community';
 
 export const NIGHTINGALE_SERIES_THEME = {
     series: {
-        __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
         strokeWidth: 1,
         label: {
             enabled: false,

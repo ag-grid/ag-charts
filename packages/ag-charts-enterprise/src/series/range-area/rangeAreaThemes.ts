@@ -2,15 +2,12 @@ import { type InteractionRange, _Theme } from 'ag-charts-community';
 
 export const RANGE_AREA_SERIES_THEME = {
     series: {
-        __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
         fillOpacity: 0.7,
         nodeClickRange: 'nearest' as InteractionRange,
         marker: {
-            __extends__: _Theme.EXTENDS_CARTESIAN_MARKER_DEFAULTS,
             enabled: false,
-            fillOpacity: 1,
-            strokeWidth: 2,
             size: 6,
+            strokeWidth: 2,
         },
         label: {
             enabled: false,

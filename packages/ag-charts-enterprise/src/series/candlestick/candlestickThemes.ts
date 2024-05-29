@@ -2,13 +2,14 @@ import { _Theme } from 'ag-charts-community';
 
 export const CANDLESTICK_SERIES_THEME = {
     series: {
-        __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
+        visible: true,
+        showInLegend: true,
         highlightStyle: {
-            item: {
-                strokeWidth: 3,
-            },
+            item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 3 },
+            series: { dimOpacity: 1 },
         },
-        direction: 'vertical',
+        nodeClickRange: 'exact',
+        tooltip: { enabled: true },
     },
     animation: { enabled: false },
     axes: {

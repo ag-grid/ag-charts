@@ -214,16 +214,6 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
   },
   "series": [
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -237,41 +227,25 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "marker": {
         "enabled": false,
         "fill": "#3d7ab0",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#3d7ab0",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#3d7ab0",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "marriages",
       "yName": "Marriages",
     },
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -285,41 +259,25 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "marker": {
         "enabled": false,
         "fill": "#b03d65",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#b03d65",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#b03d65",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "civilPartnerships",
       "yName": "Civil partnerships",
     },
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -333,26 +291,20 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "marker": {
         "enabled": false,
         "fill": "#80b03d",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#80b03d",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#80b03d",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "divorces",
       "yName": "Divorces",
@@ -751,16 +703,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#c16068",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -773,7 +715,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -787,14 +728,9 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#c16068",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "male",
       "yName": "Male cattle",
@@ -803,16 +739,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "direction": "vertical",
       "fill": "#a2bf8a",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -825,7 +751,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -839,29 +764,14 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a2bf8a",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "female",
       "yName": "Female cattle",
     },
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -875,26 +785,20 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "marker": {
         "enabled": false,
         "fill": "#80a0c3",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#80a0c3",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#80a0c3",
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "exportedTonnes",
       "yName": "Beef exports",
@@ -1248,11 +1152,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
   "series": [
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -1269,39 +1168,27 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#f3622d",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 10,
         "stroke": "#aa4520",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#f3622d",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Still wine",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "stillWine",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -1318,39 +1205,27 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#fba71b",
-        "fillOpacity": 1,
         "shape": "cross",
         "size": 10,
         "stroke": "#b07513",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#fba71b",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Sparkling wine",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "sparklingWine",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -1367,39 +1242,27 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#57b757",
-        "fillOpacity": 1,
         "shape": "diamond",
         "size": 10,
         "stroke": "#3d803d",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#57b757",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Made-wine",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "madeWine",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -1416,39 +1279,27 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#41a9c9",
-        "fillOpacity": 1,
         "shape": "plus",
         "size": 10,
         "stroke": "#2d768d",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#41a9c9",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Whisky",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "whisky",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -1465,39 +1316,27 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#4258c9",
-        "fillOpacity": 1,
         "shape": "square",
         "size": 10,
         "stroke": "#2e3e8d",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#4258c9",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Potable spirits",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "potableSpirits",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -1514,39 +1353,27 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#9a42c8",
-        "fillOpacity": 1,
         "shape": "triangle",
         "size": 10,
         "stroke": "#6c2e8c",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#9a42c8",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Beer",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "beer",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -1563,29 +1390,22 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#c84164",
-        "fillOpacity": 1,
         "shape": [Function],
         "size": 10,
         "stroke": "#8c2d46",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#c84164",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "title": "Cider",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "cider",
     },
@@ -1946,16 +1766,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#5090dc",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -1968,7 +1778,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -1982,15 +1791,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "largeHousehold",
       "yName": "Large household appliances",
@@ -1999,16 +1805,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#ffa03a",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2021,7 +1817,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2035,15 +1830,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "smallHousehold",
       "yName": "Small household appliances",
@@ -2052,16 +1844,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#459d55",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2074,7 +1856,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2088,15 +1869,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "itTelecomms",
       "yName": "IT and telecomms equipment",
@@ -2105,16 +1883,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#34bfe1",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2127,7 +1895,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2141,15 +1908,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "consumer",
       "yName": "Consumer equipment",
@@ -2158,16 +1922,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#e1cc00",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2180,7 +1934,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2194,15 +1947,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a69400",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "tools",
       "yName": "Electrical and electronic tools",
@@ -2211,16 +1961,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#9669cb",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2233,7 +1973,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2247,15 +1986,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#603c88",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "displays",
       "yName": "Display equipment",
@@ -2264,16 +2000,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#b5b5b5",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2286,7 +2012,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2300,15 +2025,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#575757",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "cooling",
       "yName": "Cooling appliances containing refrigerants",
@@ -2317,16 +2039,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#bd5aa7",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -2339,7 +2051,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -2353,15 +2064,12 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#7d2f6d",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "gasLampsLed",
       "yName": "Gas discharge lamps and LED light sources",
@@ -2694,16 +2402,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
   },
   "series": [
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -2711,7 +2409,6 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "fontSize": 12,
       },
       "marker": {
-        "enabled": true,
         "fill": "#5090dc",
         "fillOpacity": 0.7,
         "formatter": [Function],
@@ -2722,18 +2419,14 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
         "strokeOpacity": 0.7,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "sizeKey": "magnitude",
       "sizeName": "Magnitude",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "bubble",
-      "visible": true,
       "xKey": "depth",
       "xName": "Depth",
       "yKey": "minDistance",
@@ -3061,16 +2754,6 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
   },
   "series": [
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -3084,41 +2767,25 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "marker": {
         "enabled": false,
         "fill": "#5BC0EB",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#5BC0EB",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#5BC0EB",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "Southern California Seismic Network",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "time",
       "yKey": "magnitude",
     },
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -3132,41 +2799,25 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "marker": {
         "enabled": false,
         "fill": "#FDE74C",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#FDE74C",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#FDE74C",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "Hawaiian Volcano Observatory Network",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "time",
       "yKey": "magnitude",
     },
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -3180,41 +2831,25 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "marker": {
         "enabled": false,
         "fill": "#9BC53D",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#9BC53D",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#9BC53D",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "USGS Northern California Network",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "time",
       "yKey": "magnitude",
     },
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -3228,27 +2863,21 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "marker": {
         "enabled": false,
         "fill": "#E55934",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#E55934",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#E55934",
       "strokeOpacity": 1,
       "strokeWidth": 3,
       "title": "Oklahoma Seismic Network",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "time",
       "yKey": "magnitude",
     },
@@ -3602,11 +3231,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#FA7921",
       "fillOpacity": 0.6,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
@@ -3625,11 +3249,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "marker": {
         "enabled": false,
         "fill": "#FA7921",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#af5517",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -3640,18 +3262,15 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#af5517",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "naturalGas",
       "yName": "Natural gas",
@@ -3660,11 +3279,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#5BC0EB",
       "fillOpacity": 0.6,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
@@ -3683,11 +3297,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "marker": {
         "enabled": false,
         "fill": "#5BC0EB",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#4086a4",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -3698,18 +3310,15 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#4086a4",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "coal",
       "yName": "Coal",
@@ -3718,11 +3327,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#9BC53D",
       "fillOpacity": 0.6,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
@@ -3741,11 +3345,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "marker": {
         "enabled": false,
         "fill": "#9BC53D",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#6c8a2b",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -3756,18 +3358,15 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "primaryOil",
       "yName": "Primary oil",
@@ -3776,11 +3375,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#E55934",
       "fillOpacity": 0.6,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
@@ -3799,11 +3393,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "marker": {
         "enabled": false,
         "fill": "#E55934",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#a03e24",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -3814,18 +3406,15 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a03e24",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "petroleum",
       "yName": "Petroleum",
@@ -3834,11 +3423,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#FDE74C",
       "fillOpacity": 0.6,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
@@ -3857,11 +3441,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "marker": {
         "enabled": false,
         "fill": "#FDE74C",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#b1a235",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -3872,18 +3454,15 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#b1a235",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "quarter",
       "yKey": "manufacturedFuels",
       "yName": "Manufactured fuels",
@@ -4239,16 +3818,6 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "direction": "horizontal",
       "fill": "#5090dc",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "white",
         "enabled": false,
@@ -4261,7 +3830,6 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -4275,14 +3843,9 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "earnings",
     },
@@ -4619,11 +4182,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "highlightStyle": {
         "item": {
           "fill": "#0ab9ff",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
         },
       },
       "label": {
@@ -4639,7 +4197,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -4653,14 +4210,9 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "job",
       "yKey": "change",
     },
@@ -4987,16 +4539,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
   },
   "series": [
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -5004,7 +4546,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "fontSize": 12,
       },
       "marker": {
-        "enabled": true,
         "fill": "#cc5b58",
         "fillOpacity": 0.85,
         "maxSize": 30,
@@ -5012,21 +4553,16 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "size": 0,
         "stroke": "#2b5c95",
         "strokeOpacity": 0.85,
-        "strokeWidth": 1,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "sizeKey": "size",
       "sizeName": "Commits",
       "title": "Punch Card",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "bubble",
-      "visible": true,
       "xKey": "hour",
       "xName": "Time",
       "yKey": "day",
@@ -5352,16 +4888,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
   },
   "series": [
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -5371,7 +4897,6 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "labelKey": "city",
       "labelName": "City",
       "marker": {
-        "enabled": true,
         "fill": "#5090dc",
         "fillOpacity": 0.5,
         "maxSize": 100,
@@ -5379,21 +4904,16 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
         "size": 5,
         "stroke": "#2b5c95",
         "strokeOpacity": 0.5,
-        "strokeWidth": 1,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "sizeKey": "population",
       "sizeName": "Population",
       "title": "Most populous cities",
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "bubble",
-      "visible": true,
       "xKey": "lon",
       "xName": "Longitude",
       "yKey": "lat",
@@ -5720,11 +5240,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#19A0AA",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -5741,7 +5256,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -5755,14 +5269,9 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#19A0AA",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "month",
       "yKey": "menDelta",
       "yName": "Male",
@@ -5772,11 +5281,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#F15F36",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -5793,7 +5297,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -5807,14 +5310,9 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#F15F36",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "month",
       "yKey": "womenDelta",
       "yName": "Female",
@@ -6163,11 +5661,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -6185,7 +5678,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 0,
@@ -6199,14 +5691,9 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "rgba(0, 117, 163, 0.9)",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "total",
       "yName": "Annual growth in total pay",
@@ -6216,11 +5703,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(226, 188, 34, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -6238,7 +5720,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 2,
         "groupIndex": 1,
@@ -6252,14 +5733,9 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "rgba(226, 188, 34, 0.9)",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "regular",
       "yName": "Annual growth in regular pay",
@@ -6612,8 +6088,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6633,7 +6107,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 0,
@@ -6647,14 +6120,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "16-24",
     },
@@ -6664,8 +6132,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6685,7 +6151,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 1,
@@ -6699,14 +6164,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "25-34",
     },
@@ -6716,8 +6176,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6737,7 +6195,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 2,
@@ -6751,14 +6208,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "35-44",
     },
@@ -6768,8 +6220,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6789,7 +6239,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 3,
@@ -6803,14 +6252,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#18859e",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "45-54",
     },
@@ -6820,8 +6264,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6841,7 +6283,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 4,
@@ -6855,14 +6296,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a69400",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "55-64",
     },
@@ -6872,8 +6308,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6893,7 +6327,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 5,
@@ -6907,14 +6340,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#603c88",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "65-74",
     },
@@ -6924,8 +6352,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
           "strokeWidth": 1,
         },
         "series": {
@@ -6945,7 +6371,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 7,
         "groupIndex": 6,
@@ -6959,14 +6384,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#575757",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "75+",
     },
@@ -7310,11 +6730,6 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
   "series": [
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7333,37 +6748,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#0b1791",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#0b1791",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#0b1791",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "belize",
       "yName": "Belize",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7382,37 +6786,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#be2a2c",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#f6d24a",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#be2a2c",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "cameroon",
       "yName": "Cameroon",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7431,37 +6824,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#f6d24a",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#f6d24a",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "columbia",
       "yName": "Columbia",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7480,37 +6862,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#ce1126",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#ce1126",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#ce1126",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "costaRica",
       "yName": "Costa Rica",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7529,37 +6900,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#002d62",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#ce1126",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#002d62",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "dominicanRepublic",
       "yName": "Dominican Republic",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7578,37 +6938,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#1b4e9e",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#fade4b",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#1b4e9e",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "ecuador",
       "yName": "Ecuador",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7627,37 +6976,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#f6d24a",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#be2a2c",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#f6d24a",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "ghana",
       "yName": "Ghana",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7676,37 +7014,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#0073cf",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#0073cf",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#0073cf",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "honduras",
       "yName": "Honduras",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7725,37 +7052,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#e88532",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#469c65",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#e88532",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "ivoryCoast",
       "yName": "Ivory Coast",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7774,37 +7090,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#000000",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#fed100",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#000000",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "jamaica",
       "yName": "Jamaica",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7823,37 +7128,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#006847",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#ce1126",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#006847",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "mexico",
       "yName": "Mexico",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7872,37 +7166,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#c22b38",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#1e5190",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#c22b38",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "panama",
       "yName": "Panama",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7921,37 +7204,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#042279",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#bf2b30",
-        "strokeOpacity": 1,
         "strokeWidth": 2,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#042279",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "windwardIsles",
       "yName": "Windward Isles",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -7970,37 +7242,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#4997d0",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#4997d0",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#4997d0",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "guatemala",
       "yName": "Guatemala",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -8019,37 +7280,26 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#ffffff",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#2868c1",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#2868c1",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "nicaragua",
       "yName": "Nicaragua",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
@@ -8068,26 +7318,20 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "marker": {
         "enabled": true,
         "fill": "#459945",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#459945",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#459945",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "line",
-      "visible": true,
       "xKey": "week",
       "yKey": "brazil",
       "yName": "Brazil",
@@ -8464,16 +7708,6 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
   },
   "series": [
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -8485,29 +7719,22 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#5090dc",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#2b5c95",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#5090dc",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "line",
-      "visible": true,
       "xKey": "year",
       "yKey": "population",
     },
@@ -8831,11 +8058,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#5090dc",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
@@ -8854,11 +8076,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "marker": {
         "enabled": false,
         "fill": "#5090dc",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#2b5c95",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -8876,18 +8096,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "month",
       "yKey": "coal",
       "yName": "Coal",
@@ -8896,11 +8113,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#ffa03a",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
@@ -8919,11 +8131,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "marker": {
         "enabled": false,
         "fill": "#ffa03a",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#cc6f10",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -8941,18 +8151,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "month",
       "yKey": "petroleum",
       "yName": "Petroleum",
@@ -8961,11 +8168,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#459d55",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
@@ -8984,11 +8186,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "marker": {
         "enabled": false,
         "fill": "#459d55",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#1e652e",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -9006,18 +8206,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "month",
       "yKey": "naturalGas",
       "yName": "Natural gas",
@@ -9026,11 +8223,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#34bfe1",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
@@ -9049,11 +8241,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "marker": {
         "enabled": false,
         "fill": "#34bfe1",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#18859e",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -9071,18 +8261,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#18859e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "month",
       "yKey": "bioenergyWaste",
       "yName": "Bioenergy & waste",
@@ -9091,11 +8278,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#e1cc00",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
@@ -9114,11 +8296,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "marker": {
         "enabled": false,
         "fill": "#e1cc00",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#a69400",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -9136,18 +8316,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a69400",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "month",
       "yKey": "nuclear",
       "yName": "Nuclear",
@@ -9156,11 +8333,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#9669cb",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
@@ -9179,11 +8351,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "marker": {
         "enabled": false,
         "fill": "#9669cb",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#603c88",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -9201,18 +8371,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#603c88",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "month",
       "yKey": "windSolarHydro",
       "yName": "Wind, solar & hydro",
@@ -9221,11 +8388,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#b5b5b5",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
@@ -9244,11 +8406,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "marker": {
         "enabled": false,
         "fill": "#b5b5b5",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#575757",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -9266,18 +8426,15 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#575757",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "area",
-      "visible": true,
       "xKey": "month",
       "yKey": "imported",
       "yName": "Imported",
@@ -9619,11 +8776,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#00c851",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -9641,7 +8793,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9656,14 +8807,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#006428",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "area",
       "yKey": "usedInLast3Months",
       "yName": "Used in last 3 months",
@@ -9673,11 +8819,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ffbb33",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -9695,7 +8836,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9710,14 +8850,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#996500",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "area",
       "yKey": "usedOver3MonthsAgo",
       "yName": "Used over 3 months ago",
@@ -9727,11 +8862,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ff4444",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
@@ -9749,7 +8879,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 1,
       "seriesGrouping": {
         "groupCount": 1,
@@ -9764,14 +8893,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a10000",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "area",
       "yKey": "neverUsed",
       "yName": "Never used",
@@ -10125,11 +9249,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#f1c40f",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -10146,7 +9265,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -10161,14 +9279,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#f39c12",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "white",
       "yName": "White",
@@ -10178,11 +9291,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#e67e22",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -10199,7 +9307,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -10214,14 +9321,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#d35400",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "mixed",
       "yName": "Mixed",
@@ -10231,11 +9333,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#2ecc71",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -10252,7 +9349,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -10267,14 +9363,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#27ae60",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "asian",
       "yName": "Asian",
@@ -10284,11 +9375,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#3498db",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -10305,7 +9391,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -10320,14 +9405,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2980b9",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "black",
       "yName": "Black",
@@ -10337,11 +9417,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#9b59b6",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -10358,7 +9433,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -10373,14 +9447,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#8e44ad",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "chinese",
       "yName": "Chinese",
@@ -10390,11 +9459,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#34495e",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
         },
@@ -10411,7 +9475,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "normalizedTo": 100,
       "seriesGrouping": {
         "groupCount": 1,
@@ -10426,14 +9489,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2c3e50",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "other",
       "yName": "Other",
@@ -10793,16 +9851,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     {
       "fill": "#c16068",
       "fillOpacity": 0.8,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -10816,11 +9864,9 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "marker": {
         "enabled": false,
         "fill": "#5090dc",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#2b5c95",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -10831,19 +9877,16 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#874349",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "Tate Modern",
       "yName": "Tate Modern",
@@ -10851,16 +9894,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     {
       "fill": "#a2bf8a",
       "fillOpacity": 0.8,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -10874,11 +9907,9 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "marker": {
         "enabled": false,
         "fill": "#ffa03a",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#cc6f10",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -10889,19 +9920,16 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#718661",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "Tate Britain",
       "yName": "Tate Britain",
@@ -10909,16 +9937,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     {
       "fill": "#ebcc87",
       "fillOpacity": 0.8,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -10932,11 +9950,9 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "marker": {
         "enabled": false,
         "fill": "#459d55",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#1e652e",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -10947,19 +9963,16 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a48f5f",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "Tate Liverpool",
       "yName": "Tate Liverpool",
@@ -10967,16 +9980,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     {
       "fill": "#80a0c3",
       "fillOpacity": 0.8,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -10990,11 +9993,9 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "marker": {
         "enabled": false,
         "fill": "#34bfe1",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#18859e",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -11005,19 +10006,16 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#5a7088",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "Tate St Ives",
       "yName": "Tate St Ives",
@@ -11355,16 +10353,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "direction": "vertical",
       "fill": "#0084e7",
       "fillOpacity": 1,
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "#eeeeee",
         "enabled": true,
@@ -11378,7 +10366,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -11392,15 +10379,12 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "year",
       "yKey": "visitors",
     },
@@ -11651,13 +10635,9 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
       ],
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
-        },
-        "series": {
-          "dimOpacity": 1,
         },
       },
       "innerLabels": [
@@ -11685,7 +10665,6 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
@@ -11707,7 +10686,6 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
@@ -11733,11 +10711,9 @@ exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepar
         "text": "Annual Count",
       },
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "donut",
-      "visible": true,
     },
   ],
   "subtitle": {
@@ -11964,11 +10940,6 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
   "series": [
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -11985,39 +10956,27 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#01c185",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#01c185",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#01c185",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "line",
-      "visible": true,
       "xKey": "date",
       "yKey": "petrol",
     },
     {
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
@@ -12034,29 +10993,22 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       ],
       "lineDashOffset": 0,
       "marker": {
-        "enabled": true,
         "fill": "#000000",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#000000",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "stroke": "#000000",
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "line",
-      "visible": true,
       "xKey": "date",
       "yKey": "diesel",
     },
@@ -12321,20 +11273,15 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       ],
       "highlightStyle": {
         "item": {
-          "fill": "#ffffff54",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
-        },
-        "series": {
-          "dimOpacity": 1,
         },
       },
       "lineDash": [
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
@@ -12356,7 +11303,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "strokes": [
@@ -12381,11 +11327,9 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
         "spacing": 5,
       },
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "pie",
-      "visible": true,
     },
   ],
   "subtitle": {
@@ -12604,16 +11548,6 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
   },
   "series": [
     {
-      "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
-        "series": {
-          "dimOpacity": 1,
-        },
-      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -12621,25 +11555,19 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
         "fontSize": 12,
       },
       "marker": {
-        "enabled": true,
         "fill": "#002D72",
         "fillOpacity": 0.5,
         "shape": "circle",
         "size": 12,
         "stroke": "#2b5c95",
         "strokeOpacity": 0,
-        "strokeWidth": 1,
       },
-      "nodeClickRange": "exact",
-      "showInLegend": true,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
       },
       "type": "scatter",
-      "visible": true,
       "xKey": "weight",
       "yKey": "height",
     },
@@ -12969,11 +11897,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#5BC0EB",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
         },
@@ -12991,11 +11914,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "marker": {
         "enabled": true,
         "fill": "#5BC0EB",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#4086a4",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -13012,19 +11933,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#4086a4",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "Science Museum",
       "yName": "Science Museum",
@@ -13033,11 +11951,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#FDE74C",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
         },
@@ -13055,11 +11968,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "marker": {
         "enabled": true,
         "fill": "#FDE74C",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#b1a235",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -13076,19 +11987,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#b1a235",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "National Media Museum",
       "yName": "National Media Museum",
@@ -13097,11 +12005,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#9BC53D",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
         },
@@ -13119,11 +12022,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "marker": {
         "enabled": true,
         "fill": "#9BC53D",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#6c8a2b",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -13140,19 +12041,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "National Railway Museum",
       "yName": "National Railway Museum",
@@ -13161,11 +12059,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#E55934",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
         },
@@ -13183,11 +12076,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "marker": {
         "enabled": true,
         "fill": "#E55934",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#a03e24",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -13204,19 +12095,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a03e24",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "Locomotion",
       "yName": "Locomotion",
@@ -13225,11 +12113,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#FA7921",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
         },
@@ -13247,11 +12130,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "marker": {
         "enabled": true,
         "fill": "#FA7921",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#af5517",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -13268,19 +12149,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#af5517",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "Museum of Science and Industry, Manchester",
       "yName": "Museum of Science and Industry, Manchester",
@@ -13289,11 +12167,6 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#fa3081",
       "fillOpacity": 0.8,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.2,
         },
@@ -13311,11 +12184,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "marker": {
         "enabled": true,
         "fill": "#fa3081",
-        "fillOpacity": 1,
         "shape": "circle",
         "size": 7,
         "stroke": "#af225a",
-        "strokeOpacity": 1,
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
@@ -13332,19 +12203,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#af225a",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "position": {
           "type": "node",
         },
         "renderer": [Function],
       },
       "type": "area",
-      "visible": true,
       "xKey": "date",
       "yKey": "National Coal Mining Museum for England",
       "yName": "National Coal Mining Museum for England",
@@ -13708,11 +12576,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -13730,7 +12593,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13744,14 +12606,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#2b5c95",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "ownerOccupied",
       "yName": "Owner occupied",
@@ -13761,11 +12618,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -13783,7 +12635,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13797,14 +12648,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#cc6f10",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "privateRented",
       "yName": "Private rented",
@@ -13814,11 +12660,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -13836,7 +12677,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13850,14 +12690,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#1e652e",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "localAuthority",
       "yName": "Local authority",
@@ -13867,11 +12702,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -13889,7 +12719,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -13903,14 +12732,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#18859e",
       "strokeWidth": 0,
-      "tooltip": {
-        "enabled": true,
-      },
       "type": "bar",
-      "visible": true,
       "xKey": "type",
       "yKey": "housingAssociation",
       "yName": "Housing association",
@@ -14251,11 +13075,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#5BC0EB",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -14273,7 +13092,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -14287,15 +13105,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#4086a4",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "station",
       "yKey": "early",
       "yName": "Early",
@@ -14305,11 +13120,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FDE74C",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -14327,7 +13137,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -14341,15 +13150,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#b1a235",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "station",
       "yKey": "morningPeak",
       "yName": "Morning peak",
@@ -14359,11 +13165,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#9BC53D",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -14381,7 +13182,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -14395,15 +13195,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#6c8a2b",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "station",
       "yKey": "interPeak",
       "yName": "Between peak",
@@ -14413,11 +13210,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#E55934",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -14435,7 +13227,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -14449,15 +13240,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#a03e24",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "station",
       "yKey": "afternoonPeak",
       "yName": "Afternoon peak",
@@ -14467,11 +13255,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FA7921",
       "fillOpacity": 1,
       "highlightStyle": {
-        "item": {
-          "fill": "#ffffff54",
-          "stroke": "#0006",
-          "strokeWidth": 2,
-        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
@@ -14489,7 +13272,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         0,
       ],
       "lineDashOffset": 0,
-      "nodeClickRange": "exact",
       "seriesGrouping": {
         "groupCount": 1,
         "groupIndex": 0,
@@ -14503,15 +13285,12 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
         "xOffset": 3,
         "yOffset": 3,
       },
-      "showInLegend": true,
       "stroke": "#af5517",
       "strokeWidth": 0,
       "tooltip": {
-        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
-      "visible": true,
       "xKey": "station",
       "yKey": "evening",
       "yName": "Evening",

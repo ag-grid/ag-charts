@@ -82,37 +82,28 @@ export class MaterialLight extends ChartTheme {
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, MaterialLight.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            MaterialLight.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            MaterialLight.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            MaterialLight.getWaterfallSeriesDefaultTotalColors()
-        );
+        params.set(DEFAULT_COLOURS, MaterialLight.getDefaultColors());
+        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, MaterialLight.getWaterfallSeriesDefaultPositiveColors());
+        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, MaterialLight.getWaterfallSeriesDefaultNegativeColors());
+        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, MaterialLight.getWaterfallSeriesDefaultTotalColors());
 
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
             MATERIAL_LIGHT_FILLS.ORANGE,
             MATERIAL_LIGHT_FILLS.YELLOW,
             MATERIAL_LIGHT_FILLS.GREEN,
         ]);
 
-        result.properties.set(
+        params.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             MaterialLight.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
 
-        return result;
+        return params;
     }
     protected override getPalette(): AgChartThemePalette {
         return palette;

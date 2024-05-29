@@ -1,12 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_LABEL_COLOUR,
-    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
+import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
 import { LineSeries } from './lineSeries';
 
 export const LineSeriesModule: SeriesModule<'line'> = {
@@ -30,16 +25,14 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     ],
     themeTemplate: {
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             tooltip: { position: { type: 'node' } },
             strokeWidth: 2,
             strokeOpacity: 1,
             lineDash: [0],
             lineDashOffset: 0,
             marker: {
-                __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-                fillOpacity: 1,
-                strokeOpacity: 1,
+                shape: 'circle',
+                size: 7,
                 strokeWidth: 0,
             },
             label: {

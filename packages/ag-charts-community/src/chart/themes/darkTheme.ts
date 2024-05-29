@@ -96,45 +96,39 @@ export class DarkTheme extends ChartTheme {
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(IS_DARK_THEME, true);
-        result.properties.set(DEFAULT_COLOURS, DarkTheme.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            DarkTheme.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            DarkTheme.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, DarkTheme.getWaterfallSeriesDefaultTotalColors());
+        params.set(IS_DARK_THEME, true);
+        params.set(DEFAULT_COLOURS, DarkTheme.getDefaultColors());
+        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, DarkTheme.getWaterfallSeriesDefaultPositiveColors());
+        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, DarkTheme.getWaterfallSeriesDefaultNegativeColors());
+        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, DarkTheme.getWaterfallSeriesDefaultTotalColors());
 
-        result.properties.set(
+        params.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             DarkTheme.getWaterfallSeriesDefaultTotalColors().stroke
         );
-        result.properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
+        params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
-        result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
-        result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
-        result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
-        result.properties.set(DEFAULT_CROSS_LINES_COLOUR, 'white');
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_LABEL_COLOUR, 'white');
+        params.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
+        params.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
+        params.set(DEFAULT_CROSS_LINES_COLOUR, 'white');
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
             DEFAULT_DARK_FILLS.ORANGE,
             DEFAULT_DARK_FILLS.YELLOW,
             DEFAULT_DARK_FILLS.GREEN,
         ]);
-        result.properties.set(DEFAULT_HIERARCHY_FILLS, ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80']);
-        result.properties.set(DEFAULT_HIERARCHY_STROKES, ['#192834', '#3b5164', '#496275', '#577287', '#668399']);
-        result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
-        result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
+        params.set(DEFAULT_HIERARCHY_FILLS, ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80']);
+        params.set(DEFAULT_HIERARCHY_STROKES, ['#192834', '#3b5164', '#496275', '#577287', '#668399']);
+        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
+        params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_DARK_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_DARK_FILLS.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
+        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
 
-        return result;
+        return params;
     }
 
     protected override getPalette(): AgChartThemePalette {

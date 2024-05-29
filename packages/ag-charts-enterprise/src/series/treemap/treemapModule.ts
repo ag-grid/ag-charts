@@ -8,7 +8,6 @@ const {
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-    EXTENDS_SERIES_DEFAULTS,
     DEFAULT_LABEL_COLOUR,
     FONT_WEIGHT,
 } = _Theme;
@@ -23,7 +22,6 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     solo: true,
     themeTemplate: {
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             group: {
                 label: {
                     enabled: true,
@@ -99,11 +97,10 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
         },
     },
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
-        const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
-        const groupFills = properties.get(DEFAULT_HIERARCHY_FILLS);
-        const groupStrokes = properties.get(DEFAULT_HIERARCHY_STROKES);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const groupFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
+        const groupStrokes = themeTemplateParameters.get(DEFAULT_HIERARCHY_STROKES);
         return {
             fills,
             strokes,

@@ -1,10 +1,4 @@
 export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as string;
-export const EXTENDS_AXES_DEFAULTS = Symbol('extends-axes-defaults') as unknown as string;
-export const EXTENDS_AXES_LINE_DEFAULTS = Symbol('extends-axes-line-defaults') as unknown as string;
-export const EXTENDS_AXES_TICK_DEFAULTS = Symbol('extends-axes-tick-defaults') as unknown as string;
-export const EXTENDS_AXES_GRID_LINE_DEFAULTS = Symbol('extends-axes-grid-line-defaults') as unknown as string;
-export const EXTENDS_SERIES_DEFAULTS = Symbol('extends-series-defaults') as unknown as string;
-export const EXTENDS_CARTESIAN_MARKER_DEFAULTS = Symbol('extends-cartesian-marker-defaults') as unknown as string;
 export const DEFAULT_FONT_FAMILY = Symbol('default-font') as unknown as string;
 export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour') as unknown as string;
 export const DEFAULT_INVERTED_LABEL_COLOUR = Symbol('default-inverted-label-colour') as unknown as string;
