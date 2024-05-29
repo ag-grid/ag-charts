@@ -462,11 +462,6 @@ export abstract class Series<
         });
     }
 
-    initTooltipRange() {
-        // TODO(olegat) implement
-        this.defaultTooltipRange;
-    }
-
     getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
         let mainAdjust = 0;
         switch (type) {
