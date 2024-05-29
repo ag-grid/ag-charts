@@ -1048,22 +1048,20 @@ export abstract class Chart extends Observable {
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+    private pickNode(point: Point, pickModes:                     (SeriesNodePickMode[]|undefined)[],                     maxDistance?: number): PickedNode | undefined {
         const start = performance.now();
-
-        // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
         const reverseSeries = [...this.series].reverse();
+        let pickModeIndex = pickModes.length - 1;
 
         let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
-            const { match, distance } = series.pickNode(point, pickModes) ?? {};
+            const { match, distance } = series.pickNode(point, pickModes[pickModeIndex--]) ?? {};
             if (!match || distance == null) {
                 continue;
             }
@@ -1080,6 +1078,21 @@ export abstract class Chart extends Observable {
         );
 
         return result;
+    }
+
+    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+        // Disable 'nearest match' options if looking for exact matches only
+        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
+        return this.pickNode(point, this.series.map(()=>pickModes), maxDistance);
+    }
+
+    private pickTooltip(point: Point): PickedNode | undefined {
+        const pickModes = this.series.map((s: Series<SeriesNodeDatum, SeriesProperties<object>>) => {
+            const range = s.properties.tooltip.range ??
+                Logger.error(`series.tooltip.range is undefined for ${s.id}.`);
+            return range === 'exact' ?[SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
+        });
+        return this.pickNode(point,pickModes);
     }
 
     private lastPick?: SeriesNodeDatum;
@@ -1287,14 +1300,8 @@ export abstract class Chart extends Observable {
         event: TooltipPointerEvent<'hover'>,
         disablePointer: (highlightOnly?: boolean) => void
     ) {
-        const { lastPick, tooltip } = this;
-        const { range } = tooltip;
+        const { lastPick } = this;
         const { offsetX, offsetY, targetElement } = event;
-
-        let pixelRange;
-        if (isFiniteNumber(range)) {
-            pixelRange = range;
-        }
 
         if (
             targetElement &&
