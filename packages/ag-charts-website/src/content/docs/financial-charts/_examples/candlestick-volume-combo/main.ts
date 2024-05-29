@@ -30,4 +30,3 @@ const options: AgFinancialChartOptions = {
 };
 
 const chart = AgCharts.createFinancialChart(options);
-

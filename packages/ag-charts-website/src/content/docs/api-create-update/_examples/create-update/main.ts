@@ -1,4 +1,10 @@
-import { AgAreaSeriesOptions, AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgAreaSeriesOptions,
+    AgChartInstance,
+    AgChartLegendPosition,
+    AgChartOptions,
+    AgCharts,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -32,7 +38,7 @@ const options: AgChartOptions = {
     legend,
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options) as AgChartInstance<AgChartOptions>;
 
 function reverseSeries() {
     options.series = series.reverse();

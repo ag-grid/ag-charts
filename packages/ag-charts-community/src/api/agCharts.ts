@@ -88,7 +88,7 @@ export abstract class AgCharts {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create<O extends AgChartOptions = AgChartOptions>(options: O): AgChartInstance<O> {
+    public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
         const chart = AgChartsInternal.createOrUpdate(options);
 

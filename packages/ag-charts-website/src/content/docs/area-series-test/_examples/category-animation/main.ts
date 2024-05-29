@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60 },
@@ -40,7 +40,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options) as AgChartInstance<AgChartOptions>;
 
 function actionReset() {
     options.data = [...data];

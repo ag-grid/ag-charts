@@ -1,4 +1,10 @@
-import { AgCartesianChartOptions, AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgCharts,
+    AgPolarChartOptions,
+} from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
@@ -204,7 +210,7 @@ let options: AgCartesianChartOptions | AgPolarChartOptions = {
 };
 
 // Create chart
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options) as AgChartInstance<AgChartOptions>;
 
 // Elements
 const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking')[0];

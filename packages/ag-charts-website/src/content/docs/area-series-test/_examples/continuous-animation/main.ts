@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
+import { AgChartInstance, AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -54,7 +54,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options as AgChartOptions);
 
 function genDataPoint(ref: Date | { date: Date; petrol: number; diesel: number }, offsetDays: number) {
     const { date, petrol = 120, diesel = 125 } = ref instanceof Date ? { date: ref } : ref;
