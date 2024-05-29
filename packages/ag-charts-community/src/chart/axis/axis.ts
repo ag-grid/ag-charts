@@ -354,6 +354,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         axisNode.removeChild(this.crossLineGroup);
     }
 
+    getAxisGroup(): Group {
+        return this.axisGroup;
+    }
+
     range: [number, number] = [0, 1];
     visibleRange: [number, number] = [0, 1];
 

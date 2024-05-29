@@ -3,6 +3,7 @@ import type { ModuleMap } from '../module/moduleMap';
 import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
+import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
@@ -17,6 +18,7 @@ export type ChartAxisLabelFlipFlag = 1 | -1;
 
 export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
+    getAxisGroup(): Group;
     boundSeries: ISeries<unknown, unknown>[];
     calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
     calculatePadding(min: number, max: number): [number, number];

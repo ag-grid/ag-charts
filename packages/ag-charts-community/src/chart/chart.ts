@@ -334,6 +334,9 @@ export abstract class Chart extends Observable {
         const moduleContext = this.getModuleContext();
         const seriesRegion = ctx.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
 
+        this.ctx.regionManager.addRegion('horizontal-axes');
+        this.ctx.regionManager.addRegion('vertical-axes');
+
         ctx.regionManager.addRegion('root', root);
 
         this._destroyFns.push(
@@ -1887,6 +1890,17 @@ export abstract class Chart extends Observable {
 
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
+
+        const axisGroups: { [Key in ChartAxisDirection]: Group[] } = {
+            [ChartAxisDirection.X]: [],
+            [ChartAxisDirection.Y]: [],
+        };
+
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getAxisGroup()));
+
+        this.ctx.regionManager.updateRegion('horizontal-axes', ...axisGroups[ChartAxisDirection.X]);
+        this.ctx.regionManager.updateRegion('vertical-axes', ...axisGroups[ChartAxisDirection.Y]);
+
         return true;
     }
 
