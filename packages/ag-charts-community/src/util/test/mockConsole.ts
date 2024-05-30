@@ -10,5 +10,5 @@ export function setupMockConsole(opts?: { debugShowOutput?: boolean }) {
     });
 }
 
-const { expectWarnings, expectWarning, expectWarningMessages } = agChartsTest;
-export { expectWarnings, expectWarning, expectWarningMessages };
+const { expectWarningMessages, expectWarningsCalls } = agChartsTest;
+export { expectWarningMessages, expectWarningsCalls };

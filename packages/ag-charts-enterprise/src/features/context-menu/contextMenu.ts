@@ -1,4 +1,4 @@
-import type { AgChartLegendContextMenuEvent, _Scene } from 'ag-charts-community';
+import type { AgContextMenuOptions, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import {
@@ -8,16 +8,15 @@ import {
 } from './contextMenuStyles';
 
 type ContextMenuGroups = {
-    default: Array<ContextMenuItem>;
-    extra: Array<ContextMenuItem>;
-    extraNode: Array<ContextMenuItem>;
-    extraLegendItem: Array<ContextMenuItem>;
+    default: Array<ContextMenuAction>;
+    extra: Array<ContextMenuAction<'all'>>;
+    extraNode: Array<ContextMenuAction<'series'>>;
+    extraLegendItem: Array<ContextMenuAction<'legend'>>;
 };
 type ContextType = _ModuleSupport.ContextType;
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
-type ContextMenuAction = _ModuleSupport.ContextMenuAction;
-type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
-type ContextMenuItem = 'download' | ContextMenuAction;
+type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
+type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
 const { BOOLEAN, Validate, createElement, getWindow, ContextMenuRegistry } = _ModuleSupport;
 
@@ -33,17 +32,17 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     /**
      * Extra menu actions with a label and callback.
      */
-    public extraActions: Array<ContextMenuAction> = [];
+    public extraActions: NonNullable<AgContextMenuOptions['extraActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a node.
      */
-    public extraNodeActions: Array<ContextMenuAction> = [];
+    public extraNodeActions: NonNullable<AgContextMenuOptions['extraNodeActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a legend item
      */
-    public extraLegendItemActions: Array<ContextMenuAction> = [];
+    public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
 
     // Module context
     private readonly scene: _Scene.Scene;
@@ -137,20 +136,26 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
 
-        if (this.extraActions.length > 0) {
-            this.groups.extra = [...this.extraActions];
-        }
+        this.groups.extra = this.extraActions.map(({ label, action }) => {
+            return { type: 'all', label, action };
+        });
 
         if (ContextMenuRegistry.check('series', event)) {
             this.pickedNode = event.context.pickedNode;
-            if (this.extraNodeActions.length > 0 && this.pickedNode) {
-                this.groups.extraNode = [...this.extraNodeActions];
+            if (this.pickedNode) {
+                this.groups.extraNode = this.extraNodeActions.map(({ label, action }) => {
+                    return { type: 'series', label, action };
+                });
             }
         }
 
         if (ContextMenuRegistry.check('legend', event)) {
             this.pickedLegendItem = event.context.legendItem;
-            this.groups.extraLegendItem = [...this.extraLegendItemActions];
+            if (this.pickedLegendItem) {
+                this.groups.extraLegendItem = this.extraLegendItemActions.map(({ label, action }) => {
+                    return { type: 'legend', label, action };
+                });
+            }
         }
 
         const { default: def, extra, extraNode, extraLegendItem } = this.groups;
@@ -205,21 +210,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         if (this.pickedLegendItem) {
-            const extraLegendItem = this.groups.extraLegendItem
-                .filter((value): value is ContextMenuAction => typeof value !== 'string')
-                .map((contextMenuItem: ContextMenuAction) => {
-                    return {
-                        ...contextMenuItem,
-                        region: 'legend' as const,
-                    };
-                });
-            this.appendMenuGroup(menuElement, extraLegendItem);
+            this.appendMenuGroup(menuElement, this.groups.extraLegendItem);
         }
 
         return menuElement;
     }
 
-    public appendMenuGroup(menuElement: HTMLElement, group: ContextMenuItem[], divider = true) {
+    public appendMenuGroup(menuElement: HTMLElement, group: ContextMenuAction[], divider = true) {
         if (group.length === 0) return;
         if (divider) menuElement.appendChild(this.createDividerElement());
         group.forEach((i) => {
@@ -228,7 +225,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    public renderItem(item: ContextMenuItem): HTMLElement | void {
+    public renderItem(item: ContextMenuAction): HTMLElement | void {
         if (item && typeof item === 'object' && item.constructor === Object) {
             return this.createActionElement(item);
         }
@@ -248,38 +245,38 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return this.createButtonElement(type, label, action);
     }
 
-    private createButtonOnClick(type: ContextType, callback: (params: ContextMenuActionParams) => void): () => void {
-        if (type === 'legend') {
+    private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
+        if (ContextMenuRegistry.checkCallback('legend', type, callback)) {
             return () => {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, enabled } = this.pickedLegendItem;
-                    const event: AgChartLegendContextMenuEvent & ContextMenuActionParams = {
-                        type: 'contextmenu',
-                        seriesId,
-                        itemId,
-                        enabled,
-                        event: this.showEvent!,
-                    };
-                    callback(event);
+                    callback({ type: 'contextmenu', seriesId, itemId, enabled });
+                    this.hide();
                 }
+            };
+        } else if (ContextMenuRegistry.checkCallback('series', type, callback)) {
+            return () => {
+                const { pickedNode, showEvent } = this;
+                const event = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
+
+                if (event) {
+                    callback(event);
+                } else {
+                    _Util.Logger.error('series node not found');
+                }
+                this.hide();
             };
         }
         return () => {
-            const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
-            if (event) {
-                callback(event);
-            } else {
-                callback({ event: this.showEvent! });
-            }
-
+            callback({ type: 'contextMenuEvent', event: this.showEvent! });
             this.hide();
         };
     }
 
-    private createButtonElement(
-        type: ContextType,
+    private createButtonElement<T extends ContextType>(
+        type: T,
         label: string,
-        callback: (params: ContextMenuActionParams) => void
+        callback: ContextMenuCallback<T>
     ): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);

@@ -1,25 +1,25 @@
-export type ToolbarAlignment = 'start' | 'center' | 'end';
-export const TOOLBAR_ALIGNMENTS: ToolbarAlignment[] = ['start', 'center', 'end'];
+export const TOOLBAR_ALIGNMENTS = ['start', 'center', 'end'] as const;
+export type ToolbarAlignment = (typeof TOOLBAR_ALIGNMENTS)[number];
 
-export type ToolbarGroup = 'annotations' | 'ranges' | 'zoom';
-export const TOOLBAR_GROUPS: ToolbarGroup[] = ['annotations', 'ranges', 'zoom'];
+export const TOOLBAR_GROUPS = ['annotations', 'annotationOptions', 'ranges', 'zoom'] as const;
+export type ToolbarGroup = (typeof TOOLBAR_GROUPS)[number];
 
 export enum ToolbarPosition {
     Top = 'top',
     Right = 'right',
     Bottom = 'bottom',
     Left = 'left',
+    Floating = 'floating',
     FloatingTop = 'floating-top',
     FloatingBottom = 'floating-bottom',
 }
+export const TOOLBAR_POSITIONS = Object.values(ToolbarPosition);
 
-export function isFloatingPosition(
+export function isAnimatingFloatingPosition(
     position: ToolbarPosition
 ): position is ToolbarPosition.FloatingTop | ToolbarPosition.FloatingBottom {
-    return ['floating-top', 'floating-bottom'].includes(position);
+    return [ToolbarPosition.FloatingTop, ToolbarPosition.FloatingBottom].includes(position);
 }
-
-export const TOOLBAR_POSITIONS: ToolbarPosition[] = Object.values(ToolbarPosition);
 
 export interface ToolbarButton {
     icon?: string;

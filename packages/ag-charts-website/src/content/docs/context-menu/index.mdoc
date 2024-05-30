@@ -29,6 +29,9 @@ contextMenu: {
     extraNodeActions: [
         { label: 'Say hello to a node', action: ({ datum }) => window.alert(`Hello ${datum?.month ?? 'world'}`) }
     ],
+    extraLegendItemActions: [
+        { label: 'Say hello to a legend item', action: ({ itemId }) => window.alert(`Hello ${itemId ?? 'world'}`) }
+    ],
 }
 ```
 

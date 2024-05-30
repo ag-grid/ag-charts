@@ -5,6 +5,7 @@ const options: AgCartesianChartOptions = {
     title: {
         text: 'Sweaters made',
     },
+    legend: {},
     contextMenu: {
         extraActions: [
             {
@@ -20,6 +21,18 @@ const options: AgCartesianChartOptions = {
                 action: ({ datum }) => {
                     if (datum) {
                         window.alert(`Hello, ${datum.month}!`);
+                    } else {
+                        window.alert('Hello, world!');
+                    }
+                },
+            },
+        ],
+        extraLegendItemActions: [
+            {
+                label: 'Say hello to a legend item',
+                action: ({ itemId }) => {
+                    if (itemId) {
+                        window.alert(`Hello, ${itemId}!`);
                     } else {
                         window.alert('Hello, world!');
                     }

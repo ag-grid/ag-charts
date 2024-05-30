@@ -25,10 +25,9 @@ export default `
         --ag-header-background-color,
         color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-foreground-color) 2%)
     );
-    --ag-charts-toolbar-size: var(--ag-header-height, 48px);
+    --ag-charts-toolbar-size: 34px;
     --ag-charts-toolbar-padding: calc(var(--ag-charts-size) * 2);
-    --ag-charts-toolbar-border: var(--ag-charts-border, solid 1px) var(--ag-charts-border-color);
-    --ag-charts-toolbar-border-critical: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
+    --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
     --ag-charts-toolbar-hover-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-active-color) 12%);
     --ag-charts-toolbar-disabled-foreground-color: var(
         --ag-disabled-foreground-color,
@@ -41,7 +40,6 @@ export default `
     --ag-charts-toolbar-gap: var(--ag-charts-size);
 
     /* Buttons */
-    --ag-charts-button-padding: var(--ag-charts-size);
     --ag-charts-button-radius: var(--ag-border-radius, 4px);
 
     /* Focus Indicator */

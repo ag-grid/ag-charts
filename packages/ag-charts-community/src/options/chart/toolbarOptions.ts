@@ -2,6 +2,7 @@ import type { Toggleable } from '../series/cartesian/commonOptions';
 
 export interface AgToolbarOptions extends Toggleable {
     annotations?: AgToolbarAnnotationsGroup;
+    annotationOptions?: AgToolbarAnnotationOptionsGroup;
     ranges?: AgToolbarRangesGroup;
     zoom?: AgToolbarZoomGroup;
 }
@@ -15,7 +16,14 @@ export interface AgToolbarGroup extends Toggleable {
 }
 
 export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
-export type AgToolbarGroupPosition = 'top' | 'left' | 'right' | 'bottom' | 'floating-top' | 'floating-bottom';
+export type AgToolbarGroupPosition =
+    | 'top'
+    | 'left'
+    | 'right'
+    | 'bottom'
+    | 'floating'
+    | 'floating-top'
+    | 'floating-bottom';
 
 export interface AgToolbarButton {
     /** Icon to display on the button. */
@@ -28,17 +36,9 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName =
-    | 'pan-end'
-    | 'pan-left'
-    | 'pan-right'
-    | 'pan-start'
-    | 'reset'
-    | 'zoom-in'
-    | 'zoom-out'
-    | 'trend-line'
-    | 'parallel-channel'
-    | 'disjoint-channel';
+export type AgIconName = IconNameAnnotation | IconNameZoom;
+type IconNameAnnotation = 'trend-line' | 'parallel-channel' | 'disjoint-channel' | 'delete';
+type IconNameZoom = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset' | 'zoom-in' | 'zoom-out';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
@@ -52,6 +52,18 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
 }
 
 export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel' | 'disjoint-channel';
+
+/* Annotation Options */
+export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
+    buttons?: AgToolbarAnnotationOptionsButton[];
+}
+
+export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
+    /** An annotation type. */
+    value: AgToolbarAnnotationOptionsButtonValue;
+}
+
+export type AgToolbarAnnotationOptionsButtonValue = 'delete';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

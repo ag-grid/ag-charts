@@ -7,11 +7,11 @@ import type { Line } from './lineScene';
 export class LineStateMachine extends _ModuleSupport.StateMachine<'start' | 'end', 'click' | 'hover'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(createDatum: (datum: LineAnnotation) => void) {
+    constructor(appendDatum: (datum: LineAnnotation) => void) {
         const onStartClick = ({ point }: StateClickEvent<LineAnnotation, Line>) => {
             const datum = new LineAnnotation();
             datum.set({ start: point, end: point });
-            createDatum(datum);
+            appendDatum(datum);
         };
 
         const onEndHover = ({ datum, node, point }: StateHoverEvent<LineAnnotation, Line>) => {

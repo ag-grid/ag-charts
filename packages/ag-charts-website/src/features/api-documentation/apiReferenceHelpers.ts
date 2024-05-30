@@ -80,12 +80,14 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
             return 'Function';
         case 'tuple':
             return `[${refType.type.map((subType) => normalizeType(subType)).join(', ')}]`;
+        case 'indexAccess':
+            return `${normalizeType(refType.type)}[${refType.index}]`;
         case 'typeLiteral':
             throw Error(
                 'Avoid using type-literals in user facing typings as nameless types break the generated docs.\nYou should use an interface or a type-alias instead.'
             );
         default:
-            throw Error(`Unknown type encountered: ${refType}`);
+            throw Error(`Unknown type encountered: ${JSON.stringify(refType)}`);
     }
 }
 
