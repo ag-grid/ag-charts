@@ -5,7 +5,7 @@ import type { Chart } from './chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
-    expectWarningMessages,
+    expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -71,11 +71,19 @@ describe('Caption', () => {
                 subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'centre' as TextAlign },
                 footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'abc' as TextAlign },
             });
-            expectWarningMessages(
-                `AG Charts - Property [textAlign] of [Caption] cannot be set to ["LEFT"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.`,
-                `AG Charts - Property [textAlign] of [Caption] cannot be set to ["centre"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.`,
-                `AG Charts - Property [textAlign] of [Caption] cannot be set to ["abc"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.`
-            );
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Property [textAlign] of [Caption] cannot be set to ["LEFT"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.",
+  ],
+  [
+    "AG Charts - Property [textAlign] of [Caption] cannot be set to ["centre"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.",
+  ],
+  [
+    "AG Charts - Property [textAlign] of [Caption] cannot be set to ["abc"]; expecting a text align keyword such as 'left', 'center' or 'right', ignoring.",
+  ],
+]
+`);
         });
     });
 });

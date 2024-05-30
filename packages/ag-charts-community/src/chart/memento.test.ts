@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { isPlainObject } from '../util/type-guards';
 import { Memento, MementoCaretaker, MementoOriginator } from './memento';
-import { expectWarning, setupMockConsole } from './test/utils';
+import { expectWarningsCalls, setupMockConsole } from './test/utils';
 
 describe('Memento Caretaker', () => {
     setupMockConsole();
@@ -84,11 +84,20 @@ describe('Memento Caretaker', () => {
         const blob = caretaker.save(otherOriginator);
         caretaker.restore(originator, blob);
 
-        expectWarning('AG Charts - TestOriginator - Could not restore data, memento was invalid, ignoring.', {
-            data: otherOriginator.data,
-            type: 'other-test',
-            version: '10.0.0',
-        });
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - TestOriginator - Could not restore data, memento was invalid, ignoring.",
+    {
+      "data": {
+        "hello": "world",
+      },
+      "type": "other-test",
+      "version": "10.0.0",
+    },
+  ],
+]
+`);
         expect(originator.restored).toBeUndefined();
     });
 
