@@ -1,7 +1,8 @@
 import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../../options/agChartOptions';
-import { arrayOf, isValid, object, or, string } from '../../sandbox/util/validation';
+import { arrayOf, isValid, object, or, string, union } from '../../sandbox/util/validation';
 import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
+import { isObject } from '../../util/type-guards';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { MaterialDark } from '../themes/materialDark';
@@ -13,55 +14,47 @@ import { SheetsLight } from '../themes/sheetsLight';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
-export type ThemeMap = { [key in AgChartThemeName]: () => ChartTheme };
-
-const lightTheme = () => new ChartTheme();
-const darkTheme = () => new DarkTheme();
-
-export const themes: ThemeMap = {
+export const themesMap = new Map<AgChartThemeName, () => ChartTheme>([
     // lightThemes
-    'ag-default': lightTheme,
-    'ag-sheets': () => new SheetsLight(),
-    'ag-polychroma': () => new PolychromaLight(),
-    'ag-vivid': () => new VividLight(),
-    'ag-material': () => new MaterialLight(),
+    ['ag-default', () => new ChartTheme()],
+    ['ag-sheets', () => new SheetsLight()],
+    ['ag-polychroma', () => new PolychromaLight()],
+    ['ag-vivid', () => new VividLight()],
+    ['ag-material', () => new MaterialLight()],
 
     // darkThemes
-    'ag-default-dark': darkTheme,
-    'ag-sheets-dark': () => new SheetsDark(),
-    'ag-polychroma-dark': () => new PolychromaDark(),
-    'ag-vivid-dark': () => new VividDark(),
-    'ag-material-dark': () => new MaterialDark(),
-};
+    ['ag-default-dark', () => new DarkTheme()],
+    ['ag-sheets-dark', () => new SheetsDark()],
+    ['ag-polychroma-dark', () => new PolychromaDark()],
+    ['ag-vivid-dark', () => new VividDark()],
+    ['ag-material-dark', () => new MaterialDark()],
+]);
 
-export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
-    // unvalidatedValue is either a built-in theme (`string | ChartTheme`) or a user defined theme (`AgChartTheme`).
-    const value = validateChartTheme(unvalidatedValue);
-
-    if (value instanceof ChartTheme) {
-        return value;
+export function getChartTheme(themeOptions: unknown): ChartTheme {
+    if (themeOptions == null) {
+        return new ChartTheme();
     }
 
-    if (value == null) {
-        return lightTheme();
+    if (!isValidThemeOptions(themeOptions)) {
+        Logger.warn(`invalid theme value type ${typeof themeOptions}, expected object or string.`);
+        return new ChartTheme();
     }
 
-    if (typeof value === 'string') {
-        if (!isChartThemeName(value)) {
-            Logger.warnOnce(`the theme [${value}] is invalid, using [ag-default] instead.`);
-            return lightTheme();
-        }
-        return themes[value]();
+    if (themeOptions instanceof ChartTheme) {
+        return themeOptions;
     }
 
-    const flattenedTheme = flattenTheme(value);
-    const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();
+    if (typeof themeOptions === 'string') {
+        return themesMap.get(themeOptions)!();
+    }
 
-    return new baseTheme.constructor(flattenedTheme);
-}
-
-function isChartThemeName(value: unknown): value is AgChartThemeName {
-    return typeof value === 'string' && value in themes;
+    const flattenedTheme = flattenTheme(themeOptions);
+    if (flattenedTheme.baseTheme) {
+        const baseTheme: any = getChartTheme(flattenedTheme.baseTheme);
+        return new baseTheme.constructor(flattenedTheme);
+    } else {
+        return new ChartTheme(flattenedTheme);
+    }
 }
 
 // Flatten recursive themes.
@@ -80,16 +73,15 @@ function flattenTheme(theme?: AgChartTheme | AgChartThemeName) {
     };
 }
 
-function validateChartTheme(value: unknown): ChartTheme | AgChartThemeName | AgChartTheme | undefined {
-    if (value === undefined || value instanceof ChartTheme || isChartThemeName(value)) {
-        return value;
-    } else if (typeof value === 'object') {
-        if (
-            value !== null &&
+function isValidThemeOptions(themeOptions: unknown): themeOptions is ChartTheme | AgChartThemeName | AgChartTheme {
+    return (
+        themesMap.has(themeOptions as AgChartThemeName) ||
+        themeOptions instanceof ChartTheme ||
+        (isObject(themeOptions) &&
             isValid<AgChartTheme>(
-                value,
+                themeOptions,
                 {
-                    baseTheme: or(string, object),
+                    baseTheme: or(union(...themesMap.keys()), object),
                     overrides: object,
                     palette: {
                         fills: arrayOf(string),
@@ -97,11 +89,6 @@ function validateChartTheme(value: unknown): ChartTheme | AgChartThemeName | AgC
                     },
                 },
                 'theme'
-            )
-        ) {
-            return value;
-        }
-    } else {
-        Logger.warn(`invalid theme value type ${typeof value}, expected object or string.`);
-    }
+            ))
+    );
 }

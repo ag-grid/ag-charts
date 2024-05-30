@@ -17,13 +17,13 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import { themes } from './themes';
+import { themesMap } from './themes';
 
 describe('themes module', () => {
     setupMockConsole();
 
     const getPalette = (themeName: AgChartThemeName): AgChartThemePalette | undefined => {
-        const ctr = themes[themeName];
+        const ctr = themesMap.get(themeName);
         if (ctr !== undefined) {
             return ctr().palette;
         }
