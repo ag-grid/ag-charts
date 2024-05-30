@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../module/moduleContext';
 import type {
     AgChartLegendClickEvent,
+    AgChartLegendContextMenuEvent,
     AgChartLegendDoubleClickEvent,
     AgChartLegendLabelFormatterParams,
     AgChartLegendListeners,
@@ -243,13 +244,13 @@ export class Legend extends BaseProperties {
             id: ID_LEGEND_VISIBILITY,
             type: 'legend',
             label: 'Toggle Visibility',
-            action: (params: { datum?: CategoryLegendDatum }) => this.contextToggleVisibility(params.datum),
+            action: (params) => this.contextToggleVisibility(params),
         });
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_OTHER_SERIES,
             type: 'legend',
             label: 'Toggle Other Series',
-            action: (params: { datum?: CategoryLegendDatum }) => this.contextToggleOtherSeries(params.datum),
+            action: (params) => this.contextToggleOtherSeries(params),
         });
 
         const { Default, Animation, ContextMenu } = InteractionState;
@@ -872,11 +873,13 @@ export class Legend extends BaseProperties {
         return actualBBox;
     }
 
-    private contextToggleVisibility(datum: CategoryLegendDatum | undefined) {
+    private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
+        const datum = this.data.find((v) => v.itemId === params.itemId);
         this.doClick(datum);
     }
 
-    private contextToggleOtherSeries(datum: CategoryLegendDatum | undefined) {
+    private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
+        const datum = this.data.find((v) => v.itemId === params.itemId);
         this.doDoubleClick(datum);
     }
 

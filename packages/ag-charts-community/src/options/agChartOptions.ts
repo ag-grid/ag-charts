@@ -3,6 +3,7 @@ export * from './chart/axisOptions';
 export * from './chart/crosshairOptions';
 export * from './chart/chartOptions';
 export * from './chart/chartBuilderOptions';
+export * from './chart/contextMenuOptions';
 export * from './chart/crossLineOptions';
 export * from './chart/dropShadowOptions';
 export * from './chart/errorBarOptions';

@@ -1,3 +1,4 @@
+import type { AgContextMenuOptions } from '../../options/chart/contextMenuOptions';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
@@ -10,6 +11,11 @@ interface ChartAxisLike {
     id: string;
 }
 
+// Ensure that the created contextmenu event matches the API option contract:
+type NodeContextMenuActionEvent = Parameters<
+    NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']
+>[0];
+
 export interface ISeries<TDatum, TProps> {
     id: string;
     axes: Record<ChartAxisDirection, ChartAxisLike | undefined>;
@@ -19,7 +25,7 @@ export interface ISeries<TDatum, TProps> {
     update(opts: { seriesRect?: BBox }): Promise<void>;
     fireNodeClickEvent(event: Event, datum: TDatum): void;
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): void;
-    createNodeContextMenuActionEvent(event: Event, datum: TDatum): any;
+    createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getTooltipHtml(seriesDatum: any): TooltipContent;

@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgNodeContextMenuActionEvent, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -14,8 +14,6 @@ import {
     translateZoom,
     unitZoomState,
 } from './zoomUtils';
-
-type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
 const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
@@ -66,11 +64,11 @@ export class ZoomContextMenu {
         }
     }
 
-    private onZoomToHere({ event }: ContextMenuActionParams, props: ZoomProperties) {
+    private onZoomToHere({ event }: AgNodeContextMenuActionEvent, props: ZoomProperties) {
         const { rect } = this;
         const { enabled, isScalingX, isScalingY, minRatioX, minRatioY } = props;
 
-        if (!enabled || !rect || !event || !event.target) return;
+        if (!enabled || !rect || !event || !event.target || !(event instanceof MouseEvent)) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(rect, event.clientX, event.clientY);
@@ -92,11 +90,11 @@ export class ZoomContextMenu {
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onPanToHere({ event }: ContextMenuActionParams, props: ZoomProperties) {
+    private onPanToHere({ event }: AgNodeContextMenuActionEvent, props: ZoomProperties) {
         const { rect } = this;
         const { enabled } = props;
 
-        if (!enabled || !rect || !event || !event.target) return;
+        if (!enabled || !rect || !event || !event.target || !(event instanceof MouseEvent)) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(rect, event.clientX, event.clientY);
