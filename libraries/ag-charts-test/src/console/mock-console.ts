@@ -9,30 +9,37 @@
 // This makes it more difficult to debug genuine failures. Therefore, we provide an optional
 // debug option to disable the message suppression.
 export function setupMockConsole(debugShowOutput?: boolean) {
-    const originalConsole = {
-        warn: console.warn,
-        error: console.error,
-    };
+    let errorMock: jest.Mock, warnMock: jest.Mock;
+    const { error, warn } = console;
 
-    beforeEach(() => {
-        console.warn = jest.fn().mockImplementation((...args: any[]) => {
+    function createConsoleMock(consoleMethod: Function) {
+        return jest.fn().mockImplementation((...args: any[]) => {
             if (debugShowOutput) {
-                originalConsole.warn(...args);
+                consoleMethod(...args);
             }
         });
-        console.error = jest.fn().mockImplementation((...args: any[]) => {
-            if (debugShowOutput) {
-                originalConsole.error(...args);
-            }
-        });
+    }
+
+    beforeAll(() => {
+        console.error = errorMock = createConsoleMock(error);
+        console.warn = warnMock = createConsoleMock(warn);
     });
 
     afterEach(() => {
-        expect(console.warn).not.toHaveBeenCalled();
-        expect(console.error).not.toHaveBeenCalled();
-        (console.warn as jest.Mock).mockClear();
-        (console.error as jest.Mock).mockClear();
+        expect(errorMock).not.toHaveBeenCalled();
+        expect(warnMock).not.toHaveBeenCalled();
+        errorMock.mockClear();
+        warnMock.mockClear();
     });
+
+    afterAll(() => {
+        console.error = error;
+        console.warn = warn;
+    });
+}
+
+function clearConsoleMock(consoleMock: jest.Mock) {
+    consoleMock.mockClear();
 }
 
 export function expectWarningsCalls() {
@@ -42,12 +49,9 @@ export function expectWarningsCalls() {
 }
 
 export function expectWarningMessages(messages: any) {
-    try {
-        for (let i = 0; i < messages.length; i++) {
-            expect(console.warn).toHaveBeenNthCalledWith(i + 1, messages[i]);
-        }
-        expect(console.warn).toHaveBeenCalledTimes(messages.length);
-    } finally {
-        (console.warn as jest.Mock).mockClear();
+    for (let i = 0; i < messages.length; i++) {
+        expect(console.warn).toHaveBeenNthCalledWith(i + 1, messages[i]);
     }
+    expect(console.warn).toHaveBeenCalledTimes(messages.length);
+    (console.warn as jest.Mock).mockClear();
 }

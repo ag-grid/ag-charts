@@ -26,7 +26,13 @@ describe('BaseProperties', () => {
         }
         const instance = new MyClass();
         instance.set({ unknownProp: 'value' } as any);
-        expectWarningsCalls().toMatchInlineSnapshot();
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - unable to set [unknownProp] in MyClass - property is unknown",
+  ],
+]
+`);
     });
 
     it('should warn on providing non-object properties', () => {
@@ -36,7 +42,13 @@ describe('BaseProperties', () => {
         }
         const instance = new MyClass();
         instance.set('string' as any);
-        expectWarningsCalls().toMatchInlineSnapshot();
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - unable to set MyClass - expecting a properties object",
+  ],
+]
+`);
     });
 
     it('should validate required properties correctly', () => {
@@ -52,7 +64,13 @@ describe('BaseProperties', () => {
 
         const incompleteInstance = new MyClass();
         expect(incompleteInstance.isValid()).toBe(false);
-        expectWarningsCalls().toMatchInlineSnapshot();
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - [prop1] is required.",
+  ],
+]
+`);
     });
 
     it('should serialize to JSON correctly', () => {
