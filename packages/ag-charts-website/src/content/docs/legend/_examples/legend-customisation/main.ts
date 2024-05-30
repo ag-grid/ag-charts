@@ -1,8 +1,8 @@
-import { AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
 
     data: getData(),

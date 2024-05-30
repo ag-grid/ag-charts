@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 const data = [
     { label: 'Android', value: 56.9 },
@@ -15,7 +15,7 @@ const filter = (...labels: string[]) => {
     return (d: (typeof data)[number]) => labels.includes(d.label);
 };
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,

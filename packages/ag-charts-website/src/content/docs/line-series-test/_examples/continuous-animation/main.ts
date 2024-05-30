@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,7 +18,7 @@ const series: NonNullable<AgChartOptions['series']> = [
         label: {},
     },
 ];
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,

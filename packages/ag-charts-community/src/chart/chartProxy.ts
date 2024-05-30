@@ -149,7 +149,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             }
         });
         chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
-        await cloneProxy.chart.waitForUpdate();
+        await cloneProxy.waitForUpdate();
         return cloneProxy;
     }
 }

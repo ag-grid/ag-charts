@@ -1,7 +1,7 @@
 // Fictitious data used for demonstration purposes
-import { AgChartOptions, AgCharts, AgSankeySeriesOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgFlowProportionChartOptions, AgSankeySeriesOptions } from 'ag-charts-enterprise';
 
-const options: AgChartOptions = {
+const options: AgFlowProportionChartOptions = {
     container: document.getElementById('myChart'),
     data: [
         { from: 'Employees', to: 'Sales', size: 2 },

@@ -1601,6 +1601,7 @@ export abstract class Chart extends Observable {
             'data',
             'series',
             'listeners',
+            'preset',
             'theme',
             'legend.listeners',
             'navigator.miniChart.series',

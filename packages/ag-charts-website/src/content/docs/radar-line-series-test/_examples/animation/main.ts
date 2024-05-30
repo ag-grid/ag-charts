@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData1, getData2 } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
 
     data: getData1(),

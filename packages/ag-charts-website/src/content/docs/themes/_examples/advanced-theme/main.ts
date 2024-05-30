@@ -71,7 +71,7 @@ var myTheme: AgChartTheme = {
     },
 };
 
-var options: AgChartOptions = {
+const options: AgChartOptions = {
     theme: myTheme,
     container: document.getElementById('myChart'),
     title: {
@@ -109,7 +109,7 @@ var options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options as AgChartOptions);
 
 function applyOptions(type: 'bar' | 'pie') {
     if (type === 'pie') {
