@@ -4,8 +4,27 @@ import type { Intersection, PlainObject } from './types';
 
 type FalsyType = false | null | undefined;
 
-export function deepMerge<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
-    return mergeDefaults(...sources.reverse());
+/**
+ * Recursively combines properties from source objects into a new object, preserving existing values.
+ *
+ * @param sources - Source objects to combine.
+ * @returns The resulting object with combined and preserved properties.
+ */
+export function defaultsDeep<T extends PlainObject>(...sources: (T | FalsyType)[]): T {
+    const target: PlainObject = {};
+
+    for (const source of sources) {
+        if (!isObject(source)) continue;
+        for (const key of Object.keys(source)) {
+            if (isPlainObject(target[key]) && isPlainObject(source[key])) {
+                target[key] = defaultsDeep(target[key], source[key]);
+            } else if (target[key] === undefined) {
+                target[key] = source[key];
+            }
+        }
+    }
+
+    return target as T;
 }
 
 export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {

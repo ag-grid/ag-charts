@@ -4,7 +4,6 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
-    InteractionRange,
 } from '../../options/agChartOptions';
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -144,7 +143,6 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
-                fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -165,13 +163,13 @@ export class ChartTheme {
                 spacing: 20,
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                color: 'rgb(140, 140, 140)',
+                color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: 'hyphenate',
             },
             legend: {
                 position: POSITION.BOTTOM,
+                reverseOrder: false,
                 spacing: 30,
-                listeners: {},
                 item: {
                     paddingX: 16,
                     paddingY: 8,
@@ -183,7 +181,6 @@ export class ChartTheme {
                         fontFamily: DEFAULT_FONT_FAMILY,
                     },
                 },
-                reverseOrder: false,
                 pagination: {
                     marker: { size: 12 },
                     activeStyle: { fill: DEFAULT_LABEL_COLOUR },
@@ -193,9 +190,8 @@ export class ChartTheme {
                 },
             },
             tooltip: {
-                enabled: true,
                 darkTheme: IS_DARK_THEME,
-                range: 'nearest' as InteractionRange,
+                range: 'nearest',
                 delay: 0,
             },
             overlays: {
@@ -203,7 +199,6 @@ export class ChartTheme {
                 noData: { darkTheme: IS_DARK_THEME },
                 noVisibleSeries: { darkTheme: IS_DARK_THEME },
             },
-            listeners: {},
         };
     }
 
