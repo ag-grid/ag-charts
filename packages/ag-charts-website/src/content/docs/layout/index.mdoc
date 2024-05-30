@@ -3,13 +3,36 @@ title: 'Layout'
 description: 'Describes the components of a $framework chart and how they are managed by the $framework charts layout engine. Covers layout calculations and size changes.'
 ---
 
-This section explains the components of a chart and how they are laid out inside a chart.
+This section explains how the chart and its components are sized and laid out within the available space.
 
-## How is the chart layout calculated?
+## Chart Size
+
+The chart will auto-size by default, taking the size of the `container` element and auto-sizing the chart dynamically.
+Use the `width` and/or `height` options if a fixed size is required.
+
+If auto-sizing is used for one or both dimensions, the chart will have a minimum width and height of 300px. Set `minHeight: 0` and/or `minWidth: 0` to effectively remove this constraint.
+
+{% note %}
+The chart never affects the size of the `container` element.
+
+A `<div>` element is commonly used for the `container`, and the default height for this element
+is `0px`. You should explicitly manage the browser calculated `container` element size to achieve the dynamic size you
+require.
+{% /note %}
+
+### Size Changes
+
+The chart monitors the size of the `container` element, and resizes dynamically.
+
+When the chart size changes, the layout process is performed for the new available canvas space.
+Most components are typically a fixed size, so usually it is the series-area which shrinks or grows,
+with the other components moving around or adjusting alignment.
+
+## Chart Layout Calculation
 
 {% imageCaption pageName="charts-layout" imageName="cartesian-chart-layout.png" alt="Chart Layout" maxWidth="80%" constrained=true centered=true filterDarkmode=true /%}
 
-Each chart is composed of a single or multiple series, and optionally a legend, axes, and captions, such as title, subtitle and footnote. All of these components are managed by the chart's layout engine. They are sized and positioned appropriately based on the chart's dimensions, the nature of the data and the configuration.
+Each chart is composed of a single or multiple series, and optionally a [Legend](./legend/), [Axes](./axes-types/), and captions, such as title, subtitle and footnote. All of these components are managed by the chart's layout engine. They are sized and positioned appropriately based on the chart's dimensions, the nature of the data and the configuration.
 
 Components are laid out in the following order; earlier elements take up space that is then unavailable for the layout
 of later elements:
@@ -18,14 +41,13 @@ of later elements:
 -   Title plus its configured spacing.
 -   Subtitle plus its configured spacing.
 -   Footnote plus its configured spacing.
--   Legend plus its configured spacing.
--   Navigator plus its configured margin.
+-   [Legend](./legend/) plus its configured spacing.
+-   [Navigator](./navigator/) plus its configured margin.
 -   Series area padding.
--   Axes.
+-   [Axes](./axes-types/).
 -   Series area.
 
-If any elements are hidden (not configured, or turned off explicitly or dynamically) then they do not consume any space
-during layout processing.
+If any elements are disabled or not used, they do not consume any space during layout processing.
 
 ### Chart Padding
 
@@ -37,10 +59,10 @@ Space is consumed on all sides of the available area based upon the `padding` co
 `title` configuration applies next, horizontally centring on the remaining space and consuming the
 height of the title and its additional `title.spacing`.
 
-### Sub-Title
+### Subtitle
 
 `subtitle` configuration applies next, horizontally centring on the remaining space and consuming the
-height of the title and its additional `subtitle.spacing`.
+height of the subtitle and its additional `subtitle.spacing`.
 
 ### Footnote
 
@@ -49,51 +71,26 @@ height of the title and its additional `subtitle.spacing`.
 ### Legend
 
 `legend` configuration is applied to the remaining space. The exact space consumed depends on how the
-[legend](./legend/) is configured.
+[Legend](./legend/) is configured.
 
-`legend.spacing` can be used to adjust the space between the legend and later components.
+`legend.spacing` can be used to adjust the space between the Legend and later components.
 
 ### Navigator
 
 `navigator` configuration is applied next. The exact space consumed depends on how the
-[navigator](./navigator/) is configured.
+[Navigator](./navigator/) is configured.
 
-`navigator.margin` can be used to adjust the space between the navigator and later components.
+`navigator.margin` can be used to adjust the space between the Navigator and later components.
 
 ### Series Area Padding
 
-`seriesArea.padding` configuration is applied. It can be used to avoid the overlapping of series items with legend, title and axes labels.
+`seriesArea.padding` configuration is applied. It can be used to avoid the overlapping of series items with [Legend](./legend/), title and [Axes labels](./axes-labels/).
 
 ### Axes
 
-`axes` layout is then calculated based upon the remaining space and how the [axes](./axes-types/) are
+`axes` layout is then calculated based upon the remaining space and how the [Axes](./axes-types/) are
 configured.
 
 ### Series Area
 
 All remaining space is then dedicated to rendering of the configured `series` options.
-
-## Size Changes
-
-When the chart size changes, the layout process is performed for the new available canvas space.
-Most components are typically a fixed size, so typically it is the series-area which shrinks or grows
-and most other components just move around or adjust alignment.
-
-For determining chart size, we either:
-
--   auto-size by monitoring the size of the `container` element, and resize the chart dynamically.
--   use fixed sizes if `width` and/or `height` options are specified.
-
-If auto-sizing is used for one or both dimenions:
-
--   by default the chart will assume a minimum width and height of 300px, and grow with the dimensions of the `container` element.
--   set `minHeight: 0` and/or `minWidth: 0` to effectively remove the constraints.
-
-{% note %}
-When auto-sizing, our DOM elements do not affect the size of the `container` element to avoid infinite loops between
-chart (re)size and resulting `container` resize.
-
-A `<div>` element is commonly used for the `container`, and it should be noted that the default height for this element
-is `0px`; you should explicitly manage the browser calculated `container` element size to achieve the dynamic size you
-require.
-{% /note %}
