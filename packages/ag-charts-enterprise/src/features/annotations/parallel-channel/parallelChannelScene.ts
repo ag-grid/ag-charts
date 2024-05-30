@@ -166,6 +166,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
                 stroke: datum.middle.stroke ?? stroke,
                 strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
                 strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
+                visible: datum.middle.visible ?? true,
             });
         } else {
             middleLine.visible = false;
