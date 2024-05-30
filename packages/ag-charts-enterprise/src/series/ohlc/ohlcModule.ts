@@ -1,7 +1,6 @@
 import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { OhlcSeries } from './ohlcSeries';
-import { OHLC_SERIES_THEME } from './ohlcThemes';
 
 export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     type: 'series',
@@ -21,13 +20,28 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
             position: _Theme.POSITION.BOTTOM,
         },
     ],
-    themeTemplate: OHLC_SERIES_THEME,
+    themeTemplate: {
+        animation: { enabled: false },
+        axes: {
+            [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+                crosshair: {
+                    snap: false,
+                },
+            },
+            [_Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
+                groupPaddingInner: 0,
+                crosshair: {
+                    enabled: true,
+                },
+            },
+        },
+    },
     groupable: false,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
         const {
             strokes: [stroke],
         } = takeColors(colorsCount);
-        const { strokes: DEFAULT_STROKES } = themeTemplateParameters.properties.get(
+        const { strokes: DEFAULT_STROKES } = themeTemplateParameters.get(
             _Theme.DEFAULT_COLOURS
         ) as unknown as _ModuleSupport.DefaultColors;
         return {

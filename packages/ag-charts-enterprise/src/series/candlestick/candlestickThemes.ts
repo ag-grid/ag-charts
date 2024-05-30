@@ -2,13 +2,9 @@ import { _Theme } from 'ag-charts-community';
 
 export const CANDLESTICK_SERIES_THEME = {
     series: {
-        __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
         highlightStyle: {
-            item: {
-                strokeWidth: 3,
-            },
+            item: { strokeWidth: 3 },
         },
-        direction: 'vertical',
     },
     animation: { enabled: false },
     axes: {

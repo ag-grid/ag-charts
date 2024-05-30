@@ -2,7 +2,7 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { ChordSeries } from './chordSeries';
 
-const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } = _Theme;
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _Theme;
 
 export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',
@@ -16,7 +16,6 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
 
     themeTemplate: {
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,

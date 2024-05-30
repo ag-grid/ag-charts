@@ -2,7 +2,7 @@ import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { SankeySeries } from './sankeySeries';
 
-const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } = _Theme;
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _Theme;
 
 export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
@@ -22,7 +22,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             },
         },
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,
@@ -52,10 +51,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
         },
     },
     paletteFactory({ takeColors, colorsCount }) {
-        const { fills, strokes } = takeColors(colorsCount);
-        return {
-            fills,
-            strokes,
-        };
+        return takeColors(colorsCount);
     },
 };

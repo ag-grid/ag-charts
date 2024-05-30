@@ -16,7 +16,6 @@ const itemTheme = {
 
 export const WATERFALL_SERIES_THEME = {
     series: {
-        __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
         item: {
             positive: itemTheme,
             negative: itemTheme,

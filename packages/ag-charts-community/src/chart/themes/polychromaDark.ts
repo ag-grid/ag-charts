@@ -84,36 +84,24 @@ export class PolychromaDark extends DarkTheme {
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, PolychromaDark.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            PolychromaDark.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            PolychromaDark.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            PolychromaDark.getWaterfallSeriesDefaultTotalColors()
-        );
+        params.set(DEFAULT_COLOURS, PolychromaDark.getDefaultColors());
+        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, PolychromaDark.getWaterfallSeriesDefaultPositiveColors());
+        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, PolychromaDark.getWaterfallSeriesDefaultNegativeColors());
+        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, PolychromaDark.getWaterfallSeriesDefaultTotalColors());
 
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            POLYCHROMA_DARK_FILLS.BLUE,
-            POLYCHROMA_DARK_FILLS.RED,
-        ]);
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
 
-        result.properties.set(
+        params.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             PolychromaDark.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
 
-        return result;
+        return params;
     }
     protected override getPalette(): AgChartThemePalette {
         return palette;

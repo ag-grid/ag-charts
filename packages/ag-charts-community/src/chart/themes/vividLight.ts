@@ -82,37 +82,24 @@ export class VividLight extends ChartTheme {
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, VividLight.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            VividLight.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            VividLight.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            VividLight.getWaterfallSeriesDefaultTotalColors()
-        );
+        params.set(DEFAULT_COLOURS, VividLight.getDefaultColors());
+        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, VividLight.getWaterfallSeriesDefaultPositiveColors());
+        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, VividLight.getWaterfallSeriesDefaultNegativeColors());
+        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, VividLight.getWaterfallSeriesDefaultTotalColors());
 
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            VIVID_FILLS.ORANGE,
-            VIVID_FILLS.YELLOW,
-            VIVID_FILLS.GREEN,
-        ]);
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN]);
 
-        result.properties.set(
+        params.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             VividLight.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, VIVID_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
 
-        return result;
+        return params;
     }
     protected override getPalette(): AgChartThemePalette {
         return palette;

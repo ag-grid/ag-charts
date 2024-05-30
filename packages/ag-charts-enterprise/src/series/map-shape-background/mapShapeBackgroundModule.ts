@@ -21,9 +21,8 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
         },
     },
     paletteFactory: ({ themeTemplateParameters }) => {
-        const { properties } = themeTemplateParameters;
         return {
-            fill: properties.get(DEFAULT_HIERARCHY_FILLS)?.[1],
+            fill: themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS)?.[1],
         };
     },
 };

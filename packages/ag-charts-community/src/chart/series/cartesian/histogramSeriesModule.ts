@@ -1,11 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-    DEFAULT_SHADOW_COLOUR,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
+import { DEFAULT_FONT_FAMILY, DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { HistogramSeries } from './histogramSeries';
 
 export const HistogramSeriesModule: SeriesModule<'histogram'> = {
@@ -28,7 +23,6 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     ],
     themeTemplate: {
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             strokeWidth: 1,
             fillOpacity: 1,
             strokeOpacity: 1,

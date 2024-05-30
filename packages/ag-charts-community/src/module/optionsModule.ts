@@ -249,7 +249,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 series,
                 defaultTooltipPosition,
                 seriesTheme,
-                palette
+                palette,
+                { visible: true }
             );
 
             if (seriesOptions.innerLabels) {
