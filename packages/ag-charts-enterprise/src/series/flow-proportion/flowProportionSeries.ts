@@ -301,7 +301,6 @@ export abstract class FlowProportionSeries<
             seriesRectWidth: seriesRect?.width ?? 0,
             seriesRectHeight: seriesRect?.height ?? 0,
         };
-        this.nodeDataDependencies;
         if (
             this._nodeDataDependencies == null ||
             this._nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
