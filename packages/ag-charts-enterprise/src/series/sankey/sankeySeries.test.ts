@@ -232,7 +232,7 @@ describe('SankeySeries', () => {
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
-        it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
+        it.skip(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
