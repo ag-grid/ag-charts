@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts, AgScatterSeriesOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgScatterSeriesOptions } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Weight vs Height)',

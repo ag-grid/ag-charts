@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts, AgRangeAreaSeriesOptions } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgRangeAreaSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {

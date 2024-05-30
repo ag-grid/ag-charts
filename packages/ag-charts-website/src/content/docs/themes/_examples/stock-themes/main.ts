@@ -1,8 +1,8 @@
-import { AgChartOptions, AgChartThemeName, AgCharts } from 'ag-charts-community';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     theme: 'ag-default',
     title: {

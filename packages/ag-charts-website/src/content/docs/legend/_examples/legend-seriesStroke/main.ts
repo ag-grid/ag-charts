@@ -1,6 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
         { month: 'Jan', price: 148.9, volume: 2.5 },

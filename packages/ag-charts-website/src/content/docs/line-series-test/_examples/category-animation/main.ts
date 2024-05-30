@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60 },
@@ -10,7 +10,7 @@ const data = [
     { quarter: 'week 11', week: 11, iphone: 121 },
 ];
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
