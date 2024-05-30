@@ -35,13 +35,12 @@ export class BaseProperties<T extends object = object> {
         return this;
     }
 
-    isValid<TContext = Omit<T, 'type'>>(this: TContext) {
+    isValid<TContext = Omit<T, 'type'>>(this: TContext, warningPrefix?: string) {
         return listDecoratedProperties(this).every((propertyKey) => {
             const { optional } = extractDecoratedPropertyMetadata(this, propertyKey)!;
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const valid = optional || typeof this[propertyKey as keyof TContext] !== 'undefined';
+            const valid = optional === true || typeof this[propertyKey as keyof TContext] !== 'undefined';
             if (!valid) {
-                Logger.warnOnce(`[${propertyKey}] is required.`);
+                Logger.warnOnce(`${warningPrefix ?? ''}[${propertyKey}] is required.`);
             }
             return valid;
         });

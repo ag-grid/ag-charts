@@ -26,7 +26,7 @@ export class ParallelChannelAnnotation extends Annotation(
     type = AnnotationType.ParallelChannel as const;
 
     @Validate(NUMBER)
-    size: number = 0;
+    size!: number;
 
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddle();
