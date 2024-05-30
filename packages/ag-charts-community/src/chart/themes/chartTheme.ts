@@ -4,7 +4,6 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
-    InteractionRange,
 } from '../../options/agChartOptions';
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -195,7 +194,7 @@ export class ChartTheme {
             tooltip: {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
-                range: 'nearest' as InteractionRange,
+                range: undefined,
                 delay: 0,
             },
             overlays: {

@@ -301,6 +301,7 @@ export abstract class Series<
 
     readonly canHaveAxes: boolean;
 
+    // This property is used to keep backward compatibility with the old global `tooltip.range` option.
     readonly defaultTooltipRange: InteractionRange;
 
     get type(): SeriesType {

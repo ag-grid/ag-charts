@@ -1963,10 +1963,15 @@ export abstract class Chart extends Observable {
         }
     }
 
-    private applySeriesTooltipDefaults(target: Series<any, any>) {
-        const properties: SeriesProperties<never> = target.properties;
-        properties.tooltip.range ??= this.tooltip.range;
-        properties.tooltip.range ??= target.defaultTooltipRange;
+    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
+    // global option (`chart.tooltip.range`) that could overriden the theme. But now, the tooltip range
+    // option is series-specific.
+    //
+    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
+    // 'nearest' to undefined.
+    private applySeriesTooltipDefaults(target: Series<SeriesNodeDatum, SeriesProperties<never>>) {
+        target.properties.tooltip.range ??= this.tooltip.range;
+        target.properties.tooltip.range ??= target.defaultTooltipRange;
     }
 
     private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
