@@ -437,7 +437,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             y: event.offsetY - (this.seriesRect?.y ?? 0),
         };
         const point = this.invertPoint(offset);
-        const node = active ? annotations.nodes()[active] : undefined;
+        const node = active != null ? annotations.nodes()[active] : undefined;
 
         if (!this.validateDatumPoint(point)) {
             return;
@@ -454,17 +454,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
+            hovered,
             seriesRect,
             ctx: { cursorManager, interactionManager, updateService },
         } = this;
 
-        if (active == null || annotationData == null || !this.state.is('idle')) return;
+        if (hovered == null || annotationData == null || !this.state.is('idle')) return;
+
+        const index = active ?? hovered;
+
+        if (active == null) {
+            this.onClickSelecting();
+        }
 
         interactionManager.pushState(InteractionState.Annotations);
 
         const { offsetX, offsetY } = event;
-        const datum = annotationData[active];
-        const node = annotations.nodes()[active];
+        const datum = annotationData[index];
+        const node = annotations.nodes()[index];
         const offset = {
             x: offsetX - (seriesRect?.x ?? 0),
             y: offsetY - (seriesRect?.y ?? 0),
