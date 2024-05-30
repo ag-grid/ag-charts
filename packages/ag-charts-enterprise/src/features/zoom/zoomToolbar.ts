@@ -55,8 +55,8 @@ export class ZoomToolbar {
     }
 
     private toggleGroups(enabled?: boolean) {
-        this.toolbarManager?.toggleGroup('ranges', Boolean(enabled));
-        this.toolbarManager?.toggleGroup('zoom', Boolean(enabled));
+        this.toolbarManager?.toggleGroup('zoom', 'ranges', Boolean(enabled));
+        this.toolbarManager?.toggleGroup('zoom', 'zoom', Boolean(enabled));
     }
 
     private onButtonPressRanges(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {

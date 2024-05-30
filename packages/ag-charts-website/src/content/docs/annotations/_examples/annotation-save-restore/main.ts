@@ -48,6 +48,9 @@ const options: AgChartOptions = {
         annotations: {
             enabled: true,
         },
+        annotationOptions: {
+            enabled: true,
+        },
     },
     tooltip: { enabled: false },
 };

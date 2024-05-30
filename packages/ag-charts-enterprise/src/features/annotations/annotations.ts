@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationPoint } from './annotationProperties';
-import type { Coords, StateClickEvent, StateHoverEvent } from './annotationTypes';
+import type { Coords, Point, StateClickEvent, StateHoverEvent } from './annotationTypes';
 import { AnnotationType } from './annotationTypes';
 import { DisjointChannelAnnotation } from './disjoint-channel/disjointChannelProperties';
 import { DisjointChannel } from './disjoint-channel/disjointChannelScene';
@@ -30,6 +30,7 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 
 type AnnotationScene = Line | DisjointChannel | ParallelChannel;
 type AnnotationProperties = LineAnnotation | ParallelChannelAnnotation | DisjointChannelAnnotation;
+type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
 const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
     [AnnotationType.Line]: LineAnnotation,
@@ -48,22 +49,24 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
 
     constructor(
         ctx: _ModuleSupport.ModuleContext,
-        createDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
-        validateDatumPoint: (point: { x?: number | string | Date; y?: number | string | Date }) => boolean
+        hasActiveAnnotation: () => boolean,
+        appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
+        validateDatumPoint: (point: Point) => boolean
     ) {
         super('idle', {
             idle: {
                 onEnter: () => {
                     ctx.cursorManager.updateCursor('annotations');
                     ctx.interactionManager.popState(InteractionState.Annotations);
+                    ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', hasActiveAnnotation());
                 },
-                [AnnotationType.Line]: new LineStateMachine((datum) => createDatum(AnnotationType.Line, datum)),
+                [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
-                    (datum) => createDatum(AnnotationType.DisjointChannel, datum),
+                    (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
                     validateDatumPoint
                 ),
                 [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine(
-                    (datum) => createDatum(AnnotationType.ParallelChannel, datum),
+                    (datum) => appendDatum(AnnotationType.ParallelChannel, datum),
                     validateDatumPoint
                 ),
             },
@@ -73,59 +76,46 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
-        target.ctx.toolbarManager.toggleGroup('annotations', Boolean(enabled));
+        target.ctx.toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
 
-    @_ModuleSupport.ObserveChanges<Annotations>(
-        (target, initial: _ModuleSupport.PropertiesArray<AnnotationProperties>) => {
-            target.annotationData ??= initial;
-        }
-    )
+    @_ModuleSupport.ObserveChanges<Annotations>((target, initial: AnnotationPropertiesArray) => {
+        target.annotationData ??= initial;
+    })
     @Validate(OBJECT_ARRAY, { optional: true })
-    public initial = new PropertiesArray(this.annotationFactory);
-
-    private annotationFactory(params: { type: AnnotationType }) {
-        if (params.type in annotationDatums) {
-            return new annotationDatums[params.type]().set(params);
-        }
-        throw new Error(
-            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationDatums)}], ignoring.`
-        );
-    }
+    public initial = new PropertiesArray(this.createAnnotationDatum);
 
     // State
-    private annotationData?: _ModuleSupport.PropertiesArray<AnnotationProperties>;
+    private readonly state: AnnotationsStateMachine;
+    private annotationData?: AnnotationPropertiesArray;
+    private hovered?: number;
+    private active?: number;
 
+    // Elements
+    private seriesRect?: _Scene.BBox;
     private readonly container = new _Scene.Group({ name: 'static-annotations' });
     private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
         this.container,
-        this.createAnnotation.bind(this)
+        this.createAnnotationScene.bind(this)
     );
 
+    // Cached axis data
     private scaleX?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
     private scaleY?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
     private domainX?: any[];
     private domainY?: any[];
 
-    private hovered?: number;
-    private active?: number;
-
-    private readonly state: AnnotationsStateMachine;
-
-    private seriesRect?: _Scene.BBox;
-
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.state = new AnnotationsStateMachine(ctx, this.createDatum.bind(this), (point) => {
-            const valid = this.validateDatumPoint(point);
-            if (!valid) {
-                this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
-            }
-            return valid;
-        });
+        this.state = new AnnotationsStateMachine(
+            ctx,
+            () => this.active != null,
+            this.appendDatum.bind(this),
+            this.validateChildStateDatumPoint.bind(this)
+        );
 
         const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
 
@@ -142,19 +132,62 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
+    private createAnnotationScene(datum: AnnotationProperties) {
+        return new annotationScenes[datum.type]();
+    }
+
+    private createAnnotationDatum(params: { type: AnnotationType }) {
+        if (params.type in annotationDatums) {
+            return new annotationDatums[params.type]().set(params);
+        }
+        throw new Error(
+            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationDatums)}], ignoring.`
+        );
+    }
+
+    private appendDatum(type: AnnotationType, datum: AnnotationProperties) {
+        this.annotationData?.push(datum);
+        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+        if (styles) datum.set(styles);
+    }
+
     private onRestoreAnnotations(event: { annotations?: any }) {
         this.clear();
 
-        this.annotationData ??= new PropertiesArray(this.annotationFactory);
+        this.annotationData ??= new PropertiesArray(this.createAnnotationDatum);
         this.annotationData.set(event.annotations);
 
         this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        if (this.active != null) {
-            this.annotations.nodes()[this.active].toggleActive(false);
+        const {
+            active,
+            annotations,
+            annotationData,
+            state,
+            ctx: { interactionManager, toolbarManager, updateService },
+        } = this;
+
+        if (
+            ToolbarManager.isGroup('annotationOptions', event) &&
+            event.value === 'delete' &&
+            active != null &&
+            annotationData != null
+        ) {
+            annotationData.splice(active, 1);
+            this.hovered = undefined;
             this.active = undefined;
+
+            toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+            updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+            return;
+        }
+
+        if (active != null) {
+            annotations.nodes()[active].toggleActive(false);
+            this.active = undefined;
+            this.hovered = undefined;
         }
 
         if (!ToolbarManager.isGroup('annotations', event)) {
@@ -167,23 +200,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        this.ctx.interactionManager.pushState(InteractionState.Annotations);
-
-        this.state.transition(annotation);
-    }
-
-    private createAnnotation(datum: AnnotationProperties) {
-        return new annotationScenes[datum.type]();
-    }
-
-    private createDatum(type: AnnotationType, datum: AnnotationProperties) {
-        this.annotationData?.push(datum);
-        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
-        if (styles) datum.set(styles);
+        interactionManager.pushState(InteractionState.Annotations);
+        state.transition(annotation);
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         const {
+            active,
             annotationData,
             annotations,
             ctx: { annotationManager },
@@ -201,30 +224,31 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
 
-        annotationManager.updateData(annotationData?.map((d) => d.toJson()));
+        annotationManager.updateData(annotationData?.toJson());
 
-        annotations.update(annotationData ?? []).each((node, datum) => {
-            if (!this.validateDatum(datum)) {
-                return;
-            }
+        annotations
+            .update(annotationData ?? [], undefined, (datum) => datum.id)
+            .each((node, datum, index) => {
+                if (!this.validateDatum(datum)) {
+                    return;
+                }
 
-            if (LineAnnotation.is(datum) && Line.is(node)) {
-                node.update(datum, event.series.rect, this.convertLine(datum));
-                return;
-            }
+                if (LineAnnotation.is(datum) && Line.is(node)) {
+                    node.update(datum, event.series.rect, this.convertLine(datum));
+                }
 
-            if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-                node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
-                return;
-            }
+                if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+                    node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
+                }
 
-            if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-                node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
-                return;
-            }
+                if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+                    node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
+                }
 
-            _Util.Logger.warnOnce(`Can not update unknown annotation type [${datum.type}], ignoring.`);
-        });
+                if (active === index) {
+                    this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                }
+            });
     }
 
     // Validation of the options beyond the scope of the @Validate decorator
@@ -251,10 +275,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return valid;
     }
 
-    private validateDatumPoint(
-        point: { x?: number | string | Date; y?: number | string | Date },
-        loggerPrefix?: string
-    ) {
+    private validateDatumPoint(point: Point, loggerPrefix?: string) {
         const { domainX, domainY, scaleX, scaleY } = this;
 
         if (point.x == null || point.y == null) {
@@ -293,6 +314,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return value >= domain[0] && value <= domain[1];
         }
         return true; // domain.includes(value); // TODO: does not work with dates
+    }
+
+    private validateChildStateDatumPoint(point: Point) {
+        const valid = this.validateDatumPoint(point);
+        if (!valid) {
+            this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
+        }
+        return valid;
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
@@ -368,15 +397,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onClickSelecting() {
+        const {
+            annotations,
+            hovered,
+            ctx: { toolbarManager, updateService },
+        } = this;
+
         if (this.active != null) {
-            this.annotations.nodes()[this.active].toggleActive(false);
+            annotations.nodes()[this.active].toggleActive(false);
         }
 
-        this.active = this.hovered;
+        this.active = hovered;
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
 
-        if (this.active == null) return;
+        if (this.active != null) {
+            const node = annotations.nodes()[this.active];
+            node.toggleActive(true);
+            this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+        }
 
-        this.annotations.nodes()[this.active].toggleActive(true);
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
@@ -384,8 +424,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
-            ctx: { updateService },
+            ctx: { toolbarManager, updateService },
         } = this;
+
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+
         if (!annotationData) return;
 
         const datum = this.annotationData?.at(-1);

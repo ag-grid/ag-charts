@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 const { BOOLEAN, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, BaseProperties, Validate } =
     _ModuleSupport;
@@ -22,7 +22,9 @@ export class AnnotationHandleProperties extends Stroke(LineDash(Fill(BasePropert
 
 // --- Annotations Mixins ---
 export function Annotation<T extends string, U extends Constructor>(_type: T, Parent: U) {
-    class AnnotationProperties extends Lockable(Visible(Parent)) {}
+    class AnnotationProperties extends Lockable(Visible(Parent)) {
+        id = _Util.uuid();
+    }
     return AnnotationProperties;
 }
 

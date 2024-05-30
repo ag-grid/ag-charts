@@ -22,5 +22,6 @@ export abstract class Annotation extends _Scene.Group {
     public abstract toggleActive(active: boolean): void;
     public abstract dragHandle(datum: any, target: Coords, invertPoint: (point: Coords) => Coords | undefined): void;
     public abstract stopDragging(): void;
+    public abstract getAnchor(): { x: number; y: number };
     public abstract getCursor(): string;
 }

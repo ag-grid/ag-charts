@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { StateClickEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point, StateClickEvent, StateHoverEvent } from '../annotationTypes';
 import { ParallelChannelAnnotation } from './parallelChannelProperties';
 import type { ParallelChannel } from './parallelChannelScene';
 
@@ -11,13 +11,13 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        createDatum: (datum: ParallelChannelAnnotation) => void,
-        validateDatumPoint: (point: { x?: number | string | Date; y?: number | string | Date }) => boolean
+        appendDatum: (datum: ParallelChannelAnnotation) => void,
+        validateDatumPoint: (point: Point) => boolean
     ) {
         const onStartClick = ({ point }: StateClickEvent<ParallelChannelAnnotation, ParallelChannel>) => {
             const datum = new ParallelChannelAnnotation();
             datum.set({ start: point, end: point, size: 0 });
-            createDatum(datum);
+            appendDatum(datum);
         };
 
         const onEndHover = ({ datum, node, point }: StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>) => {

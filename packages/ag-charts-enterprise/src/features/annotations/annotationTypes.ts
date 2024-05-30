@@ -16,6 +16,11 @@ export interface LineCoords {
     y2: number;
 }
 
+export interface Point {
+    x?: number | string | Date;
+    y?: number;
+}
+
 export interface StateHoverEvent<Annotation, Scene> {
     datum: Annotation;
     node: Scene;

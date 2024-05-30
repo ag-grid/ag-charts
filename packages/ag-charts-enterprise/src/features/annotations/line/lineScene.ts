@@ -101,6 +101,11 @@ export class Line extends Annotation {
         this.end.toggleDragging(false);
     }
 
+    override getAnchor() {
+        const bbox = this.getCachedBBox();
+        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+    }
+
     override getCursor() {
         if (this.activeHandle == null) return 'pointer';
         return 'default';

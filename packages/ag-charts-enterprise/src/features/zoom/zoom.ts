@@ -218,7 +218,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.buttons) return;
         const buttonsJson = this.buttons.toJson();
         buttonsJson.enabled &&= zoomEnabled;
-        this.ctx.toolbarManager.proxyGroupOptions('zoom', buttonsJson);
+        this.ctx.toolbarManager.proxyGroupOptions('zoom', 'zoom', buttonsJson);
     }
 
     private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
