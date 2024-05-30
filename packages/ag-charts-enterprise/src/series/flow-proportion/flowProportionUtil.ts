@@ -1,3 +1,6 @@
+import { _Util } from 'ag-charts-community';
+
+const { Logger } = _Util;
 export interface Node {
     id: string;
 }
@@ -76,6 +79,10 @@ function removeCircularLinks<N extends Node, L extends Link<N>>(links: L[]) {
     const circularLinks = new Set<L>();
     for (const link of links) {
         findCircularLinks(links, link, circularLinks, []);
+    }
+
+    if (circularLinks.size !== 0) {
+        Logger.warnOnce('Some links formed circular references. These will be removed from the output.');
     }
 
     return circularLinks.size === 0 ? links : links.filter((link) => !circularLinks.has(link));

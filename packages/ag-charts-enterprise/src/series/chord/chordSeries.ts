@@ -16,7 +16,7 @@ import { ChordLink } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
-const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml } = _Util;
+const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
 const { Sector, Text } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
@@ -69,7 +69,7 @@ export class ChordSeries extends FlowProportionSeries<
         super({
             moduleCtx,
             contentGroupVirtual: false,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
     }
 
@@ -143,6 +143,19 @@ export class ChordSeries extends FlowProportionSeries<
             { includeCircularReferences: true }
         );
 
+        let totalSize = 0;
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }, id) => {
+            const size =
+                linksBefore.reduce((acc, { link }) => acc + link.size, 0) +
+                linksAfter.reduce((acc, { link }) => acc + link.size, 0);
+            if (size === 0) {
+                nodeGraph.delete(id);
+            } else {
+                node.size = size;
+                totalSize += node.size;
+            }
+        });
+
         let labelInset = 0;
         if (this.isLabelEnabled()) {
             let maxMeasuredLabelWidth = 0;
@@ -179,6 +192,7 @@ export class ChordSeries extends FlowProportionSeries<
         }
 
         if (nodeCount * spacingSweep >= 2 * Math.PI || radius <= 0) {
+            Logger.warnOnce('There was insufficient space to display the Chord Series.');
             return {
                 itemId: this.id,
                 nodeData: [],
@@ -189,66 +203,54 @@ export class ChordSeries extends FlowProportionSeries<
         const innerRadius = radius;
         const outerRadius = radius + nodeWidth;
 
-        let totalSize = 0;
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
-            const size =
-                linksBefore.reduce((acc, { link }) => acc + link.size, 0) +
-                linksAfter.reduce((acc, { link }) => acc + link.size, 0);
-            node.innerRadius = innerRadius;
-            node.outerRadius = outerRadius;
-            node.size = size;
-            totalSize += node.size;
-        });
-
         const sizeScale = Math.max((2 * Math.PI - nodeGraph.size * spacingSweep) / totalSize, 0);
         let nodeAngle = 0;
         nodeGraph.forEach(({ datum: node }) => {
-            const sweep = node.size * sizeScale;
+            node.innerRadius = innerRadius;
+            node.outerRadius = outerRadius;
             node.startAngle = nodeAngle;
-            node.endAngle = nodeAngle + sweep;
-            nodeAngle += sweep + spacingSweep;
+            node.endAngle = nodeAngle + node.size * sizeScale;
+            nodeAngle = node.endAngle + spacingSweep;
+
+            const midR = (node.innerRadius + node.outerRadius) / 2;
+            const midAngle = nodeMidAngle(node);
+            node.midPoint = {
+                x: node.centerX + midR * Math.cos(midAngle),
+                y: node.centerY + midR * Math.sin(midAngle),
+            };
         });
 
-        nodeGraph.forEach(({ datum, linksBefore, linksAfter }) => {
-            const midAngle = nodeMidAngle(datum);
-
+        const nodeData: ChordDatum[] = [];
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+            const midAngle = nodeMidAngle(node);
             const combinedLinks = [
-                ...linksBefore.map(({ link, node }) => ({
-                    link,
-                    distance: angleBetween(nodeMidAngle(node.datum), midAngle),
+                ...linksBefore.map((l) => ({
+                    link: l.link,
+                    distance: angleBetween(nodeMidAngle(l.node.datum), midAngle),
                     after: false,
                 })),
-                ...linksAfter.map(({ link, node }) => ({
-                    link,
-                    distance: angleBetween(nodeMidAngle(node.datum), midAngle),
+                ...linksAfter.map((l) => ({
+                    link: l.link,
+                    distance: angleBetween(nodeMidAngle(l.node.datum), midAngle),
                     after: true,
                 })),
             ];
 
-            let angle = datum.startAngle;
+            let linkAngle = node.startAngle;
             combinedLinks
                 .sort((a, b) => a.distance - b.distance)
                 .forEach(({ link, after }) => {
-                    const sweep = link.size * sizeScale;
+                    const linkSweep = link.size * sizeScale;
                     if (after) {
-                        link.startAngle1 = angle;
-                        link.endAngle1 = angle + sweep;
+                        link.startAngle1 = linkAngle;
+                        link.endAngle1 = linkAngle + linkSweep;
                     } else {
-                        link.startAngle2 = angle;
-                        link.endAngle2 = angle + sweep;
+                        link.startAngle2 = linkAngle;
+                        link.endAngle2 = linkAngle + linkSweep;
                     }
-                    angle += link.size * sizeScale;
+                    linkAngle += link.size * sizeScale;
                 });
-        });
 
-        const nodeData: ChordDatum[] = [];
-        nodeGraph.forEach(({ datum: node }) => {
-            const r = (node.innerRadius + node.outerRadius) / 2;
-            const a = node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
-            node.midPoint = {
-                x: node.centerX + r * Math.cos(a),
-                y: node.centerY + r * Math.sin(a),
-            };
             nodeData.push(node);
         });
         links.forEach((link) => {

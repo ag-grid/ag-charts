@@ -42,7 +42,7 @@ export class SankeySeries extends FlowProportionSeries<
         super({
             moduleCtx,
             contentGroupVirtual: false,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
     }
 
@@ -131,15 +131,15 @@ export class SankeySeries extends FlowProportionSeries<
 
         nodeGraph.forEach((graphNode) => {
             const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
-            if (linksBefore.length === 0 && linksAfter.length === 0) {
-                graphNode.columnIndex = -1;
-                return;
-            }
-
             const size = Math.max(
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0),
                 linksAfter.reduce((acc, { link }) => acc + link.size, 0)
             );
+
+            if ((linksBefore.length === 0 && linksAfter.length === 0) || size === 0) {
+                graphNode.columnIndex = -1;
+                return;
+            }
 
             let column: Column;
             switch (alignment) {
