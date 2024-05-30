@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { AgCharts } from '../../api/agCharts';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import type { Chart } from '../chart';
-import type { TestCase } from '../test/utils';
+import { TestCase, deproxy } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -150,7 +150,7 @@ describe('series labels', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = deproxy(AgCharts.create(options));
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }
@@ -169,7 +169,7 @@ describe('series labels', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = deproxy(AgCharts.create(options));
                 await compare();
             }
         );
