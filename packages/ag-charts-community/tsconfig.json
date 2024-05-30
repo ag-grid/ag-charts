@@ -12,7 +12,10 @@
   },
   "files": [],
   "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.test.ts"],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/test/*"
+  ],
   "references": [
     {
       "path": "./tsconfig.lib.json"
