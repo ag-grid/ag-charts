@@ -73,18 +73,21 @@ const EVENT_HANDLERS = [
     'keyup',
 ] as const;
 
-export type RegionName =
-    | 'title'
-    | 'subtitle'
-    | 'footnote'
-    | 'legend'
-    | 'navigator'
-    | 'pagination'
-    | 'root'
-    | 'series'
-    | 'horizontal-axes'
-    | 'vertical-axes'
-    | 'toolbar';
+export const REGIONS = {
+    TITLE: 'title',
+    SUBTITLE: 'subtitle',
+    FOOTNOTE: 'footnote',
+    LEGEND: 'legend',
+    NAVIGATOR: 'navigator',
+    PAGINATION: 'pagination',
+    ROOT: 'root',
+    SERIES: 'series',
+    HORIZONTAL_AXES: 'horizontal-axes',
+    VERTICAL_AXES: 'vertical-axes',
+    TOOLBAR: 'toolbar',
+} as const;
+
+export type RegionName = (typeof REGIONS)[keyof typeof REGIONS];
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;

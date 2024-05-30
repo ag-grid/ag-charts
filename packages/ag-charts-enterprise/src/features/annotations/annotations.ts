@@ -27,6 +27,7 @@ const {
     StateMachine,
     ToolbarManager,
     Validate,
+    REGIONS,
 } = _ModuleSupport;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -131,15 +132,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
 
-        const seriesRegion = ctx.regionManager.getRegion('series');
-        const horizontalAxisRegion = ctx.regionManager.getRegion('horizontal-axes');
-        const verticalAxisRegion = ctx.regionManager.getRegion('vertical-axes');
+        const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
+        const horizontalAxisRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxisRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
-            horizontalAxisRegion.addListener('click', this.onAxisClick.bind(this), All),
-            verticalAxisRegion.addListener('click', this.onAxisClick.bind(this), All),
-            seriesRegion.addListener('hover', this.onHover.bind(this), All),
-            seriesRegion.addListener('click', this.onClick.bind(this), All),
+            horizontalAxisRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.HORIZONTAL_AXES), All),
+            verticalAxisRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.VERTICAL_AXES), All),
+            seriesRegion.addListener('hover', (event) => this.onHover(event, REGIONS.SERIES), All),
+            seriesRegion.addListener('click', (event) => this.onClick(event, REGIONS.SERIES), All),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
@@ -221,54 +222,68 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        const {
-            active,
-            annotationData,
-            annotations,
-            ctx: { annotationManager },
-        } = this;
-
         this.seriesRect = event.series.rect;
 
         for (const axis of event.axes ?? []) {
             if (axis.direction === _ModuleSupport.ChartAxisDirection.X) {
                 this.scaleX ??= axis.scale;
-                this.domainX ??= axis.scale.getDomain?.();
             } else {
                 this.scaleY ??= axis.scale;
-                this.domainY ??= axis.scale.getDomain?.();
             }
         }
 
-        annotationManager.updateData(annotationData?.toJson());
+        this.updateAxesDomains();
+        this.updateAnnotations();
+    }
 
-        annotations
-            .update(annotationData ?? [], undefined, (datum) => datum.id)
-            .each((node, datum, index) => {
-                if (!this.validateDatum(datum)) {
-                    return;
-                }
+    private updateAnnotations() {
+        const {
+            active,
+            seriesRect,
+            annotationData,
+            annotations,
+            ctx: { annotationManager },
+        } = this;
 
-                if (LineAnnotation.is(datum) && Line.is(node)) {
-                    node.update(datum, event.series.rect, this.convertLine(datum));
-                }
+        if (!seriesRect) {
+            return;
+        }
 
-                if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-                    node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
-                }
+        annotationManager.updateData(annotationData?.map((d) => d.toJson()));
 
-                if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-                    node.update(datum, event.series.rect, this.convertCrossLine(datum));
-                }
+        annotations.update(annotationData ?? []).each((node, datum, index) => {
+            if (!this.validateDatum(datum)) {
+                node.visible = false;
+                return;
+            }
 
-                if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-                    node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
-                }
+            node.visible = true;
 
-                if (active === index) {
-                    this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
-                }
-            });
+            if (LineAnnotation.is(datum) && Line.is(node)) {
+                node.update(datum, seriesRect, this.convertLine(datum));
+            }
+
+            if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+                node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+            }
+
+            if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
+                node.update(datum, seriesRect, this.convertCrossLine(datum));
+            }
+
+            if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+                node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+            }
+
+            if (active === index) {
+                this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+            }
+        });
+    }
+
+    private updateAxesDomains() {
+        this.domainX = this.scaleX?.getDomain?.();
+        this.domainY = this.scaleY?.getDomain?.();
     }
 
     // Validation of the options beyond the scope of the @Validate decorator
@@ -362,11 +377,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return valid;
     }
 
-    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>, region: _ModuleSupport.RegionName) {
         if (this.state.is('idle')) {
             this.onHoverSelecting(event);
         } else {
-            this.onHoverAdding(event);
+            this.onHoverAdding(event, region);
         }
     }
 
@@ -392,7 +407,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onHoverAdding(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+    private onHoverAdding(event: _ModuleSupport.PointerInteractionEvent<'hover'>, region?: _ModuleSupport.RegionName) {
         const {
             annotationData,
             annotations,
@@ -420,31 +435,34 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         node.toggleActive(true);
 
-        const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point, region: event.region };
+        const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
         this.state.transition('hover', data);
 
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
+    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
         if (this.state.is('idle')) {
             this.onClickSelecting();
         } else {
-            this.onClickAdding(event);
+            this.onClickAdding(event, region);
         }
     }
 
-    private onAxisClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
-        this.onAxisClickAdding(event);
+    private onAxisClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
+        this.onAxisClickAdding(event, region);
     }
 
-    private onAxisClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
+    private onAxisClickAdding(
+        event: _ModuleSupport.PointerInteractionEvent<'click'>,
+        region: _ModuleSupport.RegionName
+    ) {
         if (!this.annotationData) return;
 
         this.ctx.interactionManager.pushState(InteractionState.Annotations);
         this.state.transition(AnnotationType.CrossLine);
 
-        this.onClickAdding(event);
+        this.onClickAdding(event, region);
     }
 
     private onClickSelecting() {
@@ -470,7 +488,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
+    private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
         const {
             active,
             annotationData,
@@ -489,15 +507,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
         const point = this.invertPoint(offset);
 
-        const region = event.region;
-        const isAxisRegion = region === 'horizontal-axes' || region === 'vertical-axes';
+        const isAxisRegion = region === REGIONS.HORIZONTAL_AXES || region === REGIONS.VERTICAL_AXES;
         const node = active || isAxisRegion ? annotations.nodes()[active ?? -1] : undefined;
 
         if (!this.validateDatumPoint(point)) {
             return;
         }
 
-        const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point, region: event.region };
+        const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
         this.state.transition('click', data);
 
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });

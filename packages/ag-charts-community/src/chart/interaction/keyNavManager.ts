@@ -7,6 +7,7 @@ import type {
     InteractionManager,
     KeyInteractionEvent,
     PointerInteractionEvent,
+    RegionName,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
@@ -14,7 +15,7 @@ export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'nav-hori' | 'na
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
-    region?: string;
+    region?: RegionName;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
 };

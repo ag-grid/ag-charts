@@ -96,6 +96,9 @@ export class RegionManager {
     }
 
     public addRegion(name: RegionName, ...bboxproviders: RegionBBoxProvider[]) {
+        if (this.regions.has(name)) {
+            throw new Error(`AG Charts - Region: ${name} already exists`);
+        }
         const region = {
             properties: { name, bboxproviders: [...bboxproviders] },
             listeners: new RegionListeners(),
