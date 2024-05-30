@@ -30,12 +30,10 @@ const options: AgChartOptions = {
             {
                 type: 'disjoint-channel',
                 locked: true,
-
                 start: { x: new Date('Thursday, September 14, 2023'), y: 4487.78 + 25 },
                 end: { x: new Date('Tuesday, October 03, 2023'), y: 4229.45 + 100 },
-
-                startSize: 50,
-                endSize: 150,
+                startHeight: 50,
+                endHeight: 150,
             },
         ],
     },
