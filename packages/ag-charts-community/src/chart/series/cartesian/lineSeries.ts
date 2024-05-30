@@ -265,13 +265,13 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             const yCumulativeDatum = values[yCumulativeIdx];
 
             if (yDatum == null) {
-                moveTo = !connectMissingData;
+                moveTo ||= !connectMissingData;
                 return;
             }
 
             const x = xScale.convert(xDatum) + xOffset;
             if (isNaN(x)) {
-                moveTo = !connectMissingData;
+                moveTo ||= !connectMissingData;
                 return;
             }
 
