@@ -38,20 +38,18 @@ export function setupMockConsole(debugShowOutput?: boolean) {
     });
 }
 
-function clearConsoleMock(consoleMock: jest.Mock) {
-    consoleMock.mockClear();
-}
-
 export function expectWarningsCalls() {
-    const mockCalls = (console.warn as jest.Mock).mock.calls;
-    (console.warn as jest.Mock).mockClear();
+    const warnMock = console.warn as jest.Mock;
+    const mockCalls = warnMock.mock.calls;
+    warnMock.mockClear();
     return expect(mockCalls);
 }
 
 export function expectWarningMessages(messages: any) {
+    const warnMock = console.warn as jest.Mock;
     for (let i = 0; i < messages.length; i++) {
-        expect(console.warn).toHaveBeenNthCalledWith(i + 1, messages[i]);
+        expect(warnMock).toHaveBeenNthCalledWith(i + 1, messages[i]);
     }
-    expect(console.warn).toHaveBeenCalledTimes(messages.length);
-    (console.warn as jest.Mock).mockClear();
+    expect(warnMock).toHaveBeenCalledTimes(messages.length);
+    warnMock.mockClear();
 }
