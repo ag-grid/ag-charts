@@ -24,10 +24,10 @@ export class DisjointChannelAnnotation extends Annotation(
     type = AnnotationType.DisjointChannel as const;
 
     @Validate(NUMBER)
-    startSize: number = 0;
+    startSize!: number;
 
     @Validate(NUMBER)
-    endSize: number = 0;
+    endSize!: number;
 
     get bottom() {
         const bottom = {

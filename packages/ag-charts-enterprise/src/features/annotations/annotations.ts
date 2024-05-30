@@ -255,34 +255,35 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     // Validation of the options beyond the scope of the @Validate decorator
     private validateDatum(datum: AnnotationProperties) {
-        let valid = true;
+        const warningPrefix = `Annotation [${datum.type}] `;
+        let valid = datum.isValid(warningPrefix);
 
         switch (datum.type) {
             case AnnotationType.Line:
             case AnnotationType.DisjointChannel:
             case AnnotationType.ParallelChannel:
-                valid = this.validateDatumLine(datum, `Annotation [${datum.type}]`);
+                valid &&= this.validateDatumLine(datum, warningPrefix);
                 break;
         }
 
         return valid;
     }
 
-    private validateDatumLine(datum: { start: AnnotationPoint; end: AnnotationPoint }, prefix: string) {
+    private validateDatumLine(datum: { start: AnnotationPoint; end: AnnotationPoint }, warningPrefix: string) {
         let valid = true;
 
-        valid &&= this.validateDatumPoint(datum.start, `${prefix} [start]`);
-        valid &&= this.validateDatumPoint(datum.end, `${prefix} [end]`);
+        valid &&= this.validateDatumPoint(datum.start, `${warningPrefix}[start]`);
+        valid &&= this.validateDatumPoint(datum.end, `${warningPrefix}[end]`);
 
         return valid;
     }
 
-    private validateDatumPoint(point: Point, loggerPrefix?: string) {
+    private validateDatumPoint(point: Point, warningPrefix?: string) {
         const { domainX, domainY, scaleX, scaleY } = this;
 
         if (point.x == null || point.y == null) {
-            if (loggerPrefix) {
-                _Util.Logger.warnOnce(`${loggerPrefix} requires both an [x] and [y] property, ignoring.`);
+            if (warningPrefix) {
+                _Util.Logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
             }
             return false;
         }
@@ -296,9 +297,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             let text = 'x & y domains';
             if (validX) text = 'y domain';
             if (validY) text = 'x domain';
-            if (loggerPrefix) {
+            if (warningPrefix) {
                 _Util.Logger.warnOnce(
-                    `${loggerPrefix} is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
+                    `${warningPrefix}is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
                 );
             }
             return false;
