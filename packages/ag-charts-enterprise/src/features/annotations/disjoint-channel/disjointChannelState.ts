@@ -34,14 +34,13 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
 
             const endSize = datum.end.y - point.y;
             const startSize = (datum.start.y - datum.end.y) * 2 + endSize;
-            const bottomStartY = datum.start.y + startSize;
+
+            const bottomStart = { x: datum.start.x, y: datum.start.y - startSize };
+            const bottomEnd = { x: datum.end.x, y: point.y };
 
             node.toggleHandles({ bottomLeft: false });
 
-            if (
-                !validateDatumPoint({ x: datum.start.x, y: bottomStartY }) ||
-                !validateDatumPoint({ x: datum.end.x, y: point.y })
-            ) {
+            if (!validateDatumPoint(bottomStart) || !validateDatumPoint(bottomEnd)) {
                 return;
             }
 
@@ -53,14 +52,13 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
 
             const endSize = datum.end.y - point.y;
             const startSize = (datum.start.y - datum.end.y) * 2 + endSize;
-            const bottomStartY = datum.start.y - endSize;
+
+            const bottomStart = { x: datum.start.x, y: datum.start.y - endSize };
+            const bottomEnd = { x: datum.end.x, y: point.y };
 
             node.toggleHandles(true);
 
-            if (
-                validateDatumPoint({ x: datum.start.x, y: bottomStartY }) &&
-                validateDatumPoint({ x: datum.end.x, y: point.y })
-            ) {
+            if (validateDatumPoint(bottomStart) && validateDatumPoint(bottomEnd)) {
                 datum.set({ startSize, endSize });
             }
         };
