@@ -134,19 +134,6 @@ export class ChartTheme {
         });
     }
 
-    // private static getSeriesDefaults() {
-    //     return {
-    //         highlightStyle: {
-    //             item: { fill: '#ffffff54', stroke: `#0006`, strokeWidth: 2 },
-    //         },
-    //         nodeClickRange: 'exact' as InteractionRange,
-    //     };
-    // }
-    //
-    // private static getCartesianSeriesMarkerDefaults() {
-    //     return { enabled: true, shape: 'circle', size: 7, strokeWidth: 1 };
-    // }
-
     private static getChartDefaults() {
         return {
             minHeight: 300,
