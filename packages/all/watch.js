@@ -69,7 +69,8 @@ function spawnNxRun(target, config, projects) {
     }
     nxRunArgs.push('-p', ...projects);
 
-    const nxRun = spawn(`nx`, nxRunArgs, { stdio: 'inherit' });
+    success(`Executing: nx ${nxRunArgs.join(' ')}`);
+    const nxRun = spawn(`nx`, nxRunArgs, { stdio: 'inherit', env: process.env });
     spawnedChildren.add(nxRun);
     nxRun.on('error', (e) => {
         console.error(e);
@@ -89,17 +90,21 @@ function spawnNxRun(target, config, projects) {
 
 function nxProjectBuildTarget(project) {
     if (project.startsWith('ag-charts-website-')) {
-        return [project, ['generate'], 'watch'];
+        return [[project, ['generate'], 'watch']];
     }
 
     switch (project) {
         case 'ag-charts-community':
-            return [project, ['build:types', 'build:package', 'build:umd', 'docs-resolved-interfaces'], 'watch'];
+            return [
+                [project, ['build'], 'watch'],
+                [project, ['docs-resolved-interfaces'], 'watch'],
+                ['ag-charts-enterprise', ['build'], 'watch'],
+            ];
         case 'ag-charts-enterprise':
-            return [project, ['build:types', 'build:package', 'build:umd'], 'watch'];
+            return [[project, ['build'], 'watch']];
     }
 
-    return [project, ['build'], undefined];
+    return [[project, ['build'], undefined]];
 }
 
 let timeout;
@@ -115,10 +120,10 @@ function processWatchOutput(rawProject) {
     if (IGNORED_PROJECTS.includes(rawProject)) return;
     if (rawProject === '') return;
 
-    const [project, targets, config] = nxProjectBuildTarget(rawProject);
-
-    for (const target of targets) {
-        buildBuffer.push([project, config, target]);
+    for (const [project, targets, config] of nxProjectBuildTarget(rawProject)) {
+        for (const target of targets) {
+            buildBuffer.push([project, config, target]);
+        }
     }
 
     scheduleBuild();
