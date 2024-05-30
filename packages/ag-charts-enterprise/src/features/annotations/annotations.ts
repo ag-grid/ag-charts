@@ -152,6 +152,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onRestoreAnnotations(event: { annotations?: any }) {
+        if (!this.enabled) return;
+
         this.clear();
 
         this.annotationData ??= new PropertiesArray(this.createAnnotationDatum);
