@@ -210,7 +210,7 @@ let options: AgCartesianChartOptions | AgPolarChartOptions = {
 };
 
 // Create chart
-const chart = AgCharts.create(options) as AgChartInstance<AgChartOptions>;
+const chart = AgCharts.create(options as AgChartOptions);
 
 // Elements
 const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking')[0];

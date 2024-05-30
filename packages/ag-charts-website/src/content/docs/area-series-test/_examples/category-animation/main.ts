@@ -40,7 +40,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options) as AgChartInstance<AgChartOptions>;
+const chart = AgCharts.create(options as AgChartOptions);
 
 function actionReset() {
     options.data = [...data];

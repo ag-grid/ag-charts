@@ -229,7 +229,7 @@ let options: AgCartesianChartOptions | AgPolarChartOptions = {
     ...barOptions,
 };
 
-const chart = AgCharts.create(options) as AgChartInstance<AgChartOptions>;
+const chart = AgCharts.create(options as AgChartOptions);
 
 function changeSeriesBar() {
     options.series = barOptions.series;

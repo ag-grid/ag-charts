@@ -38,7 +38,7 @@ const options: AgChartOptions = {
     legend,
 };
 
-const chart = AgCharts.create(options) as AgChartInstance<AgChartOptions>;
+const chart = AgCharts.create(options as AgChartOptions);
 
 function reverseSeries() {
     options.series = series.reverse();
