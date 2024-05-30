@@ -399,16 +399,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "pink",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -421,7 +411,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 0,
@@ -438,9 +427,6 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -451,16 +437,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "red",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -473,7 +449,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 1,
@@ -490,9 +465,6 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -503,16 +475,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "#e1cc00",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -525,7 +487,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 2,
@@ -542,9 +503,6 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -555,16 +513,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "#9669cb",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -577,7 +525,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 3,
@@ -594,9 +541,6 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -604,16 +548,6 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
@@ -625,22 +559,16 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "enabled": true,
       "fill": "#ffa03a",
-      "fillOpacity": 1,
       "shape": "circle",
       "size": 7,
       "stroke": "#cc6f10",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
     },
-    "nodeClickRange": "exact",
-    "showInLegend": true,
     "stroke": "#ffa03a",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
-      "enabled": true,
       "position": {
         "type": "node",
       },
@@ -652,16 +580,6 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
@@ -673,22 +591,16 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "enabled": true,
       "fill": "#34bfe1",
-      "fillOpacity": 1,
       "shape": "circle",
       "size": 7,
       "stroke": "#18859e",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
     },
-    "nodeClickRange": "exact",
-    "showInLegend": true,
     "stroke": "#34bfe1",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
-      "enabled": true,
       "position": {
         "type": "node",
       },
@@ -714,16 +626,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "pink",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -736,7 +638,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 0,
@@ -753,9 +654,6 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -766,16 +664,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "red",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -788,7 +676,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 1,
@@ -805,9 +692,6 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -818,16 +702,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "#e1cc00",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -840,7 +714,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 2,
@@ -857,9 +730,6 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -870,16 +740,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "#9669cb",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -892,7 +752,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 4,
       "groupIndex": 3,
@@ -909,9 +768,6 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -919,16 +775,6 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
@@ -940,22 +786,16 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "enabled": true,
       "fill": "#ffa03a",
-      "fillOpacity": 1,
       "shape": "circle",
       "size": 7,
       "stroke": "#cc6f10",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
     },
-    "nodeClickRange": "exact",
-    "showInLegend": true,
     "stroke": "#ffa03a",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
-      "enabled": true,
       "position": {
         "type": "node",
       },
@@ -967,16 +807,6 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
@@ -988,22 +818,16 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "enabled": true,
       "fill": "#34bfe1",
-      "fillOpacity": 1,
       "shape": "circle",
       "size": 7,
       "stroke": "#18859e",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
     },
-    "nodeClickRange": "exact",
-    "showInLegend": true,
     "stroke": "#34bfe1",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
-      "enabled": true,
       "position": {
         "type": "node",
       },
@@ -1029,16 +853,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "pink",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1051,7 +865,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 1,
       "groupIndex": 0,
@@ -1068,9 +881,6 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1081,16 +891,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "red",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1103,7 +903,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 1,
       "groupIndex": 0,
@@ -1120,9 +919,6 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1133,16 +929,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "#e1cc00",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1155,7 +941,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 1,
       "groupIndex": 0,
@@ -1172,9 +957,6 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1185,16 +967,6 @@ describe('ChartOptions', () => {
     "direction": "vertical",
     "fill": "#9669cb",
     "fillOpacity": 1,
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1207,7 +979,6 @@ describe('ChartOptions', () => {
       0,
     ],
     "lineDashOffset": 0,
-    "nodeClickRange": "exact",
     "seriesGrouping": {
       "groupCount": 1,
       "groupIndex": 0,
@@ -1224,9 +995,6 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
-    "tooltip": {
-      "enabled": true,
-    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1234,16 +1002,6 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
@@ -1255,22 +1013,16 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "enabled": true,
       "fill": "#ffa03a",
-      "fillOpacity": 1,
       "shape": "circle",
       "size": 7,
       "stroke": "#cc6f10",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
     },
-    "nodeClickRange": "exact",
-    "showInLegend": true,
     "stroke": "#ffa03a",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
-      "enabled": true,
       "position": {
         "type": "node",
       },
@@ -1282,16 +1034,6 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
-    "highlightStyle": {
-      "item": {
-        "fill": "#ffffff54",
-        "stroke": "#0006",
-        "strokeWidth": 2,
-      },
-      "series": {
-        "dimOpacity": 1,
-      },
-    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
@@ -1303,22 +1045,16 @@ describe('ChartOptions', () => {
     ],
     "lineDashOffset": 0,
     "marker": {
-      "enabled": true,
       "fill": "#34bfe1",
-      "fillOpacity": 1,
       "shape": "circle",
       "size": 7,
       "stroke": "#18859e",
-      "strokeOpacity": 1,
       "strokeWidth": 0,
     },
-    "nodeClickRange": "exact",
-    "showInLegend": true,
     "stroke": "#34bfe1",
     "strokeOpacity": 1,
     "strokeWidth": 2,
     "tooltip": {
-      "enabled": true,
       "position": {
         "type": "node",
       },
