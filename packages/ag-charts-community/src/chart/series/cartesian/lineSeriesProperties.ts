@@ -3,15 +3,16 @@ import type {
     AgLineSeriesOptions,
     AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
-    AgLineStyle,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
+import { BaseProperties } from '../../../util/properties';
 import {
     BOOLEAN,
     COLOR_STRING,
-    LINE,
     LINE_DASH,
+    LINE_STEP_POSITION,
+    LINE_STYLE,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -40,6 +41,17 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     };
 }
 
+export class LineSeriesLine extends BaseProperties {
+    @Validate(LINE_STYLE)
+    style: 'linear' | 'smooth' | 'step' = 'linear';
+
+    @Validate(RATIO)
+    tension: number = 1;
+
+    @Validate(LINE_STEP_POSITION)
+    position: 'start' | 'middle' | 'end' = 'end';
+}
+
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Validate(STRING)
     xKey!: string;
@@ -52,6 +64,9 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Validate(STRING, { optional: true })
     yName?: string;
+
+    @Validate(STRING, { optional: true })
+    stackGroup?: string;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
@@ -74,8 +89,8 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(LINE, { optional: true })
-    line?: AgLineStyle = undefined;
+    @Validate(OBJECT)
+    line?: LineSeriesLine = new LineSeriesLine();
 
     @Validate(OBJECT)
     readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();

@@ -348,14 +348,10 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected async updateNodeSelection(opts: {
-        nodeData: SankeyDatum[];
+        nodeData: SankeyNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, SankeyNodeDatum>;
     }) {
-        return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is SankeyNodeDatum => node.type === FlowProportionDatumType.Node),
-            undefined,
-            (datum) => createDatumId([datum.type, datum.id])
-        );
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
     protected async updateNodeNodes(opts: {
@@ -384,13 +380,11 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected async updateLinkSelection(opts: {
-        nodeData: SankeyDatum[];
+        nodeData: SankeyLinkDatum[];
         datumSelection: _Scene.Selection<SankeyLink, SankeyLinkDatum>;
     }) {
-        return opts.datumSelection.update(
-            opts.nodeData.filter((node): node is SankeyLinkDatum => node.type === FlowProportionDatumType.Link),
-            undefined,
-            (datum) => createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
+            createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
         );
     }
 

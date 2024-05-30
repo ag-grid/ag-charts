@@ -165,7 +165,7 @@ export abstract class FlowProportionSeries<
                 return {
                     series: this,
                     itemId: undefined,
-                    datum: {},
+                    datum: {}, // Must be a referential object for tooltips
                     type: FlowProportionDatumType.Node,
                     id,
                     label,
@@ -301,10 +301,11 @@ export abstract class FlowProportionSeries<
             seriesRectWidth: seriesRect?.width ?? 0,
             seriesRectHeight: seriesRect?.height ?? 0,
         };
+        this.nodeDataDependencies;
         if (
             this._nodeDataDependencies == null ||
-            this.nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
-            this.nodeDataDependencies.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight
+            this._nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
+            this._nodeDataDependencies.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight
         ) {
             this._nodeDataDependencies = newNodeDataDependencies;
         }
@@ -334,10 +335,16 @@ export abstract class FlowProportionSeries<
         this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         await this.updateLabelNodes({ labelSelection: this.labelSelection });
 
-        this.linkSelection = await this.updateLinkSelection({ nodeData, datumSelection: this.linkSelection });
+        this.linkSelection = await this.updateLinkSelection({
+            nodeData: nodeData.filter((d): d is TLinkDatum => d.type === FlowProportionDatumType.Link),
+            datumSelection: this.linkSelection,
+        });
         await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
-        this.nodeSelection = await this.updateNodeSelection({ nodeData, datumSelection: this.nodeSelection });
+        this.nodeSelection = await this.updateNodeSelection({
+            nodeData: nodeData.filter((d): d is TNodeDatum => d.type === FlowProportionDatumType.Node),
+            datumSelection: this.nodeSelection,
+        });
         await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
 
         let focusLinkSelection: TLinkDatum[];
@@ -402,7 +409,7 @@ export abstract class FlowProportionSeries<
     protected abstract updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, TLabel> }): Promise<void>;
 
     protected abstract updateNodeSelection(opts: {
-        nodeData: TDatum<TNodeDatum, TLinkDatum>[];
+        nodeData: TNodeDatum[];
         datumSelection: _Scene.Selection<TNode, TNodeDatum>;
     }): Promise<_Scene.Selection<TNode, TNodeDatum>>;
 
@@ -412,7 +419,7 @@ export abstract class FlowProportionSeries<
     }): Promise<void>;
 
     protected abstract updateLinkSelection(opts: {
-        nodeData: TDatum<TNodeDatum, TLinkDatum>[];
+        nodeData: TLinkDatum[];
         datumSelection: _Scene.Selection<TLink, TLinkDatum>;
     }): Promise<_Scene.Selection<TLink, TLinkDatum>>;
 
