@@ -24,10 +24,10 @@ export class DisjointChannelAnnotation extends Annotation(
     type = AnnotationType.DisjointChannel as const;
 
     @Validate(NUMBER)
-    startSize!: number;
+    startHeight!: number;
 
     @Validate(NUMBER)
-    endSize!: number;
+    endHeight!: number;
 
     get bottom() {
         const bottom = {
@@ -36,8 +36,8 @@ export class DisjointChannelAnnotation extends Annotation(
         };
 
         if (typeof bottom.start.y === 'number' && typeof bottom.end.y === 'number') {
-            bottom.start.y -= this.startSize;
-            bottom.end.y -= this.endSize;
+            bottom.start.y -= this.startHeight;
+            bottom.end.y -= this.endHeight;
         } else {
             // TODO
             _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);

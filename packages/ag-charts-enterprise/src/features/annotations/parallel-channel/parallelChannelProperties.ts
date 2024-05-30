@@ -26,7 +26,7 @@ export class ParallelChannelAnnotation extends Annotation(
     type = AnnotationType.ParallelChannel as const;
 
     @Validate(NUMBER)
-    size!: number;
+    height!: number;
 
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddle();
@@ -38,8 +38,8 @@ export class ParallelChannelAnnotation extends Annotation(
         };
 
         if (typeof bottom.start.y === 'number' && typeof bottom.end.y === 'number') {
-            bottom.start.y -= this.size;
-            bottom.end.y -= this.size;
+            bottom.start.y -= this.height;
+            bottom.end.y -= this.height;
         } else {
             // TODO
             _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);

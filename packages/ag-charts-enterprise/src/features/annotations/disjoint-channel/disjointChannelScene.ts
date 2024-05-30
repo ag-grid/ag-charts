@@ -76,11 +76,11 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
 
                 if (!start || !bottomStart || datum.start.y == null) return;
 
-                const startSize = datum.startSize + (start.y - datum.start.y) * 2;
+                const startHeight = datum.startHeight + (start.y - datum.start.y) * 2;
 
                 datum.start.x = start.x;
                 datum.start.y = start.y;
-                datum.startSize = startSize;
+                datum.startHeight = startHeight;
 
                 break;
             }
@@ -93,11 +93,11 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
 
                 if (!end || datum.end.y == null) return;
 
-                const endSize = datum.endSize + (end.y - datum.end.y) * 2;
+                const endHeight = datum.endHeight + (end.y - datum.end.y) * 2;
 
                 datum.end.x = end.x;
                 datum.end.y = end.y;
-                datum.endSize = endSize;
+                datum.endHeight = endHeight;
 
                 break;
             }
@@ -114,11 +114,11 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
 
                 if (!bottomStart || !bottomEnd || datum.start.y == null || datum.end.y == null) return;
 
-                const endSize = datum.end.y - bottomEnd.y;
-                const startSize = datum.startSize - (datum.endSize - endSize);
+                const endHeight = datum.end.y - bottomEnd.y;
+                const startHeight = datum.startHeight - (datum.endHeight - endHeight);
 
-                datum.startSize = startSize;
-                datum.endSize = endSize;
+                datum.startHeight = startHeight;
+                datum.endHeight = endHeight;
             }
         }
     }

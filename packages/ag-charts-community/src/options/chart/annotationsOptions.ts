@@ -50,8 +50,8 @@ export interface AgParallelChannelAnnotation
         StrokeOptions,
         LineDashOptions {
     type: 'parallel-channel';
-    /* The size of the annotation along the y-axis. */
-    size: number;
+    /* The height of the annotation along the y-axis. */
+    height: number;
     middle?: AgChannelAnnotationMiddle;
     background?: AgChannelAnnotationBackground;
 }
@@ -64,10 +64,10 @@ export interface AgDisjointChannelAnnotation
         StrokeOptions,
         LineDashOptions {
     type: 'disjoint-channel';
-    /** The size of the annotation along the y-axis at the start. */
-    startSize: number;
-    /** The size of the annotation along the y-axis at the end. */
-    endSize: number;
+    /** The height of the annotation along the y-axis at the start. */
+    startHeight: number;
+    /** The height of the annotation along the y-axis at the end. */
+    endHeight: number;
     background?: AgChannelAnnotationBackground;
 }
 

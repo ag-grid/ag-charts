@@ -101,7 +101,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
             return;
         }
 
-        // Adjust the size if dragging a middle handle
+        // Adjust the height if dragging a middle handle
         if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && datum.start.y != null) {
             const topLeft = invertPoint({
                 x: handles.topLeft.handle.x + offset.x,
@@ -109,9 +109,9 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
             });
             if (topLeft) {
                 if (activeHandle === 'topMiddle') {
-                    datum.size += topLeft.y - datum.start.y;
+                    datum.height += topLeft.y - datum.start.y;
                 } else {
-                    datum.size -= topLeft.y - datum.start.y;
+                    datum.height -= topLeft.y - datum.start.y;
                 }
             }
         }
