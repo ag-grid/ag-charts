@@ -1381,7 +1381,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
-        this.nodeData[itemId].enabled = enabled;
+        if (this.nodeData[itemId]) {
+            this.nodeData[itemId].enabled = enabled;
+        }
         this.nodeDataRefresh = true;
     }
 

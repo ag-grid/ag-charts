@@ -1289,7 +1289,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
-        this.nodeData[itemId].enabled = enabled;
+        if (this.nodeData[itemId]) {
+            this.nodeData[itemId].enabled = enabled;
+        }
         this.nodeDataRefresh = true;
     }
 
