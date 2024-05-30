@@ -1,20 +1,36 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from '../../api/agCharts';
-import type { AgChartOptions } from '../../options/agChartOptions';
+import { type AgChartOptions } from '../../options/agChartOptions';
 import { getDocument } from '../../util/dom';
 import {
     AgChartProxy,
+    Chart,
+    IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
     expectWarningsCalls,
+    extractImageData,
     hoverAction,
     prepareTestOptions,
+    setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
 
 describe('Tooltip', () => {
     setupMockConsole();
+    let ctx: ReturnType<typeof setupMockCanvas>;
+    let chart: AgChartProxy | Chart;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const compare = async () => {
+        await waitForChartStability(chart);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    };
 
     describe('Validation', () => {
         it('should show 1 warning for invalid tooltip value', async () => {
@@ -63,11 +79,6 @@ describe('Tooltip', () => {
     });
 
     describe('Realtime', () => {
-        let chart: AgChartProxy;
-        afterEach(() => {
-            chart?.destroy();
-        });
-
         it('should update tooltip correctly', async () => {
             // See AG-10409: The tooltip should update when the mouse stays in place but the data is updated.
             const opts: AgChartOptions = prepareTestOptions({});
@@ -91,7 +102,7 @@ describe('Tooltip', () => {
             const nextValue = async (time: number, voltage: number) => {
                 opts.data!.shift();
                 opts.data!.push({ time, voltage });
-                await chart.update(opts);
+                await (chart as AgChartProxy).update(opts);
                 await waitForChartStability(chart);
             };
 
@@ -115,6 +126,70 @@ describe('Tooltip', () => {
 
             await nextValue(14, 1.490244608234256);
             expect(element.map((e) => e.textContent).join('')).toEqual('9.0: 1.17');
+        });
+    });
+
+    describe('AG-11591 Range', () => {
+        ctx = setupMockCanvas();
+
+        const testHover = async (x: number, y: number) => {
+            await hoverAction(x, y)(chart);
+            await compare();
+        };
+
+        it('should use the same default behaviour as v9', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'Q1', a: 22, b: 25, L: 3.4 },
+                    { x: 'Q2', a: 18, b: 13, L: 4.0 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a' },
+                    { type: 'bar', xKey: 'x', yKey: 'b' },
+                    { type: 'line', xKey: 'x', yKey: 'L' },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left', keys: ['b', 'a'] },
+                    { type: 'number', position: 'right', keys: ['L'] },
+                ],
+            });
+            await testHover(221, 256); // highlight datum Q1 series L
+            await testHover(666, 251); // highlight datum Q2 series L
+            await testHover(152, 217); // highlight datum Q1 series a
+            await testHover(659, 327); // highlight datum Q2 series b
+        });
+
+        it('should use chart tooltip.range as default', async () => {
+            chart = await createChart({
+                tooltip: { range: 20 },
+                data: [{ x: 'Q1', a: 22 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'a' }],
+            });
+            await testHover(58, 28); // highlight nothing
+            await testHover(137, 137); // highlight datum Q1 series b
+        });
+
+        it('should use series tooltip.range as default', async () => {
+            chart = await createChart({
+                data: [{ x: 'Q1', a: 22, b: 25 }],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a' },
+                    { type: 'bar', xKey: 'x', yKey: 'b', tooltip: { range: 'nearest' } },
+                ],
+            });
+            await testHover(250, 250); // exact match on series a
+            await testHover(100, 300); // nearest match on series b (even though series a is nearest)
+        });
+
+        it('should prefer series tooltip.range over chart tooltip.range', async () => {
+            chart = await createChart({
+                tooltip: { range: 'nearest' },
+                data: [{ x: 'Q1', a: 22 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'a', tooltip: { range: 20 } }],
+            });
+            await testHover(58, 28); // no highlight match
+            await testHover(137, 137); // match within range <= 20
         });
     });
 });
