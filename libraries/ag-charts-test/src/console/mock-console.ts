@@ -46,6 +46,11 @@ export function expectWarnings(callArgs: any[][]) {
     }
 }
 
+export function expectWarningsToMatchSnapshots() {
+    expect((console.warn as jest.Mock).mock.calls).toMatchSnapshot();
+    (console.warn as jest.Mock).mockClear();
+}
+
 export function expectWarning(...args: any) {
     expectWarnings([[...args]]);
 }

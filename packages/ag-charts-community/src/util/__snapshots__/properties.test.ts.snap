@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BaseProperties should validate required properties correctly 1`] = `
+[
+  [
+    "AG Charts - [prop1] is required.",
+  ],
+]
+`;
+
+exports[`BaseProperties should warn on providing non-object properties 1`] = `
+[
+  [
+    "AG Charts - unable to set MyClass - expecting a properties object",
+  ],
+]
+`;
+
+exports[`BaseProperties should warn on setting unknown properties 1`] = `
+[
+  [
+    "AG Charts - unable to set [unknownProp] in MyClass - property is unknown",
+  ],
+]
+`;

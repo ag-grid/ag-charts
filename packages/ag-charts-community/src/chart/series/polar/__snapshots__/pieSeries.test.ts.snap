@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PieSeries #validation missing data warning 1`] = `
+[
+  [
+    "AG Charts - no value was found for the key 'dog' on 3 data elements",
+  ],
+  [
+    "AG Charts - no value was found for the key 'cat' on 1 data element",
+  ],
+  [
+    "AG Charts - no value was found for the key 'fox' on 4 data elements",
+  ],
+]
+`;

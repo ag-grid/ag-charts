@@ -4,7 +4,7 @@ import { type AgChartInstance, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
-    expectWarning,
+    expectWarningsToMatchSnapshots,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -271,9 +271,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning(
-                'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting a non-empty array, ignoring.'
-            );
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
 
@@ -308,9 +306,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning(
-                `AG Charts - series[0] of type 'bullet' is incompatible with other series types. Only processing series[0]`
-            );
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
 
@@ -338,9 +334,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning(
-                `AG Charts - series[0] of type 'bullet' is incompatible with other series types. Only processing series[0]`
-            );
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
 
@@ -375,7 +369,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning('AG Charts - Unable to mix these series types with the lead series type: bullet');
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
 
@@ -386,7 +380,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning('AG Charts - negative values are not supported, clipping to 0.');
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
 
@@ -397,7 +391,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning('AG Charts - negative targets are not supported, ignoring.');
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
 
@@ -408,9 +402,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning(
-                'AG Charts - Property [max] of [BulletScale] cannot be set to [-1]; expecting a number greater than or equal to 0, ignoring.'
-            );
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
 
@@ -423,9 +415,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expectWarning(
-                'AG Charts - Property [stop] of [BulletColorRange] cannot be set to [-1]; expecting a number greater than or equal to 0, ignoring.'
-            );
+            expectWarningsToMatchSnapshots();
             await compare(chart, ctx);
         });
     });

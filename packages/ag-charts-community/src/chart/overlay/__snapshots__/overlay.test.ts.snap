@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Overlay #validation invalid objects 1`] = `
+[
+  [
+    "AG Charts - unable to set Overlay - expecting a properties object",
+  ],
+  [
+    "AG Charts - unable to set Overlay - expecting a properties object",
+  ],
+]
+`;
+
+exports[`Overlay #validation invalid renderer 1`] = `
+[
+  [
+    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+  ],
+  [
+    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+  ],
+]
+`;
+
+exports[`Overlay #validation invalid text 1`] = `
+[
+  [
+    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+  ],
+  [
+    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+  ],
+]
+`;

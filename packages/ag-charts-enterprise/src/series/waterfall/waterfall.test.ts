@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    expectWarnings,
+    expectWarningsToMatchSnapshots,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -316,10 +316,7 @@ describe('WaterfallSeries', () => {
         chart = AgCharts.create(options);
         await compare();
 
-        expectWarnings([
-            ['AG Charts - invalid value of type [string] ignored:', '[-30]'],
-            ['AG Charts - invalid value of type [object] ignored:', '[50]'],
-        ]);
+        expectWarningsToMatchSnapshots();
     });
 
     it(`should render a horizontal waterfall chart with missing and invalid values`, async () => {
@@ -335,10 +332,7 @@ describe('WaterfallSeries', () => {
         chart = AgCharts.create(options);
         await compare();
 
-        expectWarnings([
-            ['AG Charts - invalid value of type [string] ignored:', '[-30]'],
-            ['AG Charts - invalid value of type [object] ignored:', '[50]'],
-        ]);
+        expectWarningsToMatchSnapshots();
     });
 
     describe('initial animation', () => {

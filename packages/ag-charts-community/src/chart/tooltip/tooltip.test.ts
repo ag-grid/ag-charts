@@ -6,7 +6,7 @@ import { getDocument } from '../../util/dom';
 import {
     AgChartProxy,
     createChart,
-    expectWarning,
+    expectWarningsToMatchSnapshots,
     hoverAction,
     prepareTestOptions,
     setupMockConsole,
@@ -30,7 +30,7 @@ describe('Tooltip', () => {
                 },
             });
 
-            expectWarning(`AG Charts - unable to set TooltipPosition - expecting a properties object`);
+            expectWarningsToMatchSnapshots();
         });
 
         it('should show 1 warning for invalid tooltip position value', async () => {
@@ -46,9 +46,7 @@ describe('Tooltip', () => {
                 },
             });
 
-            expectWarning(
-                `AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right' or 'bottom-left', ignoring.`
-            );
+            expectWarningsToMatchSnapshots();
         });
     });
 

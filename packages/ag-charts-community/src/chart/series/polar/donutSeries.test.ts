@@ -5,7 +5,7 @@ import type { Chart } from '../../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
-    expectWarnings,
+    expectWarningsToMatchSnapshots,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -152,11 +152,7 @@ describe('DonutSeries', () => {
                 ],
             });
 
-            expectWarnings([
-                [`AG Charts - no value was found for the key 'dog' on 3 data elements`],
-                [`AG Charts - no value was found for the key 'cat' on 1 data element`],
-                [`AG Charts - no value was found for the key 'fox' on 4 data elements`],
-            ]);
+            expectWarningsToMatchSnapshots();
         });
     });
 

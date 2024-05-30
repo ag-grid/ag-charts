@@ -3149,6 +3149,60 @@ exports[`DataModel grouped processing - stacked with accumulation example should
 }
 `;
 
+exports[`DataModel grouped processing - time-series example property tests should calculate the domains 1`] = `
+[
+  [
+    "AG Charts - invalid value of type [object] ignored:",
+    "[null]",
+  ],
+]
+`;
+
+exports[`DataModel grouped processing - time-series example property tests should extract the configured keys 1`] = `
+[
+  [
+    "AG Charts - invalid value of type [object] ignored:",
+    "[null]",
+  ],
+]
+`;
+
+exports[`DataModel grouped processing - time-series example property tests should extract the configured values 1`] = `
+[
+  [
+    "AG Charts - invalid value of type [object] ignored:",
+    "[null]",
+  ],
+]
+`;
+
+exports[`DataModel grouped processing - time-series example property tests should not include sums 1`] = `
+[
+  [
+    "AG Charts - invalid value of type [object] ignored:",
+    "[null]",
+  ],
+]
+`;
+
+exports[`DataModel missing and invalid data processing - multiple scopes property tests should handle scope validations distinctly for values 1`] = `
+[
+  [
+    "AG Charts - invalid value of type [string] ignored:",
+    "[illegal value]",
+  ],
+]
+`;
+
+exports[`DataModel missing and invalid data processing - multiple scopes property tests should record per result data validation status per scope 1`] = `
+[
+  [
+    "AG Charts - invalid value of type [string] ignored:",
+    "[illegal value]",
+  ],
+]
+`;
+
 exports[`DataModel missing and invalid data processing - multiple scopes should generated the expected results 1`] = `
 {
   "data": [
@@ -3455,6 +3509,19 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   "time": Any<Number>,
   "type": "ungrouped",
 }
+`;
+
+exports[`DataModel missing and invalid data processing - multiple scopes should generated the expected results 2`] = `
+[
+  [
+    "AG Charts - invalid value of type [string] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] ignored:",
+    "[undefined]",
+  ],
+]
 `;
 
 exports[`DataModel missing and invalid data processing should generated the expected results 1`] = `

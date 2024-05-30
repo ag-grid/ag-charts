@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`themes module should show 1 warning for invalid theme type 1`] = `
+[
+  [
+    "AG Charts - invalid theme value type boolean, expected object or string.",
+  ],
+]
+`;
+
+exports[`themes module should show 2 warnings for invalid types - palette 1`] = `
+[
+  [
+    "AG Charts - theme.overrides.fills must be undefined or an array",
+  ],
+  [
+    "AG Charts - theme.overrides.strokes must be undefined or an array",
+  ],
+]
+`;
+
+exports[`themes module should show 3 warnings for invalid types 1`] = `
+[
+  [
+    "AG Charts - invalid theme.baseTheme type number, expected (string | object).",
+  ],
+  [
+    "AG Charts - invalid theme.overrides type boolean, expected object.",
+  ],
+  [
+    "AG Charts - invalid theme.palette type string, expected object.",
+  ],
+]
+`;

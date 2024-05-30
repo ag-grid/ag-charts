@@ -1,5 +1,5 @@
 import { BaseProperties, PropertiesArray, isProperties } from './properties';
-import { expectWarning, setupMockConsole } from './test/mockConsole';
+import { expectWarningsToMatchSnapshots, setupMockConsole } from './test/mockConsole';
 import { NUMBER, OBJECT_ARRAY, STRING, Validate } from './validation';
 
 describe('BaseProperties', () => {
@@ -26,7 +26,7 @@ describe('BaseProperties', () => {
         }
         const instance = new MyClass();
         instance.set({ unknownProp: 'value' } as any);
-        expectWarning('AG Charts - unable to set [unknownProp] in MyClass - property is unknown');
+        expectWarningsToMatchSnapshots();
     });
 
     it('should warn on providing non-object properties', () => {
@@ -36,7 +36,7 @@ describe('BaseProperties', () => {
         }
         const instance = new MyClass();
         instance.set('string' as any);
-        expectWarning('AG Charts - unable to set MyClass - expecting a properties object');
+        expectWarningsToMatchSnapshots();
     });
 
     it('should validate required properties correctly', () => {
@@ -52,7 +52,7 @@ describe('BaseProperties', () => {
 
         const incompleteInstance = new MyClass();
         expect(incompleteInstance.isValid()).toBe(false);
-        expectWarning('AG Charts - [prop1] is required.');
+        expectWarningsToMatchSnapshots();
     });
 
     it('should serialize to JSON correctly', () => {

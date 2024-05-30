@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Tooltip Validation should show 1 warning for invalid tooltip position value 1`] = `
+[
+  [
+    "AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right' or 'bottom-left', ignoring.",
+  ],
+]
+`;
+
+exports[`Tooltip Validation should show 1 warning for invalid tooltip value 1`] = `
+[
+  [
+    "AG Charts - unable to set TooltipPosition - expecting a properties object",
+  ],
+]
+`;
