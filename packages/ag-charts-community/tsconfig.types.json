@@ -10,5 +10,5 @@
         "src/main-test.ts",
         "src/**/*.test.ts",
         "src/**/test/*"
-    ],
+    ]
 }
