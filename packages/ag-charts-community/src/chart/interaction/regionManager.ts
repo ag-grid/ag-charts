@@ -15,7 +15,7 @@ type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> } &
     [K in KeyNavEventType]: KeyNavEvent<K>;
 };
 
-type RegionEvent = PointerInteractionEvent | KeyNavEvent;
+type RegionEvent = (PointerInteractionEvent | KeyNavEvent) & { region: RegionName };
 type RegionHandler = (event: RegionEvent) => void;
 type RegionBBoxProvider = BBoxProvider<BBoxContainsTester & { width: number; height: number }>;
 
@@ -156,10 +156,12 @@ export class RegionManager {
         return true;
     }
 
-    private dispatch(region: Region | undefined, event: RegionEvent) {
-        event.region = region?.properties.name;
-        region?.listeners.dispatch(event.type, event);
+    private dispatch(region: Region | undefined, partialEvent: PointerInteractionEvent | KeyNavEvent) {
+        if (region == null) return;
+
+        const event: RegionEvent = { ...partialEvent, region: region.properties.name };
         this.allRegionsListeners.dispatch(event.type, event);
+        region.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
