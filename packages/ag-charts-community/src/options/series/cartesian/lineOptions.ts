@@ -60,4 +60,8 @@ export interface AgLineSeriesOptions<TDatum = any>
     type?: 'line';
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions;
+    /** An option indicating if the lines should be stacked. */
+    stacked?: boolean;
+    /** An ID to be used to group stacked items. */
+    stackGroup?: string;
 }
