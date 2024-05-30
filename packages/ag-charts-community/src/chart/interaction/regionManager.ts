@@ -11,8 +11,8 @@ const REGION_TAB_ORDERING: RegionName[] = ['series'];
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> } & {
-    [K in KeyNavEventType]: KeyNavEvent<K>;
+type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & { region: RegionName } } & {
+    [K in KeyNavEventType]: KeyNavEvent<K> & { region: RegionName };
 };
 
 type RegionEvent = (PointerInteractionEvent | KeyNavEvent) & { region: RegionName };
