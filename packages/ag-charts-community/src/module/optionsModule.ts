@@ -80,12 +80,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
-        const options = deepClone(userOptions, cloneOptions);
-        const chartType = this.optionsType(options);
+        this.userOptions = deepClone(userOptions, cloneOptions);
+        const chartType = this.optionsType(this.userOptions);
 
+        const options = deepClone(userOptions, cloneOptions);
         this.sanityCheckAndCleanup(options);
 
-        this.userOptions = options;
         this.activeTheme = getChartTheme(options.theme);
         this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
@@ -97,10 +97,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        this.processedOptions = deepClone(
-            mergeDefaults(this.userOptions, themeDefaults, this.defaultAxes),
-            cloneOptions
-        ) as T;
+        this.processedOptions = deepClone(mergeDefaults(options, themeDefaults, this.defaultAxes), cloneOptions) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);

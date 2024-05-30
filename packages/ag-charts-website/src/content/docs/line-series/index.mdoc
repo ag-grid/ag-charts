@@ -69,6 +69,25 @@ series: [
 
 Please see the [Series Markers](./markers/) page for more information or the [API Reference](./line-series/#reference-AgLineSeriesOptions-marker) for a list of all available marker options.
 
+### Line
+
+A straight line is used to connect points by default in the Line Series. Use the `line` option to change the line style.
+
+{% chartExampleRunner title="Customised Line Style" name="line-style" type="generated" /%}
+
+```js
+series: [
+    {
+        // ...
+        line: {
+            style: 'smooth'
+        },
+    },
+],
+```
+
+Please see the the [API Reference](./line-series/#reference-AgLineSeriesOptions-line) for a list of all available line options.
+
 ## Data
 
 ### Missing Data

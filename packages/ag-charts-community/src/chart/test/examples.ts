@@ -52,6 +52,8 @@ export const DOCS_EXAMPLES = {
     'simple-pie': loadExampleOptions('simple-pie'),
     'simple-scatter': loadExampleOptions('simple-scatter'),
     'simple-sunburst': loadExampleOptions('simple-sunburst'),
+    'simple-sankey': loadExampleOptions('simple-sankey'),
+    'simple-chord': loadExampleOptions('simple-chord'),
     'stacked-area': loadExampleOptions('stacked-area'),
     'stacked-bar': loadExampleOptions('stacked-bar'),
     'stacked-column': loadExampleOptions('stacked-column'),
@@ -89,6 +91,8 @@ export const ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOpt
 export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['area-with-negative-values'];
 export const SIMPLE_SUNBURST_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sunburst'];
+export const SIMPLE_SANKEY_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sankey'];
+export const SIMPLE_CHORD_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-chord'];
 export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgHierarchyChartOptions = DOCS_EXAMPLES['treemap-with-color-range'];
 export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-histogram'];
 export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgCartesianChartOptions =
