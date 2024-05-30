@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    expectWarning,
+    expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -280,7 +280,14 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
-        expectWarning('AG Charts - invalid value of type [string] ignored:', '[invalid]');
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [string] ignored:",
+    "[invalid]",
+  ],
+]
+`);
     });
 
     it(`should render a range-area chart with reversed number x-axis`, async () => {
@@ -307,7 +314,14 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
-        expectWarning('AG Charts - invalid value of type [string] ignored:', '[invalid]');
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [string] ignored:",
+    "[invalid]",
+  ],
+]
+`);
     });
 
     it(`should render a range-area chart with missing and invalid x values`, async () => {

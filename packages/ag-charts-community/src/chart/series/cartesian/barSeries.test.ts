@@ -11,11 +11,11 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
+    CartesianOrPolarTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
-    expectWarningMessages,
+    expectWarningsCalls,
     extractImageData,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -355,10 +355,16 @@ describe('BarSeries', () => {
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
-                expectWarningMessages(
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.'
-                );
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+]
+`);
             }
         );
 
@@ -376,10 +382,16 @@ describe('BarSeries', () => {
                     await compare();
                 }
 
-                expectWarningMessages(
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.'
-                );
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+]
+`);
             }
         );
     });

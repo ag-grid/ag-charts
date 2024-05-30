@@ -285,7 +285,7 @@ describe('CrossLine', () => {
                 chart = AgCharts.create(options) as Chart;
                 await compare();
 
-                expectWarningMessages(...example.warningMessages);
+                expectWarningMessages(example.warningMessages);
             }
         );
     });

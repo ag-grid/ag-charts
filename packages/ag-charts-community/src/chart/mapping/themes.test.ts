@@ -11,8 +11,7 @@ import type {
 import type { Chart } from '../chart';
 import {
     deproxy,
-    expectWarning,
-    expectWarnings,
+    expectWarningsCalls,
     prepareTestOptions,
     setupMockConsole,
     waitForChartStability,
@@ -76,7 +75,13 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expectWarning('AG Charts - invalid theme value type boolean, expected object or string.');
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid theme value type boolean, expected object or string.",
+  ],
+]
+`);
     });
 
     test('missing strokes', async () => {
@@ -120,11 +125,19 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expectWarnings([
-            ['AG Charts - invalid theme.baseTheme type number, expected (string | object).'],
-            ['AG Charts - invalid theme.overrides type boolean, expected object.'],
-            ['AG Charts - invalid theme.palette type string, expected object.'],
-        ]);
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid theme.baseTheme type number, expected (string | object).",
+  ],
+  [
+    "AG Charts - invalid theme.overrides type boolean, expected object.",
+  ],
+  [
+    "AG Charts - invalid theme.palette type string, expected object.",
+  ],
+]
+`);
     });
 
     it('should show 2 warnings for invalid types - palette', async () => {
@@ -140,9 +153,15 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expectWarnings([
-            ['AG Charts - theme.overrides.fills must be undefined or an array'],
-            ['AG Charts - theme.overrides.strokes must be undefined or an array'],
-        ]);
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - theme.overrides.fills must be undefined or an array",
+  ],
+  [
+    "AG Charts - theme.overrides.strokes must be undefined or an array",
+  ],
+]
+`);
     });
 });
