@@ -14,6 +14,7 @@ export interface GeneratedContents {
     mainFileName: string;
     scriptFiles: string[];
     styleFiles: string[];
+    htmlFiles: string[];
     isEnterprise: boolean;
     sourceFileList: string[];
     boilerPlateFiles: FileContents;

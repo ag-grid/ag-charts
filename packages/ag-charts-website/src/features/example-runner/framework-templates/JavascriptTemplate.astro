@@ -12,13 +12,24 @@ interface Props {
     scriptFiles?: string[];
     styleFiles?: string[];
     indexFragment: string;
+    headFragment?: string;
     appLocation: string;
     extraStyles?: string;
     children?: any;
 }
 
-const { isDev, title, modifiedTimeMs, isEnterprise, styleFiles, scriptFiles, indexFragment, appLocation, extraStyles } =
-    Astro.props as Props;
+const {
+    isDev,
+    title,
+    modifiedTimeMs,
+    isEnterprise,
+    styleFiles,
+    scriptFiles,
+    indexFragment,
+    appLocation,
+    extraStyles,
+    headFragment,
+} = Astro.props as Props;
 
 import { MetaData } from './lib/MetaData';
 import { ExampleStyle } from './lib/ExampleStyle';
@@ -46,18 +57,10 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
                       .map((file: string) => getCacheBustingUrl(file, modifiedTimeMs))
                 : []}
         />
+        <Fragment set:html={headFragment} />
     </head>
     <body>
         <Fragment set:html={indexFragment} />
-
-        <script
-            is:inline
-            define:vars={{
-                appLocation,
-            }}
-        >
-            window.__basePath = appLocation;
-        </script>
         <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <Styles

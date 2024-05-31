@@ -60,6 +60,8 @@ export interface AgLineSeriesOptions<TDatum = any>
     type?: 'line';
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions;
+    /** The number to normalise the line stacks to. For example, if `normalizedTo` is set to `100`, the stacks will all be scaled proportionally so that their total height is always 100. */
+    normalizedTo?: number;
     /** An option indicating if the lines should be stacked. */
     stacked?: boolean;
     /** An ID to be used to group stacked items. */
