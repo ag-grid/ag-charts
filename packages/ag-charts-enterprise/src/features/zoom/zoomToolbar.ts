@@ -40,13 +40,13 @@ export class ZoomToolbar {
         const isMinZoom = isZoomLess(zoom, props.minRatioX, props.minRatioY);
         const isResetZoom = isZoomEqual(zoom, this.getResetZoom());
 
-        toolbarManager.toggleButton('zoom', 'pan-start', zoom.x.min > UNIT.min);
-        toolbarManager.toggleButton('zoom', 'pan-end', zoom.x.max < UNIT.max);
-        toolbarManager.toggleButton('zoom', 'pan-left', zoom.x.min > UNIT.min);
-        toolbarManager.toggleButton('zoom', 'pan-right', zoom.x.max < UNIT.max);
-        toolbarManager.toggleButton('zoom', 'zoom-out', !isMaxZoom);
-        toolbarManager.toggleButton('zoom', 'zoom-in', !isMinZoom);
-        toolbarManager.toggleButton('zoom', 'reset', !isResetZoom);
+        toolbarManager.toggleButton('zoom', 'pan-start', { enabled: zoom.x.min > UNIT.min });
+        toolbarManager.toggleButton('zoom', 'pan-end', { enabled: zoom.x.max < UNIT.max });
+        toolbarManager.toggleButton('zoom', 'pan-left', { enabled: zoom.x.min > UNIT.min });
+        toolbarManager.toggleButton('zoom', 'pan-right', { enabled: zoom.x.max < UNIT.max });
+        toolbarManager.toggleButton('zoom', 'zoom-out', { enabled: !isMaxZoom });
+        toolbarManager.toggleButton('zoom', 'zoom-in', { enabled: !isMinZoom });
+        toolbarManager.toggleButton('zoom', 'reset', { enabled: !isResetZoom });
     }
 
     public onButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {

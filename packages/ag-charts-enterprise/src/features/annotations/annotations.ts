@@ -48,18 +48,13 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        ctx: _ModuleSupport.ModuleContext,
-        hasActiveAnnotation: () => boolean,
+        onEnterIdle: () => void,
         appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
         validateDatumPoint: (point: Point) => boolean
     ) {
         super('idle', {
             idle: {
-                onEnter: () => {
-                    ctx.cursorManager.updateCursor('annotations');
-                    ctx.interactionManager.popState(InteractionState.Annotations);
-                    ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', hasActiveAnnotation());
-                },
+                onEnter: () => onEnterIdle(),
                 [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
@@ -111,8 +106,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         super();
 
         this.state = new AnnotationsStateMachine(
-            ctx,
-            () => this.active != null,
+            () => {
+                ctx.cursorManager.updateCursor('annotations');
+                ctx.interactionManager.popState(InteractionState.Annotations);
+                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+                this.toggleAnnotationOptionsButtons();
+            },
             this.appendDatum.bind(this),
             this.validateChildStateDatumPoint.bind(this)
         );
@@ -164,23 +163,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const {
-            active,
-            annotationData,
             state,
-            ctx: { interactionManager, toolbarManager, updateService },
+            ctx: { interactionManager },
         } = this;
 
-        if (
-            ToolbarManager.isGroup('annotationOptions', event) &&
-            event.value === 'delete' &&
-            active != null &&
-            annotationData != null
-        ) {
-            annotationData.splice(active, 1);
-            this.reset();
-
-            toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
-            updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        if (ToolbarManager.isGroup('annotationOptions', event)) {
+            this.onToolbarAnnotationOptionButtonPress(event);
             return;
         }
 
@@ -198,6 +186,39 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         interactionManager.pushState(InteractionState.Annotations);
         state.transition(annotation);
+    }
+
+    private onToolbarAnnotationOptionButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (!ToolbarManager.isGroup('annotationOptions', event)) return;
+
+        const {
+            active,
+            annotationData,
+            ctx: { toolbarManager, updateService },
+        } = this;
+
+        if (!annotationData || active == null) return;
+
+        switch (event.value) {
+            case 'delete':
+                annotationData.splice(active, 1);
+                this.reset();
+
+                toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+                break;
+
+            case 'lock':
+                annotationData[active].locked = true;
+                this.toggleAnnotationOptionsButtons();
+                break;
+
+            case 'unlock':
+                annotationData[active].locked = false;
+                this.toggleAnnotationOptionsButtons();
+                break;
+        }
+
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -339,7 +360,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.hovered = undefined;
 
         annotations.each((annotation, _, index) => {
-            if (annotation.locked) return;
             const contains = annotation.containsPoint(event.offsetX, event.offsetY);
             if (contains) this.hovered ??= index;
             annotation.toggleHandles(contains || active === index);
@@ -410,7 +430,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (this.active != null) {
             const node = annotations.nodes()[this.active];
             node.toggleActive(true);
-            this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+            this.toggleAnnotationOptionsButtons();
         }
 
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
@@ -517,6 +537,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         annotations.nodes()[active].stopDragging();
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+    }
+
+    private toggleAnnotationOptionsButtons() {
+        const {
+            active,
+            annotationData,
+            ctx: { toolbarManager },
+        } = this;
+
+        if (active == null || !annotationData) return;
+
+        const locked = annotationData?.at(active)?.locked ?? false;
+        toolbarManager.toggleButton('annotationOptions', 'delete', { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
     }
 
     private clear() {
