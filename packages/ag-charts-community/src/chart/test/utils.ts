@@ -29,12 +29,12 @@ export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
 
-type ChartOrProxy = AgChartInstance | AgChartProxy | Chart;
+export type ChartOrProxy = AgChartInstance | AgChartProxy | Chart;
 
 export interface TestCase {
     options: AgChartOptions;
     assertions: (chart: ChartOrProxy) => Promise<void>;
-    extraScreenshotActions?: (chart: AgChartInstance) => Promise<void>;
+    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     warnings?: Array<string | Array<string>>;
 }
 

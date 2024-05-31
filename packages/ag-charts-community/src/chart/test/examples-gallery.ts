@@ -1,5 +1,4 @@
 import type { AgChartOptions } from '../../options/agChartOptions';
-import type { Chart } from '../chart';
 import * as examples from './examples';
 import {
     cartesianChartAssertions,
@@ -8,12 +7,13 @@ import {
     polarChartAssertions,
     repeat,
 } from './utils';
+import type { ChartOrProxy } from './utils';
 
 export type TestCase = {
     options: AgChartOptions;
     enterprise: boolean;
-    assertions: (chart: Chart) => Promise<void>;
-    extraScreenshotActions?: (chart: Chart) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void>;
+    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
 };
 export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     BAR_CHART_EXAMPLE: {

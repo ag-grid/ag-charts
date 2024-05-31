@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import { AgCharts } from '../../../api/agCharts';
 import type { AgPolarChartOptions } from '../../../options/agChartOptions';
-import type { Chart } from '../../chart';
 import { ChartUpdateType } from '../../chartUpdateType';
+import type { ChartOrProxy } from '../../test/utils';
 import type { PolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -85,7 +85,7 @@ const EXAMPLES: Record<string, PolarTestCase> = {
 describe('PolarSeries', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: ChartOrProxy;
 
     afterEach(() => {
         if (chart) {
@@ -232,21 +232,22 @@ describe('PolarSeries', () => {
             prepareTestOptions(options);
             options.legend = { enabled: true };
 
-            chart = deproxy(AgCharts.create(options));
+            chart = AgCharts.create(options);
+            const deproxied = deproxy(chart);
             const reference = await snapshot();
 
             options.data?.forEach((_, idx) => {
-                (chart.series[0] as any).toggleSeriesItem(idx, false);
+                (deproxied.series[0] as any).toggleSeriesItem(idx, false);
             });
-            chart.update(ChartUpdateType.FULL);
+            deproxied.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
             options.data?.forEach((_, idx) => {
-                (chart.series[0] as any).toggleSeriesItem(idx, true);
+                (deproxied.series[0] as any).toggleSeriesItem(idx, true);
             });
-            chart.update(ChartUpdateType.FULL);
+            deproxied.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();
             expect(afterFinalUpdate).toMatchImage(reference);

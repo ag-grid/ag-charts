@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartOptions } from '../../../options/agChartOptions';
+import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOptions';
 import { deepClone } from '../../../util/json';
-import type { Chart } from '../../chart';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -140,7 +139,7 @@ describe('AreaSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -158,9 +157,7 @@ describe('AreaSeries', () => {
         });
 
         test('no data', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({ data: [], series: [{ type: 'area', xKey: 'x', yKey: 'y' }] })
-            ) as Chart;
+            chart = AgCharts.create(prepareTestOptions({ data: [], series: [{ type: 'area', xKey: 'x', yKey: 'y' }] }));
             await compare();
         });
 
@@ -173,7 +170,7 @@ describe('AreaSeries', () => {
                     const { assertions, options, warnings = [] } = example;
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
                     await assertions(chart);
 
@@ -194,7 +191,7 @@ describe('AreaSeries', () => {
                     const options: AgChartOptions = { ...example.options };
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await compare();
 
                     if (example.extraScreenshotActions) {
@@ -219,7 +216,7 @@ describe('AreaSeries', () => {
                 );
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -250,7 +247,7 @@ describe('AreaSeries', () => {
                     const options: AgChartOptions = { ...EXAMPLE };
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -269,7 +266,7 @@ describe('AreaSeries', () => {
                     const options: AgChartOptions = { ...EXAMPLE, data: updatedData };
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -292,7 +289,7 @@ describe('AreaSeries', () => {
                     const options: AgChartOptions = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -313,7 +310,7 @@ describe('AreaSeries', () => {
                     options.series![1].visible = false;
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -337,7 +334,7 @@ describe('AreaSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }
@@ -349,7 +346,7 @@ describe('AreaSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -395,7 +392,7 @@ describe('AreaSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await compare();
         });
     });

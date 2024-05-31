@@ -4,9 +4,9 @@ import { AgCharts } from '../../api/agCharts';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
+    AgChartInstance,
     AgCrossLineLabelPosition,
 } from '../../options/agChartOptions';
-import type { Chart } from '../chart';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -232,7 +232,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
 describe('CrossLine', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -257,7 +257,7 @@ describe('CrossLine', () => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }
@@ -269,7 +269,7 @@ describe('CrossLine', () => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
             }
         );
@@ -282,7 +282,7 @@ describe('CrossLine', () => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
 
                 expectWarningMessages(example.warningMessages);

@@ -16,6 +16,7 @@ import {
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { ChartOrProxy } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
 
@@ -452,8 +453,8 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
-    assertions: (chart: any) => Promise<void>;
-    extraScreenshotActions?: (chart: any) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void>;
+    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     compare?: AgCartesianAxisType[];
 };
 const EXAMPLES: Record<string, TestCase> = {

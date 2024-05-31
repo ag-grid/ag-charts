@@ -222,9 +222,9 @@ const EXAMPLES: Record<string, TestCase> = {
 
 const COMBO_CHART_EXAMPLE: AgCartesianChartOptions = {
     series: [
-        { type: 'line', yKey: 'test2' },
-        { type: 'bar', yKey: 'test' },
-        { type: 'area', yKey: 'test3' },
+        { type: 'line', xKey: 'abc', yKey: 'test2' },
+        { type: 'bar', xKey: 'abc', yKey: 'test' },
+        { type: 'area', xKey: 'abc', yKey: 'test3' },
     ],
     theme: {
         baseTheme: {
@@ -241,10 +241,10 @@ const COMBO_CHART_EXAMPLE: AgCartesianChartOptions = {
 
 const COMPLEX_THEME_SCENARIO: AgCartesianChartOptions = {
     series: [
-        { type: 'line', yKey: 'test2' },
-        { type: 'bar', yKey: 'test' },
-        { type: 'area', yKey: 'test3' },
-        { type: 'area', yKey: 'test4', label: {} },
+        { type: 'line', xKey: 'abc', yKey: 'test2' },
+        { type: 'bar', xKey: 'abc', yKey: 'test' },
+        { type: 'area', xKey: 'abc', yKey: 'test3' },
+        { type: 'area', xKey: 'abc', yKey: 'test4', label: {} },
     ],
     axes: [
         { type: 'time', position: 'bottom' },
@@ -344,7 +344,10 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
             },
             tooltip: {
                 enabled: false,
-                renderer: ({ yValue }) => ({ title: `Custom Series Tooltip Renderer: ${yValue}` }),
+                renderer: ({ datum, yKey }) => {
+                    const { [yKey]: yValue } = datum;
+                    return { title: `Custom Series Tooltip Renderer: ${yValue}` };
+                },
             },
         },
     ] as AgLineSeriesOptions[],
@@ -1495,7 +1498,7 @@ describe('ChartOptions', () => {
 
             expect(preparedOptions.series?.length).toEqual(3);
             expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'bar', 'area']);
-            expect(preparedOptions.series?.map((s) => s.label?.enabled)).toEqual([true, true, true]);
+            expect(preparedOptions.series?.map((s) => 'label' in s && s.label?.enabled)).toEqual([true, true, true]);
         });
 
         it('should merge complex theme setups as expected', () => {
@@ -1510,7 +1513,12 @@ describe('ChartOptions', () => {
             expect(preparedOptions.axes?.map((a) => a.title?.enabled)).toEqual([false, true, false, true]);
             expect(preparedOptions.series?.length).toEqual(4);
             expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'bar', 'area', 'area']);
-            expect(preparedOptions.series?.map((s) => s.label?.enabled)).toEqual([true, false, false, true]);
+            expect(preparedOptions.series?.map((s) => 'label' in s && s.label?.enabled)).toEqual([
+                true,
+                false,
+                false,
+                true,
+            ]);
         });
 
         it('should use default theme options when `enabled` is set to `false` on an options object', () => {
@@ -1559,14 +1567,13 @@ describe('ChartOptions', () => {
             expect(preparedOptions.axes![1]?.title?.enabled).toBe(true);
             expect(preparedOptions.axes![1]?.title?.text).toBe('Custom Left Axis Title');
 
-            expect((preparedOptions.series?.[0]! as AgLineSeriesOptions).marker?.enabled).toBe(false);
-            expect((preparedOptions.series?.[0]! as AgLineSeriesOptions).marker?.strokeWidth).toBe(
-                theme.config.line.series.marker.strokeWidth
-            );
-            expect(preparedOptions.series?.[0]?.label?.enabled).toBe(false);
-            expect(preparedOptions.series?.[0]?.label?.color).toBe(theme.config.line.series.label.color);
-            expect(preparedOptions.series?.[0]?.tooltip?.enabled).toBe(false);
-            expect(preparedOptions.series?.[0]?.tooltip?.renderer).toBe(theme.config.line.series.tooltip.renderer);
+            const series0 = preparedOptions.series?.[0] as AgLineSeriesOptions | undefined;
+            expect(series0?.marker?.enabled).toBe(false);
+            expect(series0?.marker?.strokeWidth).toBe(theme.config.line.series.marker.strokeWidth);
+            expect(series0?.label?.enabled).toBe(false);
+            expect(series0?.label?.color).toBe(theme.config.line.series.label.color);
+            expect(series0?.tooltip?.enabled).toBe(false);
+            expect(series0?.tooltip?.renderer).toBe(theme.config.line.series.tooltip.renderer);
 
             expect(preparedOptions.tooltip?.enabled).toBe(false);
             expect(preparedOptions.tooltip?.range).toBe(theme.config.line.tooltip.range);

@@ -4,8 +4,6 @@ import { AgCharts } from '../../api/agCharts';
 import { type AgChartOptions } from '../../options/agChartOptions';
 import { getDocument } from '../../util/dom';
 import {
-    AgChartProxy,
-    Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
     expectWarningsCalls,
@@ -16,6 +14,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import type { AgChartProxy, Chart } from '../test/utils';
 
 describe('Tooltip', () => {
     setupMockConsole();

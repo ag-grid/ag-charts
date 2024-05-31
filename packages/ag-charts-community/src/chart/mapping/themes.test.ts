@@ -3,12 +3,12 @@ import { describe, expect, it } from '@jest/globals';
 import { AgCharts } from '../../api/agCharts';
 import type {
     AgBarSeriesOptions,
+    AgChartInstance,
     AgChartOptions,
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
 } from '../../options/agChartOptions';
-import type { Chart } from '../chart';
 import {
     deproxy,
     expectWarningsCalls,
@@ -28,7 +28,7 @@ describe('themes module', () => {
         }
     };
 
-    const getActualPalette = (chart: Chart) => {
+    const getActualPalette = (chart: AgChartInstance) => {
         let result = undefined;
         for (const series of deproxy(chart).processedOptions.series ?? []) {
             result ??= { fills: [] as string[], strokes: [] as string[] };
@@ -72,7 +72,7 @@ describe('themes module', () => {
         const chart = AgCharts.create({
             ...opts,
             theme: true as unknown as AgChartTheme,
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
         expectWarningsCalls().toMatchInlineSnapshot(`
@@ -93,7 +93,7 @@ describe('themes module', () => {
                     fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
                 } as AgChartThemePalette,
             },
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
         expect(getActualPalette(chart)?.strokes).toEqual(getPalette('ag-default-dark')?.strokes);
@@ -108,7 +108,7 @@ describe('themes module', () => {
                     strokes: ['black'],
                 } as AgChartThemePalette,
             },
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
         expect(getActualPalette(chart)?.fills).toEqual(getPalette('ag-default-dark')?.fills);
@@ -122,7 +122,7 @@ describe('themes module', () => {
                 palette: 'foobar',
                 overrides: true,
             } as unknown as AgChartTheme,
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
         expectWarningsCalls().toMatchInlineSnapshot(`
@@ -150,7 +150,7 @@ describe('themes module', () => {
                     strokes: 'black',
                 } as unknown as AgChartThemePalette,
             },
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
         expectWarningsCalls().toMatchInlineSnapshot(`

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartOptions } from '../../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartOptions } from '../../../options/agChartOptions';
 import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -15,6 +15,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
+import type { ChartOrProxy } from '../../test/utils';
 import type { SeriesNodeDataContext } from '../series';
 import { HISTOGRAM_SCATTER_COMBO_SERIES_LABELS, HISTOGRAM_SERIES_LABELS } from '../test/examples';
 
@@ -27,7 +28,7 @@ const EXAMPLES: Record<string, TestCase> = {
 describe('HistogramSeries', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: ChartOrProxy;
 
     afterEach(() => {
         if (chart) {
@@ -45,14 +46,19 @@ describe('HistogramSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    const createHistogramChart = (example: { options: AgChartOptions }, testOptions: AgCartesianChartOptions = {}) => {
+        return AgCharts.create({
+            ...prepareTestOptions({}),
+            ...(example.options as AgCartesianChartOptions),
+            ...testOptions,
+        });
+    };
+
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = createHistogramChart(example);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }
@@ -61,10 +67,7 @@ describe('HistogramSeries', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = createHistogramChart(example);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -78,8 +81,7 @@ describe('HistogramSeries', () => {
     describe('#reversed axes', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                const options: AgChartOptions = {
-                    ...example.options,
+                chart = createHistogramChart(example, {
                     axes: [
                         {
                             type: 'number',
@@ -92,17 +94,13 @@ describe('HistogramSeries', () => {
                             reverse: true,
                         },
                     ],
-                };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                });
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const options: AgChartOptions = {
-                    ...example.options,
+                chart = createHistogramChart(example, {
                     axes: [
                         {
                             type: 'number',
@@ -115,10 +113,7 @@ describe('HistogramSeries', () => {
                             reverse: true,
                         },
                     ],
-                };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                });
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -150,7 +145,7 @@ describe('HistogramSeries', () => {
             const series = chart.series.find((v: any) => v.type === 'scatter');
             if (series == null) fail('No series found');
 
-            const context: SeriesNodeDataContext<any, any> = series['contextNodeData'];
+            const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
             const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
 
             const { x, y } = series.rootGroup.inverseTransformPoint(item.point.x, item.point.y);
@@ -180,10 +175,7 @@ describe('HistogramSeries', () => {
         it.each(Object.entries(examples))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = createHistogramChart(example);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }

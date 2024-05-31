@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from '../api/agCharts';
-import type { AgChartOptions } from '../options/agChartOptions';
-import type { Chart } from './chart';
+import type { AgChartInstance, AgChartOptions } from '../options/agChartOptions';
 import { EXAMPLES } from './test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -16,7 +15,7 @@ import {
 describe('Gallery Examples', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -36,7 +35,7 @@ describe('Gallery Examples', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = example.options;
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }
@@ -55,7 +54,7 @@ describe('Gallery Examples', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -76,7 +75,7 @@ describe('Gallery Examples', () => {
                 options = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
             });
 
