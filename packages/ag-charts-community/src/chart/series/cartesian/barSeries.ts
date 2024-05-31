@@ -243,6 +243,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yReversed = yAxis.isReversed();
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        console.log({ barWidth });
         const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
 
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -376,6 +377,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 context.nodeData.push(nodeData);
                 context.labelData.push(nodeData);
             });
+        });
+
+        context.nodeData.forEach((nodeData, i, nodes) => {
+            console.log((nodeData.x - (nodes[i - 1]?.x ?? NaN)).toFixed(6));
         });
 
         return context;

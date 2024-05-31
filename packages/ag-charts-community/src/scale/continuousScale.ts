@@ -47,7 +47,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     calcBandwidth(smallestInterval = 1) {
         const domain = this.getDomain();
         const rangeDistance = this.getPixelRange();
-        const intervals = Math.abs(domain[1] - domain[0]) / smallestInterval + 1;
+        const intervals = Math.max(Math.ceil(Math.abs(domain[1] - domain[0]) / smallestInterval), 1);
 
         // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
         // Allow a maximum number of bands to ensure the step does not fall below 1 pixel.

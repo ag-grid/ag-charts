@@ -96,11 +96,11 @@ export abstract class AbstractBarSeries<
         groupScale.round = groupScale.padding !== 0;
 
         const barWidth =
-            groupScale.bandwidth >= 1
+            (groupScale.bandwidth >= 1
                 ? // Pixel-rounded value for low-volume bar charts.
                   groupScale.bandwidth
                 : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
+                  groupScale.rawBandwidth) * (ContinuousScale.is(xScale) ? 0.9 : 1);
 
         return { barWidth, groupIndex };
     }
