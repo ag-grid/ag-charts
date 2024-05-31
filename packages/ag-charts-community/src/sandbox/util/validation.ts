@@ -36,14 +36,21 @@ export interface ValidationError {
  * @returns A boolean indicating whether the options are valid.
  */
 export function isValid<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path?: string): options is T {
-    const errors = validate(options, optionsDefs, path);
+    const errors = validateDefs(options, optionsDefs, path);
     for (const { message } of errors) {
         Logger.warn(message);
     }
     return errors.length === 0;
 }
 
-export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
+export function runValidator(validator: Validator, value: unknown, path: string) {
+    if ((typeof value === 'undefined' && validator[requiredSymbol]) || validator(value)) return;
+    let description = validator[descriptionSymbol];
+    description = description ? `; expecting ${description}` : '';
+    return `Option ${path} cannot be set to [${stringifyValue(value)}]${description}, ignoring.`;
+}
+
+export function validateDefs<T extends object>(options: T, optionsDefs: OptionsDefs<T>, path = '') {
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
 
@@ -69,7 +76,7 @@ export function validate<T extends object>(options: T, optionsDefs: OptionsDefs<
             const message = invalidMessage(key, value, validatorOrDefs);
             errors.push({ key, path, value, message });
         } else if (isObject(value)) {
-            errors.push(...validate(value, validatorOrDefs, extendPath(key)));
+            errors.push(...validateDefs(value, validatorOrDefs, extendPath(key)));
         } else {
             const message = invalidMessage(key, value, object);
             errors.push({ key, path, value, message });

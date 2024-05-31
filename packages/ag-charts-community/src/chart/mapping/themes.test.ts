@@ -79,6 +79,9 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
+    "AG Charts - Option theme cannot be set to [true]; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', and 2 more or 'ag-material-dark' or an object, ignoring.",
+  ],
+  [
     "AG Charts - invalid theme value type boolean, expected object or string.",
   ],
 ]
@@ -135,7 +138,7 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option theme.baseTheme cannot be set to [NaN]; expecting a keyword such as 'ag-default', 'ag-sheets', 'ag-polychroma', 'ag-vivid', 'ag-material', and 2 more or 'ag-material-dark' or an object, ignoring.",
+    "AG Charts - Option theme.baseTheme cannot be set to [NaN]; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', and 2 more or 'ag-material-dark' or an object, ignoring.",
   ],
   [
     "AG Charts - Option theme.overrides cannot be set to [true]; expecting an object, ignoring.",
