@@ -243,6 +243,7 @@ describe('CartesianChart', () => {
             highlightManager.updateHighlight(testee.id, nodeData?.nodeData[3]);
             await compare(testee, {
                 failureThreshold: 2,
+                failureThresholdType: 'pixel',
             });
         });
 
@@ -256,12 +257,14 @@ describe('CartesianChart', () => {
                 highlightManager.updateHighlight(testee.id, nodeDataItem);
                 await compare(testee, {
                     failureThreshold: 2,
+                    failureThresholdType: 'pixel',
                 });
             }
 
             highlightManager.updateHighlight(testee.id);
             await compare(testee, {
                 failureThreshold: 2,
+                failureThresholdType: 'pixel',
             });
         });
     });
