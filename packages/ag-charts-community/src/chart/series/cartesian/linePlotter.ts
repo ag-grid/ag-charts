@@ -1,8 +1,8 @@
 import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
 import type { Point } from '../../../scene/point';
 
-export function plotLinearPoints(path: ExtendedPath2D, points: Iterable<Point>) {
-    let didMove = false;
+export function plotLinearPoints(path: ExtendedPath2D, points: Iterable<Point>, continuePath: boolean) {
+    let didMove = continuePath;
     for (const { x, y } of points) {
         if (didMove) {
             path.lineTo(x, y);
@@ -14,11 +14,20 @@ export function plotLinearPoints(path: ExtendedPath2D, points: Iterable<Point>) 
 }
 
 const flatnessRatio = 0.05;
-export function plotSmoothPoints(path: ExtendedPath2D, iPoints: Iterable<Point>, tension: number) {
+export function plotSmoothPoints(
+    path: ExtendedPath2D,
+    iPoints: Iterable<Point>,
+    tension: number,
+    continuePath: boolean
+) {
     const points = Array.isArray(iPoints) ? iPoints : Array.from(iPoints);
     if (points.length === 0) return;
 
-    path.moveTo(points[0].x, points[0].y);
+    if (continuePath) {
+        path.lineTo(points[0].x, points[0].y);
+    } else {
+        path.moveTo(points[0].x, points[0].y);
+    }
     if (points.length <= 1) return;
 
     const gradients = points.map((c, i) => {
@@ -87,16 +96,19 @@ export function plotSmoothPoints(path: ExtendedPath2D, iPoints: Iterable<Point>,
     }
 }
 
-export function plotStepPoints(path: ExtendedPath2D, points: Iterable<Point>, align: number) {
+export function plotStepPoints(path: ExtendedPath2D, points: Iterable<Point>, align: number, continuePath: boolean) {
     let lastPoint: Point | undefined;
     for (const point of points) {
-        if (lastPoint == null) {
-            path.moveTo(point.x, point.y);
-        } else {
-            const x = lastPoint != null ? (point.x - lastPoint.x) * align + lastPoint.x : point.x;
+        if (lastPoint != null) {
+            const directionalAlign = lastPoint.x < point.x ? align : 1 - align;
+            const x = (point.x - lastPoint.x) * directionalAlign + lastPoint.x;
             path.lineTo(x, lastPoint?.y ?? point.y);
             path.lineTo(x, point.y);
             path.lineTo(point.x, point.y);
+        } else if (continuePath) {
+            path.lineTo(point.x, point.y);
+        } else {
+            path.moveTo(point.x, point.y);
         }
         lastPoint = point;
     }

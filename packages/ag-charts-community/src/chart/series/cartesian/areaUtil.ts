@@ -1,12 +1,19 @@
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
 import type { Point, SizedPoint } from '../../../scene/point';
+import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { pairCategoryData, pairContinuousData, prepareLinePathAnimationFns } from './lineUtil';
+import type { LineSeriesLine } from './lineSeriesProperties';
+import {
+    determinePathStatus,
+    pairCategoryData,
+    pairContinuousData,
+    prepareLinePathPropertyAnimation,
+} from './lineUtil';
 import { prepareMarkerAnimation } from './markerUtil';
-import { renderPartialPath } from './pathUtil';
+import { type PathPoint, type PathPointChange, plotPath, splitPairData } from './pathUtil';
 
 export enum AreaSeriesTag {
     Fill,
@@ -19,7 +26,7 @@ export interface AreaPathPoint {
     point: {
         x: number;
         y: number;
-        moveTo?: boolean;
+        moveTo: boolean;
     };
     size?: number;
     xValue?: string | number;
@@ -27,9 +34,14 @@ export interface AreaPathPoint {
     itemId?: string;
 }
 
-export type AreaPathDatum = {
+export type AreaFillPathDatum = {
     readonly points: AreaPathPoint[];
-    readonly phantomPoints?: AreaPathPoint[];
+    readonly phantomPoints: AreaPathPoint[];
+    readonly itemId: string;
+};
+
+export type AreaStrokePathDatum = {
+    readonly points: AreaPathPoint[];
     readonly itemId: string;
 };
 
@@ -60,14 +72,14 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
 
 export interface AreaSeriesNodeDataContext
     extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
-    fillData: AreaPathDatum;
-    strokeData: AreaPathDatum;
+    fillData: AreaFillPathDatum;
+    strokeData: AreaStrokePathDatum;
     stackVisible: boolean;
 }
 
 function splitFillPoints(context: AreaSeriesNodeDataContext) {
     const { points, phantomPoints } = context.fillData;
-    return { top: points, bottom: phantomPoints! };
+    return { top: points, bottom: phantomPoints };
 }
 
 function prepPoints(key: 'top' | 'bottom', ctx: AreaSeriesNodeDataContext, points: ReturnType<typeof splitFillPoints>) {
@@ -114,10 +126,56 @@ function pairFillContinuousData(newData: AreaSeriesNodeDataContext, oldData: Are
     };
 }
 
+function areaPathRenderer(
+    topPairData: PathPoint[],
+    bottomPairData: PathPoint[],
+    ratios: Partial<Record<PathPointChange, number>>,
+    path: Path,
+    line: LineSeriesLine | undefined
+) {
+    const topPaths = splitPairData(topPairData, ratios);
+    const bottomPaths = splitPairData(bottomPairData, ratios);
+
+    if (topPaths.length !== bottomPaths.length) return;
+
+    for (let i = 0; i < topPaths.length; i += 1) {
+        const topPoints = topPaths[i];
+        const bottomPoints = bottomPaths[i].reverse();
+
+        plotPath(topPoints, path, line, false);
+        plotPath(bottomPoints, path, line, true);
+        path.path.closePath();
+    }
+}
+
+export function prepareAreaPathAnimationFns(
+    newData: AreaSeriesNodeDataContext,
+    oldData: AreaSeriesNodeDataContext,
+    topPairData: PathPoint[],
+    bottomPairData: PathPoint[],
+    visibleToggleMode: 'fade' | 'none',
+    line: LineSeriesLine | undefined
+) {
+    const status = determinePathStatus(newData, oldData, topPairData);
+    const removePhaseFn = (ratio: number, path: Path) => {
+        areaPathRenderer(topPairData, bottomPairData, { move: 0, out: ratio }, path, line);
+    };
+    const updatePhaseFn = (ratio: number, path: Path) => {
+        areaPathRenderer(topPairData, bottomPairData, { move: ratio }, path, line);
+    };
+    const addPhaseFn = (ratio: number, path: Path) => {
+        areaPathRenderer(topPairData, bottomPairData, { move: 1, in: ratio }, path, line);
+    };
+    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
+
+    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
+}
+
 export function prepareAreaPathAnimation(
     newData: AreaSeriesNodeDataContext,
     oldData: AreaSeriesNodeDataContext,
-    diff?: ProcessedOutputDiff
+    diff: ProcessedOutputDiff | undefined,
+    line: LineSeriesLine | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
@@ -154,10 +212,11 @@ export function prepareAreaPathAnimation(
         return;
     }
 
-    const pairData = [...top.result, ...bottom.result.reverse()];
+    const topData = top.result;
+    const bottomData = bottom.result;
     const stackVisible = oldData.stackVisible ? newData.stackVisible : false;
     const fadeMode = stackVisible ? 'none' : 'fade';
-    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, fadeMode, undefined, renderPartialPath);
+    const fill = prepareAreaPathAnimationFns(newData, oldData, topData, bottomData, fadeMode, line);
     const marker = prepareMarkerAnimation(markerPairMap, status);
     return { status: fill.status, fill, marker };
 }

@@ -144,30 +144,27 @@ export function splitPartialPaths(points: Iterable<PartialPathPoint>) {
     return out;
 }
 
-export function plotPath(points: Point[], path: Path, line: LineSeriesLine | undefined) {
+export function plotPath(points: Point[], path: Path, line: LineSeriesLine | undefined, continuePath = false) {
     const { path: linePath } = path;
 
     if (line?.style === 'smooth') {
-        plotSmoothPoints(linePath, points, line.tension ?? 1);
+        plotSmoothPoints(linePath, points, line.tension ?? 1, continuePath);
     } else if (line?.style === 'step') {
-        plotStepPoints(linePath, points, lineSteps[line.position ?? 'end']);
+        plotStepPoints(linePath, points, lineSteps[line.position ?? 'end'], continuePath);
     } else {
-        plotLinearPoints(linePath, points);
+        plotLinearPoints(linePath, points, continuePath);
     }
 }
 
-export function renderPartialPath(
-    pairData: PathPoint[],
-    ratios: Partial<Record<PathPointChange, number>>,
-    path: Path,
-    line: LineSeriesLine | undefined
-) {
+export function splitPairData(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>): Point[][] {
     let previousTo: PathPoint['to'];
     let points: Point[] | undefined = undefined;
+    const out: Point[][] = [];
 
     const flushCurrent = () => {
         if (points != null) {
-            plotPath(points, path, line);
+            out.push(points);
+            points = undefined;
         }
     };
 
@@ -198,6 +195,19 @@ export function renderPartialPath(
     }
 
     flushCurrent();
+
+    return out;
+}
+
+export function renderPartialPath(
+    pairData: PathPoint[],
+    ratios: Partial<Record<PathPointChange, number>>,
+    path: Path,
+    line: LineSeriesLine | undefined
+) {
+    splitPairData(pairData, ratios).forEach((points) => {
+        plotPath(points, path, line);
+    });
 }
 
 export function pathSwipeInAnimation(

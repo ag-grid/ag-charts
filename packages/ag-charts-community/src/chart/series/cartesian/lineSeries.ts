@@ -127,8 +127,6 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             const ids = [
                 `line-stack-${groupIndex}-yValues`,
                 `line-stack-${groupIndex}-yValues-trailing`,
-                `line-stack-${groupIndex}-yValues-prev`,
-                `line-stack-${groupIndex}-yValues-trailing-prev`,
                 `line-stack-${groupIndex}-yValues-marker`,
             ];
 
@@ -157,42 +155,19 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
-                    'window',
-                    'last',
-                    {
-                        id: `yValuePreviousEnd`,
-                        ...common,
-                        groupId: ids[2],
-                    },
-                    yScaleType
-                ),
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window-trailing',
-                    'last',
-                    {
-                        id: `yValuePreviousStart`,
-                        ...common,
-                        groupId: ids[3],
-                    },
-                    yScaleType
-                ),
-                ...groupAccumulativeValueProperty(
-                    yKey,
                     'normal',
                     'current',
                     {
                         id: `yValueCumulative`,
                         ...common,
-                        groupId: ids[4],
+                        groupId: ids[2],
                     },
                     yScaleType
                 )
             );
 
             if (isDefined(normalizedTo)) {
-                props.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
-                props.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
+                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo, 'range'));
             }
         }
 

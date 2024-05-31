@@ -20,6 +20,7 @@ import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { MarkerSelectionDatum } from './areaUtil';
 import { CartesianSeriesProperties } from './cartesianSeries';
+import { LineSeriesLine } from './lineSeriesProperties';
 
 export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesAreaOptions> {
     @Validate(STRING)
@@ -57,6 +58,9 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(OBJECT)
+    line?: LineSeriesLine = new LineSeriesLine();
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow();
