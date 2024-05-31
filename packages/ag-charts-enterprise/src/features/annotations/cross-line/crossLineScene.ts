@@ -119,4 +119,9 @@ export class CrossLine extends Annotation {
 
         return line.isPointInPath(x, y);
     }
+
+    override getAnchor() {
+        const bbox = this.getCachedBBox();
+        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+    }
 }
