@@ -54,12 +54,12 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
                 enabled: true,
             },
         },
+        legend: { enabled: false },
         series: [
             {
                 type: 'bar',
                 xKey: 'date',
                 yKey: volumeKey,
-                showInLegend: false,
                 formatter: (params: AgBarSeriesFormatterParams<any>) => {
                     const { datum } = params;
                     const fill = datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7';
