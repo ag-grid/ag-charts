@@ -39,25 +39,26 @@ export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, Lin
 
 export interface AgSankeySeriesLinkOptions extends AgSankeySeriesLinkStyle {}
 export interface AgSankeySeriesNodeOptions extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Minimum spacing of the nodes */
+    /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
-    /** Width of the nodes */
+    /** Width of the nodes. */
     width?: PixelSize;
-    /** Justification of the nodes */
+    /** Alignment of the nodes. */
     alignment?: 'left' | 'right' | 'center' | 'justify';
 }
 
 export interface AgSankeySeriesOptionsKeys {
-    /** The key containing the from node. If using the `nodes` property, this will be an id to the node. */
+    /** The key containing the start node of each link. */
     fromKey?: string;
-    /** The key containing the to node. If using the `nodes` property, this will be an id to the node. */
+    /** The key containing the end node of each link. */
     toKey?: string;
-    /** The key containing the size. */
+    /** The key containing the size of each link. */
     sizeKey?: string;
 }
 
 export interface AgSankeySeriesOptionsNames {
-    /** The name of the node key containing the size. */
+    /** A human-readable description of the size values.
+     * If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
 }
 

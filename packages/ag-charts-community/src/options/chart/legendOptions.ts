@@ -28,7 +28,7 @@ export interface AgChartLegendLabelFormatterParams {
 }
 
 export interface AgChartLegendLabelOptions {
-    /** If the label text exceeds the maximum length, it will be truncated and an ellipsis will be appended to indicate this. */
+    /** If the label text exceeds the specified number of characters, it will be truncated and an ellipsis will be appended to indicate this. */
     maxLength?: number;
     /** The colour of the text. */
     color?: CssColor;

@@ -52,9 +52,9 @@ export interface LineDashOptions {
 export interface FontOptions {
     /** The colour for text elements. */
     color?: CssColor;
-    /** The style for text elements (e.g., 'normal', 'italic', 'oblique'). */
+    /** The style to use for text elements. */
     fontStyle?: FontStyle;
-    /** The weight for text elements (e.g., 'normal', 'bold', 'lighter', 'bolder'). */
+    /** The font weight to use for text elements. */
     fontWeight?: FontWeight;
     /** The size of the font in pixels for text elements. */
     fontSize?: FontSize;

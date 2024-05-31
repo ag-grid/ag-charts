@@ -15,6 +15,8 @@ This release includes the following breaking changes:
 
 -   The `AgChart` entrypoint has been renamed to `AgCharts`.
 -   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
+-   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
+-   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
 
 **Series Changes**
 

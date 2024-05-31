@@ -52,7 +52,7 @@ export interface AgBubbleSeriesOptionsNames {
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     yName?: string;
-    /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
+    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     sizeName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     labelName?: string;
