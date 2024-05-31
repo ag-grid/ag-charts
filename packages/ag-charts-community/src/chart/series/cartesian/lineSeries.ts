@@ -38,7 +38,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { type LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
-import { prepareLinePathAnimation } from './lineUtil';
+import { pathRangePoints, pathRanges, prepareLinePathAnimation } from './lineUtil';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -46,14 +46,7 @@ import {
     resetMarkerFn,
     resetMarkerPositionFn,
 } from './markerUtil';
-import {
-    buildResetPathFn,
-    pathFadeInAnimation,
-    pathSwipeInAnimation,
-    plotPath,
-    splitPartialPaths,
-    updateClipPath,
-} from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, updateClipPath } from './pathUtil';
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
@@ -505,12 +498,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const { nodeData } = contextData;
         const [lineNode] = paths;
 
-        const { path: linePath } = lineNode;
-
-        linePath.clear(true);
-        splitPartialPaths(nodeData.map((d) => d.point)).forEach((points) => {
-            plotPath(points, lineNode, this.properties.line);
-        });
+        lineNode.path.clear(true);
+        for (const range of pathRanges(nodeData)) {
+            plotPath(pathRangePoints(nodeData, range), lineNode, this.properties.line);
+        }
         lineNode.checkPathDirty();
     }
 
