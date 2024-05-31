@@ -804,13 +804,10 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             yKey: 'age',
             yName: 'Age',
             labelKey: 'age',
-            marker: {
-                fill: '#ccb9c9',
-                stroke: '#9b7595',
-                strokeWidth: 0,
-                size: 7,
-            },
-            label: {},
+            size: 7,
+            fill: '#ccb9c9',
+            strokeWidth: 0,
+            label: { enabled: true },
         },
     ],
     axes: [

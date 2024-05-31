@@ -11900,20 +11900,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   },
   "series": [
     {
+      "fill": "#002D72",
+      "fillOpacity": 0.5,
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "marker": {
-        "fill": "#002D72",
-        "fillOpacity": 0.5,
-        "shape": "circle",
-        "size": 12,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0,
-      },
+      "shape": "circle",
+      "size": 12,
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0,
       "tooltip": {
         "position": {
           "type": "node",

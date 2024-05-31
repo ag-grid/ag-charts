@@ -6,6 +6,7 @@ import type { Chart } from '../../chart';
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -59,16 +60,14 @@ describe('ScatterSeries', () => {
                     type: 'scatter',
                     xKey: `x${i}`,
                     yKey: `y${i}`,
-                    marker: {
-                        size: 50,
-                    },
+                    size: 50,
                 })),
                 legend: { enabled: false },
             };
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = deproxy(AgCharts.create(options));
             await compare();
         });
     });
@@ -92,7 +91,7 @@ describe('ScatterSeries', () => {
 
         prepareTestOptions(options);
 
-        chart = AgCharts.create(options) as Chart;
+        chart = deproxy(AgCharts.create(options));
         await compare();
     });
 
@@ -106,7 +105,7 @@ describe('ScatterSeries', () => {
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = deproxy(AgCharts.create(options));
                 await compare();
             });
         }
