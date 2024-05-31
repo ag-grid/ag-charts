@@ -165,7 +165,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const {
             active,
-            annotations,
             annotationData,
             state,
             ctx: { interactionManager, toolbarManager, updateService },
@@ -178,19 +177,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData != null
         ) {
             annotationData.splice(active, 1);
-            this.hovered = undefined;
-            this.active = undefined;
+            this.reset();
 
             toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
             updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
             return;
         }
 
-        if (active != null) {
-            annotations.nodes()[active].toggleActive(false);
-            this.active = undefined;
-            this.hovered = undefined;
-        }
+        this.reset();
 
         if (!ToolbarManager.isGroup('annotations', event)) {
             return;
@@ -211,7 +205,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
-            ctx: { annotationManager },
+            ctx: { annotationManager, toolbarManager },
         } = this;
 
         this.seriesRect = event.series.rect;
@@ -248,7 +242,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 }
 
                 if (active === index) {
-                    this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
                 }
             });
     }
@@ -527,8 +521,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private clear() {
         this.annotations.clear();
+        this.reset();
+    }
+
+    private reset() {
+        if (this.active != null) {
+            this.annotations.nodes().at(this.active)?.toggleActive(false);
+        }
         this.hovered = undefined;
         this.active = undefined;
+        this.ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
     }
 
     private stringToAnnotationType(value: string) {
