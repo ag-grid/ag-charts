@@ -20,21 +20,7 @@ type SceneChangeDetectionOptions<T = any> = {
     checkDirtyOnAssignment?: boolean;
 };
 
-/** @returns true if new Function() is disabled in the current execution context. */
-function functionConstructorAvailable() {
-    try {
-        new Function('return true');
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-
-const STRING_FUNCTION_USEABLE = functionConstructorAvailable();
-
 export function SceneChangeDetection<T = any>(opts?: SceneChangeDetectionOptions<T>) {
-    const { changeCb, convertor } = opts ?? {};
-
     return function (target: T, key: string) {
         // `target` is either a constructor (static member) or prototype (instance member)
         const privateKey = `__${key}`;
@@ -43,56 +29,11 @@ export function SceneChangeDetection<T = any>(opts?: SceneChangeDetectionOptions
             return;
         }
 
-        if (STRING_FUNCTION_USEABLE && changeCb == null && convertor == null) {
-            prepareFastGetSet(target, key, privateKey, opts);
-        } else {
-            prepareSlowGetSet(target, key, privateKey, opts);
-        }
+        prepareGetSet(target, key, privateKey, opts);
     };
 }
 
-function prepareFastGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
-    const { redraw = RedrawType.TRIVIAL, type = 'normal', checkDirtyOnAssignment = false } = opts ?? {};
-    // Optimised code-path.
-
-    // Remove all conditional logic from runtime - generate a setter with the exact necessary
-    // steps, as these setters are called a LOT during update cycles.
-    const setterJs = new Function(
-        'value',
-        `
-        const oldValue = this.${privateKey};
-        if (value !== oldValue) {
-            this.${privateKey} = value;
-            ${type === 'normal' ? `this.markDirty(this, ${redraw});` : ''}
-            ${type === 'transform' ? `this.markDirtyTransform(${redraw});` : ''}
-            ${
-                type === 'path'
-                    ? `if (!this._dirtyPath) { this._dirtyPath = true; this.markDirty(this, ${redraw}); }`
-                    : ''
-            }
-            ${
-                type === 'font'
-                    ? `if (!this._dirtyFont) { this._dirtyFont = true; this.markDirty(this, ${redraw}); }`
-                    : ''
-            }
-        }
-        ${
-            checkDirtyOnAssignment
-                ? `if (value != null && value._dirty > ${RedrawType.NONE}) { this.markDirty(value, value._dirty); }`
-                : ''
-        }
-`
-    );
-    const getterJs = new Function(`return this.${privateKey};`);
-    Object.defineProperty(target, key, {
-        set: setterJs as () => void,
-        get: getterJs as () => any,
-        enumerable: true,
-        configurable: true,
-    });
-}
-
-function prepareSlowGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
+function prepareGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
     const {
         redraw = RedrawType.TRIVIAL,
         type = 'normal',
@@ -100,39 +41,152 @@ function prepareSlowGetSet(target: any, key: string, privateKey: string, opts?: 
         convertor,
         checkDirtyOnAssignment = false,
     } = opts ?? {};
+    const requiredOpts = { redraw, type, changeCb, checkDirtyOnAssignment, convertor };
 
-    // Unoptimised but 'safe' code-path, for environments with CSP headers and no 'unsafe-eval'.
-    // We deliberately do not support debug branches found in the optimised path above, since
-    // for large data-set series performance deteriorates with every extra branch here.
-    const setter = function (this: any, value: any) {
-        const oldValue = this[privateKey];
-        value = convertor ? convertor(value) : value;
-        if (value !== oldValue) {
-            this[privateKey] = value;
-            if (type === 'normal') this.markDirty(this, redraw);
-            if (type === 'transform') this.markDirtyTransform(redraw);
-            if (type === 'path' && !this._dirtyPath) {
-                this._dirtyPath = true;
-                this.markDirty(this, redraw);
-            }
-            if (type === 'font' && !this._dirtyFont) {
-                this._dirtyFont = true;
-                this.markDirty(this, redraw);
-            }
-            changeCb?.(this);
-        }
-        if (checkDirtyOnAssignment && value != null && value._dirty > RedrawType.NONE)
-            this.markDirty(value, value._dirty);
-    };
+    // Select the correctly optimized setter with minimal branches/checks for the specific type
+    // of change detection.
+    let setter;
+    switch (type) {
+        case 'normal':
+            setter = buildNormalSetter(privateKey, requiredOpts);
+            break;
+        case 'transform':
+            setter = buildTransformSetter(privateKey, requiredOpts);
+            break;
+        case 'path':
+            setter = buildPathSetter(privateKey, requiredOpts);
+            break;
+        case 'font':
+            setter = buildFontSetter(privateKey, requiredOpts);
+            break;
+    }
+    setter = buildCheckDirtyChain(
+        buildChangeCallbackChain(buildConvertorChain(setter, requiredOpts), requiredOpts),
+        requiredOpts
+    );
+
     const getter = function (this: any) {
         return this[privateKey];
     };
+
     Object.defineProperty(target, key, {
-        set: setter,
+        set: setter as (v: any) => void,
         get: getter,
         enumerable: true,
         configurable: true,
     });
+}
+
+function buildConvertorChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
+    const { convertor } = opts;
+    if (convertor) {
+        return function (this: any, value: any) {
+            setterFn.call(this, convertor(value));
+        };
+    }
+
+    return setterFn;
+}
+
+const NO_CHANGE = Symbol('no-change');
+
+function buildChangeCallbackChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
+    const { changeCb } = opts;
+    if (changeCb) {
+        return function (this: any, value: any) {
+            const change = setterFn.call(this, value);
+            if (change !== NO_CHANGE) {
+                changeCb.call(this, this);
+            }
+            return change;
+        };
+    }
+
+    return setterFn;
+}
+
+function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
+    const { checkDirtyOnAssignment } = opts;
+    if (checkDirtyOnAssignment) {
+        return function (this: any, value: any) {
+            const change = setterFn.call(this, value);
+
+            if (change !== NO_CHANGE && value != null && value._dirty > RedrawType.NONE) {
+                this.markDirty(value, value._dirty);
+            }
+
+            return change;
+        };
+    }
+
+    return setterFn;
+}
+
+function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
+    const { redraw = RedrawType.TRIVIAL, changeCb } = opts;
+
+    return function (this: any, value: any) {
+        const oldValue = this[privateKey];
+        if (value !== oldValue) {
+            this[privateKey] = value;
+            this.markDirty(this, redraw);
+            changeCb?.(this);
+            return value;
+        }
+
+        return NO_CHANGE;
+    };
+}
+
+function buildTransformSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
+    const { redraw = RedrawType.TRIVIAL } = opts;
+
+    return function (this: any, value: any) {
+        const oldValue = this[privateKey];
+        if (value !== oldValue) {
+            this[privateKey] = value;
+            this.markDirtyTransform(redraw);
+            return value;
+        }
+
+        return NO_CHANGE;
+    };
+}
+
+function buildPathSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
+    const { redraw = RedrawType.TRIVIAL } = opts;
+
+    return function (this: any, value: any) {
+        const oldValue = this[privateKey];
+        if (value !== oldValue) {
+            this[privateKey] = value;
+            if (!this._dirtyPath) {
+                this._dirtyPath = true;
+                this.markDirty(this, redraw);
+            }
+            return value;
+        }
+
+        return NO_CHANGE;
+    };
+}
+
+function buildFontSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
+    const { redraw = RedrawType.TRIVIAL } = opts;
+
+    return function (this: any, value: any) {
+        const oldValue = this[privateKey];
+        if (value !== oldValue) {
+            this[privateKey] = value;
+            if (!this._dirtyFont) {
+                this._dirtyFont = true;
+                this.markDirty(this, redraw);
+            }
+            return value;
+        }
+
+        return NO_CHANGE;
+    };
 }
 
 export abstract class ChangeDetectable {
