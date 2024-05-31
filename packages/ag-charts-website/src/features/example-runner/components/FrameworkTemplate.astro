@@ -52,7 +52,8 @@ const isDev = getIsDev();
 const library = 'charts';
 
 const { entryFileName, files, scriptFiles, styleFiles, isEnterprise } = generatedContents || {};
-const indexFragment = files && files['index.html'];
+const indexFragment = files?.['index.html'];
+const headFragment = files?.['head.html'];
 const appLocation = relativePath ? '' : exampleUrl;
 const boilerPlateUrl = relativePath
     ? ''
@@ -78,7 +79,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             isEnterprise={isEnterprise}
             scriptFiles={scriptFiles}
             styleFiles={styleFiles}
-            indexFragment={indexFragment!}
+            indexFragment={indexFragment}
+            headFragment={headFragment}
             appLocation={appLocation}
             extraStyles={extraStyles}
         />
@@ -90,6 +92,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             entryFileName={entryFileName!}
             styleFiles={styleFiles}
             indexFragment={indexFragment!}
+            headFragment={headFragment}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
@@ -106,6 +109,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}
             extraStyles={extraStyles}
+            headFragment={headFragment}
         />
     ) : internalFramework === 'angular' ? (
         <AngularTemplate
@@ -118,6 +122,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
+            headFragment={headFragment}
         />
     ) : internalFramework === 'vue3' ? (
         <VueTemplate
@@ -130,6 +135,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
+            headFragment={headFragment}
         />
     ) : null
 }
