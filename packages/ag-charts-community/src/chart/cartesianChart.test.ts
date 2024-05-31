@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 import { fail } from 'assert';
-import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import { AgCharts } from '../api/agCharts';
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
@@ -199,11 +198,11 @@ describe('CartesianChart', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async (chartInstance: Chart, options?: MatchImageSnapshotOptions) => {
+    const compare = async (chartInstance: Chart) => {
         await waitForChartStability(chartInstance);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     describe.each([
@@ -241,9 +240,7 @@ describe('CartesianChart', () => {
         it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
             const { chart: testee, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
             highlightManager.updateHighlight(testee.id, nodeData?.nodeData[3]);
-            await compare(testee, {
-                failureThreshold: 2,
-            });
+            await compare(testee);
         });
 
         it('should correctly change highlighting state and reset', async () => {
@@ -254,15 +251,11 @@ describe('CartesianChart', () => {
 
             for (const nodeDataItem of nodesToTest) {
                 highlightManager.updateHighlight(testee.id, nodeDataItem);
-                await compare(testee, {
-                    failureThreshold: 2,
-                });
+                await compare(testee);
             }
 
             highlightManager.updateHighlight(testee.id);
-            await compare(testee, {
-                failureThreshold: 2,
-            });
+            await compare(testee);
         });
     });
 
