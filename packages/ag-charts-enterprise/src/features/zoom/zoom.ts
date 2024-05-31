@@ -183,8 +183,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
         const region = ctx.regionManager.getRegion(REGIONS.SERIES);
-        const horizontalAxisRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
-        const verticalAxisRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
+        const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         const dragStartEventType = 'drag-start';
         this.destroyFns.push(
@@ -193,12 +193,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
             region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
             region.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
-            verticalAxisRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
-            verticalAxisRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
-            verticalAxisRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
-            horizontalAxisRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
-            horizontalAxisRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
-            horizontalAxisRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
+            verticalAxesRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
+            verticalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
+            verticalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
+            horizontalAxesRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
+            horizontalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
+            horizontalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), clickableState),
             region.addListener('hover', () => this.onAxisLeave(), clickableState),
             region.addListener('leave', () => this.onAxisLeave(), clickableState),
