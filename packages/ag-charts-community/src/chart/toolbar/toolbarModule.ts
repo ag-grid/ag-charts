@@ -21,7 +21,11 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     enabled: false,
     position: 'floating',
     align: 'start',
-    buttons: [{ icon: 'delete', tooltip: 'Delete Annotation', value: 'delete' }],
+    buttons: [
+        { icon: 'lock', tooltip: 'Lock Annotation', value: 'lock' },
+        { icon: 'unlock', tooltip: 'Unlock Annotation', value: 'unlock' },
+        { icon: 'delete', tooltip: 'Delete Annotation', value: 'delete' },
+    ],
 };
 
 const ranges: AgToolbarOptions['ranges'] = {

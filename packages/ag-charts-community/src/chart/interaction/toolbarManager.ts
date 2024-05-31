@@ -39,6 +39,7 @@ export interface ToolbarButtonPressedEvent<T = any> extends Event<'button-presse
 export interface ToolbarButtonToggledEvent<T = any> extends Event<'button-toggled'> {
     value: T;
     enabled: boolean;
+    visible: boolean;
 }
 
 export interface ToolbarProxyGroupOptionsEvent extends Event<'proxy-group-options'> {
@@ -58,16 +59,21 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, value });
     }
 
+    toggleButton<T extends ToolbarGroup>(
+        group: T,
+        value: ToolbarEventButtonValue<T>,
+        options: { enabled?: boolean; visible?: boolean }
+    ) {
+        const { enabled = true, visible = true } = options;
+        this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, value, enabled, visible });
+    }
+
     toggleGroup(caller: string, group: ToolbarGroup, visible: boolean) {
         this.listeners.dispatch('group-toggled', { type: 'group-toggled', caller, group, visible });
     }
 
     changeFloatingAnchor(group: ToolbarGroup, anchor: { x: number; y: number }) {
         this.listeners.dispatch('floating-anchor-changed', { type: 'floating-anchor-changed', group, anchor });
-    }
-
-    toggleButton<T extends ToolbarGroup>(group: T, value: ToolbarEventButtonValue<T>, enabled: boolean) {
-        this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, value, enabled });
     }
 
     proxyGroupOptions<T extends ToolbarGroup>(caller: string, group: T, options: Partial<AgToolbarOptions[T]>) {
