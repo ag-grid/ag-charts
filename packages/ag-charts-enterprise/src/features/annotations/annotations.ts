@@ -625,12 +625,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             x1 = scaledValue;
             x2 = scaledValue;
             y1 = scaleY.convert(yDomain[0]);
-            y2 = scaleY.convert(yDomain[1]);
+            y2 = scaleY.convert(yDomain.at(-1));
         } else {
             const scaledValue = scaleY.convert(datum.value);
             const xDomain = scaleX.getDomain?.() ?? [0, 0];
             x1 = scaleX.convert(xDomain[0]);
-            x2 = scaleX.convert(xDomain[1]);
+            x2 = scaleX.convert(xDomain.at(-1));
             y1 = scaledValue;
             y2 = scaledValue;
         }
