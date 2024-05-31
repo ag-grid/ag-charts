@@ -71,7 +71,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     }
 
     getDomain() {
-        return this.domain;
+        return this._domain;
     }
 
     ticks(): D[] {
