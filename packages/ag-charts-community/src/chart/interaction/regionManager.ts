@@ -1,13 +1,9 @@
 import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
+import type { RegionName } from './chartRegions';
 import { buildConsumable } from './consumableEvent';
-import type {
-    InteractionManager,
-    PointerInteractionEvent,
-    PointerInteractionTypes,
-    RegionName,
-} from './interactionManager';
+import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 

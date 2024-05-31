@@ -1,5 +1,6 @@
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
+import type { RegionName } from './chartRegions';
 import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
@@ -7,7 +8,6 @@ import type {
     InteractionManager,
     KeyInteractionEvent,
     PointerInteractionEvent,
-    RegionName,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
 

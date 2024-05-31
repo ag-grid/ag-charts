@@ -6,6 +6,7 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
+import type { RegionName } from './chartRegions';
 import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
@@ -72,22 +73,6 @@ const EVENT_HANDLERS = [
     'keydown',
     'keyup',
 ] as const;
-
-export const REGIONS = {
-    TITLE: 'title',
-    SUBTITLE: 'subtitle',
-    FOOTNOTE: 'footnote',
-    LEGEND: 'legend',
-    NAVIGATOR: 'navigator',
-    PAGINATION: 'pagination',
-    ROOT: 'root',
-    SERIES: 'series',
-    HORIZONTAL_AXES: 'horizontal-axes',
-    VERTICAL_AXES: 'vertical-axes',
-    TOOLBAR: 'toolbar',
-} as const;
-
-export type RegionName = (typeof REGIONS)[keyof typeof REGIONS];
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
