@@ -1,4 +1,4 @@
-import { type Direction, _Scene } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
 import type { Coords } from '../annotationTypes';
 
@@ -49,7 +49,7 @@ export class UnivariantHandle extends Handle {
     override handle = new _Scene.Rect();
     override glow = new _Scene.Rect();
 
-    private readonly gradient: 'horizontal' | 'vertical' = 'horizontal';
+    public gradient: 'horizontal' | 'vertical' = 'horizontal';
 
     constructor() {
         super();
@@ -80,9 +80,8 @@ export class UnivariantHandle extends Handle {
         });
     }
 
-    override drag(target: Coords, direction?: Direction) {
-        const gradient = direction ?? this.gradient;
-        if (gradient === 'vertical') {
+    override drag(target: Coords) {
+        if (this.gradient === 'vertical') {
             return {
                 point: { x: target.x, y: this.handle.y },
                 offset: { x: target.x - this.handle.x, y: 0 },

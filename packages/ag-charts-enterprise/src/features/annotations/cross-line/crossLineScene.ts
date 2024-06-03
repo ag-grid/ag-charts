@@ -27,7 +27,7 @@ export class CrossLine extends Annotation {
 
     public update(datum: CrossLineAnnotation, seriesRect: _Scene.BBox, coords?: LineCoords) {
         const { line, middle } = this;
-        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { direction, locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
@@ -64,6 +64,7 @@ export class CrossLine extends Annotation {
         const x = x1 + (x2 - x1) / 2;
         const y = y1 + (y2 - y1) / 2;
         const { width: handleWidth, height: handleHeight } = middle.handle;
+        middle.gradient = direction;
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
     }
 
@@ -88,7 +89,7 @@ export class CrossLine extends Annotation {
 
         const { direction } = datum;
         this[activeHandle].toggleDragging(true);
-        const point = invertPoint(this[activeHandle].drag(target, direction).point);
+        const point = invertPoint(this[activeHandle].drag(target).point);
         if (!point) return;
 
         const horizontal = direction === 'horizontal';
@@ -101,7 +102,7 @@ export class CrossLine extends Annotation {
 
     override getCursor() {
         if (this.activeHandle == null) return 'pointer';
-        return 'default';
+        return this[this.activeHandle].getCursor();
     }
 
     override containsPoint(x: number, y: number) {
