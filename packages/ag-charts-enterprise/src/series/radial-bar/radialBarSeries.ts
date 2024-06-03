@@ -79,6 +79,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             moduleCtx,
             useLabelLayer: true,
             canHaveAxes: true,
+            defaultTooltipRange: 'exact',
             animationResetFns: {
                 item: resetRadialBarSelectionsFn,
                 label: resetLabelFn,

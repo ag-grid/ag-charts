@@ -109,6 +109,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            defaultTooltipRange: 'exact',
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,

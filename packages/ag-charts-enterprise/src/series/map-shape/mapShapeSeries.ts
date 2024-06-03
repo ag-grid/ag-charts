@@ -98,6 +98,7 @@ export class MapShapeSeries
             contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            defaultTooltipRange: 'exact',
         });
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;

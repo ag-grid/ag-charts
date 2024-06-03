@@ -89,6 +89,7 @@ export abstract class RadialColumnSeriesBase<
             useLabelLayer: true,
             canHaveAxes: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            defaultTooltipRange: 'exact',
             animationResetFns: {
                 ...animationResetFns,
                 label: resetLabelFn,

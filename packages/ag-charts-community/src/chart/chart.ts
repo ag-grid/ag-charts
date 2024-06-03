@@ -65,6 +65,7 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import type { SeriesProperties } from './series/seriesProperties';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import {
@@ -1047,18 +1048,22 @@ export abstract class Chart extends Observable {
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+    private pickNode(
+        point: Point,
+        collection: {
+            series: Series<SeriesNodeDatum, SeriesProperties<object[]>>;
+            pickModes?: SeriesNodePickMode[];
+            maxDistance?: number;
+        }[]
+    ): PickedNode | undefined {
         const start = performance.now();
-
-        // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
-        const reverseSeries = [...this.series].reverse();
+        const reverseSeries = [...collection].reverse();
 
         let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
-        for (const series of reverseSeries) {
+        for (const { series, pickModes, maxDistance } of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
@@ -1079,6 +1084,35 @@ export abstract class Chart extends Observable {
         );
 
         return result;
+    }
+
+    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+        // Disable 'nearest match' options if looking for exact matches only
+        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
+        return this.pickNode(
+            point,
+            this.series.map((series) => {
+                return { series, pickModes, maxDistance };
+            })
+        );
+    }
+
+    private pickTooltip(point: Point): PickedNode | undefined {
+        return this.pickNode(
+            point,
+            this.series.map((series) => {
+                const tooltipRange = series.properties.tooltip.range;
+                let pickModes: SeriesNodePickMode[] | undefined;
+                if (tooltipRange === 'exact') {
+                    pickModes = [SeriesNodePickMode.EXACT_SHAPE_MATCH];
+                } else {
+                    pickModes = undefined;
+                }
+
+                const maxDistance = typeof tooltipRange === 'number' ? tooltipRange : undefined;
+                return { series, pickModes, maxDistance };
+            })
+        );
     }
 
     private lastPick?: SeriesNodeDatum;
@@ -1286,14 +1320,8 @@ export abstract class Chart extends Observable {
         event: TooltipPointerEvent<'hover'>,
         disablePointer: (highlightOnly?: boolean) => void
     ) {
-        const { lastPick, tooltip } = this;
-        const { range } = tooltip;
+        const { lastPick } = this;
         const { offsetX, offsetY, targetElement } = event;
-
-        let pixelRange;
-        if (isFiniteNumber(range)) {
-            pixelRange = range;
-        }
 
         if (
             targetElement &&
@@ -1304,7 +1332,7 @@ export abstract class Chart extends Observable {
             return;
         }
 
-        const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
+        const pick = this.pickTooltip({ x: offsetX, y: offsetY });
         if (!pick) {
             this.ctx.tooltipManager.removeTooltip(this.id);
             if (this.highlight.range === 'tooltip') {
@@ -1324,11 +1352,8 @@ export abstract class Chart extends Observable {
             }
         }
 
-        const isPixelRange = pixelRange != null;
         const tooltipEnabled = this.tooltip.enabled && pick.series.tooltipEnabled;
-        const exactlyMatched = range === 'exact' && pick.distance === 0;
-        const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
-        const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
+        const shouldUpdateTooltip = tooltipEnabled && (!isNewDatum || html !== undefined);
 
         const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
 
@@ -1923,6 +1948,7 @@ export abstract class Chart extends Observable {
         }
 
         target.properties.set(seriesOptions);
+        this.applySeriesTooltipDefaults(target);
 
         if ('data' in options) {
             target.setOptionsData(data);
@@ -1939,6 +1965,17 @@ export abstract class Chart extends Observable {
                 target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
             }
         }
+    }
+
+    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
+    // global option (`chart.tooltip.range`) that could overriden the theme. But now, the tooltip range
+    // option is series-specific.
+    //
+    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
+    // 'nearest' to undefined.
+    private applySeriesTooltipDefaults(target: Series<SeriesNodeDatum, SeriesProperties<never>>) {
+        target.properties.tooltip.range ??= this.tooltip.range;
+        target.properties.tooltip.range ??= target.defaultTooltipRange;
     }
 
     private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {

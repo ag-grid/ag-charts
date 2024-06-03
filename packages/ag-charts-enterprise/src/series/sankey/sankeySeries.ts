@@ -43,6 +43,7 @@ export class SankeySeries extends FlowProportionSeries<
             moduleCtx,
             contentGroupVirtual: false,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            defaultTooltipRange: 'exact',
         });
     }
 
