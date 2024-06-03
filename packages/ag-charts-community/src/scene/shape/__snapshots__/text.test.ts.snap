@@ -2,58 +2,58 @@
 
 exports[`Text text measurements should measure multiline text size currently 1`] = `
 {
-  "height": 42.66666666666667,
-  "left": 0,
-  "top": 48,
-  "width": 64,
+  "height": 40.81640625,
+  "left": 0.4921875,
+  "top": 46.453125,
+  "width": 63.984375,
 }
 `;
 
 exports[`Text text measurements should measure multiline text size currently 2`] = `
 {
-  "height": 85.33333333333334,
-  "left": 90.66666666666666,
-  "top": 48,
-  "width": 181.33333333333331,
+  "height": 81.1640625,
+  "left": 68.765625,
+  "top": 44.4375,
+  "width": 135.984375,
 }
 `;
 
 exports[`Text text measurements should measure text currently 1`] = `
 {
-  "height": 18.666666666666668,
+  "height": 16.81640625,
   "lineHeight": 24,
-  "offsetLeft": 0,
-  "offsetTop": 24,
-  "width": 130.66666666666666,
+  "offsetLeft": 0.38671875,
+  "offsetTop": 22.453125,
+  "width": 123.3046875,
 }
 `;
 
 exports[`Text text measurements should measure text currently 2`] = `
 {
-  "height": 37.333333333333336,
+  "height": 33.890625,
   "lineHeight": 48,
-  "offsetLeft": 178.66666666666666,
-  "offsetTop": 24,
-  "width": 357.3333333333333,
+  "offsetLeft": 129.515625,
+  "offsetTop": 21.1640625,
+  "width": 257.296875,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 1`] = `
 {
-  "height": 18.666666666666668,
+  "height": 16.81640625,
   "lineHeight": 24,
-  "offsetLeft": 0,
-  "offsetTop": 24,
-  "width": 130.66666666666666,
+  "offsetLeft": 0.38671875,
+  "offsetTop": 22.453125,
+  "width": 123.3046875,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 2`] = `
 {
-  "height": 37.333333333333336,
+  "height": 33.890625,
   "lineHeight": 48,
-  "offsetLeft": 178.66666666666666,
-  "offsetTop": 24,
-  "width": 357.3333333333333,
+  "offsetLeft": 129.515625,
+  "offsetTop": 21.1640625,
+  "width": 257.296875,
 }
 `;

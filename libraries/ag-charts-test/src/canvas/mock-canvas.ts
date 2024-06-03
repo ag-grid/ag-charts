@@ -1,7 +1,25 @@
 import type { Canvas } from 'canvas';
-import { Image, createCanvas } from 'canvas';
+import { Image, createCanvas, registerFont } from 'canvas';
+import path from 'path';
 
-import { mockCanvasText } from './mock-canvas-text';
+const assetsDir = path.join(__dirname, '../../../assets');
+
+registerFont(path.join(assetsDir, 'Arimo-Regular.ttf'), {
+    family: 'sans-serif',
+});
+registerFont(path.join(assetsDir, 'Arimo-Bold.ttf'), {
+    family: 'sans-serif',
+    weight: 'bold',
+});
+registerFont(path.join(assetsDir, 'Arimo-Italic.ttf'), {
+    family: 'sans-serif',
+    style: 'italic',
+});
+registerFont(path.join(assetsDir, 'Arimo-BoldItalic.ttf'), {
+    family: 'sans-serif',
+    weight: 'bold',
+    style: 'italic',
+});
 
 export class MockContext {
     document: Document;
@@ -59,11 +77,7 @@ export function setup(opts: {
         height = 600,
         document = window.document,
         mockCtx = new MockContext(width, height, document),
-        mockText = false,
     } = opts;
-    if (mockText) {
-        mockCanvasText();
-    }
     const nodeCanvas = createCanvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
