@@ -13,6 +13,8 @@ type ElemParams<T extends ProxyElementType> = {
     readonly focusable: BBoxProvider<BBoxValues>;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
+    readonly onfocus?: (ev: FocusEvent) => void;
+    readonly onblur?: (ev: FocusEvent) => void;
 };
 
 type ContainerParams<T extends ProxyContainerType> = {
@@ -114,7 +116,7 @@ export class ProxyInteractionService {
         params: ProxyMeta[T]['params'],
         element: TElem
     ) {
-        const { focusable, onclick, onchange, id, parent } = params;
+        const { focusable, onclick, onchange, onfocus, onblur, id, parent } = params;
 
         element.id = id;
         element.style.pointerEvents = 'none';
@@ -135,6 +137,12 @@ export class ProxyInteractionService {
         });
         if (onclick) {
             element.addEventListener('click', onclick);
+        }
+        if (onfocus) {
+            element.addEventListener('focus', onfocus);
+        }
+        if (onblur) {
+            element.addEventListener('blur', onblur);
         }
         if (onchange) {
             element.addEventListener('change', onchange);

@@ -40,6 +40,7 @@ import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
+import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import type { Marker } from './marker/marker';
@@ -721,12 +722,15 @@ export class Legend extends BaseProperties {
                 textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
                 focusable: markerLabel,
-                onclick: (_event: MouseEvent): any => {
-                    // Retrieve the datum from the node rather than from the method parameter.
-                    // The method parameter `datum` gets destroyed when the data is refreshed
-                    // using Series.getLegendData(). But the scene node will stay the same.
-                    const datum: CategoryLegendDatum = markerLabel.datum;
-                    this.doClick(datum);
+                // Retrieve the datum from the node rather than from the method parameter.
+                // The method parameter `datum` gets destroyed when the data is refreshed
+                // using Series.getLegendData(). But the scene node will stay the same.
+                onclick: () => this.doClick(markerLabel.datum),
+                onblur: () => this.doMouseExit(),
+                onfocus: () => {
+                    const bbox = markerLabel?.computeTransformedBBox();
+                    const event = makeKeyboardPointerEvent(this.ctx.regionManager, { bbox, showFocusBox: true });
+                    this.doHover(event, markerLabel.datum);
                 },
             });
 
