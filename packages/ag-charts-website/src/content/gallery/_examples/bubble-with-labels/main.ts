@@ -29,11 +29,9 @@ const options: AgChartOptions = {
         yName: `${genre[0].toUpperCase()}${genre.slice(1)}`,
         sizeKey: 'boxOffice',
         sizeName: 'Box Office',
-        marker: {
-            size: 20,
-            maxSize: 60,
-            domain: [2000000, 1200000000],
-        },
+        size: 20,
+        maxSize: 60,
+        domain: [2000000, 1200000000],
         label: {
             formatter: ({ datum: { ranking, title } }) => `${ranking}. ${title}`,
         },

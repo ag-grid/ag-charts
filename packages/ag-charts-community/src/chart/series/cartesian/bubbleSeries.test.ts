@@ -62,10 +62,8 @@ describe('BubbleSeries', () => {
                     xKey: `x${i}`,
                     yKey: `y${i}`,
                     sizeKey: `s${i}`,
-                    marker: {
-                        size: 20,
-                        maxSize: 50,
-                    },
+                    size: 20,
+                    maxSize: 50,
                 })),
                 legend: { enabled: false },
             };

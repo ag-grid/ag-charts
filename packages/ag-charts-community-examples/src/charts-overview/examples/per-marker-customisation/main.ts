@@ -1,107 +1,84 @@
-import type { AgChartOptions } from "ag-charts-community";
-import { AgCharts } from "ag-charts-community"
-import { getData } from "./data"
+import type { AgChartOptions } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 
-const minSize = 5
-const maxSize = 100
+import { getData } from './data';
 
-function find(arr: any[], predicate: any) {
-  for (let i = 0, ln = arr.length; i < ln; i++) {
-    const value = arr[i]
-    if (predicate(value, i, arr)) {
-      return value
-    }
-  }
-}
+const minSize = 5;
+const maxSize = 100;
 
 function calculateColour(size: number) {
-  const colours: Record<number, string> = {
-    0.1: "#33CC00",
-    0.2: "#5CC200",
-    0.3: "#85B800",
-    0.4: "#ADAD00",
-    0.5: "#D6A300",
-    0.6: "#FF9900",
-    0.7: "#FF7300",
-    0.8: "#FF4D00",
-    0.9: "#FF2600",
-    1: "#FF0000",
-  }
-
-  const position = (size - minSize) / (maxSize - minSize)
-
-  const keys = Object.keys(colours)
-    .map(function (key) {
-      return parseFloat(key)
-    })
-    .sort()
-  const matchingKey = find(keys, function (key: number) {
-    return key > position
-  })
-
-  return colours[matchingKey]
+    const colours = [
+        '#33cc00',
+        '#5cc200',
+        '#85b800',
+        '#adad00',
+        '#d6a300',
+        '#ff9900',
+        '#ff7300',
+        '#ff4d00',
+        '#ff2600',
+        '#ff0000',
+    ];
+    const position = (size - minSize) / (maxSize - minSize);
+    return colours.find((_, i) => {
+        return (i + 1) / colours.length > position;
+    });
 }
 
 const options: AgChartOptions = {
-  container: document.getElementById("myChart"),
-  data: getData().filter(function (d) {
-    return d.magnitude > 4
-  }),
-  title: {
-    text: "Worldwide Earthquakes",
-    fontSize: 18,
-    spacing: 25,
-  },
-  footnote: {
-    text: "Source: US Geological Survey",
-  },
-  series: [
-    {
-      type: "bubble",
-      xKey: "depth",
-      xName: "Depth",
-      yKey: "minDistance",
-      yName: "Minimum Distance",
-      sizeKey: "magnitude",
-      sizeName: "Magnitude",
-      marker: {
-        size: minSize,
-        maxSize: maxSize,
-        formatter: params => {
-          return {
-            fill: params.highlighted
-              ? params.fill
-              : calculateColour(params.size),
-          }
+    container: document.getElementById('myChart'),
+    data: getData().filter(function (d) {
+        return d.magnitude > 4;
+    }),
+    title: {
+        text: 'Worldwide Earthquakes',
+        fontSize: 18,
+        spacing: 25,
+    },
+    footnote: {
+        text: 'Source: US Geological Survey',
+    },
+    series: [
+        {
+            type: 'bubble',
+            xKey: 'depth',
+            xName: 'Depth',
+            yKey: 'minDistance',
+            yName: 'Minimum Distance',
+            sizeKey: 'magnitude',
+            sizeName: 'Magnitude',
+            size: minSize,
+            maxSize: maxSize,
+            formatter: (params: any) => ({
+                fill: params.highlighted ? params.fill : calculateColour(params.size),
+            }),
+            strokeWidth: 0,
+            fillOpacity: 0.7,
+            strokeOpacity: 0.7,
         },
-        strokeWidth: 0,
-        fillOpacity: 0.7,
-        strokeOpacity: 0.7,
-      },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            title: {
+                text: 'Depth (m)',
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            title: {
+                text: 'Minimum distance (km)',
+            },
+        },
+    ],
+    seriesArea: {
+        padding: {
+            left: 20,
+            bottom: 15,
+        },
     },
-  ],
-  axes: [
-    {
-      position: "bottom",
-      type: "number",
-      title: {
-        text: "Depth (m)",
-      },
-    },
-    {
-      position: "left",
-      type: "number",
-      title: {
-        text: "Minimum distance (km)",
-      },
-    },
-  ],
-  seriesArea: {
-    padding: {
-      left: 20,
-      bottom: 15,
-    },
-  },
-}
+};
 
-const chart = AgCharts.create(options)
+const chart = AgCharts.create(options);

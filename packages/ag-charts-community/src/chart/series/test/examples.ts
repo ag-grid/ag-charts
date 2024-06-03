@@ -468,12 +468,10 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
-            marker: {
-                size: 6,
-                maxSize: 30,
-                fill: 'rgba(227,111,106,0.71)',
-                stroke: '#9f4e4a',
-            },
+            size: 6,
+            maxSize: 30,
+            fill: 'rgba(227,111,106,0.71)',
+            stroke: '#9f4e4a',
             labelKey: 'name',
             label: {
                 enabled: true,
@@ -489,12 +487,10 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
-            marker: {
-                size: 6,
-                maxSize: 30,
-                fill: 'rgba(123,145,222,0.71)',
-                stroke: '#56659b',
-            },
+            size: 6,
+            maxSize: 30,
+            fill: 'rgba(123,145,222,0.71)',
+            stroke: '#56659b',
             labelKey: 'name',
             label: {
                 enabled: true,
