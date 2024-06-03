@@ -3,7 +3,7 @@ import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
-import type { LineSeriesLine } from './lineSeriesProperties';
+import type { LineProperties } from './lineProperties';
 import { prepareMarkerAnimation } from './markerUtil';
 import type {
     BackfillSplitMode,
@@ -388,12 +388,12 @@ export function prepareLinePathAnimationFns(
     oldData: LineContextLike,
     pairData: PathPoint[],
     visibleToggleMode: 'fade' | 'none',
-    line: LineSeriesLine | undefined,
+    line: LineProperties | undefined,
     render: (
         pairData: PathPoint[],
         ratios: Partial<Record<PathPointChange, number>>,
         path: Path,
-        line: LineSeriesLine | undefined
+        line: LineProperties | undefined
     ) => void
 ) {
     const status = determinePathStatus(newData, oldData, pairData);
@@ -415,7 +415,7 @@ export function prepareLinePathAnimation(
     newData: LineContextLike,
     oldData: LineContextLike,
     diff: ProcessedOutputDiff | undefined,
-    line: LineSeriesLine | undefined
+    line: LineProperties | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';

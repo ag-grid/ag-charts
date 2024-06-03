@@ -5,7 +5,7 @@ import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import type { LineSeriesLine } from './lineSeriesProperties';
+import type { LineProperties } from './lineProperties';
 import {
     determinePathStatus,
     pairCategoryData,
@@ -131,7 +131,7 @@ function areaPathRenderer(
     bottomPairData: PathPoint[],
     ratios: Partial<Record<PathPointChange, number>>,
     path: Path,
-    line: LineSeriesLine | undefined
+    line: LineProperties | undefined
 ) {
     const topPaths = splitPairData(topPairData, ratios);
     const bottomPaths = splitPairData(bottomPairData, ratios);
@@ -154,7 +154,7 @@ export function prepareAreaPathAnimationFns(
     topPairData: PathPoint[],
     bottomPairData: PathPoint[],
     visibleToggleMode: 'fade' | 'none',
-    line: LineSeriesLine | undefined
+    line: LineProperties | undefined
 ) {
     const status = determinePathStatus(newData, oldData, topPairData);
     const removePhaseFn = (ratio: number, path: Path) => {
@@ -175,7 +175,7 @@ export function prepareAreaPathAnimation(
     newData: AreaSeriesNodeDataContext,
     oldData: AreaSeriesNodeDataContext,
     diff: ProcessedOutputDiff | undefined,
-    line: LineSeriesLine | undefined
+    line: LineProperties | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';

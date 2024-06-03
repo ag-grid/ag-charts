@@ -6,7 +6,7 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import type { NodeDataDependant } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 import { plotLinearPoints, plotSmoothPoints, plotStepPoints } from './linePlotter';
-import type { LineSeriesLine } from './lineSeriesProperties';
+import type { LineProperties } from './lineProperties';
 
 export interface PartialPathPoint extends Point {
     moveTo: boolean;
@@ -130,7 +130,7 @@ const lineSteps = {
     end: 1,
 };
 
-export function plotPath(points: Iterable<Point>, path: Path, line: LineSeriesLine | undefined, continuePath = false) {
+export function plotPath(points: Iterable<Point>, path: Path, line: LineProperties | undefined, continuePath = false) {
     const { path: linePath } = path;
 
     if (line?.style === 'smooth') {
@@ -189,7 +189,7 @@ export function renderPartialPath(
     pairData: PathPoint[],
     ratios: Partial<Record<PathPointChange, number>>,
     path: Path,
-    line: LineSeriesLine | undefined
+    line: LineProperties | undefined
 ) {
     splitPairData(pairData, ratios).forEach((points) => {
         plotPath(points, path, line);
