@@ -33,9 +33,10 @@ export default `
         --ag-disabled-foreground-color,
         color-mix(in srgb, transparent, var(--ag-charts-toolbar-foreground-color) 50%)
     );
-    --ag-charts-toolbar-disabled-background-color: var(
-        --ag-input-disabled-background-color,
-        color-mix(in srgb, var(--ag-charts-toolbar-background-color), var(--ag-charts-toolbar-foreground-color) 6%)
+    --ag-charts-toolbar-disabled-background-color: color-mix(
+        in srgb,
+        var(--ag-charts-toolbar-background-color),
+        var(--ag-charts-toolbar-foreground-color) 6%
     );
     --ag-charts-toolbar-gap: var(--ag-charts-size);
 
