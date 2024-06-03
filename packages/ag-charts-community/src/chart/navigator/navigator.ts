@@ -29,12 +29,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
     private readonly maskVisibleRange = {
-        computeBBox: (): BBox => {
-            return this.mask.computeVisibleRangeBBox();
-        },
-        getCachedBBox: (): BBox => {
-            return this.mask.computeVisibleRangeBBox();
-        },
+        computeBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
+        computeTransformedBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
     };
 
     @Validate(POSITIVE_NUMBER)

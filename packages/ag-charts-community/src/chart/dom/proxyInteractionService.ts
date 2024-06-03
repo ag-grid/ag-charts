@@ -38,10 +38,14 @@ type ProxyMeta = {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
+    div: {
+        params: ContainerParams<'div'>;
+        result: HTMLDivElement;
+    };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar';
+type ProxyContainerType = 'toolbar' | 'div';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -51,7 +55,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div', div: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -71,7 +75,7 @@ export class ProxyInteractionService {
 
     private update() {
         if (this.focusable) {
-            this.focusIndicator.updateBBox(this.focusable.getCachedBBox());
+            this.focusIndicator.updateBBox(this.focusable.computeTransformedBBox());
         }
     }
 
@@ -128,7 +132,7 @@ export class ProxyInteractionService {
         element.addEventListener('focus', (_event: FocusEvent): any => {
             this.focusable = focusable;
             element.style.setProperty('pointerEvents', null);
-            this.focusIndicator.updateBBox(focusable.getCachedBBox());
+            this.focusIndicator.updateBBox(focusable.computeTransformedBBox());
         });
         element.addEventListener('blur', (_event: FocusEvent): any => {
             this.focusable = undefined;

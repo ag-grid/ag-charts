@@ -229,6 +229,9 @@ export class Legend extends BaseProperties {
     private readonly destroyFns: Function[] = [];
 
     private readonly proxyLegendToolbar: HTMLDivElement;
+    private readonly proxyLegendPagination: HTMLDivElement;
+    private readonly proxyPrevButton: HTMLButtonElement;
+    private readonly proxyNextButton: HTMLButtonElement;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -276,6 +279,29 @@ export class Legend extends BaseProperties {
             classList: ['ag-charts-proxy-legend-toolbar'],
             ariaLabel: 'Legend',
             ariaOrientation: 'horizontal',
+        });
+        this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
+            type: 'div',
+            id: `${this.id}-pagination`,
+            classList: ['ag-charts-proxy-legend-pagination'],
+            ariaLabel: 'Legend Pagination',
+            ariaOrientation: 'horizontal',
+        });
+        this.proxyPrevButton ??= this.ctx.proxyInteractionService.createProxyElement({
+            type: 'button',
+            id: `${this.id}-prev-page`,
+            textContent: 'Previous Legend Page',
+            parent: this.proxyLegendPagination,
+            focusable: this.pagination.previousButton,
+            onclick: () => this.pagination.clickPrevious(),
+        });
+        this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
+            type: 'button',
+            id: `${this.id}-next-page`,
+            textContent: 'Next Legend Page',
+            parent: this.proxyLegendPagination,
+            focusable: this.pagination.nextButton,
+            onclick: () => this.pagination.clickNext(),
         });
     }
 
@@ -1186,6 +1212,14 @@ export class Legend extends BaseProperties {
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
         } else {
             this.proxyLegendToolbar.style.display = 'none';
+        }
+
+        if (this.pagination.visible) {
+            this.proxyLegendPagination.style.display = 'absolute';
+            setElementBBox(this.proxyPrevButton, this.pagination.previousButton.computeTransformedBBox()!);
+            setElementBBox(this.proxyNextButton, this.pagination.nextButton.computeTransformedBBox()!);
+        } else {
+            this.proxyLegendPagination.style.display = 'none';
         }
 
         if (this.visible && this.enabled && this.data.length) {
