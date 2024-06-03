@@ -28,15 +28,15 @@ checkVersion() {
     fi
 
     if [[ "${actual}" =~ "${expected}" ]] ; then
-        PASS=fail
-        echo "${RED}Installed version of ${pkg} !== ${expected}, found ${actual}${RESET}"
+        echo "${GREEN}Installed version of ${pkg} matched ${actual}${RESET}"
     else
-        echo "${GREEN}Installed version of ${pkg} matched ${expected}${RESET}"
+        PASS=false
+        echo "${RED}Installed version of ${pkg} !== ${expected}, found ${actual}${RESET}"
     fi
 }
 
 checkVersion cairo libcairo2 1.18.0 "1.18.0-ubuntu.*"
 
-if [[ $PASS == "fail" ]] ; then
+if [[ $PASS == "false" ]] ; then
     exit 1
 fi
