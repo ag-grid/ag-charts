@@ -1,6 +1,5 @@
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import type { RegionName } from './chartRegions';
 import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
@@ -10,6 +9,7 @@ import type {
     PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
+import type { RegionName } from './regions';
 
 export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'nav-hori' | 'nav-vert' | 'submit';
 

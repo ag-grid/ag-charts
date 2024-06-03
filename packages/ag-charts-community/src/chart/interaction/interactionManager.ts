@@ -6,8 +6,8 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import type { RegionName } from './chartRegions';
 import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
+import type { RegionName } from './regions';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
