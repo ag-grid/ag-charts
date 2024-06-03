@@ -57,8 +57,6 @@ export interface AgChartLegendItemOptions {
     paddingX?: PixelSize;
     /** The vertical spacing in pixels to use between legend items. */
     paddingY?: PixelSize;
-    /** Set to `false` to turn off toggling of the series visibility in the chart when the legend item is clicked. */
-    toggleSeriesVisible?: boolean;
     /** Set to `true` to show the stroke styling of line and area series in the legend.
      *  If enabled, will hide legend marker if series markers are disabled. */
     showSeriesStroke?: boolean;
@@ -110,6 +108,8 @@ export interface AgChartLegendOptions {
     pagination?: AgChartLegendPaginationOptions;
     /** Set to `true` to prevent the last visible series from being toggled hidden. */
     preventHidingAll?: boolean;
+    /** Set to `false` to turn off toggling of the series visibility in the chart when a legend item is clicked. */
+    toggleSeries?: boolean;
 }
 
 export interface AgChartLegendPaginationOptions {
