@@ -27,7 +27,7 @@ checkVersion() {
         actual=$(apt-cache policy $aptPkg | grep "Installed" | awk '{ print $2 }')
     fi
 
-    if [[ "${actual}" =~ "${expected}" ]] ; then
+    if [[ ${actual} =~ ${expected} ]] ; then
         echo -e "${GREEN}Installed version of ${pkg} matched ${actual}${RESET}"
     else
         PASS=false
