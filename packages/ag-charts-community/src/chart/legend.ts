@@ -305,6 +305,7 @@ export class Legend extends BaseProperties {
                     const bbox = markerLabel?.computeTransformedBBox();
                     const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bbox, showFocusBox: true });
                     this.doHover(event, markerLabel.datum);
+                    this.pagination.setPage(markerLabel.pageIndex);
                 },
             });
         });
@@ -631,6 +632,13 @@ export class Legend extends BaseProperties {
         this.pagination.update();
         this.pagination.updateMarkers();
 
+        let pageIndex = 0;
+        this.itemSelection.each((markerLabel, _, nodeIndex) => {
+            if (nodeIndex > pages[pageIndex].endIndex) {
+                pageIndex++;
+            }
+            markerLabel.pageIndex = pageIndex;
+        });
         return {
             maxPageHeight,
             maxPageWidth,
