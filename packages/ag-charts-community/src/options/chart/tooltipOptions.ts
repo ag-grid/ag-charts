@@ -8,7 +8,7 @@ export interface AgChartTooltipOptions {
     showArrow?: boolean;
     /** A class name to be added to the tooltip element of the chart. */
     class?: string;
-    /** @deprecated Set range for each series using `series[].tooltip.range` options instead */
+    /** Range from a point that triggers the tooltip to show. This is the default value that will be used unless overriden by the series. */
     range?: InteractionRange;
     /** The position of the tooltip. */
     position?: AgTooltipPositionOptions;
