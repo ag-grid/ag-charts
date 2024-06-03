@@ -125,9 +125,6 @@ class LegendItem extends BaseProperties {
     paddingY: number = 8;
 
     @Validate(BOOLEAN)
-    toggleSeriesVisible: boolean = true;
-
-    @Validate(BOOLEAN)
     showSeriesStroke: boolean = false;
 
     @Validate(OBJECT)
@@ -181,6 +178,9 @@ export class Legend extends BaseProperties {
     }
 
     private readonly contextMenuDatum?: CategoryLegendDatum;
+
+    @Validate(BOOLEAN)
+    toggleSeries: boolean = true;
 
     @Validate(OBJECT)
     readonly pagination: Pagination;
@@ -795,9 +795,9 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        const { toggleSeriesVisible } = this.item;
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_VISIBILITY, toggleSeriesVisible);
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_OTHER_SERIES, toggleSeriesVisible);
+        const { toggleSeries } = this;
+        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_VISIBILITY, toggleSeries);
+        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_OTHER_SERIES, toggleSeries);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -910,8 +910,8 @@ export class Legend extends BaseProperties {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
-            item: { toggleSeriesVisible },
             preventHidingAll,
+            toggleSeries,
         } = this;
 
         if (!datum) {
@@ -925,7 +925,7 @@ export class Legend extends BaseProperties {
         }
 
         let newEnabled = enabled;
-        if (toggleSeriesVisible) {
+        if (toggleSeries) {
             newEnabled = !enabled;
 
             if (preventHidingAll && !newEnabled) {
@@ -967,7 +967,7 @@ export class Legend extends BaseProperties {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
-            item: { toggleSeriesVisible },
+            toggleSeries,
         } = this;
         // Integrated charts do not handle double click behaviour correctly due to multiple instances of the
         // chart being created. See https://ag-grid.atlassian.net/browse/RTI-1381
@@ -985,7 +985,7 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        if (toggleSeriesVisible) {
+        if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
             const numVisibleItems = legendData.filter((d) => d.enabled).length;
 
@@ -1024,10 +1024,7 @@ export class Legend extends BaseProperties {
         event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined,
         datum: CategoryLegendDatum | undefined
     ) {
-        const {
-            item: { toggleSeriesVisible },
-            listeners,
-        } = this;
+        const { toggleSeries, listeners } = this;
 
         if (event === undefined || datum === undefined) {
             this.ctx.cursorManager.updateCursor(this.id);
@@ -1047,7 +1044,7 @@ export class Legend extends BaseProperties {
             this.ctx.tooltipManager.removeTooltip(this.id);
         }
 
-        if (toggleSeriesVisible || listeners.legendItemClick != null || listeners.legendItemDoubleClick != null) {
+        if (toggleSeries || listeners.legendItemClick != null || listeners.legendItemDoubleClick != null) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
 
@@ -1079,11 +1076,11 @@ export class Legend extends BaseProperties {
     private handleLegendMouseEnter(event: PointerInteractionEvent<'enter'>) {
         const {
             enabled,
-            item: { toggleSeriesVisible: toggle },
+            toggleSeries,
             listeners: { legendItemClick: clickListener, legendItemDoubleClick: dblclickListener },
         } = this;
         const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
-        if (enabled && datum !== undefined && (toggle || clickListener != null || dblclickListener != null)) {
+        if (enabled && datum !== undefined && (toggleSeries || clickListener != null || dblclickListener != null)) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
     }

@@ -171,11 +171,11 @@ export class ChartTheme {
                 position: POSITION.BOTTOM,
                 spacing: 30,
                 listeners: {},
+                toggleSeries: true,
                 item: {
                     paddingX: 16,
                     paddingY: 8,
                     marker: { size: 15, padding: 8 },
-                    toggleSeriesVisible: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
                         fontSize: FONT_SIZE.SMALL,

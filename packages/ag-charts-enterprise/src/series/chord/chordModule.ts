@@ -39,9 +39,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
         },
         legend: {
             enabled: false,
-            item: {
-                toggleSeriesVisible: false,
-            },
+            toggleSeries: false,
         },
     },
     paletteFactory({ takeColors, colorsCount }) {
