@@ -35,6 +35,11 @@ checkVersion() {
     fi
 }
 
+if [[ ${AG_SKIP_NATIVE_DEP_VERSION_CHECK:-} != "" ]] ; then
+    echo -e "${RED}Native version checks skipped.${RESET}"
+    exit 0
+fi
+
 checkVersion cairo libcairo2 1.18.0 "1.18.0-.*"
 
 if [[ $PASS == "false" ]] ; then
