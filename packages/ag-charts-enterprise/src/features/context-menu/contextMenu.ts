@@ -71,7 +71,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.scene = ctx.scene;
 
         const { All } = _ModuleSupport.InteractionState;
-        this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
+        this.destroyFns.push(
+            ctx.regionManager.listenAll('click', (_region) => this.onClick(), { triggeringStates: All })
+        );
 
         // State
         this.groups = { default: [], extra: [], extraNode: [], extraLegendItem: [] };
