@@ -1960,9 +1960,11 @@ export abstract class Chart extends Observable {
             if (moduleDef.type !== 'series-option') continue;
             if (moduleDef.optionsKey in seriesOptions) {
                 const module = moduleMap.getModule<any>(moduleDef.optionsKey);
-                const moduleOptions = seriesOptions[moduleDef.optionsKey];
-                delete seriesOptions[moduleDef.optionsKey];
-                module.properties.set(moduleOptions);
+                if (module) {
+                    const moduleOptions = seriesOptions[moduleDef.optionsKey];
+                    delete seriesOptions[moduleDef.optionsKey];
+                    module.properties.set(moduleOptions);
+                }
             }
         }
 
