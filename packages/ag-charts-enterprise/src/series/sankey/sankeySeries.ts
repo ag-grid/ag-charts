@@ -252,7 +252,7 @@ export class SankeySeries extends FlowProportionSeries<
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize } = this.properties.label;
-        const canvasFont = new Text().setProperties(this.properties.label).font;
+        const canvasFont = this.properties.label.getFont();
         columns.forEach((column, index) => {
             const leading = index === 0;
             const trailing = index === columns.length - 1;

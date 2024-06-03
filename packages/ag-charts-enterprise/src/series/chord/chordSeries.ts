@@ -100,7 +100,6 @@ export class ChordSeries extends FlowProportionSeries<
         } = this.properties;
         const centerX = seriesRectWidth / 2;
         const centerY = seriesRectHeight / 2;
-        const canvasFont = new Text().setProperties(this.properties.label).font;
 
         let labelData: ChordNodeLabelDatum[] = [];
 
@@ -159,6 +158,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         let labelInset = 0;
         if (this.isLabelEnabled()) {
+            const canvasFont = this.properties.label.getFont();
             let maxMeasuredLabelWidth = 0;
             nodeGraph.forEach(({ datum: node }) => {
                 const { id, label } = node;
