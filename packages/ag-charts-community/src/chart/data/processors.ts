@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { isNegative } from '../../util/number';
@@ -276,6 +277,33 @@ export function accumulateGroup(
     } else {
         adjust = memo({ mode: mode as 'normal' | 'trailing', separateNegative }, buildGroupAccFn);
     }
+
+    return {
+        type: 'group-value-processor',
+        matchGroupIds: [matchGroupId],
+        adjust,
+    };
+}
+
+function buildGroupContinuityAccFn({ separateNegative }: { separateNegative: boolean }) {
+    return () => () => (values: any[], valueIndexes: number[]) => {
+        // Datum scope.
+        const acc = [true, true];
+        for (const valueIdx of valueIndexes) {
+            const currentVal = values[valueIdx];
+            const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
+
+            acc[accIndex] &&= isFiniteNumber(currentVal);
+            values[valueIdx] = acc[accIndex];
+        }
+    };
+}
+
+export function accumulateContinuity(
+    matchGroupId: string,
+    separateNegative = false
+): GroupValueProcessorDefinition<any, any> {
+    const adjust = memo({ separateNegative }, buildGroupContinuityAccFn);
 
     return {
         type: 'group-value-processor',

@@ -38,7 +38,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { type LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
-import { prepareLinePathAnimation } from './lineUtil';
+import { pathRangePoints, pathRanges, prepareLinePathAnimation } from './lineUtil';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -46,14 +46,7 @@ import {
     resetMarkerFn,
     resetMarkerPositionFn,
 } from './markerUtil';
-import {
-    buildResetPathFn,
-    pathFadeInAnimation,
-    pathSwipeInAnimation,
-    plotPath,
-    splitPartialPaths,
-    updateClipPath,
-} from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, updateClipPath } from './pathUtil';
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
@@ -127,8 +120,6 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             const ids = [
                 `line-stack-${groupIndex}-yValues`,
                 `line-stack-${groupIndex}-yValues-trailing`,
-                `line-stack-${groupIndex}-yValues-prev`,
-                `line-stack-${groupIndex}-yValues-trailing-prev`,
                 `line-stack-${groupIndex}-yValues-marker`,
             ];
 
@@ -157,42 +148,19 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
-                    'window',
-                    'last',
-                    {
-                        id: `yValuePreviousEnd`,
-                        ...common,
-                        groupId: ids[2],
-                    },
-                    yScaleType
-                ),
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window-trailing',
-                    'last',
-                    {
-                        id: `yValuePreviousStart`,
-                        ...common,
-                        groupId: ids[3],
-                    },
-                    yScaleType
-                ),
-                ...groupAccumulativeValueProperty(
-                    yKey,
                     'normal',
                     'current',
                     {
                         id: `yValueCumulative`,
                         ...common,
-                        groupId: ids[4],
+                        groupId: ids[2],
                     },
                     yScaleType
                 )
             );
 
             if (isDefined(normalizedTo)) {
-                props.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
-                props.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
+                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo, 'range'));
             }
         }
 
@@ -530,12 +498,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const { nodeData } = contextData;
         const [lineNode] = paths;
 
-        const { path: linePath } = lineNode;
-
-        linePath.clear(true);
-        splitPartialPaths(nodeData.map((d) => d.point)).forEach((points) => {
-            plotPath(points, lineNode, this.properties.line);
-        });
+        lineNode.path.clear(true);
+        for (const range of pathRanges(nodeData)) {
+            plotPath(pathRangePoints(nodeData, range), lineNode, this.properties.line);
+        }
         lineNode.checkPathDirty();
     }
 
