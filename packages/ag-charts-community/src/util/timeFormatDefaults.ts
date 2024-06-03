@@ -29,7 +29,7 @@ export function defaultTimeTickFormat(ticks?: any[], domain?: any[], formatOffse
     return (date: Date) => buildFormatter(formatString)(date);
 }
 
-export function calculateDefaultTimeTickFormat(ticks: any[] | undefined = [], domain = ticks, formatOffset = 0) {
+function calculateDefaultTimeTickFormat(ticks: any[] | undefined = [], domain = ticks, formatOffset = 0) {
     let defaultTimeFormat = DefaultTimeFormats.YEAR;
 
     const updateFormat = (format: DefaultTimeFormats) => {
