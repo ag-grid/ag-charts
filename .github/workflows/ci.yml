@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
     execute_blt:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         outputs:
             nx_base: ${{ steps.nx_config.outputs.base }}
             build: ${{ steps.build.outcome || '' }}
