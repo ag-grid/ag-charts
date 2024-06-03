@@ -29,7 +29,7 @@ export class AnnotationPoint extends BaseProperties {
 
 export class ChannelAnnotationBackground extends Fill(BaseProperties) {}
 
-export class ChannelAnnotationMiddle extends Stroke(LineDash(BaseProperties)) {}
+export class ChannelAnnotationMiddle extends Stroke(LineDash(Visible(BaseProperties))) {}
 
 export class AnnotationHandleProperties extends Stroke(LineDash(Fill(BaseProperties))) {}
 
