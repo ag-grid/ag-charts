@@ -4,7 +4,7 @@ exports[`Feature Combinations Context Menu and Zoom when fully zoomed in it shou
 HTMLCollection [
   <div
     class="ag-chart-context-menu"
-    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       class="ag-chart-context-menu__menu"
@@ -34,7 +34,7 @@ exports[`Feature Combinations Context Menu and Zoom when fully zoomed out it sho
 HTMLCollection [
   <div
     class="ag-chart-context-menu"
-    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       class="ag-chart-context-menu__menu"
@@ -64,7 +64,7 @@ exports[`Feature Combinations Context Menu and Zoom when zoomed in it should ena
 HTMLCollection [
   <div
     class="ag-chart-context-menu"
-    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       class="ag-chart-context-menu__menu"
