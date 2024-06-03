@@ -33,20 +33,20 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "rotation": -30,
       },
       "line": {
-        "color": "#3f7cbf",
         "enabled": true,
+        "stroke": "#3f7cbf",
         "width": 1,
       },
       "nice": false,
       "position": "top",
       "tick": {
-        "color": "#3f7cbf",
         "enabled": true,
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
+        "stroke": "#3f7cbf",
         "width": 3,
       },
       "title": {
@@ -79,16 +79,16 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "padding": 5,
       },
       "line": {
-        "color": "#326baf",
         "enabled": true,
+        "stroke": "#326baf",
         "width": 1,
       },
       "nice": false,
       "position": "right",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
         "size": 10,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -513,14 +513,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -557,14 +557,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -600,14 +600,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "right",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1033,14 +1033,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "rotation": -30,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1073,14 +1073,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1699,14 +1699,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1739,14 +1739,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2359,14 +2359,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2398,14 +2398,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2722,14 +2722,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2761,14 +2761,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3232,14 +3232,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3271,14 +3271,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3836,14 +3836,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3875,14 +3875,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4210,14 +4210,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4249,14 +4249,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4585,16 +4585,16 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "transparent",
         "enabled": true,
+        "stroke": "transparent",
         "width": 1,
       },
       "paddingInner": 0.2,
       "paddingOuter": 0.3,
       "position": "bottom",
       "tick": {
-        "color": "black",
         "enabled": true,
+        "stroke": "black",
         "width": 1,
       },
       "title": {
@@ -4623,16 +4623,16 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "transparent",
         "enabled": true,
+        "stroke": "transparent",
         "width": 1,
       },
       "paddingInner": 0.2,
       "paddingOuter": 0.3,
       "position": "left",
       "tick": {
-        "color": "black",
         "enabled": true,
+        "stroke": "black",
         "width": 1,
       },
       "title": {
@@ -4940,8 +4940,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "max": 180,
@@ -4949,8 +4949,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "nice": false,
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4982,8 +4982,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "max": 90,
@@ -4991,8 +4991,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "nice": false,
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5305,14 +5305,14 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5344,14 +5344,14 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5740,14 +5740,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5779,14 +5779,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6179,14 +6179,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6219,14 +6219,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6842,14 +6842,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6881,8 +6881,8 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "max": 1,
@@ -6890,8 +6890,8 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "nice": false,
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -7932,14 +7932,14 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -7971,14 +7971,14 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -8296,14 +8296,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -8336,14 +8336,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -9032,14 +9032,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "rotation": -30,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -9072,14 +9072,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -9520,14 +9520,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -9560,14 +9560,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -10137,19 +10137,19 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -10182,14 +10182,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -10659,14 +10659,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -10699,14 +10699,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11257,19 +11257,19 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
         "interval": TimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": [Function],
         },
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11302,14 +11302,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11897,14 +11897,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11936,14 +11936,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12248,19 +12248,19 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
         "interval": CountableTimeInterval {
           "_decode": [Function],
           "_encode": [Function],
           "_rangeCallback": undefined,
         },
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12293,14 +12293,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12949,14 +12949,14 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12988,15 +12988,15 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "nice": false,
       "position": "top",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -13464,14 +13464,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "rotation": 30,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -13504,14 +13504,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {

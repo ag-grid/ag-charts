@@ -413,7 +413,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 minSpacing: 300,
             },
             line: {
-                color: 'transparent',
+                stroke: 'transparent',
             },
             gridLine: {
                 style: [
@@ -435,7 +435,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 minSpacing: 200,
             },
             line: {
-                color: 'transparent',
+                stroke: 'transparent',
             },
             gridLine: {
                 style: [
@@ -515,7 +515,7 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 text: 'Weight',
             },
             line: {
-                color: undefined,
+                stroke: undefined,
             },
             label: {
                 formatter: (params) => {
@@ -827,7 +827,7 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
                 text: 'Height',
             },
             line: {
-                color: undefined,
+                stroke: undefined,
             },
         },
         {
@@ -835,7 +835,7 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             type: 'number',
             keys: ['age'],
             line: {
-                color: undefined,
+                stroke: undefined,
             },
         },
     ],

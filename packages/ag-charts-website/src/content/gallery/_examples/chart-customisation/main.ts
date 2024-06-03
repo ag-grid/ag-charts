@@ -63,7 +63,7 @@ const options: AgChartOptions = {
             tick: {
                 interval: time.year.every(10),
                 width: 3,
-                color: '#3f7cbf',
+                stroke: '#3f7cbf',
             },
             nice: false,
             label: {
@@ -74,7 +74,7 @@ const options: AgChartOptions = {
                 fontFamily: 'Impact, Charcoal, Sans-Serif',
             },
             line: {
-                color: '#3f7cbf',
+                stroke: '#3f7cbf',
             },
             gridLine: {
                 style: [
@@ -106,7 +106,7 @@ const options: AgChartOptions = {
                 fontFamily: 'Georgia, Times New Roman, Times, Serif',
             },
             line: {
-                color: '#326baf',
+                stroke: '#326baf',
             },
         },
     ],

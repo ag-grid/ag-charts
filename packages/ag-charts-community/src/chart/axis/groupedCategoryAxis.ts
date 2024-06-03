@@ -204,7 +204,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             line.y1 = datum.y;
             line.y2 = datum.y;
             line.visible = datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon;
-            line.stroke = this.tick.color;
+            line.stroke = this.tick.stroke;
             line.fill = undefined;
             line.strokeWidth = 1;
         });
@@ -217,7 +217,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         axisLineSelection.each((line, datum) => {
             line.setProperties({
                 ...datum,
-                stroke: this.line.color,
+                stroke: this.line.stroke,
                 strokeWidth: this.line.width,
             });
             line.x1 = datum.x;
@@ -225,7 +225,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             line.y1 = datum.y1;
             line.y2 = datum.y2;
             line.strokeWidth = this.line.width;
-            line.stroke = this.line.color;
+            line.stroke = this.line.stroke;
         });
     }
 

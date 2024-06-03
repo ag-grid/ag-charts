@@ -378,11 +378,11 @@ const extremeAxisConfig = {
         text: 'Axis title',
     },
     line: {
-        color: 'yellow',
+        stroke: 'yellow',
         width: 20,
     },
     tick: {
-        color: 'blue',
+        stroke: 'blue',
         size: 20,
         width: 400,
     },
