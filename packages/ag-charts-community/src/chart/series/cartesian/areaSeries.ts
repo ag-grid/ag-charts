@@ -715,12 +715,28 @@ export class AreaSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
+        if (
+            !this.data?.length ||
+            !this.properties.isValid() ||
+            !this.properties.showInLegend ||
+            legendType !== 'category'
+        ) {
             return [];
         }
 
-        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, visible } =
-            this.properties;
+        const {
+            yKey,
+            yName,
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            marker,
+            visible,
+            legendItemName,
+        } = this.properties;
 
         const useAreaFill = !marker.enabled || marker.fill === undefined;
         return [
@@ -731,7 +747,7 @@ export class AreaSeries extends CartesianSeries<
                 seriesId: this.id,
                 enabled: visible,
                 label: {
-                    text: yName ?? yKey,
+                    text: legendItemName ?? yName ?? yKey,
                 },
                 symbols: [
                     {
@@ -752,6 +768,7 @@ export class AreaSeries extends CartesianSeries<
                         },
                     },
                 ],
+                legendItemName,
             },
         ];
     }

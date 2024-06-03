@@ -36,11 +36,12 @@ function addHandler<T extends RegionEvent['type']>(
     interactionManager: InteractionManager,
     type: T,
     handler: (event: TypeInfo[T]) => void,
-    triggeringStates: InteractionState = InteractionState.Default
+    triggeringStates: InteractionState = InteractionState.Default,
+    includeConsumedEvents = false
 ): () => void {
     return (
         listeners?.addListener(type, (e: RegionEvent) => {
-            if (!e.consumed) {
+            if (includeConsumedEvents || !e.consumed) {
                 const currentState = interactionManager.getState();
                 if (currentState & triggeringStates) {
                     handler(e as TypeInfo[T]);
@@ -117,25 +118,16 @@ export class RegionManager {
     listenAll<T extends RegionEvent['type']>(
         type: T,
         handler: (event: TypeInfo[T]) => void,
-        triggeringStates: InteractionState = InteractionState.Default
+        { triggeringStates = InteractionState.Default, includeConsumedEvents = false } = {}
     ): () => void {
-        return addHandler(this.allRegionsListeners, this.interactionManager, type, handler, triggeringStates);
-    }
-
-    private find(x: number, y: number): Region[] {
-        // Sort matches by area.
-        // This ensure that we prioritise smaller regions are contained inside larger regions.
-        type Area = number;
-        const matches: [Region, Area][] = [];
-        for (const [_name, region] of this.regions.entries()) {
-            for (const provider of region.properties.bboxproviders) {
-                const bbox = provider.getCachedBBox();
-                if (bbox.containsPoint(x, y)) {
-                    matches.push([region, bbox.width * bbox.height]);
-                }
-            }
-        }
-        return matches.sort((a, b) => a[1] - b[1]).map((m) => m[0]);
+        return addHandler(
+            this.allRegionsListeners,
+            this.interactionManager,
+            type,
+            handler,
+            triggeringStates,
+            includeConsumedEvents
+        );
     }
 
     // This method return a wrapper object that matches the interface of InteractionManager.addListener.
@@ -166,8 +158,8 @@ export class RegionManager {
 
     private dispatch(region: Region | undefined, event: RegionEvent) {
         event.region = region?.properties.name;
-        this.allRegionsListeners.dispatch(event.type, event);
         region?.listeners.dispatch(event.type, event);
+        this.allRegionsListeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
@@ -235,8 +227,21 @@ export class RegionManager {
     }
 
     private pickRegion(x: number, y: number): Region | undefined {
-        const matchingRegions = this.find(x, y);
-        return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
+        // Sort matches by area.
+        // This ensure that we prioritise smaller regions are contained inside larger regions.
+        let currentArea = Infinity;
+        let currentRegion: Region | undefined;
+        for (const region of this.regions.values()) {
+            for (const provider of region.properties.bboxproviders) {
+                const bbox = provider.getCachedBBox();
+                const area = bbox.width * bbox.height;
+                if (area < currentArea && bbox.containsPoint(x, y)) {
+                    currentArea = area;
+                    currentRegion = region;
+                }
+            }
+        }
+        return currentRegion;
     }
 
     private getTabRegion(tabIndex: number | undefined): Region | undefined {
