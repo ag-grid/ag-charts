@@ -105,12 +105,12 @@ export class ChartTheme {
             line: {
                 enabled: true,
                 width: 1,
-                color: DEFAULT_AXIS_LINE_COLOUR,
+                stroke: DEFAULT_AXIS_LINE_COLOUR,
             },
             tick: {
                 enabled: false,
                 width: 1,
-                color: DEFAULT_AXIS_LINE_COLOUR,
+                stroke: DEFAULT_AXIS_LINE_COLOUR,
             },
             gridLine: {
                 enabled: true,

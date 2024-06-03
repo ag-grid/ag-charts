@@ -480,7 +480,7 @@ describe('ChartTheme', () => {
                     axes: {
                         category: {
                             line: {
-                                color: 'red',
+                                stroke: 'red',
                             },
                             label: {
                                 fontSize: 12,
@@ -489,7 +489,7 @@ describe('ChartTheme', () => {
                             top: {},
                             right: {
                                 line: {
-                                    color: 'green',
+                                    stroke: 'green',
                                 },
                                 label: {
                                     fontSize: 14,
@@ -497,7 +497,7 @@ describe('ChartTheme', () => {
                             },
                             bottom: {
                                 line: {
-                                    color: 'blue',
+                                    stroke: 'blue',
                                 },
                                 label: {
                                     fontSize: 18,
@@ -505,7 +505,7 @@ describe('ChartTheme', () => {
                             },
                             left: {
                                 line: {
-                                    color: 'gold',
+                                    stroke: 'gold',
                                 },
                                 label: {
                                     fontSize: 20,
@@ -516,7 +516,7 @@ describe('ChartTheme', () => {
                             top: {},
                             right: {
                                 line: {
-                                    color: 'blue',
+                                    stroke: 'blue',
                                 },
                                 label: {
                                     fontSize: 18,
@@ -578,13 +578,13 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.color).toBe(defaultTheme.config.area.axes.number.line.color);
+            expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
             expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('bottom');
-            expect(axis1.line.color).toBe('blue');
+            expect(axis1.line.stroke).toBe('blue');
             expect(axis1.label.fontSize).toBe(18);
         });
 
@@ -628,13 +628,13 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.color).toBe(defaultTheme.config.area.axes.number.line.color);
+            expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
             expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('bottom');
-            expect(axis1.line.color).toBe('blue');
+            expect(axis1.line.stroke).toBe('blue');
             expect(axis1.label.fontSize).toBe(18);
         });
 
@@ -688,13 +688,13 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('right');
-            expect(axis0.line.color).toBe('blue');
+            expect(axis0.line.stroke).toBe('blue');
             expect(axis0.label.fontSize).toBe(18);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('top');
-            expect(axis1.line.color).toBe('red');
+            expect(axis1.line.stroke).toBe('red');
             expect(axis1.label.fontSize).toBe(12);
         });
 
@@ -708,7 +708,7 @@ describe('ChartTheme', () => {
                             type: 'number',
                             position: 'right',
                             line: {
-                                color: 'red',
+                                stroke: 'red',
                             },
                             label: {
                                 fontStyle: 'italic',
@@ -765,7 +765,7 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('right');
-            expect(axis0.line.color).toBe('red');
+            expect(axis0.line.stroke).toBe('red');
             expect(axis0.label.fontSize).toBe(18);
             expect(axis0.label.fontStyle).toBe('italic');
             expect(axis0.label.fontFamily).toBe('Tahoma');
@@ -776,7 +776,7 @@ describe('ChartTheme', () => {
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('bottom');
-            expect(axis1.line.color).toBe('blue');
+            expect(axis1.line.stroke).toBe('blue');
             expect(axis1.line.width).toBe(5);
             expect(axis1.label.fontSize).toBe(18);
             expect(axis1.label.fontStyle).toBe(defaultTheme.config.area.axes.category.label.fontStyle);

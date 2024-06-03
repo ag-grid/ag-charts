@@ -1208,7 +1208,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const sideFlag = label.getSideFlag();
         this.tickLineGroupSelection.each((line) => {
             line.strokeWidth = tick.width;
-            line.stroke = tick.color;
+            line.stroke = tick.stroke;
             line.x1 = sideFlag * this.getTickSize();
             line.x2 = 0;
         });
@@ -1298,7 +1298,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
         const strokeWidth = line.enabled ? line.width : 0;
         this.lineNode.setProperties({
-            stroke: line.color,
+            stroke: line.stroke,
             strokeWidth,
         });
     }

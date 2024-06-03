@@ -45,10 +45,10 @@ const options: AgChartOptions = {
             paddingInner: 0.2,
             paddingOuter: 0.3,
             tick: {
-                color: 'black',
+                stroke: 'black',
             },
             line: {
-                color: 'transparent',
+                stroke: 'transparent',
             },
         },
         {
@@ -60,10 +60,10 @@ const options: AgChartOptions = {
             paddingInner: 0.2,
             paddingOuter: 0.3,
             tick: {
-                color: 'black',
+                stroke: 'black',
             },
             line: {
-                color: 'transparent',
+                stroke: 'transparent',
             },
         },
     ],

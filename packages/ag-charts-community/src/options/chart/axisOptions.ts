@@ -58,7 +58,7 @@ export interface AgAxisLineOptions {
     /** The width in pixels of the axis line. */
     width?: PixelSize;
     /** The colour of the axis line. */
-    color?: CssColor;
+    stroke?: CssColor;
 }
 
 export interface AgAxisGridLineOptions {
@@ -78,7 +78,7 @@ export interface AgAxisBaseTickOptions {
     /** The length in pixels of the axis ticks. */
     size?: PixelSize;
     /** The colour of the axis ticks. */
-    color?: CssColor;
+    stroke?: CssColor;
     /** Array of values in axis units to display as ticks along the axis. The values in this array must be compatible with the axis type. */
     values?: any[];
     /** Minimum gap in pixels between tick lines. */

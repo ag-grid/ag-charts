@@ -20,18 +20,18 @@ var myTheme: AgChartTheme = {
             axes: {
                 category: {
                     line: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                     tick: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                 },
                 number: {
                     line: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                     tick: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                 },
             },
