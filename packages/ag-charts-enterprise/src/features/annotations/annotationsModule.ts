@@ -19,6 +19,14 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                 },
             },
+            'cross-line': {
+                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                strokeWidth: 2,
+                strokeOpacity: 1,
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                },
+            },
             'disjoint-channel': {
                 stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                 strokeWidth: 2,

@@ -5,17 +5,7 @@ import { buildConsumable } from './consumableEvent';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
-
-export type RegionName =
-    | 'title'
-    | 'subtitle'
-    | 'footnote'
-    | 'legend'
-    | 'navigator'
-    | 'pagination'
-    | 'root'
-    | 'series'
-    | 'toolbar';
+import type { RegionName } from './regions';
 
 const REGION_TAB_ORDERING: RegionName[] = ['series'];
 
@@ -38,7 +28,7 @@ type Region = {
 
 export interface RegionProperties {
     readonly name: RegionName;
-    readonly bboxproviders: RegionBBoxProvider[];
+    bboxproviders: RegionBBoxProvider[];
 }
 
 function addHandler<T extends RegionEvent['type']>(
@@ -101,13 +91,23 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    public addRegion(name: RegionName, bboxprovider: RegionBBoxProvider, ...extraProviders: RegionBBoxProvider[]) {
+    public addRegion(name: RegionName, ...bboxproviders: RegionBBoxProvider[]) {
+        if (this.regions.has(name)) {
+            throw new Error(`AG Charts - Region: ${name} already exists`);
+        }
         const region = {
-            properties: { name, bboxproviders: [bboxprovider, ...extraProviders] },
+            properties: { name, bboxproviders: [...bboxproviders] },
             listeners: new RegionListeners(),
         };
         this.regions.set(name, region);
         return this.makeObserver(region);
+    }
+
+    public updateRegion(name: RegionName, ...bboxprovider: RegionBBoxProvider[]) {
+        const region = this.regions.get(name);
+        if (region) {
+            region.properties.bboxproviders = [...bboxprovider];
+        }
     }
 
     public getRegion(name: RegionName) {

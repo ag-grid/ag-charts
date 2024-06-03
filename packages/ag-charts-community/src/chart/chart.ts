@@ -50,6 +50,7 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import type { PointerInteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionState } from './interaction/interactionManager';
 import type { KeyNavEvent } from './interaction/keyNavManager';
+import { REGIONS } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
@@ -333,7 +334,10 @@ export abstract class Chart extends Observable {
 
         const { All } = InteractionState;
         const moduleContext = this.getModuleContext();
-        const seriesRegion = ctx.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
+        const seriesRegion = ctx.regionManager.addRegion(REGIONS.SERIES, this.seriesRoot, this.axisGroup);
+
+        const horizontalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
 
         ctx.regionManager.addRegion('root', root);
 
@@ -353,7 +357,11 @@ export abstract class Chart extends Observable {
             ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
+            horizontalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
+            verticalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
             seriesRegion.addListener('blur', () => this.onBlur()),
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
@@ -1912,6 +1920,17 @@ export abstract class Chart extends Observable {
 
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
+
+        const axisGroups: { [Key in ChartAxisDirection]: Group[] } = {
+            [ChartAxisDirection.X]: [],
+            [ChartAxisDirection.Y]: [],
+        };
+
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getAxisGroup()));
+
+        this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
+        this.ctx.regionManager.updateRegion(REGIONS.VERTICAL_AXES, ...axisGroups[ChartAxisDirection.Y]);
+
         return true;
     }
 

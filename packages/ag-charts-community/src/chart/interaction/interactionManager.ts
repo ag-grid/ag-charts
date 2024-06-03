@@ -7,6 +7,7 @@ import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
 import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
+import type { RegionName } from './regions';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -75,7 +76,7 @@ const EVENT_HANDLERS = [
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
     type: T;
-    region?: string;
+    region?: RegionName;
     sourceEvent: TEvent;
     relatedElement?: HTMLElement;
     targetElement?: HTMLElement;

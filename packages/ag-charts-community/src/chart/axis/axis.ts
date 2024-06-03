@@ -45,7 +45,8 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { PointerInteractionEvent } from '../interaction/interactionManager';
+import { type PointerInteractionEvent } from '../interaction/interactionManager';
+import { REGIONS } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
@@ -263,7 +264,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.axisGroup.appendChild(this._titleCaption.node);
 
         this.destroyFns.push(
-            moduleCtx.regionManager.getRegion('series').addListener('hover', (e) => this.checkAxisHover(e))
+            moduleCtx.regionManager.getRegion(REGIONS.SERIES).addListener('hover', (e) => this.checkAxisHover(e)),
+            moduleCtx.regionManager
+                .getRegion(REGIONS.HORIZONTAL_AXES)
+                .addListener('hover', (e) => this.checkAxisHover(e)),
+            moduleCtx.regionManager.getRegion(REGIONS.VERTICAL_AXES).addListener('hover', (e) => this.checkAxisHover(e))
         );
 
         this.animationManager = moduleCtx.animationManager;
@@ -352,6 +357,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         gridNode.removeChild(this.gridGroup);
         axisNode.removeChild(this.axisGroup);
         axisNode.removeChild(this.crossLineGroup);
+    }
+
+    getAxisGroup(): Group {
+        return this.axisGroup;
     }
 
     range: [number, number] = [0, 1];

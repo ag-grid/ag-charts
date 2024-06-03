@@ -48,6 +48,7 @@ const {
     Validate,
     ProxyProperty,
     round: sharedRound,
+    REGIONS,
 } = _ModuleSupport;
 
 const round = (value: number) => sharedRound(value, 10);
@@ -181,13 +182,23 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
-        const region = ctx.regionManager.getRegion('series');
+        const region = ctx.regionManager.getRegion(REGIONS.SERIES);
+        const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
+
+        const dragStartEventType = 'drag-start';
         this.destroyFns.push(
             ctx.scene.attachNode(selectionRect),
             region.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
-            region.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
+            region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
             region.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
+            verticalAxesRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
+            verticalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
+            verticalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
+            horizontalAxesRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
+            horizontalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
+            horizontalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), clickableState),
             region.addListener('hover', () => this.onAxisLeave(), clickableState),
             region.addListener('leave', () => this.onAxisLeave(), clickableState),
