@@ -11,15 +11,13 @@ const options: AgCartesianChartOptions = {
             sizeKey: 'planetRadius',
             yKey: 'equilibriumTemp',
             xKey: 'distance',
+            stroke: 'white',
+            fill: 'rgb(103,105,235)',
             highlightStyle: {
                 item: {
                     fill: 'white',
                     stroke: 'rgb(103,105,235)',
                 },
-            },
-            marker: {
-                stroke: 'white',
-                fill: 'rgb(103,105,235)',
             },
         },
     ],

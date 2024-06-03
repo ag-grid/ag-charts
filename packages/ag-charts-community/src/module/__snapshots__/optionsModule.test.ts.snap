@@ -2471,25 +2471,23 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   },
   "series": [
     {
+      "fill": "#5090dc",
+      "fillOpacity": 0.7,
+      "formatter": [Function],
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "marker": {
-        "fill": "#5090dc",
-        "fillOpacity": 0.7,
-        "formatter": [Function],
-        "maxSize": 100,
-        "shape": "circle",
-        "size": 5,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0.7,
-        "strokeWidth": 0,
-      },
+      "maxSize": 100,
+      "shape": "circle",
+      "size": 5,
       "sizeKey": "magnitude",
       "sizeName": "Magnitude",
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0.7,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -4680,23 +4678,21 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   },
   "series": [
     {
+      "fill": "#cc5b58",
+      "fillOpacity": 0.85,
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "marker": {
-        "fill": "#cc5b58",
-        "fillOpacity": 0.85,
-        "maxSize": 30,
-        "shape": "circle",
-        "size": 0,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0.85,
-      },
+      "maxSize": 30,
+      "shape": "circle",
+      "size": 0,
       "sizeKey": "size",
       "sizeName": "Commits",
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0.85,
       "title": "Punch Card",
       "tooltip": {
         "position": {
@@ -5042,6 +5038,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   },
   "series": [
     {
+      "fill": "#5090dc",
+      "fillOpacity": 0.5,
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -5050,17 +5048,13 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "labelKey": "city",
       "labelName": "City",
-      "marker": {
-        "fill": "#5090dc",
-        "fillOpacity": 0.5,
-        "maxSize": 100,
-        "shape": "circle",
-        "size": 5,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0.5,
-      },
+      "maxSize": 100,
+      "shape": "circle",
+      "size": 5,
       "sizeKey": "population",
       "sizeName": "Population",
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0.5,
       "title": "Most populous cities",
       "tooltip": {
         "position": {
@@ -11900,20 +11894,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   },
   "series": [
     {
+      "fill": "#002D72",
+      "fillOpacity": 0.5,
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "marker": {
-        "fill": "#002D72",
-        "fillOpacity": 0.5,
-        "shape": "circle",
-        "size": 12,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0,
-      },
+      "shape": "circle",
+      "size": 12,
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0,
       "tooltip": {
         "position": {
           "type": "node",

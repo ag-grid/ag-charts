@@ -64,14 +64,12 @@ const options: AgChartOptions = {
             yName: 'Minimum Distance',
             sizeKey: 'magnitude',
             sizeName: 'Magnitude',
-            marker: {
-                size: minSize,
-                maxSize: maxSize,
-                formatter: (params) => {
-                    return {
-                        fill: params.highlighted ? params.fill : calculateColour(params.size),
-                    };
-                },
+            size: minSize,
+            maxSize: maxSize,
+            formatter: (params) => {
+                return {
+                    fill: params.highlighted ? params.fill : calculateColour(params.size),
+                };
             },
         },
     ],

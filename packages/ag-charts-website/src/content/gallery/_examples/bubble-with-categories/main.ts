@@ -21,11 +21,9 @@ const options: AgChartOptions = {
         yName: day,
         sizeKey: 'size',
         sizeName: 'Commits',
-        marker: {
-            strokeWidth: 0,
-            size: 0,
-            maxSize: 40,
-        },
+        strokeWidth: 0,
+        size: 0,
+        maxSize: 40,
     })),
     axes: [
         {

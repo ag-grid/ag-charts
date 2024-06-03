@@ -3,11 +3,13 @@ import type {
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
     LabelPlacement,
 } from '../../../options/agChartOptions';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
+import { ProxyProperty } from '../../../util/proxy';
 import {
     COLOR_STRING_ARRAY,
     LABEL_PLACEMENT,
@@ -18,7 +20,7 @@ import {
     Validate,
 } from '../../../util/validation';
 import { Label } from '../../label';
-import type { MarkerConstructor } from '../../marker/util';
+import type { MarkerConstructor, MarkerShape } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
@@ -93,12 +95,42 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @Validate(STRING, { optional: true })
     title?: string;
 
-    @Validate(OBJECT)
-    readonly marker = new BubbleSeriesMarker();
+    @ProxyProperty('marker.shape')
+    shape!: MarkerShape;
+
+    @ProxyProperty('marker.size')
+    size!: number;
+
+    @ProxyProperty('marker.maxSize')
+    maxSize!: number;
+
+    @ProxyProperty('marker.domain', { optional: true })
+    domain?: [number, number];
+
+    @ProxyProperty('marker.fill', { optional: true })
+    fill?: string;
+
+    @ProxyProperty('marker.fillOpacity')
+    fillOpacity!: number;
+
+    @ProxyProperty('marker.stroke', { optional: true })
+    stroke?: string;
+
+    @ProxyProperty('marker.strokeWidth')
+    strokeWidth!: number;
+
+    @ProxyProperty('marker.strokeOpacity')
+    strokeOpacity!: number;
+
+    @ProxyProperty('marker.formatter', { optional: true })
+    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
 
     @Validate(OBJECT)
     readonly label = new BubbleSeriesLabel();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
+
+    // No validation. Not a part of the options contract.
+    readonly marker = new BubbleSeriesMarker();
 }

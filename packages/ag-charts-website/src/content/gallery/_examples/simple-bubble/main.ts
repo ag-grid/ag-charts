@@ -22,10 +22,8 @@ const options: AgChartOptions = {
             yName: 'Magnitude',
             sizeKey: 'minDistance',
             sizeName: 'Minimum Distance',
-            marker: {
-                size: 5,
-                maxSize: 100,
-            },
+            size: 5,
+            maxSize: 100,
         },
     ],
     axes: [

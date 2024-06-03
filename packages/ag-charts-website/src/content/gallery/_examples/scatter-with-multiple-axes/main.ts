@@ -30,14 +30,12 @@ const options: AgChartOptions = {
             xName: 'Year',
             yKey: 'lifeExpectancy',
             yName: 'Life Expectancy',
+            size: 4,
             label: {
                 formatter: ({ xKey, datum }) => {
                     const year = datum[xKey];
                     return year === 2023 || year === 1768 ? `${year}` : '';
                 },
-            },
-            marker: {
-                size: 4,
             },
             tooltip,
         },
@@ -47,9 +45,7 @@ const options: AgChartOptions = {
             xName: 'Year',
             yKey: 'numberOfDeaths',
             yName: 'Number of Deaths',
-            marker: {
-                size: 4,
-            },
+            size: 4,
             tooltip,
         },
     ],

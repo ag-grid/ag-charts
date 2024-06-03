@@ -66,6 +66,7 @@ export function setPath(object: object, path: string | string[], newValue: unkno
     const lastKey = pathArray.pop()!;
     const lastObject = pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
     lastObject[lastKey] = newValue;
+    return lastObject[lastKey];
 }
 
 // Similar to Object.assign, but only copy an explicit set of keys.

@@ -25,16 +25,9 @@ const options: AgChartOptions = {
             sizeName: 'License Fee',
             labelKey: 'franchiseName',
             labelName: 'Franchise',
-            marker: {
-                maxSize: 90,
-                formatter: ({ datum }) => {
-                    const { growthRate } = datum;
-                    return {
-                        fillOpacity: growthRate / 18,
-                    };
-                },
-            },
-            label: {},
+            maxSize: 90,
+            formatter: ({ datum }) => ({ fillOpacity: datum.growthRate / 18 }),
+            label: { enabled: true },
         },
         {
             type: 'bubble',
@@ -47,16 +40,9 @@ const options: AgChartOptions = {
             sizeName: 'License Fee',
             labelKey: 'franchiseName',
             labelName: 'Franchise',
-            marker: {
-                maxSize: 90,
-                formatter: ({ datum }) => {
-                    const { growthRate } = datum;
-                    return {
-                        fillOpacity: growthRate / 24,
-                    };
-                },
-            },
-            label: {},
+            maxSize: 90,
+            formatter: ({ datum }) => ({ fillOpacity: datum.growthRate / 24 }),
+            label: { enabled: true },
         },
     ],
     axes: [

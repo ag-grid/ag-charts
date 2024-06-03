@@ -39,7 +39,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'time',
             yKey: 'value',
             title: 'Scatter',
-            marker: { enabled: true, shape: 'circle' },
+            shape: 'circle',
             visible: visibleCount >= 1,
         },
         {

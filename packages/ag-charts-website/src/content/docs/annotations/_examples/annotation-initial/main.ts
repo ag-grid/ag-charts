@@ -58,10 +58,8 @@ const options: AgChartOptions = {
             xName: 'Height',
             yKey: 'weight',
             yName: 'Weight',
-            marker: {
-                fillOpacity: 0.2,
-                strokeOpacity: 0.2,
-            },
+            fillOpacity: 0.2,
+            strokeOpacity: 0.2,
         },
         {
             type: 'scatter',
@@ -71,10 +69,8 @@ const options: AgChartOptions = {
             xName: 'Height',
             yKey: 'weight',
             yName: 'Weight',
-            marker: {
-                fillOpacity: 0.2,
-                strokeOpacity: 0.2,
-            },
+            fillOpacity: 0.2,
+            strokeOpacity: 0.2,
         },
     ],
     axes: [
