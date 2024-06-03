@@ -393,7 +393,7 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_BOYLESLAW,
-                    marker: { size: 55 },
+                    size: 55,
                     errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4 } },
                 },
             ],
@@ -435,7 +435,7 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_BOYLESLAW,
-                    marker: { size: 55 },
+                    size: 55,
                     errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, lengthRatio: 0.25 } },
                 },
             ],
@@ -548,7 +548,8 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_BOYLESLAW,
-                    marker: { size: 80, strokeWidth: 60 },
+                    size: 80,
+                    strokeWidth: 60,
                     data: [
                         { volume: 2, volumeLower: 1, volumeUpper: 3, pressure: 2, pressureLower: 1, pressureUpper: 3 },
                     ],
