@@ -98,12 +98,14 @@ export class ZoomToolbar {
                 break;
 
             case 'pan-left':
-            case 'pan-right':
-                zoom = translateZoom(zoom, event.value === 'pan-left' ? -dx(zoom) : dx(zoom), 0);
+            case 'pan-right': {
+                const distance = scrollingStep * dx(zoom);
+                zoom = translateZoom(zoom, event.value === 'pan-left' ? -distance : distance, 0);
                 break;
+            }
 
             case 'zoom-in':
-            case 'zoom-out':
+            case 'zoom-out': {
                 const scale = event.value === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
 
                 const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
@@ -113,6 +115,7 @@ export class ZoomToolbar {
                 zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, useAnchorPointX);
                 zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, useAnchorPointY);
                 break;
+            }
         }
 
         this.updateZoom(constrainZoom(zoom));
