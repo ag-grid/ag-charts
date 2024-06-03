@@ -1,4 +1,4 @@
-import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
+import type { BBoxContainsTester, BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import { buildConsumable } from './consumableEvent';
@@ -301,7 +301,7 @@ export class RegionManager {
             this.dispatch(focusedRegion, blurEvent);
         }
         if (newRegion === undefined) {
-            this.updateFocusIndicatorRect(undefined);
+            this.focusIndicator.updateBBox(undefined);
         } else {
             this.dispatch(newRegion, event);
         }
@@ -310,9 +310,5 @@ export class RegionManager {
     private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'submit'>) {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         this.dispatch(focusedRegion, event);
-    }
-
-    public updateFocusIndicatorRect(rect?: BBoxValues) {
-        this.focusIndicator.updateBBox(rect);
     }
 }

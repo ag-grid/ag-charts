@@ -729,7 +729,7 @@ export class Legend extends BaseProperties {
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
                     const bbox = markerLabel?.computeTransformedBBox();
-                    const event = makeKeyboardPointerEvent(this.ctx.regionManager, { bbox, showFocusBox: true });
+                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bbox, showFocusBox: true });
                     this.doHover(event, markerLabel.datum);
                 },
             });
