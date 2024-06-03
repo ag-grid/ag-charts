@@ -130,21 +130,7 @@ const lineSteps = {
     end: 1,
 };
 
-export function splitPartialPaths(points: Iterable<PartialPathPoint>) {
-    const out: Point[][] = [];
-    let current: Point[] | undefined;
-    for (const { x, y, moveTo } of points) {
-        if (moveTo) {
-            current = [{ x, y }];
-            out.push(current);
-        } else {
-            current?.push({ x, y });
-        }
-    }
-    return out;
-}
-
-export function plotPath(points: Point[], path: Path, line: LineSeriesLine | undefined, continuePath = false) {
+export function plotPath(points: Iterable<Point>, path: Path, line: LineSeriesLine | undefined, continuePath = false) {
     const { path: linePath } = path;
 
     if (line?.style === 'smooth') {

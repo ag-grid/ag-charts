@@ -48,6 +48,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { pathRangePoints, pathRangePointsReverse, pathRanges } from './lineUtil';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -55,14 +56,7 @@ import {
     resetMarkerFn,
     resetMarkerPositionFn,
 } from './markerUtil';
-import {
-    buildResetPathFn,
-    pathFadeInAnimation,
-    pathSwipeInAnimation,
-    plotPath,
-    splitPartialPaths,
-    updateClipPath,
-} from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, updateClipPath } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -581,34 +575,25 @@ export class AreaSeries extends CartesianSeries<
         const [fill] = paths;
         const { line } = this.properties;
 
-        let start = 0;
         fill.path.clear(true);
-        splitPartialPaths(points.map((point) => point.point)).forEach((topPath) => {
-            const end = start + topPath.length;
-            const bottomPath = phantomPoints
-                .slice(start, end)
-                .map(({ point: { x, y } }) => ({ x, y }))
-                .reverse();
-
-            plotPath(topPath, fill, line, false);
-            plotPath(bottomPath, fill, line, true);
+        for (const range of pathRanges(points)) {
+            plotPath(pathRangePoints(points, range), fill, line, false);
+            plotPath(pathRangePointsReverse(phantomPoints, range), fill, line, true);
             fill.path.closePath();
-
-            start = end;
-        });
+        }
         fill.checkPathDirty();
     }
 
     private updateStrokePath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
-        const { strokeData } = contextData;
+        const { points } = contextData.strokeData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
         const { line } = this.properties;
 
         strokePath.clear(true);
-        splitPartialPaths(strokeData.points.map((point) => point.point)).forEach((path) => {
-            plotPath(path, stroke, line);
-        });
+        for (const range of pathRanges(points)) {
+            plotPath(pathRangePoints(points, range), stroke, line);
+        }
         stroke.checkPathDirty();
     }
 
