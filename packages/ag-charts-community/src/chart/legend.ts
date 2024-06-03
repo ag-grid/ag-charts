@@ -47,6 +47,7 @@ import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
+import { initToolbarKeyNav } from './toolbar/toolbarUtil';
 import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 class LegendLabel extends BaseProperties {
@@ -286,6 +287,39 @@ export class Legend extends BaseProperties {
         this.itemSelection.clear();
     }
 
+    private initLegendItemToolbar() {
+        this.itemSelection.each((markerLabel, _, i) => {
+            // Create the hidden CSS button.
+            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `ag-charts-legend-item-${i}`,
+                textContent: this.getItemAriaText(i),
+                parent: this.proxyLegendToolbar,
+                focusable: markerLabel,
+                // Retrieve the datum from the node rather than from the method parameter.
+                // The method parameter `datum` gets destroyed when the data is refreshed
+                // using Series.getLegendData(). But the scene node will stay the same.
+                onclick: () => this.doClick(markerLabel.datum),
+                onblur: () => this.doMouseExit(),
+                onfocus: () => {
+                    const bbox = markerLabel?.computeTransformedBBox();
+                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bbox, showFocusBox: true });
+                    this.doHover(event, markerLabel.datum);
+                },
+            });
+        });
+
+        const buttons: HTMLButtonElement[] = this.itemSelection
+            .nodes()
+            .map((markerLabel) => markerLabel.proxyButton)
+            .filter((button): button is HTMLButtonElement => !!button);
+        initToolbarKeyNav({
+            orientation: this.getOrientation(),
+            buttons,
+            toolbar: this.proxyLegendToolbar,
+        });
+    }
+
     public onMarkerShapeChange() {
         this.itemSelection.clear();
         this.group.markDirty(this.group, RedrawType.MINOR);
@@ -381,7 +415,12 @@ export class Legend extends BaseProperties {
         if (this.reverseOrder) {
             data.reverse();
         }
+        const proxyToolbarNeedsUpdate = this.itemSelection.nodes().length === 0;
         this.itemSelection.update(data);
+
+        if (proxyToolbarNeedsUpdate) {
+            this.initLegendItemToolbar();
+        }
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
@@ -715,25 +754,7 @@ export class Legend extends BaseProperties {
             markerLabel.translationX = x;
             markerLabel.translationY = y;
 
-            // Create/Update the hidden CSS button.
-            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
-                id: `ag-charts-legend-item-${i}`,
-                textContent: this.getItemAriaText(i),
-                parent: this.proxyLegendToolbar,
-                focusable: markerLabel,
-                // Retrieve the datum from the node rather than from the method parameter.
-                // The method parameter `datum` gets destroyed when the data is refreshed
-                // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => this.doClick(markerLabel.datum),
-                onblur: () => this.doMouseExit(),
-                onfocus: () => {
-                    const bbox = markerLabel?.computeTransformedBBox();
-                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bbox, showFocusBox: true });
-                    this.doHover(event, markerLabel.datum);
-                },
-            });
-
+            // Update the hidden CSS button.
             const { width, height } = markerLabel.computeBBox();
             setElementBBox(markerLabel.proxyButton, { x, y, width, height });
         });
