@@ -245,36 +245,36 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        annotationManager.updateData(annotationData?.map((d) => d.toJson()));
+        annotationManager.updateData(annotationData?.toJson());
 
-        annotations.update(annotationData ?? []).each((node, datum, index) => {
-            if (!this.validateDatum(datum)) {
-                node.visible = false;
-                return;
-            }
+        annotations
+            .update(annotationData ?? [], undefined, (datum) => datum.id)
+            .each((node, datum, index) => {
+                if (!this.validateDatum(datum)) {
+                    node.visible = false;
+                    return;
+                }
 
-            node.visible = true;
+                if (LineAnnotation.is(datum) && Line.is(node)) {
+                    node.update(datum, seriesRect, this.convertLine(datum));
+                }
 
-            if (LineAnnotation.is(datum) && Line.is(node)) {
-                node.update(datum, seriesRect, this.convertLine(datum));
-            }
+                if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+                    node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+                }
 
-            if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-                node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
-            }
+                if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
+                    node.update(datum, seriesRect, this.convertCrossLine(datum));
+                }
 
-            if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-                node.update(datum, seriesRect, this.convertCrossLine(datum));
-            }
+                if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+                    node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+                }
 
-            if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-                node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
-            }
-
-            if (active === index) {
-                toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
-            }
-        });
+                if (active === index) {
+                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                }
+            });
     }
 
     private updateAxesDomains() {
