@@ -71,8 +71,6 @@ export class RegionManager {
     private readonly regions: Map<RegionName, Region> = new Map();
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
-    // Events are always dispatched here - even if they're consumed
-    private readonly userListeners = new RegionListeners();
 
     constructor(
         private readonly interactionManager: InteractionManager,
@@ -162,7 +160,6 @@ export class RegionManager {
         event.region = region?.properties.name;
         region?.listeners.dispatch(event.type, event);
         this.allRegionsListeners.dispatch(event.type, event);
-        this.userListeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
