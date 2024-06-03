@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -eu
 
@@ -28,14 +28,14 @@ checkVersion() {
     fi
 
     if [[ "${actual}" =~ "${expected}" ]] ; then
-        echo "${GREEN}Installed version of ${pkg} matched ${actual}${RESET}"
+        echo -e "${GREEN}Installed version of ${pkg} matched ${actual}${RESET}"
     else
         PASS=false
-        echo "${RED}Installed version of ${pkg} !== ${expected}, found ${actual}${RESET}"
+        echo -e "${RED}Installed version of ${pkg} !== ${expected}, found ${actual}${RESET}"
     fi
 }
 
-checkVersion cairo libcairo2 1.18.0 "1.18.0-ubuntu.*"
+checkVersion cairo libcairo2 1.18.0 "1.18.0-.*"
 
 if [[ $PASS == "false" ]] ; then
     exit 1
