@@ -217,7 +217,7 @@ jobs:
                   fi
 
     test:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         needs: execute_blt
         if: needs.execute_blt.outputs.test_count > 0
         strategy:
@@ -283,7 +283,7 @@ jobs:
                       packages/**/__diff_output__/*
 
     report:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         needs: [execute_blt, test, sonarqube]
         if: cancelled() != true
         steps:
@@ -385,7 +385,7 @@ jobs:
                       ${{ env.GIT_LOG }}
 
     sonarqube:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v3
               with:
