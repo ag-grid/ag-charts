@@ -614,10 +614,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (!scaleX || !scaleY) return;
 
-        let x1,
-            x2,
-            y1,
-            y2 = 0;
+        let x1 = 0;
+        let x2 = 0;
+        let y1 = 0;
+        let y2 = 0;
 
         if (datum.direction === 'vertical') {
             const scaledValue = scaleX.convert(datum.value);
