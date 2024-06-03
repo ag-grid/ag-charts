@@ -220,6 +220,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -253,6 +258,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -285,6 +295,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -795,6 +810,11 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1193,6 +1213,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1230,6 +1255,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1269,6 +1299,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1306,6 +1341,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1345,6 +1385,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1383,6 +1428,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1420,6 +1470,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -2842,6 +2897,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -2874,6 +2934,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -2908,6 +2973,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -2940,6 +3010,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -6955,6 +7030,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -6993,6 +7073,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7033,6 +7118,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7071,6 +7161,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7111,6 +7206,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7149,6 +7249,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7189,6 +7294,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7227,6 +7337,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7267,6 +7382,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7305,6 +7425,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7345,6 +7470,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7383,6 +7513,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7423,6 +7558,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7461,6 +7601,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7501,6 +7646,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7539,6 +7689,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7955,6 +8110,11 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -11288,6 +11448,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -11325,6 +11490,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
