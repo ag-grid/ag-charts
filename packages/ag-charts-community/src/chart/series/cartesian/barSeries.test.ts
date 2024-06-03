@@ -11,7 +11,6 @@ import {
 } from '../../test/data';
 import * as examples from '../../test/examples';
 import {
-    CartesianOrPolarTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     expectWarningsCalls,
@@ -24,6 +23,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
+import type { CartesianOrPolarTestCase } from '../../test/utils';
 
 const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
     return {
