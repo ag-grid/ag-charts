@@ -20,6 +20,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
 const { DropShadow, Label } = _Scene;
 const {
     CartesianSeriesProperties,
+    LineProperties,
     SeriesMarker,
     SeriesTooltip,
     Validate,
@@ -83,6 +84,9 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(OBJECT)
+    line?: _ModuleSupport.LineProperties = new LineProperties();
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });
