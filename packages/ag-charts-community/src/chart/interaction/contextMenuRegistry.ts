@@ -90,7 +90,7 @@ export class ContextMenuRegistry {
         pointerEvent: PointerInteractionEvent<'contextmenu'>,
         context: ContextTypeMap[T]
     ) {
-        const { pageX: x, pageY: y, sourceEvent } = pointerEvent;
+        const { offsetX: x, offsetY: y, sourceEvent } = pointerEvent;
         this.listeners.dispatch('', this.buildConsumable({ type, x, y, context, sourceEvent }));
     }
 
