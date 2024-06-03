@@ -120,7 +120,7 @@ const options: AgChartOptions = {
             },
             paddingX: 40,
             label: {
-                fontWeight: '600',
+                fontWeight: 600,
                 color: '#3f7cbf',
                 fontSize: 14,
                 fontFamily: 'Georgia, Times New Roman, Times, Serif',

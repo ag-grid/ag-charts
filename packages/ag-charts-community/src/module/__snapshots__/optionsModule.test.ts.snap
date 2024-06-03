@@ -130,7 +130,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "color": "#3f7cbf",
         "fontFamily": "Georgia, Times New Roman, Times, Serif",
         "fontSize": 14,
-        "fontWeight": "600",
+        "fontWeight": 600,
       },
       "marker": {
         "padding": 10,
