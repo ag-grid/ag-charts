@@ -1,6 +1,6 @@
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { addBindingImports, convertFunctionToProperty } from './parser-utils';
-import { convertFunctionToCallback, convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
+import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
@@ -116,9 +116,9 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
         const template = getTemplate(bindings, componentAttributes);
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(convertFunctionToCallback(handler.body))
+            processFunction(convertFunctionToProperty(handler.body))
         );
-        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToCallback(m)));
+        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToProperty(m)));
 
         indexFile = `
             ${imports.join(`
@@ -193,7 +193,8 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
 
     if (bindings.usesChartApi) {
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current!.chart$3');
-        indexFile = indexFile.replace(/\(this.chartRef.current.chart, options/g, '(chartRef.current!.chart, options');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current!.chart.$1(');
+        indexFile = indexFile.replace(/this.chartRef.current.chart/g, 'chartRef.current!.chart');
     }
 
     return indexFile;
