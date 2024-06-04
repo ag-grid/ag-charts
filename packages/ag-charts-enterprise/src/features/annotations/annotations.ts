@@ -479,10 +479,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.active = hovered;
         toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
 
-        if (this.active != null) {
+        if (this.active == null) {
+            this.ctx.tooltipManager.unsuppressTooltip('annotations');
+        } else {
             const node = annotations.nodes()[this.active];
             node.toggleActive(true);
             this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+            this.ctx.tooltipManager.suppressTooltip('annotations');
         }
 
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
