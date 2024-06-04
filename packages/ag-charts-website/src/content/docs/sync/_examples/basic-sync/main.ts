@@ -37,9 +37,7 @@ const commonOptions: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            tick: {
-                maxSpacing: 180,
-            },
+            maxSpacing: 180,
             crosshair: {
                 label: {
                     format: '%d %b %Y',

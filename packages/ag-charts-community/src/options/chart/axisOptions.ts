@@ -1,3 +1,4 @@
+import { TimeInterval } from '../../util/time';
 import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
@@ -42,6 +43,10 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     type: string;
     /** An array of keys determining which series are charted on this axis. */
     keys?: string[];
+    /** Array of values in axis units to display as ticks along the axis. The values in this array must be compatible with the axis type. */
+    values?: any[];
+    /** Minimum gap in pixels between tick lines. */
+    minSpacing?: PixelSize;
     /** Reverse the axis scale domain if `true`. */
     reverse?: boolean;
     /** Configuration for the axis line. */
@@ -50,6 +55,25 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     gridLine?: AgAxisGridLineOptions;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: LabelType;
+    /** Configuration for the axis ticks. */
+    tick?: AgAxisBaseTickOptions;
+}
+
+export interface AgContinuousAxisOptions<
+    TLabel = AgBaseAxisLabelOptions,
+    TDatum extends Date | number = number,
+    TInterval extends TimeInterval | number = number,
+> extends AgBaseAxisOptions<TLabel> {
+    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
+    nice?: boolean;
+    /** User override for the automatically determined min value (based on series data). */
+    min?: TDatum;
+    /** User override for the automatically determined max value (based on series data). */
+    max?: TDatum;
+    /** Maximum gap in pixels between tick lines. */
+    maxSpacing?: PixelSize;
+    /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    interval?: TInterval;
 }
 
 export interface AgAxisLineOptions {
@@ -79,10 +103,6 @@ export interface AgAxisBaseTickOptions {
     size?: PixelSize;
     /** The colour of the axis ticks. */
     stroke?: CssColor;
-    /** Array of values in axis units to display as ticks along the axis. The values in this array must be compatible with the axis type. */
-    values?: any[];
-    /** Minimum gap in pixels between tick lines. */
-    minSpacing?: PixelSize;
 }
 
 export interface AgAxisLabelFormatterParams {

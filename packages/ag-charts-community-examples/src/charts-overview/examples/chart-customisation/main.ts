@@ -59,14 +59,14 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            position: 'top',
             type: 'time',
+            position: 'top',
+            interval: time.year.every(10),
+            nice: false,
             tick: {
-                interval: time.year.every(10),
                 width: 3,
                 stroke: '#3f7cbf',
             },
-            nice: false,
             label: {
                 rotation: -30,
                 color: '#3f7cbf',
@@ -85,12 +85,12 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'right',
             type: 'number',
+            position: 'right',
+            nice: false,
             tick: {
                 size: 10,
             },
-            nice: false,
             label: {
                 color: '#3f7cbf',
                 fontWeight: 'bold',
@@ -113,13 +113,13 @@ const options: AgChartOptions = {
     ],
     legend: {
         item: {
+            paddingX: 40,
             marker: {
                 strokeWidth: 0,
                 padding: 10,
                 shape: 'diamond',
                 size: 20,
             },
-            paddingX: 40,
             label: {
                 fontWeight: 600,
                 color: '#3f7cbf',

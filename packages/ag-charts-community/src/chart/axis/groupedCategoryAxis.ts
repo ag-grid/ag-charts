@@ -14,9 +14,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import type { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-import { CategoryAxisTick } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
 
@@ -112,10 +110,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     override onGridVisibilityChange() {
         this.gridLineSelection.clear();
         this.labelSelection.clear();
-    }
-
-    protected override createTick(): AxisTick<BandScale<string | number>, any, any> {
-        return new CategoryAxisTick();
     }
 
     protected override calculateDomain() {

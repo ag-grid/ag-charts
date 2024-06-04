@@ -5,6 +5,7 @@ import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
+import type { TickInterval } from './axis/axis';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick } from './axis/axisTick';
@@ -43,7 +44,7 @@ export interface ChartAxis {
     line: AxisLine;
     gridLine: AxisGridLine;
     label: ChartAxisLabel;
-    tick: AxisTick<any>;
+    tick: AxisTick;
     maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;
@@ -61,6 +62,10 @@ export interface ChartAxis {
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
+    values?: any[];
+    interval?: TickInterval<any>;
+    minSpacing?: number;
+    maxSpacing?: number;
 }
 
 export interface ChartAxisLabel extends FontOptions {

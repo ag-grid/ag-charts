@@ -28,9 +28,7 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Market Share (%)',
             },
-            tick: {
-                interval: 20,
-            },
+            interval: 20,
         },
     ],
 };
@@ -38,11 +36,11 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function setMinMaxSpacing(minSpacing: number, maxSpacing: number) {
-    options.axes![1].tick = { minSpacing, maxSpacing };
+    Object.assign(options.axes![1], { minSpacing, maxSpacing });
     chart.update(options);
 }
 
 function reset() {
-    options.axes![1].tick = {};
+    Object.assign(options.axes![1], { minSpacing: undefined, maxSpacing: undefined });
     chart.update(options);
 }

@@ -24,12 +24,12 @@ const options: AgChartOptions = {
         {
             type: 'radius-number',
             innerRadiusRatio: 0.5,
+            interval: 0.5,
             label: {
                 enabled: false,
             },
             tick: {
                 size: 0,
-                interval: 0.5,
             },
             gridLine: {
                 enabled: true,

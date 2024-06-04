@@ -84,12 +84,12 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
+            values: [0],
             label: {
                 enabled: false,
             },
             tick: {
                 size: 0,
-                values: [0],
             },
             gridLine: {
                 width: 2,

@@ -61,12 +61,10 @@ const options: AgChartOptions = {
             max: 2030,
         },
         {
-            position: 'right',
             type: 'number',
+            position: 'right',
             keys: ['numberOfDeaths'],
-            tick: {
-                values: [338984, 715246],
-            },
+            values: [338984, 715246],
             label: {
                 formatter: ({ value }) =>
                     `~${Math.round(value).toLocaleString('en-GB', {
@@ -78,12 +76,13 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'left',
             type: 'number',
+            position: 'left',
             nice: false,
             min: 25,
             max: 85,
             keys: ['lifeExpectancy'],
+            values: [81.77, 29.22],
             line: {
                 width: 1,
             },
@@ -92,9 +91,6 @@ const options: AgChartOptions = {
                     `~${Math.round(value).toLocaleString('en-GB', {
                         maximumFractionDigits: 0,
                     })} Years`,
-            },
-            tick: {
-                values: [81.77, 29.22],
             },
         },
     ],
