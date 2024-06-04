@@ -112,10 +112,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    private readonly calloutLabelSelection: Selection<Group, DonutNodeDatum>;
-    private readonly sectorLabelSelection: Selection<Text, DonutNodeDatum>;
-    private readonly innerLabelsSelection: Selection<Text, DonutInnerLabel>;
-    private readonly innerCircleSelection: Selection<Circle, { radius: number }>;
+    private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
+    private readonly calloutLabelSelection: Selection<Group, DonutNodeDatum> = new Selection(
+        this.calloutLabelGroup,
+        Group
+    );
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
@@ -131,7 +132,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Circle());
     readonly zerosumInnerRing = this.zerosumRingsGroup.appendChild(new Circle());
 
+    readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels' }));
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
+    readonly innerLabelsSelection: Selection<Text, DonutInnerLabel> = Selection.select(this.innerLabelsGroup, Text);
+    readonly innerCircleSelection: Selection<Circle, { radius: number }> = Selection.select(
+        this.innerCircleGroup,
+        Circle
+    );
 
     private readonly angleScale: LinearScale;
 
@@ -156,17 +163,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.angleScale.domain = [0, 1];
         // Add 90 deg to start the first pie at 12 o'clock.
         this.angleScale.range = [-Math.PI, Math.PI].map((angle) => angle + Math.PI / 2);
-
-        const pieCalloutLabels = new Group({ name: 'pieCalloutLabels' });
-        const pieSectorLabels = new Group({ name: 'pieSectorLabels' });
-        const innerLabels = new Group({ name: 'innerLabels' });
-        this.labelGroup.append(pieCalloutLabels);
-        this.labelGroup.append(pieSectorLabels);
-        this.labelGroup.append(innerLabels);
-        this.calloutLabelSelection = Selection.select(pieCalloutLabels, Group);
-        this.sectorLabelSelection = Selection.select(pieSectorLabels, Text);
-        this.innerLabelsSelection = Selection.select(innerLabels, Text);
-        this.innerCircleSelection = Selection.select(this.innerCircleGroup, Circle);
     }
 
     override addChartEventListeners(): void {
@@ -634,24 +630,28 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     private async updateGroupSelection() {
-        const { itemSelection, highlightSelection, calloutLabelSelection, sectorLabelSelection, innerLabelsSelection } =
-            this;
+        const {
+            itemSelection,
+            highlightSelection,
+            highlightLabelSelection,
+            calloutLabelSelection,
+            labelSelection,
+            innerLabelsSelection,
+        } = this;
+        let highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as DonutNodeDatum | undefined;
+        if (highlightedDatum?.series !== this) highlightedDatum = undefined;
 
-        const update = (selection: typeof this.itemSelection, clone: boolean) => {
-            let nodeData = this.nodeData;
-            if (clone) {
-                // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
-                // between normal and highlighted cases.
-                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
-            }
-            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
-            if (this.ctx.animationManager.isSkipped()) {
-                selection.cleanup();
-            }
-        };
-
-        update(itemSelection, false);
-        update(highlightSelection, true);
+        itemSelection.update(this.nodeData, undefined, (datum) => this.getDatumId(datum));
+        if (this.ctx.animationManager.isSkipped()) {
+            itemSelection.cleanup();
+        }
+        highlightSelection.update(
+            highlightedDatum != null
+                ? [{ ...highlightedDatum, sectorFormat: { ...highlightedDatum.sectorFormat } }]
+                : [],
+            undefined,
+            (datum) => this.getDatumId(datum)
+        );
 
         calloutLabelSelection.update(this.nodeData, (group) => {
             const line = new Line();
@@ -665,9 +665,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             group.appendChild(text);
         });
 
-        sectorLabelSelection.update(this.nodeData, (node) => {
-            node.pointerEvents = PointerEvents.None;
-        });
+        labelSelection.update(this.nodeData);
+        highlightLabelSelection.update(highlightedDatum != null ? [highlightedDatum] : []);
 
         innerLabelsSelection.update(this.properties.innerLabels, (node) => {
             node.pointerEvents = PointerEvents.None;
@@ -696,6 +695,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
         this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;
+        this.highlightLabel.visible = isVisible && highlightedDatum?.series === this;
         if (this.labelGroup) {
             this.labelGroup.visible = isVisible;
         }
@@ -1151,7 +1151,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const { fontSize, fontStyle, fontWeight, fontFamily, positionOffset, positionRatio, color } =
             this.properties.sectorLabel;
 
-        this.sectorLabelSelection.each((text, datum) => {
+        const updateSectorLabel = (text: Text, datum: DonutNodeDatum) => {
             const { sectorLabel, outerRadius } = datum;
 
             let isTextVisible = false;
@@ -1183,7 +1183,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 }
             }
             text.visible = isTextVisible;
-        });
+        };
+
+        this.labelSelection.each(updateSectorLabel);
+        this.highlightLabelSelection.each(updateSectorLabel);
     }
 
     private updateInnerLabelNodes() {
@@ -1414,7 +1417,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
-        seriesLabelFadeInAnimation(this, 'sector', animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', animationManager, this.labelSelection);
         seriesLabelFadeInAnimation(this, 'inner', animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
@@ -1452,7 +1455,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
-        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
         seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
@@ -1472,7 +1475,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
-        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
         seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;

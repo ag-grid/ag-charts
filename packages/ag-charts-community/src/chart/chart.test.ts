@@ -333,7 +333,7 @@ describe('Chart', () => {
                 angleKey: datasets.economy.valueKey,
                 sectorLabelKey: datasets.economy.categoryKey,
             },
-            getNodeData: (series) => series.sectorLabelSelection.nodes(),
+            getNodeData: (series) => series.labelSelection.nodes(),
             getNodePoint: (item) => [item.x, item.y],
             getNodeExitPoint: (_item) => [20, 20],
             getDatumValues: (item, series) => {
