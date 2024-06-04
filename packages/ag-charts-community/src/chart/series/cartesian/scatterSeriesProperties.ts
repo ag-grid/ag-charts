@@ -3,6 +3,7 @@ import type {
     AgScatterSeriesOptions,
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
 } from '../../../options/agChartOptions';
 import type { SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
@@ -82,6 +83,9 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
 
     @ProxyProperty('marker.strokeOpacity')
     strokeOpacity!: number;
+
+    @ProxyProperty('marker.formatter', { optional: true })
+    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
 
     @Validate(OBJECT)
     readonly label = new ScatterSeriesLabel();
