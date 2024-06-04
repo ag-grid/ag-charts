@@ -22,6 +22,7 @@ const chart = AgCharts.create(options as AgChartOptions);
 
 let running = false;
 async function start() {
+    if (running) return;
     running = true;
 
     while (running) {
