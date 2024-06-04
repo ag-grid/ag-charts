@@ -31,6 +31,10 @@ export abstract class Channel<
         this.updateLines(datum, top, bottom);
         this.updateHandles(datum, top, bottom);
         this.updateBackground(datum, top, bottom);
+
+        for (const handle of Object.values(this.handles)) {
+            handle.toggleLocked(this.locked);
+        }
     }
 
     override toggleActive(active: boolean) {

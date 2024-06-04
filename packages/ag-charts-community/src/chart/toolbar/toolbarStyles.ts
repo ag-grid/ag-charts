@@ -24,7 +24,8 @@ export const modifiers = {
         end: `${elements.align}--end`,
     },
     button: {
-        hidden: `${elements.button}--hidden`,
+        hiddenValue: `${elements.button}--hidden-value`,
+        hiddenToggled: `${elements.button}--hidden-toggled`,
     },
 };
 
@@ -160,7 +161,8 @@ export const css = `
     border: var(--ag-charts-toolbar-border);
 }
 
-.${modifiers.button.hidden} {
+.${modifiers.button.hiddenValue},
+.${modifiers.button.hiddenToggled} {
     display: none;
 }
 
