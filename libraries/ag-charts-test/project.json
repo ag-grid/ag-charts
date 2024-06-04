@@ -9,9 +9,9 @@
       "inputs": ["{projectRoot}/src/**", "defaultExcludes"],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "libraries/ag-charts-test/dist/",
-        "main": "libraries/ag-charts-test/src/index.ts",
-        "tsConfig": "libraries/ag-charts-test/tsconfig.lib.json",
+        "outputPath": "{projectRoot}/dist/",
+        "main": "{projectRoot}/src/index.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "assets": [],
         "format": ["cjs"]
       }
@@ -19,7 +19,9 @@
     "build:types": {
       // Alias target so dependents build:types can depend on ^build:types.
       "executor": "nx:noop",
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "inputs": ["{projectRoot}/dist/**/*.d.ts"],
+      "outputs": []
     },
     "lint": {
       "executor": "@nx/eslint:lint"
