@@ -9,6 +9,8 @@ export const en: Record<string, string> = {
     'toolbar-annotations.trend-line': 'Trend Line',
     'toolbar-annotations.parallel-channel': 'Parallel Channel',
     'toolbar-annotations.disjoint-channel': 'Disjoint Channel',
+    'toolbar-annotations.lock': 'Lock Annotation',
+    'toolbar-annotations.unlock': 'Unlock Annotation',
     'toolbar-annotations.delete': 'Delete Annotation',
     'toolbar-range.1-month': '1m',
     'toolbar-range.3-months': '3m',

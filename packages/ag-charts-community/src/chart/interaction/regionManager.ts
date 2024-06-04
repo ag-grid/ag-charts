@@ -11,11 +11,11 @@ const REGION_TAB_ORDERING: RegionName[] = ['series'];
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> } & {
-    [K in KeyNavEventType]: KeyNavEvent<K>;
+type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & { region: RegionName } } & {
+    [K in KeyNavEventType]: KeyNavEvent<K> & { region: RegionName };
 };
 
-type RegionEvent = PointerInteractionEvent | KeyNavEvent;
+type RegionEvent = (PointerInteractionEvent | KeyNavEvent) & { region: RegionName };
 type RegionHandler = (event: RegionEvent) => void;
 type RegionBBoxProvider = BBoxProvider<BBoxContainsTester & { width: number; height: number }>;
 
@@ -156,10 +156,12 @@ export class RegionManager {
         return true;
     }
 
-    private dispatch(region: Region | undefined, event: RegionEvent) {
-        event.region = region?.properties.name;
-        region?.listeners.dispatch(event.type, event);
+    private dispatch(region: Region | undefined, partialEvent: PointerInteractionEvent | KeyNavEvent) {
+        if (region == null) return;
+
+        const event: RegionEvent = { ...partialEvent, region: region.properties.name };
         this.allRegionsListeners.dispatch(event.type, event);
+        region.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard

@@ -9,13 +9,11 @@ import type {
     PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
-import type { RegionName } from './regions';
 
 export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'nav-hori' | 'nav-vert' | 'submit';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
-    region?: RegionName;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
 };
