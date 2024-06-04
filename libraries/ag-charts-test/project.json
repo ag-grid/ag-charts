@@ -16,6 +16,11 @@
         "format": ["cjs"]
       }
     },
+    "build:types": {
+      // Alias target so dependents build:types can depend on ^build:types.
+      "executor": "nx:noop",
+      "dependsOn": ["build"]
+    },
     "lint": {
       "executor": "@nx/eslint:lint"
     },
