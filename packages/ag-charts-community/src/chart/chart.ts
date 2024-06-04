@@ -409,9 +409,10 @@ export abstract class Chart extends Observable {
     }
 
     getAriaLabel(): string {
-        const captionText = this.getCaptionText();
-        const nSeries = this.series.length ?? 0;
-        return `chart, ${nSeries} series, ${captionText}`;
+        return this.ctx.localeManager.t('aria-announce.chart', {
+            seriesCount: this.series.length,
+            caption: this.getCaptionText(),
+        });
     }
 
     getDatumAriaText(_datum: SeriesNodeDatum, html: TooltipContent): string {

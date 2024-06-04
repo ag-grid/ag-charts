@@ -97,6 +97,7 @@ export class ChartContext implements ModuleContext {
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(
             this.updateService,
+            this.localeManager,
             this.domManager,
             this.focusIndicator
         );
@@ -116,6 +117,7 @@ export class ChartContext implements ModuleContext {
         this.tooltipManager.destroy();
         this.contextMenuRegistry.destroy();
         this.regionManager.destroy();
+        this.proxyInteractionService.destroy();
         this.focusIndicator.destroy();
         this.keyNavManager.destroy();
         this.interactionManager.destroy();

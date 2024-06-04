@@ -2,6 +2,7 @@ import type { Direction } from '../../options/agChartOptions';
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';
+import type { LocaleManager } from '../locale/localeManager';
 import type { UpdateService } from '../updateService';
 import type { DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
@@ -58,19 +59,30 @@ export class ProxyInteractionService {
     // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
     private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
     private focusable?: BBoxProvider<BBoxValues>;
+    private readonly destroyFns: Array<() => void> = [];
 
     constructor(
         updateService: UpdateService,
+        private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly focusIndicator: FocusIndicator
     ) {
-        updateService.addListener('update-complete', () => this.update());
+        this.destroyFns.push(updateService.addListener('update-complete', () => this.update()));
+    }
+
+    destroy() {
+        this.destroyFns.forEach((fn) => fn());
     }
 
     private update() {
         if (this.focusable) {
             this.focusIndicator.updateBBox(this.focusable.getCachedBBox());
         }
+    }
+
+    private addLocalisation(fn: () => void) {
+        fn();
+        this.destroyFns.push(this.localeManager.addListener('locale-changed', fn));
     }
 
     createProxyContainer<T extends ProxyContainerType>(
@@ -83,8 +95,12 @@ export class ProxyInteractionService {
         div.classList.add(...params.classList);
         div.style.pointerEvents = 'none';
         div.role = params.type;
-        div.ariaLabel = params.ariaLabel;
         div.ariaOrientation = params.ariaOrientation;
+
+        this.addLocalisation(() => {
+            div.ariaLabel = this.localeManager.t(params.ariaLabel);
+        });
+
         return div;
     }
 
@@ -103,8 +119,11 @@ export class ProxyInteractionService {
             slider.type = 'range';
             slider.role = 'presentation';
             slider.style.margin = '0px';
-            slider.ariaLabel = params.ariaLabel;
             slider.ariaOrientation = params.ariaOrientation;
+
+            this.addLocalisation(() => {
+                slider.ariaLabel = this.localeManager.t(params.ariaLabel);
+            });
         }
 
         return meta.result;

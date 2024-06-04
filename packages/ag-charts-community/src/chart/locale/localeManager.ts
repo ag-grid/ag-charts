@@ -26,9 +26,10 @@ export class LocaleManager extends Listeners<'locale-changed', () => void> {
     t(id: string, params: Record<string, any> = {}): string {
         const { messageFormatter = defaultMessageFormatter } = this;
 
-        const message = this.messages?.[id];
-        // Only use the user's message formatter for the user's messages
-        const formattedMessage = message != null ? messageFormatter({ id, message, params }) : undefined;
+        const userMessage = this.messages?.[id];
+        // Be careful not to pass our preset messages to the user's formatter (i.e. something like react-intl)
+        const formattedMessage =
+            userMessage != null ? messageFormatter({ id, message: userMessage, params }) : undefined;
         if (formattedMessage != null) return formattedMessage;
 
         const defaultMessage = en[id];

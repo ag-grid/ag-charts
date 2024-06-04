@@ -272,7 +272,7 @@ export class Legend extends BaseProperties {
             type: 'toolbar',
             id: `${this.id}-toolbar`,
             classList: ['ag-charts-proxy-legend-toolbar'],
-            ariaLabel: 'Legend',
+            ariaLabel: 'aria-label.legend',
             ariaOrientation: 'horizontal',
         });
     }
