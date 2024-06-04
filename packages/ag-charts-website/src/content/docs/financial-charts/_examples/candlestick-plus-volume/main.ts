@@ -48,9 +48,9 @@ const candlestickOptions: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'right',
+            interval: 25,
             tick: {
                 size: 0,
-                interval: 25,
             },
             title: {
                 text: 'OHLC',

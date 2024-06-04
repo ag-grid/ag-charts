@@ -21,9 +21,7 @@ const options: AgChartOptions = {
             type: 'time',
             nice: false,
             position: 'bottom',
-            tick: {
-                interval: time.month,
-            },
+            interval: time.month,
             label: {
                 format: '%b %Y',
             },

@@ -62,9 +62,7 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            tick: {
-                maxSpacing: 200,
-            },
+            maxSpacing: 200,
         },
         {
             type: 'number',

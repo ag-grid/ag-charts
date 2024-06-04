@@ -28,9 +28,7 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Market Share (%)',
             },
-            tick: {
-                values: [0, 20, 40, 60, 80, 100],
-            },
+            values: [0, 20, 40, 60, 80, 100],
         },
     ],
 };
@@ -38,11 +36,11 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function setTickValues(values: number[]) {
-    options.axes![1].tick = { values };
+    options.axes![1].values = values;
     chart.update(options);
 }
 
 function reset() {
-    options.axes![1].tick = {};
+    options.axes![1].values = undefined;
     chart.update(options);
 }

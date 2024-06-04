@@ -23,6 +23,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           },
         ],
       },
+      "interval": TimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": [Function],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -41,11 +46,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "position": "top",
       "tick": {
         "enabled": true,
-        "interval": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-        },
         "stroke": "#3f7cbf",
         "width": 3,
       },
@@ -10319,6 +10319,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           },
         ],
       },
+      "interval": TimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": [Function],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -10333,12 +10338,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "position": "bottom",
       "tick": {
-        "enabled": true,
-        "interval": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-        },
+        "enabled": false,
         "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
@@ -11458,6 +11458,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           },
         ],
       },
+      "interval": TimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": [Function],
+      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11473,12 +11478,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "position": "bottom",
       "tick": {
-        "enabled": true,
-        "interval": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-        },
+        "enabled": false,
         "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
@@ -12468,6 +12468,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           },
         ],
       },
+      "interval": CountableTimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": undefined,
+      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -12484,12 +12489,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "position": "bottom",
       "tick": {
-        "enabled": true,
-        "interval": CountableTimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": undefined,
-        },
+        "enabled": false,
         "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },

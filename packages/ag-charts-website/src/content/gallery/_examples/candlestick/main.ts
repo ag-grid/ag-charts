@@ -48,11 +48,9 @@ const options: AgChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
+            interval: time.month.every(1),
             line: {
                 enabled: false,
-            },
-            tick: {
-                interval: time.month.every(1),
             },
             label: {
                 formatter: ({ value }) => {
@@ -94,9 +92,9 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
+            interval: 500,
             tick: {
                 width: 0,
-                interval: 500,
             },
             label: {
                 formatter: ({ value }) => Number(value).toLocaleString(),

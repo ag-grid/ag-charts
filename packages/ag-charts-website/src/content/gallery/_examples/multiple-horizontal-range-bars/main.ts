@@ -48,9 +48,7 @@ const options: AgChartOptions = {
             nice: false,
             min: 0,
             max: 35000000,
-            tick: {
-                values: [3000000, 32000000],
-            },
+            values: [3000000, 32000000],
             label: {
                 formatter: ({ value }) => `${value / 1000000}M`,
             },

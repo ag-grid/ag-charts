@@ -35,8 +35,8 @@ const options: AgChartOptions = {
     })),
     axes: [
         {
-            position: 'bottom',
             type: 'category',
+            position: 'bottom',
             label: {
                 enabled: false,
             },
@@ -48,17 +48,17 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'left',
             type: 'number',
+            position: 'left',
             title: {
                 text: 'Time',
             },
+            interval: 0.5,
             gridLine: {
                 enabled: false,
             },
             tick: {
                 size: 20,
-                interval: 0.5,
             },
             line: {
                 width: 1,

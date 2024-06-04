@@ -8,15 +8,6 @@ const { AND, Default, GREATER_THAN, LESS_THAN, OR, POSITIVE_NUMBER, NAN, NUMBER_
     _ModuleSupport;
 const { angleBetween, isNumberEqual, normalisedExtentWithMetadata } = _Util;
 
-class AngleNumberAxisTick extends _ModuleSupport.AxisTick<LinearAngleScale, number> {
-    @Validate(OR(POSITIVE_NUMBER, NAN))
-    override minSpacing: number = NaN;
-
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
-}
-
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';
     static readonly type = 'angle-number' as const;
@@ -31,6 +22,13 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     @Default(NaN)
     max: number = NaN;
 
+    @Validate(OR(POSITIVE_NUMBER, NAN))
+    override minSpacing: number = NaN;
+
+    @Validate(MIN_SPACING)
+    @Default(NaN)
+    override maxSpacing: number = NaN;
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new LinearAngleScale());
     }
@@ -40,10 +38,6 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
         return { domain: extent, clipped };
-    }
-
-    protected override createTick() {
-        return new AngleNumberAxisTick();
     }
 
     protected getRangeArcLength(): number {
@@ -58,8 +52,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     protected generateAngleTicks() {
         const arcLength = this.getRangeArcLength();
-        const { scale, tick, range: requestedRange } = this;
-        const { minSpacing = NaN, maxSpacing = NaN } = tick;
+        const { scale, values, range: requestedRange, minSpacing = NaN, maxSpacing = NaN } = this;
 
         const minTicksCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
         const maxTicksCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
@@ -70,7 +63,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         scale.maxTickCount = maxTicksCount;
         scale.arcLength = arcLength;
 
-        const ticks = tick.values ?? scale.ticks();
+        const ticks = values ?? scale.ticks();
         return ticks.map((value) => {
             return { value, visible: true };
         });

@@ -15,8 +15,6 @@ let offset = 0;
 let length = 8;
 let seed = 1234;
 
-let interval: any;
-
 const barOptions: AgCartesianChartOptions = {
     series: [
         {

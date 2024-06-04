@@ -1,88 +1,87 @@
-import type { AgChartOptions} from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts, time } from 'ag-charts-community';
-import { getData } from "./data";
+
+import { getData } from './data';
 
 const options: AgChartOptions = {
-  container: document.getElementById('myChart'),
-  data: getData(),
-  theme: {
-    overrides: {
-      area: {
-        series: {
-          fillOpacity: 0.8,
-          tooltip: {
-            renderer: ({ datum, xKey, yKey }) => {
-              const date = Intl.DateTimeFormat('en-GB').format(datum[xKey]);
-              return { content: `${date}: ${(Math.round(datum[yKey] / 100) / 10) + 'k'}` };
+    container: document.getElementById('myChart'),
+    data: getData(),
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    fillOpacity: 0.8,
+                    tooltip: {
+                        renderer: ({ datum, xKey, yKey }) => {
+                            const date = Intl.DateTimeFormat('en-GB').format(datum[xKey]);
+                            return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
+                        },
+                    },
+                },
             },
-          },
-        }
-      }
-    },
-  },
-  title: {
-    text: 'Total Visitors to Tate Galleries',
-    fontSize: 18,
-    spacing: 25,
-  },
-  footnote: {
-    text: 'Source: Department for Digital, Culture, Media & Sport',
-  },
-  series: [
-    {
-      type: 'area',
-      xKey: 'date',
-      yKey: 'Tate Modern',
-      fill: '#c16068',
-      stroke: '#874349',
-      yName: 'Tate Modern',
-    },
-    {
-      type: 'area',
-      xKey: 'date',
-      yKey: 'Tate Britain',
-      fill: '#a2bf8a',
-      stroke: '#718661',
-      yName: 'Tate Britain',
-    },
-    {
-      type: 'area',
-      xKey: 'date',
-      yKey: 'Tate Liverpool',
-      fill: '#ebcc87',
-      stroke: '#a48f5f',
-      yName: 'Tate Liverpool',
-    },
-    {
-      type: 'area',
-      xKey: 'date',
-      yKey: 'Tate St Ives',
-      fill: '#80a0c3',
-      stroke: '#5a7088',
-      yName: 'Tate St Ives',
-    },
-  ],
-  axes: [
-    {
-      type: 'time',
-      position: 'bottom',
-      tick: {
-        interval: time.year.every(2),
-      }
-    },
-    {
-      type: 'number',
-      position: 'left',
-      title: {
-        text: 'Total visitors',
-      },
-      label: {
-        formatter: (params) => {
-          return params.value / 1000 + 'k'
         },
-      },
     },
-  ],
-}
+    title: {
+        text: 'Total Visitors to Tate Galleries',
+        fontSize: 18,
+        spacing: 25,
+    },
+    footnote: {
+        text: 'Source: Department for Digital, Culture, Media & Sport',
+    },
+    series: [
+        {
+            type: 'area',
+            xKey: 'date',
+            yKey: 'Tate Modern',
+            fill: '#c16068',
+            stroke: '#874349',
+            yName: 'Tate Modern',
+        },
+        {
+            type: 'area',
+            xKey: 'date',
+            yKey: 'Tate Britain',
+            fill: '#a2bf8a',
+            stroke: '#718661',
+            yName: 'Tate Britain',
+        },
+        {
+            type: 'area',
+            xKey: 'date',
+            yKey: 'Tate Liverpool',
+            fill: '#ebcc87',
+            stroke: '#a48f5f',
+            yName: 'Tate Liverpool',
+        },
+        {
+            type: 'area',
+            xKey: 'date',
+            yKey: 'Tate St Ives',
+            fill: '#80a0c3',
+            stroke: '#5a7088',
+            yName: 'Tate St Ives',
+        },
+    ],
+    axes: [
+        {
+            type: 'time',
+            position: 'bottom',
+            interval: time.year.every(2),
+        },
+        {
+            type: 'number',
+            position: 'left',
+            title: {
+                text: 'Total visitors',
+            },
+            label: {
+                formatter: (params) => {
+                    return params.value / 1000 + 'k';
+                },
+            },
+        },
+    ],
+};
 
-const chart = AgCharts.create(options)
+const chart = AgCharts.create(options);

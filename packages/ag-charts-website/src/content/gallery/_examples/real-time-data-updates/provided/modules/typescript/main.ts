@@ -70,9 +70,7 @@ const options: AgCartesianChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            tick: {
-                interval: time.second.every(5, { snapTo: 0 }),
-            },
+            interval: time.second.every(5, { snapTo: 0 }),
         },
         {
             type: 'number',

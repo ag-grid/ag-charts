@@ -58,10 +58,10 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            position: 'top',
             type: 'time',
+            position: 'top',
+            interval: time.year.every(10),
             tick: {
-                interval: time.year.every(10),
                 width: 3,
                 stroke: '#3f7cbf',
             },
@@ -84,8 +84,8 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'right',
             type: 'number',
+            position: 'right',
             tick: {
                 size: 10,
             },
