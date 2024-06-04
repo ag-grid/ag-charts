@@ -314,7 +314,7 @@ export abstract class Chart extends Observable {
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
-            getLoadingSpinner(this.overlays.loading.getText(), ctx.animationManager.defaultDuration);
+            getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
             new BaseLayoutProcessor(this, ctx.layoutService),
@@ -324,6 +324,7 @@ export abstract class Chart extends Observable {
                 this.overlays,
                 ctx.dataService,
                 ctx.layoutService,
+                ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
             ),
@@ -1241,7 +1242,7 @@ export abstract class Chart extends Observable {
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         this.focus.hasFocus = true;
-        const overlayFocus = this.overlays.getFocusInfo();
+        const overlayFocus = this.overlays.getFocusInfo(this.ctx.localeManager);
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
@@ -1282,7 +1283,7 @@ export abstract class Chart extends Observable {
             const aria = this.getDatumAriaText(datum, html);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue(aria);
+            this.ctx.ariaAnnouncementService.announceValue('aria-announce.hover-datum', { datum: aria });
         }
     }
 

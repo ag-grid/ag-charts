@@ -18,6 +18,7 @@ import type { ToolbarManager } from '../chart/interaction/toolbarManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
+import type { LocaleManager } from '../chart/locale/localeManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
@@ -44,6 +45,7 @@ export interface ModuleContext {
     readonly domManager: DOMManager;
     readonly highlightManager: HighlightManager;
     readonly interactionManager: InteractionManager;
+    readonly localeManager: LocaleManager;
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;
     readonly seriesStateManager: SeriesStateManager;

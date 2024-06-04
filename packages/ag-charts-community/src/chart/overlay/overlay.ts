@@ -3,6 +3,7 @@ import { createElement } from '../../util/dom';
 import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
+import type { LocaleManager } from '../locale/localeManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-chart-overlay';
 export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-chart-dark-overlay';
@@ -22,16 +23,16 @@ export class Overlay extends BaseProperties {
 
     constructor(
         protected className: string,
-        protected defaultText: string
+        protected defaultMessageId: string
     ) {
         super();
     }
 
-    getText() {
-        return this.text ?? this.defaultText;
+    getText(localeManager: LocaleManager) {
+        return localeManager.t(this.text ?? this.defaultMessageId);
     }
 
-    getElement(animationManager: AnimationManager | undefined, rect: BBox) {
+    getElement(animationManager: AnimationManager | undefined, localeManager: LocaleManager, rect: BBox) {
         this.element ??= createElement('div', DEFAULT_OVERLAY_CLASS, { position: 'absolute' });
         this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
         this.focusBox = rect;
@@ -60,7 +61,7 @@ export class Overlay extends BaseProperties {
                 margin: '8px',
                 font: '12px Verdana, sans-serif',
             });
-            content.innerText = this.getText();
+            content.innerText = this.getText(localeManager);
 
             element.replaceChildren(content);
 

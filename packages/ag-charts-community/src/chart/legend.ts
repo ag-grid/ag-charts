@@ -243,13 +243,13 @@ export class Legend extends BaseProperties {
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_VISIBILITY,
             type: 'legend',
-            label: 'Toggle Visibility',
+            label: 'context-menu.toggle-visibility',
             action: (params) => this.contextToggleVisibility(params),
         });
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_OTHER_SERIES,
             type: 'legend',
-            label: 'Toggle Other Series',
+            label: 'context-menu.toggle-other-series',
             action: (params) => this.contextToggleOtherSeries(params),
         });
 
@@ -935,8 +935,8 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            const status: string = newEnabled ? 'visible' : 'hidden';
-            this.ctx.ariaAnnouncementService.announceValue(`${status}`);
+            const status: string = newEnabled ? 'aria-announce.visible' : 'aria-announce.hidden';
+            this.ctx.ariaAnnouncementService.announceValue(status);
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 

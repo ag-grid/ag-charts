@@ -72,9 +72,11 @@ export class HierarchyChart extends Chart {
             Logger.error(`datum is not HierarchyNode: ${datum}`);
             return super.getDatumAriaText(datum, html);
         }
-        const level = (datum.depth ?? -1) + 1;
-        const count = datum.children.length;
-        return `level ${level}, ${count} children, ${html.ariaLabel}`;
+        return this.ctx.localeManager.t('aria-announce.hierarchy-datum', {
+            level: (datum.depth ?? -1) + 1,
+            count: datum.children.length,
+            description: html.ariaLabel,
+        });
     }
 
     protected override handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
