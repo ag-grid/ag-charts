@@ -1,11 +1,10 @@
-import type { TickInterval } from '../../../chart/axis/axisTick';
-import { TimeInterval } from '../../../util/time';
 import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
     AgAxisCaptionOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
+    TimeInterval,
 } from '../../chart/axisOptions';
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type {
@@ -68,7 +67,7 @@ export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 't
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: PixelSize;
     /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
-    interval?: TickInterval<any>;
+    interval?: TimeInterval;
 }
 
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions, AgBaseAxisOptions {
@@ -92,6 +91,8 @@ export interface AgTimeAxisOptions
     extends AgBaseCartesianAxisOptions,
         AgContinuousAxisOptions<AgCartesianAxisLabelOptions, Date | number, TimeInterval> {
     type: 'time';
+    /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    interval?: TimeInterval;
 }
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';

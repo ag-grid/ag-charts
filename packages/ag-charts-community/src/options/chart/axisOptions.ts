@@ -1,4 +1,3 @@
-import type { TickInterval } from '../../chart/axis/axisTick';
 import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
@@ -62,7 +61,7 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
 export interface AgContinuousAxisOptions<
     TLabel = AgBaseAxisLabelOptions,
     TDatum extends Date | number = number,
-    TInterval extends TickInterval<any> = number,
+    TInterval extends TimeInterval | number = number,
 > extends AgBaseAxisOptions<TLabel> {
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
@@ -144,4 +143,27 @@ export interface AgAxisGridStyle {
     stroke?: CssColor;
     /** Defines how the grid lines are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
     lineDash?: PixelSize[];
+}
+
+export interface TimeInterval {
+    /**
+     * Returns a new date representing the latest interval boundary date before or equal to date.
+     * For example, `day.floor(date)` typically returns 12:00 AM local time on the given date.
+     * @param date
+     */
+    floor(date: Date | number): Date;
+
+    /**
+     * Returns a new date representing the earliest interval boundary date after or equal to date.
+     * @param date
+     */
+    ceil(date: Date | number): Date;
+
+    /**
+     * Returns an array of dates representing every interval boundary after or equal to start (inclusive) and before stop (exclusive).
+     * @param start Range start.
+     * @param stop Range end.
+     * @param extend If specified, the requested range will be extended to the closest "nice" values.
+     */
+    range(start: Date, stop: Date, extend?: boolean): Date[];
 }
