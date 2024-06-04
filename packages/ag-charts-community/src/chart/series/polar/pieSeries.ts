@@ -109,8 +109,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    private readonly calloutLabelSelection: Selection<Group, PieNodeDatum>;
-    private readonly sectorLabelSelection: Selection<Text, PieNodeDatum>;
+    private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
+    private readonly calloutLabelSelection: Selection<Group, PieNodeDatum> = new Selection(
+        this.calloutLabelGroup,
+        Group
+    );
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
@@ -150,13 +153,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.angleScale.domain = [0, 1];
         // Add 90 deg to start the first pie at 12 o'clock.
         this.angleScale.range = [-Math.PI, Math.PI].map((angle) => angle + Math.PI / 2);
-
-        const pieCalloutLabels = new Group({ name: 'pieCalloutLabels' });
-        const pieSectorLabels = new Group({ name: 'pieSectorLabels' });
-        this.labelGroup.append(pieCalloutLabels);
-        this.labelGroup.append(pieSectorLabels);
-        this.calloutLabelSelection = Selection.select(pieCalloutLabels, Group);
-        this.sectorLabelSelection = Selection.select(pieSectorLabels, Text);
     }
 
     override addChartEventListeners(): void {
@@ -603,23 +599,22 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     private async updateGroupSelection() {
-        const { itemSelection, highlightSelection, calloutLabelSelection, sectorLabelSelection } = this;
+        const { itemSelection, highlightSelection, highlightLabelSelection, calloutLabelSelection, labelSelection } =
+            this;
+        let highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as PieNodeDatum | undefined;
+        if (highlightedDatum?.series !== this) highlightedDatum = undefined;
 
-        const update = (selection: typeof this.itemSelection, clone: boolean) => {
-            let nodeData = this.nodeData;
-            if (clone) {
-                // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
-                // between normal and highlighted cases.
-                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
-            }
-            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
-            if (this.ctx.animationManager.isSkipped()) {
-                selection.cleanup();
-            }
-        };
-
-        update(itemSelection, false);
-        update(highlightSelection, true);
+        itemSelection.update(this.nodeData, undefined, (datum) => this.getDatumId(datum));
+        if (this.ctx.animationManager.isSkipped()) {
+            itemSelection.cleanup();
+        }
+        highlightSelection.update(
+            highlightedDatum != null
+                ? [{ ...highlightedDatum, sectorFormat: { ...highlightedDatum.sectorFormat } }]
+                : [],
+            undefined,
+            (datum) => this.getDatumId(datum)
+        );
 
         calloutLabelSelection.update(this.nodeData, (group) => {
             const line = new Line();
@@ -633,9 +628,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             group.appendChild(text);
         });
 
-        sectorLabelSelection.update(this.nodeData, (node) => {
-            node.pointerEvents = PointerEvents.None;
-        });
+        labelSelection.update(this.nodeData);
+        highlightLabelSelection.update(highlightedDatum != null ? [highlightedDatum] : []);
     }
 
     private async updateNodes(seriesRect: BBox) {
@@ -645,6 +639,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
         this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;
+        this.highlightLabel.visible = isVisible && highlightedDatum?.series === this;
         if (this.labelGroup) {
             this.labelGroup.visible = isVisible;
         }
@@ -685,13 +680,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
-        this.highlightSelection.each((node, datum, index) => {
-            const isDatumHighlighted =
-                highlightedDatum?.series === this && node.datum.itemId === highlightedDatum.itemId;
-
-            updateSectorFn(node, datum, index, true);
-            node.visible = isDatumHighlighted;
-        });
+        this.highlightSelection.each((node, datum, index) => updateSectorFn(node, datum, index, true));
 
         this.updateCalloutLineNodes();
         this.updateCalloutLabelNodes(seriesRect);
@@ -1094,7 +1083,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const isDonut = innerRadius > 0;
         const singleVisibleSector = this.seriesItemEnabled.filter(Boolean).length === 1;
 
-        this.sectorLabelSelection.each((text, datum) => {
+        const updateSectorLabel = (text: Text, datum: PieNodeDatum) => {
             const { sectorLabel, outerRadius } = datum;
 
             let isTextVisible = false;
@@ -1132,7 +1121,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 }
             }
             text.visible = isTextVisible;
-        });
+        };
+
+        this.labelSelection.each(updateSectorLabel);
+        this.highlightLabelSelection.each(updateSectorLabel);
     }
 
     private updateZerosumRings() {
@@ -1321,7 +1313,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
-        seriesLabelFadeInAnimation(this, 'sector', animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', animationManager, this.labelSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1357,7 +1349,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         );
 
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
-        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1375,7 +1367,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
-        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.sectorLabelSelection);
+        seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
