@@ -1,6 +1,5 @@
-import { Group } from 'packages/ag-charts-community/src/scene/group';
-import { Selection } from 'packages/ag-charts-community/src/scene/selection';
-
+import { Group } from '../../../scene/group';
+import { Selection } from '../../../scene/selection';
 import type { SeriesTooltip } from '../seriesTooltip';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { HierarchySeries } from './hierarchySeries';
