@@ -33,7 +33,9 @@ export interface AgAngleCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgAng
     paddingInner?: Ratio;
 }
 
-export interface AgAngleNumberAxisOptions extends Omit<AgContinuousAxisOptions<AgAngleAxisLabelOptions>, 'keys'> {
+export interface AgAngleNumberAxisOptions
+    extends Omit<AgBaseAxisOptions<AgAngleAxisLabelOptions>, 'keys'>,
+        AgContinuousAxisOptions {
     type: 'angle-number';
     /** Configuration for the axis ticks. */
     tick?: AgAxisBaseTickOptions;

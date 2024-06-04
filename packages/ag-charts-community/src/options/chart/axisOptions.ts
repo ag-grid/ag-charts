@@ -59,10 +59,9 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
 }
 
 export interface AgContinuousAxisOptions<
-    TLabel = AgBaseAxisLabelOptions,
     TDatum extends Date | number = number,
     TInterval extends TimeInterval | number = number,
-> extends AgBaseAxisOptions<TLabel> {
+> {
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
     /** User override for the automatically determined min value (based on series data). */

@@ -18,7 +18,8 @@ import type { Degree, PixelSize, Ratio } from '../../chart/types';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
-export interface AgBaseCartesianAxisOptions {
+export interface AgBaseCartesianAxisOptions<LabelType = AgCartesianAxisLabelOptions>
+    extends AgBaseAxisOptions<LabelType> {
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */
@@ -47,9 +48,7 @@ export interface AgBaseCartesianChartOptions {
     annotations?: AgAnnotationsOptions;
 }
 
-export interface AgCategoryAxisOptions
-    extends AgBaseCartesianAxisOptions,
-        AgBaseAxisOptions<AgCartesianAxisLabelOptions> {
+export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band.
      */
@@ -70,26 +69,22 @@ export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 't
     interval?: TimeInterval;
 }
 
-export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions, AgBaseAxisOptions {
+export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'grouped-category';
 }
 
-export interface AgNumberAxisOptions
-    extends AgBaseCartesianAxisOptions,
-        AgContinuousAxisOptions<AgCartesianAxisLabelOptions> {
+export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions, AgContinuousAxisOptions {
     type: 'number';
 }
 
-export interface AgLogAxisOptions
-    extends AgBaseCartesianAxisOptions,
-        AgContinuousAxisOptions<AgCartesianAxisLabelOptions> {
+export interface AgLogAxisOptions extends AgBaseCartesianAxisOptions, AgContinuousAxisOptions {
     /** The base of the logarithm used. */
     base?: number;
 }
 
 export interface AgTimeAxisOptions
     extends AgBaseCartesianAxisOptions,
-        AgContinuousAxisOptions<AgCartesianAxisLabelOptions, Date | number, TimeInterval> {
+        AgContinuousAxisOptions<Date | number, TimeInterval> {
     type: 'time';
     /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
     interval?: TimeInterval;
