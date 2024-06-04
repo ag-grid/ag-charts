@@ -15,7 +15,7 @@ const pageName = Astro.params.pageName as Framework;
 
 const menuEntry = await getEntry('menu', 'data');
 
-const versionsContent = await getEntry('versions', 'data');
+const versionsContent = await getEntry('versions', 'ag-charts-versions');
 const versionsData: any[] = versionsContent ? versionsContent.data : [];
 ---
 
