@@ -2,8 +2,8 @@ import type { AgContextMenuOptions } from '../../options/chart/contextMenuOption
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
-import { type ConsumableEvent, buildConsumable } from './consumableEvent';
 import { InteractionState, type PointerInteractionEvent } from './interactionManager';
+import { type PreventableEvent, buildPreventable } from './preventableEvent';
 import type { RegionManager } from './regionManager';
 
 type ContextTypeMap = {
@@ -28,7 +28,7 @@ type ContextMenuActionEventMap = {
 };
 
 export type ContextType = keyof ContextTypeMap;
-export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEventProperties<K> & ConsumableEvent;
+export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEventProperties<K> & PreventableEvent;
 
 export type ContextMenuCallback<K extends ContextType> = {
     all: (params: ContextMenuActionEventMap['all']) => void;
@@ -91,11 +91,7 @@ export class ContextMenuRegistry {
         context: ContextTypeMap[T]
     ) {
         const { offsetX: x, offsetY: y, sourceEvent } = pointerEvent;
-        this.listeners.dispatch('', this.buildConsumable({ type, x, y, context, sourceEvent }));
-    }
-
-    private buildConsumable<T extends ContextType>(nonconsumble: ContextEventProperties<T>): ContextMenuEvent<T> {
-        return buildConsumable(nonconsumble);
+        this.listeners.dispatch('', buildPreventable({ type, x, y, context, sourceEvent }));
     }
 
     public addListener(handler: (event: ContextMenuEvent) => void) {

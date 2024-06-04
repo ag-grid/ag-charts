@@ -261,7 +261,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { enabled, enableDoubleClickToReset, hoveredAxis, paddedRect } = this;
 
         if (!enabled || !enableDoubleClickToReset) return;
-        event.consume();
+        event.preventDefault();
 
         const { x, y } = this.getResetZoom();
 
@@ -287,7 +287,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!enabled || !paddedRect) return;
 
-        event.consume();
+        event.preventDefault();
         this.panner.stopInteractions();
 
         // Determine which ZoomDrag behaviour to use.
@@ -346,17 +346,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 this.updateAxisZoom(direction, newZoom);
-                event.consume();
+                event.preventDefault();
                 break;
 
             case DragState.Pan:
                 panner.update(event);
-                event.consume();
+                event.preventDefault();
                 break;
 
             case DragState.Select:
                 selector.update(event, this.getModuleProperties(), paddedRect, zoom);
-                event.consume();
+                event.preventDefault();
                 break;
 
             case DragState.None:
@@ -385,12 +385,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         switch (dragState) {
             case DragState.Axis:
                 axisDragger.stop();
-                event.consume();
+                event.preventDefault();
                 break;
 
             case DragState.Pan:
                 panner.stop();
-                event.consume();
+                event.preventDefault();
                 break;
 
             case DragState.Select:
@@ -399,7 +399,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 if (this.isMinZoom(zoom)) break;
                 const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
                 this.updateZoom(newZoom);
-                event.consume();
+                event.preventDefault();
                 break;
         }
 
@@ -457,7 +457,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const isHorizontalScrolling = deltaX != null && deltaY != null && Math.abs(deltaX) > Math.abs(deltaY);
 
         if (enablePanning && isHorizontalScrolling) {
-            event.consume();
+            event.preventDefault();
 
             const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
             for (const { direction, zoom: newZoom } of Object.values(newZooms)) {
@@ -468,7 +468,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!isSeriesScrolling && !isAxisScrolling) return;
 
-        event.consume();
+        event.preventDefault();
 
         const newZoom = scroller.update(
             event,
@@ -531,7 +531,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.updateZoom(constrainZoom(newZoom));
-        event.consume();
+        event.preventDefault();
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

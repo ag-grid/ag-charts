@@ -20,7 +20,7 @@ import {
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
-import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
+import { toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
@@ -103,7 +103,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
     }
 
-    private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined) {
+    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
         if (event !== undefined && this.enabled && this.node.visible && this.truncated) {
             const { offsetX, offsetY } = event;
             moduleCtx.tooltipManager.updateTooltip(
@@ -111,16 +111,6 @@ export class Caption extends BaseProperties implements CaptionLike {
                 { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.text })
             );
-            return true;
-        }
-        return false;
-    }
-
-    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
-        if (this.updateTooltip(moduleCtx, event)) {
-            // Prevent other handlers from consuming this event if it's generated inside the caption
-            // boundaries.
-            event.consume();
         }
     }
 

@@ -958,7 +958,7 @@ export class Legend extends BaseProperties {
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
         const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
         if (this.doClick(datum)) {
-            event.consume();
+            event.preventDefault();
         }
     }
 
@@ -1019,7 +1019,7 @@ export class Legend extends BaseProperties {
     private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
         if (this.doDoubleClick(datum)) {
-            event.consume();
+            event.preventDefault();
         }
     }
 
@@ -1072,9 +1072,7 @@ export class Legend extends BaseProperties {
         }
 
         const { offsetX, offsetY } = event;
-        // Prevent other handlers from consuming this event if it's generated inside the legend
-        // boundaries.
-        event.consume();
+        event.preventDefault();
 
         const datum = this.getDatumForPoint(offsetX, offsetY);
         this.doHover(event, datum);
