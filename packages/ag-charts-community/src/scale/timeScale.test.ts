@@ -13,7 +13,7 @@ import hour from '../util/time/hour';
 import minute from '../util/time/minute';
 import month from '../util/time/month';
 import year from '../util/time/year';
-import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
+import { calculateDefaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { TimeScale } from './timeScale';
 
 describe('TimeScale', () => {
@@ -283,7 +283,7 @@ describe('TimeScale', () => {
             const scale = new TimeScale();
             scale.domain = [ticks[0], ticks[ticks.length - 1]];
 
-            expect(defaultTimeTickFormat(ticks, scale.domain)).toEqual(expectedFormat);
+            expect(calculateDefaultTimeTickFormat(ticks, scale.domain)).toEqual(expectedFormat);
         });
     });
 });
