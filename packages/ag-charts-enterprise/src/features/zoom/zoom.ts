@@ -191,6 +191,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.scene.attachNode(selectionRect),
             ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event), {
                 triggeringStates: clickableState,
+                includeConsumedEvents: true,
             }),
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
             region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
