@@ -353,16 +353,6 @@ export abstract class Chart extends Observable {
 
             ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
-            ctx.regionManager.listenAll(
-                'click',
-                (event) => this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent }),
-                { includeConsumedEvents: true }
-            ),
-            ctx.regionManager.listenAll(
-                'dblclick',
-                (event) => this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent }),
-                { includeConsumedEvents: true }
-            ),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
@@ -1396,6 +1386,7 @@ export abstract class Chart extends Observable {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.consume();
         }
+        this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent });
     }
 
     protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
@@ -1403,6 +1394,7 @@ export abstract class Chart extends Observable {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.consume();
         }
+        this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent });
     }
 
     private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {
