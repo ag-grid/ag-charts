@@ -15,7 +15,6 @@ export interface AgCartesianSeriesTooltipRendererParams<TDatum = any> extends Ag
 export interface AgErrorBoundSeriesTooltipRendererParams {
     /** The key to use to retrieve lower bound error values from the x axis data. */
     xLowerKey?: string;
-    // TODO(olegat) shouldn't these values be removed??
     /** The x-axis lower bound error value. */
     xLowerValue?: any;
     /** Human-readable description of the lower bound error value for the x axis. This is the value to use in tooltips or labels. */
