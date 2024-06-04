@@ -10,7 +10,7 @@ export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _Modul
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
 export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
-export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
+export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['itemStyler']>;
 
 type ErrorBarDataOptions = Pick<
     AgErrorBarOptions,

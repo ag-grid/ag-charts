@@ -60,7 +60,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
-    formatter?: (params: AgSunburstSeriesFormatterParams<TDatum>) => AgSunburstSeriesStyle;
+    itemStyler?: (params: AgSunburstSeriesFormatterParams<TDatum>) => AgSunburstSeriesStyle;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }

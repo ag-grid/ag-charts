@@ -17,7 +17,7 @@ const options: AgChartOptions = {
                         enabled: true,
                         formatter: ({ value }) => `${Math.abs(value)}`,
                     },
-                    formatter: ({ datum, yKey }) => ({
+                    itemStyler: ({ datum, yKey }) => ({
                         fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.4, 1),
                     }),
                     tooltip: {

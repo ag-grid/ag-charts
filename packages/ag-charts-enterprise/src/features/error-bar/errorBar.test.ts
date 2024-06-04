@@ -22,7 +22,7 @@ import {
 import { createEnterpriseChart } from '../../test/utils';
 
 export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
-export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
+export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['itemStyler']>;
 
 const SERIES_CANADA = {
     data: [
@@ -747,7 +747,7 @@ describe('ErrorBars', () => {
                         ...SERIES_CANADA.errorBar,
                         strokeWidth: 3,
                         formatter: whisker_formatter,
-                        cap: { formatter: cap_formatter },
+                        cap: { itemStyler: cap_formatter },
                     },
                 },
             ],
@@ -769,7 +769,7 @@ describe('ErrorBars', () => {
                             return {};
                         },
                         cap: {
-                            formatter: (param: AgErrorBarFormatterParams) => {
+                            itemStyler: (param: AgErrorBarFormatterParams) => {
                                 capResult.push(param.highlighted);
                                 return {};
                             },

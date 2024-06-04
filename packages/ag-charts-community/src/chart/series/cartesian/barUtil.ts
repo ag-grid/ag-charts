@@ -77,7 +77,7 @@ export function getRectConfig<
     isHighlighted,
     style,
     highlightStyle,
-    formatter,
+    itemStyler,
     seriesId,
     ctx: { callbackCache },
     ...opts
@@ -86,7 +86,7 @@ export function getRectConfig<
     isHighlighted: boolean;
     style: RectConfig;
     highlightStyle: SeriesItemHighlightStyle;
-    formatter?: (params: Params & ExtraParams) => AgBarSeriesStyle;
+    itemStyler?: (params: Params & ExtraParams) => AgBarSeriesStyle;
     seriesId: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
@@ -104,8 +104,8 @@ export function getRectConfig<
     } = style;
 
     let format: AgBarSeriesStyle | undefined;
-    if (formatter) {
-        format = callbackCache.call(formatter as any, {
+    if (itemStyler) {
+        format = callbackCache.call(itemStyler as any, {
             datum: datum.datum,
             xKey: datum.xKey,
             fill,

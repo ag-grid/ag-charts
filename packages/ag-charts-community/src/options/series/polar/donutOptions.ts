@@ -120,7 +120,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** The spacing between Donut sectors. */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the Donut sectors. */
-    formatter?: (params: AgDonutSeriesFormatterParams<TDatum>) => AgDonutSeriesFormat;
+    itemStyler?: (params: AgDonutSeriesFormatterParams<TDatum>) => AgDonutSeriesFormat;
 }
 
 export interface AgDonutSeriesOptions<TDatum = any>

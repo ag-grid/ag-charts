@@ -80,7 +80,7 @@ describe('ChartTheme', () => {
                 area: {
                     series: {
                         marker: {
-                            formatter: markerFormatter,
+                            itemStyler: markerFormatter,
                         },
                     },
                 },
@@ -210,7 +210,7 @@ describe('ChartTheme', () => {
                 expect(chart.series[i].type).toBe('area');
                 expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
                 expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.marker.formatter).toBe(markerFormatter);
+                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBe(markerFormatter);
             }
         });
     });

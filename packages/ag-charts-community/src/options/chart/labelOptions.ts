@@ -1,5 +1,5 @@
 import type { FontOptions, Toggleable } from '../series/cartesian/commonOptions';
-import type { AgChartCallbackParams } from './callbackOptions';
+import type { AgChartCallbackParams, Formatter } from './callbackOptions';
 import type { FontSize, OverflowStrategy, TextWrap } from './types';
 
 /**
@@ -12,7 +12,7 @@ import type { FontSize, OverflowStrategy, TextWrap } from './types';
  */
 export interface AgChartLabelOptions<TDatum, TParams> extends Toggleable, FontOptions {
     /** A custom formatting function used to convert data values into text for display by labels. */
-    formatter?: (params: AgChartLabelFormatterParams<TDatum> & TParams) => string | undefined;
+    formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & TParams>;
 }
 
 export interface AgChartLabelFormatterParams<TDatum> extends AgChartCallbackParams<TDatum> {

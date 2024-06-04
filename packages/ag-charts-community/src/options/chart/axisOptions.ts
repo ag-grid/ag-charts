@@ -1,3 +1,4 @@
+import type { Formatter } from './callbackOptions';
 import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
@@ -34,7 +35,7 @@ export interface AgAxisCaptionOptions {
     /** Spacing between the axis labels and the axis title. */
     spacing?: PixelSize;
     /** Formatter to allow dynamic axis title calculation. */
-    formatter?: (params: AgAxisCaptionFormatterParams) => string;
+    formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }
 
 export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
@@ -89,7 +90,7 @@ export interface AgAxisLabelFormatterParams {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
-    readonly formatter?: (x: any) => string;
+    readonly formatter?: Formatter<any>;
 }
 
 export interface AgBaseAxisLabelOptions {
@@ -116,7 +117,7 @@ export interface AgBaseAxisLabelOptions {
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
-    formatter?: (params: AgAxisLabelFormatterParams) => string | undefined;
+    formatter?: Formatter<AgAxisLabelFormatterParams>;
 }
 
 export interface AgAxisGridStyle {

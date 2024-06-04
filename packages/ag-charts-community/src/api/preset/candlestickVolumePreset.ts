@@ -60,7 +60,7 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
                 type: 'bar',
                 xKey: 'date',
                 yKey: volumeKey,
-                formatter: (params: AgBarSeriesFormatterParams<any>) => {
+                itemStyler: (params: AgBarSeriesFormatterParams<any>) => {
                     const { datum } = params;
                     const fill = datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7';
                     return { fill };

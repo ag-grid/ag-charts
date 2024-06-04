@@ -433,7 +433,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                formatter,
+                itemStyler: formatter,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,

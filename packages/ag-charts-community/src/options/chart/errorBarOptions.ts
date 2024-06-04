@@ -1,6 +1,6 @@
 import type { AgCartesianSeriesTooltipRendererParams } from '../series/cartesian/cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
-import type { AgChartCallbackParams } from './callbackOptions';
+import type { AgChartCallbackParams, Styler } from './callbackOptions';
 import type { PixelSize, Ratio } from './types';
 
 export interface AgErrorBarFormatterParams
@@ -63,12 +63,12 @@ interface ErrorBarNameOptions {
 
 interface ErrorBarCapFormatterOption {
     /** Function used to return formatting for individual caps, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
+    itemStyler?: Styler<AgErrorBarFormatterParams, AgErrorBarOptions['cap']>;
 }
 
 interface ErrorBarFormatterOption {
     /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
+    itemStyler?: Styler<AgErrorBarFormatterParams, AgErrorBarOptions>;
 }
 
 interface ErrorBarCapOptions extends ErrorBarCapFormatterOption, ErrorBarCapLengthOptions, ErrorBarStylingOptions {}

@@ -72,7 +72,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle;
+    itemStyler?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle;
 
     @Validate(OBJECT, { optional: true })
     readonly shadow = new DropShadow();

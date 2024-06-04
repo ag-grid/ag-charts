@@ -160,7 +160,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgDonutSeriesFormatterParams<any>) => AgDonutSeriesFormat;
+    itemStyler?: (params: AgDonutSeriesFormatterParams<any>) => AgDonutSeriesFormat;
 
     @Validate(DEGREE)
     rotation: number = 0;

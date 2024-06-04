@@ -2568,7 +2568,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     {
       "fill": "#5090dc",
       "fillOpacity": 0.7,
-      "formatter": [Function],
+      "itemStyler": [Function],
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,

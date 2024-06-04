@@ -124,7 +124,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
+    itemStyler?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
 
     @Validate(DEGREE)
     rotation: number = 0;

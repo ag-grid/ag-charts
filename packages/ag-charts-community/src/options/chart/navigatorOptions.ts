@@ -13,6 +13,7 @@ import type { AgRangeBarSeriesOptions } from '../series/cartesian/rangeBarOption
 import type { AgScatterSeriesOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
+import type { Formatter } from './callbackOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from './types';
 
 export interface AgNavigatorMiniChartIntervalOptions {
@@ -48,7 +49,7 @@ export interface AgNavigatorMiniChartLabelOptions {
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. */
-    formatter?: (params: AgAxisLabelFormatterParams) => string | undefined;
+    formatter?: Formatter<AgAxisLabelFormatterParams>;
 }
 
 export interface AgNavigatorMiniChartPadding {

@@ -39,7 +39,7 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = any>
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgHeatmapSeriesFormatterParams<TDatum>) => AgHeatmapSeriesFormat;
+    itemStyler?: (params: AgHeatmapSeriesFormatterParams<TDatum>) => AgHeatmapSeriesFormat;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams>;
 }

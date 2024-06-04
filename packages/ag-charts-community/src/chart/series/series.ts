@@ -768,8 +768,8 @@ export abstract class Series<
     ) {
         const defaultSize = { size: params.datum.point?.size ?? 0 };
         const markerStyle = mergeDefaults(defaultSize, defaultStyle);
-        if (marker.formatter) {
-            const style = this.ctx.callbackCache.call(marker.formatter, {
+        if (marker.itemStyler) {
+            const style = this.ctx.callbackCache.call(marker.itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,

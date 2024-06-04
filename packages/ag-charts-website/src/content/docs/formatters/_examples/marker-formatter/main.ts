@@ -38,7 +38,7 @@ const options: AgChartOptions = {
             yKey: 'petrol',
             yName: 'Petrol',
             stacked: true,
-            marker: { formatter },
+            marker: { itemStyler: formatter },
         },
         {
             type: 'area',
@@ -46,7 +46,7 @@ const options: AgChartOptions = {
             yKey: 'electric',
             yName: 'Electric',
             stacked: true,
-            marker: { formatter },
+            marker: { itemStyler: formatter },
         },
     ],
 };

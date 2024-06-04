@@ -65,7 +65,7 @@ export class SeriesMarker<TParams = never, TDatum = any>
 
     @Validate(FUNCTION, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    formatter?: (
+    itemStyler?: (
         params: AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>
     ) => AgSeriesMarkerStyle | undefined;
 

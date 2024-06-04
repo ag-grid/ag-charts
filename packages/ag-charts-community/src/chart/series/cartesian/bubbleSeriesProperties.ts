@@ -123,7 +123,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     strokeOpacity!: number;
 
     @ProxyProperty('marker.formatter', { optional: true })
-    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
+    itemStyler?: (params: any) => AgSeriesMarkerStyle | undefined;
 
     @Validate(OBJECT)
     readonly label = new BubbleSeriesLabel();
