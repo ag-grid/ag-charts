@@ -183,7 +183,8 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
 
     if (bindings.usesChartApi) {
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current.chart$3');
-        indexFile = indexFile.replace(/\(this.chartRef.current.chart, options/g, '(chartRef.current.chart, options');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.chart.$1(');
+        indexFile = indexFile.replace(/this.chartRef.current.chart/g, 'chartRef.current.chart');
     }
 
     return indexFile;

@@ -343,9 +343,13 @@ export function getTypes(node: ts.Node) {
     return typesToInclude;
 }
 
+const CHART_API_EXPRESSIONS = [/AgCharts.(?!create)/, /chart.(?!(update))/];
 export function usesChartApi(node: ts.Node) {
-    if (ts.isCallExpression(node) && node.getText()?.match(/AgCharts.(?!create)/)) {
-        return true;
+    if (ts.isCallExpression(node)) {
+        const nodeText = node.getText();
+        if (CHART_API_EXPRESSIONS.some((e) => e.test(nodeText))) {
+            return true;
+        }
     }
 
     let usesApi = false;
