@@ -90,7 +90,7 @@ export function getFunctionName(code: string): string {
 }
 
 export const convertFunctionToProperty = (code: string) =>
-    code.replace(/(async ){0,1}function\s+([^(\s]+)\s*\(([^)]*)\)/, '$2 = $1($3) =>');
+    code.replace(/(async )?function\s+([^(\s]+)\s*\(([^)]*)\)/, '$2 = $1($3) =>');
 
 export const convertFunctionToConstProperty = (code: string) =>
     code.replace(/(async ){0,1}function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $2 = $1($3) =>');
