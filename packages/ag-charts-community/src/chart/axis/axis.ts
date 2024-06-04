@@ -79,7 +79,7 @@ import {
 
 export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
 
-const TICK_INTERVAL = predicateWithMessage(
+export const TICK_INTERVAL = predicateWithMessage(
     (value) => (isFiniteNumber(value) && value > 0) || value instanceof TimeInterval,
     `a non-zero positive Number value or, for a time axis, a Time Interval such as 'agCharts.time.month'`
 );
@@ -255,7 +255,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     readonly line = new AxisLine();
-    readonly tick: AxisTick = this.createTick();
+    readonly tick = new AxisTick();
     readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
@@ -468,9 +468,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.gridLineGroupSelection.clear();
     }
 
-    protected createTick() {
-        return new AxisTick();
-    }
     protected createLabel(): ChartAxisLabel {
         return new AxisLabel();
     }
@@ -575,8 +572,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    private getTickSize() {
-        return this.tick.enabled ? this.tick.size : this.createTick().size;
+    protected getTickSize() {
+        return this.tick.enabled ? this.tick.size : 6;
     }
 
     private setTitleProps(caption: Caption, params: { spacing: number }) {
