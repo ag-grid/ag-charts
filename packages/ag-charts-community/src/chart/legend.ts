@@ -306,7 +306,8 @@ export class Legend extends BaseProperties {
     }
 
     public destroy() {
-        this.ctx.domManager.removeChild('canvas-overlay', 'ag-charts-proxy-legend-toolbar');
+        this.ctx.domManager.removeChild('canvas-overlay', `${this.id}-toolbar`);
+        this.ctx.domManager.removeChild('canvas-overlay', `${this.id}-pagination`);
         this.destroyFns.forEach((f) => f());
 
         this.pagination.destroy();
