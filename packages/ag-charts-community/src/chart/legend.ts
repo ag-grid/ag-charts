@@ -661,7 +661,7 @@ export class Legend extends BaseProperties {
 
         let pageIndex = 0;
         this.itemSelection.each((markerLabel, _, nodeIndex) => {
-            if (nodeIndex > pages[pageIndex].endIndex) {
+            if (nodeIndex > (pages[pageIndex]?.endIndex ?? Infinity)) {
                 pageIndex++;
             }
             markerLabel.pageIndex = pageIndex;
