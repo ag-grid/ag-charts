@@ -5,7 +5,6 @@ import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOp
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    deproxy,
     extractImageData,
     prepareTestOptions,
     repeat,
