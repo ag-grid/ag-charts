@@ -68,6 +68,23 @@ The following example demonstrates:
 
 {% chartExampleRunner title="Update with Partial AgChartOptions" name="update-partial" type="generated" /%}
 
+## Waiting for Options Update
+
+Creation and updates happen asynchronously, but in some situations it maybe useful to know when an update is
+rendered.
+
+To assist with this, `AgChartInstance.update()` and `AgChartInstance.updateDelta()` return `Promise`s that resolve once
+rendering is complete. Additionally `AgChartsInstance.waitForUpdate()` can be used after initial creation to understand
+when the next pending render cycle has happened.
+
+{% note %}
+`Promise`s do not take animations into account, they resolve after the first rendering in an animation sequence.
+{% /note %}
+
+This example demonstrates how this can be used to create trivial loops to continuously update a chart:
+
+{% chartExampleRunner title="Wait for Options Update" name="wait-for-update" type="generated" /%}
+
 {% /if %}
 
 ## Destroying Charts

@@ -1,6 +1,6 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { convertFunctionToProperty } from './parser-utils';
-import { convertFunctionToCallback, convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
+import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
@@ -106,9 +106,9 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
         const template = getTemplate(bindings, componentAttributes);
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(convertFunctionToCallback(handler.body))
+            processFunction(convertFunctionToProperty(handler.body))
         );
-        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToCallback(m)));
+        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToProperty(m)));
 
         indexFile = `
             ${imports.join(`
