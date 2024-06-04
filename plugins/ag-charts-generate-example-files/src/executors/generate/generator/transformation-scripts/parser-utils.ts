@@ -81,7 +81,7 @@ export function modulesProcessor(modules: string[]) {
 }
 
 export function removeFunctionKeyword(code: string): string {
-    return code.replace(/^(async ){0,1}function /, '$1').replace(/\n\s?function /, '\n ');
+    return code.replace(/^(async )?function /, '$1').replace(/\n\s?function /, '\n ');
 }
 
 export function getFunctionName(code: string): string {
