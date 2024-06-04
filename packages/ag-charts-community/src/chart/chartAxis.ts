@@ -5,10 +5,9 @@ import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
-import type { TickInterval } from './axis/axis';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
-import type { AxisTick } from './axis/axisTick';
+import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
@@ -63,7 +62,7 @@ export interface ChartAxis {
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     values?: any[];
-    interval?: TickInterval<any>;
+    interval?: number | TickInterval<any>;
     minSpacing?: number;
     maxSpacing?: number;
 }

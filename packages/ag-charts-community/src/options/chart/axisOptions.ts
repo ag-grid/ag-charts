@@ -1,4 +1,4 @@
-import { TimeInterval } from '../../util/time';
+import type { TickInterval } from '../../chart/axis/axisTick';
 import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
@@ -62,7 +62,7 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
 export interface AgContinuousAxisOptions<
     TLabel = AgBaseAxisLabelOptions,
     TDatum extends Date | number = number,
-    TInterval extends TimeInterval | number = number,
+    TInterval extends TickInterval<any> = number,
 > extends AgBaseAxisOptions<TLabel> {
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;

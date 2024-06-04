@@ -1,7 +1,8 @@
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { RATIO, UNION, Validate } from '../../util/validation';
-import { Axis, type TickInterval } from './axis';
+import { Axis } from './axis';
+import type { TickInterval } from './axisTick';
 
 export interface PolarAxisPathPoint {
     x: number;

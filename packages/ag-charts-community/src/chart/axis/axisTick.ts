@@ -1,5 +1,10 @@
+import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import type { TimeScale } from '../../scale/timeScale';
 import { BaseProperties } from '../../util/properties';
+import { TimeInterval } from '../../util/time';
 import { BOOLEAN, COLOR_STRING, POSITIVE_NUMBER, Validate } from '../../util/validation';
+
+export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
 
 export class AxisTick extends BaseProperties {
     @Validate(BOOLEAN)

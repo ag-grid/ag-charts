@@ -1,3 +1,4 @@
+import type { TickInterval } from '../../../chart/axis/axisTick';
 import { TimeInterval } from '../../../util/time';
 import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
@@ -67,7 +68,7 @@ export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 't
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: PixelSize;
     /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
-    interval?: TimeInterval;
+    interval?: TickInterval<any>;
 }
 
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions, AgBaseAxisOptions {

@@ -65,7 +65,7 @@ import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import { AxisTick } from './axisTick';
+import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
@@ -77,7 +77,7 @@ import {
     resetAxisSelectionFn,
 } from './axisUtil';
 
-export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
+// export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
 
 export const TICK_INTERVAL = predicateWithMessage(
     (value) => (isFiniteNumber(value) && value > 0) || value instanceof TimeInterval,
