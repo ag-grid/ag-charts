@@ -9,7 +9,8 @@ import {
     LineDash,
     Stroke,
 } from '../annotationProperties';
-import { AnnotationType } from '../annotationTypes';
+import { AnnotationType, type ValidationContext } from '../annotationTypes';
+import { validateDatumLine } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
@@ -23,4 +24,8 @@ export class LineAnnotation extends Annotation(
 
     @Validate(STRING)
     type = AnnotationType.Line as const;
+
+    override isValidWithContext(context: ValidationContext, warningPrefix: string) {
+        return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
+    }
 }

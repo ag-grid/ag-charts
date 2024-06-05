@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 export enum AnnotationType {
     Line = 'line',
@@ -36,4 +36,11 @@ export interface StateClickEvent<Annotation, Scene> {
     node?: Scene;
     point: Coords;
     region?: _ModuleSupport.RegionName;
+}
+
+export interface ValidationContext {
+    domainX?: any[];
+    domainY?: any[];
+    scaleX?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
+    scaleY?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
 }
