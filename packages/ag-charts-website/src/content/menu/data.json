@@ -141,6 +141,10 @@
                         "path": "accessibility"
                     },
                     {
+                        "title": "Localisation",
+                        "path": "localisation"
+                    },
+                    {
                         "title": "Series Highlighting",
                         "path": "series-highlighting"
                     },
