@@ -3,6 +3,12 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
+    title: {
+        text: 'UK Power Generation',
+    },
+    subtitle: {
+        text: '2023',
+    },
     data: [
         { from: 'Wind', to: 'Renewables', size: 79 },
         { from: 'Nuclear', to: 'Renewables', size: 38 },
@@ -21,6 +27,7 @@ const options: AgChartOptions = {
             fromKey: 'from',
             toKey: 'to',
             sizeKey: 'size',
+            sizeName: 'Total (GWh)',
         },
     ],
 };
