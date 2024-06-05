@@ -141,7 +141,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "paddingX": 40,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -164,7 +163,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "spacing": 10,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -366,7 +364,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "enabled": true,
     "fontFamily": "Georgia, Times New Roman, Times, Serif",
     "fontSize": 22,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Marriage Statistics (Northern Ireland)",
     "wrapping": "hyphenate",
@@ -494,8 +491,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -667,7 +662,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -690,7 +684,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -895,7 +888,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Cattle Holdings and Beef Exports (UK)",
     "wrapping": "hyphenate",
@@ -1023,8 +1015,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -1148,7 +1138,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -1171,7 +1160,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -1572,7 +1560,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Taxed Alcohol Consumption (UK)",
     "wrapping": "hyphenate",
@@ -1700,8 +1687,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -1824,7 +1809,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -1847,7 +1831,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -2243,7 +2226,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "WEEE Collected in UK",
     "wrapping": "hyphenate",
@@ -2372,8 +2354,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "class": "my-tooltip",
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -2493,7 +2473,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -2516,7 +2495,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -2616,7 +2594,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Worldwide Earthquakes",
     "wrapping": "hyphenate",
@@ -2744,8 +2721,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -2866,7 +2841,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -2889,7 +2863,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -3135,7 +3108,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Earthquake Magnitudes by Source",
     "wrapping": "hyphenate",
@@ -3263,8 +3235,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -3386,7 +3356,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -3409,7 +3378,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -3774,7 +3742,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Changes in UK Energy Stock",
     "wrapping": "hyphenate",
@@ -3902,8 +3869,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -4025,7 +3990,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -4048,7 +4012,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -4157,7 +4120,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Gross Weekly Earnings
 by Occupation",
@@ -4286,8 +4248,6 @@ by Occupation",
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -4409,7 +4369,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -4432,7 +4391,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -4538,7 +4496,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Change in Number of Jobs in UK
 (June to September)",
@@ -4667,8 +4624,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -4795,7 +4750,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -4818,7 +4772,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -4911,7 +4864,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "text": "Punch Card of Github",
     "wrapping": "hyphenate",
   },
@@ -5038,8 +4990,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -5165,7 +5115,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -5188,7 +5137,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -5283,7 +5231,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Most Populous Cities",
     "wrapping": "hyphenate",
@@ -5411,8 +5358,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -5534,7 +5479,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -5557,7 +5501,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -5728,7 +5671,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Changes in Prison Population",
     "wrapping": "hyphenate",
@@ -5856,8 +5798,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -5979,7 +5919,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -6002,7 +5941,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -6177,7 +6115,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Annual Growth in Pay",
     "wrapping": "hyphenate",
@@ -6305,8 +6242,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -6429,7 +6364,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -6452,7 +6386,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -6849,7 +6782,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Regular Internet Users",
     "wrapping": "hyphenate",
@@ -6977,8 +6909,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -7104,7 +7034,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "paddingX": 16,
       "paddingY": 15,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -7127,7 +7056,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -7950,7 +7878,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Imported Banana Prices",
     "wrapping": "hyphenate",
@@ -8078,8 +8005,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -8201,7 +8126,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -8224,7 +8148,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -8325,7 +8248,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
-    "fontWeight": "normal",
     "text": "World Population Over Time",
     "wrapping": "hyphenate",
   },
@@ -8452,8 +8374,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -8576,7 +8496,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -8599,7 +8518,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -9104,7 +9022,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "UK Energy Sources",
     "wrapping": "hyphenate",
@@ -9232,8 +9149,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -9357,7 +9272,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -9380,7 +9294,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -9603,7 +9516,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Internet Users by Geographical Location",
     "wrapping": "hyphenate",
@@ -9731,8 +9643,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -9855,7 +9765,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -9878,7 +9787,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -10232,7 +10140,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Ethnic Diversity of School Pupils",
     "wrapping": "hyphenate",
@@ -10360,8 +10267,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -10487,7 +10392,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -10510,7 +10414,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -10782,7 +10685,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Tate Galleries",
     "wrapping": "hyphenate",
@@ -10910,8 +10812,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -11034,7 +10934,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -11057,7 +10956,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -11161,7 +11059,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Museums and Galleries",
     "wrapping": "hyphenate",
@@ -11289,8 +11186,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -11329,7 +11224,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -11352,7 +11246,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "overlays": {
@@ -11511,7 +11404,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Dwelling Fires (UK)",
     "wrapping": "hyphenate",
@@ -11519,8 +11411,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -11647,7 +11537,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -11670,7 +11559,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -11834,7 +11722,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Road fuel prices",
     "wrapping": "hyphenate",
@@ -11962,8 +11849,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -12002,7 +11887,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -12025,7 +11909,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "overlays": {
@@ -12162,7 +12045,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Religions of London Population",
     "wrapping": "hyphenate",
@@ -12170,8 +12052,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -12291,7 +12171,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -12314,7 +12193,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -12401,7 +12279,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Height vs Weight for Major League Baseball Players",
     "wrapping": "hyphenate",
@@ -12529,8 +12406,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -12658,7 +12533,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -12681,7 +12555,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -13142,7 +13015,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Science Museums",
     "wrapping": "hyphenate",
@@ -13270,8 +13142,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -13394,7 +13264,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -13417,7 +13286,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -13667,7 +13535,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
-    "fontWeight": "normal",
     "text": "UK Housing Stock",
     "wrapping": "hyphenate",
   },
@@ -13794,8 +13661,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -13919,7 +13784,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "paddingX": 16,
       "paddingY": 8,
     },
-    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -13942,7 +13806,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "spacing": 30,
     "toggleSeries": true,
   },
-  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -14267,7 +14130,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
-    "fontWeight": "normal",
     "text": "Average Station Entries",
     "wrapping": "hyphenate",
   },
@@ -14394,8 +14256,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "enabled": true,
-    "range": undefined,
   },
 }
 `;

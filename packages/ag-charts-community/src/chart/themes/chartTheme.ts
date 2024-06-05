@@ -170,7 +170,6 @@ export class ChartTheme {
                 position: POSITION.BOTTOM,
                 reverseOrder: false,
                 spacing: 30,
-                listeners: {},
                 toggleSeries: true,
                 item: {
                     paddingX: 16,
