@@ -54,7 +54,7 @@ const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
     [AnnotationType.ParallelChannel]: ParallelChannel,
 };
 
-class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover'> {
+class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
@@ -142,6 +142,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('click', (event) => this.onClick(event, REGIONS.SERIES), All),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
+            seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
+            seriesRegion.addListener('delete', this.onDelete.bind(this), All),
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
@@ -175,7 +177,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationData ??= new PropertiesArray(this.createAnnotationDatum);
         this.annotationData.set(event.annotations);
 
-        this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
@@ -208,11 +210,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarAnnotationOptionButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         if (!ToolbarManager.isGroup('annotationOptions', event)) return;
 
-        const {
-            active,
-            annotationData,
-            ctx: { toolbarManager, updateService },
-        } = this;
+        const { active, annotationData } = this;
 
         if (!annotationData || active == null) return;
 
@@ -220,8 +218,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case 'delete':
                 annotationData.splice(active, 1);
                 this.reset();
-
-                toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
                 break;
 
             case 'lock':
@@ -235,7 +231,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 break;
         }
 
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -431,7 +427,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             annotationData,
             annotations,
-            ctx: { cursorManager, updateService },
+            ctx: { cursorManager },
         } = this;
 
         if (!annotationData) return;
@@ -458,7 +454,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
         this.state.transition('hover', data);
 
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
@@ -489,7 +485,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             annotations,
             hovered,
-            ctx: { toolbarManager, updateService },
+            ctx: { toolbarManager },
         } = this;
 
         if (this.active != null) {
@@ -508,7 +504,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.toggleAnnotationOptionsButtons();
         }
 
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
@@ -516,7 +512,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
-            ctx: { toolbarManager, updateService },
+            ctx: { toolbarManager },
         } = this;
 
         toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
@@ -539,7 +535,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
         this.state.transition('click', data);
 
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
@@ -549,7 +545,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotations,
             hovered,
             seriesRect,
-            ctx: { cursorManager, interactionManager, updateService },
+            ctx: { cursorManager, interactionManager },
         } = this;
 
         if (hovered == null || annotationData == null || !this.state.is('idle')) return;
@@ -588,7 +584,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
         }
 
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onDragNodeHandle(handleOffset: Coords) {
@@ -605,7 +601,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             active,
             annotations,
-            ctx: { cursorManager, interactionManager, updateService },
+            ctx: { cursorManager, interactionManager },
         } = this;
 
         if (!this.state.is('idle')) return;
@@ -616,7 +612,38 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null) return;
 
         annotations.nodes()[active].stopDragging();
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
+    }
+
+    private onCancel() {
+        const { active, annotationData, state } = this;
+
+        if (!state.is('idle')) {
+            state.transition('cancel');
+
+            // Delete active annotation if it is in the process of being created
+            if (active != null && annotationData) {
+                annotationData.splice(active, 1);
+            }
+        }
+
+        this.reset();
+        this.update();
+    }
+
+    private onDelete() {
+        const { active, annotationData, state } = this;
+
+        if (active == null || !annotationData) return;
+
+        if (!state.is('idle')) {
+            state.transition('cancel');
+        }
+
+        annotationData.splice(active, 1);
+
+        this.reset();
+        this.update();
     }
 
     private toggleAnnotationOptionsButtons() {
@@ -646,6 +673,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.hovered = undefined;
         this.active = undefined;
         this.ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+    }
+
+    private update() {
+        this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private stringToAnnotationType(value: string) {

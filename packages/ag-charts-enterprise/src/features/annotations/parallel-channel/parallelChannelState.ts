@@ -6,7 +6,7 @@ import type { ParallelChannel } from './parallelChannelScene';
 
 export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
     'start' | 'end' | 'height',
-    'click' | 'hover'
+    'click' | 'hover' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -76,6 +76,7 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
+                cancel: '__parent',
             },
             end: {
                 hover: onEndHover,
@@ -83,6 +84,7 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'height',
                     action: onEndClick,
                 },
+                cancel: '__parent',
             },
             height: {
                 hover: onHeightHover,
@@ -90,6 +92,7 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: '__parent',
                     action: onHeightClick,
                 },
+                cancel: '__parent',
             },
         });
     }
