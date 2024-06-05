@@ -1,5 +1,6 @@
+import type { MessageFormatter } from '../../options/chart/localeOptions';
 import { Listeners } from '../../util/listeners';
-import { type MessageFormatter, defaultMessageFormatter } from './defaultMessageFormatter';
+import { defaultMessageFormatter } from './defaultMessageFormatter';
 import { en } from './en';
 
 type MessageFormat = any;

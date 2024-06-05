@@ -1,8 +1,5 @@
+import type { MessageFormatter } from '../../options/chart/localeOptions';
 import { Logger } from '../../util/logger';
-
-export interface MessageFormatter<Message> {
-    (params: { id: string; message: Message; params: Record<string, any> }): string;
-}
 
 const messageRegExp = /\$\{(\w+)\}(?:\[(\w+)\])?/gi;
 
