@@ -277,20 +277,20 @@ export class Legend extends BaseProperties {
             type: 'toolbar',
             id: `${this.id}-toolbar`,
             classList: ['ag-charts-proxy-legend-toolbar'],
-            ariaLabel: 'aria-label.legend',
+            ariaLabel: { id: 'aria-label.legend' },
             ariaOrientation: 'horizontal',
         });
         this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
             type: 'div',
             id: `${this.id}-pagination`,
             classList: ['ag-charts-proxy-legend-pagination'],
-            ariaLabel: 'Legend Pagination',
+            ariaLabel: { id: 'aria-label.legend-pagination' },
             ariaOrientation: 'horizontal',
         });
         this.proxyPrevButton ??= this.ctx.proxyInteractionService.createProxyElement({
             type: 'button',
             id: `${this.id}-prev-page`,
-            textContent: 'Previous Legend Page',
+            textContent: { id: 'aria-label.legend-page-previous' },
             parent: this.proxyLegendPagination,
             focusable: this.pagination.previousButton,
             onclick: () => this.pagination.clickPrevious(),
@@ -298,7 +298,7 @@ export class Legend extends BaseProperties {
         this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
             type: 'button',
             id: `${this.id}-next-page`,
-            textContent: 'Next Legend Page',
+            textContent: { id: 'aria-label.legend-page-next' },
             parent: this.proxyLegendPagination,
             focusable: this.pagination.nextButton,
             onclick: () => this.pagination.clickNext(),
@@ -1145,14 +1145,21 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getItemAriaText(nodeIndex: number): string {
+    private getItemAriaText(nodeIndex: number): { id: string; params?: Record<string, any> } {
         const datum = this.data[nodeIndex];
         const label = datum && this.getItemLabel(datum);
         if (nodeIndex >= 0 && label && datum) {
-            const visibility = datum.enabled ? 'visible' : 'hidden';
-            return `Legend item ${nodeIndex + 1} of ${this.data.length}, ${label}, ${visibility}`;
+            return {
+                id: 'aria-label.legend-item',
+                params: {
+                    label,
+                    visibility: datum.enabled ? 'visible' : 'hidden',
+                    index: nodeIndex + 1,
+                    count: this.data.length,
+                },
+            };
         }
-        return 'Unknown legend item';
+        return { id: 'aria-label.legend-item-unknown' };
     }
 
     private positionLegend(shrinkRect: BBox) {

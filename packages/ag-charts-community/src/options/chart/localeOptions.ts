@@ -1,10 +1,14 @@
 export interface AgLocaleThemeableOptions<MessageFormat = any> {
-    messages?: Record<string, MessageFormat> | undefined;
-    formatMessage?: MessageFormatter<MessageFormat> | undefined;
+    /** A record of messages in the format needed for the message formatter, keyed by id. */
+    messages?: Record<string, MessageFormat>;
+    /** Formatter that generates the text displayed to the user when is called with a message and parameters. */
+    formatMessage?: MessageFormatter<MessageFormat>;
 }
 
-export interface MessageFormatter<Message> {
-    (params: { id: string; message: Message; params: Record<string, any> }): string;
-}
+export type MessageFormatter<Message> = (params: {
+    id: string;
+    message: Message;
+    params: Record<string, any>;
+}) => string;
 
 export interface AgLocaleOptions<MessageFormat = any> extends AgLocaleThemeableOptions<MessageFormat> {}

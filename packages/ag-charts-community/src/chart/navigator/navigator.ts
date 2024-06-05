@@ -94,7 +94,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             id: `navigator-toolbar`,
             classList: ['ag-charts-proxy-navigator-toolbar'],
             ariaOrientation: 'vertical',
-            ariaLabel: 'aria-label.navigator',
+            ariaLabel: { id: 'aria-label.navigator' },
         });
         this.updateGroupVisibility();
 
@@ -102,7 +102,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-pan',
-                ariaLabel: 'aria-label.panning',
+                ariaLabel: { id: 'aria-label.panning' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maskVisibleRange,
@@ -111,7 +111,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-min',
-                ariaLabel: 'aria-label.minimum',
+                ariaLabel: { id: 'aria-label.minimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
@@ -120,7 +120,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-max',
-                ariaLabel: 'aria-label.maximum',
+                ariaLabel: { id: 'aria-label.maximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,

@@ -18,21 +18,23 @@ type ElemParams<T extends ProxyElementType> = {
     readonly onblur?: (ev: FocusEvent) => void;
 };
 
+type TranslationKey = { id: string; params?: Record<string, any> };
+
 type ContainerParams<T extends ProxyContainerType> = {
     readonly type: T;
     readonly id: string;
     readonly classList: string[];
-    readonly ariaLabel: string;
+    readonly ariaLabel: TranslationKey;
     readonly ariaOrientation: Direction;
 };
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: string };
+        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
         result: HTMLButtonElement;
     };
     slider: {
-        params: ElemParams<'slider'> & { readonly ariaLabel: string; readonly ariaOrientation: Direction };
+        params: ElemParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly ariaOrientation: Direction };
         result: HTMLInputElement;
     };
     toolbar: {
@@ -104,7 +106,7 @@ export class ProxyInteractionService {
         div.ariaOrientation = params.ariaOrientation;
 
         this.addLocalisation(() => {
-            div.ariaLabel = this.localeManager.t(params.ariaLabel);
+            div.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
         });
 
         return div;
@@ -116,7 +118,10 @@ export class ProxyInteractionService {
         if (checkType('button', meta)) {
             const { params, result: button } = meta;
             this.initElement(params, button);
-            button.textContent = params.textContent;
+
+            this.addLocalisation(() => {
+                button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
+            });
         }
 
         if (checkType('slider', meta)) {
@@ -128,7 +133,7 @@ export class ProxyInteractionService {
             slider.ariaOrientation = params.ariaOrientation;
 
             this.addLocalisation(() => {
-                slider.ariaLabel = this.localeManager.t(params.ariaLabel);
+                slider.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
             });
         }
 
