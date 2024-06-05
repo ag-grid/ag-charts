@@ -1,4 +1,3 @@
-// Note - the contents of this file must be manually copied into packages/ag-charts-website/src/content/docs/localisation/index.mdoc
 export const en: Record<string, string> = {
     // Screen reader announcement when the focused item becomes visible
     'aria-announce.visible': 'visible',

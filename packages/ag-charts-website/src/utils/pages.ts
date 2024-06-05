@@ -46,6 +46,8 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
         'packages/ag-charts-angular/dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs',
 
     'ag-charts-thumbnails/**': 'dist/generated-thumbnails/ag-charts-website/gallery/_examples/**/*.{png,webp}',
+
+    'en.ts': 'packages/ag-charts-community/src/chart/locale/en.ts',
 };
 
 /**
