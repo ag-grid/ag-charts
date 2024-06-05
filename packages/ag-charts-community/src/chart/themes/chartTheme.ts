@@ -105,12 +105,12 @@ export class ChartTheme {
             line: {
                 enabled: true,
                 width: 1,
-                color: DEFAULT_AXIS_LINE_COLOUR,
+                stroke: DEFAULT_AXIS_LINE_COLOUR,
             },
             tick: {
                 enabled: false,
                 width: 1,
-                color: DEFAULT_AXIS_LINE_COLOUR,
+                stroke: DEFAULT_AXIS_LINE_COLOUR,
             },
             gridLine: {
                 enabled: true,
@@ -170,11 +170,12 @@ export class ChartTheme {
                 position: POSITION.BOTTOM,
                 reverseOrder: false,
                 spacing: 30,
+                listeners: {},
+                toggleSeries: true,
                 item: {
                     paddingX: 16,
                     paddingY: 8,
                     marker: { size: 15, padding: 8 },
-                    toggleSeriesVisible: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
                         fontSize: FONT_SIZE.SMALL,
@@ -191,7 +192,6 @@ export class ChartTheme {
             },
             tooltip: {
                 darkTheme: IS_DARK_THEME,
-                range: 'nearest',
                 delay: 0,
             },
             overlays: {

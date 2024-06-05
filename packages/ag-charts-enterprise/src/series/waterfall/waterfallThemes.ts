@@ -31,8 +31,6 @@ export const WATERFALL_SERIES_THEME = {
     },
     legend: {
         enabled: true,
-        item: {
-            toggleSeriesVisible: false,
-        },
+        toggleSeries: false,
     },
 };

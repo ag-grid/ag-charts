@@ -50,6 +50,7 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import type { PointerInteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionState } from './interaction/interactionManager';
 import type { KeyNavEvent } from './interaction/keyNavManager';
+import { REGIONS } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
@@ -65,6 +66,7 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import type { SeriesProperties } from './series/seriesProperties';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import {
@@ -312,7 +314,7 @@ export abstract class Chart extends Observable {
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
-            getLoadingSpinner(this.overlays.loading.getText(), ctx.animationManager.defaultDuration);
+            getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
             new BaseLayoutProcessor(this, ctx.layoutService),
@@ -322,6 +324,7 @@ export abstract class Chart extends Observable {
                 this.overlays,
                 ctx.dataService,
                 ctx.layoutService,
+                ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
             ),
@@ -332,7 +335,10 @@ export abstract class Chart extends Observable {
 
         const { All } = InteractionState;
         const moduleContext = this.getModuleContext();
-        const seriesRegion = ctx.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
+        const seriesRegion = ctx.regionManager.addRegion(REGIONS.SERIES, this.seriesRoot, this.axisGroup);
+
+        const horizontalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
 
         ctx.regionManager.addRegion('root', root);
 
@@ -351,8 +357,22 @@ export abstract class Chart extends Observable {
 
             ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
+            ctx.regionManager.listenAll(
+                'click',
+                (event) => this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent }),
+                { includeConsumedEvents: true }
+            ),
+            ctx.regionManager.listenAll(
+                'dblclick',
+                (event) => this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent }),
+                { includeConsumedEvents: true }
+            ),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
+            horizontalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
+            verticalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
             seriesRegion.addListener('blur', () => this.onBlur()),
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
@@ -389,9 +409,10 @@ export abstract class Chart extends Observable {
     }
 
     getAriaLabel(): string {
-        const captionText = this.getCaptionText();
-        const nSeries = this.series.length ?? 0;
-        return `chart, ${nSeries} series, ${captionText}`;
+        return this.ctx.localeManager.t('aria-announce.chart', {
+            seriesCount: this.series.length,
+            caption: this.getCaptionText(),
+        });
     }
 
     getDatumAriaText(_datum: SeriesNodeDatum, html: TooltipContent): string {
@@ -1047,18 +1068,22 @@ export abstract class Chart extends Observable {
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+    private pickNode(
+        point: Point,
+        collection: {
+            series: Series<SeriesNodeDatum, SeriesProperties<object[]>>;
+            pickModes?: SeriesNodePickMode[];
+            maxDistance?: number;
+        }[]
+    ): PickedNode | undefined {
         const start = performance.now();
-
-        // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
-        const reverseSeries = [...this.series].reverse();
+        const reverseSeries = [...collection].reverse();
 
         let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
-        for (const series of reverseSeries) {
+        for (const { series, pickModes, maxDistance } of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
@@ -1079,6 +1104,35 @@ export abstract class Chart extends Observable {
         );
 
         return result;
+    }
+
+    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+        // Disable 'nearest match' options if looking for exact matches only
+        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
+        return this.pickNode(
+            point,
+            this.series.map((series) => {
+                return { series, pickModes, maxDistance };
+            })
+        );
+    }
+
+    private pickTooltip(point: Point): PickedNode | undefined {
+        return this.pickNode(
+            point,
+            this.series.map((series) => {
+                const tooltipRange = series.properties.tooltip.range;
+                let pickModes: SeriesNodePickMode[] | undefined;
+                if (tooltipRange === 'exact') {
+                    pickModes = [SeriesNodePickMode.EXACT_SHAPE_MATCH];
+                } else {
+                    pickModes = undefined;
+                }
+
+                const maxDistance = typeof tooltipRange === 'number' ? tooltipRange : undefined;
+                return { series, pickModes, maxDistance };
+            })
+        );
     }
 
     private lastPick?: SeriesNodeDatum;
@@ -1122,7 +1176,7 @@ export abstract class Chart extends Observable {
     }
 
     private onBlur(): void {
-        this.ctx.regionManager.updateFocusIndicatorRect(undefined);
+        this.ctx.focusIndicator.updateBBox(undefined);
         this.resetPointer();
         this.focus.hasFocus = false;
         // Do not consume blur events to allow the browser-focus to leave the canvas element.
@@ -1189,11 +1243,11 @@ export abstract class Chart extends Observable {
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         this.focus.hasFocus = true;
-        const overlayFocus = this.overlays.getFocusInfo();
+        const overlayFocus = this.overlays.getFocusInfo(this.ctx.localeManager);
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
+            this.ctx.focusIndicator.updateBBox(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
@@ -1222,7 +1276,7 @@ export abstract class Chart extends Observable {
         focus.datum = datum;
 
         // Update user interaction/interface:
-        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.regionManager, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.focusIndicator, pick);
         if (keyboardEvent !== undefined) {
             this.lastInteractionEvent = keyboardEvent;
             const html = focus.series.getTooltipHtml(datum);
@@ -1230,7 +1284,7 @@ export abstract class Chart extends Observable {
             const aria = this.getDatumAriaText(datum, html);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue(aria);
+            this.ctx.ariaAnnouncementService.announceValue('aria-announce.hover-datum', { datum: aria });
         }
     }
 
@@ -1286,14 +1340,8 @@ export abstract class Chart extends Observable {
         event: TooltipPointerEvent<'hover'>,
         disablePointer: (highlightOnly?: boolean) => void
     ) {
-        const { lastPick, tooltip } = this;
-        const { range } = tooltip;
+        const { lastPick } = this;
         const { offsetX, offsetY, targetElement } = event;
-
-        let pixelRange;
-        if (isFiniteNumber(range)) {
-            pixelRange = range;
-        }
 
         if (
             targetElement &&
@@ -1304,7 +1352,7 @@ export abstract class Chart extends Observable {
             return;
         }
 
-        const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
+        const pick = this.pickTooltip({ x: offsetX, y: offsetY });
         if (!pick) {
             this.ctx.tooltipManager.removeTooltip(this.id);
             if (this.highlight.range === 'tooltip') {
@@ -1324,11 +1372,8 @@ export abstract class Chart extends Observable {
             }
         }
 
-        const isPixelRange = pixelRange != null;
         const tooltipEnabled = this.tooltip.enabled && pick.series.tooltipEnabled;
-        const exactlyMatched = range === 'exact' && pick.distance === 0;
-        const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
-        const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
+        const shouldUpdateTooltip = tooltipEnabled && (!isNewDatum || html !== undefined);
 
         const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
 
@@ -1361,24 +1406,14 @@ export abstract class Chart extends Observable {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.consume();
-            return;
         }
-        this.fireEvent<AgChartClickEvent>({
-            type: 'click',
-            event: event.sourceEvent,
-        });
     }
 
     protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.consume();
-            return;
         }
-        this.fireEvent<AgChartDoubleClickEvent>({
-            type: 'doubleClick',
-            event: event.sourceEvent,
-        });
     }
 
     private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {
@@ -1748,7 +1783,7 @@ export abstract class Chart extends Observable {
 
             const step = intervalOptions?.step;
             if (step != null) {
-                horizontalAxis.tick.interval = step;
+                horizontalAxis.interval = step;
             }
         }
     }
@@ -1887,6 +1922,17 @@ export abstract class Chart extends Observable {
 
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
+
+        const axisGroups: { [Key in ChartAxisDirection]: Group[] } = {
+            [ChartAxisDirection.X]: [],
+            [ChartAxisDirection.Y]: [],
+        };
+
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getAxisGroup()));
+
+        this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
+        this.ctx.regionManager.updateRegion(REGIONS.VERTICAL_AXES, ...axisGroups[ChartAxisDirection.Y]);
+
         return true;
     }
 
@@ -1916,13 +1962,16 @@ export abstract class Chart extends Observable {
             if (moduleDef.type !== 'series-option') continue;
             if (moduleDef.optionsKey in seriesOptions) {
                 const module = moduleMap.getModule<any>(moduleDef.optionsKey);
-                const moduleOptions = seriesOptions[moduleDef.optionsKey];
-                delete seriesOptions[moduleDef.optionsKey];
-                module.properties.set(moduleOptions);
+                if (module) {
+                    const moduleOptions = seriesOptions[moduleDef.optionsKey];
+                    delete seriesOptions[moduleDef.optionsKey];
+                    module.properties.set(moduleOptions);
+                }
             }
         }
 
         target.properties.set(seriesOptions);
+        this.applySeriesTooltipDefaults(target);
 
         if ('data' in options) {
             target.setOptionsData(data);
@@ -1939,6 +1988,17 @@ export abstract class Chart extends Observable {
                 target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
             }
         }
+    }
+
+    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
+    // global option (`chart.tooltip.range`) that could overriden the theme. But now, the tooltip range
+    // option is series-specific.
+    //
+    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
+    // 'nearest' to undefined.
+    private applySeriesTooltipDefaults(target: Series<SeriesNodeDatum, SeriesProperties<never>>) {
+        target.properties.tooltip.range ??= this.tooltip.range;
+        target.properties.tooltip.range ??= target.defaultTooltipRange;
     }
 
     private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {

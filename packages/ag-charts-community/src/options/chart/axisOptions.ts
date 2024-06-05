@@ -42,6 +42,10 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     type: string;
     /** An array of keys determining which series are charted on this axis. */
     keys?: string[];
+    /** Array of values in axis units to display as ticks along the axis. The values in this array must be compatible with the axis type. */
+    values?: any[];
+    /** Minimum gap in pixels between tick lines. */
+    minSpacing?: PixelSize;
     /** Reverse the axis scale domain if `true`. */
     reverse?: boolean;
     /** Configuration for the axis line. */
@@ -50,6 +54,24 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     gridLine?: AgAxisGridLineOptions;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: LabelType;
+    /** Configuration for the axis ticks. */
+    tick?: AgAxisBaseTickOptions;
+}
+
+export interface AgContinuousAxisOptions<
+    TDatum extends Date | number = number,
+    TInterval extends TimeInterval | number = number,
+> {
+    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
+    nice?: boolean;
+    /** User override for the automatically determined min value (based on series data). */
+    min?: TDatum;
+    /** User override for the automatically determined max value (based on series data). */
+    max?: TDatum;
+    /** Maximum gap in pixels between tick lines. */
+    maxSpacing?: PixelSize;
+    /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    interval?: TInterval;
 }
 
 export interface AgAxisLineOptions {
@@ -58,7 +80,7 @@ export interface AgAxisLineOptions {
     /** The width in pixels of the axis line. */
     width?: PixelSize;
     /** The colour of the axis line. */
-    color?: CssColor;
+    stroke?: CssColor;
 }
 
 export interface AgAxisGridLineOptions {
@@ -78,11 +100,7 @@ export interface AgAxisBaseTickOptions {
     /** The length in pixels of the axis ticks. */
     size?: PixelSize;
     /** The colour of the axis ticks. */
-    color?: CssColor;
-    /** Array of values in axis units to display as ticks along the axis. The values in this array must be compatible with the axis type. */
-    values?: any[];
-    /** Minimum gap in pixels between tick lines. */
-    minSpacing?: PixelSize;
+    stroke?: CssColor;
 }
 
 export interface AgAxisLabelFormatterParams {
@@ -124,4 +142,27 @@ export interface AgAxisGridStyle {
     stroke?: CssColor;
     /** Defines how the grid lines are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
     lineDash?: PixelSize[];
+}
+
+export interface TimeInterval {
+    /**
+     * Returns a new date representing the latest interval boundary date before or equal to date.
+     * For example, `day.floor(date)` typically returns 12:00 AM local time on the given date.
+     * @param date
+     */
+    floor(date: Date | number): Date;
+
+    /**
+     * Returns a new date representing the earliest interval boundary date after or equal to date.
+     * @param date
+     */
+    ceil(date: Date | number): Date;
+
+    /**
+     * Returns an array of dates representing every interval boundary after or equal to start (inclusive) and before stop (exclusive).
+     * @param start Range start.
+     * @param stop Range end.
+     * @param extend If specified, the requested range will be extended to the closest "nice" values.
+     */
+    range(start: Date, stop: Date, extend?: boolean): Date[];
 }

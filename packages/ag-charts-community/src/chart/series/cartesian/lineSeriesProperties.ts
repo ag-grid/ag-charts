@@ -6,13 +6,10 @@ import type {
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
-import { BaseProperties } from '../../../util/properties';
 import {
     BOOLEAN,
     COLOR_STRING,
     LINE_DASH,
-    LINE_STEP_POSITION,
-    LINE_STYLE,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -24,6 +21,7 @@ import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { LineProperties } from './lineProperties';
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -39,17 +37,6 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
         readonly textBaseline: CanvasTextBaseline;
         readonly fill?: string;
     };
-}
-
-export class LineSeriesLine extends BaseProperties {
-    @Validate(LINE_STYLE)
-    style: 'linear' | 'smooth' | 'step' = 'linear';
-
-    @Validate(RATIO)
-    tension: number = 1;
-
-    @Validate(LINE_STEP_POSITION)
-    position: 'start' | 'middle' | 'end' = 'end';
 }
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
@@ -90,7 +77,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     lineDashOffset: number = 0;
 
     @Validate(OBJECT)
-    line?: LineSeriesLine = new LineSeriesLine();
+    line?: LineProperties = new LineProperties();
 
     @Validate(OBJECT)
     readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();

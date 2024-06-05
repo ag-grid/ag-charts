@@ -26,7 +26,7 @@ on:
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
     NX_NO_CLOUD: true
-    NX_CLOUD_ACCESS_TOKEN: x
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
     execute_blt:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         outputs:
             nx_base: ${{ steps.nx_config.outputs.base }}
             build: ${{ steps.build.outcome || '' }}
@@ -217,7 +217,7 @@ jobs:
                   fi
 
     test:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         needs: execute_blt
         if: needs.execute_blt.outputs.test_count > 0
         strategy:
@@ -283,7 +283,7 @@ jobs:
                       packages/**/__diff_output__/*
 
     report:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         needs: [execute_blt, test, sonarqube]
         if: cancelled() != true
         steps:
@@ -385,7 +385,7 @@ jobs:
                       ${{ env.GIT_LOG }}
 
     sonarqube:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v3
               with:

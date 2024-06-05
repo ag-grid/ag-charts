@@ -3,7 +3,7 @@ name: Sonar Scanner (Release)
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
     NX_NO_CLOUD: true
-    NX_CLOUD_ACCESS_TOKEN: x
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     SONAR_PROJECT: ag-charts-community
 
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
     sonar_scanner:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         steps:
             - name: Checkout
               id: checkout

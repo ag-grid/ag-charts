@@ -1,7 +1,7 @@
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
-import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/agChartOptions';
+import type { AgChartLabelFormatterParams, AgChartLabelOptions, InteractionRange } from '../../options/agChartOptions';
 import type {
     AgSeriesMarkerFormatterParams,
     AgSeriesMarkerStyle,
@@ -32,7 +32,7 @@ import type { ChartMode } from '../chartMode';
 import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition } from '../data/dataModel';
-import { accumulateGroup } from '../data/processors';
+import { accumulateContinuity, accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
@@ -186,6 +186,14 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
+export function groupAccumulativeContinuityProperty<K>(
+    propName: K,
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
+    scaleType?: ScaleType
+) {
+    return [valueProperty(propName, scaleType, opts), accumulateContinuity(opts.groupId, opts.separateNegative)];
+}
+
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 
 interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
@@ -257,6 +265,7 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
+    defaultTooltipRange: InteractionRange;
 };
 
 export abstract class Series<
@@ -291,6 +300,9 @@ export abstract class Series<
     }
 
     readonly canHaveAxes: boolean;
+
+    // This property is used to keep backward compatibility with the old global `tooltip.range` option.
+    readonly defaultTooltipRange: InteractionRange;
 
     get type(): SeriesType {
         return (this.constructor as any).type ?? '';
@@ -407,12 +419,14 @@ export abstract class Series<
             directionNames = {},
             contentGroupVirtual = true,
             canHaveAxes = false,
+            defaultTooltipRange,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
+        this.defaultTooltipRange = defaultTooltipRange;
 
         this.contentGroup = this.rootGroup.appendChild(
             new Group({

@@ -18,7 +18,7 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, getWindow, ContextMenuRegistry } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, ContextMenuRegistry } = _ModuleSupport;
 
 const moduleId = 'context-menu';
 
@@ -71,7 +71,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.scene = ctx.scene;
 
         const { All } = _ModuleSupport.InteractionState;
-        this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
+        this.destroyFns.push(
+            ctx.regionManager.listenAll('click', (_region) => this.onClick(), { triggeringStates: All })
+        );
 
         // State
         this.groups = { default: [], extra: [], extraNode: [], extraLegendItem: [] };
@@ -100,7 +102,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.registry.registerDefaultAction({
             id: 'download',
             type: 'all',
-            label: 'Download',
+            label: 'context-menu.download',
             action: () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';
@@ -281,7 +283,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.innerHTML = label;
+        el.textContent = this.ctx.localeManager.t(label);
         el.onclick = this.createButtonOnClick(type, callback);
         return el;
     }
@@ -291,29 +293,24 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.disabled = true;
-        el.innerHTML = label;
+        el.textContent = this.ctx.localeManager.t(label);
         return el;
     }
 
     private reposition() {
-        const { x, y } = this;
+        let { x, y } = this;
 
         this.element.style.top = 'unset';
         this.element.style.bottom = 'unset';
-        this.element.style.left = 'unset';
-        this.element.style.right = 'unset';
 
-        if (x + this.element.offsetWidth > getWindow('innerWidth')) {
-            this.element.style.right = `calc(100% - ${x - 1}px)`;
-        } else {
-            this.element.style.left = `${x + 1}px`;
-        }
+        const canvasRect = this.ctx.domManager.getBoundingClientRect();
+        const { offsetWidth: width, offsetHeight: height } = this.element;
 
-        if (y + this.element.offsetHeight > getWindow('innerHeight')) {
-            this.element.style.bottom = `calc(100% - ${y}px - 0.5em)`;
-        } else {
-            this.element.style.top = `calc(${y}px - 0.5em)`;
-        }
+        x = _ModuleSupport.clamp(0, x, canvasRect.width - width);
+        y = _ModuleSupport.clamp(0, y, canvasRect.height - height);
+
+        this.element.style.left = `${x}px`;
+        this.element.style.top = `calc(${y}px - 0.5em)`;
     }
 
     public override destroy() {

@@ -64,6 +64,9 @@ export class Line extends Annotation {
 
         start.update({ ...handleStyles, x: x1, y: y1 });
         end.update({ ...handleStyles, x: x2, y: y2 });
+
+        start.toggleLocked(this.locked);
+        end.toggleLocked(this.locked);
     }
 
     public toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {

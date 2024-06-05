@@ -13,7 +13,7 @@ exports[`Context Menu should show the default actions 1`] = `
 HTMLCollection [
   <div
     class="ag-chart-context-menu"
-    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       class="ag-chart-context-menu__menu"

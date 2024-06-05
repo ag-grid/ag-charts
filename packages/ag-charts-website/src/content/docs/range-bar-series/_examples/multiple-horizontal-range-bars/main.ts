@@ -54,15 +54,11 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `${Number(value).toFixed(0)}%`,
             },
-            marker: {
-                // fill: '#5c2045',
-                // stroke: '#5c2045',
-                stroke: '#205C37',
-                fill: '#ced1a8',
-                strokeWidth: 1,
-                maxSize: 50,
-                size: 15,
-            },
+            fill: '#ced1a8',
+            stroke: '#205C37',
+            strokeWidth: 1,
+            maxSize: 50,
+            size: 15,
         },
     ],
     axes: [

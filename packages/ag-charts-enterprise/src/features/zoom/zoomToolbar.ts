@@ -40,13 +40,13 @@ export class ZoomToolbar {
         const isMinZoom = isZoomLess(zoom, props.minRatioX, props.minRatioY);
         const isResetZoom = isZoomEqual(zoom, this.getResetZoom());
 
-        toolbarManager.toggleButton('zoom', 'pan-start', zoom.x.min > UNIT.min);
-        toolbarManager.toggleButton('zoom', 'pan-end', zoom.x.max < UNIT.max);
-        toolbarManager.toggleButton('zoom', 'pan-left', zoom.x.min > UNIT.min);
-        toolbarManager.toggleButton('zoom', 'pan-right', zoom.x.max < UNIT.max);
-        toolbarManager.toggleButton('zoom', 'zoom-out', !isMaxZoom);
-        toolbarManager.toggleButton('zoom', 'zoom-in', !isMinZoom);
-        toolbarManager.toggleButton('zoom', 'reset', !isResetZoom);
+        toolbarManager.toggleButton('zoom', 'pan-start', { enabled: zoom.x.min > UNIT.min });
+        toolbarManager.toggleButton('zoom', 'pan-end', { enabled: zoom.x.max < UNIT.max });
+        toolbarManager.toggleButton('zoom', 'pan-left', { enabled: zoom.x.min > UNIT.min });
+        toolbarManager.toggleButton('zoom', 'pan-right', { enabled: zoom.x.max < UNIT.max });
+        toolbarManager.toggleButton('zoom', 'zoom-out', { enabled: !isMaxZoom });
+        toolbarManager.toggleButton('zoom', 'zoom-in', { enabled: !isMinZoom });
+        toolbarManager.toggleButton('zoom', 'reset', { enabled: !isResetZoom });
     }
 
     public onButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
@@ -98,12 +98,14 @@ export class ZoomToolbar {
                 break;
 
             case 'pan-left':
-            case 'pan-right':
-                zoom = translateZoom(zoom, event.value === 'pan-left' ? -dx(zoom) : dx(zoom), 0);
+            case 'pan-right': {
+                const distance = scrollingStep * dx(zoom);
+                zoom = translateZoom(zoom, event.value === 'pan-left' ? -distance : distance, 0);
                 break;
+            }
 
             case 'zoom-in':
-            case 'zoom-out':
+            case 'zoom-out': {
                 const scale = event.value === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
 
                 const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
@@ -113,6 +115,7 @@ export class ZoomToolbar {
                 zoom.x = scaleZoomAxisWithAnchor(zoom.x, oldZoom.x, useAnchorPointX);
                 zoom.y = scaleZoomAxisWithAnchor(zoom.y, oldZoom.y, useAnchorPointY);
                 break;
+            }
         }
 
         this.updateZoom(constrainZoom(zoom));

@@ -114,6 +114,7 @@ export class MapMarkerSeries
             contentGroupVirtual: true,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            defaultTooltipRange: 'exact',
         });
 
         this.animationState = new StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>(
@@ -839,6 +840,7 @@ export class MapMarkerSeries
             fillOpacity,
             stroke,
             strokeOpacity,
+            shape,
             formatter,
         } = properties;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -859,6 +861,7 @@ export class MapMarkerSeries
             stroke,
             strokeWidth,
             strokeOpacity,
+            shape,
             highlighted,
         };
         if (formatter !== undefined) {

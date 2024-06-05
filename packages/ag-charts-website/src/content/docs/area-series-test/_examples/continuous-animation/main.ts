@@ -28,25 +28,20 @@ const options: AgChartOptions = {
     animation: {
         enabled: true,
     },
-    legend: {
-        // enabled: false,
-    },
     data,
     series,
     axes: [
         {
-            position: 'bottom',
             type: 'time',
-            tick: {
-                interval: time.month.every(2),
-            },
+            position: 'bottom',
+            interval: time.month.every(2),
             label: {
                 autoRotate: false,
             },
         },
         {
-            position: 'left',
             type: 'number',
+            position: 'left',
             label: {
                 autoRotate: false,
             },
@@ -67,7 +62,7 @@ function genDataPoint(ref: Date | { date: Date; petrol: number; diesel: number }
 }
 
 function times<T>(cb: () => T, count: number) {
-    const result = [];
+    const result: T[] = [];
     for (; count > 0; count--) {
         result.push(cb());
     }

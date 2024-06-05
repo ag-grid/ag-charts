@@ -134,7 +134,7 @@ export abstract class AngleAxis<
         }
 
         node.visible = this.line.enabled;
-        node.stroke = this.line.color;
+        node.stroke = this.line.stroke;
         node.strokeWidth = this.line.width;
         node.fill = undefined;
     }
@@ -262,7 +262,7 @@ export abstract class AngleAxis<
             line.y1 = radius * sin;
             line.x2 = (radius + tick.size) * cos;
             line.y2 = (radius + tick.size) * sin;
-            line.stroke = tick.color;
+            line.stroke = tick.stroke;
             line.strokeWidth = tick.width;
         });
     }

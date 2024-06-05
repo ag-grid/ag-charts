@@ -29,6 +29,7 @@ import { Text, type TextSizeProperties, getFont } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
+import { Default } from '../../util/default';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -37,7 +38,17 @@ import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
-import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
+import { TimeInterval } from '../../util/time';
+import { isFiniteNumber } from '../../util/type-guards';
+import {
+    ARRAY,
+    BOOLEAN,
+    MIN_SPACING,
+    OBJECT,
+    STRING_ARRAY,
+    Validate,
+    predicateWithMessage,
+} from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -45,7 +56,8 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { PointerInteractionEvent } from '../interaction/interactionManager';
+import { type PointerInteractionEvent } from '../interaction/interactionManager';
+import { REGIONS } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
@@ -53,7 +65,7 @@ import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import type { AxisTick, TickInterval } from './axisTick';
+import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
@@ -64,6 +76,13 @@ import {
     resetAxisLineSelectionFn,
     resetAxisSelectionFn,
 } from './axisUtil';
+
+// export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
+
+export const TICK_INTERVAL = predicateWithMessage(
+    (value) => (isFiniteNumber(value) && value > 0) || value instanceof TimeInterval,
+    `a non-zero positive Number value or, for a time axis, a Time Interval such as 'agCharts.time.month'`
+);
 
 type TickStrategyParams = {
     index: number;
@@ -173,6 +192,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     abstract get direction(): ChartAxisDirection;
 
+    @Validate(TICK_INTERVAL, { optional: true })
+    interval?: TickInterval<S> = undefined;
+
+    @Validate(ARRAY, { optional: true })
+    values?: any[] = undefined;
+
+    @Validate(MIN_SPACING)
+    @Default(NaN)
+    minSpacing: number = NaN;
+
+    // Maybe initialised and validated in subclasses - DO NOT ASSIGN A VALUE HERE.
+    maxSpacing?: number;
+
     boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
@@ -223,7 +255,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     readonly line = new AxisLine();
-    readonly tick: AxisTick<S> = this.createTick();
+    readonly tick = new AxisTick();
     readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
@@ -263,7 +295,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.axisGroup.appendChild(this._titleCaption.node);
 
         this.destroyFns.push(
-            moduleCtx.regionManager.getRegion('series').addListener('hover', (e) => this.checkAxisHover(e))
+            moduleCtx.regionManager.getRegion(REGIONS.SERIES).addListener('hover', (e) => this.checkAxisHover(e)),
+            moduleCtx.regionManager
+                .getRegion(REGIONS.HORIZONTAL_AXES)
+                .addListener('hover', (e) => this.checkAxisHover(e)),
+            moduleCtx.regionManager.getRegion(REGIONS.VERTICAL_AXES).addListener('hover', (e) => this.checkAxisHover(e))
         );
 
         this.animationManager = moduleCtx.animationManager;
@@ -354,6 +390,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         axisNode.removeChild(this.crossLineGroup);
     }
 
+    getAxisGroup(): Group {
+        return this.axisGroup;
+    }
+
     range: [number, number] = [0, 1];
     visibleRange: [number, number] = [0, 1];
 
@@ -397,7 +437,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected _titleCaption = new Caption();
 
     private setTickInterval(interval?: TickInterval<S>) {
-        this.scale.interval = this.tick.interval ?? interval;
+        this.scale.interval = this.interval ?? interval;
     }
 
     /**
@@ -427,8 +467,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected onGridVisibilityChange() {
         this.gridLineGroupSelection.clear();
     }
-
-    protected abstract createTick(): AxisTick<S>;
 
     protected createLabel(): ChartAxisLabel {
         return new AxisLabel();
@@ -534,8 +572,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    private getTickSize() {
-        return this.tick.enabled ? this.tick.size : this.createTick().size;
+    protected getTickSize() {
+        return this.tick.enabled ? this.tick.size : 6;
     }
 
     private setTitleProps(caption: Caption, params: { spacing: number }) {
@@ -715,7 +753,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     updateScale() {
         this.updateRange();
         this.calculateDomain();
-        this.setTickInterval(this.tick.interval);
+        this.setTickInterval(this.interval);
 
         const { scale, nice } = this;
         if (!ContinuousScale.is(scale)) {
@@ -751,7 +789,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }: TickGenerationParams): TickGenerationResult {
         const {
             scale,
-            tick,
+            minSpacing,
+            maxSpacing = NaN,
             label: { parallel, rotation, fontFamily, fontSize, fontStyle, fontWeight },
         } = this;
 
@@ -767,10 +806,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const initialRotation = configuredRotation + defaultRotation;
         const labelMatrix = new Matrix();
 
-        const { maxTickCount } = this.estimateTickCount({
-            minSpacing: tick.minSpacing,
-            maxSpacing: tick.maxSpacing ?? NaN,
-        });
+        const { maxTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
 
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -843,7 +879,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         index: number;
         secondaryAxis: boolean;
     }): TickStrategy[] {
-        const { scale, label, tick } = this;
+        const { scale, label, minSpacing } = this;
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
         const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
@@ -851,7 +887,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const strategies: TickStrategy[] = [];
         let tickGenerationType: TickGenerationType;
-        if (this.tick.values) {
+        if (this.values) {
             tickGenerationType = TickGenerationType.VALUES;
         } else if (secondaryAxis) {
             tickGenerationType = TickGenerationType.CREATE_SECONDARY;
@@ -866,7 +902,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         strategies.push(tickGenerationStrategy);
 
-        if (!continuous && !isNaN(tick.minSpacing)) {
+        if (!continuous && !isNaN(minSpacing)) {
             const tickFilterStrategy = ({ index, tickData, primaryTickCount, terminate }: TickStrategyParams) =>
                 this.createTickData(TickGenerationType.FILTER, index, tickData, terminate, primaryTickCount);
             strategies.push(tickFilterStrategy);
@@ -902,11 +938,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         terminate: boolean,
         primaryTickCount?: number
     ): TickStrategyResult {
-        const { scale, tick } = this;
-        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({
-            minSpacing: tick.minSpacing,
-            maxSpacing: tick.maxSpacing ?? NaN,
-        });
+        const { scale, interval, values, minSpacing, maxSpacing = NaN } = this;
+        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
 
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -914,8 +947,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
 
         const regenerateTicks =
-            tick.interval === undefined &&
-            tick.values === undefined &&
+            interval === undefined &&
+            values === undefined &&
             tickCount > minTickCount &&
             (continuous || tickGenerationType === TickGenerationType.FILTER);
 
@@ -942,7 +975,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             index++;
         }
 
-        const shouldTerminate = tick.interval !== undefined || tick.values !== undefined;
+        const shouldTerminate = interval !== undefined || values !== undefined;
 
         terminate ||= shouldTerminate;
 
@@ -1010,7 +1043,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
-                rawTicks = this.tick.values!;
+                rawTicks = this.values!;
                 if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(scale.getDomain().map(Number));
                     rawTicks = rawTicks.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
@@ -1080,7 +1113,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     private filterTicks(ticks: any, tickCount: number): any[] {
-        const tickSpacing = !isNaN(this.tick.minSpacing) || !isNaN(this.tick.maxSpacing ?? NaN);
+        const tickSpacing = !isNaN(this.minSpacing) || !isNaN(this.maxSpacing ?? NaN);
         const keepEvery = tickSpacing ? Math.ceil(ticks.length / tickCount) : 2;
         return ticks.filter((_: any, i: number) => i % keepEvery === 0);
     }
@@ -1199,7 +1232,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const sideFlag = label.getSideFlag();
         this.tickLineGroupSelection.each((line) => {
             line.strokeWidth = tick.width;
-            line.stroke = tick.color;
+            line.stroke = tick.stroke;
             line.x1 = sideFlag * this.getTickSize();
             line.x2 = 0;
         });
@@ -1289,7 +1322,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
         const strokeWidth = line.enabled ? line.width : 0;
         this.lineNode.setProperties({
-            stroke: line.color,
+            stroke: line.stroke,
             strokeWidth,
         });
     }

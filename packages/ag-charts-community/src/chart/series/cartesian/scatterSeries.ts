@@ -51,6 +51,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             ],
             pathsPerSeries: 0,
             hasMarkers: true,
+            defaultTooltipRange: 'nearest',
             markerSelectionGarbageCollection: false,
             animationResetFns: {
                 marker: resetMarkerFn,

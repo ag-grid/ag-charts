@@ -52,21 +52,25 @@ export class ContextMenuRegistry {
 
     public constructor(regionManager: RegionManager) {
         const { Default, ContextMenu } = InteractionState;
-        this.destroyFns = [regionManager.listenAll('contextmenu', (e) => this.onContextMenu(e), Default | ContextMenu)];
+        this.destroyFns = [
+            regionManager.listenAll('contextmenu', (e) => this.onContextMenu(e), {
+                triggeringStates: Default | ContextMenu,
+            }),
+        ];
     }
 
     public destroy() {
         this.destroyFns.forEach((d) => d());
     }
 
-    private onContextMenu(event: PointerInteractionEvent<'contextmenu'>) {
+    private onContextMenu(event: PointerInteractionEvent<'contextmenu'> & { region: string }) {
         const type = ContextMenuRegistry.toContextType(event.region);
         if (type === 'all') {
             this.dispatchContext('all', event, {});
         }
     }
 
-    private static toContextType(region: string | undefined): ContextType {
+    private static toContextType(region: string): ContextType {
         if (region === 'legend' || region === 'series') {
             return region;
         }
@@ -90,7 +94,7 @@ export class ContextMenuRegistry {
         pointerEvent: PointerInteractionEvent<'contextmenu'>,
         context: ContextTypeMap[T]
     ) {
-        const { pageX: x, pageY: y, sourceEvent } = pointerEvent;
+        const { offsetX: x, offsetY: y, sourceEvent } = pointerEvent;
         this.listeners.dispatch('', this.buildConsumable({ type, x, y, context, sourceEvent }));
     }
 

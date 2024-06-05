@@ -2,7 +2,7 @@ import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LabelPlacement } from '../../chart/types';
-import type { AgSeriesMarkerOptions } from '../markerOptions';
+import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
@@ -22,9 +22,9 @@ export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum
     placement?: LabelPlacement;
 }
 
-export interface AgScatterSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
-    /** Configuration for the markers used in the series.  */
-    marker?: AgSeriesMarkerOptions<AgScatterSeriesOptionsKeys, TDatum>;
+export interface AgScatterSeriesThemeableOptions<TDatum = any>
+    extends AgBaseCartesianThemeableOptions<TDatum>,
+        AgSeriesMarkerStyle {
     /** Configuration for the labels shown on top of data points.  */
     label?: AgScatterSeriesLabel<TDatum>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
@@ -33,6 +33,8 @@ export interface AgScatterSeriesThemeableOptions<TDatum = any> extends AgBaseCar
     tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
+    /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
 }
 
 export interface AgScatterSeriesOptionsKeys {

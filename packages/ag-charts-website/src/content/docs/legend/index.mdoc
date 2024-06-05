@@ -108,7 +108,7 @@ legend: {
 }
 ```
 
-`maxLength` constrains the length of the labels, after which the text will be truncated with ellipsis.
+`maxLength` constrains the length of the labels to the specified number of characters, after which the text will be truncated with ellipsis.
 
 See the [API Reference](#reference-AgChartLegendOptions-item-label) for more details about customising the appearance of the labels.
 
@@ -165,13 +165,11 @@ Additionally, when a Legend item is double clicked, the chart will show that ser
 Pie series sectors do not toggle when a Legend item is double clicked.
 {% /note %}
 
-To disable series toggling on Legend item click or double click, set the `legend.item.toggleSeriesVisible` property to `false`.
+To disable series toggling on Legend item click or double click, set the `legend.toggleSeries` property to `false`.
 
 ```js
 legend: {
-    item: {
-        toggleSeriesVisible: false,
-    }
+    toggleSeries: false,
 }
 ```
 

@@ -20,11 +20,9 @@ const options: AgCartesianChartOptions = {
             yKey: 'weight',
             yName: 'Weight',
             labelKey: 'name',
-            marker: {
-                shape: 'square',
-                fill: '#e36f6ab5',
-                stroke: '#9f4e4a',
-            },
+            shape: 'square',
+            fill: '#e36f6ab5',
+            stroke: '#9f4e4a',
             label: {
                 enabled: true,
             },
@@ -38,13 +36,9 @@ const options: AgCartesianChartOptions = {
             yKey: 'weight',
             yName: 'Weight',
             labelKey: 'name',
-            marker: {
-                fill: '#7b91deb5',
-                stroke: '#56659b',
-            },
-            label: {
-                enabled: true,
-            },
+            fill: '#7b91deb5',
+            stroke: '#56659b',
+            label: { enabled: true },
         },
     ],
     axes: [

@@ -2,20 +2,22 @@ import { addObserverToInstanceProperty, addTransformToInstanceProperty } from '.
 import { getPath, setPath } from './object';
 import { isArray } from './type-guards';
 
-export function ProxyProperty(proxyPath: string | string[]) {
+export function ProxyProperty(proxyPath: string | string[], configMetadata?: { optional?: boolean }) {
     const pathArray = isArray(proxyPath) ? proxyPath : proxyPath.split('.');
 
     if (pathArray.length === 1) {
         const [property] = pathArray;
         return addTransformToInstanceProperty(
             (target, _, value) => (target[property] = value),
-            (target) => target[property]
+            (target) => target[property],
+            configMetadata
         );
     }
 
     return addTransformToInstanceProperty(
         (target, _, value) => setPath(target, pathArray, value),
-        (target) => getPath(target, pathArray)
+        (target) => getPath(target, pathArray),
+        configMetadata
     );
 }
 

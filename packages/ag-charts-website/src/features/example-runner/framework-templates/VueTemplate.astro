@@ -22,6 +22,7 @@ interface Props {
     boilerplatePath: string;
     extraStyles?: string;
     children?: any;
+    headFragment?: string;
 }
 
 const {
@@ -34,6 +35,7 @@ const {
     scriptFiles = [],
     styleFiles = [],
     extraStyles,
+    headFragment,
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -44,6 +46,7 @@ const startFile = pathJoin(appLocation, entryFileName);
         <MetaData isDev={isDev} title={`Vue 3 Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
         <ExampleStyle rootSelector="#app" extraStyles={extraStyles} />
         <Styles baseUrl={appLocation} files={styleFiles} />
+        <Fragment set:html={headFragment} />
     </head>
     <body>
         <div id="app"><my-component></my-component></div>

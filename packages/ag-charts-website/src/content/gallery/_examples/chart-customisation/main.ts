@@ -58,12 +58,12 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            position: 'top',
             type: 'time',
+            position: 'top',
+            interval: time.year.every(10),
             tick: {
-                interval: time.year.every(10),
                 width: 3,
-                color: '#3f7cbf',
+                stroke: '#3f7cbf',
             },
             nice: false,
             label: {
@@ -74,7 +74,7 @@ const options: AgChartOptions = {
                 fontFamily: 'Impact, Charcoal, Sans-Serif',
             },
             line: {
-                color: '#3f7cbf',
+                stroke: '#3f7cbf',
             },
             gridLine: {
                 style: [
@@ -84,8 +84,8 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'right',
             type: 'number',
+            position: 'right',
             tick: {
                 size: 10,
             },
@@ -106,7 +106,7 @@ const options: AgChartOptions = {
                 fontFamily: 'Georgia, Times New Roman, Times, Serif',
             },
             line: {
-                color: '#326baf',
+                stroke: '#326baf',
             },
         },
     ],
@@ -120,7 +120,7 @@ const options: AgChartOptions = {
             },
             paddingX: 40,
             label: {
-                fontWeight: '600',
+                fontWeight: 600,
                 color: '#3f7cbf',
                 fontSize: 14,
                 fontFamily: 'Georgia, Times New Roman, Times, Serif',

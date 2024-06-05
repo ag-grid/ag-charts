@@ -5,8 +5,8 @@ import { ParallelChannelAnnotation } from './parallelChannelProperties';
 import type { ParallelChannel } from './parallelChannelScene';
 
 export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
-    'start' | 'end' | 'size',
-    'click' | 'hover'
+    'start' | 'end' | 'height',
+    'click' | 'hover' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -16,12 +16,12 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
     ) {
         const onStartClick = ({ point }: StateClickEvent<ParallelChannelAnnotation, ParallelChannel>) => {
             const datum = new ParallelChannelAnnotation();
-            datum.set({ start: point, end: point, size: 0 });
+            datum.set({ start: point, end: point, height: 0 });
             appendDatum(datum);
         };
 
         const onEndHover = ({ datum, node, point }: StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>) => {
-            datum.set({ end: point, size: 0 });
+            datum.set({ end: point, height: 0 });
             node.toggleHandles({
                 topMiddle: false,
                 topRight: false,
@@ -36,11 +36,11 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
             node?.toggleHandles({ topMiddle: false, bottomMiddle: false });
         };
 
-        const onSizeHover = ({ datum, node, point }: StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>) => {
+        const onHeightHover = ({ datum, node, point }: StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>) => {
             if (datum.start.y == null || datum.end.y == null) return;
 
-            const size = datum.end.y - point.y;
-            const bottomStartY = datum.start.y - size;
+            const height = datum.end.y - point.y;
+            const bottomStartY = datum.start.y - height;
 
             node.toggleHandles({ topMiddle: false, bottomMiddle: false });
 
@@ -51,14 +51,14 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                 return;
             }
 
-            datum.set({ size });
+            datum.set({ height });
         };
 
-        const onSizeClick = ({ datum, node, point }: StateClickEvent<ParallelChannelAnnotation, ParallelChannel>) => {
+        const onHeightClick = ({ datum, node, point }: StateClickEvent<ParallelChannelAnnotation, ParallelChannel>) => {
             if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
 
-            const size = datum.end.y - point.y;
-            const bottomStartY = datum.start.y - size;
+            const height = datum.end.y - point.y;
+            const bottomStartY = datum.start.y - height;
 
             node.toggleHandles(true);
 
@@ -66,7 +66,7 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                 validateDatumPoint({ x: datum.start.x, y: bottomStartY }) &&
                 validateDatumPoint({ x: datum.end.x, y: point.y })
             ) {
-                datum.set({ size });
+                datum.set({ height });
             }
         };
 
@@ -76,20 +76,23 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
+                cancel: '__parent',
             },
             end: {
                 hover: onEndHover,
                 click: {
-                    target: 'size',
+                    target: 'height',
                     action: onEndClick,
                 },
+                cancel: '__parent',
             },
-            size: {
-                hover: onSizeHover,
+            height: {
+                hover: onHeightHover,
                 click: {
                     target: '__parent',
-                    action: onSizeClick,
+                    action: onHeightClick,
                 },
+                cancel: '__parent',
             },
         });
     }

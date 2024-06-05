@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { markerPaletteFactory } from '../../../module/theme';
+import { singleSeriesPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
 import { ScatterSeries } from './scatterSeries';
@@ -24,12 +24,10 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     ],
     themeTemplate: {
         series: {
+            shape: 'circle',
+            size: 7,
+            fillOpacity: 0.8,
             tooltip: { position: { type: 'node' } },
-            marker: {
-                shape: 'circle',
-                size: 7,
-                fillOpacity: 0.8,
-            },
             label: {
                 enabled: false,
                 fontSize: 12,
@@ -47,5 +45,5 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             },
         },
     },
-    paletteFactory: markerPaletteFactory,
+    paletteFactory: singleSeriesPaletteFactory,
 };

@@ -40,6 +40,8 @@ export class MarkerLabel extends Group {
 
     proxyButton?: HTMLButtonElement;
 
+    pageIndex: number = NaN;
+
     @ProxyPropertyOnWrite('label')
     text?: string;
 

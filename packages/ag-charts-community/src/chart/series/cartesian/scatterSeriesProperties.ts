@@ -3,12 +3,14 @@ import type {
     AgScatterSeriesOptions,
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
 } from '../../../options/agChartOptions';
 import type { SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
+import { ProxyProperty } from '../../../util/proxy';
 import { COLOR_STRING_ARRAY, LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
-import type { MarkerConstructor } from '../../marker/util';
+import type { MarkerConstructor, MarkerShape } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -61,12 +63,36 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     @Validate(STRING, { optional: true })
     title?: string;
 
-    @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys, ScatterNodeDatum>();
+    @ProxyProperty('marker.shape')
+    shape!: MarkerShape;
+
+    @ProxyProperty('marker.size')
+    size!: number;
+
+    @ProxyProperty('marker.fill')
+    fill?: string;
+
+    @ProxyProperty('marker.fillOpacity')
+    fillOpacity!: number;
+
+    @ProxyProperty('marker.stroke')
+    stroke?: string;
+
+    @ProxyProperty('marker.strokeWidth')
+    strokeWidth!: number;
+
+    @ProxyProperty('marker.strokeOpacity')
+    strokeOpacity!: number;
+
+    @ProxyProperty('marker.formatter', { optional: true })
+    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
 
     @Validate(OBJECT)
     readonly label = new ScatterSeriesLabel();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
+
+    // No validation. Not a part of the options contract.
+    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys, ScatterNodeDatum>();
 }

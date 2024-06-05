@@ -23,6 +23,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           },
         ],
       },
+      "interval": TimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": [Function],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "#3f7cbf",
@@ -33,20 +38,15 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "rotation": -30,
       },
       "line": {
-        "color": "#3f7cbf",
         "enabled": true,
+        "stroke": "#3f7cbf",
         "width": 1,
       },
       "nice": false,
       "position": "top",
       "tick": {
-        "color": "#3f7cbf",
         "enabled": true,
-        "interval": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-        },
+        "stroke": "#3f7cbf",
         "width": 3,
       },
       "title": {
@@ -79,16 +79,16 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "padding": 5,
       },
       "line": {
-        "color": "#326baf",
         "enabled": true,
+        "stroke": "#326baf",
         "width": 1,
       },
       "nice": false,
       "position": "right",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
         "size": 10,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -130,7 +130,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "color": "#3f7cbf",
         "fontFamily": "Georgia, Times New Roman, Times, Serif",
         "fontSize": 14,
-        "fontWeight": "600",
+        "fontWeight": 600,
       },
       "marker": {
         "padding": 10,
@@ -140,8 +140,8 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "paddingX": 40,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -162,7 +162,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 10,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -218,6 +220,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -251,6 +258,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -283,6 +295,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -349,6 +366,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "enabled": true,
     "fontFamily": "Georgia, Times New Roman, Times, Serif",
     "fontSize": 22,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Marriage Statistics (Northern Ireland)",
     "wrapping": "hyphenate",
@@ -358,8 +376,18 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -371,17 +399,17 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -393,27 +421,27 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -425,37 +453,37 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -466,7 +494,8 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -494,14 +523,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -538,14 +567,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -581,14 +610,14 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "right",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -637,8 +666,8 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -659,7 +688,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -789,6 +820,11 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -859,6 +895,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Cattle Holdings and Beef Exports (UK)",
     "wrapping": "hyphenate",
@@ -868,8 +905,18 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -881,17 +928,17 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -903,27 +950,27 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -935,37 +982,37 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -976,7 +1023,8 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -1005,14 +1053,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "rotation": -30,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1045,14 +1093,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1099,8 +1147,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -1121,7 +1169,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -1183,6 +1233,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1220,6 +1275,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1259,6 +1319,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1296,6 +1361,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1335,6 +1405,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1373,6 +1448,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -1410,6 +1490,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1487,6 +1572,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Taxed Alcohol Consumption (UK)",
     "wrapping": "hyphenate",
@@ -1496,8 +1582,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -1509,17 +1605,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -1531,27 +1627,27 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -1563,37 +1659,37 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -1604,7 +1700,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -1632,14 +1729,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1672,14 +1769,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -1726,8 +1823,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -1748,7 +1845,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -2144,6 +2243,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "WEEE Collected in UK",
     "wrapping": "hyphenate",
@@ -2153,8 +2253,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -2166,17 +2276,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -2188,27 +2298,27 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -2220,37 +2330,37 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -2262,7 +2372,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "class": "my-tooltip",
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -2288,14 +2399,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2327,14 +2438,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2381,8 +2492,8 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -2403,7 +2514,9 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -2453,25 +2566,23 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   },
   "series": [
     {
+      "fill": "#5090dc",
+      "fillOpacity": 0.7,
+      "formatter": [Function],
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "marker": {
-        "fill": "#5090dc",
-        "fillOpacity": 0.7,
-        "formatter": [Function],
-        "maxSize": 100,
-        "shape": "circle",
-        "size": 5,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0.7,
-        "strokeWidth": 0,
-      },
+      "maxSize": 100,
+      "shape": "circle",
+      "size": 5,
       "sizeKey": "magnitude",
       "sizeName": "Magnitude",
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0.7,
+      "strokeWidth": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -2505,6 +2616,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Worldwide Earthquakes",
     "wrapping": "hyphenate",
@@ -2514,8 +2626,18 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -2527,17 +2649,17 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -2549,27 +2671,27 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -2581,37 +2703,37 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -2622,7 +2744,8 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -2649,14 +2772,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2688,14 +2811,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -2742,8 +2865,8 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -2764,7 +2887,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -2820,6 +2945,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -2852,6 +2982,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -2886,6 +3021,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -2918,6 +3058,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -2990,6 +3135,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Earthquake Magnitudes by Source",
     "wrapping": "hyphenate",
@@ -2999,8 +3145,18 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -3012,17 +3168,17 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -3034,27 +3190,27 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -3066,37 +3222,37 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -3107,7 +3263,8 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -3135,14 +3292,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3174,14 +3331,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3228,8 +3385,8 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -3250,7 +3407,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -3314,6 +3473,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -3362,6 +3526,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3412,6 +3581,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -3461,6 +3635,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -3509,6 +3688,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3590,6 +3774,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Changes in UK Energy Stock",
     "wrapping": "hyphenate",
@@ -3599,8 +3784,18 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -3612,17 +3807,17 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -3634,27 +3829,27 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -3666,37 +3861,37 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -3707,7 +3902,8 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -3735,14 +3931,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3774,14 +3970,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -3828,8 +4024,8 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -3850,7 +4046,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -3959,6 +4157,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Gross Weekly Earnings
 by Occupation",
@@ -3969,8 +4168,18 @@ by Occupation",
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -3982,17 +4191,17 @@ by Occupation",
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -4004,27 +4213,27 @@ by Occupation",
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -4036,37 +4245,37 @@ by Occupation",
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -4077,7 +4286,8 @@ by Occupation",
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -4105,14 +4315,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4144,14 +4354,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4198,8 +4408,8 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -4220,7 +4430,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -4326,6 +4538,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Change in Number of Jobs in UK
 (June to September)",
@@ -4336,8 +4549,18 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -4349,17 +4572,17 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -4371,27 +4594,27 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -4403,37 +4626,37 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -4444,7 +4667,8 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -4476,16 +4700,16 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "transparent",
         "enabled": true,
+        "stroke": "transparent",
         "width": 1,
       },
       "paddingInner": 0.2,
       "paddingOuter": 0.3,
       "position": "bottom",
       "tick": {
-        "color": "black",
         "enabled": true,
+        "stroke": "black",
         "width": 1,
       },
       "title": {
@@ -4514,16 +4738,16 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "padding": 5,
       },
       "line": {
-        "color": "transparent",
         "enabled": true,
+        "stroke": "transparent",
         "width": 1,
       },
       "paddingInner": 0.2,
       "paddingOuter": 0.3,
       "position": "left",
       "tick": {
-        "color": "black",
         "enabled": true,
+        "stroke": "black",
         "width": 1,
       },
       "title": {
@@ -4570,8 +4794,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -4592,7 +4816,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -4642,23 +4868,21 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   },
   "series": [
     {
+      "fill": "#cc5b58",
+      "fillOpacity": 0.85,
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "marker": {
-        "fill": "#cc5b58",
-        "fillOpacity": 0.85,
-        "maxSize": 30,
-        "shape": "circle",
-        "size": 0,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0.85,
-      },
+      "maxSize": 30,
+      "shape": "circle",
+      "size": 0,
       "sizeKey": "size",
       "sizeName": "Commits",
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0.85,
       "title": "Punch Card",
       "tooltip": {
         "position": {
@@ -4687,6 +4911,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "text": "Punch Card of Github",
     "wrapping": "hyphenate",
   },
@@ -4695,8 +4920,18 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -4708,17 +4943,17 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -4730,27 +4965,27 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -4762,37 +4997,37 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -4803,7 +5038,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -4829,8 +5065,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "max": 180,
@@ -4838,8 +5074,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "nice": false,
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4871,8 +5107,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "max": 90,
@@ -4880,8 +5116,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "nice": false,
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -4928,8 +5164,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -4950,7 +5186,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -5000,6 +5238,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   },
   "series": [
     {
+      "fill": "#5090dc",
+      "fillOpacity": 0.5,
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
@@ -5008,17 +5248,13 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "labelKey": "city",
       "labelName": "City",
-      "marker": {
-        "fill": "#5090dc",
-        "fillOpacity": 0.5,
-        "maxSize": 100,
-        "shape": "circle",
-        "size": 5,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0.5,
-      },
+      "maxSize": 100,
+      "shape": "circle",
+      "size": 5,
       "sizeKey": "population",
       "sizeName": "Population",
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0.5,
       "title": "Most populous cities",
       "tooltip": {
         "position": {
@@ -5047,6 +5283,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Most Populous Cities",
     "wrapping": "hyphenate",
@@ -5056,8 +5293,18 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -5069,17 +5316,17 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -5091,27 +5338,27 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -5123,37 +5370,37 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -5164,7 +5411,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -5192,14 +5440,14 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5231,14 +5479,14 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5285,8 +5533,8 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -5307,7 +5555,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -5478,6 +5728,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Changes in Prison Population",
     "wrapping": "hyphenate",
@@ -5487,8 +5738,18 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -5500,17 +5761,17 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -5522,27 +5783,27 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -5554,37 +5815,37 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -5595,7 +5856,8 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -5623,14 +5885,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5662,14 +5924,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -5716,8 +5978,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -5738,7 +6000,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -5913,6 +6177,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Annual Growth in Pay",
     "wrapping": "hyphenate",
@@ -5922,8 +6187,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -5935,17 +6210,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -5957,27 +6232,27 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -5989,37 +6264,37 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -6030,7 +6305,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -6058,14 +6334,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6098,14 +6374,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6152,8 +6428,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -6174,7 +6450,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -6571,6 +6849,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Regular Internet Users",
     "wrapping": "hyphenate",
@@ -6580,8 +6859,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -6593,17 +6882,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -6615,27 +6904,27 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -6647,37 +6936,37 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -6688,7 +6977,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -6717,14 +7007,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6756,8 +7046,8 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "max": 1,
@@ -6765,8 +7055,8 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "nice": false,
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -6813,8 +7103,8 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "paddingX": 16,
       "paddingY": 15,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -6835,7 +7125,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -6897,6 +7189,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -6935,6 +7232,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -6975,6 +7277,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7013,6 +7320,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7053,6 +7365,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7091,6 +7408,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7131,6 +7453,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7169,6 +7496,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7209,6 +7541,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7247,6 +7584,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7287,6 +7629,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7325,6 +7672,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7365,6 +7717,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7403,6 +7760,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7443,6 +7805,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7481,6 +7848,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7578,6 +7950,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Imported Banana Prices",
     "wrapping": "hyphenate",
@@ -7587,8 +7960,18 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -7600,17 +7983,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -7622,27 +8005,27 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -7654,37 +8037,37 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -7695,7 +8078,8 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -7723,14 +8107,14 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -7762,14 +8146,14 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -7816,8 +8200,8 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -7838,7 +8222,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -7894,6 +8280,11 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -7934,6 +8325,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
+    "fontWeight": "normal",
     "text": "World Population Over Time",
     "wrapping": "hyphenate",
   },
@@ -7942,8 +8334,18 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -7955,17 +8357,17 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -7977,27 +8379,27 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -8009,37 +8411,37 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -8050,7 +8452,8 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -8078,14 +8481,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -8118,14 +8521,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -8172,8 +8575,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -8194,7 +8597,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "position": "top",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -8258,6 +8663,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8313,6 +8723,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8370,6 +8785,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8425,6 +8845,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8482,6 +8907,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8538,6 +8968,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8593,6 +9028,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8664,6 +9104,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "UK Energy Sources",
     "wrapping": "hyphenate",
@@ -8673,8 +9114,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -8686,17 +9137,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -8708,27 +9159,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -8740,37 +9191,37 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -8781,7 +9232,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -8810,14 +9262,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "rotation": -30,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -8850,14 +9302,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -8904,8 +9356,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -8926,7 +9378,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -9149,6 +9603,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Internet Users by Geographical Location",
     "wrapping": "hyphenate",
@@ -9158,8 +9613,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -9171,17 +9636,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -9193,27 +9658,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -9225,37 +9690,37 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -9266,7 +9731,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -9294,14 +9760,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -9334,14 +9800,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -9388,8 +9854,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -9410,7 +9876,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -9764,6 +10232,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Ethnic Diversity of School Pupils",
     "wrapping": "hyphenate",
@@ -9773,8 +10242,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -9786,17 +10265,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -9808,27 +10287,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -9840,37 +10319,37 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -9881,7 +10360,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -9899,6 +10379,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           },
         ],
       },
+      "interval": TimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": [Function],
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",
@@ -9907,19 +10392,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "enabled": true,
-        "interval": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-        },
+        "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -9952,14 +10432,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -10006,8 +10486,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -10028,7 +10508,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -10086,6 +10568,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -10129,6 +10616,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10174,6 +10666,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -10217,6 +10714,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10280,6 +10782,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Tate Galleries",
     "wrapping": "hyphenate",
@@ -10289,8 +10792,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -10302,17 +10815,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -10324,27 +10837,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -10356,37 +10869,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -10397,7 +10910,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -10425,14 +10939,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -10465,14 +10979,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -10519,8 +11033,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -10541,7 +11055,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -10645,6 +11161,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Museums and Galleries",
     "wrapping": "hyphenate",
@@ -10654,8 +11171,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -10667,17 +11194,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -10689,27 +11216,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -10721,37 +11248,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -10762,7 +11289,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -10800,8 +11328,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -10822,7 +11350,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "overlays": {
@@ -10981,6 +11511,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Dwelling Fires (UK)",
     "wrapping": "hyphenate",
@@ -10988,7 +11519,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -11006,6 +11538,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           },
         ],
       },
+      "interval": TimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": [Function],
+      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11015,19 +11552,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "enabled": true,
-        "interval": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-        },
+        "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11060,14 +11592,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11114,8 +11646,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -11136,7 +11668,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -11198,6 +11732,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -11235,6 +11774,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -11290,6 +11834,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Road fuel prices",
     "wrapping": "hyphenate",
@@ -11299,8 +11844,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -11312,17 +11867,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -11334,27 +11889,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -11366,37 +11921,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -11407,7 +11962,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -11445,8 +12001,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -11467,7 +12023,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "overlays": {
@@ -11604,6 +12162,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Religions of London Population",
     "wrapping": "hyphenate",
@@ -11611,7 +12170,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -11637,14 +12197,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11676,14 +12236,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -11730,8 +12290,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -11752,7 +12312,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -11802,20 +12364,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   },
   "series": [
     {
+      "fill": "#002D72",
+      "fillOpacity": 0.5,
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
-      "marker": {
-        "fill": "#002D72",
-        "fillOpacity": 0.5,
-        "shape": "circle",
-        "size": 12,
-        "stroke": "#2b5c95",
-        "strokeOpacity": 0,
-      },
+      "shape": "circle",
+      "size": 12,
+      "stroke": "#2b5c95",
+      "strokeOpacity": 0,
       "tooltip": {
         "position": {
           "type": "node",
@@ -11841,6 +12401,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Height vs Weight for Major League Baseball Players",
     "wrapping": "hyphenate",
@@ -11850,8 +12411,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -11863,17 +12434,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -11885,27 +12456,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -11917,37 +12488,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -11958,7 +12529,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -11976,6 +12548,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           },
         ],
       },
+      "interval": CountableTimeInterval {
+        "_decode": [Function],
+        "_encode": [Function],
+        "_rangeCallback": undefined,
+      },
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
@@ -11986,19 +12563,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
-        "enabled": true,
-        "interval": CountableTimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": undefined,
-        },
+        "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12031,14 +12603,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12085,8 +12657,8 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -12107,7 +12679,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -12170,6 +12744,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -12224,6 +12803,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12280,6 +12864,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -12334,6 +12923,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12390,6 +12984,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -12444,6 +13043,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12538,6 +13142,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "spacing": 25,
     "text": "Total Visitors to Science Museums",
     "wrapping": "hyphenate",
@@ -12547,8 +13152,18 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -12560,17 +13175,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -12582,27 +13197,27 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -12614,37 +13229,37 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -12655,7 +13270,8 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -12683,14 +13299,14 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12722,15 +13338,15 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "nice": false,
       "position": "top",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -12777,8 +13393,8 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -12799,7 +13415,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -13049,6 +13667,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
+    "fontWeight": "normal",
     "text": "UK Housing Stock",
     "wrapping": "hyphenate",
   },
@@ -13057,8 +13676,18 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -13070,17 +13699,17 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -13092,27 +13721,27 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -13124,37 +13753,37 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -13165,7 +13794,8 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;
@@ -13194,14 +13824,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "rotation": 30,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": true,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -13234,14 +13864,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "padding": 5,
       },
       "line": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "position": "left",
       "tick": {
-        "color": "rgb(195, 195, 195)",
         "enabled": false,
+        "stroke": "rgb(195, 195, 195)",
         "width": 1,
       },
       "title": {
@@ -13288,8 +13918,8 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "paddingX": 16,
       "paddingY": 8,
-      "toggleSeriesVisible": true,
     },
+    "listeners": {},
     "pagination": {
       "activeStyle": {
         "fill": "rgb(70, 70, 70)",
@@ -13310,7 +13940,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "position": "bottom",
     "reverseOrder": false,
     "spacing": 30,
+    "toggleSeries": true,
   },
+  "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
   "navigator": {
@@ -13635,6 +14267,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
+    "fontWeight": "normal",
     "text": "Average Station Entries",
     "wrapping": "hyphenate",
   },
@@ -13643,8 +14276,18 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "icon": "lock",
+          "tooltip": "toolbar-annotations.lock",
+          "value": "lock",
+        },
+        {
+          "icon": "unlock",
+          "tooltip": "toolbar-annotations.unlock",
+          "value": "unlock",
+        },
+        {
           "icon": "delete",
-          "tooltip": "Delete Annotation",
+          "tooltip": "toolbar-annotations.delete",
           "value": "delete",
         },
       ],
@@ -13656,17 +14299,17 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "Trend Line",
+          "tooltip": "toolbar-annotations.trend-line",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "Parallel Channel",
+          "tooltip": "toolbar-annotations.parallel-channel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "Disjoint Channel",
+          "tooltip": "toolbar-annotations.disjoint-channel",
           "value": "disjoint-channel",
         },
       ],
@@ -13678,27 +14321,27 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
-          "label": "1m",
+          "label": "toolbar-range.1-month",
           "value": 2592000000,
         },
         {
-          "label": "3m",
+          "label": "toolbar-range.3-months",
           "value": 7776000000,
         },
         {
-          "label": "6m",
+          "label": "toolbar-range.6-months",
           "value": 15552000000,
         },
         {
-          "label": "YTD",
+          "label": "toolbar-range.year-to-date",
           "value": [Function],
         },
         {
-          "label": "1y",
+          "label": "toolbar-range.1-year",
           "value": 31536000000,
         },
         {
-          "label": "All",
+          "label": "toolbar-range.all",
           "value": [Function],
         },
       ],
@@ -13710,37 +14353,37 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "Zoom out",
+          "tooltip": "toolbar-zoom.zoom-out",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "Zoom in",
+          "tooltip": "toolbar-zoom.zoom-in",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "Pan left",
+          "tooltip": "toolbar-zoom.pan-left",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "Pan right",
+          "tooltip": "toolbar-zoom.pan-right",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "Pan to the start",
+          "tooltip": "toolbar-zoom.pan-start",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "Pan to the end",
+          "tooltip": "toolbar-zoom.pan-end",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "Reset the zoom",
+          "tooltip": "toolbar-zoom.zoom",
           "value": "reset",
         },
       ],
@@ -13751,7 +14394,8 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
-    "range": "nearest",
+    "enabled": true,
+    "range": undefined,
   },
 }
 `;

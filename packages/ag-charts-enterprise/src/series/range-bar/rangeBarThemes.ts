@@ -14,10 +14,7 @@ export const RANGE_BAR_SERIES_THEME = {
     },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: {
-                enabled: true,
-                snap: false,
-            },
+            crosshair: { enabled: true },
         },
     },
 };

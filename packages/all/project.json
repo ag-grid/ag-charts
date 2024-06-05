@@ -57,16 +57,14 @@
     },
     "dev:setup": {
       "executor": "nx:run-commands",
-      "dependsOn": ["^build:types"],
+      "dependsOn": ["^build:types", "^build:package"],
       "inputs": [],
       "outputs": [],
       "options": {
         "parallel": false,
         "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-examples --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-thumbnails --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-examples ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-thumbnails ; fi"
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website ; fi"
         ]
       }
     },

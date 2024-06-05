@@ -10,11 +10,18 @@ import type {
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
-export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'nav-hori' | 'nav-vert' | 'submit';
+export type KeyNavEventType =
+    | 'blur'
+    | 'browserfocus'
+    | 'tab'
+    | 'nav-hori'
+    | 'nav-vert'
+    | 'submit'
+    | 'cancel'
+    | 'delete';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
     type: T;
-    region?: string;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
 };
@@ -109,6 +116,11 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             case 'Space':
             case 'Enter':
                 return this.dispatch('submit', 0, event);
+            case 'Escape':
+                return this.dispatch('cancel', 0, event);
+            case 'Backspace':
+            case 'Delete':
+                return this.dispatch('delete', 0, event);
         }
     }
 

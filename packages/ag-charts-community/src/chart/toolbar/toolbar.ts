@@ -101,6 +101,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
     private readonly groupProxied = new Set<ToolbarGroup>();
+    private hasNewLocale = true;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -122,6 +123,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.localeManager.addListener('locale-changed', () => {
+                this.hasNewLocale = true;
+            }),
             () => this.destroyElements()
         );
     }
@@ -202,7 +206,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
-        const { group, value, enabled } = event;
+        const { group, value, enabled, visible } = event;
 
         if (this.groupButtons[group].length === 0) {
             this.pendingButtonToggledEvents.push(event);
@@ -212,6 +216,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const button of this.groupButtons[group]) {
             if (button.dataset.toolbarValue !== `${value}`) continue;
             button.disabled = !enabled;
+            button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
         }
     }
 
@@ -331,6 +336,22 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             shrinkRect.shrink(elements.left.offsetWidth + margin, 'left');
         }
 
+        if (this.hasNewLocale) {
+            this.groupButtons.annotations.forEach((button, index) => {
+                this.updateButtonText(button, this.annotations.buttons![index]);
+            });
+            this.groupButtons.annotationOptions.forEach((button, index) => {
+                this.updateButtonText(button, this.annotationOptions.buttons![index]);
+            });
+            this.groupButtons.ranges.forEach((button, index) => {
+                this.updateButtonText(button, this.ranges.buttons![index]);
+            });
+            this.groupButtons.zoom.forEach((button, index) => {
+                this.updateButtonText(button, this.zoom.buttons![index]);
+            });
+            this.hasNewLocale = false;
+        }
+
         return { shrinkRect };
     }
 
@@ -377,10 +398,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const group of TOOLBAR_GROUPS) {
             if (this[group] == null) continue;
 
-            const visible = isGroupVisible(group);
+            const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
-                const buttonVisible = visible && this[group].buttons?.some(isButtonVisible(button));
-                button.classList.toggle(styles.modifiers.button.hidden, !buttonVisible);
+                const buttonVisible = groupVisible && this[group].buttons?.some(isButtonVisible(button));
+                button.classList.toggle(styles.modifiers.button.hiddenValue, !buttonVisible);
             }
         }
     }
@@ -430,9 +451,18 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (typeof options.value === 'string' || typeof options.value === 'number') {
             button.dataset.toolbarValue = `${options.value}`;
         }
+        button.onclick = this.onButtonPress.bind(this, group, options.value);
+        this.updateButtonText(button, options);
 
+        this.destroyFns.push(() => button.remove());
+
+        return button;
+    }
+
+    private updateButtonText(button: HTMLButtonElement, options: ToolbarButton) {
         if (options.tooltip) {
-            button.title = options.tooltip;
+            const tooltip = this.ctx.localeManager.t(options.tooltip);
+            button.title = tooltip;
         }
 
         let inner = '';
@@ -442,15 +472,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (options.label != null) {
-            inner = `${inner}<span class="${styles.elements.label}">${options.label}</span>`;
+            const label = this.ctx.localeManager.t(options.label);
+            inner = `${inner}<span class="${styles.elements.label}">${label}</span>`;
         }
 
         button.innerHTML = inner;
-        button.onclick = this.onButtonPress.bind(this, group, options.value);
-
-        this.destroyFns.push(() => button.remove());
-
-        return button;
     }
 
     private onButtonPress(group: ToolbarGroup, value: any) {

@@ -8,7 +8,7 @@ export interface AgChartTooltipOptions {
     showArrow?: boolean;
     /** A class name to be added to the tooltip element of the chart. */
     class?: string;
-    /** Range from a point that triggers the tooltip to show. */
+    /** Range from a point that triggers the tooltip to show. This is the default value that will be used unless overriden by the series. */
     range?: InteractionRange;
     /** The position of the tooltip. */
     position?: AgTooltipPositionOptions;
@@ -76,6 +76,8 @@ export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams> 
     interaction?: AgSeriesTooltipInteraction;
     /** Function used to create the content for tooltips. */
     renderer?: (params: TParams) => string | AgTooltipRendererResult;
+    /** Range from a point that triggers the tooltip to show. Each series type uses its own default; typically this is `'nearest'` for marker-based series and `'exact'` for shape-based series. */
+    range?: InteractionRange;
 }
 
 export interface AgSeriesTooltipInteraction {

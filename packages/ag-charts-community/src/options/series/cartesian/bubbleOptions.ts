@@ -1,19 +1,12 @@
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LabelPlacement, PixelSize } from '../../chart/types';
-import type { AgSeriesMarkerOptions } from '../markerOptions';
+import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 
 export type AgBubbleSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
     AgBubbleSeriesOptionsNames;
-
-export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBubbleSeriesOptionsKeys, TDatum> {
-    /** Determines the largest size a marker can be in pixels. */
-    maxSize?: PixelSize;
-    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    domain?: [number, number];
-}
 
 export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
 
@@ -25,15 +18,21 @@ export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum,
     placement?: LabelPlacement;
 }
 
-export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
+export interface AgBubbleSeriesThemeableOptions<TDatum = any>
+    extends AgSeriesMarkerStyle,
+        AgBaseCartesianThemeableOptions<TDatum> {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
     title?: string;
-    /** Configuration for the markers used in the series.  */
-    marker?: AgBubbleSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points.  */
     label?: AgBubbleSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration.  */
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum>>;
+    /** Determines the largest size a marker can be in pixels. */
+    maxSize?: PixelSize;
+    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
+    domain?: [number, number];
+    /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
 }
 
 export interface AgBubbleSeriesOptionsKeys {
@@ -52,7 +51,7 @@ export interface AgBubbleSeriesOptionsNames {
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     yName?: string;
-    /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
+    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     sizeName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters.  */
     labelName?: string;

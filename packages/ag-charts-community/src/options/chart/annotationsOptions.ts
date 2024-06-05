@@ -9,6 +9,7 @@ import type {
 // --- Theme ---
 export interface AgAnnotationsThemeableOptions {
     line?: AgLineAnnotationStyles;
+    'cross-line'?: AgLineAnnotationStyles;
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
 }
@@ -29,7 +30,11 @@ export interface AgAnnotationsOptions extends Toggleable {
     initial?: AgAnnotation[];
 }
 
-export type AgAnnotation = AgLineAnnotation | AgDisjointChannelAnnotation | AgParallelChannelAnnotation;
+export type AgAnnotation =
+    | AgLineAnnotation
+    | AgCrossLineAnnotation
+    | AgDisjointChannelAnnotation
+    | AgParallelChannelAnnotation;
 
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
@@ -42,6 +47,12 @@ export interface AgLineAnnotation
     type: 'line';
 }
 
+export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
+    type: 'cross-line';
+    direction: 'horizontal' | 'vertical';
+    value: string | number | Date;
+}
+
 export interface AgParallelChannelAnnotation
     extends AnnotationLinePoints,
         Extendable,
@@ -50,8 +61,8 @@ export interface AgParallelChannelAnnotation
         StrokeOptions,
         LineDashOptions {
     type: 'parallel-channel';
-    /* The size of the annotation along the y-axis. */
-    size: number;
+    /* The height of the annotation along the y-axis. */
+    height: number;
     middle?: AgChannelAnnotationMiddle;
     background?: AgChannelAnnotationBackground;
 }
@@ -64,10 +75,10 @@ export interface AgDisjointChannelAnnotation
         StrokeOptions,
         LineDashOptions {
     type: 'disjoint-channel';
-    /** The size of the annotation along the y-axis at the start. */
-    startSize: number;
-    /** The size of the annotation along the y-axis at the end. */
-    endSize: number;
+    /** The height of the annotation along the y-axis at the start. */
+    startHeight: number;
+    /** The height of the annotation along the y-axis at the end. */
+    endHeight: number;
     background?: AgChannelAnnotationBackground;
 }
 

@@ -1,0 +1,33 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/components/PagesNavigationFromLocalStorage';
+import { getDocsPages } from '../features/docs/utils/pageData';
+import type { Framework } from '@ag-grid-types';
+import DocumentationArchive from '@ag-website-shared/components/documentation-archive/DocumentationArchive.astro';
+
+export async function getStaticPaths() {
+    const pages = await getCollection('docs');
+    return getDocsPages(pages);
+}
+
+const pageName = Astro.params.pageName as Framework;
+
+const menuEntry = await getEntry('menu', 'data');
+
+const versionsContent = await getEntry('versions', 'ag-charts-versions');
+const versionsData: any[] = versionsContent ? versionsContent.data : [];
+---
+
+<Layout
+    title={'Documentation Archive'}
+    description={'Browse archived documentation for previous AG Charts versions, from version 9 onwards. View changelogs for every minor and major release.'}
+    showDocsNav={true}
+    showSearchBar={true}
+>
+    <div class:list={['contentViewport layout-grid']}>
+        <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} pageName={pageName} />
+
+        <DocumentationArchive site="Charts" versionsData={versionsData} />
+    </div>
+</Layout>

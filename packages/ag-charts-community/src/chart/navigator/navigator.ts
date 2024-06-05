@@ -29,12 +29,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
     private readonly maskVisibleRange = {
-        computeBBox: (): BBox => {
-            return this.mask.computeVisibleRangeBBox();
-        },
-        getCachedBBox: (): BBox => {
-            return this.mask.computeVisibleRangeBBox();
-        },
+        computeBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
+        computeTransformedBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
     };
 
     @Validate(POSITIVE_NUMBER)
@@ -89,6 +85,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('drag', (event) => this.onDrag(event), dragStates),
             region.addListener('drag-end', () => this.onDragEnd(), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
+            this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
@@ -97,7 +94,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             id: `navigator-toolbar`,
             classList: ['ag-charts-proxy-navigator-toolbar'],
             ariaOrientation: 'vertical',
-            ariaLabel: 'Navigator',
+            ariaLabel: { id: 'aria-label.navigator' },
         });
         this.updateGroupVisibility();
 
@@ -105,7 +102,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-pan',
-                ariaLabel: 'Panning',
+                ariaLabel: { id: 'aria-label.panning' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maskVisibleRange,
@@ -114,7 +111,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-min',
-                ariaLabel: 'Minimum',
+                ariaLabel: { id: 'aria-label.minimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
@@ -123,7 +120,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-max',
-                ariaLabel: 'Maximum',
+                ariaLabel: { id: 'aria-label.maximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,
@@ -292,12 +289,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private setPanSliderValue(min: number, max: number) {
-        const minPercent = Math.round(min * 100);
-        const maxPercent = Math.round(max * 100);
-        const minFormat = formatPercentage(minPercent);
-        const maxFormat = formatPercentage(maxPercent);
-        this.proxyNavigatorElements[0].value = `${minPercent}`;
-        this.proxyNavigatorElements[0].ariaValueText = `${minFormat} - ${maxFormat}`;
+        this.proxyNavigatorElements[0].value = `${Math.round(min * 100)}`;
+        this.proxyNavigatorElements[0].ariaValueText = this.ctx.localeManager.t('aria-value.pan-range', { min, max });
     }
 
     private setSliderRatioClamped(slider: HTMLInputElement, clampMin: number, clampMax: number) {

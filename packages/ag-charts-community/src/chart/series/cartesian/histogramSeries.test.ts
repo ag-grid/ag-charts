@@ -135,14 +135,11 @@ describe('HistogramSeries', () => {
                 ...HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
                 series: HISTOGRAM_SCATTER_COMBO_SERIES_LABELS.series?.map((s) => {
                     if (s.type === 'scatter') {
-                        // Tweak marker size so it's large enough to trigger test failures if the
-                        // fake mouse hover doesn't work below.
-                        return { ...s, marker: { size: 20 } };
+                        // Tweak marker size, so it's large enough to trigger test failures if the fake mouse hover doesn't work below.
+                        return { ...s, size: 20, fill: undefined, stroke: undefined, strokeWidth: 1 };
                     }
-
                     return s;
                 }),
-                container: document.body,
             };
 
             prepareTestOptions(options);

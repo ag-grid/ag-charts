@@ -1,9 +1,10 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
+import type { InteractionRange } from '../../../options/chart/types';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import type { Node } from '../../../scene/node';
+import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
@@ -54,9 +55,16 @@ export abstract class PolarSeries<
         () => this.nodeFactory(),
         false
     );
-    protected labelSelection: Selection<Text, TDatum> = Selection.select(this.labelGroup, Text, false);
+    protected labelSelection: Selection<Text, TDatum> = Selection.select(
+        this.labelGroup,
+        () => this.labelFactory(),
+        false
+    );
     protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightGroup, () =>
         this.nodeFactory()
+    );
+    protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(this.highlightLabel, () =>
+        this.labelFactory()
     );
 
     animationResetFns?: {
@@ -86,6 +94,7 @@ export abstract class PolarSeries<
         useLabelLayer = false,
         pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
+        defaultTooltipRange,
         animationResetFns,
         ...opts
     }: {
@@ -93,6 +102,7 @@ export abstract class PolarSeries<
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;
+        defaultTooltipRange: InteractionRange;
         animationResetFns?: {
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
@@ -112,6 +122,7 @@ export abstract class PolarSeries<
                 [ChartAxisDirection.Y]: ['radiusName'],
             },
             canHaveAxes,
+            defaultTooltipRange,
         });
 
         this.showFocusBox = false;
@@ -169,6 +180,12 @@ export abstract class PolarSeries<
 
     protected abstract nodeFactory(): TNode;
 
+    protected labelFactory(): Text {
+        const text = new Text();
+        text.pointerEvents = PointerEvents.None;
+        return text;
+    }
+
     getInnerRadius(): number {
         return 0;
     }
@@ -192,11 +209,12 @@ export abstract class PolarSeries<
             resetMotion([this.itemSelection, this.highlightSelection], item);
         }
         if (label) {
-            resetMotion([this.labelSelection], label);
+            resetMotion([this.labelSelection, this.highlightLabelSelection], label);
         }
         this.itemSelection.cleanup();
         this.labelSelection.cleanup();
         this.highlightSelection.cleanup();
+        this.highlightLabelSelection.cleanup();
     }
 
     protected animateEmptyUpdateReady(_data: PolarAnimationData) {
@@ -210,9 +228,12 @@ export abstract class PolarSeries<
     }
 
     protected animateReadyHighlight(_data: unknown) {
-        const { item } = this.animationResetFns ?? {};
+        const { item, label } = this.animationResetFns ?? {};
         if (item) {
             resetMotion([this.highlightSelection], item);
+        }
+        if (label) {
+            resetMotion([this.highlightLabelSelection], label);
         }
     }
 

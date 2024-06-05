@@ -40,9 +40,9 @@ const options: AgChartOptions = {
             type: 'number',
             nice: false,
             max: 50,
+            values: [-40, -30, -20, -10, 10, 20, 30, 40, 50],
             tick: {
                 size: 0,
-                values: [-40, -30, -20, -10, 10, 20, 30, 40, 50],
             },
             gridLine: {
                 enabled: false,

@@ -50,10 +50,8 @@ const options: AgChartOptions = {
             xName: 'Date',
             yKey: 'numberOfVisits',
             yName: 'Daily Website Visits',
-            marker: {
-                shape: AGChartsLogo,
-                fillOpacity: 1,
-            },
+            shape: AGChartsLogo,
+            fillOpacity: 1,
             tooltip,
         },
         {
@@ -62,10 +60,8 @@ const options: AgChartOptions = {
             xName: 'Date',
             yKey: 'npmDownloads',
             yName: 'NPM Downloads',
-            marker: {
-                shape: NpmLogo,
-                fillOpacity: 1,
-            },
+            shape: NpmLogo,
+            fillOpacity: 1,
             tooltip,
         },
     ],

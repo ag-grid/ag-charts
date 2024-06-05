@@ -9,7 +9,6 @@ export const defaultContextMenuCss = `
     box-shadow: 0 1px 4px 1px rgba(186, 191, 199, 0.4);
     color: rgb(24, 29, 31);
     font: 13px Verdana, sans-serif;
-    position: fixed;
     transition: transform 0.1s ease;
     white-space: nowrap;
     z-index: 99999;

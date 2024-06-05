@@ -5,8 +5,8 @@ import { DisjointChannelAnnotation } from './disjointChannelProperties';
 import type { DisjointChannel } from './disjointChannelScene';
 
 export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
-    'start' | 'end' | 'size',
-    'click' | 'hover'
+    'start' | 'end' | 'height',
+    'click' | 'hover' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -16,7 +16,7 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
     ) {
         const onStartClick = ({ point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
             const datum = new DisjointChannelAnnotation();
-            datum.set({ start: point, end: point, startSize: 0, endSize: 0 });
+            datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
             appendDatum(datum);
         };
 
@@ -29,39 +29,37 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
             datum?.set({ end: point });
         };
 
-        const onSizeHover = ({ datum, node, point }: StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onHeightHover = ({ datum, node, point }: StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>) => {
             if (datum.start.y == null || datum.end.y == null) return;
 
-            const endSize = datum.end.y - point.y;
-            const startSize = (datum.start.y - datum.end.y) * 2 + endSize;
-            const bottomStartY = datum.start.y + startSize;
+            const endHeight = datum.end.y - point.y;
+            const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
+
+            const bottomStart = { x: datum.start.x, y: datum.start.y - startHeight };
+            const bottomEnd = { x: datum.end.x, y: point.y };
 
             node.toggleHandles({ bottomLeft: false });
 
-            if (
-                !validateDatumPoint({ x: datum.start.x, y: bottomStartY }) ||
-                !validateDatumPoint({ x: datum.end.x, y: point.y })
-            ) {
+            if (!validateDatumPoint(bottomStart) || !validateDatumPoint(bottomEnd)) {
                 return;
             }
 
-            datum.set({ startSize, endSize });
+            datum.set({ startHeight, endHeight });
         };
 
-        const onSizeClick = ({ datum, node, point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onHeightClick = ({ datum, node, point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
             if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
 
-            const endSize = datum.end.y - point.y;
-            const startSize = (datum.start.y - datum.end.y) * 2 + endSize;
-            const bottomStartY = datum.start.y - endSize;
+            const endHeight = datum.end.y - point.y;
+            const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
+
+            const bottomStart = { x: datum.start.x, y: datum.start.y - endHeight };
+            const bottomEnd = { x: datum.end.x, y: point.y };
 
             node.toggleHandles(true);
 
-            if (
-                validateDatumPoint({ x: datum.start.x, y: bottomStartY }) &&
-                validateDatumPoint({ x: datum.end.x, y: point.y })
-            ) {
-                datum.set({ startSize, endSize });
+            if (validateDatumPoint(bottomStart) && validateDatumPoint(bottomEnd)) {
+                datum.set({ startHeight, endHeight });
             }
         };
 
@@ -71,20 +69,23 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
+                cancel: '__parent',
             },
             end: {
                 hover: onEndHover,
                 click: {
-                    target: 'size',
+                    target: 'height',
                     action: onEndClick,
                 },
+                cancel: '__parent',
             },
-            size: {
-                hover: onSizeHover,
+            height: {
+                hover: onHeightHover,
                 click: {
                     target: '__parent',
-                    action: onSizeClick,
+                    action: onHeightClick,
                 },
+                cancel: '__parent',
             },
         });
     }

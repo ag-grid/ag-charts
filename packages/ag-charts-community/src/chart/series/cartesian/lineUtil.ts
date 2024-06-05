@@ -3,11 +3,58 @@ import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
-import type { LineSeriesLine } from './lineSeriesProperties';
+import type { LineProperties } from './lineProperties';
 import { prepareMarkerAnimation } from './markerUtil';
-import type { BackfillSplitMode, PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
+import type {
+    BackfillSplitMode,
+    PartialPathPoint,
+    PathNodeDatumLike,
+    PathPoint,
+    PathPointChange,
+    PathPointMap,
+} from './pathUtil';
 import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
 import { type Scaling, areScalingEqual } from './scaling';
+
+export function* pathRanges<T extends { point: PartialPathPoint }>(points: T[]) {
+    let start = -1;
+    let end = 0;
+    for (const { point } of points) {
+        if (point.moveTo) {
+            const range = start >= 0 ? { start, end } : undefined;
+            start = end;
+            end = start;
+
+            if (range !== undefined) {
+                yield range;
+            }
+        }
+
+        end += 1;
+    }
+
+    if (start !== -1) {
+        yield { start, end };
+    }
+}
+
+export function* pathRangePoints<T extends { point: PartialPathPoint }>(
+    points: T[],
+    { start, end }: { start: number; end: number }
+) {
+    for (let i = start; i < end; i += 1) {
+        yield points[i].point;
+    }
+}
+
+export function* pathRangePointsReverse<T extends { point: PartialPathPoint }>(
+    points: T[],
+    { start, end }: { start: number; end: number }
+) {
+    for (let i = end - 1; i >= start; i -= 1) {
+        yield points[i].point;
+    }
+}
 
 function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
@@ -300,7 +347,7 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
     return status;
 }
 
-function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+export function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
     const result = {
@@ -341,12 +388,12 @@ export function prepareLinePathAnimationFns(
     oldData: LineContextLike,
     pairData: PathPoint[],
     visibleToggleMode: 'fade' | 'none',
-    line: LineSeriesLine | undefined,
+    line: LineProperties | undefined,
     render: (
         pairData: PathPoint[],
         ratios: Partial<Record<PathPointChange, number>>,
         path: Path,
-        line: LineSeriesLine | undefined
+        line: LineProperties | undefined
     ) => void
 ) {
     const status = determinePathStatus(newData, oldData, pairData);
@@ -368,7 +415,7 @@ export function prepareLinePathAnimation(
     newData: LineContextLike,
     oldData: LineContextLike,
     diff: ProcessedOutputDiff | undefined,
-    line: LineSeriesLine | undefined
+    line: LineProperties | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';

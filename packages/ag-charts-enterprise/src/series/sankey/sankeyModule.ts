@@ -45,9 +45,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
         },
         legend: {
             enabled: false,
-            item: {
-                toggleSeriesVisible: false,
-            },
+            toggleSeries: false,
         },
     },
     paletteFactory({ takeColors, colorsCount }) {

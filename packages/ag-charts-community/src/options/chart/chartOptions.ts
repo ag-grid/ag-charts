@@ -6,6 +6,7 @@ import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
+import type { AgLocaleOptions } from './localeOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgToolbarOptions } from './toolbarOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
@@ -185,6 +186,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     dataSource?: AgDataSourceOptions<TDatum>;
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions;
+    /** Configuration for localisation. */
+    locale?: AgLocaleOptions;
     /** Configuration for the toolbar. */
     toolbar?: AgToolbarOptions;
     /** Keyboard navigation options. */

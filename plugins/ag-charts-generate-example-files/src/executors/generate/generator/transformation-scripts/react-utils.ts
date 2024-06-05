@@ -108,10 +108,3 @@ export const getValueType = (value: string) => {
     }
     return type;
 };
-
-export const convertFunctionToCallback = (code: string) => {
-    return code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $1 = ($2) =>');
-};
-export const convertFunctionToCallbackTs = (code: string) => {
-    return code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)(:?\s+[^{]*)/, 'const $1 = ($2) $3 =>');
-};

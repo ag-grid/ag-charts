@@ -43,10 +43,7 @@ const options: AgChartOptions = {
             label: {
                 enabled: false,
             },
-            tick: {
-                size: 0,
-                interval: 0.4,
-            },
+            interval: 0.4,
         },
     ],
     legend: {

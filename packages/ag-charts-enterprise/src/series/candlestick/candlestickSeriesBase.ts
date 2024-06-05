@@ -94,6 +94,7 @@ export abstract class CandlestickSeriesBase<
                 x: ['xName'],
                 y: ['lowName', 'highName', 'openName', 'closeName'],
             },
+            defaultTooltipRange: 'nearest',
             pathsPerSeries: 1,
             datumSelectionGarbageCollection: false,
             animationAlwaysUpdateSelections: true,

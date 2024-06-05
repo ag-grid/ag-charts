@@ -96,9 +96,7 @@ const options: AgChartOptions = {
             title: {
                 text: 'Time',
             },
-            tick: {
-                values: [0, 180, 360, 540],
-            },
+            values: [0, 180, 360, 540],
             label: {
                 formatter: ({ value }) => `${Math.floor(value / 60)}h`,
             },

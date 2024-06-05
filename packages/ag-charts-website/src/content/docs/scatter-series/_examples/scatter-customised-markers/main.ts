@@ -19,11 +19,9 @@ const options: AgChartOptions = {
             xName: 'Height',
             yKey: 'weight',
             yName: 'Weight',
-            marker: {
-                shape: 'square',
-                fill: '#e36f6ab5',
-                stroke: '#9f4e4a',
-            },
+            shape: 'square',
+            fill: '#e36f6ab5',
+            stroke: '#9f4e4a',
         },
         {
             type: 'scatter',
@@ -33,10 +31,8 @@ const options: AgChartOptions = {
             xName: 'Height',
             yKey: 'weight',
             yName: 'Weight',
-            marker: {
-                fill: '#7b91deb5',
-                stroke: '#56659b',
-            },
+            fill: '#7b91deb5',
+            stroke: '#56659b',
         },
     ],
     axes: [

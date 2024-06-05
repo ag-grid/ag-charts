@@ -55,23 +55,19 @@ const options: AgChartOptions = {
             xName: 'Season',
             yKey: 'y',
             sizeKey: 'y',
-            marker: {
-                size: 3,
-                maxSize: 25,
-                shape: RainDrop,
-            },
+            size: 3,
+            maxSize: 25,
+            shape: RainDrop,
             tooltip,
         },
     ],
     axes: [
         {
-            position: 'bottom',
             type: 'number',
+            position: 'bottom',
+            values: [1, 2, 3, 4],
             label: {
                 formatter: ({ value }) => seasons[value - 1] ?? '',
-            },
-            tick: {
-                values: [1, 2, 3, 4],
             },
             crosshair: {
                 enabled: false,
@@ -92,8 +88,8 @@ const options: AgChartOptions = {
             ],
         },
         {
-            position: 'left',
             type: 'number',
+            position: 'left',
             gridLine: {
                 enabled: false,
             },

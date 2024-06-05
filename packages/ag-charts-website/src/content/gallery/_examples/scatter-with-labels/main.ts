@@ -23,7 +23,7 @@ const options: AgChartOptions = {
             labelKey: 'name',
             labelName: 'Name',
             yName: 'Girl Names',
-            label: {},
+            label: { enabled: true },
         },
         {
             data: data.filter((d) => d.gender === 'Boy'),
@@ -34,7 +34,7 @@ const options: AgChartOptions = {
             yName: 'Boy Names',
             labelKey: 'name',
             labelName: 'Name',
-            label: {},
+            label: { enabled: true },
         },
     ],
     axes: [

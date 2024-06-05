@@ -1,14 +1,14 @@
 import type { BBox } from '../scene/bbox';
-import type { RegionManager } from './interaction/regionManager';
+import type { FocusIndicator } from './dom/focusIndicator';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
 
 export function makeKeyboardPointerEvent(
-    regionManager: RegionManager,
+    focusIndicator: FocusIndicator | undefined,
     pick: { bbox: BBox | undefined; showFocusBox: boolean }
 ): TooltipPointerEvent<'keyboard'> | undefined {
     const { bbox, showFocusBox } = pick;
     if (showFocusBox) {
-        regionManager.updateFocusIndicatorRect(pick.bbox);
+        focusIndicator?.updateBBox(pick.bbox);
     }
 
     if (bbox !== undefined) {

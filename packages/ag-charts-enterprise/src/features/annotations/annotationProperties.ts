@@ -1,7 +1,20 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
-const { BOOLEAN, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, BaseProperties, Validate } =
-    _ModuleSupport;
+const {
+    BOOLEAN,
+    COLOR_STRING,
+    DATE,
+    LINE_DASH,
+    NUMBER,
+    RATIO,
+    STRING,
+    OBJECT,
+    OR,
+    UNION,
+    DIRECTION,
+    BaseProperties,
+    Validate,
+} = _ModuleSupport;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -16,13 +29,14 @@ export class AnnotationPoint extends BaseProperties {
 
 export class ChannelAnnotationBackground extends Fill(BaseProperties) {}
 
-export class ChannelAnnotationMiddle extends Stroke(LineDash(BaseProperties)) {}
+export class ChannelAnnotationMiddle extends Stroke(LineDash(Visible(BaseProperties))) {}
 
 export class AnnotationHandleProperties extends Stroke(LineDash(Fill(BaseProperties))) {}
 
 // --- Annotations Mixins ---
 export function Annotation<T extends string, U extends Constructor>(_type: T, Parent: U) {
     class AnnotationProperties extends Lockable(Visible(Parent)) {
+        // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
         id = _Util.uuid();
     }
     return AnnotationProperties;
@@ -37,6 +51,17 @@ export function AnnotationLine<T extends Constructor>(Parent: T) {
         end = new AnnotationPoint();
     }
     return AnnotationLinePoints;
+}
+
+export function AnnotationCrossLine<T extends Constructor>(Parent: T) {
+    class AnnotationCrossLineOptions extends Parent {
+        @Validate(OR(STRING, NUMBER, DATE))
+        value?: string | number | Date;
+
+        @Validate(DIRECTION)
+        direction: Direction = 'vertical';
+    }
+    return AnnotationCrossLineOptions;
 }
 
 export function ChannelAnnotation<T extends Constructor>(Parent: T) {

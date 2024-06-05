@@ -70,6 +70,25 @@ In this example
 -   [Markers](#reference-AgAreaSeriesOptions-marker) are enabled for the Services series.
 -   [Labels](#reference-AgAreaSeriesOptions-label) are enabled for the Products series.
 
+### Line
+
+A straight line is used to connect points by default in the Area Series. Use the `line` option to change the line style.
+
+{% chartExampleRunner title="Customised Line Style" name="line-style" type="generated" /%}
+
+```js
+series: [
+    {
+        // ...
+        line: {
+            style: 'smooth'
+        },
+    },
+],
+```
+
+Please see the the [API Reference](./area-series/#reference-AgLineSeriesOptions-line) for a list of all available line options.
+
 ### Missing Data
 
 {% chartExampleRunner title="Area Series with Incomplete Data" name="missing-data-area" type="generated" /%}

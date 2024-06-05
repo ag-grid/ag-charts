@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { markerPaletteFactory } from '../../../module/theme';
+import { singleSeriesPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
 import { BubbleSeries } from './bubbleSeries';
@@ -24,13 +24,11 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     ],
     themeTemplate: {
         series: {
+            shape: 'circle',
+            size: 7,
+            maxSize: 30,
+            fillOpacity: 0.8,
             tooltip: { position: { type: 'node' } },
-            marker: {
-                shape: 'circle',
-                size: 7,
-                maxSize: 30,
-                fillOpacity: 0.8,
-            },
             label: {
                 enabled: false,
                 fontSize: 12,
@@ -39,5 +37,5 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             },
         },
     },
-    paletteFactory: markerPaletteFactory,
+    paletteFactory: singleSeriesPaletteFactory,
 };
