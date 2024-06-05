@@ -257,11 +257,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             if (parent === docRoot) {
                 return docRoot;
             }
-            if (parent.parentElement == null) {
+            if (parent.parentNode instanceof DocumentFragment) {
+                // parentNode is a Shadow DOM.
                 return parent;
             }
+            if (parent.parentNode == null) {
+                // Node is not attached to the DOM, fallback to docRoot.
+                return docRoot;
+            }
 
-            parent = parent.parentElement as HTMLElement;
+            parent = parent.parentNode as HTMLElement;
         }
 
         return docRoot;
