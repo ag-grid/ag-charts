@@ -601,17 +601,18 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     private async updateGroupSelection() {
         const { itemSelection, highlightSelection, highlightLabelSelection, calloutLabelSelection, labelSelection } =
             this;
-        let highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as PieNodeDatum | undefined;
-        if (highlightedDatum?.series !== this) highlightedDatum = undefined;
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as PieNodeDatum | undefined;
+        const highlightedNodeData =
+            highlightedDatum?.series === this
+                ? this.nodeData.filter((node) => node.itemId === highlightedDatum?.itemId)
+                : [];
 
         itemSelection.update(this.nodeData, undefined, (datum) => this.getDatumId(datum));
         if (this.ctx.animationManager.isSkipped()) {
             itemSelection.cleanup();
         }
         highlightSelection.update(
-            highlightedDatum != null
-                ? [{ ...highlightedDatum, sectorFormat: { ...highlightedDatum.sectorFormat } }]
-                : [],
+            highlightedNodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } })),
             undefined,
             (datum) => this.getDatumId(datum)
         );
@@ -629,7 +630,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         });
 
         labelSelection.update(this.nodeData);
-        highlightLabelSelection.update(highlightedDatum != null ? [highlightedDatum] : []);
+        highlightLabelSelection.update(highlightedNodeData);
     }
 
     private async updateNodes(seriesRect: BBox) {
