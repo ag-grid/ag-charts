@@ -25,7 +25,7 @@ export class LineAnnotation extends Annotation(
     @Validate(STRING)
     type = AnnotationType.Line as const;
 
-    override isValidWithContext(context: ValidationContext, warningPrefix: string) {
+    override isValidWithContext(context: ValidationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
     }
 }

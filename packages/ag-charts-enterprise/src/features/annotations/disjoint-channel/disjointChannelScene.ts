@@ -1,4 +1,5 @@
-import type { Coords, LineCoords } from '../annotationTypes';
+import type { Coords, LineCoords, ValidationContext } from '../annotationTypes';
+import { invertCoords } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { Channel } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
@@ -53,23 +54,29 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
     override dragHandle(
         datum: DisjointChannelAnnotation,
         target: Coords,
-        invertPoint: (point: Coords) => Coords | undefined
+        context: ValidationContext,
+        onInvalid: () => void
     ) {
         const { activeHandle, handles } = this;
+        const { scaleX, scaleY } = context;
+
         if (activeHandle == null) return;
 
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
+        const invert = (coords: Coords) => invertCoords(coords, scaleX, scaleY);
+        const prev = datum.toJson();
+
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft': {
                 const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = invertPoint({
+                const start = invert({
                     x: handles.topLeft.handle.x + offset.x,
                     y: handles.topLeft.handle.y + offset.y * direction,
                 });
-                const bottomStart = invertPoint({
+                const bottomStart = invert({
                     x: handles.bottomLeft.handle.x + offset.x,
                     y: handles.bottomLeft.handle.y + offset.y * -direction,
                 });
@@ -86,7 +93,7 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
             }
 
             case 'topRight': {
-                const end = invertPoint({
+                const end = invert({
                     x: handles.topRight.handle.x + offset.x,
                     y: handles.topRight.handle.y + offset.y,
                 });
@@ -103,11 +110,11 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
             }
 
             case 'bottomRight': {
-                const bottomStart = invertPoint({
+                const bottomStart = invert({
                     x: handles.bottomLeft.handle.x + offset.x,
                     y: handles.bottomLeft.handle.y + offset.y,
                 });
-                const bottomEnd = invertPoint({
+                const bottomEnd = invert({
                     x: handles.bottomRight.handle.x + offset.x,
                     y: handles.bottomRight.handle.y + offset.y,
                 });
@@ -120,6 +127,11 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
                 datum.startHeight = startHeight;
                 datum.endHeight = endHeight;
             }
+        }
+
+        if (!datum.isValidWithContext(context)) {
+            datum.set(prev);
+            onInvalid();
         }
     }
 

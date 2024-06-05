@@ -5,13 +5,13 @@ import type { Coords, Point, Scale, ValidationContext } from './annotationTypes'
 
 export function validateDatumLine(
     context: ValidationContext,
-    datum: { start: AnnotationPoint; end: AnnotationPoint },
-    warningPrefix: string
+    datum: { start: Point; end: Point },
+    warningPrefix?: string
 ) {
     let valid = true;
 
-    valid &&= validateDatumPoint(context, datum.start, `${warningPrefix}[start]`);
-    valid &&= validateDatumPoint(context, datum.end, `${warningPrefix}[end]`);
+    valid &&= validateDatumPoint(context, datum.start, warningPrefix && `${warningPrefix}[start] `);
+    valid &&= validateDatumPoint(context, datum.end, warningPrefix && `${warningPrefix}[end] `);
 
     return valid;
 }
@@ -31,7 +31,7 @@ export function validateDatumValue(
     const valid = validateDatumPointDirection(domain, scale, datum.value);
 
     if (!valid && warningPrefix) {
-        _Util.Logger.warnOnce(`${warningPrefix} is outside the axis domain, ignoring. - value: [${datum.value}]]`);
+        _Util.Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${datum.value}]]`);
     }
 
     return valid;

@@ -1,7 +1,7 @@
 import type { _Scene } from 'ag-charts-community';
 
-import type { Coords, UpdateContext } from '../annotationTypes';
-import { convertLine } from '../annotationUtils';
+import type { Coords, UpdateContext, ValidationContext } from '../annotationTypes';
+import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { DivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
@@ -91,14 +91,19 @@ export class Line extends Annotation {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineAnnotation, target: Coords, invertPoint: (point: Coords) => Coords | undefined) {
+    override dragHandle(datum: LineAnnotation, target: Coords, context: ValidationContext, onInvalid: () => void) {
         const { activeHandle } = this;
 
         if (!activeHandle || datum.start == null || datum.end == null) return;
 
         this[activeHandle].toggleDragging(true);
-        const point = invertPoint(this[activeHandle].drag(target).point);
-        if (!point) return;
+        const point = invertCoords(this[activeHandle].drag(target).point, context.scaleX, context.scaleY);
+
+        if (!validateDatumPoint(context, point)) {
+            onInvalid();
+            return;
+        }
+
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
     }
