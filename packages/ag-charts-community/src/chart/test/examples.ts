@@ -41,7 +41,6 @@ export const DOCS_EXAMPLES = {
     'per-marker-customisation': loadExampleOptions('per-marker-customisation'),
     'pie-in-a-donut': loadExampleOptions('pie-in-a-donut'),
     'pie-with-variable-radius': loadExampleOptions('pie-with-variable-radius'),
-    'real-time-data-updates': loadExampleOptions('real-time-data-updates'),
     'simple-area': loadExampleOptions('simple-area'),
     'simple-bar': loadExampleOptions('simple-bar'),
     'simple-bubble': loadExampleOptions('simple-bubble'),

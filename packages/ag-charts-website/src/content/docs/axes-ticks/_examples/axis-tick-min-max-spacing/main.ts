@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -36,11 +36,15 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function setMinMaxSpacing(minSpacing: number, maxSpacing: number) {
-    Object.assign(options.axes![1], { minSpacing, maxSpacing });
+    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    axis.minSpacing = minSpacing;
+    axis.maxSpacing = maxSpacing;
     chart.update(options);
 }
 
 function reset() {
-    Object.assign(options.axes![1], { minSpacing: undefined, maxSpacing: undefined });
+    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    axis.minSpacing = undefined;
+    axis.maxSpacing = undefined;
     chart.update(options);
 }

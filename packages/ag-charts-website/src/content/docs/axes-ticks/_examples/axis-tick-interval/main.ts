@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, type AgContinuousAxisOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -36,11 +36,13 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function setTickInterval(interval: number) {
-    Object.assign(options.axes![1], { interval });
+    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    axis.interval = interval;
     chart.update(options);
 }
 
 function resetInterval() {
-    Object.assign(options.axes![1], { interval: undefined });
+    const axis = options.axes?.[1]! as AgNumberAxisOptions;
+    axis.interval = undefined;
     chart.update(options);
 }
