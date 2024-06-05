@@ -248,7 +248,7 @@ export class Legend extends BaseProperties {
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_VISIBILITY,
             type: 'legend',
-            label: 'context-menu.toggle-visibility',
+            label: 'context-menu.toggle-series-visibility',
             action: (params) => this.contextToggleVisibility(params),
         });
         ctx.contextMenuRegistry.registerDefaultAction({

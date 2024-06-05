@@ -102,7 +102,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-pan',
-                ariaLabel: { id: 'aria-label.panning' },
+                ariaLabel: { id: 'aria-label.navigator-range' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maskVisibleRange,
@@ -111,7 +111,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-min',
-                ariaLabel: { id: 'aria-label.minimum' },
+                ariaLabel: { id: 'aria-label.navigator-minimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
@@ -120,7 +120,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-max',
-                ariaLabel: { id: 'aria-label.maximum' },
+                ariaLabel: { id: 'aria-label.navigator-maximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,
