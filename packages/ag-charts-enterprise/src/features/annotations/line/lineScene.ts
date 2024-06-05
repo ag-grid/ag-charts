@@ -1,6 +1,7 @@
 import type { _Scene } from 'ag-charts-community';
 
-import type { Coords, LineCoords } from '../annotationTypes';
+import type { Coords, UpdateContext } from '../annotationTypes';
+import { convertLine } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { DivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
@@ -26,12 +27,15 @@ export class Line extends Annotation {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: LineAnnotation, seriesRect: _Scene.BBox, coords?: LineCoords) {
+    public update(datum: LineAnnotation, context: UpdateContext) {
         const { line, start, end } = this;
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { scaleX, scaleY, seriesRect } = context;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
+
+        const coords = convertLine(datum, scaleX, scaleY);
 
         if (coords == null) {
             this.visible = false;

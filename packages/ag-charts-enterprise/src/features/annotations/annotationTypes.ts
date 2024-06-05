@@ -7,6 +7,19 @@ export enum AnnotationType {
     ParallelChannel = 'parallel-channel',
 }
 
+export function stringToAnnotationType(value: string) {
+    switch (value) {
+        case 'line':
+            return AnnotationType.Line;
+        case 'cross-line':
+            return AnnotationType.CrossLine;
+        case 'disjoint-channel':
+            return AnnotationType.DisjointChannel;
+        case 'parallel-channel':
+            return AnnotationType.ParallelChannel;
+    }
+}
+
 export interface Coords {
     x: number;
     y: number;
@@ -38,9 +51,18 @@ export interface StateClickEvent<Annotation, Scene> {
     region?: _ModuleSupport.RegionName;
 }
 
+export type Domain = any[];
+export type Scale = _Scene.Scale<any, number, number | _Util.TimeInterval>;
+
 export interface ValidationContext {
-    domainX?: any[];
-    domainY?: any[];
-    scaleX?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
-    scaleY?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
+    domainX?: Domain;
+    domainY?: Domain;
+    scaleX?: Scale;
+    scaleY?: Scale;
+}
+
+export interface UpdateContext {
+    scaleX?: Scale;
+    scaleY?: Scale;
+    seriesRect?: _Scene.BBox;
 }

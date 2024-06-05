@@ -1,6 +1,6 @@
-import type { _Scene } from 'ag-charts-community';
+import type { Direction, _Scene } from 'ag-charts-community';
 
-import type { Coords, LineCoords } from '../annotationTypes';
+import type { Coords, Scale, UpdateContext } from '../annotationTypes';
 import { Annotation } from '../scenes/annotation';
 import { UnivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
@@ -25,12 +25,15 @@ export class CrossLine extends Annotation {
         this.append([this.line, this.middle]);
     }
 
-    public update(datum: CrossLineAnnotation, seriesRect: _Scene.BBox, coords?: LineCoords) {
+    public update(datum: CrossLineAnnotation, context: UpdateContext) {
         const { line, middle } = this;
         const { direction, locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { scaleX, scaleY, seriesRect } = context;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
+
+        const coords = this.convertCrossLine(datum, scaleX, scaleY);
 
         if (coords == null) {
             this.visible = false;
@@ -124,5 +127,38 @@ export class CrossLine extends Annotation {
     override getAnchor() {
         const bbox = this.getCachedBBox();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
+    }
+
+    private convertCrossLine(
+        datum: { value?: string | number | Date; direction: Direction },
+        scaleX?: Scale,
+        scaleY?: Scale
+    ) {
+        if (datum.value == null) return;
+
+        if (!scaleX || !scaleY) return;
+
+        let x1 = 0;
+        let x2 = 0;
+        let y1 = 0;
+        let y2 = 0;
+
+        if (datum.direction === 'vertical') {
+            const scaledValue = scaleX.convert(datum.value);
+            const yDomain = scaleY.getDomain?.() ?? [0, 0];
+            x1 = scaledValue;
+            x2 = scaledValue;
+            y1 = scaleY.convert(yDomain[0]);
+            y2 = scaleY.convert(yDomain.at(-1));
+        } else {
+            const scaledValue = scaleY.convert(datum.value);
+            const xDomain = scaleX.getDomain?.() ?? [0, 0];
+            x1 = scaleX.convert(xDomain[0]);
+            x2 = scaleX.convert(xDomain.at(-1));
+            y1 = scaledValue;
+            y2 = scaledValue;
+        }
+
+        return { x1, y1, x2, y2 };
     }
 }

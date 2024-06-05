@@ -1,7 +1,7 @@
 import { type Direction, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationPoint } from './annotationProperties';
-import type { Point, ValidationContext } from './annotationTypes';
+import type { Coords, Point, Scale, ValidationContext } from './annotationTypes';
 
 export function validateDatumLine(
     context: ValidationContext,
@@ -76,4 +76,55 @@ export function validateDatumPointDirection(
         return value >= domain[0] && value <= domain[1];
     }
     return true; // domain.includes(value); // TODO: does not work with dates
+}
+
+export function convertLine(
+    datum: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> },
+    scaleX?: Scale,
+    scaleY?: Scale
+) {
+    if (datum.start == null || datum.end == null) return;
+
+    const start = convertPoint(datum.start, scaleX, scaleY);
+    const end = convertPoint(datum.end, scaleX, scaleY);
+
+    if (start == null || end == null) return;
+
+    return { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
+}
+
+export function convertPoint(point: Point, scaleX?: Scale, scaleY?: Scale) {
+    const x = convert(point.x, scaleX);
+    const y = convert(point.y, scaleY);
+
+    return { x, y };
+}
+
+export function convert(p: Point['x' | 'y'], scale?: Scale) {
+    if (!scale || p == null) return 0;
+
+    let n = scale.convert(p);
+
+    if (_Scene.BandScale.is(scale)) {
+        n += scale.bandwidth / 2;
+    }
+
+    return n;
+}
+
+export function invertCoords(coords: Coords, scaleX?: Scale, scaleY?: Scale) {
+    const x = invert(coords.x, scaleX);
+    const y = invert(coords.y, scaleY);
+
+    return { x, y };
+}
+
+export function invert(n: Coords['x' | 'y'], scale?: Scale) {
+    if (_Scene.ContinuousScale.is(scale)) {
+        n = scale.invert(n);
+    } else if (_Scene.BandScale.is(scale)) {
+        n = scale.invertNearest(n - scale.bandwidth / 2);
+    }
+
+    return n;
 }
