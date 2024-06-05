@@ -75,6 +75,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
     private menuElementDestroyFns: (() => void)[] = [];
+    private lastFocus?: HTMLElement;
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -182,6 +183,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (groupCount === 0) return;
 
+        if (event.sourceEvent.target instanceof HTMLElement) {
+            this.lastFocus = event.sourceEvent.target;
+        }
         this.show();
     }
 
@@ -208,7 +212,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             buttons,
             orientation: 'vertical',
             onEscape: () => this.hide(),
-        });;
+        });
         buttons[0]?.focus();
     }
 
@@ -223,6 +227,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.element.style.display = 'none';
+        this.lastFocus?.focus();
+        this.lastFocus = undefined;
     }
 
     private renderMenu() {
