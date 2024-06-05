@@ -3473,6 +3473,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -3521,6 +3526,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3571,6 +3581,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -3620,6 +3635,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -3668,6 +3688,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8638,6 +8663,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8693,6 +8723,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8750,6 +8785,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8805,6 +8845,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8862,6 +8907,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8918,6 +8968,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -8973,6 +9028,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10508,6 +10568,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -10551,6 +10616,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10596,6 +10666,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -10639,6 +10714,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12664,6 +12744,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -12718,6 +12803,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12774,6 +12864,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -12828,6 +12923,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12884,6 +12984,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
       },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
+      },
       "lineDash": [
         0,
       ],
@@ -12938,6 +13043,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
+      },
+      "line": {
+        "position": "end",
+        "style": "linear",
+        "tension": 1,
       },
       "lineDash": [
         0,

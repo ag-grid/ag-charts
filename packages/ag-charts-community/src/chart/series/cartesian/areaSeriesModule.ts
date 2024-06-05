@@ -39,6 +39,12 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 yOffset: 3,
                 blur: 5,
             },
+            line: {
+                style: 'linear',
+                // @ts-expect-error - users shouldn't specify all options, but we have to for theming to work
+                tension: 1,
+                position: 'end',
+            },
             marker: {
                 enabled: false,
                 shape: 'circle',
