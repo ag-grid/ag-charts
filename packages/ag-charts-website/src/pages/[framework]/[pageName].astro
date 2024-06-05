@@ -33,7 +33,7 @@ const headings = getHeadings({
 const { data: menuData } = await getEntry('menu', 'data');
 const menuItems = Object.values(menuData);
 
-const { data: versionsData } = await getEntry('versions', 'data');
+const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
 const version = versionsData[0]?.version;
 const frameworkDisplayText = getFrameworkDisplayText(currentFramework);
 const seoTagline = `Download AG Charts v${version} today: The best ${frameworkDisplayText} Charts and ${frameworkDisplayText} Graphs, in the world.`;

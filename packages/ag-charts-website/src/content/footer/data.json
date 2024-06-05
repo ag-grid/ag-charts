@@ -13,6 +13,10 @@
             {
                 "name": "Pipeline",
                 "url": "/pipeline/"
+            },
+            {
+                "name": "Documentation Archive",
+                "url": "/documentation-archive"
             }
         ]
     },
