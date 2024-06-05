@@ -6,6 +6,7 @@ export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties 
 export * from './util/dom';
 export * from './util/deprecation';
 export * from './util/json';
+export * from './util/keynavUtil';
 export * from './util/nearest';
 export * from './util/number';
 export * from './util/object';

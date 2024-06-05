@@ -105,6 +105,13 @@ export function initMenuKeyNav(opts: {
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
+        if (onEscape) {
+            addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Escape') {
+                    onEscape(event);
+                }
+            });
+        }
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, false);
         curr.tabIndex = -1;
     }
