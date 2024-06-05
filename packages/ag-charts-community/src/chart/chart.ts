@@ -1176,7 +1176,7 @@ export abstract class Chart extends Observable {
     }
 
     private onBlur(): void {
-        this.ctx.regionManager.updateFocusIndicatorRect(undefined);
+        this.ctx.focusIndicator.updateBBox(undefined);
         this.resetPointer();
         this.focus.hasFocus = false;
         // Do not consume blur events to allow the browser-focus to leave the canvas element.
@@ -1247,7 +1247,7 @@ export abstract class Chart extends Observable {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
+            this.ctx.focusIndicator.updateBBox(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
@@ -1276,7 +1276,7 @@ export abstract class Chart extends Observable {
         focus.datum = datum;
 
         // Update user interaction/interface:
-        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.regionManager, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.focusIndicator, pick);
         if (keyboardEvent !== undefined) {
             this.lastInteractionEvent = keyboardEvent;
             const html = focus.series.getTooltipHtml(datum);
@@ -1783,7 +1783,7 @@ export abstract class Chart extends Observable {
 
             const step = intervalOptions?.step;
             if (step != null) {
-                horizontalAxis.tick.interval = step;
+                horizontalAxis.interval = step;
             }
         }
     }

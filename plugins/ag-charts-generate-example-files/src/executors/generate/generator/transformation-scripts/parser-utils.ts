@@ -81,7 +81,7 @@ export function modulesProcessor(modules: string[]) {
 }
 
 export function removeFunctionKeyword(code: string): string {
-    return code.replace(/^function /, '').replace(/\n\s?function /, '\n ');
+    return code.replace(/^(async )?function /, '$1').replace(/\n\s?function /, '\n ');
 }
 
 export function getFunctionName(code: string): string {
@@ -90,12 +90,12 @@ export function getFunctionName(code: string): string {
 }
 
 export const convertFunctionToProperty = (code: string) =>
-    code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, '$1 = ($2) =>');
+    code.replace(/(async )?function\s+([^(\s]+)\s*\(([^)]*)\)/, '$2 = $1($3) =>');
 
 export const convertFunctionToConstProperty = (code: string) =>
-    code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $1 = ($2) =>');
+    code.replace(/(async ){0,1}function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $2 = $1($3) =>');
 export const convertFunctionToConstPropertyTs = (code: string) => {
-    return code.replace(/function\s+([^(\s]+)\s*\(([^)]*)\):(\s+[^{]*)/, 'const $1: ($2) => $3 = ($2) =>');
+    return code.replace(/(async ){0,1}function\s+([^(\s]+)\s*\(([^)]*)\)(:?\s+[^{]*)/, 'const $2 = $1($3) $4 =>');
 };
 
 export function isInstanceMethod(methods: string[], property: any): boolean {
@@ -343,9 +343,13 @@ export function getTypes(node: ts.Node) {
     return typesToInclude;
 }
 
+const CHART_API_EXPRESSIONS = [/AgCharts.(?!create)/, /chart.(?!(update))/];
 export function usesChartApi(node: ts.Node) {
-    if (ts.isCallExpression(node) && node.getText()?.match(/AgCharts.(?!create)/)) {
-        return true;
+    if (ts.isCallExpression(node)) {
+        const nodeText = node.getText();
+        if (CHART_API_EXPRESSIONS.some((e) => e.test(nodeText))) {
+            return true;
+        }
     }
 
     let usesApi = false;

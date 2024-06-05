@@ -27,6 +27,10 @@ export class Marker extends Path {
         return new BBox(x - size * center.x, y - size * center.y, size, size);
     }
 
+    override computeTransformedBBox(): BBox {
+        return super.computeTransformedBBox()!;
+    }
+
     protected applyPath(s: number, moves: MarkerPathMove[]) {
         const { path } = this;
         let { x, y } = this;

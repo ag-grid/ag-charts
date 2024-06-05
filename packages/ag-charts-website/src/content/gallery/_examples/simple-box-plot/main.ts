@@ -70,8 +70,8 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            position: 'bottom',
             type: 'category',
+            position: 'bottom',
             groupPaddingInner: 0,
             paddingInner: 0.7,
             paddingOuter: 0.2,
@@ -86,13 +86,11 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'left',
             type: 'number',
+            position: 'left',
+            values: [105, 385, 2714],
             line: {
                 enabled: false,
-            },
-            tick: {
-                values: [105, 385, 2714],
             },
         },
     ],

@@ -24,7 +24,7 @@ For [Number Axes](./axes-types/#number), the interval property should be a numbe
 value within the axis range. For instance, with an interval of `5`, the ticks will appear at `0`, `5`, `10`, and so on.
 
 ```js
-tick: {
+{
     interval: 5,
 }
 ```
@@ -42,7 +42,7 @@ displays a tick every month. You can also utilise an interval based on predefine
 to customise the frequency of the ticks.
 
 ```js
-tick: {
+{
     interval: time.month,
 }
 ```
@@ -61,7 +61,7 @@ The example below demonstrates the usage of time intervals:
 -   `time.month.every(2)` will generate ticks for every second month.
 
 ```js
-tick: {
+{
     interval: time.month.every(2),
 }
 ```
@@ -74,7 +74,7 @@ The `tick.values` property allows you to specify the precise array of tick value
 this should be an array consisting of numbers, dates, or string values.
 
 ```js
-tick: {
+{
     values: [50, 88, 100],
 }
 ```
@@ -93,7 +93,7 @@ of ticks will be generated to meet the specified `tick.minSpacing` and `tick.max
 size of the chart into account. A sample configuration is shown below:
 
 ```js
-tick: {
+{
     minSpacing: 50,
     maxSpacing: 200,
 }

@@ -2,27 +2,8 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/array';
 import { Default } from '../../util/default';
-import {
-    AND,
-    DATE_OR_DATETIME_MS,
-    GREATER_THAN,
-    LESS_THAN,
-    MAX_SPACING,
-    MIN_SPACING,
-    Validate,
-} from '../../util/validation';
-import { AxisTick } from './axisTick';
+import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, MAX_SPACING, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
-
-class TimeAxisTick extends AxisTick<TimeScale, number | Date> {
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override minSpacing: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
-}
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     static readonly className = 'TimeAxis';
@@ -37,6 +18,10 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 
     @Validate(AND(DATE_OR_DATETIME_MS, GREATER_THAN('min')), { optional: true })
     max?: Date | number = undefined;
+
+    @Validate(MAX_SPACING)
+    @Default(NaN)
+    override maxSpacing: number = NaN;
 
     override normaliseDataDomain(d: Date[]) {
         let { min, max } = this;
@@ -65,10 +50,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         }
 
         return { domain: d, clipped };
-    }
-
-    protected override createTick() {
-        return new TimeAxisTick();
     }
 
     protected override onFormatChange(ticks: any[], fractionDigits: number, domain: any[], format?: string) {

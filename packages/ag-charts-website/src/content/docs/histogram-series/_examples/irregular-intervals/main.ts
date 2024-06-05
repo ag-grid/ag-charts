@@ -30,7 +30,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'bottom',
             title: { text: 'Age category (years)' },
-            tick: { interval: 2 },
+            interval: 2,
         },
         {
             type: 'number',

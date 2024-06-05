@@ -182,7 +182,8 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
 
     if (bindings.usesChartApi) {
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
-        indexFile = indexFile.replace(/\(this.agCharts.chart!, options/g, '(this.agCharts.chart!, this.options');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'this.agCharts.chart!.$1(');
+        indexFile = indexFile.replace(/this.agCharts.chart!.(\w*)\(options/g, 'this.agCharts.chart!.$1(this.options');
     }
 
     return indexFile;

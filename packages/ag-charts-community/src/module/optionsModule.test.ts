@@ -293,11 +293,11 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'time',
+            maxSpacing: 26,
             tick: {
                 enabled: false,
                 width: 66,
                 size: 44,
-                maxSpacing: 26,
             },
             title: {
                 enabled: false,
