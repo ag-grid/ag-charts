@@ -25,6 +25,7 @@ import { TooltipManager } from './interaction/tooltipManager';
 import type { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
 import { LayoutService } from './layout/layoutService';
+import { LocaleManager } from './locale/localeManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
@@ -51,6 +52,7 @@ export class ChartContext implements ModuleContext {
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
     keyNavManager: KeyNavManager;
+    localeManager: LocaleManager;
     proxyInteractionService: ProxyInteractionService;
     regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
@@ -78,8 +80,9 @@ export class ChartContext implements ModuleContext {
         scene?.setContainer(this.domManager);
         this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, domManager: this.domManager });
 
+        this.localeManager = new LocaleManager();
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
-        this.ariaAnnouncementService = new AriaAnnouncementService(this.scene.canvas.element);
+        this.ariaAnnouncementService = new AriaAnnouncementService(this.localeManager, this.scene.canvas.element);
         this.chartEventManager = new ChartEventManager();
         this.cursorManager = new CursorManager(this.domManager);
         this.highlightManager = new HighlightManager();
@@ -94,6 +97,7 @@ export class ChartContext implements ModuleContext {
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(
             this.updateService,
+            this.localeManager,
             this.domManager,
             this.focusIndicator
         );
@@ -113,6 +117,7 @@ export class ChartContext implements ModuleContext {
         this.tooltipManager.destroy();
         this.contextMenuRegistry.destroy();
         this.regionManager.destroy();
+        this.proxyInteractionService.destroy();
         this.focusIndicator.destroy();
         this.keyNavManager.destroy();
         this.interactionManager.destroy();

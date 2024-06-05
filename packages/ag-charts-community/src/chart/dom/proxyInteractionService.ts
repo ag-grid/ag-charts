@@ -2,6 +2,7 @@ import type { Direction } from '../../options/agChartOptions';
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';
+import type { LocaleManager } from '../locale/localeManager';
 import type { UpdateService } from '../updateService';
 import type { DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
@@ -17,21 +18,23 @@ type ElemParams<T extends ProxyElementType> = {
     readonly onblur?: (ev: FocusEvent) => void;
 };
 
+type TranslationKey = { id: string; params?: Record<string, any> };
+
 type ContainerParams<T extends ProxyContainerType> = {
     readonly type: T;
     readonly id: string;
     readonly classList: string[];
-    readonly ariaLabel: string;
+    readonly ariaLabel: TranslationKey;
     readonly ariaOrientation: Direction;
 };
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: string };
+        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
         result: HTMLButtonElement;
     };
     slider: {
-        params: ElemParams<'slider'> & { readonly ariaLabel: string; readonly ariaOrientation: Direction };
+        params: ElemParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly ariaOrientation: Direction };
         result: HTMLInputElement;
     };
     toolbar: {
@@ -64,19 +67,30 @@ export class ProxyInteractionService {
     // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
     private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
     private focusable?: BBoxProvider<BBoxValues>;
+    private readonly destroyFns: Array<() => void> = [];
 
     constructor(
         updateService: UpdateService,
+        private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly focusIndicator: FocusIndicator
     ) {
-        updateService.addListener('update-complete', () => this.update());
+        this.destroyFns.push(updateService.addListener('update-complete', () => this.update()));
+    }
+
+    destroy() {
+        this.destroyFns.forEach((fn) => fn());
     }
 
     private update() {
         if (this.focusable) {
             this.focusIndicator.updateBBox(this.focusable.computeTransformedBBox());
         }
+    }
+
+    private addLocalisation(fn: () => void) {
+        fn();
+        this.destroyFns.push(this.localeManager.addListener('locale-changed', fn));
     }
 
     createProxyContainer<T extends ProxyContainerType>(
@@ -89,8 +103,12 @@ export class ProxyInteractionService {
         div.classList.add(...params.classList);
         div.style.pointerEvents = 'none';
         div.role = params.type;
-        div.ariaLabel = params.ariaLabel;
         div.ariaOrientation = params.ariaOrientation;
+
+        this.addLocalisation(() => {
+            div.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
+        });
+
         return div;
     }
 
@@ -100,7 +118,10 @@ export class ProxyInteractionService {
         if (checkType('button', meta)) {
             const { params, result: button } = meta;
             this.initElement(params, button);
-            button.textContent = params.textContent;
+
+            this.addLocalisation(() => {
+                button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
+            });
         }
 
         if (checkType('slider', meta)) {
@@ -109,8 +130,11 @@ export class ProxyInteractionService {
             slider.type = 'range';
             slider.role = 'presentation';
             slider.style.margin = '0px';
-            slider.ariaLabel = params.ariaLabel;
             slider.ariaOrientation = params.ariaOrientation;
+
+            this.addLocalisation(() => {
+                slider.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
+            });
         }
 
         return meta.result;

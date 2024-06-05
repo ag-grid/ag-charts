@@ -6,6 +6,7 @@ import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 import { BackgroundModule } from '../background/backgroundModule';
 import { CommunityLegendModule } from '../legendModule';
+import { LocaleModule } from '../locale/localeModule';
 import { NavigatorModule } from '../navigator/navigatorModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
@@ -22,6 +23,7 @@ export function registerInbuiltModules() {
     moduleRegistry.register(
         BackgroundModule,
         CommunityLegendModule,
+        LocaleModule,
         NavigatorModule,
         ToolbarModule,
         AreaSeriesModule,

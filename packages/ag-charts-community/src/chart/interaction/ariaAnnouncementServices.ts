@@ -1,6 +1,7 @@
 import { setAttribute } from '../../util/attributeUtil';
 import { Debug } from '../../util/debug';
 import { getDocument } from '../../util/dom';
+import type { LocaleManager } from '../locale/localeManager';
 
 export class AriaAnnouncementService {
     private readonly liveElem: HTMLElement;
@@ -14,7 +15,10 @@ export class AriaAnnouncementService {
         return e;
     }
 
-    constructor(private readonly canvas: HTMLCanvasElement) {
+    constructor(
+        private readonly localeManager: LocaleManager,
+        private readonly canvas: HTMLCanvasElement
+    ) {
         this.canvas.appendChild((this.liveElem = AriaAnnouncementService.createAnnouncer()));
     }
 
@@ -22,7 +26,8 @@ export class AriaAnnouncementService {
         this.canvas.removeChild(this.liveElem);
     }
 
-    public announceValue(value: string): void {
+    public announceValue(id: string, params?: Record<string, any>): void {
+        const value = this.localeManager.t(id, params);
         this.debug(`AriaAnnouncementService - announceValue: ${value}`);
         this.liveElem.textContent = value;
     }
