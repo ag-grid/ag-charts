@@ -1,9 +1,8 @@
-import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationPoint } from './annotationProperties';
-import type { Coords, Point, StateClickEvent, StateHoverEvent } from './annotationTypes';
-import { AnnotationType } from './annotationTypes';
-import { validateDatumPoint } from './annotationUtils';
+import type { Coords, Domain, Point, Scale, StateClickEvent, StateHoverEvent } from './annotationTypes';
+import { AnnotationType, stringToAnnotationType } from './annotationTypes';
+import { invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
@@ -111,10 +110,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     );
 
     // Cached axis data
-    private scaleX?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
-    private scaleY?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
-    private domainX?: any[];
-    private domainY?: any[];
+    private scaleX?: Scale;
+    private scaleY?: Scale;
+    private domainX?: Domain;
+    private domainY?: Domain;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -198,7 +197,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const annotation = this.stringToAnnotationType(event.value);
+        const annotation = stringToAnnotationType(event.value);
         if (!annotation) {
             _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
             return;
@@ -265,6 +264,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         annotationManager.updateData(annotationData?.toJson());
 
+        const updateContext = this.getAnnotationUpdateContext();
+
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum, index) => {
@@ -274,19 +275,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 }
 
                 if (LineAnnotation.is(datum) && Line.is(node)) {
-                    node.update(datum, seriesRect, this.convertLine(datum));
+                    node.update(datum, updateContext);
                 }
 
                 if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-                    node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+                    node.update(datum, updateContext);
                 }
 
                 if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-                    node.update(datum, seriesRect, this.convertCrossLine(datum));
+                    node.update(datum, updateContext);
                 }
 
                 if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-                    node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+                    node.update(datum, updateContext);
                 }
 
                 if (active === index) {
@@ -298,6 +299,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private updateAxesDomains() {
         this.domainX = this.scaleX?.getDomain?.();
         this.domainY = this.scaleY?.getDomain?.();
+    }
+
+    private getAnnotationUpdateContext() {
+        const { seriesRect, scaleX, scaleY } = this;
+        return { seriesRect, scaleX, scaleY };
     }
 
     // Validation of the options beyond the scope of the @Validate decorator
@@ -351,21 +357,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             annotationData,
             annotations,
+            scaleX,
+            scaleY,
+            seriesRect,
+            state,
             ctx: { cursorManager },
         } = this;
 
         if (!annotationData) return;
 
         const offset = {
-            x: event.offsetX - (this.seriesRect?.x ?? 0),
-            y: event.offsetY - (this.seriesRect?.y ?? 0),
+            x: event.offsetX - (seriesRect?.x ?? 0),
+            y: event.offsetY - (seriesRect?.y ?? 0),
         };
-        const point = this.invertPoint(offset);
+        const point = invertCoords(offset, scaleX, scaleY);
 
         const valid = validateDatumPoint(this.getValidationContext(), point);
         cursorManager.updateCursor('annotations', valid ? undefined : Cursor.NotAllowed);
 
-        if (!valid || this.state.is('start')) return;
+        if (!valid || state.is('start')) return;
 
         const datum = annotationData.at(-1);
         this.active = annotationData.length - 1;
@@ -436,6 +446,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
+            scaleX,
+            scaleY,
+            seriesRect,
+            state,
             ctx: { toolbarManager },
         } = this;
 
@@ -443,12 +457,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (!annotationData) return;
 
-        const datum = this.annotationData?.at(-1);
+        const datum = annotationData?.at(-1);
         const offset = {
-            x: event.offsetX - (this.seriesRect?.x ?? 0),
-            y: event.offsetY - (this.seriesRect?.y ?? 0),
+            x: event.offsetX - (seriesRect?.x ?? 0),
+            y: event.offsetY - (seriesRect?.y ?? 0),
         };
-        const point = this.invertPoint(offset);
+        const point = invertCoords(offset, scaleX, scaleY);
 
         const node = active != null ? annotations.nodes()[active] : undefined;
 
@@ -457,7 +471,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
-        this.state.transition('click', data);
+        state.transition('click', data);
 
         this.update();
     }
@@ -512,7 +526,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDragNodeHandle(handleOffset: Coords) {
-        const point = this.invertPoint(handleOffset);
+        const point = invertCoords(handleOffset, this.scaleX, this.scaleY);
         const valid = validateDatumPoint(this.getValidationContext(), point);
         if (!valid) {
             this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
@@ -601,103 +615,5 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private update() {
         this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
-    }
-
-    private stringToAnnotationType(value: string) {
-        switch (value) {
-            case 'line':
-                return AnnotationType.Line;
-            case 'disjoint-channel':
-                return AnnotationType.DisjointChannel;
-            case 'parallel-channel':
-                return AnnotationType.ParallelChannel;
-        }
-    }
-
-    private convertCrossLine(datum: { value?: string | number | Date; direction: Direction }) {
-        if (datum.value == null) return;
-
-        const { scaleX, scaleY } = this;
-
-        if (!scaleX || !scaleY) return;
-
-        let x1 = 0;
-        let x2 = 0;
-        let y1 = 0;
-        let y2 = 0;
-
-        if (datum.direction === 'vertical') {
-            const scaledValue = scaleX.convert(datum.value);
-            const yDomain = scaleY.getDomain?.() ?? [0, 0];
-            x1 = scaledValue;
-            x2 = scaledValue;
-            y1 = scaleY.convert(yDomain[0]);
-            y2 = scaleY.convert(yDomain.at(-1));
-        } else {
-            const scaledValue = scaleY.convert(datum.value);
-            const xDomain = scaleX.getDomain?.() ?? [0, 0];
-            x1 = scaleX.convert(xDomain[0]);
-            x2 = scaleX.convert(xDomain.at(-1));
-            y1 = scaledValue;
-            y2 = scaledValue;
-        }
-
-        return { x1, y1, x2, y2 };
-    }
-
-    private convertLine(datum: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> }) {
-        if (datum.start == null || datum.end == null) return;
-
-        const start = this.convertPoint(datum.start);
-        const end = this.convertPoint(datum.end);
-
-        if (start == null || end == null) return;
-
-        return { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
-    }
-
-    private convertPoint(point: Pick<AnnotationPoint, 'x' | 'y'>) {
-        const { scaleX, scaleY } = this;
-
-        let x = 0;
-        let y = 0;
-
-        if (!scaleX || !scaleY || point.x == null || point.y == null) return { x, y };
-
-        x = scaleX.convert(point.x);
-        y = scaleY.convert(point.y);
-
-        return { x, y };
-    }
-
-    private invertPoint(point: Coords) {
-        return {
-            x: this.invertX(point.x),
-            y: this.invertY(point.y),
-        };
-    }
-
-    private invertX(x: number) {
-        const { scaleX } = this;
-
-        if (_Scene.ContinuousScale.is(scaleX)) {
-            x = scaleX.invert(x);
-        } else if (_Scene.BandScale.is(scaleX)) {
-            x = scaleX.invertNearest(x);
-        }
-
-        return x;
-    }
-
-    private invertY(y: number) {
-        const { scaleY } = this;
-
-        if (_Scene.ContinuousScale.is(scaleY)) {
-            y = scaleY.invert(y);
-        } else if (_Scene.BandScale.is(scaleY)) {
-            y = scaleY.invertNearest(y);
-        }
-
-        return y;
     }
 }
