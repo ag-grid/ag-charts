@@ -93,9 +93,9 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
                 position: 'right',
                 keys: ['open', 'close', 'high', 'low'],
                 max: 210,
+                maxSpacing: 50,
                 tick: {
                     size: 0,
-                    maxSpacing: 50,
                 },
                 label: {
                     padding: 0,

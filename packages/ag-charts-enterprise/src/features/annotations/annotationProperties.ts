@@ -29,13 +29,14 @@ export class AnnotationPoint extends BaseProperties {
 
 export class ChannelAnnotationBackground extends Fill(BaseProperties) {}
 
-export class ChannelAnnotationMiddle extends Stroke(LineDash(BaseProperties)) {}
+export class ChannelAnnotationMiddle extends Stroke(LineDash(Visible(BaseProperties))) {}
 
 export class AnnotationHandleProperties extends Stroke(LineDash(Fill(BaseProperties))) {}
 
 // --- Annotations Mixins ---
 export function Annotation<T extends string, U extends Constructor>(_type: T, Parent: U) {
     class AnnotationProperties extends Lockable(Visible(Parent)) {
+        // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
         id = _Util.uuid();
     }
     return AnnotationProperties;

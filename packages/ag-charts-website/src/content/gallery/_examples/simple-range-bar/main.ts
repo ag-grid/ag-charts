@@ -38,17 +38,15 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            tick: {
-                values: [
-                    new Date(2023, 7, 1),
-                    new Date(2023, 7, 15),
-                    new Date(2023, 8, 1),
-                    new Date(2023, 8, 15),
-                    new Date(2023, 9, 1),
-                    new Date(2023, 9, 15),
-                    new Date(2023, 10, 1),
-                ],
-            },
+            values: [
+                new Date(2023, 7, 1),
+                new Date(2023, 7, 15),
+                new Date(2023, 8, 1),
+                new Date(2023, 8, 15),
+                new Date(2023, 9, 1),
+                new Date(2023, 9, 15),
+                new Date(2023, 10, 1),
+            ],
             line: {
                 enabled: false,
             },

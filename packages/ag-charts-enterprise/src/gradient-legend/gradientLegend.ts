@@ -10,8 +10,21 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, Layers, POSITION, Validate, Default, MIN_SPACING, MAX_SPACING, POSITIVE_NUMBER, ProxyProperty } =
-    _ModuleSupport;
+const {
+    ARRAY,
+    BOOLEAN,
+    OBJECT,
+    Layers,
+    POSITION,
+    Validate,
+    Default,
+    MIN_SPACING,
+    MAX_SPACING,
+    POSITIVE_NUMBER,
+    TICK_INTERVAL,
+    BaseProperties,
+    ProxyProperty,
+} = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
@@ -21,19 +34,6 @@ class GradientBar {
 
     @Validate(POSITIVE_NUMBER)
     preferredLength = 100;
-}
-
-class GradientLegendAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
-    override enabled = false;
-    override size = 0;
-
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override minSpacing: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
 }
 
 class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale, number> {
@@ -49,8 +49,8 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
         this.setDomain(this.colorDomain);
     }
 
-    protected override createTick() {
-        return new GradientLegendAxisTick();
+    protected override getTickSize() {
+        return 0;
     }
 }
 
@@ -83,35 +83,32 @@ class GradientLegendLabel implements AgGradientLegendLabelOptions {
     formatter?: GradientLegendAxis['label']['formatter'];
 }
 
-class GradientLegendInterval implements AgGradientLegendIntervalOptions {
-    tick: GradientLegendAxisTick;
+class GradientLegendInterval extends BaseProperties implements AgGradientLegendIntervalOptions {
+    @Validate(ARRAY, { optional: true })
+    values?: any[];
 
-    constructor(tick: GradientLegendAxisTick) {
-        this.tick = tick;
-    }
+    @Validate(TICK_INTERVAL, { optional: true })
+    step?: number;
 
-    @ProxyProperty('tick.values')
-    values?: GradientLegendAxisTick['values'];
+    @Validate(MIN_SPACING)
+    @Default(NaN)
+    minSpacing: number = NaN;
 
-    @ProxyProperty('tick.minSpacing')
-    minSpacing?: GradientLegendAxisTick['minSpacing'];
-
-    @ProxyProperty('tick.maxSpacing')
-    maxSpacing?: GradientLegendAxisTick['maxSpacing'];
-
-    @ProxyProperty('tick.interval')
-    step?: GradientLegendAxisTick['interval'];
+    @Validate(MAX_SPACING)
+    @Default(NaN)
+    maxSpacing: number = NaN;
 }
 
 class GradientLegendScale implements AgGradientLegendScaleOptions {
     axis: GradientLegendAxis;
     label: GradientLegendLabel;
-    interval: GradientLegendInterval;
+
+    @Validate(OBJECT)
+    readonly interval = new GradientLegendInterval();
 
     constructor(axis: GradientLegendAxis) {
         this.axis = axis;
         this.label = new GradientLegendLabel(axis.label);
-        this.interval = new GradientLegendInterval(axis.tick as GradientLegendAxisTick);
     }
 
     @ProxyProperty('axis.seriesAreaPadding')

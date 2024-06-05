@@ -13,6 +13,8 @@ type ElemParams<T extends ProxyElementType> = {
     readonly focusable: BBoxProvider<BBoxValues>;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
+    readonly onfocus?: (ev: FocusEvent) => void;
+    readonly onblur?: (ev: FocusEvent) => void;
 };
 
 type ContainerParams<T extends ProxyContainerType> = {
@@ -36,10 +38,14 @@ type ProxyMeta = {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
+    div: {
+        params: ContainerParams<'div'>;
+        result: HTMLDivElement;
+    };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar';
+type ProxyContainerType = 'toolbar' | 'div';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -49,7 +55,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div', div: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -69,7 +75,7 @@ export class ProxyInteractionService {
 
     private update() {
         if (this.focusable) {
-            this.focusIndicator.updateBBox(this.focusable.getCachedBBox());
+            this.focusIndicator.updateBBox(this.focusable.computeTransformedBBox());
         }
     }
 
@@ -114,7 +120,7 @@ export class ProxyInteractionService {
         params: ProxyMeta[T]['params'],
         element: TElem
     ) {
-        const { focusable, onclick, onchange, id, parent } = params;
+        const { focusable, onclick, onchange, onfocus, onblur, id, parent } = params;
 
         element.id = id;
         element.style.pointerEvents = 'none';
@@ -126,7 +132,7 @@ export class ProxyInteractionService {
         element.addEventListener('focus', (_event: FocusEvent): any => {
             this.focusable = focusable;
             element.style.setProperty('pointerEvents', null);
-            this.focusIndicator.updateBBox(focusable.getCachedBBox());
+            this.focusIndicator.updateBBox(focusable.computeTransformedBBox());
         });
         element.addEventListener('blur', (_event: FocusEvent): any => {
             this.focusable = undefined;
@@ -135,6 +141,12 @@ export class ProxyInteractionService {
         });
         if (onclick) {
             element.addEventListener('click', onclick);
+        }
+        if (onfocus) {
+            element.addEventListener('focus', onfocus);
+        }
+        if (onblur) {
+            element.addEventListener('blur', onblur);
         }
         if (onchange) {
             element.addEventListener('change', onchange);

@@ -63,14 +63,14 @@ export class ContextMenuRegistry {
         this.destroyFns.forEach((d) => d());
     }
 
-    private onContextMenu(event: PointerInteractionEvent<'contextmenu'>) {
+    private onContextMenu(event: PointerInteractionEvent<'contextmenu'> & { region: string }) {
         const type = ContextMenuRegistry.toContextType(event.region);
         if (type === 'all') {
             this.dispatchContext('all', event, {});
         }
     }
 
-    private static toContextType(region: string | undefined): ContextType {
+    private static toContextType(region: string): ContextType {
         if (region === 'legend' || region === 'series') {
             return region;
         }

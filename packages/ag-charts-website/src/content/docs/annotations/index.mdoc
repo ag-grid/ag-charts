@@ -88,8 +88,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         x: new Date('Tuesday, October 03, 2023'),
         y: 4229.45 + 50
     },
-    startSize: 50,
-    endSize: 150,
+    height: 100,
 },
 ```
 
@@ -99,16 +98,17 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 
 ```ts
 {
-    type: 'parallel-channel',
+    type: 'disjoint-channel',
     start: {
         x: new Date('Thursday, September 14, 2023'),
-        y: 4487.78 + 50
+        y: 4487.78 + 25
     },
     end: {
         x: new Date('Tuesday, October 03, 2023'),
-        y: 4229.45 + 50
+        y: 4229.45 + 100
     },
-    size: 100,
+    startHeight: 50,
+    endHeight: 150,
 },
 ```
 

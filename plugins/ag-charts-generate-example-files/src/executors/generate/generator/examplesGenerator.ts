@@ -94,10 +94,14 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
 
-    if (entryFile.includes('@ag-skip-fws') && internalFramework !== 'vanilla') {
-        entryFile = PLACEHOLDER_MAIN_TS;
-        indexHtml = `<div id="myChart"></div>`;
-        extractOptions = false;
+    if (entryFile.includes('@ag-skip-fws')) {
+        if (['vanilla', 'typescript'].includes(internalFramework)) {
+            entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-fws\s*\n*$/g, '');
+        } else {
+            entryFile = PLACEHOLDER_MAIN_TS;
+            indexHtml = `<div id="myChart"></div>`;
+            extractOptions = false;
+        }
     }
 
     const otherScriptFiles = await getOtherScriptFiles({

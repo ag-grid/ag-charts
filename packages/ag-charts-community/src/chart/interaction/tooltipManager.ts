@@ -130,6 +130,7 @@ const defaultTooltipCss = `
  */
 export class TooltipManager {
     private readonly stateTracker = new StateTracker<TooltipState>();
+    private readonly suppressState = new StateTracker(false);
     private appliedState: TooltipState | null = null;
 
     public constructor(
@@ -155,6 +156,14 @@ export class TooltipManager {
         this.applyStates();
     }
 
+    public suppressTooltip(callerId: string) {
+        this.suppressState.set(callerId, true);
+    }
+
+    public unsuppressTooltip(callerId: string) {
+        this.suppressState.delete(callerId);
+    }
+
     public getTooltipMeta(callerId: string): TooltipMeta | undefined {
         return this.stateTracker.get(callerId)?.meta;
     }
@@ -167,7 +176,7 @@ export class TooltipManager {
         const id = this.stateTracker.stateId();
         const state = id ? this.stateTracker.get(id) : null;
 
-        if (state?.meta == null || state?.content == null) {
+        if (this.suppressState.stateValue() || state?.meta == null || state?.content == null) {
             this.appliedState = null;
             this.tooltip.toggle(false);
             return;

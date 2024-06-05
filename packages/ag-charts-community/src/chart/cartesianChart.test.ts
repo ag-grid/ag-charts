@@ -275,18 +275,16 @@ describe('CartesianChart', () => {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
                 axes: [
                     {
-                        position: 'bottom',
                         type: 'time',
+                        position: 'bottom',
                         title: {
                             text: 'Date',
                         },
-                        tick: {
-                            maxSpacing: 80,
-                        },
+                        maxSpacing: 80,
                     },
                     {
-                        position: 'left',
                         type: 'number',
+                        position: 'left',
                         title: {
                             text: 'Price in pence',
                         },

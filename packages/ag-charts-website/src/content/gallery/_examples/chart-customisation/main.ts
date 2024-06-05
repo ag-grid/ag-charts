@@ -58,10 +58,10 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            position: 'top',
             type: 'time',
+            position: 'top',
+            interval: time.year.every(10),
             tick: {
-                interval: time.year.every(10),
                 width: 3,
                 stroke: '#3f7cbf',
             },
@@ -84,8 +84,8 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'right',
             type: 'number',
+            position: 'right',
             tick: {
                 size: 10,
             },
@@ -120,7 +120,7 @@ const options: AgChartOptions = {
             },
             paddingX: 40,
             label: {
-                fontWeight: '600',
+                fontWeight: 600,
                 color: '#3f7cbf',
                 fontSize: 14,
                 fontFamily: 'Georgia, Times New Roman, Times, Serif',

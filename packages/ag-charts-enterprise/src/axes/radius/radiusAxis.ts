@@ -17,16 +17,6 @@ const {
 const { Caption, Group, Path, Selection } = _Scene;
 const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
 
-class RadiusAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override minSpacing: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
-}
-
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(BOOLEAN, { optional: true })
     autoRotate?: boolean;
@@ -39,6 +29,14 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     @Validate(DEGREE)
     @Default(0)
     positionAngle: number = 0;
+
+    @Validate(MIN_SPACING)
+    @Default(NaN)
+    override minSpacing: number = NaN;
+
+    @Validate(MAX_SPACING)
+    @Default(NaN)
+    override maxSpacing: number = NaN;
 
     protected readonly gridPathGroup = this.gridGroup.appendChild(
         new Group({
@@ -208,10 +206,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         }
 
         titleNode.visible = titleVisible;
-    }
-
-    protected override createTick() {
-        return new RadiusAxisTick();
     }
 
     protected override updateCrossLines() {

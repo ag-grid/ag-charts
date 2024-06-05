@@ -58,18 +58,13 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        ctx: _ModuleSupport.ModuleContext,
-        hasActiveAnnotation: () => boolean,
+        onEnterIdle: () => void,
         appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
         validateDatumPoint: (point: Point) => boolean
     ) {
         super('idle', {
             idle: {
-                onEnter: () => {
-                    ctx.cursorManager.updateCursor('annotations');
-                    ctx.interactionManager.popState(InteractionState.Annotations);
-                    ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', hasActiveAnnotation());
-                },
+                onEnter: () => onEnterIdle(),
                 [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
                 [AnnotationType.CrossLine]: new CrossLineStateMachine((datum) =>
                     appendDatum(AnnotationType.CrossLine, datum)
@@ -124,8 +119,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         super();
 
         this.state = new AnnotationsStateMachine(
-            ctx,
-            () => this.active != null,
+            () => {
+                ctx.cursorManager.updateCursor('annotations');
+                ctx.interactionManager.popState(InteractionState.Annotations);
+                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+                this.toggleAnnotationOptionsButtons();
+            },
             this.appendDatum.bind(this),
             this.validateChildStateDatumPoint.bind(this)
         );
@@ -169,6 +168,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onRestoreAnnotations(event: { annotations?: any }) {
+        if (!this.enabled) return;
+
         this.clear();
 
         this.annotationData ??= new PropertiesArray(this.createAnnotationDatum);
@@ -179,33 +180,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const {
-            active,
-            annotations,
-            annotationData,
             state,
-            ctx: { interactionManager, toolbarManager, updateService },
+            ctx: { interactionManager },
         } = this;
 
-        if (
-            ToolbarManager.isGroup('annotationOptions', event) &&
-            event.value === 'delete' &&
-            active != null &&
-            annotationData != null
-        ) {
-            annotationData.splice(active, 1);
-            this.hovered = undefined;
-            this.active = undefined;
-
-            toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
-            updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        if (ToolbarManager.isGroup('annotationOptions', event)) {
+            this.onToolbarAnnotationOptionButtonPress(event);
             return;
         }
 
-        if (active != null) {
-            annotations.nodes()[active].toggleActive(false);
-            this.active = undefined;
-            this.hovered = undefined;
-        }
+        this.reset();
 
         if (!ToolbarManager.isGroup('annotations', event)) {
             return;
@@ -219,6 +203,39 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         interactionManager.pushState(InteractionState.Annotations);
         state.transition(annotation);
+    }
+
+    private onToolbarAnnotationOptionButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (!ToolbarManager.isGroup('annotationOptions', event)) return;
+
+        const {
+            active,
+            annotationData,
+            ctx: { toolbarManager, updateService },
+        } = this;
+
+        if (!annotationData || active == null) return;
+
+        switch (event.value) {
+            case 'delete':
+                annotationData.splice(active, 1);
+                this.reset();
+
+                toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+                break;
+
+            case 'lock':
+                annotationData[active].locked = true;
+                this.toggleAnnotationOptionsButtons();
+                break;
+
+            case 'unlock':
+                annotationData[active].locked = false;
+                this.toggleAnnotationOptionsButtons();
+                break;
+        }
+
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -242,43 +259,43 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRect,
             annotationData,
             annotations,
-            ctx: { annotationManager },
+            ctx: { annotationManager, toolbarManager },
         } = this;
 
         if (!seriesRect) {
             return;
         }
 
-        annotationManager.updateData(annotationData?.map((d) => d.toJson()));
+        annotationManager.updateData(annotationData?.toJson());
 
-        annotations.update(annotationData ?? []).each((node, datum, index) => {
-            if (!this.validateDatum(datum)) {
-                node.visible = false;
-                return;
-            }
+        annotations
+            .update(annotationData ?? [], undefined, (datum) => datum.id)
+            .each((node, datum, index) => {
+                if (!this.validateDatum(datum)) {
+                    node.visible = false;
+                    return;
+                }
 
-            node.visible = true;
+                if (LineAnnotation.is(datum) && Line.is(node)) {
+                    node.update(datum, seriesRect, this.convertLine(datum));
+                }
 
-            if (LineAnnotation.is(datum) && Line.is(node)) {
-                node.update(datum, seriesRect, this.convertLine(datum));
-            }
+                if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+                    node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+                }
 
-            if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-                node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
-            }
+                if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
+                    node.update(datum, seriesRect, this.convertCrossLine(datum));
+                }
 
-            if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-                node.update(datum, seriesRect, this.convertCrossLine(datum));
-            }
+                if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+                    node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
+                }
 
-            if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-                node.update(datum, seriesRect, this.convertLine(datum), this.convertLine(datum.bottom));
-            }
-
-            if (active === index) {
-                this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
-            }
-        });
+                if (active === index) {
+                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                }
+            });
     }
 
     private updateAxesDomains() {
@@ -288,7 +305,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     // Validation of the options beyond the scope of the @Validate decorator
     private validateDatum(datum: AnnotationProperties) {
-        let valid = true;
+        const warningPrefix = `Annotation [${datum.type}] `;
+        let valid = datum.isValid(warningPrefix);
 
         switch (datum.type) {
             case AnnotationType.CrossLine:
@@ -297,23 +315,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case AnnotationType.Line:
             case AnnotationType.DisjointChannel:
             case AnnotationType.ParallelChannel:
-                valid = this.validateDatumLine(datum, `Annotation [${datum.type}]`);
+                valid &&= this.validateDatumLine(datum, warningPrefix);
                 break;
         }
 
         return valid;
     }
 
-    private validateDatumLine(datum: { start: AnnotationPoint; end: AnnotationPoint }, prefix: string) {
+    private validateDatumLine(datum: { start: AnnotationPoint; end: AnnotationPoint }, warningPrefix: string) {
         let valid = true;
 
-        valid &&= this.validateDatumPoint(datum.start, `${prefix} [start]`);
-        valid &&= this.validateDatumPoint(datum.end, `${prefix} [end]`);
+        valid &&= this.validateDatumPoint(datum.start, `${warningPrefix}[start]`);
+        valid &&= this.validateDatumPoint(datum.end, `${warningPrefix}[end]`);
 
         return valid;
     }
 
-    private validateDatumValue(datum: { value?: string | number | Date; direction?: Direction }, loggerPrefix: string) {
+    private validateDatumValue(
+        datum: { value?: string | number | Date; direction?: Direction },
+        warningPrefix: string
+    ) {
         const scale = datum.direction === 'vertical' ? this.scaleX : this.scaleY;
         const domain = scale?.getDomain?.();
 
@@ -321,19 +342,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const valid = this.validateDatumPointDirection(domain, scale, datum.value);
 
-        if (!valid && loggerPrefix) {
-            _Util.Logger.warnOnce(`${loggerPrefix} is outside the axis domain, ignoring. - value: [${datum.value}]]`);
+        if (!valid && warningPrefix) {
+            _Util.Logger.warnOnce(`${warningPrefix} is outside the axis domain, ignoring. - value: [${datum.value}]]`);
         }
 
         return valid;
     }
 
-    private validateDatumPoint(point: Point, loggerPrefix?: string) {
+    private validateDatumPoint(point: Point, warningPrefix?: string) {
         const { domainX, domainY, scaleX, scaleY } = this;
 
         if (point.x == null || point.y == null) {
-            if (loggerPrefix) {
-                _Util.Logger.warnOnce(`${loggerPrefix} requires both an [x] and [y] property, ignoring.`);
+            if (warningPrefix) {
+                _Util.Logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
             }
             return false;
         }
@@ -347,9 +368,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             let text = 'x & y domains';
             if (validX) text = 'y domain';
             if (validY) text = 'x domain';
-            if (loggerPrefix) {
+            if (warningPrefix) {
                 _Util.Logger.warnOnce(
-                    `${loggerPrefix} is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
+                    `${warningPrefix}is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
                 );
             }
             return false;
@@ -395,7 +416,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.hovered = undefined;
 
         annotations.each((annotation, _, index) => {
-            if (annotation.locked) return;
             const contains = annotation.containsPoint(event.offsetX, event.offsetY);
             if (contains) this.hovered ??= index;
             annotation.toggleHandles(contains || active === index);
@@ -479,10 +499,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.active = hovered;
         toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
 
-        if (this.active != null) {
+        if (this.active == null) {
+            this.ctx.tooltipManager.unsuppressTooltip('annotations');
+        } else {
             const node = annotations.nodes()[this.active];
             node.toggleActive(true);
-            this.ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+            this.ctx.tooltipManager.suppressTooltip('annotations');
+            this.toggleAnnotationOptionsButtons();
         }
 
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
@@ -507,8 +530,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
         const point = this.invertPoint(offset);
 
-        const isAxisRegion = region === REGIONS.HORIZONTAL_AXES || region === REGIONS.VERTICAL_AXES;
-        const node = active || isAxisRegion ? annotations.nodes()[active ?? -1] : undefined;
+        const node = active != null ? annotations.nodes()[active] : undefined;
 
         if (!this.validateDatumPoint(point)) {
             return;
@@ -525,17 +547,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
+            hovered,
             seriesRect,
             ctx: { cursorManager, interactionManager, updateService },
         } = this;
 
-        if (active == null || annotationData == null || !this.state.is('idle')) return;
+        if (hovered == null || annotationData == null || !this.state.is('idle')) return;
+
+        const index = active ?? hovered;
+
+        if (active == null) {
+            this.onClickSelecting();
+        }
 
         interactionManager.pushState(InteractionState.Annotations);
 
         const { offsetX, offsetY } = event;
-        const datum = annotationData[active];
-        const node = annotations.nodes()[active];
+        const datum = annotationData[index];
+        const node = annotations.nodes()[index];
         const offset = {
             x: offsetX - (seriesRect?.x ?? 0),
             y: offsetY - (seriesRect?.y ?? 0),
@@ -590,10 +619,33 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
+    private toggleAnnotationOptionsButtons() {
+        const {
+            active,
+            annotationData,
+            ctx: { toolbarManager },
+        } = this;
+
+        if (active == null || !annotationData) return;
+
+        const locked = annotationData?.at(active)?.locked ?? false;
+        toolbarManager.toggleButton('annotationOptions', 'delete', { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
+    }
+
     private clear() {
         this.annotations.clear();
+        this.reset();
+    }
+
+    private reset() {
+        if (this.active != null) {
+            this.annotations.nodes().at(this.active)?.toggleActive(false);
+        }
         this.hovered = undefined;
         this.active = undefined;
+        this.ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
     }
 
     private stringToAnnotationType(value: string) {

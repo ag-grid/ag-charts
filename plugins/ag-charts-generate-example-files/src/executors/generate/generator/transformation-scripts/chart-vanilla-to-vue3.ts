@@ -196,9 +196,10 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
 
     if (bindings.usesChartApi) {
         mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agCharts.chart$3');
+        mainFile = mainFile.replace(/chart.(\w*)\(/g, 'this.$refs.agCharts.chart.$1(');
         mainFile = mainFile.replace(
-            /\(this.\$refs.agCharts.chart, options/g,
-            '(this.$refs.agCharts.chart, this.options'
+            /this.\$refs.agCharts.chart.(\w*)\(options/g,
+            'this.$refs.agCharts.chart.$1(this.options'
         );
     }
 
