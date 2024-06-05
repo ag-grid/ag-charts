@@ -12,7 +12,8 @@
     "postinstall:patch": "patch-package",
     "postinstall:verify-canvas-binary-present": "test -f node_modules/canvas/build/Release/canvas.node",
     "postinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
-    "postinstall:nx-plugin-build": "nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build && nx daemon --stop"
+    "postinstall:nx-plugin-build": "nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build",
+    "postinstall:nx-daemon-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\""
   },
   "private": true,
   "engines": {
