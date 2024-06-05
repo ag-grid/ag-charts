@@ -25,7 +25,14 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     }
 
     private positionPadding(shrinkRect: BBox) {
-        return { shrinkRect: shrinkRect.shrink(this.chartLike.padding) };
+        const { padding } = this.chartLike;
+
+        shrinkRect.shrink(padding.left, 'left');
+        shrinkRect.shrink(padding.top, 'top');
+        shrinkRect.shrink(padding.right, 'right');
+        shrinkRect.shrink(padding.bottom, 'bottom');
+
+        return { shrinkRect };
     }
 
     private positionCaptions(shrinkRect: BBox) {
