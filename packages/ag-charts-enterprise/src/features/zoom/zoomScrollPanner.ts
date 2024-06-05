@@ -7,12 +7,7 @@ import { constrainZoom, definedZoomState, dx, pointToRatio, translateZoom } from
 const DELTA_SCALE = 200;
 
 export class ZoomScrollPanner {
-    update(
-        event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
-        step: number,
-        bbox: _Scene.BBox,
-        zooms: AxisZoomStates
-    ): AxisZoomStates {
+    update(event: { deltaX: number }, step: number, bbox: _Scene.BBox, zooms: AxisZoomStates): AxisZoomStates {
         const deltaX = event.deltaX * step * DELTA_SCALE;
         return this.translateZooms(bbox, zooms, deltaX);
     }

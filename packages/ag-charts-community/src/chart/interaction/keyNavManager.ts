@@ -16,6 +16,7 @@ export type KeyNavEventType =
     | 'tab'
     | 'nav-hori'
     | 'nav-vert'
+    | 'nav-zoom'
     | 'submit'
     | 'cancel'
     | 'delete';
@@ -113,6 +114,12 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
                 return this.dispatch('nav-hori', -1, event);
             case 'ArrowRight':
                 return this.dispatch('nav-hori', 1, event);
+            case 'ZoomIn':
+            case 'Add':
+                return this.dispatch('nav-zoom', 1, event);
+            case 'ZoomOut':
+            case 'Substract':
+                return this.dispatch('nav-zoom', -1, event);
             case 'Space':
             case 'Enter':
                 return this.dispatch('submit', 0, event);
@@ -121,6 +128,13 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             case 'Backspace':
             case 'Delete':
                 return this.dispatch('delete', 0, event);
+        }
+
+        switch (event.sourceEvent.key) {
+            case '+':
+                return this.dispatch('nav-zoom', 1, event);
+            case '-':
+                return this.dispatch('nav-zoom', -1, event);
         }
     }
 
