@@ -116,7 +116,7 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
     if (apiNode.kind === 'interface') {
         return `interface ${apiNode.name} {\n    ${apiNode.members
             .map((member) => {
-                const memberString = `${member.name}: ${normalizeType(member.type)};`;
+                const memberString = `${member.name}${member.optional ? '?' : ''}: ${normalizeType(member.type)};`;
                 if (member.docs) {
                     return member.docs
                         .map((docsLine: string) => `// ${docsLine}`)
