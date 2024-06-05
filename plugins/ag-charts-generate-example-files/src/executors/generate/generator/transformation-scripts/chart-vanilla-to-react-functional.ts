@@ -1,5 +1,5 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { convertFunctionToProperty } from './parser-utils';
+import { convertFunctionToConstProperty, convertFunctionToProperty } from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
@@ -106,9 +106,9 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
         const template = getTemplate(bindings, componentAttributes);
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(convertFunctionToProperty(handler.body))
+            processFunction(convertFunctionToConstProperty(handler.body))
         );
-        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToProperty(m)));
+        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToConstProperty(m)));
 
         indexFile = `
             ${imports.join(`
