@@ -22,6 +22,7 @@ export * from './module/coreModules';
 export * from './module/optionsModule';
 export * from './module/optionsModuleTypes';
 export * from './module/module';
+export * from './module/axisContext';
 export * from './module/moduleContext';
 export * from './module/enterpriseModule';
 export * from './chart/background/background';

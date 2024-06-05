@@ -4,6 +4,7 @@ import { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
 import { AnnotationManager } from './annotation/annotationManager';
+import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
 import { DOMManager } from './dom/domManager';
@@ -40,6 +41,7 @@ export class ChartContext implements ModuleContext {
     dataService: DataService<any>;
     layoutService: LayoutService;
     updateService: UpdateService;
+    axisManager: AxisManager;
 
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
@@ -65,6 +67,7 @@ export class ChartContext implements ModuleContext {
         chart: ChartService & { zoomManager: ZoomManager; annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
             scene?: Scene;
+            root: Group;
             syncManager: SyncManager;
             container?: HTMLElement;
             updateCallback: UpdateCallback;
@@ -72,13 +75,15 @@ export class ChartContext implements ModuleContext {
             overrideDevicePixelRatio?: number;
         }
     ) {
-        const { scene, syncManager, container, updateCallback, updateMutex, overrideDevicePixelRatio } = vars;
+        const { scene, root, syncManager, container, updateCallback, updateMutex, overrideDevicePixelRatio } = vars;
         this.chartService = chart;
         this.syncManager = syncManager;
         this.zoomManager = chart.zoomManager;
         this.domManager = new DOMManager(container);
         scene?.setContainer(this.domManager);
         this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, domManager: this.domManager });
+        this.scene.setRoot(root);
+        this.axisManager = new AxisManager(root);
 
         this.localeManager = new LocaleManager();
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
@@ -130,5 +135,6 @@ export class ChartContext implements ModuleContext {
         this.animationManager.reset();
         this.syncManager.destroy();
         this.domManager.destroy();
+        this.axisManager.destroy();
     }
 }

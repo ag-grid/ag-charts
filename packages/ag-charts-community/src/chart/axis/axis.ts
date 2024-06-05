@@ -1,5 +1,6 @@
+import type { AxisContext } from '../../module/axisContext';
 import type { ModuleInstance } from '../../module/baseModule';
-import type { AxisContext, ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
+import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { AxisOptionModule } from '../../module/optionsModule';
 import type { FromToDiff } from '../../motion/fromToMotion';
@@ -1513,7 +1514,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { ...this.moduleCtx, parent: this.axisContext };
     }
 
-    protected createAxisContext(): AxisContext {
+    public createAxisContext(): AxisContext {
         const { scale } = this;
         return {
             axisId: this.id,
