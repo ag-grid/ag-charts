@@ -3,6 +3,12 @@ import { AgCharts, AgFlowProportionChartOptions, AgSankeySeriesOptions } from 'a
 
 const options: AgFlowProportionChartOptions = {
     container: document.getElementById('myChart'),
+    title: {
+        text: 'Company Revenue',
+    },
+    subtitle: {
+        text: '2023',
+    },
     data: [
         { from: 'Employees', to: 'Sales', size: 2 },
         { from: 'Contractors', to: 'Sales', size: 2 },
@@ -21,6 +27,7 @@ const options: AgFlowProportionChartOptions = {
             fromKey: 'from',
             toKey: 'to',
             sizeKey: 'size',
+            sizeName: 'Total (USD millions)',
             node: {
                 alignment: 'left',
             },
