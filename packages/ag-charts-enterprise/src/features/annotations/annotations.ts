@@ -3,6 +3,7 @@ import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-communi
 import type { AnnotationPoint } from './annotationProperties';
 import type { Coords, Point, StateClickEvent, StateHoverEvent } from './annotationTypes';
 import { AnnotationType } from './annotationTypes';
+import { validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
@@ -60,7 +61,7 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
     constructor(
         onEnterIdle: () => void,
         appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
-        validateDatumPoint: (point: Point) => boolean
+        validateChildStateDatumPoint: (point: Point) => boolean
     ) {
         super('idle', {
             idle: {
@@ -71,11 +72,11 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
                 ),
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
-                    validateDatumPoint
+                    validateChildStateDatumPoint
                 ),
                 [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.ParallelChannel, datum),
-                    validateDatumPoint
+                    validateChildStateDatumPoint
                 ),
             },
         });
@@ -305,97 +306,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     // Validation of the options beyond the scope of the @Validate decorator
     private validateDatum(datum: AnnotationProperties) {
-        const warningPrefix = `Annotation [${datum.type}] `;
-        let valid = datum.isValid(warningPrefix);
-
-        switch (datum.type) {
-            case AnnotationType.CrossLine:
-                valid = this.validateDatumValue(datum, `Annotation [${datum.type}]`);
-                break;
-            case AnnotationType.Line:
-            case AnnotationType.DisjointChannel:
-            case AnnotationType.ParallelChannel:
-                valid &&= this.validateDatumLine(datum, warningPrefix);
-                break;
-        }
-
-        return valid;
-    }
-
-    private validateDatumLine(datum: { start: AnnotationPoint; end: AnnotationPoint }, warningPrefix: string) {
-        let valid = true;
-
-        valid &&= this.validateDatumPoint(datum.start, `${warningPrefix}[start]`);
-        valid &&= this.validateDatumPoint(datum.end, `${warningPrefix}[end]`);
-
-        return valid;
-    }
-
-    private validateDatumValue(
-        datum: { value?: string | number | Date; direction?: Direction },
-        warningPrefix: string
-    ) {
-        const scale = datum.direction === 'vertical' ? this.scaleX : this.scaleY;
-        const domain = scale?.getDomain?.();
-
-        if (!scale || !domain) return true;
-
-        const valid = this.validateDatumPointDirection(domain, scale, datum.value);
-
-        if (!valid && warningPrefix) {
-            _Util.Logger.warnOnce(`${warningPrefix} is outside the axis domain, ignoring. - value: [${datum.value}]]`);
-        }
-
-        return valid;
-    }
-
-    private validateDatumPoint(point: Point, warningPrefix?: string) {
-        const { domainX, domainY, scaleX, scaleY } = this;
-
-        if (point.x == null || point.y == null) {
-            if (warningPrefix) {
-                _Util.Logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
-            }
-            return false;
-        }
-
-        if (!domainX || !domainY || !scaleX || !scaleY) return true;
-
-        const validX = this.validateDatumPointDirection(domainX, scaleX, point.x);
-        const validY = this.validateDatumPointDirection(domainY, scaleY, point.y);
-
-        if (!validX || !validY) {
-            let text = 'x & y domains';
-            if (validX) text = 'y domain';
-            if (validY) text = 'x domain';
-            if (warningPrefix) {
-                _Util.Logger.warnOnce(
-                    `${warningPrefix}is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
-                );
-            }
-            return false;
-        }
-
-        return true;
-    }
-
-    private validateDatumPointDirection(
-        domain: any[],
-        scale: _Scene.Scale<any, any, number | _Util.TimeInterval>,
-        value: any
-    ) {
-        if (_Scene.ContinuousScale.is(scale)) {
-            return value >= domain[0] && value <= domain[1];
-        }
-        return true; // domain.includes(value); // TODO: does not work with dates
+        return datum.isValidWithContext(this.getValidationContext(), `Annotation [${datum.type}] `);
     }
 
     private validateChildStateDatumPoint(point: Point) {
-        const valid = this.validateDatumPoint(point);
+        const valid = validateDatumPoint(this.getValidationContext(), point);
         if (!valid) {
             this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
         }
         return valid;
+    }
+
+    private getValidationContext() {
+        const { domainX, domainY, scaleX, scaleY } = this;
+        return { domainX, domainY, scaleX, scaleY };
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>, region: _ModuleSupport.RegionName) {
@@ -442,7 +366,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
         const point = this.invertPoint(offset);
 
-        const valid = this.validateDatumPoint(point);
+        const valid = validateDatumPoint(this.getValidationContext(), point);
         cursorManager.updateCursor('annotations', valid ? undefined : Cursor.NotAllowed);
 
         if (!valid || this.state.is('start')) return;
@@ -532,7 +456,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const node = active != null ? annotations.nodes()[active] : undefined;
 
-        if (!this.validateDatumPoint(point)) {
+        if (!validateDatumPoint(this.getValidationContext(), point)) {
             return;
         }
 
@@ -593,7 +517,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onDragNodeHandle(handleOffset: Coords) {
         const point = this.invertPoint(handleOffset);
-        const valid = this.validateDatumPoint(point);
+        const valid = validateDatumPoint(this.getValidationContext(), point);
         if (!valid) {
             this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
             return;
