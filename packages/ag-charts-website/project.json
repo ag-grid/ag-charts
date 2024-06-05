@@ -55,7 +55,7 @@
     },
     "test": {
       "executor": "nx:noop",
-      "dependsOn": ["test:vitest"],
+      "dependsOn": ["test:vitest", "test:thumbnails"],
       "inputs": [],
       "outputs": [],
       "configurations": {
