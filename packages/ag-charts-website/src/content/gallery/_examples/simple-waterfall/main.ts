@@ -50,13 +50,11 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            position: 'left',
             type: 'number',
+            position: 'left',
+            values: [0, -148.1],
             label: {
                 formatter: ({ value }) => `${value}M`,
-            },
-            tick: {
-                values: [0, -148.1],
             },
             crosshair: {
                 label: {
@@ -66,8 +64,8 @@ const options: AgChartOptions = {
             },
         },
         {
-            position: 'top',
             type: 'category',
+            position: 'top',
             gridLine: { enabled: true },
         },
     ],

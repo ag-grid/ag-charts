@@ -314,7 +314,7 @@ export abstract class Chart extends Observable {
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
-            getLoadingSpinner(this.overlays.loading.getText(), ctx.animationManager.defaultDuration);
+            getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
             new BaseLayoutProcessor(this, ctx.layoutService),
@@ -324,6 +324,7 @@ export abstract class Chart extends Observable {
                 this.overlays,
                 ctx.dataService,
                 ctx.layoutService,
+                ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
             ),
@@ -408,9 +409,10 @@ export abstract class Chart extends Observable {
     }
 
     getAriaLabel(): string {
-        const captionText = this.getCaptionText();
-        const nSeries = this.series.length ?? 0;
-        return `chart, ${nSeries} series, ${captionText}`;
+        return this.ctx.localeManager.t('aria-announce.chart', {
+            seriesCount: this.series.length,
+            caption: this.getCaptionText(),
+        });
     }
 
     getDatumAriaText(_datum: SeriesNodeDatum, html: TooltipContent): string {
@@ -1174,7 +1176,7 @@ export abstract class Chart extends Observable {
     }
 
     private onBlur(): void {
-        this.ctx.regionManager.updateFocusIndicatorRect(undefined);
+        this.ctx.focusIndicator.updateBBox(undefined);
         this.resetPointer();
         this.focus.hasFocus = false;
         // Do not consume blur events to allow the browser-focus to leave the canvas element.
@@ -1241,11 +1243,11 @@ export abstract class Chart extends Observable {
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         this.focus.hasFocus = true;
-        const overlayFocus = this.overlays.getFocusInfo();
+        const overlayFocus = this.overlays.getFocusInfo(this.ctx.localeManager);
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.ctx.regionManager.updateFocusIndicatorRect(overlayFocus.rect);
+            this.ctx.focusIndicator.updateBBox(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
@@ -1274,7 +1276,7 @@ export abstract class Chart extends Observable {
         focus.datum = datum;
 
         // Update user interaction/interface:
-        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.regionManager, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.focusIndicator, pick);
         if (keyboardEvent !== undefined) {
             this.lastInteractionEvent = keyboardEvent;
             const html = focus.series.getTooltipHtml(datum);
@@ -1282,7 +1284,7 @@ export abstract class Chart extends Observable {
             const aria = this.getDatumAriaText(datum, html);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue(aria);
+            this.ctx.ariaAnnouncementService.announceValue('aria-announce.hover-datum', { datum: aria });
         }
     }
 
@@ -1781,7 +1783,7 @@ export abstract class Chart extends Observable {
 
             const step = intervalOptions?.step;
             if (step != null) {
-                horizontalAxis.tick.interval = step;
+                horizontalAxis.interval = step;
             }
         }
     }

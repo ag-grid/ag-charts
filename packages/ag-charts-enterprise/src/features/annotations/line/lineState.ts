@@ -4,7 +4,7 @@ import type { StateClickEvent, StateHoverEvent } from '../annotationTypes';
 import { LineAnnotation } from './lineProperties';
 import type { Line } from './lineScene';
 
-export class LineStateMachine extends _ModuleSupport.StateMachine<'start' | 'end', 'click' | 'hover'> {
+export class LineStateMachine extends _ModuleSupport.StateMachine<'start' | 'end', 'click' | 'hover' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(appendDatum: (datum: LineAnnotation) => void) {
@@ -30,6 +30,7 @@ export class LineStateMachine extends _ModuleSupport.StateMachine<'start' | 'end
                     target: 'end',
                     action: onStartClick,
                 },
+                cancel: '__parent',
             },
             end: {
                 hover: onEndHover,
@@ -37,6 +38,7 @@ export class LineStateMachine extends _ModuleSupport.StateMachine<'start' | 'end
                     target: '__parent',
                     action: onEndClick,
                 },
+                cancel: '__parent',
             },
         });
     }

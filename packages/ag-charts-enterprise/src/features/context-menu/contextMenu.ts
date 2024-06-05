@@ -102,7 +102,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.registry.registerDefaultAction({
             id: 'download',
             type: 'all',
-            label: 'Download',
+            label: 'context-menu.download',
             action: () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';
@@ -283,7 +283,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.innerHTML = label;
+        el.textContent = this.ctx.localeManager.t(label);
         el.onclick = this.createButtonOnClick(type, callback);
         return el;
     }
@@ -293,7 +293,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.disabled = true;
-        el.innerHTML = label;
+        el.textContent = this.ctx.localeManager.t(label);
         return el;
     }
 

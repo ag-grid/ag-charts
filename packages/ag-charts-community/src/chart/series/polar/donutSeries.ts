@@ -638,17 +638,18 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             labelSelection,
             innerLabelsSelection,
         } = this;
-        let highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as DonutNodeDatum | undefined;
-        if (highlightedDatum?.series !== this) highlightedDatum = undefined;
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as DonutNodeDatum | undefined;
+        const highlightedNodeData =
+            highlightedDatum?.series === this
+                ? this.nodeData.filter((node) => node.itemId === highlightedDatum?.itemId)
+                : [];
 
         itemSelection.update(this.nodeData, undefined, (datum) => this.getDatumId(datum));
         if (this.ctx.animationManager.isSkipped()) {
             itemSelection.cleanup();
         }
         highlightSelection.update(
-            highlightedDatum != null
-                ? [{ ...highlightedDatum, sectorFormat: { ...highlightedDatum.sectorFormat } }]
-                : [],
+            highlightedNodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } })),
             undefined,
             (datum) => this.getDatumId(datum)
         );
@@ -666,7 +667,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         });
 
         labelSelection.update(this.nodeData);
-        highlightLabelSelection.update(highlightedDatum != null ? [highlightedDatum] : []);
+        highlightLabelSelection.update(highlightedNodeData);
 
         innerLabelsSelection.update(this.properties.innerLabels, (node) => {
             node.pointerEvents = PointerEvents.None;

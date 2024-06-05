@@ -2,6 +2,7 @@ import type { Direction } from '../../options/agChartOptions';
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';
+import type { LocaleManager } from '../locale/localeManager';
 import type { UpdateService } from '../updateService';
 import type { DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
@@ -13,33 +14,41 @@ type ElemParams<T extends ProxyElementType> = {
     readonly focusable: BBoxProvider<BBoxValues>;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
+    readonly onfocus?: (ev: FocusEvent) => void;
+    readonly onblur?: (ev: FocusEvent) => void;
 };
+
+type TranslationKey = { id: string; params?: Record<string, any> };
 
 type ContainerParams<T extends ProxyContainerType> = {
     readonly type: T;
     readonly id: string;
     readonly classList: string[];
-    readonly ariaLabel: string;
+    readonly ariaLabel: TranslationKey;
     readonly ariaOrientation: Direction;
 };
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: string };
+        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
         result: HTMLButtonElement;
     };
     slider: {
-        params: ElemParams<'slider'> & { readonly ariaLabel: string; readonly ariaOrientation: Direction };
+        params: ElemParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly ariaOrientation: Direction };
         result: HTMLInputElement;
     };
     toolbar: {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
+    div: {
+        params: ContainerParams<'div'>;
+        result: HTMLDivElement;
+    };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar';
+type ProxyContainerType = 'toolbar' | 'div';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -49,7 +58,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div', div: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -58,19 +67,30 @@ export class ProxyInteractionService {
     // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
     private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
     private focusable?: BBoxProvider<BBoxValues>;
+    private readonly destroyFns: Array<() => void> = [];
 
     constructor(
         updateService: UpdateService,
+        private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly focusIndicator: FocusIndicator
     ) {
-        updateService.addListener('update-complete', () => this.update());
+        this.destroyFns.push(updateService.addListener('update-complete', () => this.update()));
+    }
+
+    destroy() {
+        this.destroyFns.forEach((fn) => fn());
     }
 
     private update() {
         if (this.focusable) {
-            this.focusIndicator.updateBBox(this.focusable.getCachedBBox());
+            this.focusIndicator.updateBBox(this.focusable.computeTransformedBBox());
         }
+    }
+
+    private addLocalisation(fn: () => void) {
+        fn();
+        this.destroyFns.push(this.localeManager.addListener('locale-changed', fn));
     }
 
     createProxyContainer<T extends ProxyContainerType>(
@@ -83,8 +103,12 @@ export class ProxyInteractionService {
         div.classList.add(...params.classList);
         div.style.pointerEvents = 'none';
         div.role = params.type;
-        div.ariaLabel = params.ariaLabel;
         div.ariaOrientation = params.ariaOrientation;
+
+        this.addLocalisation(() => {
+            div.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
+        });
+
         return div;
     }
 
@@ -94,7 +118,10 @@ export class ProxyInteractionService {
         if (checkType('button', meta)) {
             const { params, result: button } = meta;
             this.initElement(params, button);
-            button.textContent = params.textContent;
+
+            this.addLocalisation(() => {
+                button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
+            });
         }
 
         if (checkType('slider', meta)) {
@@ -103,8 +130,11 @@ export class ProxyInteractionService {
             slider.type = 'range';
             slider.role = 'presentation';
             slider.style.margin = '0px';
-            slider.ariaLabel = params.ariaLabel;
             slider.ariaOrientation = params.ariaOrientation;
+
+            this.addLocalisation(() => {
+                slider.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
+            });
         }
 
         return meta.result;
@@ -114,7 +144,7 @@ export class ProxyInteractionService {
         params: ProxyMeta[T]['params'],
         element: TElem
     ) {
-        const { focusable, onclick, onchange, id, parent } = params;
+        const { focusable, onclick, onchange, onfocus, onblur, id, parent } = params;
 
         element.id = id;
         element.style.pointerEvents = 'none';
@@ -126,7 +156,7 @@ export class ProxyInteractionService {
         element.addEventListener('focus', (_event: FocusEvent): any => {
             this.focusable = focusable;
             element.style.setProperty('pointerEvents', null);
-            this.focusIndicator.updateBBox(focusable.getCachedBBox());
+            this.focusIndicator.updateBBox(focusable.computeTransformedBBox());
         });
         element.addEventListener('blur', (_event: FocusEvent): any => {
             this.focusable = undefined;
@@ -135,6 +165,12 @@ export class ProxyInteractionService {
         });
         if (onclick) {
             element.addEventListener('click', onclick);
+        }
+        if (onfocus) {
+            element.addEventListener('focus', onfocus);
+        }
+        if (onblur) {
+            element.addEventListener('blur', onblur);
         }
         if (onchange) {
             element.addEventListener('change', onchange);

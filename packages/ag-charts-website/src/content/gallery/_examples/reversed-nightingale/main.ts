@@ -24,6 +24,7 @@ const options: AgChartOptions = {
         {
             type: 'radius-number',
             innerRadiusRatio: 0,
+            values: [1, 3, 5],
             reverse: true,
             gridLine: {
                 width: 2,
@@ -36,7 +37,6 @@ const options: AgChartOptions = {
             },
             tick: {
                 size: 0,
-                values: [1, 3, 5],
             },
             line: {
                 enabled: true,

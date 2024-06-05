@@ -73,9 +73,11 @@ export function setWindow(window: Window) {
     verifiedGlobals.window = window;
 }
 
-export function setElementBBox(element: HTMLElement, bbox: BBoxValues) {
-    element.style.width = `${bbox.width}px`;
-    element.style.height = `${bbox.height}px`;
-    element.style.left = `${bbox.x}px`;
-    element.style.top = `${bbox.y}px`;
+export function setElementBBox(element: HTMLElement | undefined, bbox: BBoxValues) {
+    if (element) {
+        element.style.width = `${bbox.width}px`;
+        element.style.height = `${bbox.height}px`;
+        element.style.left = `${bbox.x}px`;
+        element.style.top = `${bbox.y}px`;
+    }
 }

@@ -1,23 +1,21 @@
-import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
-import type { AgAxisCaptionOptions, AgBaseAxisLabelOptions, AgBaseAxisOptions } from './axisOptions';
+import type {
+    AgAxisCaptionOptions,
+    AgBaseAxisLabelOptions,
+    AgBaseAxisOptions,
+    AgContinuousAxisOptions,
+} from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { Degree, Ratio } from './types';
 
 export interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
 
-export interface AgRadiusNumberAxisOptions extends Omit<AgBaseAxisOptions<AgRadiusAxisLabelOptions>, 'keys'> {
+export interface AgRadiusNumberAxisOptions
+    extends Omit<AgBaseAxisOptions<AgRadiusAxisLabelOptions>, 'keys'>,
+        AgContinuousAxisOptions {
     type: 'radius-number';
-    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
-    nice?: boolean;
-    /** User override for the automatically determined min value (based on series data). */
-    min?: number;
-    /** User override for the automatically determined max value (based on series data). */
-    max?: number;
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;
-    /** Configuration for the axis ticks. */
-    tick?: AgAxisNumberTickOptions;
     /** Shape of axis. Default: `polygon` */
     shape?: AgPolarAxisShape;
     /** Configuration for the title shown next to the axis. */
@@ -34,8 +32,6 @@ export interface AgRadiusCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgRa
     type: 'radius-category';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;
-    /** Configuration for the axis ticks. */
-    tick?: AgAxisCategoryTickOptions;
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */

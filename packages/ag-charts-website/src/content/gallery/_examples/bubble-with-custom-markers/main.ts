@@ -63,13 +63,11 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            position: 'bottom',
             type: 'number',
+            position: 'bottom',
+            values: [1, 2, 3, 4],
             label: {
                 formatter: ({ value }) => seasons[value - 1] ?? '',
-            },
-            tick: {
-                values: [1, 2, 3, 4],
             },
             crosshair: {
                 enabled: false,
@@ -90,8 +88,8 @@ const options: AgChartOptions = {
             ],
         },
         {
-            position: 'left',
             type: 'number',
+            position: 'left',
             gridLine: {
                 enabled: false,
             },

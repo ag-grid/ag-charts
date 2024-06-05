@@ -46,7 +46,6 @@ export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
 }
 
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
-    // TODO: fix docs to use this type - AgAnnotation['type']
     /** An annotation type. */
     value: AgToolbarAnnotationsButtonValue;
 }
@@ -59,7 +58,6 @@ export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
 }
 
 export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
-    /** An annotation type. */
     value: AgToolbarAnnotationOptionsButtonValue;
 }
 
@@ -96,7 +94,4 @@ export type AgToolbarZoomButtonValue =
     | 'pan-left'
     | 'pan-right'
     | 'pan-start'
-    | 'pan-end'
-    | 'trend-line'
-    | 'parallel-channel'
-    | 'disjoint-channel';
+    | 'pan-end';

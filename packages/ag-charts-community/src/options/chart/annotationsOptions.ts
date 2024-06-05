@@ -30,7 +30,11 @@ export interface AgAnnotationsOptions extends Toggleable {
     initial?: AgAnnotation[];
 }
 
-export type AgAnnotation = AgLineAnnotation | AgDisjointChannelAnnotation | AgParallelChannelAnnotation;
+export type AgAnnotation =
+    | AgLineAnnotation
+    | AgCrossLineAnnotation
+    | AgDisjointChannelAnnotation
+    | AgParallelChannelAnnotation;
 
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
@@ -41,6 +45,12 @@ export interface AgLineAnnotation
         StrokeOptions,
         LineDashOptions {
     type: 'line';
+}
+
+export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
+    type: 'cross-line';
+    direction: 'horizontal' | 'vertical';
+    value: string | number | Date;
 }
 
 export interface AgParallelChannelAnnotation
