@@ -41,12 +41,13 @@ In this configuration:
 
 The values defined by `sizeKey` are used to calculate the marker size domain for each series. Markers are sized proportionally between the lowest and highest values.
 
-It is possible to use `marker.size` to set the minimum possible marker size, and `marker.maxSize` to set the maximum possible marker size.
+It is possible to use `size` to set the minimum possible marker size, and `maxSize` to set the maximum possible marker size.
 
-To manually set the value domain used to calculate the size, use `marker.domain`. This is particularly useful when showing multiple Bubble Series in the same chart.
+To manually set the value domain used to calculate the size, use `domain`. This is particularly useful when showing multiple Bubble Series in the same chart.
 
 ```js
-marker: {
+series: {
+    //...
     size: 10, //defaults to 7
     maxSize: 20, //defaults to 30
     domain: [0, 100], //defaults to the series data domain
@@ -65,7 +66,8 @@ Using the above configuration
 It is possible to customise the fill, stroke and shape of the markers used in the Bubble Series.
 
 ```js
-marker: {
+series: {
+    //...
     shape: 'square',
     fill: '#e36f6ab5',
     stroke: '#9f4e4a',
@@ -74,7 +76,7 @@ marker: {
 
 In the above example, the 'females' series uses `'circle'` markers and the 'male' series uses `'square'` markers.
 
-Please see the [Series Markers](./markers/) page for more information or the [API Reference](#reference-AgBubbleSeriesOptions-marker) for a list of all available marker options.
+Please see the [Series Markers](./markers/) page for more information or the [API Reference](#api-reference) for a list of all available marker options.
 
 ## Labels
 

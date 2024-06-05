@@ -22,17 +22,22 @@ This release includes the following breaking changes:
 
 -   `innerRadiusOffset`, `innerRadiusRatio`, `innerCircle`, `innerLabels` are removed from `pie` series. Use `donut` series instead.
 -   `pie` and `donut` series strokes are now rendered on the inside of each sector. Instead of using `strokeWidth` to add spacing between the sectors, use `sectorSpacing`.
+-   `scatter` and `bubble` series options contained within `marker` object are moved to the top level. `marker.enabled` is removed.
 
 **Axes Changes**
 
 -   `groupPaddingInner` on category axis has no effect when series are not grouped. Use `paddingInner` instead.
+-   `axes.tick.color` is renamed to `axes.tick.stroke`.
+-   `axes.line.color` is renamed to `axes.line.stroke`.
 
 **Miscellaneous**
 
 -   `legend.item.line.length` is now the length of the entire legend item line, regardless of whether or not a marker is present.
+-   `legend.item.toggleSeriesVisible` has been replaced by `legend.toggleSeries`.
 -   `AgGradientLegendOptions.stop` has been removed, use `scale` instead.
 -   `AgContextMenuActionParams` has been replaced by `AgNodeContextMenuActionEvent`.
 -   `AgNodeContextMenuActionEvent.itemId` has been removed, use `xKey`, `yKey`, `angleKey` etc instead.
+-   `fontWeight` no longer supports Strings for numeric values. Use numbers instead.
 -   `AgChartThemeOptionalPalette` has been renamed and replaces `AgChartThemePalette`.
 -   `type` property removed without replacement from
     -   `AgAngleCategoryAxisThemeOptions`
@@ -51,12 +56,14 @@ This release includes the following behaviour changes:
 
 **Theme Defaults**
 
--   Gradient Legend values default to descending order when `position` is `'left'` or `'right'`. Use `reverseOrder` to change this.
+-   Gradient Legend values default to descending order when `position` is `'left'` or `'right'`. Use `reverseOrder` to change.
 -   `pie` and `donut` series strokes now default to palette colours.
 -   `pie` and `donut` series `strokeWidth` now defaults to `0`.
+-   Crosshairs now `snap` by default for number axis of `range-bar` and `range-area` series. Use `snap: false` to change.
 
 **Other Changes**
 
+-   Pan left and Pan right zoom buttons move the chart by one step rather than the entire viewport width.
 -   Wrapped and truncated text may display differently.
     -   More precise text measurement allows display of more characters from longer labels to be displayed before wrapping or truncating.
     -   Wrapping strategy is improved to give more balanced lines.
