@@ -667,6 +667,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         x = scaleX.convert(point.x);
         y = scaleY.convert(point.y);
 
+        if (_Scene.BandScale.is(scaleX)) {
+            x += scaleX.bandwidth / 2;
+        }
+
+        if (_Scene.BandScale.is(scaleY)) {
+            y += scaleY.bandwidth / 2;
+        }
+
         return { x, y };
     }
 
@@ -683,7 +691,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (_Scene.ContinuousScale.is(scaleX)) {
             x = scaleX.invert(x);
         } else if (_Scene.BandScale.is(scaleX)) {
-            x = scaleX.invertNearest(x);
+            x = scaleX.invertNearest(x - scaleX.bandwidth / 2);
         }
 
         return x;
@@ -695,7 +703,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (_Scene.ContinuousScale.is(scaleY)) {
             y = scaleY.invert(y);
         } else if (_Scene.BandScale.is(scaleY)) {
-            y = scaleY.invertNearest(y);
+            y = scaleY.invertNearest(y - scaleY.bandwidth / 2);
         }
 
         return y;
