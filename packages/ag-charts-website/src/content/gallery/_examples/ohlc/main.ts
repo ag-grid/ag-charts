@@ -51,9 +51,6 @@ const options: AgChartOptions = {
             line: {
                 enabled: false,
             },
-            tick: {
-                width: 0,
-            },
             gridLine: {
                 enabled: true,
             },
