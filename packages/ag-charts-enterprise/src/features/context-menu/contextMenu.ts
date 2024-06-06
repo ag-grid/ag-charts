@@ -99,7 +99,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.hide();
 
-        ctx.domManager.addListener('hidden', () => this.hide());
+        this.destroyFns.push(ctx.domManager.addListener('hidden', () => this.hide()));
 
         if (typeof MutationObserver !== 'undefined') {
             const observer = new MutationObserver(() => {
@@ -109,6 +109,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             });
             observer.observe(this.element, { childList: true });
             this.mutationObserver = observer;
+            this.destroyFns.push(() => observer.disconnect());
         }
 
         ctx.domManager.addStyles(moduleId, defaultContextMenuCss);
@@ -126,7 +127,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 this.scene.download(fileName);
             },
         });
-        this.registry.addListener((e) => this.onContext(e));
+
+        this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
     }
 
     private isShown(): boolean {

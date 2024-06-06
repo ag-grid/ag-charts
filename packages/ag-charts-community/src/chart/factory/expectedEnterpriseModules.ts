@@ -30,6 +30,11 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     },
     {
         type: 'root',
+        optionsKey: 'colorPicker',
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+    },
+    {
+        type: 'root',
         optionsKey: 'dataSource',
         chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
     },
