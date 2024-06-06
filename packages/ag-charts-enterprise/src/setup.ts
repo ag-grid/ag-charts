@@ -8,7 +8,6 @@ import { RadiusNumberAxisModule } from './axes/radius-number/main';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
-import { ColorPickerModule } from './features/color-picker/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
@@ -54,7 +53,6 @@ export function setupEnterpriseModules() {
         ChordModule,
         OhlcModule,
         BulletModule,
-        ColorPickerModule,
         ContextMenuModule,
         CrosshairModule,
         DataSourceModule,
