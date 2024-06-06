@@ -12,6 +12,7 @@ type ElemParams<T extends ProxyElementType> = {
     readonly id: string;
     readonly parent: HTMLElement;
     readonly focusable: BBoxProvider<BBoxValues>;
+    readonly tabIndex?: number;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
     readonly onfocus?: (ev: FocusEvent) => void;
@@ -144,12 +145,15 @@ export class ProxyInteractionService {
         params: ProxyMeta[T]['params'],
         element: TElem
     ) {
-        const { focusable, onclick, onchange, onfocus, onblur, id, parent } = params;
+        const { focusable, onclick, onchange, onfocus, onblur, tabIndex, id, parent } = params;
 
         element.id = id;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
+        if (tabIndex !== undefined) {
+            element.tabIndex = tabIndex;
+        }
 
         parent.appendChild(element);
 
