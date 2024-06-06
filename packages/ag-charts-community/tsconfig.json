@@ -11,7 +11,7 @@
     "noUnusedLocals": true
   },
   "files": [],
-  "include": [],//"jest.config.ts", "jest.setup.ts", "src/**/*.ts"],
+  "include": [],
   "references": [
     {
       "path": "./tsconfig.lib.json"
