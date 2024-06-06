@@ -18,7 +18,7 @@ export const en: Record<string, string> = {
     // Screen reader text for the next legend page button
     'aria-label.legend-page-next': 'Next Legend Page',
     // Screen reader text for the an item in the legend
-    'aria-label.legend-item': 'Legend item ${count}[number] of ${length}[number], ${label}, ${visibility}',
+    'aria-label.legend-item': 'Legend item ${index}[number] of ${count}[number], ${label}, ${visibility}',
     // Screen reader text for the an unknown item in the legend
     'aria-label.legend-item-unknown': 'Unknown legend item',
     // Screen reader text for the navigator element
