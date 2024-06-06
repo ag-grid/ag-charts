@@ -6,6 +6,12 @@ export enum AnnotationType {
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 }
+export const ANNOTATION_TYPES = Object.values(AnnotationType);
+export const ANNOTATION_BUTTONS = [
+    AnnotationType.Line,
+    AnnotationType.DisjointChannel,
+    AnnotationType.ParallelChannel,
+] as const;
 
 export function stringToAnnotationType(value: string) {
     switch (value) {

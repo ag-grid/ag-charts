@@ -28,7 +28,7 @@ export default `
     --ag-charts-toolbar-size: 34px;
     --ag-charts-toolbar-padding: calc(var(--ag-charts-size) * 2);
     --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
-    --ag-charts-toolbar-hover-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-active-color) 12%);
+    --ag-charts-toolbar-active-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-active-color) 12%);
     --ag-charts-toolbar-disabled-foreground-color: var(
         --ag-disabled-foreground-color,
         color-mix(in srgb, transparent, var(--ag-charts-toolbar-foreground-color) 50%)

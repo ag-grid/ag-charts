@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { Domain, Point, Scale, StateClickEvent, StateDragEvent, StateHoverEvent } from './annotationTypes';
-import { AnnotationType, stringToAnnotationType } from './annotationTypes';
+import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
@@ -123,6 +123,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.cursorManager.updateCursor('annotations');
                 ctx.interactionManager.popState(InteractionState.Annotations);
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+                for (const annotationType of ANNOTATION_BUTTONS) {
+                    ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+                }
                 this.toggleAnnotationOptionsButtons();
             },
             this.appendDatum.bind(this),
@@ -183,7 +186,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const {
             state,
-            ctx: { interactionManager },
+            ctx: { interactionManager, toolbarManager },
         } = this;
 
         if (ToolbarManager.isGroup('annotationOptions', event)) {
@@ -204,6 +207,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         interactionManager.pushState(InteractionState.Annotations);
+        toolbarManager.toggleButton('annotations', event.value, { active: true });
         state.transition(annotation);
     }
 
