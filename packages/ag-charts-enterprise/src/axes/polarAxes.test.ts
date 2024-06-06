@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgChartOptions } from 'ag-charts-community';
+import type { AgChartOptions, AgRadarAreaSeriesOptions, AgRadarLineSeriesOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -25,7 +25,7 @@ describe('Polar Axes', () => {
         }
     });
 
-    const RADAR_LINE_SERIES: AgChartOptions['series'] = [
+    const RADAR_LINE_SERIES: AgRadarLineSeriesOptions[] = [
         {
             type: 'radar-line',
             angleKey: 'skill',
@@ -42,7 +42,7 @@ describe('Polar Axes', () => {
             radiusKey: 'Giovanni',
         },
     ];
-    const RADAR_AREA_SERIES: AgChartOptions['series'] = RADAR_LINE_SERIES.map((series) => {
+    const RADAR_AREA_SERIES: AgChartOptions['series'] = RADAR_LINE_SERIES.map((series): AgRadarAreaSeriesOptions => {
         return {
             ...series,
             type: 'radar-area',

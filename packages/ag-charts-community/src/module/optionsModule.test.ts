@@ -11,6 +11,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgLineSeriesOptions,
+    AgNumberAxisOptions,
 } from '../options/agChartOptions';
 import { doOnce } from '../util/function';
 import { ChartOptions } from './optionsModule';
@@ -1543,9 +1544,10 @@ describe('ChartOptions', () => {
             expect(preparedOptions.footnote?.fontSize).toBe(theme.config.line.footnote.fontSize);
             expect(preparedOptions.footnote?.spacing).toBe(theme.config.line.footnote.spacing);
 
-            expect(preparedOptions.axes?.[0]?.tick?.enabled).toBe(false);
-            expect(preparedOptions.axes?.[0]?.tick?.width).toBe(theme.config.line.axes.time.tick.width);
-            expect(preparedOptions.axes?.[0]?.tick?.size).toBe(theme.config.line.axes.time.tick.size);
+            const numberAxis = preparedOptions.axes?.[0] as AgNumberAxisOptions;
+            expect(numberAxis?.tick?.enabled).toBe(false);
+            expect(numberAxis?.tick?.width).toBe(theme.config.line.axes.time.tick.width);
+            expect(numberAxis?.tick?.size).toBe(theme.config.line.axes.time.tick.size);
 
             expect(preparedOptions.axes?.[0]?.title?.enabled).toBe(false);
             expect(preparedOptions.axes?.[0]?.title?.text).toBe(theme.config.line.axes.time.title.text);
