@@ -51,6 +51,8 @@ export interface StateClickEvent<Annotation, Scene> {
     region?: _ModuleSupport.RegionName;
 }
 
+export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
+
 export type Domain = any[];
 export type Scale = _Scene.Scale<any, number, number | _Util.TimeInterval>;
 

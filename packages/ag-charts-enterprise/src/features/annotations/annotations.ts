@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { Domain, Point, Scale, StateClickEvent, StateHoverEvent } from './annotationTypes';
+import type { Domain, Point, Scale, StateClickEvent, StateDragEvent, StateHoverEvent } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
@@ -54,7 +54,7 @@ const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
     [AnnotationType.ParallelChannel]: ParallelChannel,
 };
 
-class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'cancel'> {
+class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'drag' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
@@ -477,6 +477,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        const { active, state } = this;
+
+        if (state.is('idle')) {
+            if (active == null) {
+                this.onClickSelecting();
+            } else {
+                this.onDragHandle(event);
+            }
+        } else {
+            this.onDragAdding(event);
+        }
+    }
+
+    private onDragHandle(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
             active,
             annotationData,
@@ -489,10 +503,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (hovered == null || annotationData == null || !this.state.is('idle')) return;
 
         const index = active ?? hovered;
-
-        if (active == null) {
-            this.onClickSelecting();
-        }
 
         interactionManager.pushState(InteractionState.Annotations);
 
@@ -524,6 +534,39 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
             node.dragHandle(datum, offset, validationContext, onDragInvalid);
         }
+
+        this.update();
+    }
+
+    private onDragAdding(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        const {
+            active,
+            annotationData,
+            annotations,
+            seriesRect,
+            state,
+            ctx: { interactionManager },
+        } = this;
+
+        if (annotationData == null) return;
+
+        const { offsetX, offsetY } = event;
+        const datum = active != null ? annotationData[active] : undefined;
+        const node = active != null ? annotations.nodes()[active] : undefined;
+        const offset = {
+            x: offsetX - (seriesRect?.x ?? 0),
+            y: offsetY - (seriesRect?.y ?? 0),
+        };
+
+        interactionManager.pushState(InteractionState.Annotations);
+
+        const point = invertCoords(offset, this.scaleX, this.scaleY);
+        const data: StateDragEvent<AnnotationProperties, Annotation> = { datum, node, point };
+
+        state.transition('drag', data);
+
+        // Assuming the first drag event appends a new datum, immediately activate it
+        this.active = annotationData.length - 1;
 
         this.update();
     }
