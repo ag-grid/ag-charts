@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { Domain, Point, Scale, StateClickEvent, StateDragEvent, StateHoverEvent } from './annotationTypes';
+import type { Coords, Domain, Point, Scale, StateClickEvent, StateDragEvent, StateHoverEvent } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
@@ -100,6 +100,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private annotationData?: AnnotationPropertiesArray;
     private hovered?: number;
     private active?: number;
+    private dragOffset?: Coords;
 
     // Elements
     private seriesRect?: _Scene.BBox;
@@ -207,7 +208,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         interactionManager.pushState(InteractionState.Annotations);
-        toolbarManager.toggleButton('annotations', event.value, { active: true });
+        for (const annotationType of ANNOTATION_BUTTONS) {
+            toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === event.value });
+        }
         state.transition(annotation);
     }
 
@@ -396,7 +399,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
-        if (this.state.is('idle')) {
+        const { dragOffset, state } = this;
+
+        // Prevent clicks triggered on the exact same event as the drag when placing the second point. This "double"
+        // event causes channels to be created with start and end at the same position and render incorrectly.
+        if (state.is('end') && dragOffset && dragOffset.x === event.offsetX && dragOffset.y === event.offsetY) {
+            this.dragOffset = undefined;
+            return;
+        }
+
+        if (state.is('idle')) {
             this.onClickSelecting();
         } else {
             this.onClickAdding(event, region);
@@ -481,14 +493,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
-        const { active, state } = this;
+        // Only track pointer offset for drag + click prevention when we are placing the first point
+        if (this.state.is('start')) {
+            this.dragOffset = { x: event.offsetX, y: event.offsetY };
+        }
 
-        if (state.is('idle')) {
-            if (active == null) {
-                this.onClickSelecting();
-            } else {
-                this.onDragHandle(event);
-            }
+        if (this.state.is('idle')) {
+            this.onClickSelecting();
+            this.onDragHandle(event);
         } else {
             this.onDragAdding(event);
         }
@@ -496,7 +508,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onDragHandle(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
-            active,
             annotationData,
             annotations,
             hovered,
@@ -506,13 +517,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (hovered == null || annotationData == null || !this.state.is('idle')) return;
 
-        const index = active ?? hovered;
-
         interactionManager.pushState(InteractionState.Annotations);
 
         const { offsetX, offsetY } = event;
-        const datum = annotationData[index];
-        const node = annotations.nodes()[index];
+        const datum = annotationData[hovered];
+        const node = annotations.nodes()[hovered];
         const offset = {
             x: offsetX - (seriesRect?.x ?? 0),
             y: offsetY - (seriesRect?.y ?? 0),
