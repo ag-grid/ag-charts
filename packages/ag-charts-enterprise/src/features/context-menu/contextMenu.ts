@@ -87,9 +87,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.scene = ctx.scene;
 
         const { All } = _ModuleSupport.InteractionState;
-        this.destroyFns.push(
-            ctx.regionManager.listenAll('click', (_region) => this.onClick(), { triggeringStates: All })
-        );
+        this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
 
         // State
         this.groups = { default: [], extra: [], extraNode: [], extraLegendItem: [] };
@@ -143,7 +141,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onContext(event: ContextMenuEvent) {
         if (!this.enabled) return;
-        event.consume();
+        event.preventDefault();
 
         this.showEvent = event.sourceEvent as MouseEvent;
         this.x = event.x;

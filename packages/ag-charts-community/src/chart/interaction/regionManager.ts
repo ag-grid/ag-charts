@@ -1,10 +1,10 @@
 import type { BBoxContainsTester, BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
-import { buildConsumable } from './consumableEvent';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
+import { buildPreventable } from './preventableEvent';
 import type { RegionName } from './regions';
 
 const REGION_TAB_ORDERING: RegionName[] = ['series'];
@@ -36,16 +36,13 @@ function addHandler<T extends RegionEvent['type']>(
     interactionManager: InteractionManager,
     type: T,
     handler: (event: TypeInfo[T]) => void,
-    triggeringStates: InteractionState = InteractionState.Default,
-    includeConsumedEvents = false
+    triggeringStates: InteractionState = InteractionState.Default
 ): () => void {
     return (
         listeners?.addListener(type, (e: RegionEvent) => {
-            if (includeConsumedEvents || !e.consumed) {
-                const currentState = interactionManager.getState();
-                if (currentState & triggeringStates) {
-                    handler(e as TypeInfo[T]);
-                }
+            const currentState = interactionManager.getState();
+            if (currentState & triggeringStates) {
+                handler(e as TypeInfo[T]);
             }
         }) ?? (() => {})
     );
@@ -121,16 +118,9 @@ export class RegionManager {
     listenAll<T extends RegionEvent['type']>(
         type: T,
         handler: (event: TypeInfo[T]) => void,
-        { triggeringStates = InteractionState.Default, includeConsumedEvents = false } = {}
+        triggeringStates: InteractionState = InteractionState.Default
     ): () => void {
-        return addHandler(
-            this.allRegionsListeners,
-            this.interactionManager,
-            type,
-            handler,
-            triggeringStates,
-            includeConsumedEvents
-        );
+        return addHandler(this.allRegionsListeners, this.interactionManager, type, handler, triggeringStates);
     }
 
     // This method return a wrapper object that matches the interface of InteractionManager.addListener.
@@ -300,7 +290,7 @@ export class RegionManager {
         if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
             // Build a distinct consumable event, since we don't care about consumed status of blur.
             const { delta, sourceEvent } = event;
-            const blurEvent = buildConsumable({ type: 'blur' as const, delta, sourceEvent });
+            const blurEvent = buildPreventable({ type: 'blur' as const, delta, sourceEvent });
             this.dispatch(focusedRegion, blurEvent);
         }
         if (newRegion === undefined) {

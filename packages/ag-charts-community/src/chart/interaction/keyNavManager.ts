@@ -1,6 +1,5 @@
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -9,6 +8,7 @@ import type {
     PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
+import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
 export type KeyNavEventType =
     | 'blur'
@@ -21,7 +21,7 @@ export type KeyNavEventType =
     | 'cancel'
     | 'delete';
 
-export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
+export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = PreventableEvent & {
     type: T;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
@@ -138,8 +138,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
     }
 
-    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, interactionEvent: InteractionEvent) {
-        const event = buildConsumable({ type, delta, sourceEvent: interactionEvent });
-        dispatchTypedConsumable(this.listeners, type, event);
+    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
+        dispatchTypedEvent(this.listeners, { type, delta, sourceEvent });
     }
 }

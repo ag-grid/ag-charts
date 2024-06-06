@@ -353,16 +353,6 @@ export abstract class Chart extends Observable {
 
             ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
-            ctx.regionManager.listenAll(
-                'click',
-                (event) => this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent }),
-                { includeConsumedEvents: true }
-            ),
-            ctx.regionManager.listenAll(
-                'dblclick',
-                (event) => this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent }),
-                { includeConsumedEvents: true }
-            ),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
@@ -1173,20 +1163,20 @@ export abstract class Chart extends Observable {
 
     private onTab(event: KeyNavEvent<'tab'>): void {
         this.handleFocus(0, 0);
-        event.consume();
+        event.preventDefault();
         this.focus.hasFocus = true;
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
         this.focus.seriesIndex += event.delta;
         this.handleFocus(event.delta, 0);
-        event.consume();
+        event.preventDefault();
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
-        event.consume();
+        event.preventDefault();
     }
 
     private onSubmit(event: KeyNavEvent<'submit'>): void {
@@ -1200,7 +1190,7 @@ export abstract class Chart extends Observable {
                 event: sourceEvent,
             });
         }
-        event.consume();
+        event.preventDefault();
     }
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
@@ -1394,15 +1384,17 @@ export abstract class Chart extends Observable {
     protected onClick(event: PointerInteractionEvent<'click'>) {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
-            event.consume();
+            event.preventDefault();
         }
+        this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent });
     }
 
     protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
-            event.consume();
+            event.preventDefault();
         }
+        this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent });
     }
 
     private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {

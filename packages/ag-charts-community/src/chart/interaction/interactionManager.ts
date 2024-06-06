@@ -6,7 +6,7 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
+import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -73,7 +73,7 @@ const EVENT_HANDLERS = [
     'keyup',
 ] as const;
 
-type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
+type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = PreventableEvent & {
     type: T;
     sourceEvent: TEvent;
     relatedElement?: HTMLElement;
@@ -254,19 +254,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         const { relatedElement, targetElement } = this.extractElements(event);
         if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
             for (const type of types) {
-                dispatchTypedConsumable(
-                    this.listeners,
-                    type,
-                    buildConsumable({ type, sourceEvent: event as FocusEvent, relatedElement, targetElement })
-                );
+                const sourceEvent = event as FocusEvent;
+                dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
             }
         } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
             for (const type of types) {
-                dispatchTypedConsumable(
-                    this.listeners,
-                    type,
-                    buildConsumable({ type, sourceEvent: event as KeyboardEvent, relatedElement, targetElement })
-                );
+                const sourceEvent = event as KeyboardEvent;
+                dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
             }
         }
     }
@@ -293,7 +287,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of types) {
-            dispatchTypedConsumable(this.listeners, type, this.buildPointerEvent({ type, event, ...coords }));
+            dispatchTypedEvent(this.listeners, this.buildPointerEvent({ type, event, ...coords }));
         }
     }
 
@@ -453,7 +447,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-    }): PointerInteractionEvent<PointerInteractionTypes> {
+    }): Omit<PointerInteractionEvent<PointerInteractionTypes>, 'preventDefault'> {
         const { type, event, clientX, clientY } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 
@@ -489,7 +483,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         const { relatedElement, targetElement } = this.extractElements(event);
 
-        const builtEvent = buildConsumable({
+        const builtEvent = {
             type,
             offsetX,
             offsetY,
@@ -501,7 +495,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             sourceEvent: event,
             relatedElement,
             targetElement,
-        });
+        };
 
         this.debug('InteractionManager - builtEvent: ', builtEvent);
         return builtEvent;
