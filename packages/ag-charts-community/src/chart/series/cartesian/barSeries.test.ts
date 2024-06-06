@@ -216,10 +216,10 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -236,10 +236,10 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -265,8 +265,8 @@ describe('BarSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                await chart.update(options);
                 animate(1200, ratio);
+                await chart.update(options);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -288,8 +288,8 @@ describe('BarSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                await chart.update(options);
                 animate(1200, ratio);
+                await chart.update(options);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -310,10 +310,10 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -330,10 +330,10 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();

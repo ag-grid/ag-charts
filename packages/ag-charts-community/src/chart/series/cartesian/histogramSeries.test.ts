@@ -223,6 +223,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: [
                         ...options.data!.filter(
@@ -230,7 +231,6 @@ describe('HistogramSeries', () => {
                         ),
                     ],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -260,8 +260,8 @@ describe('HistogramSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                await chart.update(options);
                 animate(1200, ratio);
+                await chart.update(options);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -282,6 +282,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: [
                         ...options.data!.map((d: any, index: number) => ({
@@ -290,7 +291,6 @@ describe('HistogramSeries', () => {
                         })),
                     ],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
