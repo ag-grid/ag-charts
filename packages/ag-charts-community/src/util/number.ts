@@ -47,6 +47,32 @@ export function toFixed(value: number, fractionOrSignificantDigits = 2): string 
 }
 
 /**
+ * Performs a binary search on a sorted array of numbers.
+ * @param array - The sorted array of numbers to search.
+ * @param target - The number to search for.
+ * @returns The index of the target number if found, otherwise -1.
+ */
+export function binarySearch(array: number[], target: number): number {
+    let low = 0;
+    let high = array.length - 1;
+
+    while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const midValue = array[mid];
+
+        if (midValue === target) {
+            return mid;
+        } else if (midValue < target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return -1; // Target not found
+}
+
+/**
  * Returns the mathematically correct n modulus of m. For context, the JS % operator is remainder
  * NOT modulus, which is why this is needed.
  */
