@@ -25,7 +25,7 @@
         "sharedGlobals",
         "defaultExcludes",
         {
-          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+          "externalDependencies": ["npm:typescript"]
         }
       ],
       "outputs": ["{options.outputPath}"],
@@ -52,7 +52,10 @@
         "{projectRoot}/tsconfig.*.json",
         "tsDeclarations",
         "sharedGlobals",
-        "defaultExcludes"
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+        }
       ],
       "outputs": ["{options.outputPath}"],
       "options": {

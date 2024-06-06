@@ -29,7 +29,7 @@
         "sharedGlobals",
         "defaultExcludes",
         {
-          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+          "externalDependencies": ["npm:typescript"]
         }
       ],
       "outputs": ["{options.outputPath}"],
