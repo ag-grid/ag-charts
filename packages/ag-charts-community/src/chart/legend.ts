@@ -19,6 +19,7 @@ import { Line } from '../scene/shape/line';
 import { Text, getFont } from '../scene/shape/text';
 import { setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
+import { initToolbarKeyNav } from '../util/keynavUtil';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
@@ -47,7 +48,6 @@ import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
-import { initToolbarKeyNav } from './toolbar/toolbarUtil';
 import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 class LegendLabel extends BaseProperties {

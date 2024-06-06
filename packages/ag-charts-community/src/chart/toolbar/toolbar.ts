@@ -4,6 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { AgToolbarGroupPosition } from '../../options/agChartOptions';
 import type { BBox } from '../../scene/bbox';
 import { createElement } from '../../util/dom';
+import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -25,7 +26,6 @@ import {
     ToolbarPosition,
     isAnimatingFloatingPosition,
 } from './toolbarTypes';
-import { initToolbarKeyNav } from './toolbarUtil';
 
 export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @ObserveChanges<Toolbar>((target) => {

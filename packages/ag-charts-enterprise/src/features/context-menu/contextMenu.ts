@@ -18,9 +18,23 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, ContextMenuRegistry } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, ContextMenuRegistry } = _ModuleSupport;
 
 const moduleId = 'context-menu';
+
+function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () => TElem): TElem[] {
+    const { children } = parent ?? {};
+    if (!children) return [];
+
+    const result: TElem[] = [];
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        if (child instanceof ctor) {
+            result.push(child);
+        }
+    }
+    return result;
+}
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -60,6 +74,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // HTML elements
     private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
+    private menuElementDestroyFns: (() => void)[] = [];
+    private lastFocus?: HTMLElement;
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -167,6 +183,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (groupCount === 0) return;
 
+        if (event.sourceEvent.target instanceof HTMLElement) {
+            this.lastFocus = event.sourceEvent.target;
+        }
         this.show();
     }
 
@@ -178,6 +197,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.menuElement) {
             this.element.replaceChild(newMenuElement, this.menuElement);
+            this.menuElementDestroyFns.forEach((d) => d());
         } else {
             this.element.appendChild(newMenuElement);
         }
@@ -185,6 +205,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.menuElement = newMenuElement;
 
         this.element.style.display = 'block';
+
+        const buttons = getChildrenOfType(newMenuElement, HTMLButtonElement);
+        this.menuElementDestroyFns = initMenuKeyNav({
+            menu: newMenuElement,
+            buttons,
+            orientation: 'vertical',
+            onEscape: () => this.hide(),
+        });
+        buttons[0]?.focus();
     }
 
     private hide() {
@@ -193,15 +222,20 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         if (this.menuElement) {
             this.element.removeChild(this.menuElement);
             this.menuElement = undefined;
+            this.menuElementDestroyFns.forEach((d) => d());
+            this.menuElementDestroyFns.length = 0;
         }
 
         this.element.style.display = 'none';
+        this.lastFocus?.focus();
+        this.lastFocus = undefined;
     }
 
-    public renderMenu() {
+    private renderMenu() {
         const menuElement = createElement('div');
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        menuElement.role = 'menu';
 
         this.appendMenuGroup(menuElement, this.groups.default, false);
 
@@ -218,7 +252,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return menuElement;
     }
 
-    public appendMenuGroup(menuElement: HTMLElement, group: ContextMenuAction[], divider = true) {
+    private appendMenuGroup(menuElement: HTMLElement, group: ContextMenuAction[], divider = true) {
         if (group.length === 0) return;
         if (divider) menuElement.appendChild(this.createDividerElement());
         group.forEach((i) => {
@@ -227,7 +261,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    public renderItem(item: ContextMenuAction): HTMLElement | void {
+    private renderItem(item: ContextMenuAction): HTMLElement | void {
         if (item && typeof item === 'object' && item.constructor === Object) {
             return this.createActionElement(item);
         }
@@ -237,6 +271,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const el = createElement('div');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        el.role = 'separator';
         return el;
     }
 
@@ -285,6 +320,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.textContent = this.ctx.localeManager.t(label);
         el.onclick = this.createButtonOnClick(type, callback);
+        el.role = 'menuitem';
         return el;
     }
 
@@ -294,6 +330,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.disabled = true;
         el.textContent = this.ctx.localeManager.t(label);
+        el.role = 'menuitem';
         return el;
     }
 
