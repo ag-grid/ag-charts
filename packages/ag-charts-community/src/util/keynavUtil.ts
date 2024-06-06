@@ -1,3 +1,5 @@
+type ButtonLike = HTMLElement & Partial<Pick<HTMLButtonElement, 'disabled'>>;
+
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
     button: HTMLElement,
@@ -8,49 +10,76 @@ function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns.push(() => button.removeEventListener(type, listener));
 }
 
-function linkTwoButtons(
-    destroyFns: (() => void)[],
-    src: HTMLElement,
-    dst: HTMLElement | undefined,
-    key: string,
-    managedTabIndices: boolean
-) {
-    if (!dst) return;
-
-    let handler: (event: KeyboardEvent) => void;
-    if (managedTabIndices) {
-        handler = (event: KeyboardEvent) => {
-            if (event.key !== key) return;
-            dst.focus();
-            dst.tabIndex = 0;
-            src.tabIndex = -1;
-        };
-    } else {
-        handler = (event: KeyboardEvent) => {
-            if (event.key !== key) return;
-            dst.focus();
-        };
-    }
-
-    addRemovableEventListener(destroyFns, src, 'keydown', handler);
+function findButtonNoWrapping(buttons: ButtonLike[], index: number, direction: -1 | 1): ButtonLike | undefined {
+    let after: number = index;
+    let result = undefined;
+    do {
+        after = after + direction;
+        result = buttons[after];
+    } while (after !== index && result !== undefined && result?.disabled !== false);
+    return result;
 }
 
-function linkThreeButtons(
-    destroyFns: (() => void)[],
-    curr: HTMLElement,
-    next: HTMLElement | undefined,
-    nextKey: string,
-    prev: HTMLElement | undefined,
-    prevKey: string,
-    managedTabIndices: boolean
+function findButtonWithWrapping(buttons: ButtonLike[], index: number, direction: -1 | 1): ButtonLike | undefined {
+    let after: number = index;
+    let result = undefined;
+    do {
+        after = (buttons.length + after + direction) % buttons.length;
+        result = buttons[after];
+    } while (after !== index && result !== undefined && result?.disabled !== false);
+    return result;
+}
+
+function createKeydownListener(
+    buttons: ButtonLike[],
+    index: number,
+    prevKey: 'ArrowLeft' | 'ArrowUp',
+    nextKey: 'ArrowRight' | 'ArrowDown',
+    managedTabIndices: boolean,
+    finder: (buttons: ButtonLike[], index: number, direction: -1 | 1) => ButtonLike | undefined
 ) {
-    linkTwoButtons(destroyFns, curr, prev, prevKey, managedTabIndices);
-    linkTwoButtons(destroyFns, curr, next, nextKey, managedTabIndices);
-    addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
-        if (event.key === nextKey || event.key === prevKey) {
+    const dstPicker = (event: KeyboardEvent): ButtonLike | undefined => {
+        if (event.key === prevKey) {
             event.preventDefault();
+            return finder(buttons, index, -1);
         }
-    });
+        if (event.key === nextKey) {
+            event.preventDefault();
+            return finder(buttons, index, +1);
+        }
+    };
+
+    if (managedTabIndices) {
+        return (event: KeyboardEvent) => {
+            const src = buttons[index];
+            const dst = dstPicker(event);
+            if (dst) {
+                dst.focus();
+                dst.tabIndex = 0;
+                src.tabIndex = -1;
+            }
+        };
+    } else {
+        return (event: KeyboardEvent) => {
+            dstPicker(event)?.focus();
+        };
+    }
+}
+
+function addPrevNextListeners(
+    destroyFns: (() => void)[],
+    mode: 'toolbar' | 'menu',
+    buttons: ButtonLike[],
+    index: number,
+    prevKey: 'ArrowLeft' | 'ArrowUp',
+    nextKey: 'ArrowRight' | 'ArrowDown'
+) {
+    const listener =
+        mode === 'toolbar'
+            ? createKeydownListener(buttons, index, prevKey, nextKey, true, findButtonNoWrapping)
+            : createKeydownListener(buttons, index, prevKey, nextKey, false, findButtonWithWrapping);
+
+    addRemovableEventListener(destroyFns, buttons[index], 'keydown', listener);
 }
 
 const PREV_NEXT_KEYS = {
@@ -74,13 +103,10 @@ export function initToolbarKeyNav(opts: {
 
     const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
-        const prev = buttons[i - 1];
-        const curr = buttons[i];
-        const next = buttons[i + 1];
-        if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
-        if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, true);
-        curr.tabIndex = i === 0 ? 0 : -1;
+        addPrevNextListeners(destroyFns, 'toolbar', buttons, i, prevKey, nextKey);
+        if (onFocus) addRemovableEventListener(destroyFns, buttons[i], 'focus', onFocus);
+        if (onBlur) addRemovableEventListener(destroyFns, buttons[i], 'blur', onBlur);
+        buttons[i].tabIndex = i === 0 ? 0 : -1;
     }
 
     return destroyFns;
@@ -101,19 +127,15 @@ export function initMenuKeyNav(opts: {
 
     const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
-        // Use modules to wrap around when navigation past the start/end of the menu.
-        const prev = buttons[(buttons.length + i - 1) % buttons.length];
-        const curr = buttons[i];
-        const next = buttons[(buttons.length + i + 1) % buttons.length];
+        addPrevNextListeners(destroyFns, 'menu', buttons, i, prevKey, nextKey);
         if (onEscape) {
-            addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
+            addRemovableEventListener(destroyFns, buttons[i], 'keydown', (event: KeyboardEvent) => {
                 if (event.key === 'Escape') {
                     onEscape(event);
                 }
             });
         }
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, false);
-        curr.tabIndex = -1;
+        buttons[i].tabIndex = -1;
     }
 
     return destroyFns;
