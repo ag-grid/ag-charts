@@ -12,6 +12,7 @@ type ElemParams<T extends ProxyElementType> = {
     readonly id: string;
     readonly parent: HTMLElement;
     readonly focusable: BBoxProvider<BBoxValues>;
+    readonly tabIndex?: number;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
     readonly onfocus?: (ev: FocusEvent) => void;
@@ -41,14 +42,14 @@ type ProxyMeta = {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
-    div: {
-        params: ContainerParams<'div'>;
+    group: {
+        params: ContainerParams<'group'>;
         result: HTMLDivElement;
     };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar' | 'div';
+type ProxyContainerType = 'toolbar' | 'group';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -58,7 +59,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div', div: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div', group: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -144,12 +145,16 @@ export class ProxyInteractionService {
         params: ProxyMeta[T]['params'],
         element: TElem
     ) {
-        const { focusable, onclick, onchange, onfocus, onblur, id, parent } = params;
+        const { focusable, onclick, onchange, onfocus, onblur, tabIndex, id, parent } = params;
 
         element.id = id;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
+        element.style.overflow = 'hidden';
+        if (tabIndex !== undefined) {
+            element.tabIndex = tabIndex;
+        }
 
         parent.appendChild(element);
 
