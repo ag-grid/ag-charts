@@ -42,14 +42,14 @@ type ProxyMeta = {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
-    div: {
-        params: ContainerParams<'div'>;
+    group: {
+        params: ContainerParams<'group'>;
         result: HTMLDivElement;
     };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar' | 'div';
+type ProxyContainerType = 'toolbar' | 'group';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -59,7 +59,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div', div: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div', group: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 

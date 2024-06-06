@@ -281,7 +281,7 @@ export class Legend extends BaseProperties {
             ariaOrientation: 'horizontal',
         });
         this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'div',
+            type: 'group',
             id: `${this.id}-pagination`,
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'aria-label.legend-pagination' },
