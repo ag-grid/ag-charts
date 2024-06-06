@@ -11,17 +11,20 @@ HTMLCollection [
     >
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Download
       </button>
       <button
         class="ag-chart-context-menu__item"
         disabled=""
+        tabindex="-1"
       >
         Zoom to here
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Pan to here
       </button>
@@ -41,17 +44,20 @@ HTMLCollection [
     >
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Download
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Zoom to here
       </button>
       <button
         class="ag-chart-context-menu__item"
         disabled=""
+        tabindex="-1"
       >
         Pan to here
       </button>
@@ -71,16 +77,19 @@ HTMLCollection [
     >
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Download
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Zoom to here
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Pan to here
       </button>
