@@ -412,7 +412,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { enabled, enableScrolling, scroller, seriesRect } = this;
 
         if (!enabled || !enableScrolling || !seriesRect) return;
-        event.consume();
+        event.preventDefault();
 
         this.updateZoom(
             scroller.update(
