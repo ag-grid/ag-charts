@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { colorPickerStyles } from './colorPickerStyles';
 import { colorPickerTemplate } from './colorPickerTemplate';
 
-const { BOOLEAN, Validate, createElement } = _ModuleSupport;
+const { createElement } = _ModuleSupport;
 
 const { Color } = _Util;
 
@@ -22,9 +22,6 @@ const getHsva = (input: string) => {
 };
 
 export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @Validate(BOOLEAN)
-    enabled = true;
-
     private readonly element: HTMLElement;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -33,6 +30,8 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         ctx.domManager.addStyles(moduleId, colorPickerStyles);
 
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
+
+        this.destroyFns.push(() => ctx.domManager.removeChild('canvas-overlay', moduleId));
     }
 
     show(opts: { color?: string; onChange?: (colorString: string) => void }) {
