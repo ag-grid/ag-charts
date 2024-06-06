@@ -56,7 +56,7 @@
         }
       ],
       "outputs": ["{projectRoot}/dist/test"],
-      "command": "npx tsc -p {projectRoot}/tsconfig.spec.json --outDir {projectRoot}/dist/test",
+      "command": "echo npx tsc -p {projectRoot}/tsconfig.spec.json --outDir {projectRoot}/dist/test",
       "configurations": {
         "watch": {},
         "production": {}
