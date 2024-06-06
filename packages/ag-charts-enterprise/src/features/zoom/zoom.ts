@@ -193,6 +193,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 triggeringStates: clickableState,
                 includeConsumedEvents: true,
             }),
+            region.addListener('nav-zoom', (event) => this.onNavZoom(event)),
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
             region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
             region.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
@@ -408,6 +409,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.dragState = DragState.None;
         cursorManager.updateCursor(CURSOR_ID);
         tooltipManager.removeTooltip(TOOLTIP_ID);
+    }
+
+    private onNavZoom(event: _ModuleSupport.KeyNavEvent<'nav-zoom'>) {
+        const { enabled, enableScrolling, scroller, seriesRect } = this;
+
+        if (!enabled || !enableScrolling || !seriesRect) return;
+        event.consume();
+
+        this.updateZoom(
+            scroller.update(
+                { deltaY: -event.delta },
+                this.getModuleProperties(this.isScaling()),
+                seriesRect,
+                this.getZoom()
+            )
+        );
     }
 
     private onWheel(event: _ModuleSupport.PointerInteractionEvent<'wheel'>) {
@@ -638,6 +655,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private isScalingY() {
         if (this.axes === 'xy') return true;
         return this.shouldFlipXY ? this.axes === 'x' : this.axes === 'y';
+    }
+
+    private isScaling() {
+        return { isScalingX: this.isScalingX(), isScalingY: this.isScalingY() };
     }
 
     private getAnchorPointX() {

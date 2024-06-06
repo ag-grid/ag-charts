@@ -76,6 +76,7 @@ export class RegionManager {
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
+            this.keyNavManager.addListener('nav-zoom', this.onNav.bind(this)),
             this.keyNavManager.addListener('submit', this.onNav.bind(this)),
             this.keyNavManager.addListener('cancel', this.onNav.bind(this)),
             this.keyNavManager.addListener('delete', this.onNav.bind(this))
@@ -309,7 +310,7 @@ export class RegionManager {
         }
     }
 
-    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'submit' | 'cancel' | 'delete'>) {
+    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete'>) {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         this.dispatch(focusedRegion, event);
     }

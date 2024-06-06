@@ -13,12 +13,12 @@ import {
 
 export class ZoomScroller {
     update(
-        event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
+        event: { deltaY: number; sourceEvent?: Event },
         props: ZoomProperties,
         bbox: _Scene.BBox,
         oldZoom: DefinedZoomState
     ): DefinedZoomState {
-        const sourceEvent = event.sourceEvent as WheelEvent;
+        const sourceEvent = event.sourceEvent as WheelEvent | undefined;
 
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
@@ -28,7 +28,7 @@ export class ZoomScroller {
         newZoom.x.max += isScalingX ? scrollingStep * dir * dx(oldZoom) : 0;
         newZoom.y.max += isScalingY ? scrollingStep * dir * dy(oldZoom) : 0;
 
-        if ((anchorPointX === 'pointer' && isScalingX) || (anchorPointY === 'pointer' && isScalingY)) {
+        if (sourceEvent && ((anchorPointX === 'pointer' && isScalingX) || (anchorPointY === 'pointer' && isScalingY))) {
             newZoom = this.scaleZoomToPointer(sourceEvent, isScalingX, isScalingY, bbox, oldZoom, newZoom);
         } else {
             if (isScalingX) {
