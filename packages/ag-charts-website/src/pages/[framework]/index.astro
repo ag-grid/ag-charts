@@ -2,26 +2,37 @@
 import { getDocsFrameworkPages } from '@features/docs/utils/pageData';
 import { DOCS_FRAMEWORK_REDIRECT_PAGE } from '@features/docs/constants';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
+import Layout from '@layouts/Layout.astro';
 
 export async function getStaticPaths() {
     return getDocsFrameworkPages();
 }
 
-const frameworkOverride = Astro.params.framework;
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+const frameworkOverride = capitalizeFirstLetter(Astro.params?.framework);
 ---
 
-<div id="redirectUrl" data-framework-override={frameworkOverride} data-redirect-url={DOCS_FRAMEWORK_REDIRECT_PAGE}>
-</div>
-<script>
-    import { $internalFramework } from '@stores/frameworkStore';
-    import { getFrameworkFromInternalFramework } from '@utils/framework';
-    import { urlWithPrefix } from '@utils/urlWithPrefix';
+<Layout
+    title=`AG Charts ${frameworkOverride} Documentation`
+    description=`AG Charts ${frameworkOverride} Documentation - This page will redirect to the landing page for ${frameworkOverride} docs`
+    hideFooter={true}
+>
+    <div id="redirectUrl" data-framework-override={frameworkOverride} data-redirect-url={DOCS_FRAMEWORK_REDIRECT_PAGE}>
+    </div>
+    <script>
+        import { $internalFramework } from '@stores/frameworkStore';
+        import { getFrameworkFromInternalFramework } from '@utils/framework';
+        import { urlWithPrefix } from '@utils/urlWithPrefix';
 
-    const data = document.getElementById('redirectUrl')?.dataset;
-    const dataAttrFrameworkOverride = data.frameworkOverride;
-    const dataAttrUrl = data.redirectUrl;
-    const framework = dataAttrFrameworkOverride ?? getFrameworkFromInternalFramework($internalFramework.get());
-    const redirectUrl = urlWithPrefix({ framework, url: dataAttrUrl });
+        const data = document.getElementById('redirectUrl')?.dataset;
+        const dataAttrFrameworkOverride = data.frameworkOverride;
+        const dataAttrUrl = data.redirectUrl;
+        const framework = dataAttrFrameworkOverride ?? getFrameworkFromInternalFramework($internalFramework.get());
+        const redirectUrl = urlWithPrefix({ framework, url: dataAttrUrl });
 
-    window.location.replace(redirectUrl);
-</script>
+        window.location.replace(redirectUrl);
+    </script>
+</Layout>
