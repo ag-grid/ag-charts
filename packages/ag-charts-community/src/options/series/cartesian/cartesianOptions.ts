@@ -78,6 +78,7 @@ export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions, AgConti
 }
 
 export interface AgLogAxisOptions extends AgBaseCartesianAxisOptions, AgContinuousAxisOptions {
+    type: 'log';
     /** The base of the logarithm used. */
     base?: number;
 }
