@@ -2,12 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { fail } from 'assert';
 
 import { AgCharts } from '../../api/agCharts';
-import type {
-    AgCartesianChartOptions,
-    AgChartInstance,
-    AgChartTheme,
-    AgPolarChartOptions,
-} from '../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from '../../options/agChartOptions';
 import { CartesianChart } from '../cartesianChart';
 import { PolarChart } from '../polarChart';
 import type { AreaSeries } from '../series/cartesian/areaSeries';
@@ -15,6 +10,7 @@ import type { BarSeries } from '../series/cartesian/barSeries';
 import type { LineSeries } from '../series/cartesian/lineSeries';
 import type { PieSeries } from '../series/polar/pieSeries';
 import { deproxy, setupMockConsole, waitForChartStability } from '../test/utils';
+import type { ChartOrProxy } from '../test/utils';
 import { ChartTheme } from './chartTheme';
 
 const data = [
@@ -28,7 +24,7 @@ const data = [
 describe('ChartTheme', () => {
     setupMockConsole();
 
-    let chart: AgChartInstance;
+    let chart: ChartOrProxy;
 
     afterEach(() => {
         if (chart) {
@@ -175,7 +171,7 @@ describe('ChartTheme', () => {
 
         const serializedOptions = JSON.stringify(cartesianChartOptions);
         beforeEach(() => {
-            chart = deproxy(AgCharts.create(cartesianChartOptions)) as CartesianChart;
+            chart = deproxy(AgCharts.create(cartesianChartOptions));
         });
 
         test('Options are not mutated after AgCharts.create', () => {
@@ -270,7 +266,7 @@ describe('ChartTheme', () => {
         const serializedOptions = JSON.stringify(polarChartOptions);
 
         beforeEach(() => {
-            chart = deproxy(AgCharts.create(polarChartOptions)) as PolarChart;
+            chart = deproxy(AgCharts.create(polarChartOptions));
         });
 
         test('Options are not mutated after AgCharts.create', () => {

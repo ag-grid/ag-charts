@@ -66,8 +66,8 @@ describe('Range', () => {
         ];
 
         it('should render as expected', () => {
-            const ctx = canvasCtx.nodeCanvas.getContext('2d');
-            (ctx as any).canvas.width = CANVAS_WIDTH;
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.canvas.width = CANVAS_WIDTH;
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, CANVAS_WIDTH, canvasCtx.nodeCanvas.height ?? 0);
 
@@ -87,7 +87,7 @@ describe('Range', () => {
 
                     // Render.
                     ctx.save();
-                    range.render({ ctx, forceRender: true, resized: false, debugNodes: {} });
+                    range.render({ ctx, devicePixelRatio: 1, forceRender: true, resized: false, debugNodes: {} });
                     ctx.restore();
 
                     // Prepare for next case.

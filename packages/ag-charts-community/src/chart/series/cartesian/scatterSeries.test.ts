@@ -1,12 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartOptions } from '../../../options/agChartOptions';
-import type { Chart } from '../../chart';
+import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOptions';
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    deproxy,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -26,7 +24,7 @@ describe('ScatterSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -67,7 +65,7 @@ describe('ScatterSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -91,7 +89,7 @@ describe('ScatterSeries', () => {
 
         prepareTestOptions(options);
 
-        chart = deproxy(AgCharts.create(options));
+        chart = AgCharts.create(options);
         await compare();
     });
 
@@ -105,7 +103,7 @@ describe('ScatterSeries', () => {
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = deproxy(AgCharts.create(options));
+                chart = AgCharts.create(options);
                 await compare();
             });
         }

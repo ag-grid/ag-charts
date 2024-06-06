@@ -42,6 +42,26 @@
         "production": {}
       }
     },
+    "build:test": {
+      "dependsOn": ["^build:types", "build:types"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "buildOutputExcludes",
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "outputs": ["{projectRoot}/dist/test"],
+      "command": "echo npx tsc -p {projectRoot}/tsconfig.spec.json --outDir {projectRoot}/dist/test",
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
     "build:package": {
       "executor": "@nx/esbuild:esbuild",
       "dependsOn": ["^build:types"],
@@ -159,6 +179,7 @@
         }
       },
       "dependsOn": [
+        "build:test",
         {
           "projects": ["ag-charts-community-examples"],
           "target": "build"

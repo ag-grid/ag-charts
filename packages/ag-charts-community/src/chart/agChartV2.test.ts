@@ -7,7 +7,6 @@ import type {
     AgChartInstance,
     AgChartOptions,
 } from '../options/agChartOptions';
-import type { Chart } from './chart';
 import * as examples from './test/examples';
 import type { TestCase } from './test/utils';
 import {
@@ -107,7 +106,7 @@ describe('AgChartV2', () => {
             const snapshots: any[] = [];
 
             // Create initial chart instance.
-            chart = AgCharts.create(exampleCycle[0]) as Chart;
+            chart = AgCharts.create(exampleCycle[0]);
             snapshots[0] = await snapshot();
 
             // Execute 2 rounds of comparisons to try and catch any issues. On first round, just
@@ -157,7 +156,7 @@ describe('AgChartV2', () => {
             exampleCycle.forEach((opts) => prepareTestOptions(opts));
 
             // Create initial chart instance.
-            chart = AgCharts.create(exampleCycle[0]) as Chart;
+            chart = AgCharts.create(exampleCycle[0]);
             await waitForChartStability(chart);
 
             // Execute 2 rounds of comparisons to try and catch any issues. On first round, just

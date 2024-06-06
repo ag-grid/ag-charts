@@ -7,7 +7,6 @@ import type {
     AgCartesianChartOptions,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
-import type { Chart } from '../chart';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { ChartUpdateType } from '../chartUpdateType';
@@ -17,6 +16,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
+    deproxy,
     extractImageData,
     repeat,
     reverseAxes,
@@ -24,6 +24,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import type { ChartOrProxy } from '../test/utils';
 
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
@@ -56,8 +57,8 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
-    assertions: (chart: Chart) => Promise<void>;
-    extraScreenshotActions?: (chart: Chart) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void>;
+    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     compare?: AgCartesianAxisType[];
 };
 const EXAMPLES: Record<string, TestCase> = {
@@ -344,7 +345,7 @@ function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: numb
 describe('Axis Examples', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: ChartOrProxy;
 
     afterEach(() => {
         if (chart) {
@@ -375,7 +376,7 @@ describe('Axis Examples', () => {
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
             const axisCompare = async () => {
-                for (const axis of chart.axes) {
+                for (const axis of deproxy(chart).axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
                     }

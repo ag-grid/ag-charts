@@ -42,7 +42,9 @@ describe('@Default', () => {
     });
 
     it('should allow default mapping to reset property value', () => {
+        // @ts-expect-error
         test.testUndefined = undefined;
+        // @ts-expect-error
         test.testNull = null;
         test.testNaN = NaN;
 
@@ -53,6 +55,7 @@ describe('@Default', () => {
 
     it('should allow default multi-mapping to reset property value', () => {
         for (const resetValue of [undefined, null, '', NaN]) {
+            // @ts-expect-error
             test.testMulti = resetValue;
             expect(test.testMulti).toEqual('not set');
         }

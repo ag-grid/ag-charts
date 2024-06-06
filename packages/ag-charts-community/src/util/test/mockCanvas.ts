@@ -42,6 +42,7 @@ export function extractImageData({
 
 export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): {
     nodeCanvas: Canvas;
+    getRenderContext2D: () => CanvasRenderingContext2D;
     getActiveCanvasInstances: () => Canvas[];
 } {
     const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(CANVAS_WIDTH, CANVAS_HEIGHT, document);

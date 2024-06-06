@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { isPlainObject } from '../util/type-guards';
-import { Memento, MementoCaretaker, MementoOriginator } from './memento';
+import type { Memento, MementoOriginator } from './memento';
+import { MementoCaretaker } from './memento';
 import { expectWarningsCalls, setupMockConsole } from './test/utils';
 
 describe('Memento Caretaker', () => {

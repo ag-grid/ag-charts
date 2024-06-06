@@ -351,7 +351,7 @@ export abstract class Series<
     protected _data?: any[];
     protected _chartData?: any[];
 
-    protected get data() {
+    get data() {
         return this._data ?? this._chartData;
     }
 
