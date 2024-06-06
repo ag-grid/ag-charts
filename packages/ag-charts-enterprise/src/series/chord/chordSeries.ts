@@ -363,7 +363,7 @@ export class ChordSeries extends FlowProportionSeries<
             sector.endAngle = datum.endAngle;
             sector.fill = highlightStyle?.fill ?? fill ?? datum.fill;
             sector.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            sector.stroke = highlightStyle?.stroke ?? stroke ?? datum.fill;
+            sector.stroke = highlightStyle?.stroke ?? stroke ?? datum.stroke;
             sector.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
             sector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             sector.lineDash = highlightStyle?.lineDash ?? lineDash;
