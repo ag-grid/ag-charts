@@ -45,7 +45,7 @@ export default `
 
     /* Focus Indicator */
     --ag-charts-focus-border: solid 2px var(--ag-input-focus-border-color, var(--ag-charts-active-color));
-    --ag-charts-focus-border-shadow: var(--ag-input-focus-box-shadow, 0 0 0 3px color-mix(in srgb, transparent, var(--ag-charts-focus-border) 47%));
+    --ag-charts-focus-border-shadow: var(--ag-input-focus-box-shadow, 0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 47%));
 
     /* Icons */
     --ag-charts-icon-font-family: 'agChartsDefault';
