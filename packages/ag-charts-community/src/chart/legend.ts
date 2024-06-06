@@ -230,8 +230,8 @@ export class Legend extends BaseProperties {
 
     private readonly proxyLegendToolbar: HTMLDivElement;
     private readonly proxyLegendPagination: HTMLDivElement;
-    private readonly proxyPrevButton: HTMLButtonElement;
-    private readonly proxyNextButton: HTMLButtonElement;
+    private proxyPrevButton?: HTMLButtonElement;
+    private proxyNextButton?: HTMLButtonElement;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -286,24 +286,6 @@ export class Legend extends BaseProperties {
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'aria-label.legend-pagination' },
             ariaOrientation: 'horizontal',
-        });
-        this.proxyPrevButton ??= this.ctx.proxyInteractionService.createProxyElement({
-            type: 'button',
-            id: `${this.id}-prev-page`,
-            textContent: { id: 'aria-label.legend-page-previous' },
-            tabIndex: 0,
-            parent: this.proxyLegendPagination,
-            focusable: this.pagination.previousButton,
-            onclick: () => this.pagination.clickPrevious(),
-        });
-        this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
-            type: 'button',
-            id: `${this.id}-next-page`,
-            textContent: { id: 'aria-label.legend-page-next' },
-            tabIndex: 0,
-            parent: this.proxyLegendPagination,
-            focusable: this.pagination.nextButton,
-            onclick: () => this.pagination.clickNext(),
         });
     }
 
@@ -493,6 +475,7 @@ export class Legend extends BaseProperties {
         }
 
         const { pages, maxPageHeight, maxPageWidth } = this.updatePagination(bboxes, width, height);
+        this.updatePaginationProxyButtons(this.pages.length > 1, pages.length > 1);
 
         this.pages = pages;
         this.maxPageSize = [maxPageWidth - paddingX, maxPageHeight - paddingY];
@@ -673,6 +656,35 @@ export class Legend extends BaseProperties {
             maxPageWidth,
             pages,
         };
+    }
+
+    private updatePaginationProxyButtons(oldNeedsButtons:boolean, newNeedsButtons: boolean) {
+        if (oldNeedsButtons === newNeedsButtons) return;
+
+        this.proxyNextButton?.remove();
+        this.proxyPrevButton?.remove();
+        [this.proxyNextButton, this.proxyPrevButton] = [undefined,undefined];
+
+        if (newNeedsButtons) {
+            this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `${this.id}-prev-page`,
+                textContent: { id: 'aria-label.legend-page-previous' },
+                tabIndex: 0,
+                parent: this.proxyLegendPagination,
+                focusable: this.pagination.previousButton,
+                onclick: () => this.pagination.clickPrevious(),
+            });
+            this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `${this.id}-next-page`,
+                textContent: { id: 'aria-label.legend-page-next' },
+                tabIndex: 0,
+                parent: this.proxyLegendPagination,
+                focusable: this.pagination.nextButton,
+                onclick: () => this.pagination.clickNext(),
+            });
+        }
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
