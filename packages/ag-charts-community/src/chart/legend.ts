@@ -658,12 +658,12 @@ export class Legend extends BaseProperties {
         };
     }
 
-    private updatePaginationProxyButtons(oldNeedsButtons:boolean, newNeedsButtons: boolean) {
+    private updatePaginationProxyButtons(oldNeedsButtons: boolean, newNeedsButtons: boolean) {
         if (oldNeedsButtons === newNeedsButtons) return;
 
         this.proxyNextButton?.remove();
         this.proxyPrevButton?.remove();
-        [this.proxyNextButton, this.proxyPrevButton] = [undefined,undefined];
+        [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
 
         if (newNeedsButtons) {
             this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
