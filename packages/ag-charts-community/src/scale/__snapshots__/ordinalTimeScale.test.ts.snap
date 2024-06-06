@@ -9,6 +9,15 @@ exports[`OrdinalTimeScale should create nice ticks 1`] = `
 ]
 `;
 
+exports[`OrdinalTimeScale should create nice ticks when reversed 1`] = `
+[
+  2024-03-06T00:00:00.000Z,
+  2024-03-02T00:00:00.000Z,
+  2024-02-29T00:00:00.000Z,
+  2024-02-27T00:00:00.000Z,
+]
+`;
+
 exports[`OrdinalTimeScale should create ticks matching the data domain if the domain length is smaller than maxTickCount 1`] = `
 [
   2024-02-26T00:00:00.000Z,
