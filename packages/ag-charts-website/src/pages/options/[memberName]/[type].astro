@@ -19,7 +19,7 @@ const name = capitalizeFirstLetter(Astro.props?.pageTitle?.name);
 ---
 
 <APIViewLayout
-    title="Options API"
+    title=`Options API (${type} ${name})`
     description=`${type} ${name} API reference for AG Charts JavaScript Charting Library. Search for any property or browse our tree-data explorer; access types, defaults, and child properties.`
 >
     <ApiReferencePage
