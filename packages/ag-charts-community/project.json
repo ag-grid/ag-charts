@@ -43,28 +43,23 @@
         "production": {}
       }
     },
-    "build:types:test": {
-      "executor": "@nx/js:tsc",
-      "dependsOn": ["^build:types"],
+    "build:test": {
+      "dependsOn": ["^build:types", "build:types"],
       "inputs": [
-        "{projectRoot}/jest-config.ts",
-        "{projectRoot}/jest-setup.ts",
-        "{projectRoot}/src/**/*.test.ts",
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "buildOutputExcludes",
         {
-          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+          "externalDependencies": ["npm:typescript"]
         }
       ],
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "packages/ag-charts-community/dist/types_test",
-        "main": "packages/ag-charts-community/src/main-test.ts",
-        "tsConfig": "packages/ag-charts-community/tsconfig.types.test.json",
-        "compiler": "tsc"
-      },
+      "outputs": ["{projectRoot}/dist/test"],
+      "command": "npx tsc -p {projectRoot}/tsconfig.spec.json --outDir {projectRoot}/dist/test",
       "configurations": {
-        "watch": {
-          "tsConfig": "packages/ag-charts-community/tsconfig.types.watch.json"
-        },
+        "watch": {},
         "production": {}
       }
     },
