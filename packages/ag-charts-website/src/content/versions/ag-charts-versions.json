@@ -51,11 +51,8 @@
                 "path": "./zoom/#buttons"
             }
         ],
+        "versionType": "Minor",
         "notesPath": "./upgrade-to-ag-charts-9-3"
-    },
-    {
-        "version": "9.3.0",
-        "date": "April 30th 2024"
     },
     {
         "version": "9.2.0",
