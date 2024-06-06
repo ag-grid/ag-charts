@@ -90,7 +90,7 @@ describe('MapShapeSeries', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
-            const node = seriesImpl['contextNodeData'].nodeData[i];
+            const node = seriesImpl?.['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
@@ -239,7 +239,7 @@ describe('MapShapeSeries', () => {
         };
 
         const checkNodeClick = async (
-            chartInstance: any,
+            chartInstance: Chart,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {

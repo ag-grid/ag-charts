@@ -163,7 +163,7 @@ describe('RangeBarSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {
+    function switchSeriesType<T extends AgChartOptions>(opts: T, direction: 'horizontal' | 'vertical'): T {
         return {
             ...opts,
             series: opts['series']?.map((s) => ({
@@ -192,7 +192,7 @@ describe('RangeBarSeries', () => {
     it(`should render a range-bar chart with inverted high and low values`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
-            data: RANGE_COLUMN_OPTIONS.data.map((datum: { date: string; high: number; low: number }) => ({
+            data: RANGE_COLUMN_OPTIONS.data?.map((datum: { date: string; high: number; low: number }) => ({
                 ...datum,
                 low: datum.high,
                 high: datum.low,
@@ -208,7 +208,7 @@ describe('RangeBarSeries', () => {
         const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
-            data: RANGE_BAR_OPTIONS.data.map((datum: { date: string; high: number; low: number }) => ({
+            data: RANGE_BAR_OPTIONS.data?.map((datum: { date: string; high: number; low: number }) => ({
                 ...datum,
                 low: datum.high,
                 high: datum.low,
@@ -443,18 +443,18 @@ describe('RangeBarSeries', () => {
     it(`should render a range-bar chart with duplicate category keys`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
-            series: RANGE_COLUMN_OPTIONS.series.map((s) => ({
+            series: RANGE_COLUMN_OPTIONS.series?.map((s) => ({
                 ...s,
                 strokeWidth: 1,
                 fillOpacity: 0.5,
             })),
             data: [
-                ...RANGE_COLUMN_OPTIONS.data,
-                ...RANGE_COLUMN_OPTIONS.data.map((datum: { date: string; high: number; low: number }) => ({
+                ...(RANGE_COLUMN_OPTIONS.data ?? []),
+                ...(RANGE_COLUMN_OPTIONS.data?.map((datum: { date: string; high: number; low: number }) => ({
                     ...datum,
                     low: _ModuleSupport.round(datum.low * 0.5, 1),
                     high: _ModuleSupport.round(datum.high * 2, 1),
-                })),
+                })) ?? []),
             ],
         };
         prepareEnterpriseTestOptions(options as any);

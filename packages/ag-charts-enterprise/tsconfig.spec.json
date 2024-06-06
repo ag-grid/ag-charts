@@ -10,7 +10,7 @@
     "jest.setup.ts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/test/**",
+    "src/**/test/**/*.ts",
     "src/**/*.d.ts"
   ],
   "exclude": []

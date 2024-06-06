@@ -166,7 +166,7 @@ describe('ChordSeries', () => {
         };
 
         const checkNodeClick = async (
-            chartInstance: any,
+            chartInstance: Chart,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {

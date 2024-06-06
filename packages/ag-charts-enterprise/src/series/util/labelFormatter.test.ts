@@ -110,13 +110,13 @@ describe('label formatter', () => {
 
             const [format] = formatSingleLabel(
                 'Hello',
-                // @ts-expect-error Fix typechecking here
                 {
                     enabled: true,
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
                     overflowStrategy: 'hide',
+                    // @ts-expect-error Fix typechecking here
                     spacing: 10,
                 },
                 { padding: 10 },
@@ -139,13 +139,13 @@ describe('label formatter', () => {
 
             const [format] = formatSingleLabel(
                 'Hello',
-                // @ts-expect-error Fix typechecking here
                 {
                     enabled: true,
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
                     overflowStrategy: 'hide',
+                    // @ts-expect-error Fix typechecking here
                     spacing: 10,
                 },
                 { padding: 10 },
