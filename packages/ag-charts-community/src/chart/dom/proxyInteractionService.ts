@@ -151,6 +151,7 @@ export class ProxyInteractionService {
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
+        element.style.overflow = 'hidden';
         if (tabIndex !== undefined) {
             element.tabIndex = tabIndex;
         }
