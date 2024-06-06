@@ -179,6 +179,7 @@
         }
       },
       "dependsOn": [
+        "build:test",
         {
           "projects": ["ag-charts-community-examples"],
           "target": "build"
