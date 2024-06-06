@@ -6,7 +6,6 @@ export const data = [
     { name: 'Colorado', code: 'CO', gdp: 525868 },
     { name: 'Connecticut', code: 'CT', gdp: 343186 },
     { name: 'Delaware', code: 'DE', gdp: 94116 },
-    { name: 'District of Columbia', code: 'DC', gdp: 176491 },
     { name: 'Florida', code: 'FL', gdp: 1595347 },
     { name: 'Georgia', code: 'GA', gdp: 811294 },
     { name: 'Idaho', code: 'ID', gdp: 119810 },

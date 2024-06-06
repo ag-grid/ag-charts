@@ -1,7 +1,6 @@
 export const eastern = [
     { name: 'Connecticut' },
     { name: 'Delaware' },
-    { name: 'District of Columbia' },
     { name: 'Florida' },
     { name: 'Georgia' },
     { name: 'Indiana' },
