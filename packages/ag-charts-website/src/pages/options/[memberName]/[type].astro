@@ -9,10 +9,19 @@ export async function getStaticPaths() {
     return getOptionsStaticPaths(reference);
 }
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 const reference = getInterfacesReference();
+const type = capitalizeFirstLetter(Astro.props?.pageTitle?.type);
+const name = capitalizeFirstLetter(Astro.props?.pageTitle?.name);
 ---
 
-<APIViewLayout title="Options API">
+<APIViewLayout
+    title="Options API"
+    description=`${type} ${name} API reference for AG Charts JavaScript Charting Library. Search for any property or browse our tree-data explorer; access types, defaults, and child properties.`
+>
     <ApiReferencePage
         client:only="react"
         {...Astro.props}
