@@ -21,6 +21,7 @@ const frameworkOverrideParsed = capitalizeFirstLetter(Astro.params?.framework);
     description=`AG Charts ${frameworkOverrideParsed} Documentation - This page will redirect to the landing page for ${frameworkOverrideParsed} docs`
     hideFooter={true}
 >
+    <h1>AG Charts {frameworkOverrideParsed} Documentation</h1>
     <div id="redirectUrl" data-framework-override={frameworkOverride} data-redirect-url={DOCS_FRAMEWORK_REDIRECT_PAGE}>
     </div>
     <script>
