@@ -1,6 +1,7 @@
 import type { Direction, _Scene } from 'ag-charts-community';
 
-import type { Coords, Scale, UpdateContext } from '../annotationTypes';
+import type { Coords, Scale, UpdateContext, ValidationContext } from '../annotationTypes';
+import { invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { UnivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
@@ -81,19 +82,19 @@ export class CrossLine extends Annotation {
         this.middle.toggleActive(active);
     }
 
-    override dragHandle(
-        datum: CrossLineAnnotation,
-        target: Coords,
-        invertPoint: (point: Coords) => Coords | undefined
-    ) {
+    override dragHandle(datum: CrossLineAnnotation, target: Coords, context: ValidationContext, onInvalid: () => void) {
         const { activeHandle } = this;
 
         if (!activeHandle || datum.value == null) return;
 
         const { direction } = datum;
         this[activeHandle].toggleDragging(true);
-        const point = invertPoint(this[activeHandle].drag(target).point);
-        if (!point) return;
+        const point = invertCoords(this[activeHandle].drag(target).point, context.scaleX, context.scaleY);
+
+        if (!validateDatumPoint(context, point)) {
+            onInvalid();
+            return;
+        }
 
         const horizontal = direction === 'horizontal';
         datum?.set({ value: horizontal ? point.y : point.x });

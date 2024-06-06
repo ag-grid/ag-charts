@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { Coords, Domain, Point, Scale, StateClickEvent, StateHoverEvent } from './annotationTypes';
+import type { Domain, Point, Scale, StateClickEvent, StateHoverEvent } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
@@ -506,33 +506,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         cursorManager.updateCursor('annotations');
 
+        const validationContext = this.getValidationContext();
+        const onDragInvalid = () => this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
+
         if (LineAnnotation.is(datum) && Line.is(node)) {
-            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
+            node.dragHandle(datum, offset, validationContext, onDragInvalid);
         }
 
         if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
+            node.dragHandle(datum, offset, validationContext, onDragInvalid);
         }
 
         if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
+            node.dragHandle(datum, offset, validationContext, onDragInvalid);
         }
 
         if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
+            node.dragHandle(datum, offset, validationContext, onDragInvalid);
         }
 
         this.update();
-    }
-
-    private onDragNodeHandle(handleOffset: Coords) {
-        const point = invertCoords(handleOffset, this.scaleX, this.scaleY);
-        const valid = validateDatumPoint(this.getValidationContext(), point);
-        if (!valid) {
-            this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
-            return;
-        }
-        return point;
     }
 
     private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {

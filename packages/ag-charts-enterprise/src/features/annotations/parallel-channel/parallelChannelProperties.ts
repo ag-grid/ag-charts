@@ -49,7 +49,11 @@ export class ParallelChannelAnnotation extends Annotation(
         return bottom;
     }
 
-    override isValidWithContext(context: ValidationContext, warningPrefix: string) {
-        return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
+    override isValidWithContext(context: ValidationContext, warningPrefix?: string) {
+        return (
+            super.isValid(warningPrefix) &&
+            validateDatumLine(context, this, warningPrefix) &&
+            validateDatumLine(context, this.bottom, warningPrefix)
+        );
     }
 }
