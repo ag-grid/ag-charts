@@ -178,15 +178,20 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().addEventListener(type, this.eventHandler);
         }
 
+        this.containerChanged(true);
         this.domManager.addListener('container-changed', () => this.containerChanged());
     }
 
-    private containerChanged() {
+    private containerChanged(force = false) {
+        const newRoot = this.domManager.getDocumentRoot();
+        if (!force && newRoot === this.rootElement) return;
+
         for (const type of SHADOW_DOM_HANDLERS) {
             this.rootElement.removeEventListener(type, this.eventHandler);
         }
 
-        this.rootElement = this.domManager.getDocumentRoot();
+        this.rootElement = newRoot;
+        this.debug('[InteractionManager] Switching rootElement to:', this.rootElement);
 
         for (const type of SHADOW_DOM_HANDLERS) {
             this.rootElement.addEventListener(type, this.eventHandler);
