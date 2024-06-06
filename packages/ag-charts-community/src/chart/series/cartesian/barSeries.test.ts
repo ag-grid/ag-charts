@@ -216,7 +216,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
                 animate(1200, ratio);
@@ -236,7 +236,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
                 animate(1200, ratio);
@@ -260,12 +260,12 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
                 await waitForChartStability(chart);
 
-                chart.update(options);
+                await chart.update(options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -283,12 +283,12 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
                 await waitForChartStability(chart);
 
-                chart.update(options);
+                await chart.update(options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -310,7 +310,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
                 animate(1200, ratio);
@@ -330,7 +330,7 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
                 animate(1200, ratio);

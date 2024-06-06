@@ -55,7 +55,7 @@ describe('Integrated Charts Examples', () => {
                 chart = AgCharts.create(startingOptions);
                 await waitForChartStability(chart);
 
-                chart.update(options);
+                await chart.update(options);
                 await compare();
             });
         }

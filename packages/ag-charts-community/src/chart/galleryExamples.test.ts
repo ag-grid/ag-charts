@@ -84,7 +84,7 @@ describe('Gallery Examples', () => {
             });
 
             it(`it should update chart instance as expected`, async () => {
-                chart.update(options);
+                await chart.update(options);
                 await waitForChartStability(chart);
 
                 await example.assertions(chart);
@@ -97,10 +97,10 @@ describe('Gallery Examples', () => {
                     return ctx.nodeCanvas.toBuffer('raw');
                 };
 
-                chart.update(options);
+                await chart.update(options);
 
                 const before = await snapshot();
-                chart.update(options);
+                await chart.update(options);
                 const after = await snapshot();
 
                 expect(after).toMatchImage(before);

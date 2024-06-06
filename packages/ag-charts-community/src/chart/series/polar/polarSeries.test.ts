@@ -164,7 +164,7 @@ describe('PolarSeries', () => {
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                chart.update({
+                await chart.update({
                     ...options,
                     data: options.data!.slice(0, options.data!.length - 2),
                 });
@@ -190,7 +190,7 @@ describe('PolarSeries', () => {
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                chart.update({ ...options });
+                await chart.update({ ...options });
 
                 await compare();
             });
@@ -211,7 +211,7 @@ describe('PolarSeries', () => {
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                chart.update({
+                await chart.update({
                     ...options,
                     data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),
                 });

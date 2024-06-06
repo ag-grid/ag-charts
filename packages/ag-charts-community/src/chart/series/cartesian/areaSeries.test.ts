@@ -251,7 +251,7 @@ describe('AreaSeries', () => {
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
-                    chart.update({ ...options, data: updatedData });
+                    await chart.update({ ...options, data: updatedData });
 
                     await compare();
                 });
@@ -270,7 +270,7 @@ describe('AreaSeries', () => {
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
-                    chart.update({ ...EXAMPLE });
+                    await chart.update({ ...EXAMPLE });
 
                     await compare();
                 });
@@ -294,7 +294,7 @@ describe('AreaSeries', () => {
 
                     animate(1200, ratio);
                     options.series![0].visible = false;
-                    chart.update({ ...options });
+                    await chart.update({ ...options });
 
                     await compare();
                 });
@@ -315,7 +315,7 @@ describe('AreaSeries', () => {
 
                     animate(1200, ratio);
                     options.series![1].visible = true;
-                    chart.update(options);
+                    await chart.update(options);
 
                     await compare();
                 });

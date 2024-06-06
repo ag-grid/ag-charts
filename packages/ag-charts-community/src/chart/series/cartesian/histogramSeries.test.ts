@@ -223,7 +223,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -251,7 +251,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -260,7 +260,7 @@ describe('HistogramSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                chart.update(options);
+                await chart.update(options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -282,7 +282,7 @@ describe('HistogramSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                chart.updateDelta({
+                await chart.updateDelta({
                     data: [
                         ...options.data!.map((d: any, index: number) => ({
                             ...d,

@@ -290,7 +290,7 @@ describe('LineSeries', () => {
                     await waitForChartStability(chart);
 
                     animate(duration, ratio);
-                    chart.updateDelta({ data: changedData });
+                    await chart.updateDelta({ data: changedData });
                     await waitForChartStability(chart);
                     await compare();
                 });
@@ -346,7 +346,7 @@ describe('LineSeries', () => {
 
                     animate(1200, ratio);
                     options.series![0].visible = false;
-                    chart.update({ ...options });
+                    await chart.update({ ...options });
 
                     await compare();
                 });
@@ -367,7 +367,7 @@ describe('LineSeries', () => {
 
                     animate(1200, ratio);
                     options.series![1].visible = true;
-                    chart.update(options);
+                    await chart.update(options);
 
                     await compare();
                 });
