@@ -1,5 +1,5 @@
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { DOMManager } from '../chart/dom/domManager';
@@ -22,7 +22,6 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { LocaleManager } from '../chart/locale/localeManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
@@ -36,6 +35,8 @@ export interface ModuleContext {
     readonly dataService: DataService<any>;
     readonly layoutService: LayoutService;
     readonly updateService: UpdateService;
+
+    readonly axisManager: AxisManager;
 
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
@@ -59,19 +60,6 @@ export interface ModuleContext {
 
 export interface ModuleContextWithParent<P> extends ModuleContext {
     parent: P;
-}
-
-export interface AxisContext {
-    axisId: string;
-    continuous: boolean;
-    direction: ChartAxisDirection;
-    position?: AgCartesianAxisPosition;
-    keys(): string[];
-    seriesKeyProperties(): string[];
-    scaleBandwidth(): number;
-    scaleConvert(val: any): number;
-    scaleInvert(position: number): any;
-    scaleValueFormatter(specifier?: string): ((x: any) => string) | undefined;
 }
 
 export interface SeriesContext extends ModuleContext {

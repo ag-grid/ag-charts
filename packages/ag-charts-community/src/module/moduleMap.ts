@@ -1,12 +1,11 @@
 import { isString } from '../util/type-guards';
 import type { BaseModule, ModuleInstance } from './baseModule';
-import type { ModuleContext } from './moduleContext';
 
-interface Module<I extends ModuleInstance = ModuleInstance, C = ModuleContext> extends BaseModule {
+interface Module<I extends ModuleInstance = ModuleInstance, C = {}> extends BaseModule {
     instanceConstructor: new (ctx: C) => I;
 }
 
-export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = ModuleContext> {
+export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = {}> {
     protected moduleMap = new Map<string, { module: M; moduleInstance: I }>();
 
     *modules() {
