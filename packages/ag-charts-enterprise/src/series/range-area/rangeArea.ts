@@ -23,17 +23,13 @@ const {
     updateClipPath,
     isFiniteNumber,
     computeMarkerFocusBounds,
-    mapIterable,
     plotPath,
+    pathRanges,
+    pathRangePoints,
+    pathRangePointsReverse,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent } = _Util;
-
-function* arrayReverse<T>(arr: T[]) {
-    for (let i = arr.length - 1; i >= 0; i -= 1) {
-        yield arr[i];
-    }
-}
 
 type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     text: string;
@@ -222,11 +218,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             ];
         };
 
-        const createMovePoint = (plainPoint: RadarAreaPoint) => {
-            const { point, ...stroke } = plainPoint;
-            return { ...stroke, point: { ...point, moveTo: true } };
-        };
-
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
         const strokeData: RadarAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
@@ -247,9 +238,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const strokeHighPoints = strokeData.highPoints;
         const strokeLowPoints = strokeData.lowPoints;
 
-        let lastXValue: any;
-        let lastYHighDatum: any = -Infinity;
-        let lastYLowDatum: any = -Infinity;
         let moveTo = true;
         this.processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
             const dataValues = dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
@@ -292,47 +280,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             });
 
             // fill data
-            const lastYValid = lastYHighDatum != null && lastYLowDatum != null;
-            const lastValid = lastXValue != null && lastYValid;
             const xValid = xValue != null;
             const yValid = yHighValue != null && yLowValue != null;
 
-            let [high, low] = createCoordinates(xValue, yHighValue ?? 0, yLowValue ?? 0, moveTo);
-
-            if (!connectMissingData) {
-                // Handle missing Y-values by 'hiding' the area by making the area height zero between
-                // valid points.
-                if (!yValid) {
-                    const [prevHigh, prevLow] = createCoordinates(lastXValue, 0, 0, moveTo);
-                    fillHighPoints.push(prevHigh);
-                    fillLowPoints.push(prevLow);
-                } else if (!lastYValid) {
-                    const [prevHigh, prevLow] = createCoordinates(xValue, 0, 0, moveTo);
-                    fillHighPoints.push(prevHigh);
-                    fillLowPoints.push(prevLow);
-                }
-            }
+            const [high, low] = createCoordinates(xValue, yHighValue ?? 0, yLowValue ?? 0, moveTo);
 
             if (xValid && yValid) {
                 fillHighPoints.push(high);
                 fillLowPoints.push(low);
-            }
-
-            // stroke data
-            const move = xValid && yValid && !lastValid && !connectMissingData && datumIdx > 0;
-            if (move) {
-                high = createMovePoint(high);
-                low = createMovePoint(low);
-            }
-            if (xValid && yValid) {
                 strokeHighPoints.push(high);
                 strokeLowPoints.push(low);
+                moveTo = false;
+            } else if (!connectMissingData) {
+                moveTo = true;
             }
-
-            lastXValue = xValue;
-            lastYHighDatum = yHighValue;
-            lastYLowDatum = yLowValue;
-            moveTo = true;
         });
 
         return context;
@@ -445,17 +406,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { fillData } = contextData;
         const [fill] = paths;
         fill.path.clear();
-        plotPath(
-            mapIterable(fillData.highPoints, (point) => point.point),
-            fill,
-            line
-        );
-        plotPath(
-            mapIterable(arrayReverse(fillData.lowPoints), (point) => point.point),
-            fill,
-            line,
-            true
-        );
+        for (const range of pathRanges(fillData.highPoints)) {
+            plotPath(pathRangePoints(fillData.highPoints, range), fill, line);
+            plotPath(pathRangePointsReverse(fillData.lowPoints, range), fill, line, true);
+            fill.path.closePath();
+        }
         fill.checkPathDirty();
     }
 
@@ -464,16 +419,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { strokeData } = contextData;
         const [, stroke] = paths;
         stroke.path.clear(true);
-        plotPath(
-            mapIterable(strokeData.highPoints, (point) => point.point),
-            stroke,
-            line
-        );
-        plotPath(
-            mapIterable(strokeData.lowPoints, (point) => point.point),
-            stroke,
-            line
-        );
+        for (const range of pathRanges(strokeData.highPoints)) {
+            plotPath(pathRangePoints(strokeData.highPoints, range), stroke, line);
+            plotPath(pathRangePoints(strokeData.lowPoints, range), stroke, line);
+        }
         stroke.checkPathDirty();
     }
 
