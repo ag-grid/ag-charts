@@ -74,6 +74,7 @@ function addPrevNextListeners(
     prevKey: 'ArrowLeft' | 'ArrowUp',
     nextKey: 'ArrowRight' | 'ArrowDown'
 ) {
+    buttons[index].tabIndex = -1;
     const listener =
         mode === 'toolbar'
             ? createKeydownListener(buttons, index, prevKey, nextKey, true, findButtonNoWrapping)
@@ -106,8 +107,14 @@ export function initToolbarKeyNav(opts: {
         addPrevNextListeners(destroyFns, 'toolbar', buttons, i, prevKey, nextKey);
         if (onFocus) addRemovableEventListener(destroyFns, buttons[i], 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, buttons[i], 'blur', onBlur);
-        buttons[i].tabIndex = i === 0 ? 0 : -1;
     }
+    // Make the first enable button have tabIndex 0
+    buttons.some((b: ButtonLike) => {
+        if (b.disabled !== true) {
+            b.tabIndex = 0;
+            return true;
+        }
+    });
 
     return destroyFns;
 }
@@ -135,7 +142,6 @@ export function initMenuKeyNav(opts: {
                 }
             });
         }
-        buttons[i].tabIndex = -1;
     }
 
     return destroyFns;
