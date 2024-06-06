@@ -12,12 +12,13 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-const frameworkOverride = capitalizeFirstLetter(Astro.params?.framework);
+const frameworkOverride = Astro.params?.framework;
+const frameworkOverrideParsed = capitalizeFirstLetter(Astro.params?.framework);
 ---
 
 <Layout
-    title=`AG Charts ${frameworkOverride} Documentation`
-    description=`AG Charts ${frameworkOverride} Documentation - This page will redirect to the landing page for ${frameworkOverride} docs`
+    title=`AG Charts ${frameworkOverrideParsed} Documentation`
+    description=`AG Charts ${frameworkOverrideParsed} Documentation - This page will redirect to the landing page for ${frameworkOverrideParsed} docs`
     hideFooter={true}
 >
     <div id="redirectUrl" data-framework-override={frameworkOverride} data-redirect-url={DOCS_FRAMEWORK_REDIRECT_PAGE}>
