@@ -27,11 +27,11 @@ elements are mutated in-place, we cannot guarantee to detect the changes.
 {% tabs %}
 
 {% tabItem id="AgCharts" label="AgCharts" %}
-{% apiReference id="AgChartInterface" include=["create"] hideHeader=true hideRequired=true /%}
+{% apiReference id="_AgChartsInterface" include=["create"] hideHeader=true hideRequired=true /%}
 {% /tabItem %}
 
 {% tabItem id="AgChartInstance" label="AgChartInstance" %}
-{% apiReference id="AgChartInstance" hideHeader=true /%}
+{% apiReference id="_AgChartInstanceInterface" hideHeader=true hideRequired=true /%}
 {% /tabItem %}
 
 {% /tabs %}
@@ -59,7 +59,7 @@ The following example demonstrates both create and update cases:
 
 To assist with state management, the complete applied options state can be retrieved by calling `getOptions()`:
 
-{% apiReference id="AgChartInstance" include=["updateDelta", "getOptions"] hideHeader=true hideRequired=true /%}
+{% apiReference id="_AgChartInstanceInterface" include=["updateDelta", "getOptions"] hideHeader=true hideRequired=true /%}
 
 The following example demonstrates:
 
@@ -75,7 +75,7 @@ rendered.
 
 To assist with this, `AgChartInstance.update()` and `AgChartInstance.updateDelta()` return `Promise`s that resolve once
 rendering is complete. Additionally `AgChartsInstance.waitForUpdate()` can be used after initial creation to understand
-when the next pending render cycle has happened.
+when the first rendering of the chart is completed.
 
 {% note %}
 `Promise`s do not take animations into account, they resolve after the first rendering in an animation sequence.
@@ -92,7 +92,7 @@ This example demonstrates how this can be used to create trivial loops to contin
 {% if isFramework("javascript") %}
 Charts can be destroyed by using the `AgChartInstance.destroy()` method:
 
-{% apiReference id="AgChartInstance" include=["destroy"] hideHeader=true hideRequired=true /%}
+{% apiReference id="_AgChartInstance" include=["destroy"] hideHeader=true hideRequired=true /%}
 {% /if %}
 
 {% if isNotJavascriptFramework() %}

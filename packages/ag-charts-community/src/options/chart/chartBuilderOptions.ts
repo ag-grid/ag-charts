@@ -91,11 +91,19 @@ export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
     destroy(): void;
 }
 
-export interface AgChartInterface {
+/** NOTE: For API docs use; simplified typings to enable rendering. */
+interface _AgChartsInterface {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
     create(options: AgChartOptions): AgChartInstance;
+}
+
+/** NOTE: For API docs use; simplified typings to enable rendering. */
+interface _AgChartInstanceInterface extends AgChartInstance<AgChartOptions> {
+    update(options: AgChartOptions): Promise<void>;
+    updateDelta(deltaOptions: AgChartOptions): Promise<void>;
+    getOptions(): AgChartOptions;
 }
 
 export interface DownloadOptions extends ImageDataUrlOptions {
