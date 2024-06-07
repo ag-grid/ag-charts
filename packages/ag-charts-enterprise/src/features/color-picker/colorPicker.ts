@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import colorPickerStyles from './colorPickerStyles.css';
-import { colorPickerTemplate } from './colorPickerTemplate';
+import colorPickerTemplate from './colorPickerTemplate.html';
 
 const { createElement } = _ModuleSupport;
 

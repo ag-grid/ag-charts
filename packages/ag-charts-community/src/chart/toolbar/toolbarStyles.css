@@ -1,0 +1,168 @@
+.ag-charts-toolbar {
+    align-items: center;
+    background: none;
+    border: none;
+    display: flex;
+    flex-wrap: nowrap;
+    opacity: 1;
+    padding: 0 var(--ag-charts-toolbar-padding);
+    position: absolute;
+    transform: translateY(0);
+    transition:
+        opacity 0.2s ease-in-out,
+        transform 0.2s ease-in-out;
+}
+
+.ag-charts-toolbar--hidden,
+.ag-charts-toolbar--prevent-flash {
+    visibility: hidden;
+}
+
+.ag-charts-toolbar--floating-hidden {
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+.ag-charts-toolbar--top,
+.ag-charts-toolbar--bottom {
+    flex-direction: row;
+    width: 100%;
+}
+
+.ag-charts-toolbar--left,
+.ag-charts-toolbar--right {
+    flex-direction: column;
+    padding: var(--ag-charts-toolbar-padding) 0;
+}
+
+.ag-charts-toolbar--floating,
+.ag-charts-toolbar--floating-top,
+.ag-charts-toolbar--floating-bottom {
+    background: none;
+    border: none;
+    flex-direction: row;
+    overflow: hidden;
+    pointer-events: none;
+    width: 100%;
+}
+
+.ag-charts-toolbar--floating {
+    padding: 0;
+    width: auto;
+}
+
+.ag-charts-toolbar--floating-top {
+    height: calc(var(--ag-charts-toolbar-size) + 10px);
+    padding-top: 10px;
+}
+
+.ag-charts-toolbar--floating-bottom {
+    height: calc(var(--ag-charts-toolbar-size) + 10px);
+    padding-bottom: 10px;
+}
+
+.ag-charts-toolbar__align {
+    display: flex;
+    flex-direction: inherit;
+    flex-wrap: inherit;
+    gap: var(--ag-charts-toolbar-gap);
+    max-width: 100%;
+    width: 100%;
+}
+
+.ag-charts-toolbar__align--start {
+    justify-content: start;
+}
+
+.ag-charts-toolbar__align--center {
+    justify-content: center;
+}
+
+.ag-charts-toolbar__align--end {
+    justify-content: end;
+}
+
+.ag-charts-toolbar__align--center,
+.ag-charts-toolbar__align--end {
+    margin-left: auto;
+}
+
+.ag-charts-toolbar--left .ag-charts-toolbar__align--center,
+.ag-charts-toolbar--left .ag-charts-toolbar__align--end,
+.ag-charts-toolbar--right .ag-charts-toolbar__align--center,
+.ag-charts-toolbar--right .ag-charts-toolbar__align--end {
+    margin-left: 0;
+    margin-top: auto;
+}
+
+.ag-charts-toolbar--floating-top .ag-charts-toolbar__align,
+.ag-charts-toolbar--floating-bottom .ag-charts-toolbar__align {
+    transition: transform 0.4s ease-in-out;
+    width: auto;
+}
+
+.ag-charts-toolbar__button {
+    align-items: center;
+    background: var(--ag-charts-toolbar-background-color);
+    border: var(--ag-charts-toolbar-border);
+    border-radius: var(--ag-charts-button-radius);
+    color: var(--ag-charts-toolbar-foreground-color);
+    display: flex;
+    font-size: 14px;
+    font-weight: 500;
+    height: var(--ag-charts-toolbar-size);
+    justify-content: center;
+    margin: 0;
+    pointer-events: all;
+    transition: background-color 0.25s ease-in-out;
+    width: var(--ag-charts-toolbar-size);
+}
+
+.ag-charts-toolbar--left .ag-charts-toolbar__button,
+.ag-charts-toolbar--right .ag-charts-toolbar__button {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.ag-charts-toolbar--floating .ag-charts-toolbar__button,
+.ag-charts-toolbar--floating-top .ag-charts-toolbar__button,
+.ag-charts-toolbar--floating-bottom .ag-charts-toolbar__button {
+    background: var(--ag-charts-toolbar-background-color);
+    border: var(--ag-charts-toolbar-border);
+}
+
+.ag-charts-toolbar__button--hidden-value,
+.ag-charts-toolbar__button--hidden-toggled {
+    display: none;
+}
+
+.ag-charts-toolbar__button:hover {
+    background: var(--ag-charts-toolbar-hover-color);
+}
+
+.ag-charts-toolbar__button:focus {
+    background: var(--ag-charts-toolbar-hover-color);
+}
+
+.ag-charts-toolbar__button:disabled {
+    background: var(--ag-charts-toolbar-disabled-background-color);
+    color: var(--ag-charts-toolbar-disabled-foreground-color);
+}
+
+.ag-charts-toolbar__button:not([disabled]) {
+    cursor: pointer;
+}
+
+.ag-charts-toolbar__icon {
+    height: 1.2em;
+    width: 1.2em;
+}
+
+.ag-charts-toolbar__icon + .ag-charts-toolbar__label {
+    margin-left: var(--ag-charts-toolbar-gap);
+}
+
+.ag-charts-toolbar__icon,
+.ag-charts-toolbar__label {
+    pointer-events: none;
+}

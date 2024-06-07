@@ -1,38 +1,15 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import defaultLabelCss from './crosshairLabel.css';
+
+export { defaultLabelCss };
+
 const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
 const { setAttribute } = _Util;
 const { BBox } = _Scene;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
-
-export const defaultLabelCss = `
-.${DEFAULT_LABEL_CLASS} {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    user-select: none;
-    pointer-events: none;
-    font: 12px Verdana, sans-serif;
-    overflow: hidden;
-    white-space: nowrap;
-    z-index: 99998; // Needs to be below tooltips!
-    box-sizing: border-box;
-}
-
-.${DEFAULT_LABEL_CLASS}-content {
-    padding: 0 7px;
-    border-radius: 2px;
-    line-height: 1.7em;
-    background-color: rgb(71,71,71);
-    color: rgb(255, 255, 255);
-}
-
-.${DEFAULT_LABEL_CLASS}-hidden {
-    top: -10000px !important;
-}
-`;
 
 export interface LabelMeta {
     x: number;
@@ -144,7 +121,7 @@ export class CrosshairLabel extends BaseProperties {
     }
 
     toggle(visible?: boolean) {
-        this.element.classList.toggle(`${DEFAULT_LABEL_CLASS}-hidden`, !visible);
+        this.element.classList.toggle(`ag-crosshair-label-hidden`, !visible);
     }
 
     destroy() {
@@ -166,7 +143,7 @@ export class CrosshairLabel extends BaseProperties {
         } = input;
 
         const style = `opacity: ${opacity}; background-color: ${backgroundColor?.toLowerCase()}; color: ${color}`;
-        return `<div class="${DEFAULT_LABEL_CLASS}-content" style="${style}">
+        return `<div class="ag-crosshair-label-content" style="${style}">
                     <span>${text}</span>
                 </div>`;
     }

@@ -1,0 +1,22 @@
+.ag-charts-focus.ag-charts-focus__wrapper {
+    position: relative;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+}
+
+.ag-charts-focus.ag-charts-focus__indicator {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    border: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+}
+
+.ag-charts-focus--hidden {
+    visibility: hidden;
+}
