@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { Domain, Point, Scale, StateClickEvent, StateHoverEvent } from './annotationTypes';
-import { AnnotationType, stringToAnnotationType } from './annotationTypes';
+import type { Coords, Domain, Point, Scale, StateClickEvent, StateDragEvent, StateHoverEvent } from './annotationTypes';
+import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
@@ -54,7 +54,7 @@ const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
     [AnnotationType.ParallelChannel]: ParallelChannel,
 };
 
-class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'cancel'> {
+class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'drag' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
@@ -100,6 +100,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private annotationData?: AnnotationPropertiesArray;
     private hovered?: number;
     private active?: number;
+    private dragOffset?: Coords;
 
     // Elements
     private seriesRect?: _Scene.BBox;
@@ -123,6 +124,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.cursorManager.updateCursor('annotations');
                 ctx.interactionManager.popState(InteractionState.Annotations);
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+                for (const annotationType of ANNOTATION_BUTTONS) {
+                    ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+                }
                 this.toggleAnnotationOptionsButtons();
             },
             this.appendDatum.bind(this),
@@ -134,6 +138,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
+
+        const otherRegions = Object.values(REGIONS)
+            .filter((region) => ![REGIONS.SERIES, REGIONS.HORIZONTAL_AXES, REGIONS.VERTICAL_AXES].includes(region))
+            .map((region) => ctx.regionManager.getRegion(region));
+
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
             horizontalAxesRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.HORIZONTAL_AXES), All),
@@ -144,6 +153,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
             seriesRegion.addListener('delete', this.onDelete.bind(this), All),
+            ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
@@ -183,7 +193,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const {
             state,
-            ctx: { interactionManager },
+            ctx: { interactionManager, toolbarManager },
         } = this;
 
         if (ToolbarManager.isGroup('annotationOptions', event)) {
@@ -204,6 +214,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         interactionManager.pushState(InteractionState.Annotations);
+        for (const annotationType of ANNOTATION_BUTTONS) {
+            toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === event.value });
+        }
         state.transition(annotation);
     }
 
@@ -392,7 +405,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
-        if (this.state.is('idle')) {
+        const { dragOffset, state } = this;
+
+        // Prevent clicks triggered on the exact same event as the drag when placing the second point. This "double"
+        // event causes channels to be created with start and end at the same position and render incorrectly.
+        if (state.is('end') && dragOffset && dragOffset.x === event.offsetX && dragOffset.y === event.offsetY) {
+            this.dragOffset = undefined;
+            return;
+        }
+
+        if (state.is('idle')) {
             this.onClickSelecting();
         } else {
             this.onClickAdding(event, region);
@@ -400,6 +422,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onAxisClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
+        this.onCancel();
         this.onAxisClickAdding(event, region);
     }
 
@@ -477,8 +500,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        // Only track pointer offset for drag + click prevention when we are placing the first point
+        if (this.state.is('start')) {
+            this.dragOffset = { x: event.offsetX, y: event.offsetY };
+        }
+
+        if (this.state.is('idle')) {
+            this.onClickSelecting();
+            this.onDragHandle(event);
+        } else {
+            this.onDragAdding(event);
+        }
+    }
+
+    private onDragHandle(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
-            active,
             annotationData,
             annotations,
             hovered,
@@ -488,17 +524,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (hovered == null || annotationData == null || !this.state.is('idle')) return;
 
-        const index = active ?? hovered;
-
-        if (active == null) {
-            this.onClickSelecting();
-        }
-
         interactionManager.pushState(InteractionState.Annotations);
 
         const { offsetX, offsetY } = event;
-        const datum = annotationData[index];
-        const node = annotations.nodes()[index];
+        const datum = annotationData[hovered];
+        const node = annotations.nodes()[hovered];
         const offset = {
             x: offsetX - (seriesRect?.x ?? 0),
             y: offsetY - (seriesRect?.y ?? 0),
@@ -524,6 +554,39 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
             node.dragHandle(datum, offset, validationContext, onDragInvalid);
         }
+
+        this.update();
+    }
+
+    private onDragAdding(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        const {
+            active,
+            annotationData,
+            annotations,
+            seriesRect,
+            state,
+            ctx: { interactionManager },
+        } = this;
+
+        if (annotationData == null) return;
+
+        const { offsetX, offsetY } = event;
+        const datum = active != null ? annotationData[active] : undefined;
+        const node = active != null ? annotations.nodes()[active] : undefined;
+        const offset = {
+            x: offsetX - (seriesRect?.x ?? 0),
+            y: offsetY - (seriesRect?.y ?? 0),
+        };
+
+        interactionManager.pushState(InteractionState.Annotations);
+
+        const point = invertCoords(offset, this.scaleX, this.scaleY);
+        const data: StateDragEvent<AnnotationProperties, Annotation> = { datum, node, point };
+
+        state.transition('drag', data);
+
+        // Assuming the first drag event appends a new datum, immediately activate it
+        this.active = annotationData.length - 1;
 
         this.update();
     }

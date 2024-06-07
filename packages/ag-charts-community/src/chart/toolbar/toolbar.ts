@@ -206,7 +206,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
-        const { group, value, enabled, visible } = event;
+        const { group, value, active, enabled, visible } = event;
 
         if (this.groupButtons[group].length === 0) {
             this.pendingButtonToggledEvents.push(event);
@@ -217,6 +217,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (button.dataset.toolbarValue !== `${value}`) continue;
             button.disabled = !enabled;
             button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
+            button.classList.toggle(styles.modifiers.button.active, active);
         }
     }
 

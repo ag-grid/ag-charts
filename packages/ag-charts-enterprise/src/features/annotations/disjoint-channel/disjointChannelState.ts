@@ -1,12 +1,16 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point, StateClickEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
 import { DisjointChannelAnnotation } from './disjointChannelProperties';
 import type { DisjointChannel } from './disjointChannelScene';
 
+type Click = StateClickEvent<DisjointChannelAnnotation, DisjointChannel>;
+type Drag = StateDragEvent<DisjointChannelAnnotation, DisjointChannel>;
+type Hover = StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>;
+
 export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
     'start' | 'end' | 'height',
-    'click' | 'hover' | 'cancel'
+    'click' | 'hover' | 'drag' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -14,22 +18,22 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
         appendDatum: (datum: DisjointChannelAnnotation) => void,
         validateDatumPoint: (point: Point) => boolean
     ) {
-        const onStartClick = ({ point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onStartClick = ({ point }: Click | Drag) => {
             const datum = new DisjointChannelAnnotation();
             datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
             appendDatum(datum);
         };
 
-        const onEndHover = ({ datum, node, point }: StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>) => {
-            datum.set({ end: point });
-            node.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
+        const onEndHover = ({ datum, node, point }: Hover | Drag) => {
+            datum?.set({ end: point });
+            node?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
         };
 
-        const onEndClick = ({ datum, point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onEndClick = ({ datum, point }: Click) => {
             datum?.set({ end: point });
         };
 
-        const onHeightHover = ({ datum, node, point }: StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onHeightHover = ({ datum, node, point }: Hover) => {
             if (datum.start.y == null || datum.end.y == null) return;
 
             const endHeight = datum.end.y - point.y;
@@ -47,7 +51,7 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
             datum.set({ startHeight, endHeight });
         };
 
-        const onHeightClick = ({ datum, node, point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onHeightClick = ({ datum, node, point }: Click) => {
             if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
 
             const endHeight = datum.end.y - point.y;
@@ -69,6 +73,10 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
+                drag: {
+                    target: 'end',
+                    action: onStartClick,
+                },
                 cancel: '__parent',
             },
             end: {
@@ -77,6 +85,7 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'height',
                     action: onEndClick,
                 },
+                drag: onEndHover,
                 cancel: '__parent',
             },
             height: {

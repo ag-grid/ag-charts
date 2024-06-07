@@ -6,6 +6,12 @@ export enum AnnotationType {
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 }
+export const ANNOTATION_TYPES = Object.values(AnnotationType);
+export const ANNOTATION_BUTTONS = [
+    AnnotationType.Line,
+    AnnotationType.DisjointChannel,
+    AnnotationType.ParallelChannel,
+] as const;
 
 export function stringToAnnotationType(value: string) {
     switch (value) {
@@ -50,6 +56,8 @@ export interface StateClickEvent<Annotation, Scene> {
     point: Coords;
     region?: _ModuleSupport.RegionName;
 }
+
+export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
 
 export type Domain = any[];
 export type Scale = _Scene.Scale<any, number, number | _Util.TimeInterval>;

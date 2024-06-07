@@ -24,6 +24,7 @@ export const modifiers = {
         end: `${elements.align}--end`,
     },
     button: {
+        active: `${elements.button}--active`,
         hiddenValue: `${elements.button}--hidden-value`,
         hiddenToggled: `${elements.button}--hidden-toggled`,
     },
@@ -166,12 +167,10 @@ export const css = `
     display: none;
 }
 
-.${elements.button}:hover {
-    background: var(--ag-charts-toolbar-hover-color);
-}
-
-.${elements.button}:focus {
-    background: var(--ag-charts-toolbar-hover-color);
+.${elements.button}:hover,
+.${elements.button}:focus,
+.${modifiers.button.active} {
+    background: var(--ag-charts-toolbar-active-color);
 }
 
 .${elements.button}:disabled {

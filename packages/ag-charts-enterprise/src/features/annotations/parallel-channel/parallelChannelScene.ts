@@ -1,6 +1,6 @@
 import { _Scene } from 'ag-charts-community';
 
-import { AnnotationType, type Coords, type LineCoords, type ValidationContext } from '../annotationTypes';
+import { type Coords, type LineCoords, type ValidationContext } from '../annotationTypes';
 import { invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { Channel } from '../scenes/channelScene';
@@ -173,22 +173,18 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
         topLine.updateCollisionBBox();
         bottomLine.updateCollisionBBox();
 
-        if (datum.type === AnnotationType.ParallelChannel) {
-            middleLine.setProperties({
-                x1: top.x1,
-                y1: bottom.y1 + (top.y1 - bottom.y1) / 2,
-                x2: top.x2,
-                y2: bottom.y2 + (top.y2 - bottom.y2) / 2,
-                lineDash: datum.middle.lineDash ?? lineDash,
-                lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
-                stroke: datum.middle.stroke ?? stroke,
-                strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
-                strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
-                visible: datum.middle.visible ?? true,
-            });
-        } else {
-            middleLine.visible = false;
-        }
+        middleLine.setProperties({
+            x1: top.x1,
+            y1: bottom.y1 + (top.y1 - bottom.y1) / 2,
+            x2: top.x2,
+            y2: bottom.y2 + (top.y2 - bottom.y2) / 2,
+            lineDash: datum.middle.lineDash ?? lineDash,
+            lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
+            stroke: datum.middle.stroke ?? stroke,
+            strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
+            visible: datum.middle.visible ?? true,
+        });
     }
 
     override updateHandles(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {

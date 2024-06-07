@@ -38,6 +38,7 @@ export interface ToolbarButtonPressedEvent<T = any> extends Event<'button-presse
 
 export interface ToolbarButtonToggledEvent<T = any> extends Event<'button-toggled'> {
     value: T;
+    active: boolean;
     enabled: boolean;
     visible: boolean;
 }
@@ -62,10 +63,10 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
     toggleButton<T extends ToolbarGroup>(
         group: T,
         value: ToolbarEventButtonValue<T>,
-        options: { enabled?: boolean; visible?: boolean }
+        options: { active?: boolean; enabled?: boolean; visible?: boolean }
     ) {
-        const { enabled = true, visible = true } = options;
-        this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, value, enabled, visible });
+        const { active = false, enabled = true, visible = true } = options;
+        this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, value, active, enabled, visible });
     }
 
     toggleGroup(caller: string, group: ToolbarGroup, visible: boolean) {
