@@ -245,7 +245,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
         // AG-11385 Ignore clicks on focusable & disabled elements.
-        const target: EventTarget & { ariaDisabled?: string} | null = event.target;
+        const target: (EventTarget & { ariaDisabled?: string }) | null = event.target;
         if (event.type === 'click' && target?.ariaDisabled === 'true') {
             event.preventDefault();
             return;
@@ -335,7 +335,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return [event.type];
 
             case 'mousedown':
-                if (!this.isEventOverElement(event) || ! ('button' in event) || event.button !== 0) {
+                if (!this.isEventOverElement(event) || !('button' in event) || event.button !== 0) {
                     return [];
                 }
                 this.mouseDown = true;
