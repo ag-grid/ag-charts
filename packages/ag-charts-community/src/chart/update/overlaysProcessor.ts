@@ -5,30 +5,9 @@ import type { AnimationManager } from '../interaction/animationManager';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
-import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
+import { type Overlay } from '../overlay/overlay';
+import defaultOverlayCss from './overlaysProcessor.css';
 import type { ChartLike, UpdateProcessor } from './processor';
-
-const defaultOverlayCss = `
-.${DEFAULT_OVERLAY_CLASS} {
-    color: #181d1f;
-}
-
-.${DEFAULT_OVERLAY_CLASS}.${DEFAULT_OVERLAY_DARK_CLASS} {
-    color: #ffffff;
-}
-
-.${DEFAULT_OVERLAY_CLASS}--loading {
-    color: rgb(140, 140, 140); /* DEFAULT_MUTED_LABEL_COLOUR */
-}
-
-.${DEFAULT_OVERLAY_CLASS}__loading-background {
-    background: white; /* DEFAULT_BACKGROUND_FILL */
-}
-
-.${DEFAULT_OVERLAY_CLASS}.${DEFAULT_OVERLAY_DARK_CLASS} .${DEFAULT_OVERLAY_CLASS}__loading-background {
-    background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
-}
-`;
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly destroyFns: (() => void)[] = [];

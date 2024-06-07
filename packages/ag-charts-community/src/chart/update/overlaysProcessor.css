@@ -1,0 +1,19 @@
+.ag-chart-overlay {
+    color: #181d1f;
+}
+
+.ag-chart-overlay.ag-chart-dark-overlay {
+    color: #ffffff;
+}
+
+.ag-chart-overlay--loading {
+    color: rgb(140, 140, 140); /* DEFAULT_MUTED_LABEL_COLOUR */
+}
+
+.ag-chart-overlay__loading-background {
+    background: white; /* DEFAULT_BACKGROUND_FILL */
+}
+
+.ag-chart-overlay.ag-chart-dark-overlay .ag-chart-overlay__loading-background {
+    background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
+}
