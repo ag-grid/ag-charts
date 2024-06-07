@@ -215,7 +215,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const button of this.groupButtons[group]) {
             if (button.dataset.toolbarValue !== `${value}`) continue;
-            button.disabled = !enabled;
+            button.ariaDisabled = `${!enabled}`;
             button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
             button.classList.toggle(styles.modifiers.button.active, active);
         }

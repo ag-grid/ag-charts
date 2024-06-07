@@ -328,7 +328,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.disabled = true;
+        el.ariaDisabled = true.toString();
         el.textContent = this.ctx.localeManager.t(label);
         el.role = 'menuitem';
         return el;

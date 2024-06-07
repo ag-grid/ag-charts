@@ -60,13 +60,13 @@
     background: rgb(33, 150, 243, 0.1);
 }
 
-.ag-chart-context-menu__item[disabled] {
+.ag-chart-context-menu__item[aria-disabled="true"] {
     border: none;
     opacity: 0.5;
     text-align: left;
 }
 
-.ag-chart-context-menu__item[disabled]:hover {
+.ag-chart-context-menu__item[aria-disabled="true"]:hover {
     background: inherit;
     cursor: inherit;
 }
