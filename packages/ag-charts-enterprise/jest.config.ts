@@ -43,6 +43,7 @@ const commonConfig = {
     moduleNameMapper: {
         '^ag-charts-community$': '<rootDir>/../ag-charts-community/src/main.ts',
         '^ag-charts-community-test$': '<rootDir>/../ag-charts-community/src/main-test.ts',
+        '.css$': '<rootDir>/style-mock.js',
     },
 };
 
