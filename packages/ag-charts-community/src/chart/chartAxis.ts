@@ -59,7 +59,7 @@ export interface ChartAxis {
     type: string;
     update(primaryTickCount?: number, animated?: boolean): number | undefined;
     updateScale(): void;
-    updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
+    updatePosition(): void;
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
@@ -68,6 +68,12 @@ export interface ChartAxis {
         values?: any[];
         minSpacing?: number;
         maxSpacing?: number;
+    };
+    layoutConstraints: {
+        stacked: boolean;
+        align: 'start' | 'end';
+        width: number;
+        unit: 'percent' | 'px';
     };
 }
 
