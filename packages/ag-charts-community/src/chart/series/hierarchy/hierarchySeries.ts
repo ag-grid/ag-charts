@@ -403,7 +403,7 @@ export abstract class HierarchySeries<
         return this.getDatumIdFromData(node);
     }
 
-    private focusPath: FocusPathNode<TDatum>[] = [];
+    protected focusPath: FocusPathNode<TDatum>[] = [];
 
     protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
 
@@ -447,7 +447,7 @@ export abstract class HierarchySeries<
         }
     }
 
-    private computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
+    protected computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
         const bbox = this.computeFocusBounds(nodeDatum);
         if (bbox) {
             return {
