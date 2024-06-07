@@ -244,6 +244,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private processEvent(event: SupportedEvent) {
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
+        // AG-11385 Ignore clicks on focusable & disabled elements.
+        const target: EventTarget & { ariaDisabled?: string} | null = event.target;
+        if (event.type === 'click' && target?.ariaDisabled === 'true') {
+            event.preventDefault();
+            return;
+        }
+
         if (types.length > 0) {
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(event, types).catch((e) => Logger.errorOnce(e));
