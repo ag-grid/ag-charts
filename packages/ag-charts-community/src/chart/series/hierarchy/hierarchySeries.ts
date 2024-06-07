@@ -404,7 +404,6 @@ export abstract class HierarchySeries<
     }
 
     private focusPath: FocusPathNode<TDatum>[] = [];
-    private focusDepth: number = 0;
 
     protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
 
@@ -415,7 +414,8 @@ export abstract class HierarchySeries<
         }
 
         const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
-        const { focusPath: path, focusDepth: depth } = this;
+        const { focusPath: path } = this;
+        const depth = path.length - 2;
 
         if (depthDelta !== 0 || path.length === 1) {
             const targetDepth = Math.max(0, depth + depthDelta);
@@ -450,7 +450,6 @@ export abstract class HierarchySeries<
     private computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
         const bbox = this.computeFocusBounds(nodeDatum);
         if (bbox) {
-            this.focusDepth = nodeDatum.depth ?? 0;
             return {
                 datum: nodeDatum,
                 datumIndex: childIndex,
