@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize } from '../../chart/types';
+import type { CssColor, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
@@ -37,9 +37,13 @@ export interface AgChordSeriesLabelOptions<TDatum>
     maxWidth?: PixelSize;
 }
 
-export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Tension of the links. 0 gives a maximally curved link, and 1 gives a straight line. */
+    tension?: Ratio;
+}
 
 export interface AgChordSeriesLinkOptions extends AgChordSeriesLinkStyle {}
+
 export interface AgChordSeriesNodeOptions extends FillOptions, StrokeOptions, LineDashOptions {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;

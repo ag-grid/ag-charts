@@ -136,11 +136,9 @@
     display: none;
 }
 
-.ag-charts-toolbar__button:hover {
-    background: var(--ag-charts-toolbar-hover-color);
-}
-
-.ag-charts-toolbar__button:focus {
+.ag-charts-toolbar__button:hover,
+.ag-charts-toolbar__button:focus,
+.ag-charts-toolbar__button--active {
     background: var(--ag-charts-toolbar-hover-color);
 }
 

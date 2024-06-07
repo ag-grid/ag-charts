@@ -392,7 +392,7 @@ export class ChordSeries extends FlowProportionSeries<
             ctx: { callbackCache },
         } = this;
         const { fromKey, toKey, sizeKey, formatter } = properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
 
@@ -413,6 +413,7 @@ export class ChordSeries extends FlowProportionSeries<
                     strokeWidth,
                     lineDash,
                     lineDashOffset,
+                    tension,
                     highlighted: isHighlight,
                 };
                 format = callbackCache.call(formatter, params as AgChordSeriesFormatterParams);
@@ -432,6 +433,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
             link.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
             link.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
+            link.tension = tension;
         });
     }
 

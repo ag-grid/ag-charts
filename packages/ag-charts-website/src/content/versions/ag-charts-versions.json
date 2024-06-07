@@ -4,24 +4,28 @@
         "date": "July 1st 2024",
         "highlights": [
             {
-                "text": "Accessibility",
-                "path": "./accessibility"
+                "text": "Financial Charts",
+                "path": "./financial-charts"
             },
             {
-                "text": "Candlestick Series Type",
-                "path": "./candlestick-series"
+                "text": "Annotations",
+                "path": "./annotations"
             },
             {
-                "text": "OHLC Series Type",
-                "path": "./ohlc-series"
+                "text": "Sankey Series Type",
+                "path": "./sankey-series"
             },
             {
-                "text": "Ordinal Time Axis",
-                "path": "./axes-types/#ordinal-time"
+                "text": "Chord Series Type",
+                "path": "./chord-series"
             },
             {
-                "text": "Zoom Buttons",
-                "path": "./zoom/#buttons"
+                "text": "Smooth and Step Line Style",
+                "path": "./line/#line"
+            },
+            {
+                "text": "Localisation",
+                "path": "./localisation"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10"
