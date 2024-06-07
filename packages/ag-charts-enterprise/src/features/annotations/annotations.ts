@@ -138,6 +138,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
+
+        const otherRegions = Object.values(REGIONS)
+            .filter((region) => ![REGIONS.SERIES, REGIONS.HORIZONTAL_AXES, REGIONS.VERTICAL_AXES].includes(region))
+            .map((region) => ctx.regionManager.getRegion(region));
+
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
             horizontalAxesRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.HORIZONTAL_AXES), All),
@@ -148,6 +153,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
             seriesRegion.addListener('delete', this.onDelete.bind(this), All),
+            ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
@@ -416,6 +422,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onAxisClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
+        this.onCancel();
         this.onAxisClickAdding(event, region);
     }
 
