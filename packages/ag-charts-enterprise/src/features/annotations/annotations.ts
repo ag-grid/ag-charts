@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import { ColorPicker } from '../color-picker/colorPicker';
 import type { Coords, Domain, Point, Scale, StateClickEvent, StateDragEvent, StateHoverEvent } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { invertCoords, validateDatumPoint } from './annotationUtils';
@@ -110,6 +111,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.createAnnotationScene.bind(this)
     );
 
+    private readonly colorPicker = new ColorPicker(this.ctx);
+
     // Cached axis data
     private scaleX?: Scale;
     private scaleY?: Scale;
@@ -145,6 +148,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
+            () => this.colorPicker.destroy(),
             horizontalAxesRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.HORIZONTAL_AXES), All),
             verticalAxesRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.VERTICAL_AXES), All),
             seriesRegion.addListener('hover', (event) => this.onHover(event, REGIONS.SERIES), All),
@@ -228,6 +232,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!annotationData || active == null) return;
 
         switch (event.value) {
+            case 'color':
+                this.colorPicker.show({
+                    anchor: this.annotations.nodes()[active]?.getAnchor(),
+                    color: this.getTypedDatum(annotationData[active])?.stroke,
+                    onChange: this.onColorPickerChange.bind(this),
+                });
+                break;
+
             case 'delete':
                 annotationData.splice(active, 1);
                 this.reset();
@@ -236,12 +248,28 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case 'lock':
                 annotationData[active].locked = true;
                 this.toggleAnnotationOptionsButtons();
+                this.colorPicker.hide();
                 break;
 
             case 'unlock':
                 annotationData[active].locked = false;
                 this.toggleAnnotationOptionsButtons();
                 break;
+        }
+
+        this.update();
+    }
+
+    private onColorPickerChange(color: string) {
+        const { active, annotationData } = this;
+
+        if (active == null || !annotationData) return;
+
+        const datum = this.getTypedDatum(annotationData[active]);
+
+        if (datum) {
+            datum.stroke = color;
+            if ('background' in datum) datum.background.fill = color;
         }
 
         this.update();
@@ -441,8 +469,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onClickSelecting() {
         const {
             annotations,
+            colorPicker,
             hovered,
-            ctx: { toolbarManager },
+            ctx: { toolbarManager, tooltipManager },
         } = this;
 
         if (this.active != null) {
@@ -453,11 +482,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
 
         if (this.active == null) {
-            this.ctx.tooltipManager.unsuppressTooltip('annotations');
+            tooltipManager.unsuppressTooltip('annotations');
+            colorPicker.hide();
         } else {
             const node = annotations.nodes()[this.active];
             node.toggleActive(true);
-            this.ctx.tooltipManager.suppressTooltip('annotations');
+            tooltipManager.suppressTooltip('annotations');
             this.toggleAnnotationOptionsButtons();
         }
 
@@ -500,6 +530,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        // TODO: This shouldn't happen. Prevent drags on color picker triggering here.
+        if (this.colorPicker.isVisible()) return;
+
         // Only track pointer offset for drag + click prevention when we are placing the first point
         if (this.state.is('start')) {
             this.dragOffset = { x: event.offsetX, y: event.offsetY };
@@ -650,9 +683,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null || !annotationData) return;
 
         const locked = annotationData?.at(active)?.locked ?? false;
+        toolbarManager.toggleButton('annotationOptions', 'color', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'delete', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
+    }
+
+    getTypedDatum(datum: unknown) {
+        if (
+            LineAnnotation.is(datum) ||
+            CrossLineAnnotation.is(datum) ||
+            DisjointChannelAnnotation.is(datum) ||
+            ParallelChannelAnnotation.is(datum)
+        ) {
+            return datum;
+        }
     }
 
     private clear() {
@@ -667,6 +712,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.hovered = undefined;
         this.active = undefined;
         this.ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+        this.colorPicker.hide();
     }
 
     private update() {
