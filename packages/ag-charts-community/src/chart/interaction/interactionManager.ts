@@ -335,7 +335,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return [event.type];
 
             case 'mousedown':
-                if (!this.isEventOverElement(event)) {
+                if (!this.isEventOverElement(event) || ! ('button' in event) || event.button !== 0) {
                     return [];
                 }
                 this.mouseDown = true;
