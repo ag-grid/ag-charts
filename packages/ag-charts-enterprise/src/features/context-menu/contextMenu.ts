@@ -18,7 +18,8 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, initMenuKeyNav, ContextMenuRegistry } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
+    _ModuleSupport;
 
 const moduleId = 'context-menu';
 
@@ -276,10 +277,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createActionElement({ id, label, type, action }: ContextMenuAction): HTMLElement {
+        let button: HTMLElement;
         if (id && this.registry.isDisabled(id)) {
-            return this.createDisabledElement(label);
+            button = this.createDisabledElement(label);
+        } else {
+            button = this.createButtonElement(label);
         }
-        return this.createButtonElement(type, label, action);
+        button.onclick = makeAccessibleClickListener(button, this.createButtonOnClick(type, action));
+        return button;
     }
 
     private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
@@ -310,16 +315,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private createButtonElement<T extends ContextType>(
-        type: T,
-        label: string,
-        callback: ContextMenuCallback<T>
-    ): HTMLElement {
+    private createButtonElement(label: string): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.textContent = this.ctx.localeManager.t(label);
-        el.onclick = this.createButtonOnClick(type, callback);
         el.role = 'menuitem';
         return el;
     }
