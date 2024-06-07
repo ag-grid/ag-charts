@@ -92,7 +92,7 @@ export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
 }
 
 /** NOTE: For API docs use; simplified typings to enable rendering. */
-// @ts-expect-error
+// @ts-ignore
 interface _AgChartsInterface {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
@@ -101,7 +101,7 @@ interface _AgChartsInterface {
 }
 
 /** NOTE: For API docs use; simplified typings to enable rendering. */
-// @ts-expect-error
+// @ts-ignore
 interface _AgChartInstanceInterface extends AgChartInstance<AgChartOptions> {
     update(options: AgChartOptions): Promise<void>;
     updateDelta(deltaOptions: AgChartOptions): Promise<void>;
