@@ -69,7 +69,6 @@
     border-bottom-left-radius: 2px;
     border-bottom-right-radius: 2px;
     border: 1px solid rgba(0, 0, 0, 0.15);
-    overflow: hidden;
     text-overflow: inherit;
 }
 
