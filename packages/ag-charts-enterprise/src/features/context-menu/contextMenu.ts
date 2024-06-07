@@ -277,14 +277,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createActionElement({ id, label, type, action }: ContextMenuAction): HTMLElement {
-        let button: HTMLElement;
-        if (id && this.registry.isDisabled(id)) {
-            button = this.createDisabledElement(label);
-        } else {
-            button = this.createButtonElement(label);
-        }
-        button.onclick = makeAccessibleClickListener(button, this.createButtonOnClick(type, action));
-        return button;
+        const disabled = !!(id && this.registry.isDisabled(id));
+        return this.createButtonElement(type, label, action, disabled);
     }
 
     private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
@@ -315,22 +309,19 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private createButtonElement(label: string): HTMLElement {
+    private createButtonElement<T extends ContextType>(
+        type: T,
+        label: string,
+        callback: ContextMenuCallback<T>,
+        disabled: boolean
+    ): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        el.ariaDisabled = disabled.toString();
         el.textContent = this.ctx.localeManager.t(label);
         el.role = 'menuitem';
-        return el;
-    }
-
-    private createDisabledElement(label: string): HTMLElement {
-        const el = createElement('button');
-        el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.ariaDisabled = true.toString();
-        el.textContent = this.ctx.localeManager.t(label);
-        el.role = 'menuitem';
+        el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(type, callback));
         return el;
     }
 
