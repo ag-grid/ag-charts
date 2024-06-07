@@ -420,6 +420,7 @@ export abstract class HierarchySeries<
         if (depthDelta !== 0 || path.length === 1) {
             const targetDepth = Math.max(0, depth + depthDelta);
             if (path[targetDepth + 1] !== undefined) {
+                path.length = targetDepth + 2;
                 return this.computeFocusOutputs(path[targetDepth + 1]);
             } else {
                 let deepest = path[path.length - 1];
