@@ -28,7 +28,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     @Invalidating
     override interval?: TimeInterval | number = undefined;
 
-    protected rangeIndex: number[][] = [];
     protected niceStart: number = NaN;
 
     private medianInterval?: number;
@@ -39,7 +38,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     override set domain(values: Date[]) {
         this.invalid = true;
-        this.rangeIndex = [];
 
         if (values.length === 0) {
             this._domain = [];
@@ -56,15 +54,13 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     private updateIndex() {
-        const { timestamps, sortedTimestamps } = this;
+        const { sortedTimestamps } = this;
         const intervals: number[] = [];
 
         let lastValue: number | undefined;
         for (const value of sortedTimestamps) {
             if (lastValue != null) {
-                const prev = lastValue + 1;
-                this.rangeIndex.push([prev, value]);
-                intervals.push(Math.abs(value - prev));
+                intervals.push(Math.abs(value - lastValue + 1));
             }
             lastValue = value;
         }
@@ -74,11 +70,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
         this.medianInterval = medianInterval;
         this.niceStart = Number(interval.floor(sortedTimestamps[0]));
-        this.rangeIndex.unshift([this.niceStart, sortedTimestamps[0]]);
-
-        if (timestamps[0] !== sortedTimestamps[0]) {
-            this.rangeIndex.reverse();
-        }
     }
 
     private getMedianInterval(intervals: number[]) {
@@ -190,17 +181,34 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     override convert(d: Date): number {
         this.refresh();
-
-        let i;
         const n = Number(d);
-        for (const [index, dateRange] of this.rangeIndex.entries()) {
-            if (n >= dateRange[0] && n <= dateRange[1]) {
-                i = index;
-                break;
+        if (n < this.niceStart) {
+            return NaN;
+        }
+        let i = this.findInterval(n);
+        if (this.timestamps[0] !== this.sortedTimestamps[0]) {
+            i = this.timestamps.length - i - 1;
+        }
+        return this.ordinalRange[i] ?? NaN;
+    }
+
+    private findInterval(target: number) {
+        // Binary search for the target
+        const { sortedTimestamps } = this;
+        let low = 0;
+        let high = sortedTimestamps.length - 1;
+
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            if (sortedTimestamps[mid] === target) {
+                return mid;
+            } else if (sortedTimestamps[mid] < target) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
             }
         }
-
-        return i == null ? NaN : this.ordinalRange[i] ?? NaN;
+        return low;
     }
 
     /**
