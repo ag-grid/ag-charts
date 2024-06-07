@@ -33,7 +33,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     private medianInterval?: number;
 
     protected override _domain: Date[] = [];
-    protected _domainNumbers: number[] = [];
+    protected timestamps: number[] = [];
 
     override set domain(values: Date[]) {
         this.index.clear();
@@ -45,7 +45,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
             return;
         }
 
-        this._domainNumbers = values.map(dateToNumber);
+        this.timestamps = values.map(dateToNumber);
 
         this.updateIndex(values);
         this._domain = values;
@@ -92,7 +92,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override ticks(): Date[] {
         this.refresh();
 
-        const [t0, t1] = [this._domainNumbers[0], this._domainNumbers.at(-1)!];
+        const [t0, t1] = [this.timestamps[0], this.timestamps.at(-1)!];
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
         const isReversed = t0 > t1;
