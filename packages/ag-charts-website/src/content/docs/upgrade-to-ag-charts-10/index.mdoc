@@ -14,6 +14,10 @@ Users of integrated charting on AG Grid, should refer to this migration guide wh
 This release includes the following breaking changes:
 
 -   The `AgChart` entrypoint has been renamed to `AgCharts`.
+-   AgCharts.update() moved to AgChartInstance.update().
+-   AgCharts.updateDelta() moved to AgChartInstance.updateDelta().
+-   AgCharts.download() moved to AgChartInstance.download().
+-   AgCharts.getImageDataURL() moved to AgChartInstance.getImageDataURL().
 -   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
 -   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
 -   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
@@ -64,6 +68,8 @@ This release includes the following behaviour changes:
 **Other Changes**
 
 -   Pan left and Pan right zoom buttons move the chart by one step rather than the entire viewport width.
+-   Time format in tooltips and crosshair labels defaults to a prettier format.
+-   Time and Number format in tooltips now follows the `axis[].format` if provided. Use a tooltip renderer to specify a tooltip specific format.
 -   Wrapped and truncated text may display differently.
     -   More precise text measurement allows display of more characters from longer labels to be displayed before wrapping or truncating.
     -   Wrapping strategy is improved to give more balanced lines.
