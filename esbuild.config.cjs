@@ -115,6 +115,9 @@ plugins.push(postBuildMinificationPlugin);
 const options = {
     outExtension,
     plugins,
+    loader: {
+        '.css': 'text',
+    },
 };
 
 module.exports = options;
