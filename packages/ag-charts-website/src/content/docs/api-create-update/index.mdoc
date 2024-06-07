@@ -8,15 +8,17 @@ Learn about creating and updating charts in more detail.
 ## Creating and Updating Charts
 
 {% if isFramework("javascript") %}
-`AgCharts` exposes `create()` static methods to perform chart initialisation, and the resulting `AgChartInstance` has methods
-such as `AgChartInstance.update()` to allow updating configuration. The `AgChartOptions` type defines the configuration structure.
+`AgCharts` exposes a static `create()` method to perform chart initialisation, and the resulting `AgChartInstance` has methods
+such as `AgChartInstance.update()` to allow updating configuration.
 
-Mutations to the previously used options object are not automatically picked up by the chart implementation,
-`AgChartInstance.update()` should be called for changes to be applied.
+The `AgChartOptions` type defines the configuration structure. See the [Options Reference](/options) for more details.
+
+Mutations to the previously used options object are not automatically picked up by the chart implementation.
+`AgChartInstance.update()` or `AgChartInstance.updateDelta()` should be called to apply changes.
 
 {% note %}
-We expect the options supplied to `AgChartInstance.update()` to be the full configuration state to update
-to, not a partial configuration. Use `AgChartInstance.updateDelta()` to apply partial updates.
+We expect the options supplied to `AgChartInstance.update()` to be the full configuration state for the chart, not a partial configuration.
+Use `AgChartInstance.updateDelta()` to apply partial updates.
 {% /note %}
 
 {% warning %}
@@ -40,9 +42,9 @@ elements are mutated in-place, we cannot guarantee to detect the changes.
 
 {% if isNotJavascriptFramework() %}
 `AgChartOptions` are supplied to the AG Charts component, and mutations of the options trigger an update of the chart configuration.
-{% /if %}
 
 See the [Options Reference](/options) for more detail about the `AgChartOptions` structure.
+{% /if %}
 
 The following example demonstrates both create and update cases:
 
@@ -55,9 +57,9 @@ The following example demonstrates both create and update cases:
 
 ## Delta Options Update
 
-`AgChartInstance` exposes `updateDelta()` and `getOptions()` method to allow partial updates to a charts options.
+`AgChartInstance` exposes the `updateDelta()` method to allow partial updates to a charts options.
 
-To assist with state management, the complete applied options state can be retrieved by calling `getOptions()`:
+To assist with state management, the complete applied options state can be retrieved by calling the `getOptions()` method on the `AgChartInstance`.
 
 {% apiReference id="_AgChartInstanceInterface" include=["updateDelta", "getOptions"] hideHeader=true hideRequired=true /%}
 
@@ -70,18 +72,21 @@ The following example demonstrates:
 
 ## Waiting for Options Update
 
-Creation and updates happen asynchronously, but in some situations it maybe useful to know when an update is
+Creation and updates happen asynchronously, but in some situations it maybe useful to know when an update has been
 rendered.
 
 To assist with this, `AgChartInstance.update()` and `AgChartInstance.updateDelta()` return `Promise`s that resolve once
-rendering is complete. Additionally `AgChartsInstance.waitForUpdate()` can be used after initial creation to understand
-when the first rendering of the chart is completed.
+rendering is complete.
+
+Additionally `AgChartsInstance.waitForUpdate()` can be used after initial creation to understand
+when the first rendering of the newly created chart is complete.
 
 {% note %}
 `Promise`s do not take animations into account, they resolve after the first rendering in an animation sequence.
 {% /note %}
 
-This example demonstrates how this can be used to create trivial loops to continuously update a chart:
+This example demonstrates how this can be used to create trivial loops to continuously update a chart,
+with each update only being applied once the previous update has completed.
 
 {% chartExampleRunner title="Wait for Options Update" name="wait-for-update" type="generated" /%}
 
@@ -90,7 +95,7 @@ This example demonstrates how this can be used to create trivial loops to contin
 ## Destroying Charts
 
 {% if isFramework("javascript") %}
-Charts can be destroyed by using the `AgChartInstance.destroy()` method:
+Charts can be destroyed by using the `AgChartInstance.destroy()` method.
 
 {% apiReference id="_AgChartInstance" include=["destroy"] hideHeader=true hideRequired=true /%}
 {% /if %}
