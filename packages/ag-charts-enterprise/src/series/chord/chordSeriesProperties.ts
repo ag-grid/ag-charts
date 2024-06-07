@@ -54,6 +54,9 @@ export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptio
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(RATIO)
+    tension = 0;
 }
 
 export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
