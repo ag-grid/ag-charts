@@ -3,6 +3,7 @@ import type { Direction, _Scene } from 'ag-charts-community';
 import type { AnnotationAxisContext, AnnotationContext, Coords } from '../annotationTypes';
 import { invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
+import { AxisLabel } from '../scenes/axisLabel';
 import { UnivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
 import type { CrossLineAnnotation } from './crossLineProperties';
@@ -18,12 +19,13 @@ export class CrossLine extends Annotation {
 
     private readonly line = new CollidableLine();
     private readonly middle = new UnivariantHandle();
+    private readonly axisLabel = new AxisLabel();
 
     private seriesRect?: _Scene.BBox;
 
     constructor() {
         super();
-        this.append([this.line, this.middle]);
+        this.append([this.line, this.middle, this.axisLabel]);
     }
 
     public update(datum: CrossLineAnnotation, context: AnnotationContext) {
@@ -74,6 +76,22 @@ export class CrossLine extends Annotation {
         const { width: handleWidth, height: handleHeight } = middle.handle;
         middle.gradient = direction;
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
+
+        const { axisLabel } = this;
+        if (datum.axisLabel.enabled) {
+            axisLabel.visible = true;
+            const [labelX, labelY] =
+                axisContext.position === 'left' || axisContext.position === 'top' ? [x1, y1] : [x2, y2];
+            axisLabel.update({
+                x: labelX,
+                y: labelY,
+                value,
+                styles: datum.axisLabel,
+                context: axisContext,
+            });
+        } else {
+            axisLabel.visible = false;
+        }
     }
 
     public toggleHandles(show: boolean) {

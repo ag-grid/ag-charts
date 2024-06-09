@@ -26,6 +26,13 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                 },
+                axisLabel: {
+                    enabled: true,
+                    color: 'white',
+                    fill: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    fontSize: 12,
+                    padding: 8,
+                },
             },
             'disjoint-channel': {
                 stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
