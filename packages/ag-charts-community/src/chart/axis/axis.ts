@@ -1536,10 +1536,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             scaleValueFormatter: (specifier?: string) =>
                 specifier ? scale.tickFormat?.({ specifier }) : this.getFormatter(),
             scaleBandwidth: () => scale.bandwidth ?? 0,
+            scaleDomain: () => scale.getDomain?.(),
             scaleConvert: (val) => scale.convert(val),
             scaleInvert: OrdinalTimeScale.is(scale)
                 ? (val) => scale.invertNearest?.(val)
                 : (val) => scale.invert?.(val),
+            scaleInvertNearest: (val) => scale.invertNearest?.(val),
         };
     }
 
