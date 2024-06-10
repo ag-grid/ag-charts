@@ -17,7 +17,7 @@ const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
             type: 'time',
             nice: false,
             position: 'bottom',
-            interval: time.month,
+            interval: { step: time.month },
             label: {
                 format: '%b %Y',
             },
