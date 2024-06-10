@@ -173,12 +173,12 @@ export const css = `
     background: var(--ag-charts-toolbar-active-color);
 }
 
-.${elements.button}:disabled {
+.${elements.button}[aria-disabled="true"] {
     background: var(--ag-charts-toolbar-disabled-background-color);
     color: var(--ag-charts-toolbar-disabled-foreground-color);
 }
 
-.${elements.button}:not([disabled]) {
+.${elements.button}:not([aria-disabled="true"]) {
     cursor: pointer;
 }
 
