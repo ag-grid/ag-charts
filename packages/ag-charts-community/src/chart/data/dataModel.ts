@@ -249,6 +249,60 @@ export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = Redu
 
 const INVALID_VALUE = Symbol('invalid');
 
+export function getPathComponents(path: string) {
+    const components: string[] = [];
+    let matchIndex = 0;
+    let matchGroup: RegExpExecArray | null;
+    const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|\\')*'|"(?:[^']|\\")*"|-?\d+)\s*\])\s*)/g;
+    /**              ^                         ^               ^               ^
+     *               |                         |               |               |
+     *                - .dotAccessor or initial property (i.e. a in "a.b")     |
+     *                                         |               |               |
+     *                                          - ['single-quoted']            |
+     *                                                         |               |
+     *                                                          - ["double-quoted"]
+     *                                                                         |
+     *                                                                          - [0] index properties
+     */
+    while ((matchGroup = regExp.exec(path))) {
+        if (matchGroup.index !== matchIndex) {
+            return;
+        }
+        matchIndex = matchGroup.index + matchGroup[0].length;
+        const match = matchGroup[1].trim();
+        if (match.startsWith('.')) {
+            // .property
+            components.push(match.slice(1).trim());
+        } else if (match.startsWith('[')) {
+            const accessor = match.slice(1, -1).trim();
+            if (accessor.startsWith(`'`) || accessor.startsWith(`"`)) {
+                // ["string-property"]
+                components.push(accessor.slice(1, -1));
+            } else {
+                // ["number-property"]
+                components.push(accessor);
+            }
+        } else {
+            // thisProperty.other["properties"]['afterwards']
+            components.push(match);
+        }
+    }
+
+    if (matchIndex !== path.length) return;
+
+    return components;
+}
+
+function createPathAccessor(components: string[]) {
+    return (datum: any): any => {
+        let current = datum;
+        for (const component of components) {
+            current = current[component];
+        }
+        return current;
+    };
+}
+
 export class DataModel<
     D extends object,
     K extends keyof D & string = keyof D & string,
@@ -894,14 +948,13 @@ export class DataModel<
             const isPath = def.property.includes('.') || def.property.includes('[');
             if (!isPath) continue;
 
-            let fnBody;
-            if (def.property.startsWith('[')) {
-                fnBody = `return datum${def.property};`;
-            } else {
-                fnBody = `return datum.${def.property};`;
+            const components = getPathComponents(def.property);
+            if (components == null) {
+                Logger.warnOnce('Invalid property path [%s]', def.property);
+                continue;
             }
-            // eslint-disable-next-line @typescript-eslint/no-implied-eval
-            result.set(def.property, new Function('datum', fnBody) as (d: any) => any);
+            const accessor = createPathAccessor(components);
+            result.set(def.property, accessor);
         }
         return result;
     }
