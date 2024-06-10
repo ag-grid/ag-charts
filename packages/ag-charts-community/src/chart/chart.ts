@@ -376,6 +376,7 @@ export abstract class Chart extends Observable {
             ctx.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
             ctx.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
+                this.ctx.focusIndicator.updateBBox(undefined);
                 this.series.map((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
