@@ -28,9 +28,10 @@ import { deepClone, jsonDiff, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
+import type { AxisContext } from './axisContext';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import { enterpriseModule } from './enterpriseModule';
-import type { AxisContext, ModuleContextWithParent } from './moduleContext';
+import type { ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
 
 type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time';

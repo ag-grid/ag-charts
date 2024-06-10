@@ -1,5 +1,6 @@
+import type { AxisContext } from '../../module/axisContext';
 import type { ModuleInstance } from '../../module/baseModule';
-import type { AxisContext, ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
+import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { AxisOptionModule } from '../../module/optionsModule';
 import type { FromToDiff } from '../../motion/fromToMotion';
@@ -578,8 +579,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private setTitleProps(caption: Caption, params: { spacing: number }) {
         const { title } = this;
+
         if (!title.enabled) {
             caption.enabled = false;
+            caption.node.visible = false;
             return;
         }
 
@@ -591,34 +594,32 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         caption.enabled = title.enabled;
         caption.wrapping = title.wrapping;
 
-        if (title.enabled) {
-            const titleNode = caption.node;
-            const padding = (title.spacing ?? 0) + params.spacing;
-            const sideFlag = this.label.getSideFlag();
+        const titleNode = caption.node;
+        const padding = (title.spacing ?? 0) + params.spacing;
+        const sideFlag = this.label.getSideFlag();
 
-            const parallelFlipRotation = normalizeAngle360(this.rotation);
-            const titleRotationFlag =
-                sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
-            const rotation = (titleRotationFlag * sideFlag * Math.PI) / 2;
-            const textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
+        const parallelFlipRotation = normalizeAngle360(this.rotation);
+        const titleRotationFlag =
+            sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
+        const rotation = (titleRotationFlag * sideFlag * Math.PI) / 2;
+        const textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
 
-            const { range } = this;
-            const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
-            const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
+        const { range } = this;
+        const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
+        const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
 
-            const { callbackCache } = this.moduleCtx;
-            const { formatter = (p) => p.defaultValue } = title;
-            const text = callbackCache.call(formatter, this.getTitleFormatterParams());
+        const { callbackCache } = this.moduleCtx;
+        const { formatter = (p) => p.defaultValue } = title;
+        const text = callbackCache.call(formatter, this.getTitleFormatterParams());
 
-            titleNode.setProperties({
-                rotation,
-                text,
-                textBaseline,
-                visible: true,
-                x,
-                y,
-            });
-        }
+        titleNode.setProperties({
+            rotation,
+            text,
+            textBaseline,
+            visible: true,
+            x,
+            y,
+        });
     }
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
@@ -723,7 +724,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
             if (crossLine instanceof CartesianCrossLine) {
-                crossLine.label.parallel = crossLine.label.parallel ?? this.label.parallel;
+                crossLine.label.parallel ??= this.label.parallel;
             }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
@@ -1397,11 +1398,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected updateTitle(params: { anyTickVisible: boolean }): void {
         const { rotation, title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
 
-        if (!title) {
-            _titleCaption.enabled = false;
-            return;
-        }
-
         let spacing = 0;
         if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
@@ -1518,7 +1514,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { ...this.moduleCtx, parent: this.axisContext };
     }
 
-    protected createAxisContext(): AxisContext {
+    public createAxisContext(): AxisContext {
         const { scale } = this;
         return {
             axisId: this.id,
@@ -1588,7 +1584,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const added = new Set<string>();
         const removed = new Set<string>();
         const tickMap: Record<string, TickData['ticks'][number]> = {};
-
         const tickCount = Math.max(previous.length, tickData.ticks.length);
 
         for (let i = 0; i < tickCount; i++) {

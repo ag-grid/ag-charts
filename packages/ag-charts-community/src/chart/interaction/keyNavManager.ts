@@ -1,6 +1,5 @@
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -9,6 +8,7 @@ import type {
     PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
+import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
 export type KeyNavEventType =
     | 'blur'
@@ -16,11 +16,12 @@ export type KeyNavEventType =
     | 'tab'
     | 'nav-hori'
     | 'nav-vert'
+    | 'nav-zoom'
     | 'submit'
     | 'cancel'
     | 'delete';
 
-export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
+export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = PreventableEvent & {
     type: T;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
@@ -113,6 +114,12 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
                 return this.dispatch('nav-hori', -1, event);
             case 'ArrowRight':
                 return this.dispatch('nav-hori', 1, event);
+            case 'ZoomIn':
+            case 'Add':
+                return this.dispatch('nav-zoom', 1, event);
+            case 'ZoomOut':
+            case 'Substract':
+                return this.dispatch('nav-zoom', -1, event);
             case 'Space':
             case 'Enter':
                 return this.dispatch('submit', 0, event);
@@ -122,10 +129,16 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             case 'Delete':
                 return this.dispatch('delete', 0, event);
         }
+
+        switch (event.sourceEvent.key) {
+            case '+':
+                return this.dispatch('nav-zoom', 1, event);
+            case '-':
+                return this.dispatch('nav-zoom', -1, event);
+        }
     }
 
-    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, interactionEvent: InteractionEvent) {
-        const event = buildConsumable({ type, delta, sourceEvent: interactionEvent });
-        dispatchTypedConsumable(this.listeners, type, event);
+    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
+        dispatchTypedEvent(this.listeners, { type, delta, sourceEvent });
     }
 }

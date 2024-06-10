@@ -518,6 +518,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         );
     }
 
+    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
             return [];

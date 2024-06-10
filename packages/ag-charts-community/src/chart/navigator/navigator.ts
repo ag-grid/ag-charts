@@ -4,13 +4,13 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import { setElementBBox } from '../../util/dom';
+import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
 import { clamp, formatPercentage } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
-import { initToolbarKeyNav } from '../toolbar/toolbarUtil';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -102,7 +102,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-pan',
-                ariaLabel: { id: 'aria-label.panning' },
+                ariaLabel: { id: 'aria-label.navigator-range' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maskVisibleRange,
@@ -111,7 +111,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-min',
-                ariaLabel: { id: 'aria-label.minimum' },
+                ariaLabel: { id: 'aria-label.navigator-minimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
@@ -120,7 +120,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-max',
-                ariaLabel: { id: 'aria-label.maximum' },
+                ariaLabel: { id: 'aria-label.navigator-maximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,

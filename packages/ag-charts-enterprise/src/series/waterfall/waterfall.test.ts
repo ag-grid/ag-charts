@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AgWaterfallSeriesOptions,
+    WaterfallSeriesTotalMeta,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     expectWarningsCalls,
@@ -26,7 +32,7 @@ describe('WaterfallSeries', () => {
         }
     });
 
-    const TOTALS_META_DATA = [
+    const TOTALS_META_DATA: WaterfallSeriesTotalMeta[] = [
         { totalType: 'subtotal', index: 2, axisLabel: 'Subtotal 1' },
         { totalType: 'subtotal', index: 5, axisLabel: 'Subtotal 2' },
         { totalType: 'subtotal', index: 7, axisLabel: 'Subtotal 3' },
@@ -57,7 +63,7 @@ describe('WaterfallSeries', () => {
         { year: '2031', spending: [50] },
     ];
 
-    const WATERFALL_COLUMN_OPTIONS: AgChartOptions = {
+    const WATERFALL_COLUMN_OPTIONS: AgCartesianChartOptions = {
         data: [
             { year: '2020', spending: 10 },
             { year: '2021', spending: 20 },
@@ -114,7 +120,7 @@ describe('WaterfallSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {
+    function switchSeriesType<T extends AgChartOptions>(opts: T, direction: 'horizontal' | 'vertical'): T {
         return {
             ...opts,
             series: opts['series']?.map((s) => ({
@@ -141,8 +147,8 @@ describe('WaterfallSeries', () => {
     });
 
     it(`should render a waterfall chart with total and subtotal columns`, async () => {
-        const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series;
-        const options: AgChartOptions = {
+        const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series! as AgWaterfallSeriesOptions[];
+        const options: AgCartesianChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
         };
@@ -243,7 +249,7 @@ describe('WaterfallSeries', () => {
     });
 
     it(`should render a waterfall chart with reversed axes`, async () => {
-        const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series;
+        const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series as AgWaterfallSeriesOptions[];
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
@@ -268,7 +274,7 @@ describe('WaterfallSeries', () => {
 
     it(`should render a horizontal waterfall chart with reversed axes`, async () => {
         const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal');
-        const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series[0];
+        const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series?.[0] as AgWaterfallSeriesOptions;
         const options: AgChartOptions = {
             ...WATERFALL_BAR_OPTIONS,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
@@ -293,7 +299,7 @@ describe('WaterfallSeries', () => {
 
     it(`should render a horizontal waterfall chart with total and subtotal bars`, async () => {
         const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal');
-        const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series[0];
+        const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series?.[0] as AgWaterfallSeriesOptions;
         const options: AgChartOptions = {
             ...WATERFALL_BAR_OPTIONS,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
@@ -305,7 +311,7 @@ describe('WaterfallSeries', () => {
     });
 
     it(`should render a waterfall chart with missing and invalid values`, async () => {
-        const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series;
+        const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series as AgWaterfallSeriesOptions[];
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             data: DATA_WITH_MISSING_INVALID_VALUES,
@@ -332,7 +338,7 @@ describe('WaterfallSeries', () => {
 
     it(`should render a horizontal waterfall chart with missing and invalid values`, async () => {
         const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal');
-        const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series[0];
+        const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series?.[0] as AgWaterfallSeriesOptions;
         const options: AgChartOptions = {
             ...WATERFALL_BAR_OPTIONS,
             data: DATA_WITH_MISSING_INVALID_VALUES,

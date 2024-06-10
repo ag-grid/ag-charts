@@ -1,5 +1,6 @@
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
+import { Debug } from '../../util/debug';
 import { type Listener, Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
 import type { TimeInterval } from '../../util/time/interval';
@@ -43,6 +44,7 @@ type Handler<T extends EventTypes> = T extends LayoutStage ? LayoutProcessor : L
 
 export class LayoutService extends Listeners<EventTypes, Handler<EventTypes>> {
     private readonly layoutComplete = 'layout-complete';
+    private readonly debug = Debug.create(true, 'layout');
 
     public override addListener<T extends EventTypes>(eventType: T, handler: Handler<T>) {
         if (this.isLayoutStage(eventType) || this.isLayoutComplete(eventType)) {
@@ -55,7 +57,9 @@ export class LayoutService extends Listeners<EventTypes, Handler<EventTypes>> {
         if (this.isLayoutStage(stage)) {
             return this.getListenersByType(stage).reduce((result, listener) => {
                 try {
-                    return (listener as Listener<Handler<T>>).handler(result);
+                    const newCtx = (listener as Listener<Handler<T>>).handler(result);
+                    this.debug('[LayoutService] Context updated to: ', { ...newCtx }, listener);
+                    return newCtx;
                 } catch (e) {
                     Logger.errorOnce(e);
                     return result;

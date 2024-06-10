@@ -718,13 +718,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             datum.sectorFormat.stroke = format.stroke;
 
             const animationDisabled = this.ctx.animationManager.isSkipped();
-            if (animationDisabled) {
+            if (isDatumHighlighted || animationDisabled) {
                 sector.startAngle = datum.startAngle;
                 sector.endAngle = datum.endAngle;
                 sector.innerRadius = datum.innerRadius;
                 sector.outerRadius = datum.outerRadius;
-            }
-            if (isDatumHighlighted || animationDisabled) {
                 sector.fill = format.fill;
                 sector.stroke = format.stroke;
             }

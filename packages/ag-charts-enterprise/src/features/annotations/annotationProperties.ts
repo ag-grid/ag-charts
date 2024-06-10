@@ -1,5 +1,7 @@
 import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
+import type { ValidationContext } from './annotationTypes';
+
 const {
     BOOLEAN,
     COLOR_STRING,
@@ -34,10 +36,17 @@ export class ChannelAnnotationMiddle extends Stroke(LineDash(Visible(BasePropert
 export class AnnotationHandleProperties extends Stroke(LineDash(Fill(BaseProperties))) {}
 
 // --- Annotations Mixins ---
-export function Annotation<T extends string, U extends Constructor>(_type: T, Parent: U) {
+export function Annotation<T extends string, U extends Constructor<_ModuleSupport.BaseProperties>>(
+    _type: T,
+    Parent: U
+) {
     class AnnotationProperties extends Lockable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
         id = _Util.uuid();
+
+        isValidWithContext(_context: ValidationContext, warningPrefix: string) {
+            return super.isValid(warningPrefix);
+        }
     }
     return AnnotationProperties;
 }

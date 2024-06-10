@@ -1,7 +1,102 @@
-export default `
+/********
+* RESET *
+********/
+[class^='ag-charts'],
+[class^='ag-charts']:focus,
+[class^='ag-charts']:after,
+[class^='ag-charts']:before {
+    box-sizing: border-box;
+    outline: none;
+}
+
+/********
+* THEME *
+********/
+.ag-charts-theme-default,
+.ag-charts-theme-default-dark {
+    /* Colors */
+    --ag-charts-active-color: var(--ag-active-color, #2196f3);
+    --ag-charts-background-color: var(--ag-background-color, #fff);
+    --ag-charts-foreground-color: var(--ag-foreground-color, #181d1f);
+    --ag-charts-border-color: var(--ag-border-color, #dddddd);
+
+    /* Sizing */
+    --ag-charts-font-size: var(--ag-font-size, 14px);
+    --ag-charts-size: var(--ag-grid-size, 8px);
+
+    /* Borders */
+    --ag-charts-border: var(--ag-borders, solid 1px);
+    --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
+
+    /* Layout */
+    --ag-charts-align: center;
+    --ag-charts-justify: center;
+
+    /* Toolbar */
+    --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-foreground-color));
+    --ag-charts-toolbar-background-color: var(
+        --ag-header-background-color,
+        color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-foreground-color) 2%)
+    );
+    --ag-charts-toolbar-size: 34px;
+    --ag-charts-toolbar-padding: calc(var(--ag-charts-size) * 2);
+    --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
+    --ag-charts-toolbar-active-color: color-mix(
+        in srgb,
+        var(--ag-charts-background-color),
+        var(--ag-charts-active-color) 12%
+    );
+    --ag-charts-toolbar-disabled-foreground-color: var(
+        --ag-disabled-foreground-color,
+        color-mix(in srgb, transparent, var(--ag-charts-toolbar-foreground-color) 50%)
+    );
+    --ag-charts-toolbar-disabled-background-color: color-mix(
+        in srgb,
+        var(--ag-charts-toolbar-background-color),
+        var(--ag-charts-toolbar-foreground-color) 6%
+    );
+    --ag-charts-toolbar-gap: var(--ag-charts-size);
+
+    /* Buttons */
+    --ag-charts-button-radius: var(--ag-border-radius, 4px);
+
+    /* Focus Indicator */
+    --ag-charts-focus-border: solid 2px var(--ag-input-focus-border-color, var(--ag-charts-active-color));
+    --ag-charts-focus-border-shadow: var(
+        --ag-input-focus-box-shadow,
+        0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 47%)
+    );
+
+    /* Icons */
+    --ag-charts-icon-font-family: 'agChartsDefault';
+    --ag-charts-icon-font-weight: normal;
+    --ag-charts-icon-font-color: color-mix(in srgb, transparent, var(--ag-charts-foreground-color), 90%);
+}
+
+/***************
+* THEME (DARK) *
+***************/
+.ag-charts-theme-default-dark {
+    /* Colors */
+    --ag-charts-background-color: var(--ag-background-color, color-mix(in srgb, #fff, #182230 97%));
+    --ag-charts-foreground-color: var(--ag-foreground-color, #fff);
+    --ag-charts-border-color: var(--ag-border-color, rgba(255, 255, 255, 0.16));
+    --ag-charts-hover-color: var(
+        --ag-row-hover-color,
+        color-mix(in srgb, transparent, var(--ag-charts-active-color) 20%)
+    );
+
+    /* Toolbar */
+    --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));
+}
+
+/********
+* ICONS *
+********/
 [class^='ag-charts-icon'] {
     display: block;
-    /* speak: none; */
+    speak: none;
+    speak: never;
     mask-size: contain;
     mask-repeat: no-repeat;
     background-color: currentColor;
@@ -47,6 +142,10 @@ export default `
     mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXJhaWwtc3ltYm9sIj48cGF0aCBkPSJNNSAxNWgxNCIvPjxwYXRoIGQ9Ik01IDloMTQiLz48cGF0aCBkPSJtMTQgMjAtNS01IDYtNi01LTUiLz48L3N2Zz4=);
 }
 
+.ag-charts-icon-color {
+    mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXBhaW50LWJ1Y2tldCI+PHBhdGggZD0ibTE5IDExLTgtOC04LjYgOC42YTIgMiAwIDAgMCAwIDIuOGw1LjIgNS4yYy44LjggMiAuOCAyLjggMEwxOSAxMVoiLz48cGF0aCBkPSJtNSAyIDUgNSIvPjxwYXRoIGQ9Ik0yIDEzaDE1Ii8+PHBhdGggZD0iTTIyIDIwYTIgMiAwIDEgMS00IDBjMC0xLjYgMS43LTIuNCAyLTQgLjMgMS42IDIgMi40IDIgNFoiLz48L3N2Zz4=);
+}
+
 .ag-charts-icon-delete {
     mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWVyYXNlciI+PHBhdGggZD0ibTcgMjEtNC4zLTQuM2MtMS0xLTEtMi41IDAtMy40bDkuNi05LjZjMS0xIDIuNS0xIDMuNCAwbDUuNiA1LjZjMSAxIDEgMi41IDAgMy40TDEzIDIxIi8+PHBhdGggZD0iTTIyIDIxSDciLz48cGF0aCBkPSJtNSAxMSA5IDkiLz48L3N2Zz4=);
 }
@@ -58,5 +157,3 @@ export default `
 .ag-charts-icon-unlock {
     mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWxvY2stb3BlbiI+PHJlY3Qgd2lkdGg9IjE4IiBoZWlnaHQ9IjExIiB4PSIzIiB5PSIxMSIgcng9IjIiIHJ5PSIyIi8+PHBhdGggZD0iTTcgMTFWN2E1IDUgMCAwIDEgOS45LTEiLz48L3N2Zz4=);
 }
-
-`;

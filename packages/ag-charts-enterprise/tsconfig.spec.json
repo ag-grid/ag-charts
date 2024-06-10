@@ -2,14 +2,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "noEmit": true
   },
   "include": [
     "jest.config.ts",
     "jest.setup.ts",
+    "src/typings.ts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/test/**",
+    "src/**/test/**/*.ts",
     "src/**/*.d.ts"
-  ]
+  ],
+  "exclude": []
 }

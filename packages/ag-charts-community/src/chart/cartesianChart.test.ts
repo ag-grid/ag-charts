@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 import { fail } from 'assert';
-import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import { AgCharts } from '../api/agCharts';
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
@@ -227,13 +227,13 @@ describe('CartesianChart', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series.find(
-                (v: any) => v.properties.yKey === yKey || v.properties.yKeys?.some((s) => s.includes(yKey))
+                (v) => v.properties.yKey === yKey || v.properties.yKeys?.some((s: unknown[]) => s.includes(yKey))
             );
             if (seriesImpl == null) fail('No seriesImpl found');
 
-            const nodeData: SeriesNodeDataContext<any, any> = seriesImpl['contextNodeData']!;
+            const nodeData: SeriesNodeDataContext<never, never> = (seriesImpl as any)['contextNodeData']!;
 
-            const highlightManager = (chart as any).ctx.highlightManager;
+            const highlightManager = chart.ctx.highlightManager;
 
             return { chart, nodeData, highlightManager };
         };

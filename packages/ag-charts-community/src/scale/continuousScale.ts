@@ -30,7 +30,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     @Invalidating
     maxTickCount = Infinity;
 
-    protected niceDomain: any[] = [];
+    // TODO(olegat) should be of type D[]
+    niceDomain: any[] = [];
 
     protected constructor(domain: D[], range: number[]) {
         this.domain = domain;

@@ -25,7 +25,7 @@
         "sharedGlobals",
         "defaultExcludes",
         {
-          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+          "externalDependencies": ["npm:typescript"]
         }
       ],
       "outputs": ["{options.outputPath}"],
@@ -39,6 +39,26 @@
         "watch": {
           "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.watch.json"
         },
+        "production": {}
+      }
+    },
+    "build:test": {
+      "dependsOn": ["^build:types", "build:types"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "buildOutputExcludes",
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "outputs": ["{projectRoot}/dist/test"],
+      "command": "npx tsc -p {projectRoot}/tsconfig.spec.json --outDir {projectRoot}/dist/test",
+      "configurations": {
+        "watch": {},
         "production": {}
       }
     },
@@ -159,6 +179,7 @@
         }
       },
       "dependsOn": [
+        "build:test",
         {
           "projects": ["ag-charts-community-examples"],
           "target": "build"

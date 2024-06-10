@@ -20,8 +20,8 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
-function applyAxesFlip<T>(opts: T): T {
-    const positionFlip = (position: AgCartesianAxisPosition) => {
+function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
+    const positionFlip = (position?: AgCartesianAxisPosition) => {
         switch (position) {
             case 'top':
                 return 'bottom';
@@ -38,11 +38,11 @@ function applyAxesFlip<T>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts['axes']?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) || undefined,
+        axes: opts['axes']?.map((axis) => ({ ...axis, position: positionFlip(axis?.position) })) ?? undefined,
     };
 }
 
-function applyCrosshairSnap<T>(opts: T, snap: boolean): T {
+function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
     return {
         ...opts,
         axes: opts['axes']?.map((axis) => ({

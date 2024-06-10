@@ -20,7 +20,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -44,7 +44,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -68,7 +68,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -103,7 +103,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -135,7 +135,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -157,7 +157,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -181,7 +181,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -205,7 +205,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -240,7 +240,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });
@@ -273,7 +273,7 @@ describe('GridLayout', () => {
                 bboxes: BBOXES,
                 maxHeight: MAX_HEIGHT,
                 maxWidth: MAX_WIDTH,
-            });
+            }) ?? { pages: undefined };
 
             expect(pages).toMatchSnapshot();
         });

@@ -185,7 +185,7 @@ export class ChordSeries extends FlowProportionSeries<
         let radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeWidth - labelInset;
         let spacingSweep = nodeSpacing / radius;
 
-        if (labelInset != null && nodeCount * spacingSweep >= 1.5 * Math.PI) {
+        if (labelInset !== 0 && (nodeCount * spacingSweep >= 1.5 * Math.PI || radius <= 0)) {
             // Spacing taking up more than 3/4 the circle
             labelData = [];
             radius = Math.min(seriesRectWidth, seriesRectHeight) / 2 - nodeWidth;
@@ -204,7 +204,7 @@ export class ChordSeries extends FlowProportionSeries<
         const innerRadius = radius;
         const outerRadius = radius + nodeWidth;
 
-        const sizeScale = Math.max((2 * Math.PI - nodeGraph.size * spacingSweep) / totalSize, 0);
+        const sizeScale = Math.max((2 * Math.PI - nodeCount * spacingSweep) / totalSize, 0);
         let nodeAngle = 0;
         nodeGraph.forEach(({ datum: node }) => {
             node.innerRadius = innerRadius;
@@ -363,7 +363,7 @@ export class ChordSeries extends FlowProportionSeries<
             sector.endAngle = datum.endAngle;
             sector.fill = highlightStyle?.fill ?? fill ?? datum.fill;
             sector.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            sector.stroke = highlightStyle?.stroke ?? stroke ?? datum.fill;
+            sector.stroke = highlightStyle?.stroke ?? stroke ?? datum.stroke;
             sector.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
             sector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             sector.lineDash = highlightStyle?.lineDash ?? lineDash;
@@ -392,7 +392,7 @@ export class ChordSeries extends FlowProportionSeries<
             ctx: { callbackCache },
         } = this;
         const { fromKey, toKey, sizeKey, formatter } = properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
 
@@ -413,6 +413,7 @@ export class ChordSeries extends FlowProportionSeries<
                     strokeWidth,
                     lineDash,
                     lineDashOffset,
+                    tension,
                     highlighted: isHighlight,
                 };
                 format = callbackCache.call(formatter, params as AgChordSeriesFormatterParams);
@@ -432,6 +433,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
             link.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
             link.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
+            link.tension = tension;
         });
     }
 

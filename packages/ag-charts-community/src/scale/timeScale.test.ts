@@ -283,7 +283,7 @@ describe('TimeScale', () => {
             const scale = new TimeScale();
             scale.domain = [ticks[0], ticks[ticks.length - 1]];
 
-            expect(calculateDefaultTimeTickFormat(ticks, scale.buildFormatString)).toEqual(expectedFormat);
+            expect(calculateDefaultTimeTickFormat(ticks, scale.domain)).toEqual(expectedFormat);
         });
     });
 });

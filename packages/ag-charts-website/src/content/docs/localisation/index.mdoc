@@ -1,0 +1,215 @@
+---
+title: 'Localisation'
+---
+
+All the displayed text in the chart is customisable for the purposes of localisation. This is done by providing locale information to the chart for the required language.
+
+We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size, and only supports American English for formatting of numbers and dates.
+
+## Customising Text Values
+
+Overrides for American English text can be configured in the `locale` options.
+
+```js
+{
+    locale: {
+        messages: {
+            'context-menu.download': 'Download a copy of this chart',
+        },
+    }
+}
+```
+
+In this configuration, `messages` is a dictionary mapping translation keys to the translated text.
+
+Some translations have parameters, which can be included in the translation using `'${value}'` syntax. Note your strings should not use backticks.
+
+Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[date]`, `[time]`, and `[datetime]`.
+
+```js
+{
+    locale: {
+        messages: {
+            'aria-announce.chart': 'chart with ${seriesCount} series',
+            'aria-value.pan-range': '${min}[percent] to ${max}[percent]',
+        },
+    }
+}
+```
+
+Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
+
+## Supporting Other Languages
+
+To support other languages, you need to use an internationalisation framework such as FormatJS or i18next.
+
+You can integrate the internationalisation framework using the `locale` options.
+
+```js
+{
+    locale: {
+        messages: {
+            // ...
+        },
+        formatMessage({ id, message, params }) {
+            return internationalisationFramework.formatMessage({ id, message, params });
+        }
+    }
+}
+```
+
+{% warning %}
+You must provide a value for every built-in message, as built-in messages will never be passed to your `formatMessage` function. Any missing messages will fall back to the built-in American English translation, formatted with our default internationalisation implementation.
+
+Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
+{% /warning %}
+
+### Framework Integration Examples
+
+{% tabs %}
+
+{% if isFramework("javascript", "angular", "vue") %}
+
+{% tabItem id="FormatJS" label="FormatJS" %}
+
+```js
+import { createIntl } from '@formatjs/intl';
+
+const messages = {
+    'context-menu.download': 'Téléchargez une copie de ce tableau',
+};
+
+const intl = createIntl({
+    locale: 'fr-FR',
+    messages: messages,
+});
+
+AgCharts.create({
+    // ...
+    locale: {
+        messages: messages,
+        formatMessage({ id, params }) {
+            return intl.formatMessage({ id }, params);
+        },
+    },
+});
+```
+
+{% /tabItem %}
+
+{% tabItem id="I18Next" label="I18Next" %}
+
+```js
+import i18next from 'i18next';
+
+const messages = {
+    'context-menu.download': 'Téléchargez une copie de ce tableau',
+};
+
+await i18next.init({
+    lng: 'fr',
+    resources: {
+        fr: {
+            translation: messages,
+        },
+    },
+});
+
+AgCharts.create({
+    // ...
+    locale: {
+        messages: messages,
+        formatMessage({ id, params }) {
+            return i18next.t(id, params);
+        },
+    },
+});
+```
+
+{% /tabItem %}
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+{% tabItem id="React Intl" label="React Intl" %}
+
+```jsx
+import { IntlProvider, useIntl } from 'react-intl';
+
+const messages = {
+    'context-menu.download': 'Téléchargez une copie de ce tableau',
+};
+
+const MyChart = () => {
+    const intl = useIntl();
+
+    const options = {
+        // ...
+        locale: {
+            messages: messages,
+            formatMessage({ id, params }) {
+                return intl.formatMessage({ id }, params);
+            },
+        },
+    };
+
+    return <AgChartsReact options={options} />;
+}
+
+const App = () => {
+    return (
+        <IntlProvider locale="fr-FR" messages={messages}>
+            <MyChart />
+        <IntlProvider>
+    );
+}
+```
+
+{% /tabItem %}
+
+{% tabItem id="React I18Next" label="React I18Next" %}
+
+```js
+import i18next from 'i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
+
+const messages = {
+    'context-menu.download': 'Téléchargez une copie de ce tableau',
+};
+
+await i18next.use(initReactI18next).init({
+    lng: 'fr',
+    resources: {
+        fr: {
+            translation: messages,
+        },
+    },
+});
+
+const MyChart = () => {
+     const { t } = useTranslation();
+
+    const options = {
+        // ...
+        locale: {
+            messages: messages,
+            formatMessage({ id, params }) {
+                return t(id, params);
+            },
+        },
+    };
+
+    return <AgChartsReact options={options} />;
+}
+```
+
+{% /tabItem %}
+
+{% /if %}
+
+{% /tabs %}
+
+## All Built-In Translations
+
+{% embedSnippet url="/dev/en.ts" language="ts" /%}

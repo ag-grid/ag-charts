@@ -1,6 +1,7 @@
 import { _Scene } from 'ag-charts-community';
 
-import { AnnotationType, type Coords, type LineCoords } from '../annotationTypes';
+import { type Coords, type LineCoords, type ValidationContext } from '../annotationTypes';
+import { invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { Channel } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
@@ -60,7 +61,8 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
     override dragHandle(
         datum: ParallelChannelAnnotation,
         target: Coords,
-        invertPoint: (point: Coords) => Coords | undefined
+        context: ValidationContext,
+        onInvalid: () => void
     ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
@@ -68,6 +70,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
+        const prev = datum.toJson();
         let moves: Array<ChannelHandle> = [];
 
         switch (activeHandle) {
@@ -77,7 +80,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
                 break;
             case 'topMiddle':
                 moves = ['topLeft', 'topRight'];
-                offset.y -= 6;
+                offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
                 break;
             case 'topRight':
             case 'bottomRight':
@@ -85,29 +88,39 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
                 break;
             case 'bottomMiddle':
                 moves = ['bottomLeft', 'bottomRight'];
-                offset.y -= 6;
+                offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
                 break;
         }
 
         const invertedMoves = moves.map((move) =>
-            invertPoint({
-                x: handles[move].handle.x + offset.x,
-                y: handles[move].handle.y + offset.y,
-            })
+            invertCoords(
+                {
+                    x: handles[move].handle.x + offset.x,
+                    y: handles[move].handle.y + offset.y,
+                },
+                context.scaleX,
+                context.scaleY
+            )
         );
 
         // Do not move any handles if some of them are trying to move to invalid points
-        if (invertedMoves.some((invertedMove) => invertedMove === undefined)) {
+        if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
+            onInvalid();
             return;
         }
 
         // Adjust the height if dragging a middle handle
         if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && datum.start.y != null) {
-            const topLeft = invertPoint({
-                x: handles.topLeft.handle.x + offset.x,
-                y: handles.topLeft.handle.y + offset.y,
-            });
-            if (topLeft) {
+            const topLeft = invertCoords(
+                {
+                    x: handles.topLeft.handle.x + offset.x,
+                    y: handles.topLeft.handle.y + offset.y,
+                },
+                context.scaleX,
+                context.scaleY
+            );
+
+            if (validateDatumPoint(context, topLeft)) {
                 if (activeHandle === 'topMiddle') {
                     datum.height += topLeft.y - datum.start.y;
                 } else {
@@ -129,6 +142,11 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
                     datum.end.y = invertedMove!.y;
                     break;
             }
+        }
+
+        if (!datum.isValidWithContext(context)) {
+            datum.set(prev);
+            onInvalid();
         }
     }
 
@@ -155,22 +173,18 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
         topLine.updateCollisionBBox();
         bottomLine.updateCollisionBBox();
 
-        if (datum.type === AnnotationType.ParallelChannel) {
-            middleLine.setProperties({
-                x1: top.x1,
-                y1: bottom.y1 + (top.y1 - bottom.y1) / 2,
-                x2: top.x2,
-                y2: bottom.y2 + (top.y2 - bottom.y2) / 2,
-                lineDash: datum.middle.lineDash ?? lineDash,
-                lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
-                stroke: datum.middle.stroke ?? stroke,
-                strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
-                strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
-                visible: datum.middle.visible ?? true,
-            });
-        } else {
-            middleLine.visible = false;
-        }
+        middleLine.setProperties({
+            x1: top.x1,
+            y1: bottom.y1 + (top.y1 - bottom.y1) / 2,
+            x2: top.x2,
+            y2: bottom.y2 + (top.y2 - bottom.y2) / 2,
+            lineDash: datum.middle.lineDash ?? lineDash,
+            lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
+            stroke: datum.middle.stroke ?? stroke,
+            strokeOpacity: datum.middle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
+            visible: datum.middle.visible ?? true,
+        });
     }
 
     override updateHandles(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {

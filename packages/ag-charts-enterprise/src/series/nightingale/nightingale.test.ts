@@ -227,7 +227,7 @@ describe('NightingaleSeries', () => {
                 animate(1200, 1);
 
                 const { data: fullData } = EXAMPLE_OPTIONS;
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData.slice(0, 4) };
+                const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData?.slice(0, 4) };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgCharts.create(options);

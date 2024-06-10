@@ -10,7 +10,8 @@ import {
     LineDash,
     Stroke,
 } from '../annotationProperties';
-import { AnnotationType } from '../annotationTypes';
+import { AnnotationType, type ValidationContext } from '../annotationTypes';
+import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 
@@ -46,5 +47,13 @@ export class ParallelChannelAnnotation extends Annotation(
         }
 
         return bottom;
+    }
+
+    override isValidWithContext(context: ValidationContext, warningPrefix?: string) {
+        return (
+            super.isValid(warningPrefix) &&
+            validateDatumLine(context, this, warningPrefix) &&
+            validateDatumLine(context, this.bottom, warningPrefix)
+        );
     }
 }

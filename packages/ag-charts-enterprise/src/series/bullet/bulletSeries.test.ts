@@ -41,16 +41,16 @@ describe('BulletSeries', () => {
 
     describe('rendering', () => {
         const getTooltipHtml = (): string => {
-            const series = (chart as any)['series'][0];
-            const datum = (chart as any)['series'][0].contextNodeData?.nodeData[0];
+            const series = deproxy(chart as any)['series'][0] as any;
+            const datum = series.contextNodeData?.nodeData[0];
             return series.getTooltipHtml(datum).html;
         };
 
         const hoverOnBullet = async () => {
-            const series = chart['series'][0];
+            const series = deproxy(chart!)['series'][0] as any;
             const item = series['contextNodeData'].nodeData[0];
             const { x, y } = series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
-            await hoverAction(x, y)(chart);
+            await hoverAction(x, y)(chart!);
         };
 
         it('should render simple bullet', async () => {
@@ -170,37 +170,33 @@ describe('BulletSeries', () => {
         });
 
         it('should not render crosshair', async () => {
-            chart = deproxy(
-                AgCharts.create({
-                    ...opts,
-                    series: [
-                        {
-                            type: 'bullet',
-                            data: [{ income: 1 }],
-                            scale: { max: 2 },
-                            valueKey: 'income',
-                        },
-                    ],
-                })
-            );
+            chart = AgCharts.create({
+                ...opts,
+                series: [
+                    {
+                        type: 'bullet',
+                        data: [{ income: 1 }],
+                        scale: { max: 2 },
+                        valueKey: 'income',
+                    },
+                ],
+            });
             await waitForChartStability(chart);
             await hoverOnBullet();
             await compare(chart, ctx);
         });
 
         test('tooltip valueKey only', async () => {
-            chart = deproxy(
-                AgCharts.create({
-                    ...opts,
-                    series: [
-                        {
-                            type: 'bullet',
-                            valueKey: 'income',
-                            data: [{ income: 11, objective: 7 }],
-                        },
-                    ],
-                })
-            );
+            chart = AgCharts.create({
+                ...opts,
+                series: [
+                    {
+                        type: 'bullet',
+                        valueKey: 'income',
+                        data: [{ income: 11, objective: 7 }],
+                    },
+                ],
+            });
             await waitForChartStability(chart);
 
             const tooltipHtml = getTooltipHtml();
@@ -208,19 +204,17 @@ describe('BulletSeries', () => {
         });
 
         test('tooltip no names', async () => {
-            chart = deproxy(
-                AgCharts.create({
-                    ...opts,
-                    series: [
-                        {
-                            type: 'bullet',
-                            valueKey: 'income',
-                            targetKey: 'objective',
-                            data: [{ income: 11, objective: 7 }],
-                        },
-                    ],
-                })
-            );
+            chart = AgCharts.create({
+                ...opts,
+                series: [
+                    {
+                        type: 'bullet',
+                        valueKey: 'income',
+                        targetKey: 'objective',
+                        data: [{ income: 11, objective: 7 }],
+                    },
+                ],
+            });
             await waitForChartStability(chart);
 
             const tooltipHtml = getTooltipHtml();
@@ -230,21 +224,19 @@ describe('BulletSeries', () => {
         });
 
         test('tooltip with names', async () => {
-            chart = deproxy(
-                AgCharts.create({
-                    ...opts,
-                    series: [
-                        {
-                            type: 'bullet',
-                            valueKey: 'income',
-                            valueName: 'Actual income',
-                            targetKey: 'objective',
-                            targetName: 'Target income',
-                            data: [{ income: 11, objective: 7 }],
-                        },
-                    ],
-                })
-            );
+            chart = AgCharts.create({
+                ...opts,
+                series: [
+                    {
+                        type: 'bullet',
+                        valueKey: 'income',
+                        valueName: 'Actual income',
+                        targetKey: 'objective',
+                        targetName: 'Target income',
+                        data: [{ income: 11, objective: 7 }],
+                    },
+                ],
+            });
             await waitForChartStability(chart);
 
             const tooltipHtml = getTooltipHtml();

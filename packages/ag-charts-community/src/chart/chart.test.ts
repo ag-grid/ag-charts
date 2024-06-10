@@ -354,11 +354,14 @@ describe('Chart', () => {
 
     describe('Chart data change', () => {
         const testDataUpdate = async (testOptions: { seriesOptions: any; getNodes: (chart: Chart) => Node[] }) => {
-            const chartOptions = prepareTestOptions({
+            const chartOptions = prepareTestOptions<{
+                data: { year: string; gdp: number; gnp: number }[];
+                series: any[];
+            }>({
                 data: [],
                 series: [testOptions.seriesOptions],
             });
-            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
+            const chartProxy = AgCharts.create(chartOptions);
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);

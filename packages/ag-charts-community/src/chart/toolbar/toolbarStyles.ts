@@ -2,30 +2,31 @@ import { ToolbarPosition } from './toolbarTypes';
 
 export const block = 'ag-charts-toolbar';
 export const elements = {
-    align: `${block}__align`,
-    button: `${block}__button`,
-    icon: `${block}__icon`,
-    label: `${block}__label`,
+    align: 'ag-charts-toolbar__align',
+    button: 'ag-charts-toolbar__button',
+    icon: 'ag-charts-toolbar__icon',
+    label: 'ag-charts-toolbar__label',
 };
 export const modifiers = {
-    [ToolbarPosition.Top]: `${block}--top`,
-    [ToolbarPosition.Right]: `${block}--right`,
-    [ToolbarPosition.Bottom]: `${block}--bottom`,
-    [ToolbarPosition.Left]: `${block}--left`,
-    [ToolbarPosition.Floating]: `${block}--floating`,
-    [ToolbarPosition.FloatingTop]: `${block}--floating-top`,
-    [ToolbarPosition.FloatingBottom]: `${block}--floating-bottom`,
-    hidden: `${block}--hidden`,
-    preventFlash: `${block}--prevent-flash`,
-    floatingHidden: `${block}--floating-hidden`,
+    [ToolbarPosition.Top]: 'ag-charts-toolbar--top',
+    [ToolbarPosition.Right]: 'ag-charts-toolbar--right',
+    [ToolbarPosition.Bottom]: 'ag-charts-toolbar--bottom',
+    [ToolbarPosition.Left]: 'ag-charts-toolbar--left',
+    [ToolbarPosition.Floating]: 'ag-charts-toolbar--floating',
+    [ToolbarPosition.FloatingTop]: 'ag-charts-toolbar--floating-top',
+    [ToolbarPosition.FloatingBottom]: 'ag-charts-toolbar--floating-bottom',
+    hidden: 'ag-charts-toolbar--hidden',
+    preventFlash: 'ag-charts-toolbar--prevent-flash',
+    floatingHidden: 'ag-charts-toolbar--floating-hidden',
     align: {
-        start: `${elements.align}--start`,
-        center: `${elements.align}--center`,
-        end: `${elements.align}--end`,
+        start: 'ag-charts-toolbar__align--start',
+        center: 'ag-charts-toolbar__align--center',
+        end: 'ag-charts-toolbar__align--end',
     },
     button: {
-        hiddenValue: `${elements.button}--hidden-value`,
-        hiddenToggled: `${elements.button}--hidden-toggled`,
+        active: `ag-charts-toolbar__button--active`,
+        hiddenValue: `ag-charts-toolbar__button--hidden-value`,
+        hiddenToggled: `ag-charts-toolbar__button--hidden-toggled`,
     },
 };
 
@@ -166,12 +167,10 @@ export const css = `
     display: none;
 }
 
-.${elements.button}:hover {
-    background: var(--ag-charts-toolbar-hover-color);
-}
-
-.${elements.button}:focus {
-    background: var(--ag-charts-toolbar-hover-color);
+.${elements.button}:hover,
+.${elements.button}:focus,
+.${modifiers.button.active} {
+    background: var(--ag-charts-toolbar-active-color);
 }
 
 .${elements.button}:disabled {

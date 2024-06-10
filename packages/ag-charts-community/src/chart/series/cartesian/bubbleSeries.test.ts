@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartOptions } from '../../../options/agChartOptions';
-import type { Chart } from '../../chart';
+import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOptions';
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -25,7 +24,7 @@ describe('BubbleSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -70,7 +69,7 @@ describe('BubbleSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await compare();
         });
 
@@ -93,7 +92,7 @@ describe('BubbleSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -108,7 +107,7 @@ describe('BubbleSeries', () => {
                 const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });

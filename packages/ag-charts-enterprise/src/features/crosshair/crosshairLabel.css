@@ -1,0 +1,26 @@
+.ag-crosshair-label {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    user-select: none;
+    pointer-events: none;
+    font:
+        12px Verdana,
+        sans-serif;
+    overflow: hidden;
+    white-space: nowrap;
+    z-index: 99998; /* Needs to be below tooltips! */
+    box-sizing: border-box;
+}
+
+.ag-crosshair-label-content {
+    padding: 0 7px;
+    border-radius: 2px;
+    line-height: 1.7em;
+    background-color: rgb(71, 71, 71);
+    color: rgb(255, 255, 255);
+}
+
+.ag-crosshair-label-hidden {
+    top: -10000px !important;
+}

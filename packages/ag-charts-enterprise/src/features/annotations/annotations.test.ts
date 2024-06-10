@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import { extractImageData, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import { clickAction, extractImageData, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -11,9 +11,9 @@ describe('Annotations', () => {
 
     const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
         data: [
-            { x: new Date('2024-01-01'), y: 0 },
+            { x: new Date('2024-01-05'), y: 5 },
             { x: new Date('2024-06-15'), y: 50 },
-            { x: new Date('2024-12-31'), y: 100 },
+            { x: new Date('2024-12-25'), y: 95 },
         ],
         series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
         axes: [{ type: 'number' }, { type: 'time' }],
@@ -21,6 +21,9 @@ describe('Annotations', () => {
             enabled: true,
         },
     };
+
+    let width = 0;
+    let height = 0;
 
     async function prepareChart(
         annotationsOptions?: AgCartesianChartOptions['annotations'],
@@ -31,6 +34,8 @@ describe('Annotations', () => {
             annotations: { ...baseOptions.annotations, ...(annotationsOptions ?? {}) },
         };
         prepareEnterpriseTestOptions(options);
+        width = options.width!;
+        height = options.height!;
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
     }
@@ -118,6 +123,20 @@ describe('Annotations', () => {
                     },
                 ],
             });
+            await compare();
+        });
+    });
+
+    describe('cross-line', () => {
+        it('when y-axis is clicked it should create a horizontal cross-line', async () => {
+            await prepareChart();
+            await clickAction(40, height / 3)(chart);
+            await compare();
+        });
+
+        it('when x-axis is clicked it should create a vertical cross-line', async () => {
+            await prepareChart();
+            await clickAction(width / 3, height - 30)(chart);
             await compare();
         });
     });

@@ -1,8 +1,7 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
 import { AgCharts } from '../../api/agCharts';
-import type { AgChartOptions } from '../../options/agChartOptions';
-import type { Chart } from '../chart';
+import type { AgChartInstance, AgChartOptions } from '../../options/agChartOptions';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -14,7 +13,7 @@ import {
 
 describe('AxisGridLine', () => {
     setupMockConsole();
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -51,7 +50,7 @@ describe('AxisGridLine', () => {
                     gridLine: { style: [{ lineDash: [5, 5, 1] }] },
                 },
             ],
-        }) as Chart;
+        });
 
         await compare();
     });
@@ -75,7 +74,7 @@ describe('AxisGridLine', () => {
                     gridLine: { style: [{}, { lineDash: [5, 5, 1] }] },
                 },
             ],
-        }) as Chart;
+        });
 
         await compare();
     });

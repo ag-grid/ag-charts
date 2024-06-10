@@ -13,7 +13,7 @@ import { AutoSizedLabel, formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
 const { Rect, Group, BBox, Selection, Text } = _Scene;
-const { Color, Logger, isEqual, sanitizeHtml } = _Util;
+const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -230,12 +230,24 @@ export class TreemapSeries<
         });
     }
 
+    private sortChildren({ children }: _ModuleSupport.HierarchyNode<TDatum>) {
+        const sortedChildrenIndices: number[] = Array.from(children, (_, i) => i)
+            .filter((i) => nodeSize(children[i]) > 0)
+            .sort((aIndex, bIndex) => nodeSize(children[bIndex]) - nodeSize(children[aIndex]));
+
+        const childAt = (i: number): _ModuleSupport.HierarchyNode<TDatum> => {
+            const sortedIndex = sortedChildrenIndices[i];
+            return children[sortedIndex];
+        };
+        return { sortedChildrenIndices, childAt };
+    }
+
     /**
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
     private squarify(
-        node: _ModuleSupport.HierarchyNode,
+        node: _ModuleSupport.HierarchyNode<TDatum>,
         bbox: _Scene.BBox,
         outputBoxes: (_Scene.BBox | undefined)[],
         outputPadding: (Padding | undefined)[]
@@ -253,14 +265,7 @@ export class TreemapSeries<
         outputBoxes[index] = index === 0 ? undefined : bbox;
         outputPadding[index] = index === 0 ? undefined : padding;
 
-        const sortedChildrenIndices = Array.from(children, (_, i) => i)
-            .filter((i) => nodeSize(children[i]) > 0)
-            .sort((aIndex, bIndex) => nodeSize(children[bIndex]) - nodeSize(children[aIndex]));
-
-        const childAt = (i: number) => {
-            const sortedIndex = sortedChildrenIndices[i];
-            return children[sortedIndex];
-        };
+        const { sortedChildrenIndices, childAt } = this.sortChildren(node);
 
         const allLeafNodes = sortedChildrenIndices.every((sortedIndex) => children[sortedIndex].children.length === 0);
 
@@ -779,6 +784,36 @@ export class TreemapSeries<
             itemId: undefined,
             sizeName,
         });
+    }
+
+    private focusSorted?: { childAt: (i: number) => _ModuleSupport.HierarchyNode<TDatum> };
+
+    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
+        const { focusPath: path } = this;
+        const current = path[path.length - 1];
+
+        if (depthDelta === 1) {
+            if (current.nodeDatum.children.length > 0) {
+                this.focusSorted = this.sortChildren(current.nodeDatum);
+                const newFocus = { nodeDatum: this.focusSorted.childAt(0), childIndex: 0 };
+                path.push(newFocus);
+                return this.computeFocusOutputs(newFocus);
+            }
+        } else if (childDelta !== 0) {
+            this.focusSorted ??= this.sortChildren(path[0].nodeDatum);
+            const targetIndex = current.childIndex + childDelta;
+            const maxIndex = (current.nodeDatum.parent?.children.length ?? 1) - 1;
+            current.childIndex = clamp(0, targetIndex, maxIndex);
+            current.nodeDatum = this.focusSorted.childAt(current.childIndex);
+            return this.computeFocusOutputs(current);
+        }
+
+        const result = super.pickFocus(opts);
+        if (depthDelta < 0) {
+            this.focusSorted = this.sortChildren(path[path.length - 1].nodeDatum.parent!);
+        }
+        return result;
     }
 
     protected computeFocusBounds(

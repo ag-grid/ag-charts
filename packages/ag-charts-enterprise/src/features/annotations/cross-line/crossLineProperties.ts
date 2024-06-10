@@ -1,7 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, AnnotationCrossLine, AnnotationHandle, Cappable, LineDash, Stroke } from '../annotationProperties';
-import { AnnotationType } from '../annotationTypes';
+import { AnnotationType, type ValidationContext } from '../annotationTypes';
+import { validateDatumValue } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
@@ -15,4 +16,8 @@ export class CrossLineAnnotation extends Annotation(
 
     @Validate(STRING)
     type = AnnotationType.CrossLine as const;
+
+    override isValidWithContext(context: ValidationContext, warningPrefix: string) {
+        return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
+    }
 }

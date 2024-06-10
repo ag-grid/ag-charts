@@ -1,4 +1,5 @@
-import type { AxisContext, ModuleContextWithParent } from '../module/moduleContext';
+import type { AxisContext } from '../module/axisContext';
+import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
 import type { Scale } from '../scale/scale';
@@ -35,6 +36,7 @@ export interface ChartAxis {
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;
+    createAxisContext(): AxisContext;
     gridLength: number;
     gridPadding: number;
     id: string;

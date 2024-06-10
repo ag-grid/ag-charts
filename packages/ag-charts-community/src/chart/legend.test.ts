@@ -6,7 +6,6 @@ import type { Chart } from './chart';
 import * as examples from './test/examples';
 import { seedRandom } from './test/random';
 import {
-    AgChartProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     computeLegendBBox,
@@ -21,6 +20,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
+import type { AgChartProxy } from './test/utils';
 
 function buildSeries(data: { x: number; y: number }) {
     return {

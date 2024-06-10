@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, test } from '@jest/globals';
 
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartOptions } from '../../../options/agChartOptions';
-import type { Chart } from '../../chart';
+import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOptions';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -31,7 +30,7 @@ describe('LineUtil', () => {
         await waitForChartStability(chart);
     };
 
-    let chart: Chart;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     describe('AG-10152', () => {
@@ -50,7 +49,7 @@ describe('LineUtil', () => {
                     { type: 'line', xKey: 'quarter', yKey: 'electric' },
                 ],
             };
-            chart = AgCharts.create(opts) as Chart;
+            chart = AgCharts.create(opts);
             await compare();
 
             await click({ x: 330, y: 575 });

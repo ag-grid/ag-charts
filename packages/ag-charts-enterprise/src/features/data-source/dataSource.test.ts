@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, type AgChartOptions, AgCharts, AgNumberAxisOptions } from 'ag-charts-community';
 import {
     clickAction,
     delay,
@@ -21,7 +21,7 @@ describe('DataSource', () => {
 
     const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
         dataSource: {
-            // Set undocumented options to instantly resolve for tests
+            // @ts-expect-error Set undocumented options to instantly resolve for tests
             requestThrottle: 0,
             updateThrottle: 0,
             updateDuringInteraction: true,
@@ -59,7 +59,10 @@ describe('DataSource', () => {
     let cx: number = 0;
     let cy: number = 0;
 
-    async function prepareChart(dataSourceOptions?: AgChartOptions['dataSource'], baseOptions = EXAMPLE_OPTIONS) {
+    async function prepareChart(
+        dataSourceOptions?: AgChartOptions['dataSource'],
+        baseOptions: AgCartesianChartOptions = EXAMPLE_OPTIONS
+    ) {
         const options: AgChartOptions = {
             ...baseOptions,
             dataSource: { ...baseOptions.dataSource, ...(dataSourceOptions ?? {}) } as AgChartOptions['dataSource'],
@@ -128,7 +131,7 @@ describe('DataSource', () => {
                 ...EXAMPLE_OPTIONS,
                 axes: [
                     {
-                        ...EXAMPLE_OPTIONS.axes![0],
+                        ...(EXAMPLE_OPTIONS.axes![0] as AgNumberAxisOptions),
                         type: 'number',
                         min: 40,
                         max: 100,

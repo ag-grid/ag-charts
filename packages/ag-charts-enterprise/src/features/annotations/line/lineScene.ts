@@ -1,6 +1,7 @@
 import type { _Scene } from 'ag-charts-community';
 
-import type { Coords, LineCoords } from '../annotationTypes';
+import type { Coords, UpdateContext, ValidationContext } from '../annotationTypes';
+import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { DivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
@@ -26,12 +27,15 @@ export class Line extends Annotation {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: LineAnnotation, seriesRect: _Scene.BBox, coords?: LineCoords) {
+    public update(datum: LineAnnotation, context: UpdateContext) {
         const { line, start, end } = this;
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { scaleX, scaleY, seriesRect } = context;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
+
+        const coords = convertLine(datum, scaleX, scaleY);
 
         if (coords == null) {
             this.visible = false;
@@ -87,14 +91,19 @@ export class Line extends Annotation {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineAnnotation, target: Coords, invertPoint: (point: Coords) => Coords | undefined) {
+    override dragHandle(datum: LineAnnotation, target: Coords, context: ValidationContext, onInvalid: () => void) {
         const { activeHandle } = this;
 
         if (!activeHandle || datum.start == null || datum.end == null) return;
 
         this[activeHandle].toggleDragging(true);
-        const point = invertPoint(this[activeHandle].drag(target).point);
-        if (!point) return;
+        const point = invertCoords(this[activeHandle].drag(target).point, context.scaleX, context.scaleY);
+
+        if (!validateDatumPoint(context, point)) {
+            onInvalid();
+            return;
+        }
+
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
     }

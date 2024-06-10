@@ -3,6 +3,9 @@ import { _Scene } from 'ag-charts-community';
 import type { Coords } from '../annotationTypes';
 
 export abstract class Handle extends _Scene.Group {
+    public static readonly HANDLE_SIZE: number;
+    public static readonly GLOW_SIZE: number;
+
     protected abstract handle: _Scene.Rect | _Scene.Circle;
     protected abstract glow: _Scene.Rect | _Scene.Circle;
     protected locked = false;
@@ -58,8 +61,8 @@ export abstract class Handle extends _Scene.Group {
 }
 
 export class InvariantHandle extends Handle {
-    static readonly HANDLE_SIZE = 7;
-    static readonly GLOW_SIZE = 9;
+    static override HANDLE_SIZE = 7;
+    static override GLOW_SIZE = 9;
 
     override handle = new _Scene.Circle();
     override glow = new _Scene.Circle();
@@ -83,6 +86,9 @@ export class InvariantHandle extends Handle {
 }
 
 export class UnivariantHandle extends Handle {
+    static override HANDLE_SIZE = 12;
+    static override GLOW_SIZE = 16;
+
     override handle = new _Scene.Rect();
     override glow = new _Scene.Rect();
 
@@ -93,14 +99,14 @@ export class UnivariantHandle extends Handle {
         this.append([this.glow, this.handle]);
 
         this.handle.cornerRadius = 4;
-        this.handle.width = 12;
-        this.handle.height = 12;
+        this.handle.width = UnivariantHandle.HANDLE_SIZE;
+        this.handle.height = UnivariantHandle.HANDLE_SIZE;
         this.handle.strokeWidth = 1;
         this.handle.zIndex = 2;
 
         this.glow.cornerRadius = 4;
-        this.glow.width = 16;
-        this.glow.height = 16;
+        this.glow.width = UnivariantHandle.GLOW_SIZE;
+        this.glow.height = UnivariantHandle.GLOW_SIZE;
         this.glow.strokeWidth = 0;
         this.glow.fillOpacity = 0.2;
         this.glow.zIndex = 1;
@@ -146,8 +152,8 @@ export class UnivariantHandle extends Handle {
 }
 
 export class DivariantHandle extends Handle {
-    private static readonly HANDLE_SIZE = 11;
-    private static readonly GLOW_SIZE = 17;
+    static override HANDLE_SIZE = 11;
+    static override GLOW_SIZE = 17;
 
     override handle = new _Scene.Circle();
     override glow = new _Scene.Circle();
