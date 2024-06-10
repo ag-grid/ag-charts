@@ -1,4 +1,5 @@
 import type { FontStyle, FontWeight } from '../options/agChartOptions';
+import type { Formatter } from '../options/chart/callbackOptions';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../options/chart/labelOptions';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
@@ -42,7 +43,7 @@ export class Label<TParams = never, TDatum = any>
     fontFamily: string = 'Verdana, sans-serif';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>) => string | undefined;
+    formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     getFont(): string {
         return getFont(this);

@@ -1,3 +1,4 @@
+import type { Styler } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -34,7 +35,7 @@ export interface AgScatterSeriesThemeableOptions<TDatum = any>
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
+    styler?: Styler<any, AgSeriesMarkerStyle>;
 }
 
 export interface AgScatterSeriesOptionsKeys {

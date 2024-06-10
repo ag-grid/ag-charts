@@ -10,6 +10,7 @@ import type {
     FontStyle,
     FontWeight,
 } from '../options/agChartOptions';
+import type { Formatter } from '../options/chart/callbackOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import { RedrawType } from '../scene/node';
@@ -70,7 +71,7 @@ class LegendLabel extends BaseProperties {
     fontFamily: string = 'Verdana, sans-serif';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgChartLegendLabelFormatterParams) => string = undefined;
+    formatter?: Formatter<AgChartLegendLabelFormatterParams>;
 }
 
 class LegendMarker extends BaseProperties {

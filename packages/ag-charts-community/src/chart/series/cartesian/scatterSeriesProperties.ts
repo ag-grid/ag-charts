@@ -5,6 +5,7 @@ import type {
     AgScatterSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
 } from '../../../options/agChartOptions';
+import type { Styler } from '../../../options/chart/callbackOptions';
 import type { SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
@@ -85,7 +86,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     strokeOpacity!: number;
 
     @ProxyProperty('marker.formatter', { optional: true })
-    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
+    styler?: Styler<any, AgSeriesMarkerStyle>;
 
     @Validate(OBJECT)
     readonly label = new ScatterSeriesLabel();

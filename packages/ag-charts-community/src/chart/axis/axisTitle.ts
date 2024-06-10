@@ -5,6 +5,7 @@ import type {
     FontWeight,
     TextWrap,
 } from '../../options/agChartOptions';
+import type { Formatter } from '../../options/chart/callbackOptions';
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -48,5 +49,5 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     wrapping: TextWrap = 'always';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgAxisCaptionFormatterParams) => string;
+    formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }

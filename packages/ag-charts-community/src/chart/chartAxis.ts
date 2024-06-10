@@ -2,6 +2,7 @@ import type { AxisContext } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
+import type { Formatter } from '../options/chart/callbackOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
@@ -76,7 +77,7 @@ export interface ChartAxisLabel extends FontOptions {
     avoidCollisions: boolean;
     enabled: boolean;
     format?: string;
-    formatter?: (params: AgAxisLabelFormatterParams) => string;
+    formatter?: Formatter<AgAxisLabelFormatterParams>;
     getSideFlag(): ChartAxisLabelFlipFlag;
     maxHeight?: number;
     maxWidth?: number;

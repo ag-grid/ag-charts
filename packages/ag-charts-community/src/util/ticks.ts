@@ -134,8 +134,8 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
     return m * step;
 }
 
-export function tickFormat(ticks: any[], formatter?: string): (n: number | { valueOf(): number }) => string {
-    const options = parseFormat(formatter ?? ',f');
+export function tickFormat(ticks: any[], format?: string): (n: number | { valueOf(): number }) => string {
+    const options = parseFormat(format ?? ',f');
     if (options.precision == null || isNaN(options.precision)) {
         if (!options.type || 'eEFgGnprs'.includes(options.type)) {
             options.precision = Math.max(
@@ -166,8 +166,8 @@ export function tickFormat(ticks: any[], formatter?: string): (n: number | { val
             );
         }
     }
-    const format = numberFormat(options);
-    return (n) => format(Number(n));
+    const formatter = numberFormat(options);
+    return (n) => formatter(Number(n));
 }
 
 export function range(start: number, end: number, step: number): number[] {

@@ -1,4 +1,5 @@
 import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../options/agChartOptions';
+import type { Formatter } from '../../options/chart/callbackOptions';
 import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
 import {
@@ -120,7 +121,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * the `fractionDigits` is 4.
      */
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgAxisLabelFormatterParams) => string;
+    formatter?: Formatter<AgAxisLabelFormatterParams>;
 
     @Validate(STRING, { optional: true })
     format?: string;
