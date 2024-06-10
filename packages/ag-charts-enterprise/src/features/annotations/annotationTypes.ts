@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgCartesianAxisPosition, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 export enum AnnotationType {
     Line = 'line',
@@ -59,18 +59,21 @@ export interface StateClickEvent<Annotation, Scene> {
 
 export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
 
-export type Domain = any[];
-export type Scale = _Scene.Scale<any, number, number | _Util.TimeInterval>;
-
-export interface ValidationContext {
-    domainX?: Domain;
-    domainY?: Domain;
-    scaleX?: Scale;
-    scaleY?: Scale;
-}
-
-export interface UpdateContext {
-    scaleX?: Scale;
-    scaleY?: Scale;
-    seriesRect?: _Scene.BBox;
-}
+export type AnnotationAxisContext = {
+    direction: _ModuleSupport.ChartAxisDirection;
+    continuous: boolean;
+    position?: AgCartesianAxisPosition;
+    scaleDomain: _ModuleSupport.AxisContext['scaleDomain'];
+    scaleBandwidth: _ModuleSupport.AxisContext['scaleBandwidth'];
+    scaleConvert: _ModuleSupport.AxisContext['scaleConvert'];
+    scaleInvert: _ModuleSupport.AxisContext['scaleInvert'];
+    scaleInvertNearest: _ModuleSupport.AxisContext['scaleInvertNearest'];
+    scaleValueFormatter: _ModuleSupport.AxisContext['scaleValueFormatter'];
+    bounds: _Scene.BBox;
+    labelPadding: number;
+};
+export type AnnotationContext = {
+    seriesRect: _Scene.BBox;
+    xAxis: AnnotationAxisContext;
+    yAxis: AnnotationAxisContext;
+};

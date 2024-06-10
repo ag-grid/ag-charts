@@ -44,7 +44,7 @@ export function Annotation<T extends string, U extends Constructor<_ModuleSuppor
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
         id = _Util.uuid();
 
-        isValidWithContext(_context: ValidationContext, warningPrefix: string) {
+        isValidWithContext(_context: AnnotationContext, warningPrefix: string) {
             return super.isValid(warningPrefix);
         }
     }

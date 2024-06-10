@@ -1,6 +1,6 @@
 import type { Direction, _Scene } from 'ag-charts-community';
 
-import type { Coords, Scale, UpdateContext, ValidationContext } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext, Coords } from '../annotationTypes';
 import { invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { UnivariantHandle } from '../scenes/handle';
@@ -26,15 +26,19 @@ export class CrossLine extends Annotation {
         this.append([this.line, this.middle]);
     }
 
-    public update(datum: CrossLineAnnotation, context: UpdateContext) {
+    public update(datum: CrossLineAnnotation, context: AnnotationContext) {
         const { line, middle } = this;
-        const { direction, locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
-        const { scaleX, scaleY, seriesRect } = context;
+        const { direction, locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity, value } =
+            datum;
+        const { seriesRect } = context;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
-        const coords = this.convertCrossLine(datum, scaleX, scaleY);
+        const isHorizontalAxis = datum.direction === 'vertical';
+        const axisContext = isHorizontalAxis ? context.xAxis : context.yAxis;
+
+        const coords = this.convertCrossLine(datum, axisContext);
 
         if (coords == null) {
             this.visible = false;
@@ -82,14 +86,14 @@ export class CrossLine extends Annotation {
         this.middle.toggleActive(active);
     }
 
-    override dragHandle(datum: CrossLineAnnotation, target: Coords, context: ValidationContext, onInvalid: () => void) {
+    override dragHandle(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
         const { activeHandle } = this;
 
         if (!activeHandle || datum.value == null) return;
 
         const { direction } = datum;
         this[activeHandle].toggleDragging(true);
-        const point = invertCoords(this[activeHandle].drag(target).point, context.scaleX, context.scaleY);
+        const point = invertCoords(this[activeHandle].drag(target).point, context);
 
         if (!validateDatumPoint(context, point)) {
             onInvalid();
@@ -132,30 +136,27 @@ export class CrossLine extends Annotation {
 
     private convertCrossLine(
         datum: { value?: string | number | Date; direction: Direction },
-        scaleX?: Scale,
-        scaleY?: Scale
+        context: AnnotationAxisContext
     ) {
         if (datum.value == null) return;
-
-        if (!scaleX || !scaleY) return;
 
         let x1 = 0;
         let x2 = 0;
         let y1 = 0;
         let y2 = 0;
 
+        const { bounds, scaleConvert } = context;
+
         if (datum.direction === 'vertical') {
-            const scaledValue = scaleX.convert(datum.value);
-            const yDomain = scaleY.getDomain?.() ?? [0, 0];
+            const scaledValue = scaleConvert(datum.value);
             x1 = scaledValue;
             x2 = scaledValue;
-            y1 = scaleY.convert(yDomain[0]);
-            y2 = scaleY.convert(yDomain.at(-1));
+            y1 = 0;
+            y2 = bounds.height;
         } else {
-            const scaledValue = scaleY.convert(datum.value);
-            const xDomain = scaleX.getDomain?.() ?? [0, 0];
-            x1 = scaleX.convert(xDomain[0]);
-            x2 = scaleX.convert(xDomain.at(-1));
+            const scaledValue = scaleConvert(datum.value);
+            x1 = 0;
+            x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;
         }
