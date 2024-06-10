@@ -530,15 +530,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
-        // TODO: This shouldn't happen. Prevent drags on color picker triggering here.
-        if (this.colorPicker.isVisible()) return;
+        const {
+            state,
+            ctx: { domManager },
+        } = this;
+        const { offsetX, offsetY, targetElement } = event;
 
-        // Only track pointer offset for drag + click prevention when we are placing the first point
-        if (this.state.is('start')) {
-            this.dragOffset = { x: event.offsetX, y: event.offsetY };
+        if (
+            targetElement &&
+            (_ModuleSupport.ToolbarManager.isManagedChildDOMElement(domManager, targetElement) ||
+                ColorPicker.isManagedChildDOMElement(domManager, targetElement))
+        ) {
+            return;
         }
 
-        if (this.state.is('idle')) {
+        // Only track pointer offset for drag + click prevention when we are placing the first point
+        if (state.is('start')) {
+            this.dragOffset = { x: offsetX, y: offsetY };
+        }
+
+        if (state.is('idle')) {
             this.onClickSelecting();
             this.onDragHandle(event);
         } else {
