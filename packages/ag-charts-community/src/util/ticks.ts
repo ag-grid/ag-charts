@@ -136,7 +136,7 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
 
 export function tickFormat(ticks: any[], formatter?: string): (n: number | { valueOf(): number }) => string {
     const options = parseFormat(formatter ?? ',f');
-    if (options.precision == null || isNaN(options.precision!)) {
+    if (options.precision == null || isNaN(options.precision)) {
         if (!options.type || 'eEFgGnprs'.includes(options.type)) {
             options.precision = Math.max(
                 ...ticks.map((x) => {
