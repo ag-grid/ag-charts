@@ -37,7 +37,14 @@ export interface AgToolbarButton {
 }
 
 export type AgIconName = IconNameAnnotation | IconNameZoom;
-type IconNameAnnotation = 'trend-line' | 'parallel-channel' | 'disjoint-channel' | 'delete' | 'lock' | 'unlock';
+type IconNameAnnotation =
+    | 'trend-line'
+    | 'parallel-channel'
+    | 'disjoint-channel'
+    | 'color'
+    | 'delete'
+    | 'lock'
+    | 'unlock';
 type IconNameZoom = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset' | 'zoom-in' | 'zoom-out';
 
 /* Annotations */
@@ -61,7 +68,7 @@ export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
 
-export type AgToolbarAnnotationOptionsButtonValue = 'delete' | 'lock' | 'unlock';
+export type AgToolbarAnnotationOptionsButtonValue = 'color' | 'delete' | 'lock' | 'unlock';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

@@ -34,7 +34,7 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(() => ctx.domManager.removeChild('canvas-overlay', moduleId));
     }
 
-    show(opts: { color?: string; onChange?: (colorString: string) => void }) {
+    show(opts: { anchor?: { x: number; y: number }; color?: string; onChange?: (colorString: string) => void }) {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
 
         const colorPickerContainer = createElement('div');
@@ -46,6 +46,11 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
+
+        if (opts.anchor) {
+            colorPicker.style.setProperty('left', `${opts.anchor.x}px`);
+            colorPicker.style.setProperty('top', `${opts.anchor.y}px`);
+        }
 
         const update = () => {
             const color = Color.fromHSB(h, s, v, a);
@@ -116,5 +121,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
     hide() {
         this.element.replaceChildren();
+    }
+
+    isVisible() {
+        return this.element.children.length > 0;
     }
 }

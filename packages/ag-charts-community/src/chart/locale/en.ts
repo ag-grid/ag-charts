@@ -43,12 +43,14 @@ export const en: Record<string, string> = {
     'toolbar-annotations.parallel-channel': 'Parallel Channel',
     // Text for the annotation toolbar's disjoint channel button
     'toolbar-annotations.disjoint-channel': 'Disjoint Channel',
+    // Text for the annotation toolbar's color picker annotation button
+    'toolbar-annotations.color': 'Pick annotation color',
     // Text for the annotation toolbar's lock annotation button
-    'toolbar-annotations.lock': 'Lock Annotation',
+    'toolbar-annotations.lock': 'Lock annotation',
     // Text for the annotation toolbar's unlock annotation button
-    'toolbar-annotations.unlock': 'Unlock Annotation',
+    'toolbar-annotations.unlock': 'Unlock annotation',
     // Text for the annotation toolbar's delete annotation button
-    'toolbar-annotations.delete': 'Delete Annotation',
+    'toolbar-annotations.delete': 'Delete annotation',
     // Text for the range toolbar's 1 month button
     'toolbar-range.1-month': '1m',
     // Text for the range toolbar's 3 month button
