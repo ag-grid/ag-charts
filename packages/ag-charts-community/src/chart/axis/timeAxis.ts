@@ -1,8 +1,7 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/array';
-import { Default } from '../../util/default';
-import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, MAX_SPACING, Validate } from '../../util/validation';
+import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
@@ -18,10 +17,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 
     @Validate(AND(DATE_OR_DATETIME_MS, GREATER_THAN('min')), { optional: true })
     max?: Date | number = undefined;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
 
     override normaliseDataDomain(d: Date[]) {
         let { min, max } = this;

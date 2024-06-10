@@ -58,7 +58,7 @@ export const CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE: AgCartesianChartOptions = {
 export const TIME_AXIS_BASIC_EXAMPLE: AgCartesianChartOptions = {
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DATE,
     axes: [
-        { type: 'time', position: 'bottom', interval: day.every(7, { snapTo: 'start' }) },
+        { type: 'time', position: 'bottom', interval: { step: day.every(7, { snapTo: 'start' }) } },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -80,7 +80,7 @@ export const TIME_AXIS_MIN_MAX_DATE_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0),
             max: new Date(2022, 2, 15, 0, 0, 0),
-            interval: day.every(3, { snapTo: 'start' }),
+            interval: { step: day.every(3, { snapTo: 'start' }) },
         },
         { type: 'number', position: 'left' },
     ],
@@ -94,7 +94,7 @@ export const TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0).getTime(),
             max: new Date(2022, 2, 15, 0, 0, 0).getTime(),
-            interval: day.every(3, { snapTo: 'start' }),
+            interval: { step: day.every(3, { snapTo: 'start' }) },
         },
         { type: 'number', position: 'left' },
     ],
@@ -177,7 +177,7 @@ export const NUMBER_AXIS_NO_SERIES: AgCartesianChartOptions = {
 export const NUMBER_AXIS_TICK_VALUES: AgCartesianChartOptions = {
     ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
     axes: [
-        { type: 'number', position: 'bottom', values: [142, 153, 203, 220, 290] },
+        { type: 'number', position: 'bottom', interval: { values: [142, 153, 203, 220, 290] } },
         { type: 'number', position: 'left' },
     ],
 };
@@ -188,7 +188,9 @@ export const TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            values: [new Date(2020, 0, 1), new Date(2020, 0, 4), new Date(2020, 0, 17), new Date(2020, 0, 28)],
+            interval: {
+                values: [new Date(2020, 0, 1), new Date(2020, 0, 4), new Date(2020, 0, 17), new Date(2020, 0, 28)],
+            },
         },
         {
             type: 'number',
@@ -204,7 +206,9 @@ export const LOG_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'log',
             position: 'left',
-            values: [2, 4, 8, 16, 12, 20, 200, 400, 800],
+            interval: {
+                values: [2, 4, 8, 16, 12, 20, 200, 400, 800],
+            },
         },
     ],
 };
@@ -215,7 +219,9 @@ export const CATEGORY_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            values: ['2016', '2018'],
+            interval: {
+                values: ['2016', '2018'],
+            },
         },
         { type: 'number', position: 'left' },
     ],
@@ -227,12 +233,12 @@ export const AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            minSpacing: 200,
+            interval: { minSpacing: 200 },
         },
         {
             type: 'number',
             position: 'left',
-            minSpacing: 100,
+            interval: { minSpacing: 100 },
         },
     ],
 };
@@ -240,16 +246,16 @@ export const AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
 export const AXIS_TICK_MAX_SPACING: AgCartesianChartOptions = {
     ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
     axes: [
-        { type: 'number', position: 'left', maxSpacing: 30 },
-        { type: 'number', position: 'bottom', maxSpacing: 30 },
+        { type: 'number', position: 'left', interval: { maxSpacing: 30 } },
+        { type: 'number', position: 'bottom', interval: { maxSpacing: 30 } },
     ],
 };
 
 export const AXIS_TICK_MIN_MAX_SPACING: AgCartesianChartOptions = {
     ...examples.GROUPED_COLUMN_EXAMPLE,
     axes: [
-        { type: 'category', position: 'bottom', minSpacing: 150 },
-        { type: 'number', position: 'left', minSpacing: 50, maxSpacing: 100 },
+        { type: 'category', position: 'bottom', interval: { minSpacing: 150 } },
+        { type: 'number', position: 'left', interval: { minSpacing: 50, maxSpacing: 100 } },
     ],
 };
 

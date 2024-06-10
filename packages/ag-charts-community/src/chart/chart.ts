@@ -1765,7 +1765,7 @@ export abstract class Chart extends Observable {
 
             const step = intervalOptions?.step;
             if (step != null) {
-                horizontalAxis.interval = step;
+                horizontalAxis.interval.step = step;
             }
         }
     }

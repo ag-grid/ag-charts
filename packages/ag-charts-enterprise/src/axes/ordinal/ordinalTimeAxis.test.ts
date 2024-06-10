@@ -102,7 +102,7 @@ const DATA = [
 const BASIC_ORDINAL_TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA,
     axes: [
-        { type: 'ordinal-time', position: 'bottom', interval: time.day.every(7) },
+        { type: 'ordinal-time', position: 'bottom', interval: { step: time.day.every(7) } },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -122,11 +122,13 @@ const ORDINAL_TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
-            values: [
-                new Date('Wednesday, August 09, 2023'),
-                new Date('Friday, August 18, 2023'),
-                new Date('Wednesday, August 23, 2023'),
-            ],
+            interval: {
+                values: [
+                    new Date('Wednesday, August 09, 2023'),
+                    new Date('Friday, August 18, 2023'),
+                    new Date('Wednesday, August 23, 2023'),
+                ],
+            },
         },
         {
             type: 'number',
@@ -150,7 +152,9 @@ const ORDINAL_TIME_AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
-            minSpacing: 300,
+            interval: {
+                minSpacing: 300,
+            },
         },
         {
             type: 'number',
