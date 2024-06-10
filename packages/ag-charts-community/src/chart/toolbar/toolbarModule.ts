@@ -126,7 +126,7 @@ const zoom: AgToolbarOptions['zoom'] = {
         },
         {
             icon: 'reset',
-            tooltip: 'toolbar-zoom.zoom',
+            tooltip: 'toolbar-zoom.reset',
             value: 'reset',
         },
     ],

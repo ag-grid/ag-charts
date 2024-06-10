@@ -338,18 +338,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (this.hasNewLocale) {
-            this.groupButtons.annotations.forEach((button, index) => {
-                this.updateButtonText(button, this.annotations.buttons![index]);
-            });
-            this.groupButtons.annotationOptions.forEach((button, index) => {
-                this.updateButtonText(button, this.annotationOptions.buttons![index]);
-            });
-            this.groupButtons.ranges.forEach((button, index) => {
-                this.updateButtonText(button, this.ranges.buttons![index]);
-            });
-            this.groupButtons.zoom.forEach((button, index) => {
-                this.updateButtonText(button, this.zoom.buttons![index]);
-            });
+            for (const group of TOOLBAR_GROUPS) {
+                this.groupButtons[group].forEach((element) => {
+                    const button = this[group].buttons?.find(({ value }) => value === element.dataset.toolbarValue);
+                    if (!button) return;
+                    this.updateButtonText(element, button);
+                });
+            }
             this.hasNewLocale = false;
         }
 

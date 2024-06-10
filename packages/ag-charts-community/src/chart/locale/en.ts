@@ -76,7 +76,7 @@ export const en: Record<string, string> = {
     // Text for the zoom toolbar's pan to the end button
     'toolbar-zoom.pan-end': 'Pan to the end',
     // Text for the zoom toolbar's pan reset button
-    'toolbar-zoom.zoom': 'Reset the zoom',
+    'toolbar-zoom.reset': 'Reset the zoom',
     // Text for the context menu's download button
     'context-menu.download': 'Download',
     // Text for the context menu's toggle series visibility button
