@@ -134,6 +134,9 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
     return m * step;
 }
 
+// Must be capped to a low number of zeros to avoid redos vulns - https://devina.io/redos-checker
+const exponentWithDecimalPointsAllZeroRegExp = /\.?0{1,20}e/;
+
 export function tickFormat(ticks: any[], formatter?: string): (n: number | { valueOf(): number }) => string {
     const options = parseFormat(formatter ?? ',f');
     if (options.precision == null || isNaN(options.precision)) {
@@ -143,7 +146,9 @@ export function tickFormat(ticks: any[], formatter?: string): (n: number | { val
                     if (typeof x !== 'number') {
                         return 0;
                     }
-                    const exp = x.toExponential((options.type ? 6 : 12) - 1).replace(/\.?0+e/, 'e');
+                    const exp = x
+                        .toExponential((options.type ? 6 : 12) - 1)
+                        .replace(exponentWithDecimalPointsAllZeroRegExp, 'e');
                     return exp.substring(0, exp.indexOf('e')).replace('.', '').length;
                 })
             );
@@ -155,7 +160,7 @@ export function tickFormat(ticks: any[], formatter?: string): (n: number | { val
                     }
                     const l = Math.floor(Math.log10(Math.abs(x)));
                     const digits = options.type ? 6 : 12;
-                    const exp = x.toExponential(digits - 1).replace(/\.?0+e/, 'e');
+                    const exp = x.toExponential(digits - 1).replace(exponentWithDecimalPointsAllZeroRegExp, 'e');
                     const dotIndex = exp.indexOf('.');
                     if (dotIndex < 0) {
                         return l >= 0 ? 0 : -l;
