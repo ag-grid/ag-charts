@@ -47,7 +47,7 @@ For specific canvas positions, use `tooltip.position.type`:
 
 The example below demonstrates setting `tooltip.position.type` and applying an x and y offset.
 
-Use the buttons to switch between positon types `top-right`, `pointer` and `node` (default).
+Use the buttons to switch between position types `top-right`, `pointer` and `node`.
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
@@ -176,15 +176,15 @@ Notice that in the above example:
 
 ## Tooltip Range
 
-By default, the tooltip for the nearest node is visible when the cursor is on the chart. However, this behaviour can be changed with the `chart.tooltip.range` property.
+The `tooltip.range` property specifies how near the cursor must be to a node for the tooltip to appear. This can be defined on each series, as well as on the chart level.
+
+Options for `tooltip.range` are:
+
+-   `'nearest'` - Always shows the tooltip of the nearest node. This is the default for marker-based series such as `line` and `scatter`.
+-   `'exact'` - Only shows the tooltip when the user hovers over a node. This is the default for shape-based series such as `bar` and `pie`.
+-   An integer - Only shows the tooltip when the cursor is within the specified pixel distance of a node.
 
 {% chartExampleRunner title="Tooltip Range" name="interaction-range" type="generated" /%}
-
-The example shows the three types of interaction range:
-
--   `'nearest'` (default) will show the tooltip of the nearest node anywhere on the chart.
--   `'exact'` will show the tooltip when the user hovers over a node.
--   An integer will show the tooltip when the cursor is within the specified pixel distance of a node.
 
 ## Interaction with Tooltips
 
