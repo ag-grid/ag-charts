@@ -208,12 +208,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.reset();
 
         if (!ToolbarManager.isGroup('annotations', event)) {
+            this.update();
             return;
         }
 
         const annotation = stringToAnnotationType(event.value);
         if (!annotation) {
             _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
+            this.update();
             return;
         }
 
@@ -222,6 +224,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === event.value });
         }
         state.transition(annotation);
+
+        this.update();
     }
 
     private onToolbarAnnotationOptionButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
