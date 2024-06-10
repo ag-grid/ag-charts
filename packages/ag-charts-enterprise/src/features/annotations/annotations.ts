@@ -481,6 +481,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { toolbarManager, tooltipManager },
         } = this;
 
+        colorPicker.hide();
+
         if (this.active != null) {
             annotations.nodes()[this.active].toggleActive(false);
         }
@@ -490,7 +492,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.active == null) {
             tooltipManager.unsuppressTooltip('annotations');
-            colorPicker.hide();
         } else {
             const node = annotations.nodes()[this.active];
             node.toggleActive(true);
