@@ -37,7 +37,9 @@ const options: AgChartOptions = {
             type: 'angle-number',
             startAngle: 135,
             endAngle: 360,
-            interval: 0.2,
+            interval: {
+                step: 0.2,
+            },
             gridLine: {
                 enabled: true,
             },
