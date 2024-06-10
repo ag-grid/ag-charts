@@ -44,7 +44,9 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            values: [new Date(1958, 0, 1), new Date(2007, 0, 1), new Date(2011, 0, 1), new Date(2023, 0, 1)],
+            interval: {
+                values: [new Date(1958, 0, 1), new Date(2007, 0, 1), new Date(2011, 0, 1), new Date(2023, 0, 1)],
+            },
             gridLine: {
                 enabled: true,
             },
@@ -64,7 +66,7 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            values: [4.6, 9.1],
+            interval: { values: [4.6, 9.1] },
             title: {
                 text: 'Magnitude',
             },

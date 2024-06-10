@@ -60,7 +60,7 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'top',
-            interval: time.year.every(10),
+            interval: { step: time.year.every(10) },
             tick: {
                 width: 3,
                 stroke: '#3f7cbf',

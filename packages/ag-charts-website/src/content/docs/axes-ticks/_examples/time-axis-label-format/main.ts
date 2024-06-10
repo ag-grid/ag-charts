@@ -65,11 +65,11 @@ const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
 const chart = AgCharts.create(options);
 
 function setOneMonthInterval() {
-    options.axes![0].interval = time.month;
+    options.axes![0].interval!.step = time.month;
     chart.update(options);
 }
 
 function setTwoMonthInterval() {
-    options.axes![0].interval = time.month.every(2);
+    options.axes![0].interval!.step = time.month.every(2);
     chart.update(options);
 }

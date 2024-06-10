@@ -65,7 +65,7 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'bottom',
-            values: [1, 2, 3, 4],
+            interval: { values: [1, 2, 3, 4] },
             label: {
                 formatter: ({ value }) => seasons[value - 1] ?? '',
             },

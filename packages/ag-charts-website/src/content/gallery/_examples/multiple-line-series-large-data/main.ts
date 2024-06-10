@@ -107,7 +107,7 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `${Math.round(value / Math.PI)}π`,
             },
-            interval: Math.PI,
+            interval: { step: Math.PI },
             crossLines: [
                 {
                     type: 'line',

@@ -53,7 +53,7 @@ const options: AgChartOptions = {
             title: {
                 text: 'Time',
             },
-            interval: 0.5,
+            interval: { step: 0.5 },
             gridLine: {
                 enabled: false,
             },
