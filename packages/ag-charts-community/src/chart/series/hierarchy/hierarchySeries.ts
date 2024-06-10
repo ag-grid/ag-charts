@@ -403,8 +403,7 @@ export abstract class HierarchySeries<
         return this.getDatumIdFromData(node);
     }
 
-    private focusPath: FocusPathNode<TDatum>[] = [];
-    private focusDepth: number = 0;
+    protected focusPath: FocusPathNode<TDatum>[] = [];
 
     protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
 
@@ -415,11 +414,13 @@ export abstract class HierarchySeries<
         }
 
         const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
-        const { focusPath: path, focusDepth: depth } = this;
+        const { focusPath: path } = this;
+        const depth = path.length - 2;
 
         if (depthDelta !== 0 || path.length === 1) {
             const targetDepth = Math.max(0, depth + depthDelta);
             if (path[targetDepth + 1] !== undefined) {
+                path.length = targetDepth + 2;
                 return this.computeFocusOutputs(path[targetDepth + 1]);
             } else {
                 let deepest = path[path.length - 1];
@@ -446,10 +447,9 @@ export abstract class HierarchySeries<
         }
     }
 
-    private computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
+    protected computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
         const bbox = this.computeFocusBounds(nodeDatum);
         if (bbox) {
-            this.focusDepth = nodeDatum.depth ?? 0;
             return {
                 datum: nodeDatum,
                 datumIndex: childIndex,
