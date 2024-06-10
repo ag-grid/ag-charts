@@ -698,7 +698,7 @@ export abstract class Chart extends Observable {
         this.updateThemeClassName();
 
         const { enabled, tabIndex } = this.keyboard;
-        this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
+        this.ctx.scene.canvas.element.tabIndex = enabled ? tabIndex ?? 0 : -1;
 
         setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
         setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());

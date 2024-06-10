@@ -141,7 +141,7 @@ export enum InteractionState {
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
-    private rootElement: HTMLElement;
+    private element: HTMLElement;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -163,13 +163,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     ) {
         super();
 
-        this.rootElement = this.domManager.getDocumentRoot();
+        this.element = this.domManager.getDocumentCanvas();
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch') || type === 'wheel') {
-                this.domManager.addEventListener(type, this.eventHandler, { passive: false });
+                this.element.addEventListener(type, this.eventHandler, { passive: false });
             } else {
-                this.domManager.addEventListener(type, this.eventHandler);
+                this.element.addEventListener(type, this.eventHandler);
             }
         }
 
@@ -182,18 +182,18 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private containerChanged(force = false) {
-        const newRoot = this.domManager.getDocumentRoot();
-        if (!force && newRoot === this.rootElement) return;
+        const newRoot = this.domManager.getDocumentCanvas();
+        if (!force && newRoot === this.element) return;
 
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.removeEventListener(type, this.eventHandler);
+            this.element.removeEventListener(type, this.eventHandler);
         }
 
-        this.rootElement = newRoot;
-        this.debug('[InteractionManager] Switching rootElement to:', this.rootElement);
+        this.element = newRoot;
+        this.debug('[InteractionManager] Switching element to:', this.element);
 
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.addEventListener(type, this.eventHandler);
+            this.element.addEventListener(type, this.eventHandler);
         }
     }
 
@@ -204,7 +204,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().removeEventListener(type, this.eventHandler);
         }
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.removeEventListener(type, this.eventHandler);
+            this.element.removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {
@@ -469,7 +469,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             offsetY = clientY - rect.top;
         }
         if (!isFiniteNumber(pageX) || !isFiniteNumber(pageY)) {
-            const pageRect = this.rootElement.getBoundingClientRect();
+            const pageRect = this.element.getBoundingClientRect();
             pageX = clientX - pageRect.left;
             pageY = clientY - pageRect.top;
         }
