@@ -1,4 +1,3 @@
-import type { AgAxisContinuousIntervalOptions } from '../series/cartesian/cartesianOptions';
 import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
@@ -69,6 +68,13 @@ export interface AgContinuousAxisOptions<
     max?: TDatum;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TInterval>;
+}
+
+export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | number> extends AgAxisBaseIntervalOptions {
+    /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    step?: T;
+    /** Maximum gap in pixels between tick lines. */
+    maxSpacing?: PixelSize;
 }
 
 export interface AgAxisLineOptions {

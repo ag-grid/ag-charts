@@ -1,7 +1,7 @@
 import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
-    AgAxisBaseIntervalOptions,
     AgAxisCaptionOptions,
+    AgAxisContinuousIntervalOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
@@ -60,13 +60,6 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis.
      */
     groupPaddingInner?: Ratio;
-}
-
-export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | number> extends AgAxisBaseIntervalOptions {
-    /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
-    step?: T;
-    /** Maximum gap in pixels between tick lines. */
-    maxSpacing?: PixelSize;
 }
 
 export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
