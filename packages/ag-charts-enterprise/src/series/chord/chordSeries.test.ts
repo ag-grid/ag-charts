@@ -43,6 +43,27 @@ describe('ChordSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    describe('Series', () => {
+        it('should render tension', async () => {
+            const options: AgChartOptions = {
+                ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
+                series: [
+                    {
+                        ...(GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options.series![0] as any),
+                        type: 'chord',
+                        link: {
+                            tension: 0.5,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('Series Highlighting', () => {
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
