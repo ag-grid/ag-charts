@@ -1,5 +1,6 @@
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
+import { dateToNumber } from '../util/timeFormatDefaults';
 import { Invalidating } from './invalidating';
 import type { Scale } from './scale';
 
@@ -39,7 +40,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
      * Maps datum to its index in the {@link domain} array.
      * Used to check for duplicate data (not allowed).
      */
-    protected index = new Map<D | D[], number>();
+    protected index = new Map<D, number>();
 
     /**
      * The output range values for datum at each index.
@@ -60,7 +61,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         // { toString: () => 'Italy' }
         // { toString: () => 'Italy' }
         for (const value of values) {
-            const key = value instanceof Date ? (value.getTime() as D) : value;
+            const key = dateToNumber(value) as D;
             if (this.getIndex(key) === undefined) {
                 this.index.set(key, this._domain.push(value) - 1);
             }
