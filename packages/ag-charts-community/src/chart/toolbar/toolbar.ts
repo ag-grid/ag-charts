@@ -283,6 +283,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             this.groupButtons[group].push(button);
         }
 
+        const onEscape = () => {
+            this.ctx.toolbarManager.cancel(group);
+        };
+
         let onFocus;
         let onBlur;
 
@@ -295,6 +299,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             orientation: 'horizontal',
             toolbar: parent,
             buttons: this.groupButtons[group],
+            onEscape,
             onFocus,
             onBlur,
         });

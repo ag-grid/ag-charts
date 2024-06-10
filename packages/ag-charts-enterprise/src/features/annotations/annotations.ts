@@ -160,6 +160,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
+            ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
         );
     }
@@ -273,6 +274,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.update();
+    }
+
+    private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
+        if (event.group !== 'annotations') return;
+
+        this.onCancel();
+
+        for (const annotationType of ANNOTATION_BUTTONS) {
+            this.ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
