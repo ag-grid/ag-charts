@@ -118,3 +118,12 @@ export function initMenuKeyNav(opts: {
 
     return destroyFns;
 }
+
+export function makeAccessibleClickListener(element: HTMLElement, onclick: (event: MouseEvent) => unknown) {
+    return (event: MouseEvent) => {
+        if (element.ariaDisabled === 'true') {
+            return event.preventDefault();
+        }
+        onclick(event);
+    };
+}

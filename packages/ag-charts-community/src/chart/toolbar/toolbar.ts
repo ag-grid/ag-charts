@@ -4,7 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { AgToolbarGroupPosition } from '../../options/agChartOptions';
 import type { BBox } from '../../scene/bbox';
 import { createElement } from '../../util/dom';
-import { initToolbarKeyNav } from '../../util/keynavUtil';
+import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -215,7 +215,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const button of this.groupButtons[group]) {
             if (button.dataset.toolbarValue !== `${value}`) continue;
-            button.disabled = !enabled;
+            button.ariaDisabled = `${!enabled}`;
             button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
             button.classList.toggle(styles.modifiers.button.active, active);
         }
@@ -338,18 +338,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (this.hasNewLocale) {
-            this.groupButtons.annotations.forEach((button, index) => {
-                this.updateButtonText(button, this.annotations.buttons![index]);
-            });
-            this.groupButtons.annotationOptions.forEach((button, index) => {
-                this.updateButtonText(button, this.annotationOptions.buttons![index]);
-            });
-            this.groupButtons.ranges.forEach((button, index) => {
-                this.updateButtonText(button, this.ranges.buttons![index]);
-            });
-            this.groupButtons.zoom.forEach((button, index) => {
-                this.updateButtonText(button, this.zoom.buttons![index]);
-            });
+            for (const group of TOOLBAR_GROUPS) {
+                this.groupButtons[group].forEach((element) => {
+                    const button = this[group].buttons?.find(({ value }) => value === element.dataset.toolbarValue);
+                    if (!button) return;
+                    this.updateButtonText(element, button);
+                });
+            }
             this.hasNewLocale = false;
         }
 
@@ -452,7 +447,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (typeof options.value === 'string' || typeof options.value === 'number') {
             button.dataset.toolbarValue = `${options.value}`;
         }
-        button.onclick = this.onButtonPress.bind(this, group, options.value);
+        button.onclick = makeAccessibleClickListener(button, this.onButtonPress.bind(this, group, options.value));
         this.updateButtonText(button, options);
 
         this.destroyFns.push(() => button.remove());
