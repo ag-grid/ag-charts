@@ -117,7 +117,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.registry.registerDefaultAction({
             id: 'download',
             type: 'all',
-            label: 'context-menu.download',
+            label: 'contextMenuDownload',
             action: () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';

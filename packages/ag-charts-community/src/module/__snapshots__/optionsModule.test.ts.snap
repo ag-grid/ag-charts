@@ -377,22 +377,22 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -404,17 +404,17 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -426,27 +426,27 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -458,37 +458,37 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -911,22 +911,22 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -938,17 +938,17 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -960,27 +960,27 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -992,37 +992,37 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -1593,22 +1593,22 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -1620,17 +1620,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -1642,27 +1642,27 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -1674,37 +1674,37 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -2269,22 +2269,22 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -2296,17 +2296,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -2318,27 +2318,27 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -2350,37 +2350,37 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -2647,22 +2647,22 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -2674,17 +2674,17 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -2696,27 +2696,27 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -2728,37 +2728,37 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -3171,22 +3171,22 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -3198,17 +3198,17 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -3220,27 +3220,27 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -3252,37 +3252,37 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -3815,22 +3815,22 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -3842,17 +3842,17 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -3864,27 +3864,27 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -3896,37 +3896,37 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -4204,22 +4204,22 @@ by Occupation",
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -4231,17 +4231,17 @@ by Occupation",
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -4253,27 +4253,27 @@ by Occupation",
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -4285,37 +4285,37 @@ by Occupation",
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -4590,22 +4590,22 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -4617,17 +4617,17 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -4639,27 +4639,27 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -4671,37 +4671,37 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -4966,22 +4966,22 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -4993,17 +4993,17 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -5015,27 +5015,27 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -5047,37 +5047,37 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -5344,22 +5344,22 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -5371,17 +5371,17 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -5393,27 +5393,27 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -5425,37 +5425,37 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -5794,22 +5794,22 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -5821,17 +5821,17 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -5843,27 +5843,27 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -5875,37 +5875,37 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -6248,22 +6248,22 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -6275,17 +6275,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -6297,27 +6297,27 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -6329,37 +6329,37 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -6925,22 +6925,22 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -6952,17 +6952,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -6974,27 +6974,27 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -7006,37 +7006,37 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -8031,22 +8031,22 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -8058,17 +8058,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -8080,27 +8080,27 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -8112,37 +8112,37 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -8410,22 +8410,22 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -8437,17 +8437,17 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -8459,27 +8459,27 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -8491,37 +8491,37 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -9195,22 +9195,22 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -9222,17 +9222,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -9244,27 +9244,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -9276,37 +9276,37 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -9699,22 +9699,22 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -9726,17 +9726,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -9748,27 +9748,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -9780,37 +9780,37 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -10333,22 +10333,22 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -10360,17 +10360,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -10382,27 +10382,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -10414,37 +10414,37 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -10888,22 +10888,22 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -10915,17 +10915,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -10937,27 +10937,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -10969,37 +10969,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -11272,22 +11272,22 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -11299,17 +11299,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -11321,27 +11321,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -11353,37 +11353,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -11950,22 +11950,22 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -11977,17 +11977,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -11999,27 +11999,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -12031,37 +12031,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -12522,22 +12522,22 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -12549,17 +12549,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -12571,27 +12571,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -12603,37 +12603,37 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -13268,22 +13268,22 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -13295,17 +13295,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -13317,27 +13317,27 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -13349,37 +13349,37 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -13797,22 +13797,22 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -13824,17 +13824,17 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -13846,27 +13846,27 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -13878,37 +13878,37 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],
@@ -14402,22 +14402,22 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "buttons": [
         {
           "icon": "color",
-          "tooltip": "toolbar-annotations.color",
+          "tooltip": "toolbarAnnotationsColor",
           "value": "color",
         },
         {
           "icon": "lock",
-          "tooltip": "toolbar-annotations.lock",
+          "tooltip": "toolbarAnnotationsLock",
           "value": "lock",
         },
         {
           "icon": "unlock",
-          "tooltip": "toolbar-annotations.unlock",
+          "tooltip": "toolbarAnnotationsUnlock",
           "value": "unlock",
         },
         {
           "icon": "delete",
-          "tooltip": "toolbar-annotations.delete",
+          "tooltip": "toolbarAnnotationsDelete",
           "value": "delete",
         },
       ],
@@ -14429,17 +14429,17 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "tooltip": "toolbar-annotations.trend-line",
+          "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
           "icon": "parallel-channel",
-          "tooltip": "toolbar-annotations.parallel-channel",
+          "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "tooltip": "toolbar-annotations.disjoint-channel",
+          "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
         },
       ],
@@ -14451,27 +14451,27 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
-          "label": "toolbar-range.1-month",
+          "label": "toolbarRange1Month",
           "value": 2592000000,
         },
         {
-          "label": "toolbar-range.3-months",
+          "label": "toolbarRange3Months",
           "value": 7776000000,
         },
         {
-          "label": "toolbar-range.6-months",
+          "label": "toolbarRange6Months",
           "value": 15552000000,
         },
         {
-          "label": "toolbar-range.year-to-date",
+          "label": "toolbarRangeYearToDate",
           "value": [Function],
         },
         {
-          "label": "toolbar-range.1-year",
+          "label": "toolbarRange1Year",
           "value": 31536000000,
         },
         {
-          "label": "toolbar-range.all",
+          "label": "toolbarRangeAll",
           "value": [Function],
         },
       ],
@@ -14483,37 +14483,37 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "buttons": [
         {
           "icon": "zoom-out",
-          "tooltip": "toolbar-zoom.zoom-out",
+          "tooltip": "toolbarZoomZoomOut",
           "value": "zoom-out",
         },
         {
           "icon": "zoom-in",
-          "tooltip": "toolbar-zoom.zoom-in",
+          "tooltip": "toolbarZoomZoomIn",
           "value": "zoom-in",
         },
         {
           "icon": "pan-left",
-          "tooltip": "toolbar-zoom.pan-left",
+          "tooltip": "toolbarZoomPanLeft",
           "value": "pan-left",
         },
         {
           "icon": "pan-right",
-          "tooltip": "toolbar-zoom.pan-right",
+          "tooltip": "toolbarZoomPanRight",
           "value": "pan-right",
         },
         {
           "icon": "pan-start",
-          "tooltip": "toolbar-zoom.pan-start",
+          "tooltip": "toolbarZoomPanStart",
           "value": "pan-start",
         },
         {
           "icon": "pan-end",
-          "tooltip": "toolbar-zoom.pan-end",
+          "tooltip": "toolbarZoomPanEnd",
           "value": "pan-end",
         },
         {
           "icon": "reset",
-          "tooltip": "toolbar-zoom.zoom",
+          "tooltip": "toolbarZoomZoom",
           "value": "reset",
         },
       ],

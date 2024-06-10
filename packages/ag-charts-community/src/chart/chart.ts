@@ -395,7 +395,7 @@ export abstract class Chart extends Observable {
     }
 
     getAriaLabel(): string {
-        return this.ctx.localeManager.t('aria-announce.chart', {
+        return this.ctx.localeManager.t('ariaAnnounceChart', {
             seriesCount: this.series.length,
             caption: this.getCaptionText(),
         });
@@ -1263,7 +1263,7 @@ export abstract class Chart extends Observable {
             const aria = this.getDatumAriaText(datum, html);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue('aria-announce.hover-datum', { datum: aria });
+            this.ctx.ariaAnnouncementService.announceValue('ariaAnnounceHoverDatum', { datum: aria });
         }
     }
 
