@@ -137,9 +137,12 @@
 }
 
 .ag-charts-toolbar__button:hover,
-.ag-charts-toolbar__button:focus,
+.ag-charts-toolbar__button:focus {
+    border-color: var(--ag-charts-toolbar-focus-border-color);
+}
+
 .ag-charts-toolbar__button--active {
-    background: var(--ag-charts-toolbar-hover-color);
+    background: var(--ag-charts-toolbar-active-color);
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
