@@ -111,3 +111,7 @@ export function invert(n: Coords['x' | 'y'], context: AnnotationAxisContext) {
     }
     return context.scaleInvertNearest?.(n);
 }
+
+export function calculateAxisLabelPadding(axisLayout: _ModuleSupport.AxisLayout) {
+    return axisLayout.seriesAreaPadding + axisLayout.tickSize + axisLayout.label.padding;
+}

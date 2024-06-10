@@ -79,7 +79,7 @@ export class CrossLine extends Annotation {
 
         const { axisLabel } = this;
         if (datum.axisLabel.enabled) {
-            axisLabel.visible = true;
+            axisLabel.visible = this.visible;
             const [labelX, labelY] =
                 axisContext.position === 'left' || axisContext.position === 'top' ? [x1, y1] : [x2, y2];
             axisLabel.update({

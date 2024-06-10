@@ -1,5 +1,4 @@
 import {
-    type AgAxisLabelFormatterParams,
     type Direction,
     type FontStyle,
     type FontWeight,
@@ -182,7 +181,11 @@ export function Stroke<T extends Constructor>(Parent: T) {
     return StrokeOptions;
 }
 
-export type AnnotationAxisLabelFormatter = (params: Omit<AgAxisLabelFormatterParams, 'index'>) => string;
+export interface AnnotationAxisLabelFormatterParams {
+    readonly value: any;
+    readonly formatter?: (x: any) => string;
+}
+export type AnnotationAxisLabelFormatter = (params: AnnotationAxisLabelFormatterParams) => string;
 export function Label<T extends Constructor>(Parent: T) {
     class LabelOptions extends Parent {
         @Validate(POSITIVE_NUMBER)

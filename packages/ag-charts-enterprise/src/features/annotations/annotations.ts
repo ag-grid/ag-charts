@@ -11,7 +11,7 @@ import type {
     StateHoverEvent,
 } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
-import { invertCoords, validateDatumPoint } from './annotationUtils';
+import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
@@ -49,7 +49,7 @@ type AnnotationProperties =
     | DisjointChannelAnnotation;
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
-export type AnnotationAxis = {
+type AnnotationAxis = {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
     bounds: _Scene.BBox;
@@ -383,18 +383,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             xAxis: {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
-                labelPadding: this.calculateAxisLabelPadding(xAxis.layout),
+                labelPadding: calculateAxisLabelPadding(xAxis.layout),
             },
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
-                labelPadding: this.calculateAxisLabelPadding(xAxis.layout),
+                labelPadding: calculateAxisLabelPadding(xAxis.layout),
             },
         };
-    }
-
-    private calculateAxisLabelPadding(axisLayout: _ModuleSupport.AxisLayout) {
-        return axisLayout.seriesAreaPadding + axisLayout.tickSize + axisLayout.label.padding;
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>, region: _ModuleSupport.RegionName) {
