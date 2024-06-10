@@ -142,12 +142,12 @@
     background: var(--ag-charts-toolbar-hover-color);
 }
 
-.ag-charts-toolbar__button:disabled {
+.ag-charts-toolbar__button[aria-disabled='true'] {
     background: var(--ag-charts-toolbar-disabled-background-color);
     color: var(--ag-charts-toolbar-disabled-foreground-color);
 }
 
-.ag-charts-toolbar__button:not([disabled]) {
+.ag-charts-toolbar__button:not([aria-disabled='true']) {
     cursor: pointer;
 }
 
