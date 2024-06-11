@@ -21,7 +21,7 @@ This release includes the following breaking changes:
 -   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
 -   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
 -   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
--   Series `key` properties no longer support expressions.
+-   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
 
 **Series Changes**
 
