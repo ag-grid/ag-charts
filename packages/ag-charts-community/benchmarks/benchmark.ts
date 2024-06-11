@@ -55,6 +55,11 @@ export function benchmark(
         return process.memoryUsage();
     }
 
+    beforeEach(() => {
+        if (!global.gc) return;
+        global.gc();
+    });
+
     it(
         name,
         async () => {
