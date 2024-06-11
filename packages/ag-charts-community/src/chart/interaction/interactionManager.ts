@@ -55,6 +55,7 @@ type SUPPORTED_EVENTS =
     | 'wheel';
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide'];
+const KEYBOARD_EVENT_HANDLERS = ['blur', 'focus', 'keydown', 'keyup'] as const;
 const EVENT_HANDLERS = [
     'click',
     'dblclick',
@@ -67,10 +68,6 @@ const EVENT_HANDLERS = [
     'touchend',
     'touchcancel',
     'wheel',
-    'blur',
-    'focus',
-    'keydown',
-    'keyup',
 ] as const;
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = PreventableEvent & {
@@ -141,7 +138,8 @@ export enum InteractionState {
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
-    private element: HTMLElement;
+    private rootElement: HTMLElement;
+    private canvasElement: HTMLCanvasElement;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -163,13 +161,14 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     ) {
         super();
 
-        this.element = this.domManager.getDocumentCanvas();
+        this.rootElement = this.domManager.getDocumentRoot();
+        this.canvasElement = this.domManager.getDocumentCanvas();
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch') || type === 'wheel') {
-                this.element.addEventListener(type, this.eventHandler, { passive: false });
+                this.domManager.addEventListener(type, this.eventHandler, { passive: false });
             } else {
-                this.element.addEventListener(type, this.eventHandler);
+                this.domManager.addEventListener(type, this.eventHandler);
             }
         }
 
@@ -177,34 +176,41 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().addEventListener(type, this.eventHandler);
         }
 
+        for (const type of KEYBOARD_EVENT_HANDLERS) {
+            this.canvasElement.addEventListener(type, this.eventHandler);
+        }
+
         this.containerChanged(true);
         this.domManager.addListener('container-changed', () => this.containerChanged());
     }
 
     private containerChanged(force = false) {
-        const newRoot = this.domManager.getDocumentCanvas();
-        if (!force && newRoot === this.element) return;
+        const newRoot = this.domManager.getDocumentRoot();
+        if (!force && newRoot === this.rootElement) return;
 
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.element.removeEventListener(type, this.eventHandler);
+            this.rootElement.removeEventListener(type, this.eventHandler);
         }
 
-        this.element = newRoot;
-        this.debug('[InteractionManager] Switching element to:', this.element);
+        this.rootElement = newRoot;
+        this.debug('[InteractionManager] Switching rootElement to:', this.rootElement);
 
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.element.addEventListener(type, this.eventHandler);
+            this.rootElement.addEventListener(type, this.eventHandler);
         }
     }
 
     override destroy() {
         super.destroy();
 
+        for (const type of KEYBOARD_EVENT_HANDLERS) {
+            this.canvasElement.removeEventListener(type, this.eventHandler);
+        }
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().removeEventListener(type, this.eventHandler);
         }
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.element.removeEventListener(type, this.eventHandler);
+            this.rootElement.removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {
@@ -469,7 +475,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             offsetY = clientY - rect.top;
         }
         if (!isFiniteNumber(pageX) || !isFiniteNumber(pageY)) {
-            const pageRect = this.element.getBoundingClientRect();
+            const pageRect = this.rootElement.getBoundingClientRect();
             pageX = clientX - pageRect.left;
             pageY = clientY - pageRect.top;
         }
