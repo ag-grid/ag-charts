@@ -280,7 +280,9 @@ describe('CartesianChart', () => {
                         title: {
                             text: 'Date',
                         },
-                        maxSpacing: 80,
+                        interval: {
+                            maxSpacing: 80,
+                        },
                     },
                     {
                         type: 'number',

@@ -17,7 +17,6 @@ HTMLCollection [
       </button>
       <button
         class="ag-chart-context-menu__item"
-        disabled=""
         tabindex="-1"
       >
         Zoom to here
@@ -56,7 +55,6 @@ HTMLCollection [
       </button>
       <button
         class="ag-chart-context-menu__item"
-        disabled=""
         tabindex="-1"
       >
         Pan to here

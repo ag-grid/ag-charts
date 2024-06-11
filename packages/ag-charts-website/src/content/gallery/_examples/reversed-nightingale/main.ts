@@ -24,7 +24,7 @@ const options: AgChartOptions = {
         {
             type: 'radius-number',
             innerRadiusRatio: 0,
-            values: [1, 3, 5],
+            interval: { values: [1, 3, 5] },
             reverse: true,
             gridLine: {
                 width: 2,

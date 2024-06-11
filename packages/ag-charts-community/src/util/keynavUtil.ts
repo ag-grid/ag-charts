@@ -65,8 +65,9 @@ export function initToolbarKeyNav(opts: {
     buttons: HTMLElement[];
     onFocus?: (event: FocusEvent) => void;
     onBlur?: (event: FocusEvent) => void;
+    onEscape?: (event: KeyboardEvent) => void;
 }): (() => void)[] {
-    const { orientation, toolbar, buttons, onFocus, onBlur } = opts;
+    const { orientation, toolbar, buttons, onEscape, onFocus, onBlur } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
     toolbar.role = 'toolbar';
@@ -79,6 +80,13 @@ export function initToolbarKeyNav(opts: {
         const next = buttons[i + 1];
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
+        if (onEscape) {
+            addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Escape') {
+                    onEscape(event);
+                }
+            });
+        }
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, true);
         curr.tabIndex = i === 0 ? 0 : -1;
     }
@@ -117,4 +125,13 @@ export function initMenuKeyNav(opts: {
     }
 
     return destroyFns;
+}
+
+export function makeAccessibleClickListener(element: HTMLElement, onclick: (event: MouseEvent) => unknown) {
+    return (event: MouseEvent) => {
+        if (element.ariaDisabled === 'true') {
+            return event.preventDefault();
+        }
+        onclick(event);
+    };
 }

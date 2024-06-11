@@ -43,7 +43,9 @@ const options: AgChartOptions = {
             label: {
                 enabled: false,
             },
-            interval: 0.4,
+            interval: {
+                step: 0.4,
+            },
         },
     ],
     legend: {

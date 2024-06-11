@@ -5,12 +5,14 @@ import type { ToolbarGroup } from '../toolbar/toolbarTypes';
 type EventTypes =
     | 'button-pressed'
     | 'button-toggled'
+    | 'cancelled'
     | 'floating-anchor-changed'
     | 'group-toggled'
     | 'proxy-group-options';
 type ToolbarEvent =
     | ToolbarButtonPressedEvent
     | ToolbarButtonToggledEvent
+    | ToolbarCancelledEvent
     | ToolbarFloatingAnchorChangedEvent
     | ToolbarGroupToggledEvent
     | ToolbarProxyGroupOptionsEvent;
@@ -27,6 +29,8 @@ export interface ToolbarGroupToggledEvent extends Event<'group-toggled'> {
     caller: string;
     visible: boolean;
 }
+
+export interface ToolbarCancelledEvent extends Event<'cancelled'> {}
 
 export interface ToolbarFloatingAnchorChangedEvent extends Event<'floating-anchor-changed'> {
     anchor: { x: number; y: number };
@@ -58,6 +62,10 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
 
     pressButton(group: ToolbarGroup, value: any) {
         this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, value });
+    }
+
+    cancel(group: ToolbarGroup) {
+        this.listeners.dispatch('cancelled', { type: 'cancelled', group });
     }
 
     toggleButton<T extends ToolbarGroup>(

@@ -1,7 +1,7 @@
-import type { AgCartesianAxisPosition } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { CrosshairLabel, CrosshairLabelProperties, type LabelMeta } from './crosshairLabel';
+import { buildBounds, calculateAxisLabelPosition } from '../../utils/position';
+import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
 type AgCrosshairLabelRendererResult = any;
 
@@ -96,7 +96,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.axisLayout = axisLayout;
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
-        this.bounds = this.buildBounds(rect, axisPosition, padding);
+        this.bounds = buildBounds(rect, axisPosition, padding);
 
         const { crosshairGroup, bounds } = this;
         crosshairGroup.translationX = Math.round(bounds.x);
@@ -106,16 +106,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.updateSelections(crosshairKeys);
         this.updateLines();
         this.updateLabels(crosshairKeys);
-    }
-
-    private buildBounds(rect: _Scene.BBox, axisPosition: AgCartesianAxisPosition, padding: number): _Scene.BBox {
-        const bounds = rect.clone();
-        bounds.x += axisPosition === 'left' ? -padding : 0;
-        bounds.y += axisPosition === 'top' ? -padding : 0;
-        bounds.width += axisPosition === 'left' || axisPosition === 'right' ? padding : 0;
-        bounds.height += axisPosition === 'top' || axisPosition === 'bottom' ? padding : 0;
-
-        return bounds;
     }
 
     private updateSelections(data: string[]) {
@@ -282,12 +272,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const y = offsetY - seriesRect.y;
 
         const isVertical = this.isVertical();
+        const position = isVertical ? x : y;
         return {
             [key]: {
-                position: isVertical ? x : y,
-                value: axisCtx.continuous
-                    ? axisCtx.scaleInvert(isVertical ? x : y)
-                    : datum?.[isVertical ? xKey : yKey] ?? '',
+                position,
+                value: axisCtx.continuous ? axisCtx.scaleInvert(position) : datum?.[isVertical ? xKey : yKey] ?? '',
             },
         };
     }
@@ -360,7 +349,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private showLabel(x: number, y: number, value: any, key: string) {
-        const { axisCtx, bounds, axisLayout } = this;
+        const {
+            axisCtx: { position: axisPosition, direction: axisDirection },
+            bounds,
+            axisLayout,
+        } = this;
 
         if (!axisLayout) {
             return;
@@ -380,24 +373,15 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         label.setLabelHtml(html);
         const labelBBox = label.computeBBox();
 
-        let labelMeta: LabelMeta;
-        if (this.isVertical()) {
-            const xOffset = -labelBBox.width / 2;
-            const yOffset = axisCtx.position === 'bottom' ? 0 : -labelBBox.height;
-            const fixedY = axisCtx.position === 'bottom' ? bounds.y + bounds.height + padding : bounds.y - padding;
-            labelMeta = {
-                x: x + xOffset,
-                y: fixedY + yOffset,
-            };
-        } else {
-            const yOffset = -labelBBox.height / 2;
-            const xOffset = axisCtx.position === 'right' ? 0 : -labelBBox.width;
-            const fixedX = axisCtx.position === 'right' ? bounds.x + bounds.width + padding : bounds.x - padding;
-            labelMeta = {
-                x: fixedX + xOffset,
-                y: y + yOffset,
-            };
-        }
+        const labelMeta = calculateAxisLabelPosition({
+            x,
+            y,
+            labelBBox,
+            bounds,
+            axisPosition,
+            axisDirection,
+            padding,
+        });
 
         label.show(labelMeta);
     }

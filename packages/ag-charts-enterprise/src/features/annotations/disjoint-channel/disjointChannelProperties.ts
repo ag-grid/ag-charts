@@ -8,7 +8,7 @@ import {
     LineDash,
     Stroke,
 } from '../annotationProperties';
-import { AnnotationType, type ValidationContext } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -47,7 +47,7 @@ export class DisjointChannelAnnotation extends Annotation(
         return bottom;
     }
 
-    override isValidWithContext(context: ValidationContext, warningPrefix?: string) {
+    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return (
             super.isValid(warningPrefix) &&
             validateDatumLine(context, this, warningPrefix) &&

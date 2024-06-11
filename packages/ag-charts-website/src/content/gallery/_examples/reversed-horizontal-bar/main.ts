@@ -60,7 +60,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'bottom',
             reverse: true,
-            interval: 60,
+            interval: { step: 60 },
         },
     ],
 };

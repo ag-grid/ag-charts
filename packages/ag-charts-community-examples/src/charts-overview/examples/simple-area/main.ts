@@ -67,7 +67,9 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            interval: time.year.every(2),
+            interval: {
+                step: time.year.every(2),
+            },
         },
         {
             type: 'number',

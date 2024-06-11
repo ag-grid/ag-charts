@@ -18,7 +18,8 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, initMenuKeyNav, ContextMenuRegistry } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
+    _ModuleSupport;
 
 const moduleId = 'context-menu';
 
@@ -276,10 +277,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createActionElement({ id, label, type, action }: ContextMenuAction): HTMLElement {
-        if (id && this.registry.isDisabled(id)) {
-            return this.createDisabledElement(label);
-        }
-        return this.createButtonElement(type, label, action);
+        const disabled = !!(id && this.registry.isDisabled(id));
+        return this.createButtonElement(type, label, action, disabled);
     }
 
     private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
@@ -313,24 +312,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonElement<T extends ContextType>(
         type: T,
         label: string,
-        callback: ContextMenuCallback<T>
+        callback: ContextMenuCallback<T>,
+        disabled: boolean
     ): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.textContent = this.ctx.localeManager.t(label);
-        el.onclick = this.createButtonOnClick(type, callback);
-        el.role = 'menuitem';
-        return el;
-    }
-
-    private createDisabledElement(label: string): HTMLElement {
-        const el = createElement('button');
-        el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.disabled = true;
+        el.ariaDisabled = disabled.toString();
         el.textContent = this.ctx.localeManager.t(label);
         el.role = 'menuitem';
+        el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(type, callback));
         return el;
     }
 

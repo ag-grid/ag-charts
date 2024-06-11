@@ -11,7 +11,7 @@ import type { Degree, Ratio } from './types';
 export interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
 
 export interface AgRadiusNumberAxisOptions
-    extends Omit<AgBaseAxisOptions<AgRadiusAxisLabelOptions>, 'keys'>,
+    extends Omit<AgBaseAxisOptions<AgRadiusAxisLabelOptions>, 'keys' | 'interval'>,
         AgContinuousAxisOptions {
     type: 'radius-number';
     /** The rotation angle of axis line and labels in degrees. */

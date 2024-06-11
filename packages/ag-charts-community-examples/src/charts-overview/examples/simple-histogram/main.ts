@@ -31,7 +31,9 @@ const options: AgChartOptions = {
             title: {
                 text: 'Engine Size (Cubic inches)',
             },
-            interval: 20,
+            interval: {
+                step: 20,
+            },
         },
         {
             type: 'number',

@@ -54,7 +54,7 @@ function genDataPoint(ref: Date | { date: Date; petrol: number; diesel: number }
 }
 
 function times<T>(cb: () => T, count: number) {
-    const result = [];
+    const result: T[] = [];
     for (; count > 0; count--) {
         result.push(cb());
     }

@@ -48,7 +48,7 @@ const candlestickOptions: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'right',
-            interval: 25,
+            interval: { step: 25 },
             tick: {
                 size: 0,
             },

@@ -8,8 +8,10 @@ export interface AxisContext {
     position?: AgCartesianAxisPosition;
     keys(): string[];
     seriesKeyProperties(): string[];
+    scaleDomain(): any[] | undefined;
     scaleBandwidth(): number;
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
+    scaleInvertNearest(position: number): any;
     scaleValueFormatter(specifier?: string): ((x: any) => string) | undefined;
 }
