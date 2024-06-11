@@ -461,7 +461,7 @@ export class Legend extends BaseProperties {
         height = Math.max(1, height);
 
         if (!isFinite(width)) {
-            return false;
+            return {};
         }
 
         const size = this.size;
@@ -475,8 +475,7 @@ export class Legend extends BaseProperties {
         }
 
         const { pages, maxPageHeight, maxPageWidth } = this.updatePagination(bboxes, width, height);
-        this.updatePaginationProxyButtons(this.pages.length > 1, pages.length > 1);
-
+        const oldPages = this.pages;
         this.pages = pages;
         this.maxPageSize = [maxPageWidth - paddingX, maxPageHeight - paddingY];
 
@@ -485,7 +484,7 @@ export class Legend extends BaseProperties {
 
         if (this.pages.length < 1 || !page) {
             this.visible = false;
-            return;
+            return { oldPages };
         }
 
         this.visible = true;
@@ -495,6 +494,8 @@ export class Legend extends BaseProperties {
 
         // Update legend item properties that don't affect the layout.
         this.update();
+
+        return { oldPages };
     }
 
     private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
@@ -670,12 +671,12 @@ export class Legend extends BaseProperties {
         };
     }
 
-    private updatePaginationProxyButtons(oldNeedsButtons: boolean, newNeedsButtons: boolean) {
-        if (oldNeedsButtons === newNeedsButtons) return;
+    private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
+        this.proxyLegendPagination.style.display = this.pagination.visible ? 'absolute' : 'none';
 
-        this.proxyNextButton?.remove();
-        this.proxyPrevButton?.remove();
-        [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
+        const oldNeedsButtons = (oldPages?.length ?? this.pages.length) > 1;
+        const newNeedsButtons = this.pages.length > 1;
+        if (oldNeedsButtons === newNeedsButtons) return;
 
         if (newNeedsButtons) {
             this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
@@ -696,7 +697,17 @@ export class Legend extends BaseProperties {
                 focusable: this.pagination.nextButton,
                 onclick: () => this.pagination.clickNext(),
             });
+
+            const { group, prev, next } = this.pagination.computeCSSBounds();
+            setElementBBox(this.proxyLegendPagination, group);
+            setElementBBox(this.proxyPrevButton, prev);
+            setElementBBox(this.proxyNextButton, next);
+        } else {
+            this.proxyNextButton?.remove();
+            this.proxyPrevButton?.remove();
+            [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
         }
+
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
@@ -1197,7 +1208,7 @@ export class Legend extends BaseProperties {
 
         this.group.translationX = 0;
         this.group.translationY = 0;
-        this.calcLayout(legendWidth, legendHeight);
+        const { oldPages } = this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
         const calculateTranslationPerpendicularDimension = () => {
@@ -1246,13 +1257,7 @@ export class Legend extends BaseProperties {
             this.proxyLegendToolbar.style.display = 'none';
         }
 
-        if (this.pagination.visible) {
-            this.proxyLegendPagination.style.display = 'absolute';
-            setElementBBox(this.proxyPrevButton, this.pagination.previousButton.computeTransformedBBox()!);
-            setElementBBox(this.proxyNextButton, this.pagination.nextButton.computeTransformedBBox()!);
-        } else {
-            this.proxyLegendPagination.style.display = 'none';
-        }
+        this.updatePaginationProxyButtons(oldPages);
 
         if (this.visible && this.enabled && this.data.length) {
             const legendPadding = this.spacing;
