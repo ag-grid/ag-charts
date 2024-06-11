@@ -1,14 +1,15 @@
 import { Debug } from '../util/debug';
-import { downloadUrl } from '../util/dom';
+import { downloadUrl, getDocument } from '../util/dom';
+import { GuardedElement } from '../util/guardedElement';
 import { createId } from '../util/id';
-import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
+import { HdpiCanvas } from './canvas/hdpiCanvas';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
 import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
 
 type DOMManagerLike = {
-    addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
+    addChild(type: 'canvas', id: string, child?: HTMLElement, isTabGuard?: true): HTMLElement;
 };
 
 interface SceneOptions {
@@ -16,7 +17,13 @@ interface SceneOptions {
     height?: number;
     pixelRatio?: number;
     canvasPosition?: 'absolute';
-    domManager?: DOMManagerLike;
+    domManager: DOMManagerLike;
+}
+
+export class GuardedCanvas extends GuardedElement<HTMLCanvasElement> {
+    constructor(htmlCanvas: HTMLCanvasElement) {
+        super(htmlCanvas, getDocument().createElement('div'), getDocument().createElement('div'));
+    }
 }
 
 export class Scene {
@@ -32,20 +39,17 @@ export class Scene {
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
 
-    private domManager?: DOMManagerLike;
+    public readonly tabGuards: GuardedCanvas;
 
     constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
-        this.domManager = domManager;
-
-        const canvasOpts: CanvasOptions = {
+        this.canvas = new HdpiCanvas({
             width,
             height,
             pixelRatio,
-        };
-        if (domManager) {
-            canvasOpts.canvasConstructor = () => domManager.addChild('canvas', 'scene-canvas') as HTMLCanvasElement;
-        }
-        this.canvas = new HdpiCanvas(canvasOpts);
+        });
+        this.tabGuards = new GuardedCanvas(this.canvas.element);
+        this.setContainer(domManager);
+
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });
@@ -63,13 +67,16 @@ export class Scene {
         const isElement = (v: unknown): v is HTMLElement => {
             return typeof (v as any).tagName !== 'undefined';
         };
+        const { element, topTabGuard, bottomTabGuard } = this.tabGuards;
+        this.tabGuards.remove();
         if (isElement(value)) {
-            const { element } = this.canvas;
-            element.parentElement?.removeChild(element);
+            value.appendChild(topTabGuard);
             value.appendChild(element);
+            value.appendChild(bottomTabGuard);
         } else {
-            this.domManager = value;
-            this.domManager.addChild('canvas', 'scene-canvas', this.canvas.element);
+            value.addChild('canvas', 'scene-toptab', topTabGuard, true);
+            value.addChild('canvas', 'scene-canvas', element);
+            value.addChild('canvas', 'scene-bottab', bottomTabGuard, true);
         }
         return this;
     }
@@ -246,6 +253,7 @@ export class Scene {
         this.strip();
 
         this.canvas.destroy();
+        this.tabGuards.destroy();
         Object.assign(this, { canvas: undefined });
     }
 }
