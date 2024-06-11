@@ -363,6 +363,52 @@ export const COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: AgCartesianChar
     })),
 };
 
+export const COMBO_SERIES_COMPLEX_LAYOUT: AgCartesianChartOptions = {
+    ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
+    axes: [
+        ...(COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes?.map((a) => {
+            if (a.position === 'left' && a.type === 'number') {
+                return { ...a, min: 0, max: 4000 };
+            } else if (a.position === 'right' && a.type === 'number') {
+                return { ...a, min: 100000, max: 140000 };
+            }
+            return a;
+        }) ?? []),
+        ...(COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes
+            ?.filter((a) => a.type === 'number')
+            .map((a) => {
+                const layoutConstraints = {
+                    stacked: false,
+                    width: 50,
+                    unit: 'percentage',
+                    align: 'start',
+                };
+                if (a.position === 'left' && a.type === 'number') {
+                    return { ...a, min: 0, max: 4000, layoutConstraints };
+                } else if (a.position === 'right' && a.type === 'number') {
+                    return { ...a, min: 100000, max: 140000, layoutConstraints };
+                }
+                return a;
+            }) ?? []),
+        ...(COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes
+            ?.filter((a) => a.type === 'number')
+            .map((a) => {
+                const layoutConstraints = {
+                    stacked: false,
+                    width: 50,
+                    unit: 'percentage',
+                    align: 'end',
+                };
+                if (a.position === 'left' && a.type === 'number') {
+                    return { ...a, min: 0, max: 4000, layoutConstraints, reverse: true };
+                } else if (a.position === 'right' && a.type === 'number') {
+                    return { ...a, min: 100000, max: 140000, layoutConstraints, reverse: true };
+                }
+                return a;
+            }) ?? []),
+    ],
+};
+
 export const AREA_CHART_NO_SERIES: AgCartesianChartOptions = {
     ...examples.STACKED_AREA_GRAPH_EXAMPLE,
     series: examples.STACKED_AREA_GRAPH_EXAMPLE.series?.map((s) => ({ ...s, visible: false })),

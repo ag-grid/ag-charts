@@ -179,6 +179,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     abstract get direction(): ChartAxisDirection;
 
+    layoutConstraints: ChartAxis['layoutConstraints'] = {
+        stacked: true,
+        align: 'start',
+        width: 100,
+        unit: 'percent',
+    };
+
     boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
