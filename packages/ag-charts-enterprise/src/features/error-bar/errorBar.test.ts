@@ -2,9 +2,10 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
     AgErrorBarFormatterParams,
-    AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
     AgScatterSeriesOptions,
     AgScatterSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import {
     Chart,
@@ -20,8 +21,6 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
-
-export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
 
 const SERIES_CANADA = {
     data: [
@@ -697,7 +696,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply formatter as expected', async () => {
-        const formatter: ErrorBarFormatter = (params) => {
+        const formatter: Styler<AgErrorBarFormatterParams<any>, AgErrorBarThemeableOptions> = (params) => {
             let stroke, cap;
             switch (params.datum[params.xKey]) {
                 case 'Jan':
@@ -758,7 +757,7 @@ describe('ErrorBars', () => {
                     ...SERIES_CANADA,
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
-                        formatter: (param: AgErrorBarFormatterParams) => {
+                        formatter: (param: AgErrorBarFormatterParams<any>) => {
                             result.push(param.highlighted);
                             return {};
                         },

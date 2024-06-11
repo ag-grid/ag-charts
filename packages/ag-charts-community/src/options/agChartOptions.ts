@@ -1,5 +1,6 @@
 export * from './api/presetOptions';
 export * from './chart/axisOptions';
+export * from './chart/callbackOptions';
 export * from './chart/crosshairOptions';
 export * from './chart/chartOptions';
 export * from './chart/chartBuilderOptions';

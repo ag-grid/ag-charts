@@ -1,6 +1,11 @@
-import { type AgErrorBarOptions, type ErrorBarCapOptions, _ModuleSupport } from 'ag-charts-community';
-
-import type { ErrorBarFormatter } from './errorBarNode';
+import {
+    type AgErrorBarFormatterParams,
+    type AgErrorBarOptions,
+    type AgErrorBarThemeableOptions,
+    type ErrorBarCapOptions,
+    type Styler,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 const {
     BaseProperties,
@@ -86,7 +91,7 @@ export class ErrorBarProperties extends BaseProperties<AgErrorBarOptions<any>> {
     lineDashOffset?: number;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: ErrorBarFormatter;
+    itemStyler?: Styler<AgErrorBarFormatterParams<any>, AgErrorBarThemeableOptions>;
 
     @Validate(OBJECT)
     cap = new ErrorBarCap();
