@@ -707,7 +707,6 @@ export class Legend extends BaseProperties {
             this.proxyPrevButton?.remove();
             [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
         }
-
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
