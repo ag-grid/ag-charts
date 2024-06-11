@@ -94,7 +94,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             id: `navigator-toolbar`,
             classList: ['ag-charts-proxy-navigator-toolbar'],
             ariaOrientation: 'vertical',
-            ariaLabel: { id: 'aria-label.navigator' },
+            ariaLabel: { id: 'ariaLabelNavigator' },
         });
         this.updateGroupVisibility();
 
@@ -102,7 +102,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-pan',
-                ariaLabel: { id: 'aria-label.navigator-range' },
+                ariaLabel: { id: 'ariaLabelNavigatorRange' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maskVisibleRange,
@@ -111,7 +111,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-min',
-                ariaLabel: { id: 'aria-label.navigator-minimum' },
+                ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
@@ -120,7 +120,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
                 id: 'ag-charts-navigator-max',
-                ariaLabel: { id: 'aria-label.navigator-maximum' },
+                ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,
@@ -290,7 +290,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private setPanSliderValue(min: number, max: number) {
         this.proxyNavigatorElements[0].value = `${Math.round(min * 100)}`;
-        this.proxyNavigatorElements[0].ariaValueText = this.ctx.localeManager.t('aria-value.pan-range', { min, max });
+        this.proxyNavigatorElements[0].ariaValueText = this.ctx.localeManager.t('ariaValuePanRange', { min, max });
     }
 
     private setSliderRatioClamped(slider: HTMLInputElement, clampMin: number, clampMax: number) {

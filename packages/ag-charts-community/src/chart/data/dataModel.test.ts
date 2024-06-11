@@ -1250,6 +1250,13 @@ describe('DataModel', () => {
             expect(getPathComponents(`. b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['b', 'c', 'd', '0', '99']);
             expect(getPathComponents(`[ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['c', 'd', '0', '99']);
         });
+
+        it('handles string escapes paths', () => {
+            expect(getPathComponents(`[ 'a\\'b' ] [ "a\\"b" ]`)).toEqual([`a'b`, `a"b`]);
+            expect(getPathComponents(`[ 'a\\\\'b' ]`)).toBe(undefined);
+            expect(getPathComponents(`[ "a\\\\"b" ]`)).toBe(undefined);
+        });
+
         it('rejects invalid paths', () => {
             expect(getPathComponents(`["test"]other`)).toBe(undefined);
             expect(getPathComponents(`[test]`)).toBe(undefined);

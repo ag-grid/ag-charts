@@ -253,16 +253,16 @@ export function getPathComponents(path: string) {
     const components: string[] = [];
     let matchIndex = 0;
     let matchGroup: RegExpExecArray | null;
-    const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|\\')*'|"(?:[^']|\\")*"|-?\d+)\s*\])\s*)/g;
-    /**              ^                         ^               ^               ^
-     *               |                         |               |               |
-     *                - .dotAccessor or initial property (i.e. a in "a.b")     |
-     *                                         |               |               |
-     *                                          - ['single-quoted']            |
-     *                                                         |               |
-     *                                                          - ["double-quoted"]
-     *                                                                         |
-     *                                                                          - [0] index properties
+    const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|(?<!\\)\\')*'|"(?:[^"]|(?<!\\)\\")*"|-?\d+)\s*\])\s*)/g;
+    /**              ^                         ^                      ^                      ^
+     *               |                         |                      |                      |
+     *                - .dotAccessor or initial property (i.e. a in "a.b")                   |
+     *                                         |                      |                      |
+     *                                          - ['single-quoted']                          |
+     *                                                                |                      |
+     *                                                                 - ["double-quoted"]   |
+     *                                                                                       |
+     *                                                                                        - [0] index properties
      */
     while ((matchGroup = regExp.exec(path))) {
         if (matchGroup.index !== matchIndex) {
@@ -275,9 +275,12 @@ export function getPathComponents(path: string) {
             components.push(match.slice(1).trim());
         } else if (match.startsWith('[')) {
             const accessor = match.slice(1, -1).trim();
-            if (accessor.startsWith(`'`) || accessor.startsWith(`"`)) {
+            if (accessor.startsWith(`'`)) {
+                // ['string-property']
+                components.push(accessor.slice(1, -1).replace(/(?<!\\)\\'/g, `'`));
+            } else if (accessor.startsWith(`"`)) {
                 // ["string-property"]
-                components.push(accessor.slice(1, -1));
+                components.push(accessor.slice(1, -1).replace(/(?<!\\)\\"/g, `"`));
             } else {
                 // ["number-property"]
                 components.push(accessor);
