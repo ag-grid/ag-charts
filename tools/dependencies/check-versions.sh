@@ -41,6 +41,7 @@ if [[ ${AG_SKIP_NATIVE_DEP_VERSION_CHECK:-} != "" ]] ; then
 fi
 
 checkVersion cairo libcairo2 1.18.0 "1.18.0-.*"
+checkVersion python-setuptools python-setuptools ".*" ".*"
 
 if [[ $PASS == "false" ]] ; then
     exit 1
