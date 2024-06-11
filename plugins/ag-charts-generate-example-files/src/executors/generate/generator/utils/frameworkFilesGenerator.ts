@@ -96,11 +96,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             (i: any) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise')
         );
         if (chartImports) {
-            chartImports.imports.forEach((i: any) => {
-                const toReplace = `(?<!\\.)${i}([\\s/.])`;
-                const reg = new RegExp(toReplace, 'g');
-                mainJs = mainJs.replace(reg, `agCharts.${i}$1`);
-            });
+            const allImports = `(${chartImports.imports.join('|')})`;
+            const toReplace = `\\b${allImports}\\b`;
+            const reg = new RegExp(toReplace, 'g');
+            mainJs = mainJs.replace(reg, `agCharts.$1`);
         }
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
