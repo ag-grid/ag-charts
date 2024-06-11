@@ -134,34 +134,35 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
     return m * step;
 }
 
+function decimalPlaces(decimal: string) {
+    for (let i = decimal.length - 1; i >= 0; i -= 1) {
+        if (decimal[i] !== '0') {
+            return i + 1;
+        }
+    }
+    return 0;
+}
+
 export function tickFormat(ticks: any[], formatter?: string): (n: number | { valueOf(): number }) => string {
     const options = parseFormat(formatter ?? ',f');
     if (options.precision == null || isNaN(options.precision)) {
         if (!options.type || 'eEFgGnprs'.includes(options.type)) {
             options.precision = Math.max(
                 ...ticks.map((x) => {
-                    if (typeof x !== 'number') {
-                        return 0;
-                    }
-                    const exp = x.toExponential((options.type ? 6 : 12) - 1).replace(/\.?0+e/, 'e');
-                    return exp.substring(0, exp.indexOf('e')).replace('.', '').length;
+                    if (!Number.isFinite(x)) return 0;
+                    const [integer, decimal] = x.toExponential((options.type ? 6 : 12) - 1).split(/\.|e/g);
+                    return (integer !== '1' && integer !== '-1' ? 1 : 0) + decimalPlaces(decimal) + 1;
                 })
             );
         } else if ('f%'.includes(options.type)) {
             options.precision = Math.max(
                 ...ticks.map((x) => {
-                    if (typeof x !== 'number' || x === 0) {
-                        return 0;
-                    }
+                    if (!Number.isFinite(x) || x === 0) return 0;
                     const l = Math.floor(Math.log10(Math.abs(x)));
                     const digits = options.type ? 6 : 12;
-                    const exp = x.toExponential(digits - 1).replace(/\.?0+e/, 'e');
-                    const dotIndex = exp.indexOf('.');
-                    if (dotIndex < 0) {
-                        return l >= 0 ? 0 : -l;
-                    }
-                    const s = exp.indexOf('e') - dotIndex;
-                    return Math.max(0, s - l - 1);
+                    const [_integer, decimal] = x.toExponential(digits - 1).split(/\.|e/g);
+                    const decimalLength = decimalPlaces(decimal);
+                    return Math.max(0, decimalLength - l);
                 })
             );
         }

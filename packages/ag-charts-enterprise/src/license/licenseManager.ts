@@ -308,7 +308,7 @@ export class LicenseManager {
             return ['legacy', false, undefined];
         }
 
-        const matches = licenseKey.match(/\[(.*?)\]/g)!.map((match) => match.replace('[', '').replace(']', ''));
+        const matches = licenseKey.match(/\[([^[\]]+)\]/g)!.map((groups) => groups[1]);
         if (!matches || matches.length === 0) {
             return ['legacy', false, undefined];
         }
