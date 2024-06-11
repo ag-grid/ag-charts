@@ -1,10 +1,4 @@
-import type {
-    AgErrorBarFormatterParams,
-    AgErrorBarOptions,
-    AgErrorBarThemeableOptions,
-    ErrorBarCapStyler,
-    ErrorBarStyler,
-} from 'ag-charts-community';
+import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { nearestSquaredInContainer, partialAssign, mergeDefaults } = _ModuleSupport;
@@ -15,15 +9,9 @@ type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
-type ErrorBarDataOptions = Pick<
-    AgErrorBarOptions,
-    'xLowerKey' | 'xLowerName' | 'xUpperKey' | 'xUpperName' | 'yLowerKey' | 'yLowerName' | 'yUpperKey' | 'yUpperName'
->;
+export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
 
-type Stylers = {
-    itemStyler?: ErrorBarStyler;
-    cap: { itemStyler?: ErrorBarCapStyler };
-} & ErrorBarDataOptions;
+type FormatOptions = Pick<AgErrorBarOptions, 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey' | 'formatter'>;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
@@ -93,45 +81,31 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getFormatterParams(stylers: Stylers, highlighted: boolean): AgErrorBarFormatterParams | undefined {
+    private getFormatterParams(options: FormatOptions, highlighted: boolean): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
-        if (datum === undefined || (stylers.itemStyler === undefined && stylers.cap.itemStyler === undefined)) {
-            return;
-        }
-        const { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName } = stylers;
+        if (datum == null || options.formatter == null) return;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
         return {
             datum: datum.datum,
             seriesId: datum.datum.seriesId,
             xKey: datum.xKey,
             yKey: datum.yKey,
             xLowerKey,
-            xLowerName,
             xUpperKey,
-            xUpperName,
             yLowerKey,
-            yLowerName,
             yUpperKey,
-            yUpperName,
             highlighted,
         };
     }
 
-    private formatStyles(style: AgErrorBarThemeableOptions, stylers: Stylers, highlighted: boolean) {
+    private formatStyles(style: AgErrorBarThemeableOptions, formatters: FormatOptions, highlighted: boolean) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getFormatterParams(stylers, highlighted);
-        if (params !== undefined) {
-            if (stylers.itemStyler !== undefined) {
-                const result = stylers.itemStyler(params);
-                whiskerStyle = mergeDefaults(result, whiskerStyle);
-                capsStyle = mergeDefaults(result, capsStyle);
-                capsStyle = mergeDefaults(result?.cap, capsStyle);
-            }
-
-            if (stylers.cap.itemStyler !== undefined) {
-                const result = stylers.cap.itemStyler(params);
-                capsStyle = mergeDefaults(result, capsStyle);
-            }
+        const params = this.getFormatterParams(formatters, highlighted);
+        if (params !== undefined && formatters.formatter !== undefined) {
+            const result = formatters.formatter(params);
+            whiskerStyle = mergeDefaults(result, whiskerStyle);
+            capsStyle = mergeDefaults(result?.cap, result, capsStyle);
         }
 
         return { whiskerStyle, capsStyle };
@@ -147,7 +121,7 @@ export class ErrorBarNode extends _Scene.Group {
         );
     }
 
-    update(style: AgErrorBarThemeableOptions, formatters: Stylers, highlighted: boolean) {
+    update(style: AgErrorBarThemeableOptions, formatters: FormatOptions, highlighted: boolean) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
