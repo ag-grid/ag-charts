@@ -7,7 +7,8 @@ type AgCrosshairLabelRendererResult = any;
 
 const { Group, Line, BBox } = _Scene;
 const { createId } = _Util;
-const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, Validate, Layers } = _ModuleSupport;
+const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, Layers } =
+    _ModuleSupport;
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
@@ -64,10 +65,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.labels = {};
 
         const region = ctx.regionManager.getRegion('series')!;
+        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            region.addListener('hover', (event) => this.onMouseMove(event)),
-            region.addListener('leave', () => this.onMouseOut()),
+            region.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
+            region.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
+            region.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
@@ -75,8 +78,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private layout({ series: { rect, paddedRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
-        this.hideCrosshairs();
-
         if (!(visible && axes && this.enabled)) {
             this.visible = false;
             return;
@@ -183,7 +184,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return typeof val === 'number' ? val.toFixed(fractionDigits) : String(val);
     }
 
-    private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+    private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
         if (!this.enabled || this.snap) {
             return;
         }
@@ -260,7 +261,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
     }
 
-    private getData(event: _ModuleSupport.PointerInteractionEvent<'hover'>): {
+    private getData(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>): {
         [key: string]: { position: number; value: any };
     } {
         const { seriesRect, axisCtx } = this;
