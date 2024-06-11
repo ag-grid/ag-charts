@@ -1,6 +1,7 @@
+import type { AgCartesianAxisPosition } from 'ag-charts-types';
+
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
-import type { AgCartesianAxisPosition } from 'ag-charts-types';
 import type { BBox } from '../scene/bbox';
 import { Logger } from '../util/logger';
 import { CategoryAxis } from './axis/categoryAxis';
