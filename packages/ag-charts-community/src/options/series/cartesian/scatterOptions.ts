@@ -64,5 +64,5 @@ export interface AgScatterSeriesOptions<TDatum = any>
     /** Configuration for the Scatter Series.  */
     type: 'scatter';
     /** Configuration for the Error Bars. */
-    errorBar?: AgErrorBarOptions;
+    errorBar?: AgErrorBarOptions<TDatum>;
 }

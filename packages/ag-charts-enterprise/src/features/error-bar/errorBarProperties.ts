@@ -1,4 +1,4 @@
-import { type AgErrorBarOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgErrorBarOptions, type ErrorBarCapOptions, _ModuleSupport } from 'ag-charts-community';
 
 import type { ErrorBarFormatter } from './errorBarNode';
 
@@ -16,7 +16,7 @@ const {
     STRING,
 } = _ModuleSupport;
 
-class ErrorBarCap extends BaseProperties<NonNullable<AgErrorBarOptions['cap']>> {
+class ErrorBarCap extends BaseProperties<ErrorBarCapOptions> {
     @Validate(BOOLEAN, { optional: true })
     visible?: boolean;
 
@@ -42,7 +42,7 @@ class ErrorBarCap extends BaseProperties<NonNullable<AgErrorBarOptions['cap']>> 
     lengthRatio?: number;
 }
 
-export class ErrorBarProperties extends BaseProperties<AgErrorBarOptions> {
+export class ErrorBarProperties extends BaseProperties<AgErrorBarOptions<any>> {
     @Validate(STRING, { optional: true })
     yLowerKey?: string;
 
@@ -86,7 +86,7 @@ export class ErrorBarProperties extends BaseProperties<AgErrorBarOptions> {
     lineDashOffset?: number;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: ErrorBarFormatter;
+    itemStyler?: ErrorBarFormatter;
 
     @Validate(OBJECT)
     cap = new ErrorBarCap();

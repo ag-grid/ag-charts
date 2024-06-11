@@ -93,5 +93,5 @@ export interface AgBarSeriesOptions<TDatum = any>
     /** The number to normalise the bar stacks to. Has no effect when `grouped` is `true`. For example, if `normalizedTo` is set to `100`, the bar stacks will all be scaled proportionally so that each of their totals is 100. */
     normalizedTo?: number;
     /** Configuration for the Error Bars. */
-    errorBar?: AgErrorBarOptions;
+    errorBar?: AgErrorBarOptions<TDatum>;
 }
