@@ -34,7 +34,7 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            interval: time.month.every(2),
+            interval: { step: time.month.every(2) },
             label: {
                 autoRotate: false,
             },

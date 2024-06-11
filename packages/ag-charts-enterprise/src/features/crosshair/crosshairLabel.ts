@@ -11,11 +11,6 @@ const { BBox } = _Scene;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
 
-export interface LabelMeta {
-    x: number;
-    y: number;
-}
-
 export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
@@ -81,7 +76,7 @@ export class CrosshairLabel extends BaseProperties {
         this.domManager.addStyles('crosshair-labels', defaultLabelCss);
     }
 
-    show(meta: LabelMeta) {
+    show(meta: _Scene.Point) {
         const { element } = this;
 
         let left = meta.x + this.xOffset;

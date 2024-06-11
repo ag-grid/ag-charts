@@ -43,6 +43,7 @@ const hiddenInterfaces = [
     'Ratio',
     'Degree',
     'DurationMs',
+    'TimeInterval',
 ];
 
 export function cleanupName(name: string) {

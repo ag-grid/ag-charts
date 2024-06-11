@@ -13,17 +13,17 @@ const annotations: AgToolbarOptions['annotations'] = {
     buttons: [
         {
             icon: 'trend-line',
-            tooltip: 'toolbar-annotations.trend-line',
+            tooltip: 'toolbarAnnotationsTrendLine',
             value: 'line',
         },
         {
             icon: 'parallel-channel',
-            tooltip: 'toolbar-annotations.parallel-channel',
+            tooltip: 'toolbarAnnotationsParallelChannel',
             value: 'parallel-channel',
         },
         {
             icon: 'disjoint-channel',
-            tooltip: 'toolbar-annotations.disjoint-channel',
+            tooltip: 'toolbarAnnotationsDisjointChannel',
             value: 'disjoint-channel',
         },
     ],
@@ -36,22 +36,22 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     buttons: [
         {
             icon: 'color',
-            tooltip: 'toolbar-annotations.color',
+            tooltip: 'toolbarAnnotationsColor',
             value: 'color',
         },
         {
             icon: 'lock',
-            tooltip: 'toolbar-annotations.lock',
+            tooltip: 'toolbarAnnotationsLock',
             value: 'lock',
         },
         {
             icon: 'unlock',
-            tooltip: 'toolbar-annotations.unlock',
+            tooltip: 'toolbarAnnotationsUnlock',
             value: 'unlock',
         },
         {
             icon: 'delete',
-            tooltip: 'toolbar-annotations.delete',
+            tooltip: 'toolbarAnnotationsDelete',
             value: 'delete',
         },
     ],
@@ -63,27 +63,27 @@ const ranges: AgToolbarOptions['ranges'] = {
     align: 'start',
     buttons: [
         {
-            label: 'toolbar-range.1-month',
+            label: 'toolbarRange1Month',
             value: MONTH,
         },
         {
-            label: 'toolbar-range.3-months',
+            label: 'toolbarRange3Months',
             value: 3 * MONTH,
         },
         {
-            label: 'toolbar-range.6-months',
+            label: 'toolbarRange6Months',
             value: 6 * MONTH,
         },
         {
-            label: 'toolbar-range.year-to-date',
+            label: 'toolbarRangeYearToDate',
             value: (_start, end) => [new Date(`${new Date(end).getFullYear()}-01-01`).getTime(), end],
         },
         {
-            label: 'toolbar-range.1-year',
+            label: 'toolbarRange1Year',
             value: YEAR,
         },
         {
-            label: 'toolbar-range.all',
+            label: 'toolbarRangeAll',
             value: (start, end) => [start, end],
         },
     ],
@@ -96,37 +96,37 @@ const zoom: AgToolbarOptions['zoom'] = {
     buttons: [
         {
             icon: 'zoom-out',
-            tooltip: 'toolbar-zoom.zoom-out',
+            tooltip: 'toolbarZoomZoomOut',
             value: 'zoom-out',
         },
         {
             icon: 'zoom-in',
-            tooltip: 'toolbar-zoom.zoom-in',
+            tooltip: 'toolbarZoomZoomIn',
             value: 'zoom-in',
         },
         {
             icon: 'pan-left',
-            tooltip: 'toolbar-zoom.pan-left',
+            tooltip: 'toolbarZoomPanLeft',
             value: 'pan-left',
         },
         {
             icon: 'pan-right',
-            tooltip: 'toolbar-zoom.pan-right',
+            tooltip: 'toolbarZoomPanRight',
             value: 'pan-right',
         },
         {
             icon: 'pan-start',
-            tooltip: 'toolbar-zoom.pan-start',
+            tooltip: 'toolbarZoomPanStart',
             value: 'pan-start',
         },
         {
             icon: 'pan-end',
-            tooltip: 'toolbar-zoom.pan-end',
+            tooltip: 'toolbarZoomPanEnd',
             value: 'pan-end',
         },
         {
             icon: 'reset',
-            tooltip: 'toolbar-zoom.zoom',
+            tooltip: 'toolbarZoomReset',
             value: 'reset',
         },
     ],

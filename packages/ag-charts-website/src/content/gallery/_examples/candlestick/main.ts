@@ -48,7 +48,7 @@ const options: AgChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
-            interval: time.month.every(1),
+            interval: { step: time.month.every(1) },
             line: {
                 enabled: false,
             },
@@ -92,7 +92,7 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
-            interval: 500,
+            interval: { step: 500 },
             tick: {
                 width: 0,
             },

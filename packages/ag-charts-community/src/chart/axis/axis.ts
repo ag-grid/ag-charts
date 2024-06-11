@@ -30,7 +30,6 @@ import { Text, type TextSizeProperties, getFont } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
-import { Default } from '../../util/default';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -39,17 +38,7 @@ import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
-import { TimeInterval } from '../../util/time';
-import { isFiniteNumber } from '../../util/type-guards';
-import {
-    ARRAY,
-    BOOLEAN,
-    MIN_SPACING,
-    OBJECT,
-    STRING_ARRAY,
-    Validate,
-    predicateWithMessage,
-} from '../../util/validation';
+import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -64,6 +53,7 @@ import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
 import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
+import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
@@ -77,13 +67,6 @@ import {
     resetAxisLineSelectionFn,
     resetAxisSelectionFn,
 } from './axisUtil';
-
-// export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale ? number | TimeInterval : number;
-
-export const TICK_INTERVAL = predicateWithMessage(
-    (value) => (isFiniteNumber(value) && value > 0) || value instanceof TimeInterval,
-    `a non-zero positive Number value or, for a time axis, a Time Interval such as 'agCharts.time.month'`
-);
 
 type TickStrategyParams = {
     index: number;
@@ -185,6 +168,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     @Validate(STRING_ARRAY)
     keys: string[] = [];
 
+    @Validate(OBJECT)
+    readonly interval = new AxisInterval();
+
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
 
     get type(): string {
@@ -193,18 +179,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     abstract get direction(): ChartAxisDirection;
 
-    @Validate(TICK_INTERVAL, { optional: true })
-    interval?: TickInterval<S> = undefined;
-
-    @Validate(ARRAY, { optional: true })
-    values?: any[] = undefined;
-
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    minSpacing: number = NaN;
-
-    // Maybe initialised and validated in subclasses - DO NOT ASSIGN A VALUE HERE.
-    maxSpacing?: number;
+    layoutConstraints: ChartAxis['layoutConstraints'] = {
+        stacked: true,
+        align: 'start',
+        width: 100,
+        unit: 'percent',
+    };
 
     boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
@@ -438,7 +418,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected _titleCaption = new Caption();
 
     private setTickInterval(interval?: TickInterval<S>) {
-        this.scale.interval = this.interval ?? interval;
+        this.scale.interval = this.interval?.step ?? interval;
     }
 
     /**
@@ -754,7 +734,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     updateScale() {
         this.updateRange();
         this.calculateDomain();
-        this.setTickInterval(this.interval);
+        this.setTickInterval(this.interval.step);
 
         const { scale, nice } = this;
         if (!ContinuousScale.is(scale)) {
@@ -790,8 +770,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }: TickGenerationParams): TickGenerationResult {
         const {
             scale,
-            minSpacing,
-            maxSpacing = NaN,
+            interval: { minSpacing, maxSpacing },
             label: { parallel, rotation, fontFamily, fontSize, fontStyle, fontWeight },
         } = this;
 
@@ -880,7 +859,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         index: number;
         secondaryAxis: boolean;
     }): TickStrategy[] {
-        const { scale, label, minSpacing } = this;
+        const { scale, label } = this;
+        const { minSpacing } = this.interval;
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
         const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
@@ -888,7 +868,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const strategies: TickStrategy[] = [];
         let tickGenerationType: TickGenerationType;
-        if (this.values) {
+        if (this.interval.values) {
             tickGenerationType = TickGenerationType.VALUES;
         } else if (secondaryAxis) {
             tickGenerationType = TickGenerationType.CREATE_SECONDARY;
@@ -939,7 +919,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         terminate: boolean,
         primaryTickCount?: number
     ): TickStrategyResult {
-        const { scale, interval, values, minSpacing, maxSpacing = NaN } = this;
+        const { scale } = this;
+        const { step, values, minSpacing, maxSpacing } = this.interval;
         const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
 
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
@@ -948,7 +929,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
 
         const regenerateTicks =
-            interval === undefined &&
+            step === undefined &&
             values === undefined &&
             tickCount > minTickCount &&
             (continuous || tickGenerationType === TickGenerationType.FILTER);
@@ -976,7 +957,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             index++;
         }
 
-        const shouldTerminate = interval !== undefined || values !== undefined;
+        const shouldTerminate = step !== undefined || values !== undefined;
 
         terminate ||= shouldTerminate;
 
@@ -1044,7 +1025,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
-                rawTicks = this.values!;
+                rawTicks = this.interval.values!;
                 if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(scale.getDomain().map(Number));
                     rawTicks = rawTicks.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
@@ -1114,7 +1095,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     private filterTicks(ticks: any, tickCount: number): any[] {
-        const tickSpacing = !isNaN(this.minSpacing) || !isNaN(this.maxSpacing ?? NaN);
+        const { minSpacing, maxSpacing } = this.interval;
+        const tickSpacing = !isNaN(minSpacing) || !isNaN(maxSpacing);
         const keepEvery = tickSpacing ? Math.ceil(ticks.length / tickCount) : 2;
         return ticks.filter((_: any, i: number) => i % keepEvery === 0);
     }
@@ -1536,10 +1518,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             scaleValueFormatter: (specifier?: string) =>
                 specifier ? scale.tickFormat?.({ specifier }) : this.getFormatter(),
             scaleBandwidth: () => scale.bandwidth ?? 0,
+            scaleDomain: () => scale.getDomain?.(),
             scaleConvert: (val) => scale.convert(val),
             scaleInvert: OrdinalTimeScale.is(scale)
                 ? (val) => scale.invertNearest?.(val)
                 : (val) => scale.invert?.(val),
+            scaleInvertNearest: (val) => scale.invertNearest?.(val),
         };
     }
 

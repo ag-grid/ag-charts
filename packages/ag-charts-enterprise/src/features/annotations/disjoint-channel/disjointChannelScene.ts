@@ -1,4 +1,4 @@
-import type { Coords, LineCoords, ValidationContext } from '../annotationTypes';
+import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { invertCoords } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { Channel } from '../scenes/channelScene';
@@ -54,18 +54,16 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
     override dragHandle(
         datum: DisjointChannelAnnotation,
         target: Coords,
-        context: ValidationContext,
+        context: AnnotationContext,
         onInvalid: () => void
     ) {
         const { activeHandle, handles } = this;
-        const { scaleX, scaleY } = context;
-
         if (activeHandle == null) return;
 
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
-        const invert = (coords: Coords) => invertCoords(coords, scaleX, scaleY);
+        const invert = (coords: Coords) => invertCoords(coords, context);
         const prev = datum.toJson();
 
         switch (activeHandle) {

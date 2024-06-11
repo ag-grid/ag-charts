@@ -24,7 +24,7 @@ const options: AgChartOptions = {
         {
             type: 'radius-number',
             innerRadiusRatio: 0.5,
-            interval: 0.5,
+            interval: { step: 0.5 },
             label: {
                 enabled: false,
             },

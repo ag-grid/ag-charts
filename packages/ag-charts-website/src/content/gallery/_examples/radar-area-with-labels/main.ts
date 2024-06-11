@@ -41,7 +41,7 @@ const options: AgChartOptions = {
             type: 'radius-number',
             innerRadiusRatio: 0,
             shape: 'circle',
-            interval: 0.1,
+            interval: { step: 0.1 },
             tick: {
                 size: 0,
             },

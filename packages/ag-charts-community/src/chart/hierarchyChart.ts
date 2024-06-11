@@ -72,7 +72,7 @@ export class HierarchyChart extends Chart {
             Logger.error(`datum is not HierarchyNode: ${datum}`);
             return super.getDatumAriaText(datum, html);
         }
-        return this.ctx.localeManager.t('aria-announce.hierarchy-datum', {
+        return this.ctx.localeManager.t('ariaAnnounceHierarchyDatum', {
             level: (datum.depth ?? -1) + 1,
             count: datum.children.length,
             description: html.ariaLabel,

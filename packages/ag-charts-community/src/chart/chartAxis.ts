@@ -59,14 +59,22 @@ export interface ChartAxis {
     type: string;
     update(primaryTickCount?: number, animated?: boolean): number | undefined;
     updateScale(): void;
-    updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
+    updatePosition(): void;
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
-    values?: any[];
-    interval?: number | TickInterval<any>;
-    minSpacing?: number;
-    maxSpacing?: number;
+    interval: {
+        step?: number | TickInterval<any>;
+        values?: any[];
+        minSpacing?: number;
+        maxSpacing?: number;
+    };
+    layoutConstraints: {
+        stacked: boolean;
+        align: 'start' | 'end';
+        width: number;
+        unit: 'percent' | 'px';
+    };
 }
 
 export interface ChartAxisLabel extends FontOptions {

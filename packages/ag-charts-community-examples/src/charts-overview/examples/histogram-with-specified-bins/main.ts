@@ -56,7 +56,9 @@ const options: AgChartOptions = {
             title: {
                 text: 'Curb weight (pounds)',
             },
-            interval: 500,
+            interval: {
+                step: 500,
+            },
         },
         {
             type: 'number',

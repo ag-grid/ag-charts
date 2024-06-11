@@ -7,7 +7,7 @@ Themes allow you customise the appearance of your charts. They provide defaults 
 
 ## Using Stock Themes
 
-Every chart uses the `'ag-default'` theme unless configured otherwise:
+Every chart uses the `'ag-default'` theme unless configured otherwise.
 
 ```js
 AgCharts.create({
@@ -32,30 +32,33 @@ type AgChartThemeName =
     | 'ag-material-dark';
 ```
 
-### Example: Stock Themes
-
-In the example below, you can click the buttons to change the theme used in the chart. Notice how changing from one theme to another is a simple matter of changing the `theme` property on the original `options` object and passing it to `chart.update(options)` along with the chart instance.
+In the example below, you can click the buttons to change the theme used in the chart.
 
 {% chartExampleRunner title="Stock Themes" name="stock-themes" type="generated" /%}
 
 ## Making Custom Themes
 
-You can create your own theme, which builds upon an existing theme and allows you to change as many or as few properties as you like. A custom theme is an object with the following properties:
+You can create your own theme, which builds upon an existing theme and allows you to change as many or as few properties as you like.
 
--   `baseTheme` - the name of the theme to base this theme upon (optional; if not specified, the `'ag-default'` theme is used)
--   `overrides` - the object to be merged with the base theme's defaults and override them (optional)
--   `palette` - the palette to use, replaces the palette of the base theme (optional)
+A custom theme is an object with the following optional properties:
 
-The `overrides` object is similar in its structure to the chart's options, with two noteworthy exceptions:
+-   `baseTheme` - The name of the theme to base this theme upon (if not specified, the `'ag-default'` theme is used).
+-   `overrides` - The object to be merged with the base theme's defaults and override them.
+-   `palette` - The palette to use, replaces the palette of the base theme.
 
--   the `series` config is an object that maps each series type to its config
--   the `axes` config is an object that maps each axis type to its config
+See the [Themes API page](/themes-api/) for the complete options structure.
 
-For example, the following snippet demonstrates a custom theme that uses the `'ag-default-dark'` theme as the base to inherit the dark background and bright strokes, but substitutes the palette and changes some fonts, as well as a few other options.
+The `overrides` object is similar in its structure to the chart's options and is used as follows:
+
+-   Items in the `overrides.common` object are applied to all chart types.
+-   Items in the series specific object (e.g. `overrides.line`), are applied to charts of that series type.
+-   Series specific properties are found in the `series` object of the series type (e.g. `overrides.line.series`).
+-   The `axes` config contains one object for each axis type.
+
+{% chartExampleRunner title="Custom Theme" name="custom-theme" type="generated"  /%}
 
 ```js
 var myTheme = {
-    baseTheme: 'ag-default-dark',
     palette: {
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
         strokes: ['black'],
@@ -72,20 +75,96 @@ var myTheme = {
                     enabled: true,
                     color: 'black',
                 },
+                strokeWidth: 1,
             },
         },
     },
 };
 ```
 
-### Example: Custom Theme
+In the above example:
 
-The theme shown in the above snippet is applied to the chart in the example below:
+-   A different palette of colours and strokes is provided for all series to use.
+-   The font size of the title is increased.
+-   The `bar` series has specific label and stroke options set.
 
-{% chartExampleRunner title="Custom Theme" name="custom-theme" type="generated"  /%}
-
-### Example: Advanced Theme
-
-This example demonstrates a more advanced theme, providing different settings for different series and axis types.
+### Advanced Custom Theme
 
 {% chartExampleRunner title="Advanced Themes" name="advanced-theme" type="generated" /%}
+
+```js
+var myTheme: AgChartTheme = {
+    palette: {
+        fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
+        strokes: ['gray'],
+    },
+    overrides: {
+        common: {
+            title: {
+                fontSize: 24,
+            },
+            padding: {
+                left: 70,
+                right: 70,
+            },
+            axes: {
+                category: {
+                    line: {
+                        stroke: 'gray',
+                    },
+                    tick: {
+                        stroke: 'gray',
+                    },
+                },
+                number: {
+                    line: {
+                        stroke: 'gray',
+                    },
+                    tick: {
+                        stroke: 'gray',
+                    },
+                },
+            },
+        },
+        line: {
+            series: {
+                marker: {
+                    shape: 'circle',
+                },
+            },
+        },
+        bar: {
+            series: {
+                label: {
+                    enabled: true,
+                    color: 'white',
+                },
+            },
+        },
+        pie: {
+            padding: {
+                top: 40,
+                bottom: 40,
+            },
+            legend: {
+                position: 'left',
+            },
+            series: {
+                calloutLabel: {
+                    enabled: true,
+                },
+                calloutLine: {
+                    colors: ['gray'],
+                },
+            },
+        },
+    },
+};
+```
+
+In the above example:
+
+-   A different palette of colours and strokes is provided for all series to use.
+-   Some `common` overrides are specified which apply to all chart types.
+-   Different axes overrides are specified for `category` and `number` axes types.
+-   Different series specific overrides are specified for `bar`, `line` and `pie` series.

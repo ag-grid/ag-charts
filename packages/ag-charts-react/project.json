@@ -6,7 +6,15 @@
   "tags": ["fw", "no-batching"],
   "targets": {
     "lint": {
-      "executor": "nx:noop"
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "eslintConfig": "{projectRoot}/.eslintrc.json"
+      },
+      "configurations": {
+        "fix": {
+          "fix": true
+        }
+      }
     },
     "build": {
       "executor": "nx:noop",

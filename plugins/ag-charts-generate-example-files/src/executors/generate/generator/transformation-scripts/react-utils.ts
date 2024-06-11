@@ -43,7 +43,7 @@ export function convertTemplate(template: string) {
         .replace(/ for=/g, ' htmlFor=')
         .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
 
-    if (Array.from(template.matchAll(/<AgChartsReact/g)).length > 1) {
+    if (Array.from(template.matchAll(/<AgCharts/g)).length > 1) {
         template = `<Fragment>\n${template}\n</Fragment>`;
     }
 
@@ -90,7 +90,7 @@ export function convertFunctionalTemplate(template: string) {
         .replace(/<i className=/g, '<i class=')
         .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
 
-    if (Array.from(template.matchAll(/<AgChartsReact/g)).length > 1) {
+    if (Array.from(template.matchAll(/<AgCharts/g)).length > 1) {
         template = `<Fragment>\n${template}\n</Fragment>`;
     }
 

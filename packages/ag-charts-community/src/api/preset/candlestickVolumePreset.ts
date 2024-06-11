@@ -91,9 +91,11 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
             {
                 type: 'number',
                 position: 'right',
-                keys: ['open', 'close', 'high', 'low'],
+                keys: [openKey, closeKey, highKey, lowKey],
                 max: 210,
-                maxSpacing: 50,
+                interval: {
+                    maxSpacing: 50,
+                },
                 tick: {
                     size: 0,
                 },
@@ -107,14 +109,29 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
                     enabled: true,
                     snap: false,
                 },
+                // @ts-expect-error
+                layoutConstraints: {
+                    stacked: false,
+                    width: 100,
+                    unit: 'percentage',
+                    align: 'start',
+                },
             },
             {
                 type: 'number',
-                position: 'left',
-                keys: ['volume'],
-                max: 1000000000,
+                position: 'right',
+                keys: [volumeKey],
                 label: { enabled: false },
                 crosshair: { enabled: false },
+                gridLine: { enabled: false },
+                nice: false,
+                // @ts-expect-error
+                layoutConstraints: {
+                    stacked: false,
+                    width: 25,
+                    unit: 'percentage',
+                    align: 'end',
+                },
             },
             {
                 type: 'category',

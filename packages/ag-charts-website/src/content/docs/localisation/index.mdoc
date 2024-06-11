@@ -2,25 +2,40 @@
 title: 'Localisation'
 ---
 
-All the displayed text in the chart is customisable for the purposes of localisation. This is done by providing locale information to the chart for the required language.
+All the displayed text in the grid is customisable for the purposes of localisation. This is done by providing locale information to the grid for the required language. Either provide an object of key/value pairs via the `localeText` property, or provide a `getLocaleText` callback to hook the grid up to your application's localisation.
 
 We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size, and only supports American English for formatting of numbers and dates.
 
-## Customising Text Values
+## Installing a Locale
 
-Overrides for American English text can be configured in the `locale` options.
+To change the locale, set the `localeText` property in `locale` options to one of the built-in locales.
 
 ```js
 {
     locale: {
-        messages: {
-            'context-menu.download': 'Download a copy of this chart',
+        localeText: AG_CHARTS_LOCALE_FR,
+    }
+}
+```
+
+If a locale is provided but is missing values, the default English will be used for the missing values.
+
+## Customising Text Values
+
+Overrides for individual translations can be done by applying overrides to an existing locale.
+
+```js
+{
+    locale: {
+        localeText: {
+            ...AG_CHARTS_LOCALE_EN,
+            contextMenuDownload: 'Download a copy of this chart',
         },
     }
 }
 ```
 
-In this configuration, `messages` is a dictionary mapping translation keys to the translated text.
+In this configuration, `localeText` is a dictionary mapping translation keys to the translated text.
 
 Some translations have parameters, which can be included in the translation using `'${value}'` syntax. Note your strings should not use backticks.
 
@@ -29,9 +44,10 @@ Values can be formatted by appending a format style in square brackets, like `'$
 ```js
 {
     locale: {
-        messages: {
-            'aria-announce.chart': 'chart with ${seriesCount} series',
-            'aria-value.pan-range': '${min}[percent] to ${max}[percent]',
+        localeText: {
+            ...AG_CHARTS_LOCALE_EN,
+            ariaAnnounceChart: 'chart with ${seriesCount} series',
+            ariaValuePanRange: '${min}[percent] to ${max}[percent]',
         },
     }
 }
@@ -39,30 +55,21 @@ Values can be formatted by appending a format style in square brackets, like `'$
 
 Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
 
-## Supporting Other Languages
+## Using External Frameworks
 
-To support other languages, you need to use an internationalisation framework such as FormatJS or i18next.
-
-You can integrate the internationalisation framework using the `locale` options.
+You can integrate the internationalisation framework using the `getLocaleText` option within the `locale` options.
 
 ```js
 {
     locale: {
-        messages: {
-            // ...
-        },
-        formatMessage({ id, message, params }) {
-            return internationalisationFramework.formatMessage({ id, message, params });
+        getLocaleText({ key, defaultValue, variables }) {
+            return internationalisationFramework.getLocaleText({ key, defaultValue, variables });
         }
     }
 }
 ```
 
-{% warning %}
-You must provide a value for every built-in message, as built-in messages will never be passed to your `formatMessage` function. Any missing messages will fall back to the built-in American English translation, formatted with our default internationalisation implementation.
-
-Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
-{% /warning %}
+If you return `undefined` from this function, it will fall back to the default behaviour of using `localeText` with the default formatter.
 
 ### Framework Integration Examples
 
@@ -75,21 +82,22 @@ Please see [All Built-In Translations](./localisation/#all-built-in-translations
 ```js
 import { createIntl } from '@formatjs/intl';
 
-const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
-};
-
 const intl = createIntl({
     locale: 'fr-FR',
-    messages: messages,
+    messages: {
+        contextMenuDownload: 'Téléchargez une copie de ce tableau',
+    },
 });
 
 AgCharts.create({
     // ...
     locale: {
-        messages: messages,
-        formatMessage({ id, params }) {
-            return intl.formatMessage({ id }, params);
+        getLocaleText({ key, variables }) {
+            if (!intl.messages[key]) {
+                // Fallback to default behaviour for missing messages
+                return undefined;
+            }
+            return intl.formatMessage({ id: key }, variables);
         },
     },
 });
@@ -102,15 +110,13 @@ AgCharts.create({
 ```js
 import i18next from 'i18next';
 
-const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
-};
-
 await i18next.init({
     lng: 'fr',
     resources: {
         fr: {
-            translation: messages,
+            translation: {
+                contextMenuDownload: 'Téléchargez une copie de ce tableau',
+            },
         },
     },
 });
@@ -118,9 +124,12 @@ await i18next.init({
 AgCharts.create({
     // ...
     locale: {
-        messages: messages,
-        formatMessage({ id, params }) {
-            return i18next.t(id, params);
+        formatMessage({ key, variables }) {
+            if (!i18next.exists(key)) {
+                // Fallback to default behaviour for missing messages
+                return undefined;
+            }
+            return i18next.t(key, variables);
         },
     },
 });
@@ -138,7 +147,7 @@ AgCharts.create({
 import { IntlProvider, useIntl } from 'react-intl';
 
 const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
+    'contextMenuDownload': 'Téléchargez une copie de ce tableau',
 };
 
 const MyChart = () => {
@@ -147,14 +156,17 @@ const MyChart = () => {
     const options = {
         // ...
         locale: {
-            messages: messages,
-            formatMessage({ id, params }) {
-                return intl.formatMessage({ id }, params);
+            getLocaleText({ key, variables }) {
+                if (!intl.messages[key]) {
+                    // Fallback to default behaviour for missing messages
+                    return undefined;
+                }
+                return intl.formatMessage({ id: key }, variables);
             },
         },
     };
 
-    return <AgChartsReact options={options} />;
+    return <AgCharts options={options} />;
 }
 
 const App = () => {
@@ -174,39 +186,50 @@ const App = () => {
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 
-const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
-};
-
 await i18next.use(initReactI18next).init({
     lng: 'fr',
     resources: {
         fr: {
-            translation: messages,
+            translation: {
+                contextMenuDownload: 'Téléchargez une copie de ce tableau',
+            },
         },
     },
 });
 
 const MyChart = () => {
-     const { t } = useTranslation();
+     const { i18n, t } = useTranslation();
 
     const options = {
         // ...
         locale: {
-            messages: messages,
-            formatMessage({ id, params }) {
-                return t(id, params);
+            formatMessage({ key, variables }) {
+                if (!i18n.exists(key)) {
+                    // Fallback to default behaviour for missing messages
+                    return undefined;
+                }
+                return t(key, variables);
             },
         },
     };
 
-    return <AgChartsReact options={options} />;
+    return <AgCharts options={options} />;
 }
 ```
 
 {% /tabItem %}
 
 {% /if %}
+
+{% /tabs %}
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgLocaleOptions" label="Locale" %}
+{% apiReference id="AgLocaleOptions" /%}
+{% /tabItem %}
 
 {% /tabs %}
 

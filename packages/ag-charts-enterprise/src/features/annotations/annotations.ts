@@ -1,9 +1,17 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
-import type { Coords, Domain, Point, Scale, StateClickEvent, StateDragEvent, StateHoverEvent } from './annotationTypes';
+import type {
+    AnnotationContext,
+    Coords,
+    Point,
+    StateClickEvent,
+    StateDragEvent,
+    StateHoverEvent,
+} from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
-import { invertCoords, validateDatumPoint } from './annotationUtils';
+import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
@@ -40,6 +48,12 @@ type AnnotationProperties =
     | ParallelChannelAnnotation
     | DisjointChannelAnnotation;
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
+
+type AnnotationAxis = {
+    layout: _ModuleSupport.AxisLayout;
+    context: _ModuleSupport.AxisContext;
+    bounds: _Scene.BBox;
+};
 
 const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
     [AnnotationType.Line]: LineAnnotation,
@@ -112,12 +126,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     );
 
     private readonly colorPicker = new ColorPicker(this.ctx);
+    private defaultColor?: string;
 
-    // Cached axis data
-    private scaleX?: Scale;
-    private scaleY?: Scale;
-    private domainX?: Domain;
-    private domainY?: Domain;
+    private xAxis?: AnnotationAxis;
+    private yAxis?: AnnotationAxis;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -160,6 +172,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
+            ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
         );
     }
@@ -181,6 +194,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationData?.push(datum);
         const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
         if (styles) datum.set(styles);
+
+        if (this.defaultColor) {
+            datum.stroke = this.defaultColor;
+            if ('background' in datum) datum.background.fill = this.defaultColor;
+        }
     }
 
     private onRestoreAnnotations(event: { annotations?: any }) {
@@ -208,12 +226,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.reset();
 
         if (!ToolbarManager.isGroup('annotations', event)) {
+            this.update();
             return;
         }
 
         const annotation = stringToAnnotationType(event.value);
         if (!annotation) {
             _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
+            this.update();
             return;
         }
 
@@ -222,6 +242,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === event.value });
         }
         state.transition(annotation);
+
+        this.update();
     }
 
     private onToolbarAnnotationOptionButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
@@ -272,22 +294,42 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             if ('background' in datum) datum.background.fill = color;
         }
 
+        this.defaultColor = color;
         this.update();
+    }
+
+    private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
+        if (event.group !== 'annotations') return;
+
+        this.onCancel();
+
+        for (const annotationType of ANNOTATION_BUTTONS) {
+            this.ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.seriesRect = event.series.rect;
 
-        for (const axis of event.axes ?? []) {
-            if (axis.direction === _ModuleSupport.ChartAxisDirection.X) {
-                this.scaleX ??= axis.scale;
+        for (const axisLayout of event.axes ?? []) {
+            if (axisLayout.direction === _ModuleSupport.ChartAxisDirection.X) {
+                this.xAxis = this.getAxis(axisLayout, event.series.rect);
             } else {
-                this.scaleY ??= axis.scale;
+                this.yAxis = this.getAxis(axisLayout, event.series.rect);
             }
         }
 
-        this.updateAxesDomains();
         this.updateAnnotations();
+    }
+
+    private getAxis(axisLayout: _ModuleSupport.AxisLayout, seriesRect: _Scene.BBox): AnnotationAxis {
+        const axisCtx = this.ctx.axisManager.getAxisContext(axisLayout.direction)[0];
+
+        const { position: axisPosition = 'bottom' } = axisCtx;
+        const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
+        const bounds = buildBounds(new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height), axisPosition, padding);
+
+        return { layout: axisLayout, context: axisCtx, bounds };
     }
 
     private updateAnnotations() {
@@ -299,13 +341,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { annotationManager, toolbarManager },
         } = this;
 
-        if (!seriesRect) {
+        const context = this.getAnnotationContext();
+        if (!seriesRect || !context) {
             return;
         }
 
         annotationManager.updateData(annotationData?.toJson());
-
-        const updateContext = this.getAnnotationUpdateContext();
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
@@ -316,19 +357,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 }
 
                 if (LineAnnotation.is(datum) && Line.is(node)) {
-                    node.update(datum, updateContext);
+                    node.update(datum, context);
                 }
 
                 if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-                    node.update(datum, updateContext);
+                    node.update(datum, context);
                 }
 
                 if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-                    node.update(datum, updateContext);
+                    node.update(datum, context);
                 }
 
                 if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-                    node.update(datum, updateContext);
+                    node.update(datum, context);
                 }
 
                 if (active === index) {
@@ -337,32 +378,41 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             });
     }
 
-    private updateAxesDomains() {
-        this.domainX = this.scaleX?.getDomain?.();
-        this.domainY = this.scaleY?.getDomain?.();
-    }
-
-    private getAnnotationUpdateContext() {
-        const { seriesRect, scaleX, scaleY } = this;
-        return { seriesRect, scaleX, scaleY };
-    }
-
     // Validation of the options beyond the scope of the @Validate decorator
     private validateDatum(datum: AnnotationProperties) {
-        return datum.isValidWithContext(this.getValidationContext(), `Annotation [${datum.type}] `);
+        const context = this.getAnnotationContext();
+        return context ? datum.isValidWithContext(context, `Annotation [${datum.type}] `) : true;
     }
 
     private validateChildStateDatumPoint(point: Point) {
-        const valid = validateDatumPoint(this.getValidationContext(), point);
+        const context = this.getAnnotationContext();
+        const valid = context ? validateDatumPoint(context, point) : true;
         if (!valid) {
             this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
         }
         return valid;
     }
 
-    private getValidationContext() {
-        const { domainX, domainY, scaleX, scaleY } = this;
-        return { domainX, domainY, scaleX, scaleY };
+    private getAnnotationContext(): AnnotationContext | undefined {
+        const { seriesRect, xAxis, yAxis } = this;
+
+        if (!(seriesRect && xAxis && yAxis)) {
+            return;
+        }
+
+        return {
+            seriesRect,
+            xAxis: {
+                ...xAxis.context,
+                bounds: xAxis.bounds,
+                labelPadding: calculateAxisLabelPadding(xAxis.layout),
+            },
+            yAxis: {
+                ...yAxis.context,
+                bounds: yAxis.bounds,
+                labelPadding: calculateAxisLabelPadding(xAxis.layout),
+            },
+        };
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>, region: _ModuleSupport.RegionName) {
@@ -398,22 +448,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             annotationData,
             annotations,
-            scaleX,
-            scaleY,
             seriesRect,
             state,
             ctx: { cursorManager },
         } = this;
 
-        if (!annotationData) return;
+        const context = this.getAnnotationContext();
+
+        if (!annotationData || !context) return;
 
         const offset = {
             x: event.offsetX - (seriesRect?.x ?? 0),
             y: event.offsetY - (seriesRect?.y ?? 0),
         };
-        const point = invertCoords(offset, scaleX, scaleY);
 
-        const valid = validateDatumPoint(this.getValidationContext(), point);
+        const point = invertCoords(offset, context);
+        const valid = validateDatumPoint(context, point);
         cursorManager.updateCursor('annotations', valid ? undefined : Cursor.NotAllowed);
 
         if (!valid || state.is('start')) return;
@@ -474,6 +524,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { toolbarManager, tooltipManager },
         } = this;
 
+        colorPicker.hide();
+
         if (this.active != null) {
             annotations.nodes()[this.active].toggleActive(false);
         }
@@ -483,7 +535,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.active == null) {
             tooltipManager.unsuppressTooltip('annotations');
-            colorPicker.hide();
         } else {
             const node = annotations.nodes()[this.active];
             node.toggleActive(true);
@@ -499,8 +550,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
-            scaleX,
-            scaleY,
             seriesRect,
             state,
             ctx: { toolbarManager },
@@ -508,18 +557,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
 
-        if (!annotationData) return;
+        const context = this.getAnnotationContext();
+        if (!annotationData || !context) return;
 
         const datum = annotationData?.at(-1);
         const offset = {
             x: event.offsetX - (seriesRect?.x ?? 0),
             y: event.offsetY - (seriesRect?.y ?? 0),
         };
-        const point = invertCoords(offset, scaleX, scaleY);
+        const point = invertCoords(offset, context);
 
         const node = active != null ? annotations.nodes()[active] : undefined;
 
-        if (!validateDatumPoint(this.getValidationContext(), point)) {
+        if (!validateDatumPoint(context, point)) {
             return;
         }
 
@@ -555,7 +605,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { cursorManager, interactionManager },
         } = this;
 
-        if (hovered == null || annotationData == null || !this.state.is('idle')) return;
+        const context = this.getAnnotationContext();
+
+        if (hovered == null || annotationData == null || !this.state.is('idle') || context == null) return;
 
         interactionManager.pushState(InteractionState.Annotations);
 
@@ -569,23 +621,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         cursorManager.updateCursor('annotations');
 
-        const validationContext = this.getValidationContext();
         const onDragInvalid = () => this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
 
         if (LineAnnotation.is(datum) && Line.is(node)) {
-            node.dragHandle(datum, offset, validationContext, onDragInvalid);
+            node.dragHandle(datum, offset, context, onDragInvalid);
         }
 
         if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-            node.dragHandle(datum, offset, validationContext, onDragInvalid);
+            node.dragHandle(datum, offset, context, onDragInvalid);
         }
 
         if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-            node.dragHandle(datum, offset, validationContext, onDragInvalid);
+            node.dragHandle(datum, offset, context, onDragInvalid);
         }
 
         if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-            node.dragHandle(datum, offset, validationContext, onDragInvalid);
+            node.dragHandle(datum, offset, context, onDragInvalid);
         }
 
         this.update();
@@ -601,7 +652,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { interactionManager },
         } = this;
 
-        if (annotationData == null) return;
+        const context = this.getAnnotationContext();
+        if (annotationData == null || context == null) return;
 
         const { offsetX, offsetY } = event;
         const datum = active != null ? annotationData[active] : undefined;
@@ -613,7 +665,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         interactionManager.pushState(InteractionState.Annotations);
 
-        const point = invertCoords(offset, this.scaleX, this.scaleY);
+        const point = invertCoords(offset, context);
         const data: StateDragEvent<AnnotationProperties, Annotation> = { datum, node, point };
 
         state.transition('drag', data);

@@ -409,7 +409,9 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             title: {
                 text: 'Longitude',
             },
-            minSpacing: 300,
+            interval: {
+                minSpacing: 300,
+            },
             line: {
                 stroke: 'transparent',
             },
@@ -429,7 +431,9 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             title: {
                 text: 'Latitude',
             },
-            minSpacing: 200,
+            interval: {
+                minSpacing: 200,
+            },
             line: {
                 stroke: 'transparent',
             },

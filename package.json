@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "9.3.1-beta.20240609",
+  "version": "9.3.1-beta.20240611",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -8,10 +8,11 @@
     "package": "nx pack --prod && nx pack:verify --prod",
     "subrepo": "tsx external/ag-website-shared/scripts/subrepo",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
+    "preinstall": "run-s preinstall:*",
+    "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall": "run-s postinstall:*",
     "postinstall:patch": "patch-package",
     "postinstall:verify-canvas-binary-present": "test -f node_modules/canvas/build/Release/canvas.node",
-    "postinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall:nx-daemon-prebuild-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
     "postinstall:nx-plugin-build": "nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build",
     "postinstall:nx-daemon-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\""
@@ -41,7 +42,6 @@
     "@nx/js": "18.3.4",
     "@nx/plugin": "18.3.4",
     "@nx/react": "18.3.4",
-    "@nx/rollup": "18.3.4",
     "@nx/vite": "18.3.4",
     "@nx/workspace": "18.3.4",
     "@swc-node/register": "1.8.0",
@@ -49,6 +49,7 @@
     "@swc/core": "1.3.96",
     "@swc/jest": "0.2.20",
     "@trivago/prettier-plugin-sort-imports": "^4.2.0",
+    "@types/glob": "^8.1.0",
     "@types/jest": "^29.5.0",
     "@types/jest-image-snapshot": "^5.1.0",
     "@types/jscodeshift": "^0.11.6",
@@ -125,6 +126,7 @@
   },
   "workspaces": {
     "packages": [
+      "external/ag-shared",
       "packages/ag-charts-community",
       "packages/ag-charts-community-examples",
       "packages/ag-charts-enterprise",

@@ -35,6 +35,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: 0,
+                tension: 0.4,
             },
         },
         legend: {

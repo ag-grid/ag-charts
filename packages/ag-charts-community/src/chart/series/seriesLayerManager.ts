@@ -24,6 +24,8 @@ export type SeriesConfig = {
 };
 
 type LayerState = {
+    type: string;
+    id: string | number;
     seriesIds: string[];
     group: Group;
     highlight: Group;
@@ -82,6 +84,8 @@ export class SeriesLayerManager {
         let groupInfo = this.groups[type][lookupIndex];
         if (!groupInfo) {
             groupInfo = this.groups[type][lookupIndex] ??= {
+                type,
+                id: lookupIndex,
                 seriesIds: [],
                 group: this.seriesRoot.appendChild(
                     new Group({
@@ -148,15 +152,13 @@ export class SeriesLayerManager {
         annotationGroup: Group;
         type: string;
     }) {
-        const { internalId, seriesGrouping, rootGroup, highlightGroup, annotationGroup, type } = seriesConfig;
-        const { groupIndex = internalId } = seriesGrouping ?? {};
+        const { internalId, rootGroup, highlightGroup, annotationGroup, type } = seriesConfig;
 
         if (this.series[internalId] == null) {
             throw new Error(`AG Charts - series doesn't have an allocated layer: ${internalId}`);
         }
 
-        const lookupIndex = this.lookupIdx(groupIndex);
-        const groupInfo = this.groups[type]?.[lookupIndex] ?? this.series[internalId]?.layerState;
+        const groupInfo = this.series[internalId]?.layerState;
         if (groupInfo) {
             groupInfo.seriesIds = groupInfo.seriesIds.filter((v) => v !== internalId);
             groupInfo.group.removeChild(rootGroup);
@@ -169,7 +171,7 @@ export class SeriesLayerManager {
             this.seriesRoot.removeChild(groupInfo.group);
             this.highlightRoot.removeChild(groupInfo.highlight);
             this.annotationRoot.removeChild(groupInfo.annotation);
-            delete this.groups[type][lookupIndex];
+            delete this.groups[groupInfo.type][groupInfo.id];
             delete this.groups[type][internalId];
         } else if (groupInfo?.seriesIds.length > 0) {
             // Update zIndexSubOrder to avoid it becoming stale as series are removed and re-added
@@ -189,7 +191,7 @@ export class SeriesLayerManager {
         }
 
         if (typeof groupIndex === 'string') {
-            groupIndex = Number(groupIndex.split('-').slice(-1)[0]);
+            groupIndex = Number(groupIndex.split('-').at(-1));
             if (!groupIndex) {
                 return 0;
             }

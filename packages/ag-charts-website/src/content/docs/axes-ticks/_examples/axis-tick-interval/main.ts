@@ -28,7 +28,7 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Market Share (%)',
             },
-            interval: 20,
+            interval: { step: 20 },
         },
     ],
 };
@@ -37,12 +37,12 @@ const chart = AgCharts.create(options);
 
 function setTickInterval(interval: number) {
     const axis = options.axes?.[1]! as AgNumberAxisOptions;
-    axis.interval = interval;
+    axis.interval = { step: interval };
     chart.update(options);
 }
 
 function resetInterval() {
     const axis = options.axes?.[1]! as AgNumberAxisOptions;
-    axis.interval = undefined;
+    axis.interval = {};
     chart.update(options);
 }
