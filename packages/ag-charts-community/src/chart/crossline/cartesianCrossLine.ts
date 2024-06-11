@@ -3,7 +3,8 @@ import type {
     AgCrossLineLabelPosition,
     FontStyle,
     FontWeight,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';

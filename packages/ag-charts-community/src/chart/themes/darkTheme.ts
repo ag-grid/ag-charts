@@ -1,4 +1,5 @@
-import type { AgChartThemeOptions, AgChartThemePalette } from '../../options/agChartOptions';
+import type { AgChartThemeOptions, AgChartThemePalette } from 'ag-charts-types';
+
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
 import {

@@ -1,15 +1,16 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { AgCharts } from '../../api/agCharts';
-import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
     AgChartTheme,
     AgPolarChartOptions,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
+import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
 import { getDocument } from '../../util/dom';
 import {

@@ -4,7 +4,8 @@ import type {
     FontStyle,
     FontWeight,
     TextWrap,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,

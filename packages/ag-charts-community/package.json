@@ -47,7 +47,8 @@
   ],
   "homepage": "https://charts.ag-grid.com/",
   "dependencies": {
-    "ag-shared": "9.3.1-beta.20240611"
+    "ag-shared": "9.3.1-beta.20240611",
+    "ag-charts-types": "9.3.1-beta.20240611"
   },
   "devDependencies": {
     "@babel/types": "7.12.7",

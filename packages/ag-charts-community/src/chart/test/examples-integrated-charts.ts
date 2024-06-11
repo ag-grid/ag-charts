@@ -1,9 +1,4 @@
-import type {
-    AgCartesianChartOptions,
-    AgChartOptions,
-    AgChartTheme,
-    AgPolarChartOptions,
-} from '../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
 const BASE_THEME: AgChartTheme = {
     baseTheme: {

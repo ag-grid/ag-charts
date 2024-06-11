@@ -158,6 +158,7 @@
     }
   },
   "implicitDependencies": [
+    "ag-charts-types",
     "ag-charts-community",
     "ag-charts-enterprise",
     "ag-charts-angular",

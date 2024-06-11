@@ -1,4 +1,5 @@
-import type { AgFlowProportionChartOptions } from '../options/agChartOptions';
+import type { AgFlowProportionChartOptions } from 'ag-charts-types';
+
 import { BBox } from '../scene/bbox';
 import { Chart } from './chart';
 import type { FlowProportionSeries } from './series/flowProportionSeries';

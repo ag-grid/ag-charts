@@ -3,7 +3,8 @@ import type {
     AgAreaSeriesOptionsKeys,
     AgCartesianSeriesTooltipRendererParams,
     AgSeriesAreaOptions,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import {
     BOOLEAN,

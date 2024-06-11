@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-import type { AgPolarChartOptions } from '../../../options/agChartOptions';
+import type { AgPolarChartOptions } from 'ag-charts-types';
+
 import type { Chart } from '../../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

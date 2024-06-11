@@ -1,7 +1,8 @@
+import type { MessageFormatter } from 'ag-charts-types';
+
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { MessageFormatter } from '../../options/chart/localeOptions';
 import { ObserveChanges } from '../../util/proxy';
 import { FUNCTION, PLAIN_OBJECT, Validate } from '../../util/validation';
 

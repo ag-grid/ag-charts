@@ -1,4 +1,5 @@
-import type { Direction } from '../../../options/chart/types';
+import type { Direction } from 'ag-charts-types';
+
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';

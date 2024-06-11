@@ -1,10 +1,5 @@
 import { describe } from '@jest/globals';
 
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
-import { setupModules } from '../chart/factory/setupModules';
-import * as examples from '../chart/test/examples';
-import { ChartTheme } from '../chart/themes/chartTheme';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -12,7 +7,13 @@ import type {
     AgChartOptions,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
-} from '../options/agChartOptions';
+} from 'ag-charts-types';
+
+import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
+import { seriesRegistry } from '../chart/factory/seriesRegistry';
+import { setupModules } from '../chart/factory/setupModules';
+import * as examples from '../chart/test/examples';
+import { ChartTheme } from '../chart/themes/chartTheme';
 import { doOnce } from '../util/function';
 import { ChartOptions } from './optionsModule';
 import type { SeriesType } from './optionsModuleTypes';

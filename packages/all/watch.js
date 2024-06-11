@@ -94,10 +94,16 @@ function nxProjectBuildTarget(project) {
     }
 
     switch (project) {
-        case 'ag-charts-community':
+        case 'ag-charts-types':
             return [
                 [project, ['build'], 'watch'],
                 [project, ['docs-resolved-interfaces'], 'watch'],
+                ['ag-charts-community', ['build'], 'watch'],
+                ['ag-charts-enterprise', ['build'], 'watch'],
+            ];
+        case 'ag-charts-community':
+            return [
+                [project, ['build'], 'watch'],
                 ['ag-charts-enterprise', ['build'], 'watch'],
             ];
         case 'ag-charts-enterprise':

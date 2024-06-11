@@ -1,4 +1,5 @@
-import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
+import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
+
 import { setAttribute } from '../../util/attributeUtil';
 import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';

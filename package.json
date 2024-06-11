@@ -132,6 +132,7 @@
       "packages/ag-charts-enterprise",
       "packages/ag-charts-angular",
       "packages/ag-charts-react",
+      "packages/ag-charts-types",
       "packages/ag-charts-vue3",
       "packages/ag-charts-website",
       "packages/ag-charts-website-e2e",

@@ -1,9 +1,5 @@
-import type {
-    AgChartTheme,
-    AgChartThemeName,
-    AgChartThemeOverrides,
-    AgChartThemePalette,
-} from '../../options/agChartOptions';
+import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides, AgChartThemePalette } from 'ag-charts-types';
+
 import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
 import { ChartTheme } from '../themes/chartTheme';

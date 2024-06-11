@@ -1,7 +1,8 @@
+import type { AgToolbarGroupPosition } from 'ag-charts-types';
+
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgToolbarGroupPosition } from '../../options/agChartOptions';
 import type { BBox } from '../../scene/bbox';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';

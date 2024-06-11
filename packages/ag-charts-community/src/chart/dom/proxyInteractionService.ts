@@ -1,4 +1,5 @@
-import type { Direction } from '../../options/agChartOptions';
+import type { Direction } from 'ag-charts-types';
+
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';

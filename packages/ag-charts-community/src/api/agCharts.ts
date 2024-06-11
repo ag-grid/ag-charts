@@ -1,3 +1,5 @@
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-types';
+
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
@@ -18,7 +20,6 @@ import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { ChartOptions } from '../module/optionsModule';
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';

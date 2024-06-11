@@ -4,7 +4,8 @@ import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesTooltipRendererParams,
-} from '../../../options/series/polar/donutOptions';
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import { Logger } from '../../../util/logger';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
