@@ -46,7 +46,9 @@
     "not operamobile >= 0"
   ],
   "homepage": "https://charts.ag-grid.com/",
-  "dependencies": {},
+  "dependencies": {
+    "ag-shared": "9.3.1-beta.20240611"
+  },
   "devDependencies": {
     "@babel/types": "7.12.7",
     "@jest/globals": "29.6.1",
