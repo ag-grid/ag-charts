@@ -92,6 +92,7 @@ export * from './chart/axis/groupedCategoryAxis';
 export * from './chart/axis/cartesianAxis';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
+export * from './chart/crossline/crossLineLabelPosition';
 export * from './chart/legendDatum';
 export * from './chart/tooltip/tooltip';
 export * from './motion/animation';
