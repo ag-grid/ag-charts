@@ -101,7 +101,6 @@ type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, HTMLElement>;
     listeners: [string, Function, boolean | AddEventListenerOptions | undefined][];
-    insertBefore?: HTMLElement;
 };
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
