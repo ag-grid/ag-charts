@@ -10,17 +10,8 @@ export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _Modul
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
 export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
-export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
 
-type ErrorBarDataOptions = Pick<
-    AgErrorBarOptions,
-    'xLowerKey' | 'xLowerName' | 'xUpperKey' | 'xUpperName' | 'yLowerKey' | 'yLowerName' | 'yUpperKey' | 'yUpperName'
->;
-
-type Formatters = {
-    formatter?: ErrorBarFormatter;
-    cap: { formatter?: ErrorBarCapFormatter };
-} & ErrorBarDataOptions;
+type FormatOptions = Pick<AgErrorBarOptions, 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey' | 'formatter'>;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
@@ -90,46 +81,31 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getFormatterParams(formatters: Formatters, highlighted: boolean): AgErrorBarFormatterParams | undefined {
+    private getFormatterParams(options: FormatOptions, highlighted: boolean): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
-        if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
-            return;
-        }
-        const { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName } =
-            formatters;
+        if (datum == null || options.formatter == null) return;
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
         return {
             datum: datum.datum,
             seriesId: datum.datum.seriesId,
             xKey: datum.xKey,
             yKey: datum.yKey,
             xLowerKey,
-            xLowerName,
             xUpperKey,
-            xUpperName,
             yLowerKey,
-            yLowerName,
             yUpperKey,
-            yUpperName,
             highlighted,
         };
     }
 
-    private formatStyles(style: AgErrorBarThemeableOptions, formatters: Formatters, highlighted: boolean) {
+    private formatStyles(style: AgErrorBarThemeableOptions, formatters: FormatOptions, highlighted: boolean) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
         const params = this.getFormatterParams(formatters, highlighted);
-        if (params !== undefined) {
-            if (formatters.formatter !== undefined) {
-                const result = formatters.formatter(params);
-                whiskerStyle = mergeDefaults(result, whiskerStyle);
-                capsStyle = mergeDefaults(result, capsStyle);
-                capsStyle = mergeDefaults(result?.cap, capsStyle);
-            }
-
-            if (formatters.cap.formatter !== undefined) {
-                const result = formatters.cap.formatter(params);
-                capsStyle = mergeDefaults(result, capsStyle);
-            }
+        if (params !== undefined && formatters.formatter !== undefined) {
+            const result = formatters.formatter(params);
+            whiskerStyle = mergeDefaults(result, whiskerStyle);
+            capsStyle = mergeDefaults(result?.cap, result, capsStyle);
         }
 
         return { whiskerStyle, capsStyle };
@@ -145,7 +121,7 @@ export class ErrorBarNode extends _Scene.Group {
         );
     }
 
-    update(style: AgErrorBarThemeableOptions, formatters: Formatters, highlighted: boolean) {
+    update(style: AgErrorBarThemeableOptions, formatters: FormatOptions, highlighted: boolean) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
