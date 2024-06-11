@@ -12,7 +12,7 @@ const exportedNames = {
     'react-dom': 'ReactDOM',
     'ag-charts-community': 'agCharts',
     'ag-charts-enterprise': 'agCharts',
-    'ag-charts-react': 'AgChartsReact',
+    'ag-charts-react': 'AgCharts',
 };
 
 /** @type {import('esbuild').Plugin} */

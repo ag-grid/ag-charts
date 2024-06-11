@@ -680,7 +680,7 @@ export function addBindingImports(
         imports.push(`import 'ag-grid-enterprise';`);
     }
 
-    if (chartsEnterprise) {
+    if (!workingImports["'ag-charts-enterprise'"] && chartsEnterprise) {
         imports.push(`import 'ag-charts-enterprise';`);
     }
 }
