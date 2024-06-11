@@ -13,27 +13,11 @@ is and why.
 
 ### script-src
 
-The `script-src` policy will work only with `'self'` rule. If you use property paths for keys, it will be necessary to add `unsafe-eval` rule to your policy.
-
-```js
-series: [
-    // unsafe-eval NOT required
-    {
-        xKey: 'name',
-    },
-    // unsafe-eval IS required
-    {
-        yKey: 'totals.stock',
-    },
-    {
-        latKey: 'coordinates[0]',
-    },
-];
-```
+The `script-src` policy will work only with `'self'` rule.
 
 ### style-src
 
-The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and stlyling canvases to accommodate for HiDPI screens.
+The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and styling canvases to accommodate for HiDPI screens.
 
 {% note %}
 Even though the `style-src` policy requires `unsafe-inline`, the specific way AG Charts uses it causes no actual security vulnerability.
@@ -60,7 +44,7 @@ However if you are using all the features mentioned above, the rule is:
 ```html
 <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
 />
 ```
 
