@@ -4,8 +4,9 @@ import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
 
-const domElementClasses = ['styles', 'canvas-center', 'canvas', 'canvas-overlay'] as const;
-export type DOMElementClass = (typeof domElementClasses)[number];
+const CANVAS_CENTER_CLASS = 'canvas-center';
+const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-overlay'] as const;
+export type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
 
 type DOMElementConfig = {
     childElementType: 'style' | 'canvas' | 'div';
@@ -17,7 +18,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
     ['canvas', { childElementType: 'canvas', eventTypes: ['focus', 'blur'] }],
     ['canvas-overlay', { childElementType: 'div' }],
-    ['canvas-center', { childElementType: 'div' }],
+    [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
 
 const STYLES = `
@@ -121,7 +122,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         templateEl.innerHTML = BASE_DOM;
         this.element = templateEl.children.item(0) as HTMLElement;
 
-        this.rootElements = domElementClasses.reduce(
+        this.rootElements = DOM_ELEMENT_CLASSES.reduce(
             (r, c) => {
                 const cssClass = `ag-charts-${c}`;
                 const el = this.element.classList.contains(cssClass)
@@ -185,7 +186,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     private updateContainerSize() {
-        const { style: centerStyle } = this.rootElements['canvas-center'].element;
+        const { style: centerStyle } = this.rootElements[CANVAS_CENTER_CLASS].element;
 
         centerStyle.width = `${this.containerSize?.width ?? 0}px`;
         centerStyle.height = `${this.containerSize?.height ?? 0}px`;
