@@ -14,7 +14,7 @@ import {
     sumValues,
 } from './aggregateFunctions';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
-import { DataModel } from './dataModel';
+import { DataModel, getPathComponents } from './dataModel';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
@@ -1241,6 +1241,18 @@ describe('DataModel', () => {
             expect(processedData).toMatchSnapshot({
                 time: expect.any(Number),
             });
+        });
+    });
+
+    describe('getPathComponents', () => {
+        it('parses valid paths', () => {
+            expect(getPathComponents(`a . b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['a', 'b', 'c', 'd', '0', '99']);
+            expect(getPathComponents(`. b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['b', 'c', 'd', '0', '99']);
+            expect(getPathComponents(`[ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['c', 'd', '0', '99']);
+        });
+        it('rejects invalid paths', () => {
+            expect(getPathComponents(`["test"]other`)).toBe(undefined);
+            expect(getPathComponents(`[test]`)).toBe(undefined);
         });
     });
 });

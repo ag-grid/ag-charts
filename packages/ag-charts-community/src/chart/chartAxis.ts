@@ -64,10 +64,12 @@ export interface ChartAxis {
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
-    values?: any[];
-    interval?: number | TickInterval<any>;
-    minSpacing?: number;
-    maxSpacing?: number;
+    interval: {
+        step?: number | TickInterval<any>;
+        values?: any[];
+        minSpacing?: number;
+        maxSpacing?: number;
+    };
 }
 
 export interface ChartAxisLabel extends FontOptions {

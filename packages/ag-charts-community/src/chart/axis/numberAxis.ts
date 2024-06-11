@@ -4,7 +4,7 @@ import type { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
-import { AND, GREATER_THAN, LESS_THAN, MAX_SPACING, NUMBER_OR_NAN, Validate } from '../../util/validation';
+import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
@@ -29,10 +29,6 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     @Validate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
 
     override updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
         if (this.dataDomain == null) {

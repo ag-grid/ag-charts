@@ -35,6 +35,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     private requestId: number | null = null;
     private skipAnimations = false;
 
+    private currentAnonymousAnimationId: number = 0;
+
     constructor(
         private readonly interactionManager: InteractionManager,
         private readonly chartUpdateMutex: Mutex
@@ -56,7 +58,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             return;
         }
 
-        const id = opts.id ?? Math.random().toString();
+        let { id } = opts;
+        if (id == null) {
+            id = `__${this.currentAnonymousAnimationId}`;
+            this.currentAnonymousAnimationId += 1;
+        }
 
         const skip = this.isSkipped() || opts.phase === 'none';
         if (skip) {

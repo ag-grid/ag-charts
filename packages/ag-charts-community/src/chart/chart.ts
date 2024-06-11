@@ -1765,7 +1765,7 @@ export abstract class Chart extends Observable {
 
             const step = intervalOptions?.step;
             if (step != null) {
-                horizontalAxis.interval = step;
+                horizontalAxis.interval.step = step;
             }
         }
     }
@@ -1973,7 +1973,7 @@ export abstract class Chart extends Observable {
     }
 
     // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
-    // global option (`chart.tooltip.range`) that could overriden the theme. But now, the tooltip range
+    // global option (`chart.tooltip.range`) that could override the theme. But now, the tooltip range
     // option is series-specific.
     //
     // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from

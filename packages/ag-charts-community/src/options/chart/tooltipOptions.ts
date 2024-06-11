@@ -8,9 +8,9 @@ export interface AgChartTooltipOptions {
     showArrow?: boolean;
     /** A class name to be added to the tooltip element of the chart. */
     class?: string;
-    /** Range from a point that triggers the tooltip to show. This is the default value that will be used unless overriden by the series. */
+    /** Range from a point that triggers the tooltip to show. This will be used unless overridden by the series `tooltip.range` option. */
     range?: InteractionRange;
-    /** The position of the tooltip. */
+    /** The position of the tooltip. This will be used unless overridden by the series `tooltip.range` option.*/
     position?: AgTooltipPositionOptions;
     /** The time interval (in milliseconds) after which the tooltip is shown. */
     delay?: DurationMs;
@@ -70,14 +70,14 @@ export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams> 
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
     showArrow?: boolean;
-    /** The position of the tooltip. */
+    /** Range from a point that triggers the tooltip to show. Each series type uses its own default; typically this is `'nearest'` for marker-based series and `'exact'` for shape-based series. */
+    range?: InteractionRange;
+    /** The position of the tooltip. Each series type uses its own default; typically this is `'node'` for marker-based series and `'pointer'` for shape-based series. */
     position?: AgTooltipPositionOptions;
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
     /** Function used to create the content for tooltips. */
     renderer?: (params: TParams) => string | AgTooltipRendererResult;
-    /** Range from a point that triggers the tooltip to show. Each series type uses its own default; typically this is `'nearest'` for marker-based series and `'exact'` for shape-based series. */
-    range?: InteractionRange;
 }
 
 export interface AgSeriesTooltipInteraction {

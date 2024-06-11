@@ -1,6 +1,6 @@
 import { _Scene } from 'ag-charts-community';
 
-import { type Coords, type LineCoords, type ValidationContext } from '../annotationTypes';
+import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { Channel } from '../scenes/channelScene';
@@ -61,7 +61,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
     override dragHandle(
         datum: ParallelChannelAnnotation,
         target: Coords,
-        context: ValidationContext,
+        context: AnnotationContext,
         onInvalid: () => void
     ) {
         const { activeHandle, handles } = this;
@@ -98,8 +98,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
                     x: handles[move].handle.x + offset.x,
                     y: handles[move].handle.y + offset.y,
                 },
-                context.scaleX,
-                context.scaleY
+                context
             )
         );
 
@@ -116,8 +115,7 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
                     x: handles.topLeft.handle.x + offset.x,
                     y: handles.topLeft.handle.y + offset.y,
                 },
-                context.scaleX,
-                context.scaleY
+                context
             );
 
             if (validateDatumPoint(context, topLeft)) {

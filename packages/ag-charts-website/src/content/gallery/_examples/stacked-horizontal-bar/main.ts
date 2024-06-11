@@ -91,7 +91,7 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'left',
-            values: [2013, 2023],
+            interval: { values: [2013, 2023] },
             line: {
                 enabled: false,
             },
@@ -105,7 +105,7 @@ const options: AgChartOptions = {
             nice: false,
             min: -40,
             max: 60,
-            values: [0],
+            interval: { values: [0] },
             label: {
                 enabled: false,
             },

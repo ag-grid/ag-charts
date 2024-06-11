@@ -25,7 +25,7 @@ value within the axis range. For instance, with an interval of `5`, the ticks wi
 
 ```js
 {
-    interval: 5,
+    interval: { step: 5 },
 }
 ```
 
@@ -43,7 +43,7 @@ to customise the frequency of the ticks.
 
 ```js
 {
-    interval: time.month,
+    interval: { step: time.month },
 }
 ```
 
@@ -62,7 +62,7 @@ The example below demonstrates the usage of time intervals:
 
 ```js
 {
-    interval: time.month.every(2),
+    interval: { step: time.month.every(2) },
 }
 ```
 
@@ -70,12 +70,14 @@ The example below demonstrates the usage of time intervals:
 
 ### Tick Values
 
-The `tick.values` property allows you to specify the precise array of tick values to display. Depending on the axis type,
+The `interval.values` property allows you to specify the precise array of tick values to display. Depending on the axis type,
 this should be an array consisting of numbers, dates, or string values.
 
 ```js
 {
-    values: [50, 88, 100],
+    interval: {
+        values: [50, 88, 100],
+    },
 }
 ```
 
@@ -87,15 +89,17 @@ The following example demonstrates how to specify exact tick values:
 
 ### Tick Min / Max Spacing
 
-The `tick.minSpacing` and `tick.maxSpacing` options alter the default behaviour by defining the approximate minimum and
-maximum pixel gaps that should exist between ticks. You can provide one or both options as needed. An appropriate number
-of ticks will be generated to meet the specified `tick.minSpacing` and `tick.maxSpacing` constraints taking the rendered
-size of the chart into account. A sample configuration is shown below:
+The `interval.minSpacing` and `interval.maxSpacing` options alter the default behaviour by defining the approximate
+minimum and maximum pixel gaps that should exist between ticks. You can provide one or both options as needed. An
+appropriate number of ticks will be generated to meet the specified `interval.minSpacing` and `interval.maxSpacing`
+constraints taking the rendered size of the chart into account. A sample configuration is shown below:
 
 ```js
 {
-    minSpacing: 50,
-    maxSpacing: 200,
+    interval: {
+        minSpacing: 50,
+        maxSpacing: 200,
+    }
 }
 ```
 

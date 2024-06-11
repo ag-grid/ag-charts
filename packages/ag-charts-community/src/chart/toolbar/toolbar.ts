@@ -16,6 +16,7 @@ import type {
 } from '../interaction/toolbarManager';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
+import toolbarCss from './toolbarStyles.css';
 import {
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_GROUPS,
@@ -106,7 +107,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        ctx.domManager.addStyles(styles.block, styles.css);
+        ctx.domManager.addStyles(styles.block, toolbarCss);
 
         this.elements = {} as Record<ToolbarPosition, HTMLElement>;
         for (const position of TOOLBAR_POSITIONS) {
@@ -283,6 +284,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             this.groupButtons[group].push(button);
         }
 
+        const onEscape = () => {
+            this.ctx.toolbarManager.cancel(group);
+        };
+
         let onFocus;
         let onBlur;
 
@@ -295,6 +300,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             orientation: 'horizontal',
             toolbar: parent,
             buttons: this.groupButtons[group],
+            onEscape,
             onFocus,
             onBlur,
         });

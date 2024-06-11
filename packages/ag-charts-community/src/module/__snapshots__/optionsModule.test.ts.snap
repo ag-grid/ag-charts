@@ -23,10 +23,12 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           },
         ],
       },
-      "interval": TimeInterval {
-        "_decode": [Function],
-        "_encode": [Function],
-        "_rangeCallback": [Function],
+      "interval": {
+        "step": TimeInterval {
+          "_decode": [Function],
+          "_encode": [Function],
+          "_rangeCallback": [Function],
+        },
       },
       "label": {
         "avoidCollisions": true,
@@ -10474,10 +10476,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           },
         ],
       },
-      "interval": TimeInterval {
-        "_decode": [Function],
-        "_encode": [Function],
-        "_rangeCallback": [Function],
+      "interval": {
+        "step": TimeInterval {
+          "_decode": [Function],
+          "_encode": [Function],
+          "_rangeCallback": [Function],
+        },
       },
       "label": {
         "avoidCollisions": true,
@@ -11643,10 +11647,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           },
         ],
       },
-      "interval": TimeInterval {
-        "_decode": [Function],
-        "_encode": [Function],
-        "_rangeCallback": [Function],
+      "interval": {
+        "step": TimeInterval {
+          "_decode": [Function],
+          "_encode": [Function],
+          "_rangeCallback": [Function],
+        },
       },
       "label": {
         "autoRotate": true,
@@ -12663,10 +12669,12 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           },
         ],
       },
-      "interval": CountableTimeInterval {
-        "_decode": [Function],
-        "_encode": [Function],
-        "_rangeCallback": undefined,
+      "interval": {
+        "step": CountableTimeInterval {
+          "_decode": [Function],
+          "_encode": [Function],
+          "_rangeCallback": undefined,
+        },
       },
       "label": {
         "autoRotate": true,

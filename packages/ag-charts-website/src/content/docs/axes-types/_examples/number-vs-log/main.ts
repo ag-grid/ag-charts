@@ -96,7 +96,9 @@ function setLogAxisWithFewerTicks() {
             type: 'log',
             position: 'left',
             min: 10,
-            minSpacing: 200,
+            interval: {
+                minSpacing: 200,
+            },
             label: {
                 format: '.0f',
             },

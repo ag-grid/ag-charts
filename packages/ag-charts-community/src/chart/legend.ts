@@ -501,16 +501,37 @@ export class Legend extends BaseProperties {
     private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
         const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
 
+        const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
-        if (markerLabel.markers.length > 0 || markerLabel.lines.length > 0) {
-            return paddedSymbolWidth;
+
+        if (markerLabel.markers.length !== datum.symbols.length && markerLabel.lines.length !== datum.symbols.length) {
+            const markers: Marker[] = [];
+            const lines: Line[] = [];
+
+            datum.symbols.forEach((symbol) => {
+                const markerEnabled =
+                    this.item.marker.enabled ??
+                    (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
+                const lineEnabled = !!(symbol.line && showSeriesStroke);
+
+                if (lineEnabled) {
+                    lines.push(new Line());
+                }
+
+                const { shape: markerShape = symbol.marker.shape } = itemMarker;
+
+                if (markerEnabled) {
+                    const MarkerCtr = getMarker(markerShape);
+                    const marker = new MarkerCtr();
+                    markers.push(marker);
+                }
+            });
+
+            markerLabel.markers = markers;
+            markerLabel.lines = lines;
         }
 
-        const dimensionProps: { length: number; spacing: number }[] = [];
-        const markers: Marker[] = [];
-        const lines: Line[] = [];
-
-        datum.symbols.forEach((symbol) => {
+        datum.symbols.forEach((symbol, i) => {
             const markerEnabled =
                 this.item.marker.enabled ??
                 (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
@@ -518,18 +539,11 @@ export class Legend extends BaseProperties {
 
             const spacing = symbol.marker.padding ?? itemMarker.padding;
 
-            if (lineEnabled) {
-                lines.push(new Line());
-            }
-
-            const { size: markerSize, shape: markerShape = symbol.marker.shape } = itemMarker;
+            const { size: markerSize } = itemMarker;
 
             if (markerEnabled) {
-                const MarkerCtr = getMarker(markerShape);
-                const marker = new MarkerCtr();
-
-                marker.size = markerSize;
-                markers.push(marker);
+                const marker = markerLabel.markers[i];
+                marker.size = itemMarker.size;
             }
 
             const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
@@ -541,8 +555,6 @@ export class Legend extends BaseProperties {
             }
         });
 
-        markerLabel.markers = markers;
-        markerLabel.lines = lines;
         markerLabel.update(dimensionProps);
 
         return paddedSymbolWidth;
@@ -847,7 +859,7 @@ export class Legend extends BaseProperties {
 
                     marker.fill = fill;
                     marker.stroke = stroke;
-                    marker.strokeWidth = Math.min(2, strokeWidth);
+                    marker.strokeWidth = strokeWidth;
                     marker.fillOpacity = fillOpacity;
                     marker.strokeOpacity = strokeOpacity;
                 }

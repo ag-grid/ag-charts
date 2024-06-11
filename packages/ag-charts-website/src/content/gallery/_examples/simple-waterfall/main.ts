@@ -52,7 +52,7 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            values: [0, -148.1],
+            interval: { values: [0, -148.1] },
             label: {
                 formatter: ({ value }) => `${value}M`,
             },

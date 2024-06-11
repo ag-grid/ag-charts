@@ -1,6 +1,7 @@
 import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
     AgAxisCaptionOptions,
+    AgAxisContinuousIntervalOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
@@ -61,34 +62,30 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     groupPaddingInner?: Ratio;
 }
 
-export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type' | 'tick'> {
+export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
     type: 'ordinal-time';
-    /** Maximum gap in pixels between tick lines. */
-    maxSpacing?: PixelSize;
-    /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
-    interval?: TimeInterval;
+    /** Configuration for the axis ticks interval. */
+    interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
 }
 
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'grouped-category';
 }
 
-export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions, AgContinuousAxisOptions {
+export interface AgNumberAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
     type: 'number';
 }
 
-export interface AgLogAxisOptions extends AgBaseCartesianAxisOptions, AgContinuousAxisOptions {
+export interface AgLogAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
     type: 'log';
     /** The base of the logarithm used. */
     base?: number;
 }
 
 export interface AgTimeAxisOptions
-    extends AgBaseCartesianAxisOptions,
-        AgContinuousAxisOptions<Date | number, TimeInterval> {
+    extends Omit<AgBaseCartesianAxisOptions, 'interval'>,
+        AgContinuousAxisOptions<Date | number, TimeInterval | number> {
     type: 'time';
-    /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
-    interval?: TimeInterval;
 }
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
