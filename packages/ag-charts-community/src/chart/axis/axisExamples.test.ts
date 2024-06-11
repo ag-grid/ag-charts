@@ -591,7 +591,7 @@ describe('Axis Examples', () => {
         });
     });
 
-    describe.only('complex layout cases', () => {
+    describe('complex layout cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_LAYOUT)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 chart = await createChart(example.options);
