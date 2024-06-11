@@ -4,7 +4,6 @@ src
 .npmignore
 .prettierrc
 .eslintrc.json
-rollup.*
 tsconfig.*
 project.json
 jest.*
