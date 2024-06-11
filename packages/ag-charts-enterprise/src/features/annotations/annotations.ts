@@ -112,6 +112,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     );
 
     private readonly colorPicker = new ColorPicker(this.ctx);
+    private defaultColor?: string;
 
     // Cached axis data
     private scaleX?: Scale;
@@ -181,6 +182,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationData?.push(datum);
         const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
         if (styles) datum.set(styles);
+
+        if (this.defaultColor) {
+            datum.stroke = this.defaultColor;
+            if ('background' in datum) datum.background.fill = this.defaultColor;
+        }
     }
 
     private onRestoreAnnotations(event: { annotations?: any }) {
@@ -272,6 +278,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             if ('background' in datum) datum.background.fill = color;
         }
 
+        this.defaultColor = color;
         this.update();
     }
 
@@ -474,6 +481,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { toolbarManager, tooltipManager },
         } = this;
 
+        colorPicker.hide();
+
         if (this.active != null) {
             annotations.nodes()[this.active].toggleActive(false);
         }
@@ -483,7 +492,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.active == null) {
             tooltipManager.unsuppressTooltip('annotations');
-            colorPicker.hide();
         } else {
             const node = annotations.nodes()[this.active];
             node.toggleActive(true);
