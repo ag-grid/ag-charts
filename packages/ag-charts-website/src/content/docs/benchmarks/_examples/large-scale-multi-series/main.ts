@@ -32,7 +32,7 @@ const random = seedRandom(75023847123);
 const amountOfCurves = 500;
 const amountOfDataPointsPerCurve = 10;
 const maxYgeneratedValue = 100;
-const generatedData = [];
+const generatedData: any[] = [];
 const generatedSeries: AgLineSeriesOptions[] = [];
 
 for (let k = 0; k < amountOfDataPointsPerCurve; k++) {

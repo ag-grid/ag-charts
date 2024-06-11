@@ -52,7 +52,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             reverse: true,
-            interval: 40,
+            interval: { step: 40 },
         },
     ],
 };

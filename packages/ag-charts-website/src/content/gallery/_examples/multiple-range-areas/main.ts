@@ -33,7 +33,7 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            values: [0, 25, 50, 75, 100],
+            interval: { values: [0, 25, 50, 75, 100] },
             label: {
                 formatter: ({ value }) => `${value}%`,
             },

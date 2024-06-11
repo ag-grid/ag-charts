@@ -47,7 +47,9 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            maxSpacing: 150,
+            interval: {
+                maxSpacing: 150,
+            },
         },
         {
             type: 'number',

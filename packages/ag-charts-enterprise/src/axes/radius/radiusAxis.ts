@@ -3,17 +3,8 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const {
-    assignJsonApplyConstructedArray,
-    ChartAxisDirection,
-    Default,
-    Layers,
-    DEGREE,
-    MIN_SPACING,
-    MAX_SPACING,
-    BOOLEAN,
-    Validate,
-} = _ModuleSupport;
+const { assignJsonApplyConstructedArray, ChartAxisDirection, Default, Layers, DEGREE, BOOLEAN, Validate } =
+    _ModuleSupport;
 const { Caption, Group, Path, Selection } = _Scene;
 const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
 
@@ -29,14 +20,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     @Validate(DEGREE)
     @Default(0)
     positionAngle: number = 0;
-
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override minSpacing: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
 
     protected readonly gridPathGroup = this.gridGroup.appendChild(
         new Group({

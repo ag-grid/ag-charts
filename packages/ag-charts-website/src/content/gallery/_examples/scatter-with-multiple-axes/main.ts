@@ -64,7 +64,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'right',
             keys: ['numberOfDeaths'],
-            values: [338984, 715246],
+            interval: { values: [338984, 715246] },
             label: {
                 formatter: ({ value }) =>
                     `~${Math.round(value).toLocaleString('en-GB', {
@@ -82,7 +82,7 @@ const options: AgChartOptions = {
             min: 25,
             max: 85,
             keys: ['lifeExpectancy'],
-            values: [81.77, 29.22],
+            interval: { values: [81.77, 29.22] },
             line: {
                 width: 1,
             },

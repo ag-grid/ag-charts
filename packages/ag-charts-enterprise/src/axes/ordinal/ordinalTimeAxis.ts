@@ -1,18 +1,11 @@
 import { _ModuleSupport, _Scale } from 'ag-charts-community';
 
 const { OrdinalTimeScale } = _Scale;
-const { dateToNumber, Validate, Default, MAX_SPACING, MIN_SPACING } = _ModuleSupport;
+const { dateToNumber } = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_Scale.OrdinalTimeScale> {
     static override readonly className = 'OrdinalTimeAxis' as const;
     static override readonly type = 'ordinal-time' as const;
-
-    @Validate(MIN_SPACING)
-    override minSpacing: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new OrdinalTimeScale());

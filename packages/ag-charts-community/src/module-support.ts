@@ -83,6 +83,7 @@ export * from './chart/series/topology/geojson';
 export * from './chart/series/topology/lonLatBbox';
 export * from './chart/series/topology/mercatorScale';
 export * from './chart/axis/axis';
+export * from './chart/axis/axisInterval';
 export * from './chart/axis/axisLabel';
 export * from './chart/axis/axisTick';
 export * from './chart/axis/polarAxis';
