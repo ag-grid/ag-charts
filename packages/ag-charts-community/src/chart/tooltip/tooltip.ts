@@ -34,7 +34,7 @@ type TooltipPositionType =
     | 'bottom-right'
     | 'bottom-left';
 
-export type TooltipEventType = 'hover' | 'keyboard';
+export type TooltipEventType = 'hover' | 'drag' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType> = PointerOffsets & {
     type: T;
     relatedElement?: HTMLElement;

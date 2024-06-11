@@ -8,10 +8,11 @@
     "package": "nx pack --prod && nx pack:verify --prod",
     "subrepo": "tsx external/ag-website-shared/scripts/subrepo",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
+    "preinstall": "run-s preinstall:*",
+    "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall": "run-s postinstall:*",
     "postinstall:patch": "patch-package",
     "postinstall:verify-canvas-binary-present": "test -f node_modules/canvas/build/Release/canvas.node",
-    "postinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall:nx-daemon-prebuild-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
     "postinstall:nx-plugin-build": "nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build",
     "postinstall:nx-daemon-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\""

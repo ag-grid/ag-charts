@@ -353,7 +353,16 @@ export abstract class Chart extends Observable {
 
             ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
-            seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            seriesRegion.addListener(
+                'hover',
+                (event) => this.onMouseMove(event),
+                InteractionState.Default | InteractionState.Annotations
+            ),
+            seriesRegion.addListener(
+                'drag',
+                (event) => this.onMouseMove(event),
+                InteractionState.Default | InteractionState.Annotations
+            ),
             horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
@@ -1117,7 +1126,7 @@ export abstract class Chart extends Observable {
 
     private lastPick?: SeriesNodeDatum;
 
-    protected onMouseMove(event: PointerInteractionEvent<'hover'>): void {
+    protected onMouseMove(event: PointerInteractionEvent<'hover' | 'drag'>): void {
         this.lastInteractionEvent = event;
         this.pointerScheduler.schedule();
 
@@ -1268,11 +1277,16 @@ export abstract class Chart extends Observable {
         }
     }
 
-    private lastInteractionEvent?: TooltipPointerEvent<'hover'> | TooltipPointerEvent<'keyboard'>;
+    private lastInteractionEvent?: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>;
     private static isHoverEvent(
         event: TooltipPointerEvent<TooltipEventType> | undefined
     ): event is TooltipPointerEvent<'hover'> {
         return event !== undefined && event.type === 'hover';
+    }
+    private static isDragEvent(
+        event: TooltipPointerEvent<TooltipEventType> | undefined
+    ): event is TooltipPointerEvent<'drag'> {
+        return event !== undefined && event.type === 'drag';
     }
     private readonly pointerScheduler = debouncedAnimationFrame(() => {
         if (!this.lastInteractionEvent) return;
@@ -1287,11 +1301,15 @@ export abstract class Chart extends Observable {
         this.handlePointer(this.lastInteractionEvent, false);
         this.lastInteractionEvent = undefined;
     });
-    protected handlePointer(event: TooltipPointerEvent<'hover' | 'keyboard'>, redisplay: boolean) {
+    protected handlePointer(event: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>, redisplay: boolean) {
         // Ignored "pointer event" that comes from a keyboard. We don't need to worry about finding out
         // which datum to use in the highlight & tooltip because the keyboard just navigates through the
         // data directly.
-        if (this.ctx.interactionManager.getState() !== InteractionState.Default || !Chart.isHoverEvent(event)) {
+        const state = this.ctx.interactionManager.getState();
+        if (
+            (state !== InteractionState.Default && state !== InteractionState.Annotations) ||
+            (!Chart.isHoverEvent(event) && !Chart.isDragEvent(event))
+        ) {
             return;
         }
 
@@ -1317,7 +1335,7 @@ export abstract class Chart extends Observable {
     }
 
     protected handlePointerTooltip(
-        event: TooltipPointerEvent<'hover'>,
+        event: TooltipPointerEvent<'hover' | 'drag'>,
         disablePointer: (highlightOnly?: boolean) => void
     ) {
         const { lastPick } = this;
