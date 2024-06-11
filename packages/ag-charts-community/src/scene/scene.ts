@@ -1,6 +1,5 @@
 import { Debug } from '../util/debug';
-import { downloadUrl, getDocument } from '../util/dom';
-import { GuardedElement } from '../util/guardedElement';
+import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
 import { LayersManager } from './layersManager';
@@ -8,22 +7,11 @@ import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
 import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
 
-type DOMManagerLike = {
-    addChild(type: 'canvas', id: string, child?: HTMLElement, isTabGuard?: true): HTMLElement;
-};
-
 interface SceneOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
     canvasPosition?: 'absolute';
-    domManager: DOMManagerLike;
-}
-
-export class GuardedCanvas extends GuardedElement<HTMLCanvasElement> {
-    constructor(htmlCanvas: HTMLCanvasElement) {
-        super(htmlCanvas, getDocument().createElement('div'), getDocument().createElement('div'));
-    }
 }
 
 export class Scene {
@@ -39,16 +27,12 @@ export class Scene {
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
 
-    public readonly tabGuards: GuardedCanvas;
-
-    constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
+    constructor({ width, height, pixelRatio }: SceneOptions) {
         this.canvas = new HdpiCanvas({
             width,
             height,
             pixelRatio,
         });
-        this.tabGuards = new GuardedCanvas(this.canvas.element);
-        this.setContainer(domManager);
 
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
@@ -63,21 +47,9 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
-    setContainer(value: HTMLElement | DOMManagerLike) {
-        const isElement = (v: unknown): v is HTMLElement => {
-            return typeof (v as any).tagName !== 'undefined';
-        };
-        const { element, topTabGuard, bottomTabGuard } = this.tabGuards;
-        this.tabGuards.remove();
-        if (isElement(value)) {
-            value.appendChild(topTabGuard);
-            value.appendChild(element);
-            value.appendChild(bottomTabGuard);
-        } else {
-            value.addChild('canvas', 'scene-toptab', topTabGuard, true);
-            value.addChild('canvas', 'scene-canvas', element);
-            value.addChild('canvas', 'scene-bottab', bottomTabGuard, true);
-        }
+    setContainer(container: HTMLElement) {
+        this.canvas.element.remove();
+        container.appendChild(this.canvas.element);
         return this;
     }
 
@@ -253,7 +225,6 @@ export class Scene {
         this.strip();
 
         this.canvas.destroy();
-        this.tabGuards.destroy();
         Object.assign(this, { canvas: undefined });
     }
 }

@@ -114,6 +114,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
 
+    public canvasTabGuards?: GuardedElement;
+
     constructor(container?: HTMLElement) {
         super();
 
@@ -226,6 +228,23 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.rootElements.canvas.children.forEach((el) => {
             el.tabIndex = tabIndex;
         });
+    }
+
+    private createGuard(): GuardedElement {
+        const canvas = this.getDocumentCanvas();
+        const getGuard = (i: 0 | 2) => {
+            const guard = canvas.parentNode?.parentNode?.children[i];
+            if (!(guard instanceof HTMLDivElement) || guard.className != 'ag-charts-tab-guard') {
+                throw new Error(`AG Charts - child[${i}] is not a tab guard`);
+            }
+            return guard;
+        };
+        return new GuardedElement(canvas, getGuard(0), getGuard(2));
+    }
+
+    setTabIndex(tabIndex: number) {
+        this.canvasTabGuards ??= this.createGuard();
+        this.canvasTabGuards.tabIndex = tabIndex;
     }
 
     addEventListener<K extends keyof HTMLElementEventMap>(

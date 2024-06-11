@@ -80,9 +80,13 @@ export class ChartContext implements ModuleContext {
         this.syncManager = syncManager;
         this.zoomManager = chart.zoomManager;
         this.domManager = new DOMManager(container);
-        scene?.setContainer(this.domManager);
-        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, domManager: this.domManager });
+
+        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
+        const parent = this.domManager.addChild('canvas', 'scene-canvas', this.scene.canvas.element).parentElement;
+        if (!parent) throw new Error('AG Charts - error get canvas parent');
+        this.scene.setContainer(parent);
         this.scene.setRoot(root);
+
         this.axisManager = new AxisManager(root);
 
         this.localeManager = new LocaleManager();

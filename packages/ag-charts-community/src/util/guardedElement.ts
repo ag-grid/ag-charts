@@ -42,16 +42,9 @@ export class GuardedElement<TElement extends HTMLElement = HTMLElement> implemen
         }
     }
 
-    remove() {
-        this.element.remove();
-        this.topTabGuard.remove();
-        this.bottomTabGuard.remove();
-    }
-
     destroy() {
         for (const fn of this.destroyFns) fn();
         this.destroyFns.length = 0;
-        this.remove();
     }
 
     private initEventListener(
