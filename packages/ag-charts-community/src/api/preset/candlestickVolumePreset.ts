@@ -112,7 +112,7 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
                 // @ts-expect-error
                 layoutConstraints: {
                     stacked: false,
-                    width: 75,
+                    width: 100,
                     unit: 'percentage',
                     align: 'start',
                 },
