@@ -1,10 +1,10 @@
-import type { Styler } from '../../../options/chart/callbackOptions';
 import type {
     AgDonutSeriesFormat,
     AgDonutSeriesFormatterParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';

@@ -1,4 +1,3 @@
-import type { Styler } from '../../../options/chart/callbackOptions';
 import type {
     AgBarSeriesFormatterParams,
     AgBarSeriesLabelFormatterParams,
@@ -6,6 +5,7 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';

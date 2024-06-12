@@ -1,11 +1,11 @@
 /* eslint-disable sonarjs/no-duplicate-string */
-import type { Styler } from '../../../options/chart/callbackOptions';
 import type {
     AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
     AgPieSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
