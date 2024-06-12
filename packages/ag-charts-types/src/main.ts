@@ -62,7 +62,7 @@ export * from './series/topology/mapLineBackgroundOptions';
 export * from './series/flow-proportion/flowProportionOptions';
 export * from './series/flow-proportion/chordOptions';
 export * from './series/flow-proportion/sankeyOptions';
-export * from './series/lineOptions';
+export * from './series/interpolationOptions';
 export * from './series/markerOptions';
 
 /**

@@ -402,26 +402,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private updateFillPath(paths: _Scene.Path[], contextData: RangeAreaContext) {
-        const { line } = this.properties;
+        const { interpolation } = this.properties;
         const { fillData } = contextData;
         const [fill] = paths;
         fill.path.clear();
         for (const range of pathRanges(fillData.highPoints)) {
-            plotPath(pathRangePoints(fillData.highPoints, range), fill, line);
-            plotPath(pathRangePointsReverse(fillData.lowPoints, range), fill, line, true);
+            plotPath(pathRangePoints(fillData.highPoints, range), fill, interpolation);
+            plotPath(pathRangePointsReverse(fillData.lowPoints, range), fill, interpolation, true);
             fill.path.closePath();
         }
         fill.checkPathDirty();
     }
 
     private updateStrokePath(paths: _Scene.Path[], contextData: RangeAreaContext) {
-        const { line } = this.properties;
+        const { interpolation } = this.properties;
         const { strokeData } = contextData;
         const [, stroke] = paths;
         stroke.path.clear(true);
         for (const range of pathRanges(strokeData.highPoints)) {
-            plotPath(pathRangePoints(strokeData.highPoints, range), stroke, line);
-            plotPath(pathRangePoints(strokeData.lowPoints, range), stroke, line);
+            plotPath(pathRangePoints(strokeData.highPoints, range), stroke, interpolation);
+            plotPath(pathRangePoints(strokeData.lowPoints, range), stroke, interpolation);
         }
         stroke.checkPathDirty();
     }
