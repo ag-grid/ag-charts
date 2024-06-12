@@ -1,6 +1,6 @@
-import { AG_CHARTS_LOCALE_EN } from '../../locales/en';
 import type { MessageFormatter } from 'ag-charts-types';
 
+import { AG_CHARTS_LOCALE_EN } from '../../locales/en';
 import { Listeners } from '../../util/listeners';
 import { defaultMessageFormatter } from './defaultMessageFormatter';
 
