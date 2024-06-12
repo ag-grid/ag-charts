@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AgChartOptions } from 'ag-charts-community';
 
-import { AgChartsAngular } from './ag-charts-angular.component';
+import { AgCharts } from './ag-charts.component';
 
 const DATA_UK_LABOUR_MARKET_FEB_2020 = [
     { type: 'Managers, directors &\nsenior officials', earnings: 954 },
@@ -60,16 +60,16 @@ class TestHostComponent {
     };
 }
 
-describe('AgChartsAngularComponent', () => {
+describe('AgChartsComponent', () => {
     let component: TestHostComponent;
     let fixture: ComponentFixture<TestHostComponent>;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [TestHostComponent, AgChartsAngular],
+            imports: [TestHostComponent, AgCharts],
         }).compileComponents();
 
-        fixture = TestBed.createComponent(AgChartsAngular);
+        fixture = TestBed.createComponent(AgCharts);
         component = fixture.componentInstance;
     });
 
