@@ -1,5 +1,6 @@
+import type { AgCartesianAxisPosition } from 'ag-charts-types';
+
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 
 export interface AxisContext {
     axisId: string;

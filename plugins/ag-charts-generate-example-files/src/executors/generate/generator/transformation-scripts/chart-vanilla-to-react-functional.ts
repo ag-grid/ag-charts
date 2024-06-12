@@ -24,15 +24,17 @@ function getImports(componentFilenames: string[], bindings): string[] {
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
         `import { createRoot } from 'react-dom/client';`,
-        `import { AgChartsReact } from 'ag-charts-react';`,
+        `import { AgCharts } from 'ag-charts-react';`,
     ];
 
-    const chartImport = getChartImports(bindings.imports, bindings.usesChartApi);
+    const chartImports = bindings.imports.map((i) => ({
+        ...i,
+        imports: i.imports.filter((imp) => imp !== 'AgCharts'),
+    }));
+    const chartImport = getChartImports(chartImports, bindings.usesChartApi);
     if (chartImport) {
         imports.push(chartImport);
-    }
-
-    if (bindings.chartSettings.enterprise) {
+    } else if (bindings.chartSettings.enterprise) {
         imports.push(`import 'ag-charts-enterprise';`);
     }
 
@@ -48,7 +50,7 @@ function getImports(componentFilenames: string[], bindings): string[] {
 }
 
 function getAgChartTag(bindings: any, componentAttributes: string[]): string {
-    return `<AgChartsReact
+    return `<AgCharts
         ${bindings.usesChartApi ? 'ref={chartRef}' : ''}
         ${componentAttributes.join(`
         `)}
@@ -182,9 +184,9 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
     }
 
     if (bindings.usesChartApi) {
-        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current.chart$3');
-        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.chart.$1(');
-        indexFile = indexFile.replace(/this.chartRef.current.chart/g, 'chartRef.current.chart');
+        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current$3');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.$1(');
+        indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current');
     }
 
     return indexFile;

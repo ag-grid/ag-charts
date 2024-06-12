@@ -1,4 +1,5 @@
-import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
+import type { AgChartOptions } from 'ag-charts-types';
+
 import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 

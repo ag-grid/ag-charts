@@ -1,3 +1,5 @@
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
@@ -852,7 +854,7 @@ export class AreaSeries extends CartesianSeries<
         return new Group();
     }
 
-    public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
+    public getFormattedMarkerStyle(datum: MarkerSelectionDatum): AgSeriesMarkerStyle & { size: number } {
         const { xKey, yKey } = datum;
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
     }

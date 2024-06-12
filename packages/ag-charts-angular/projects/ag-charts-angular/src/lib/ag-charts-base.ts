@@ -1,55 +1,22 @@
-import {
-    AfterViewInit,
-    Component,
-    ElementRef,
-    EventEmitter,
-    Input,
-    NgZone,
-    OnChanges,
-    OnDestroy,
-    Output,
-    ViewEncapsulation,
-} from '@angular/core';
+import { AfterViewInit, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output } from '@angular/core';
 
-import {
-    AgBaseChartListeners,
-    AgChartInstance,
-    AgChartLegendListeners,
-    AgChartOptions,
-    AgCharts,
-    AgSeriesListeners,
-} from 'ag-charts-community';
+import { AgBaseChartListeners, AgChartInstance, AgChartLegendListeners, AgSeriesListeners } from 'ag-charts-community';
 
-// noinspection AngularIncorrectTemplateDefinition
-@Component({
-    selector: 'ag-charts-angular',
-    standalone: true,
-    template: '',
-    encapsulation: ViewEncapsulation.None,
-})
-export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
-    private _nativeElement: any;
-    private _initialised = false;
-
+export abstract class AgChartsBase<Options extends {}> implements AfterViewInit, OnChanges, OnDestroy {
     public chart?: AgChartInstance;
+    public abstract options: Options;
+    public abstract onChartReady: EventEmitter<AgChartInstance>;
 
-    @Input()
-    public options: AgChartOptions = {};
+    protected _nativeElement: any;
+    protected _initialised = false;
+    protected ngZone!: NgZone;
 
-    @Output()
-    public onChartReady: EventEmitter<AgChartInstance> = new EventEmitter();
-
-    constructor(
-        elementDef: ElementRef,
-        private ngZone: NgZone
-    ) {
-        this._nativeElement = elementDef.nativeElement;
-    }
+    protected abstract createChart(options: Options): any;
 
     ngAfterViewInit(): void {
         const options = this.patchChartOptions(this.options);
 
-        this.chart = this.runOutsideAngular(() => AgCharts.create(options));
+        this.chart = this.runOutsideAngular(() => this.createChart(options));
         this._initialised = true;
 
         (this.chart as any).chart.waitForUpdate().then(() => {
@@ -58,7 +25,7 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     // noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols
-    ngOnChanges(changes: any): void {
+    ngOnChanges(_changes: any): void {
         this.runOutsideAngular(() => {
             if (!this._initialised || !this.chart) {
                 return;
@@ -75,13 +42,13 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
         }
     }
 
-    private patchChartOptions(propsOptions: AgChartOptions) {
+    private patchChartOptions(propsOptions: any): any {
         const patchListeners = (
             listenerConfig: undefined | AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any>
         ) => {
             const config = listenerConfig ?? ({} as any);
             for (const [listenerName, listener] of Object.entries(config)) {
-                if (!listener || typeof listener !== 'function') continue;
+                if (typeof listener !== 'function') continue;
 
                 config[listenerName] = (...args: any) => {
                     this.runInsideAngular(() => listener(...args));
@@ -105,6 +72,7 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
     private runOutsideAngular<T>(callback: () => T): T {
         return this.ngZone ? this.ngZone.runOutsideAngular(callback) : callback();
     }
+
     private runInsideAngular<T>(callback: () => T): T {
         return this.ngZone ? this.ngZone.run(callback) : callback();
     }

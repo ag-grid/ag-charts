@@ -1,12 +1,15 @@
-import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
-import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
-import type { AgChartLabelFormatterParams, AgChartLabelOptions, InteractionRange } from '../../options/agChartOptions';
 import type {
+    AgChartLabelFormatterParams,
+    AgChartLabelOptions,
     AgSeriesMarkerFormatterParams,
     AgSeriesMarkerStyle,
     ISeriesMarker,
-} from '../../options/series/markerOptions';
+    InteractionRange,
+} from 'ag-charts-types';
+
+import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
+import { ModuleMap } from '../../module/moduleMap';
+import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
 import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';

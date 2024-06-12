@@ -3,9 +3,10 @@ import type {
     AgAxisCaptionOptions,
     FontStyle,
     FontWeight,
+    Formatter,
     TextWrap,
-} from '../../options/agChartOptions';
-import type { Formatter } from '../../options/chart/callbackOptions';
+} from 'ag-charts-types';
+
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,

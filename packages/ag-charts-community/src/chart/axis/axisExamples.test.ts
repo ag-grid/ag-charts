@@ -6,7 +6,8 @@ import type {
     AgCartesianAxisType,
     AgCartesianChartOptions,
     AgPolarChartOptions,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { ChartUpdateType } from '../chartUpdateType';
@@ -226,6 +227,16 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
             }),
         },
     }),
+};
+
+const EXAMPLES_LAYOUT: Record<string, TestCase> = {
+    COMBO_SERIES_COMPLEX_LAYOUT: {
+        options: axesExamples.COMBO_SERIES_COMPLEX_LAYOUT,
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number', 'number', 'number', 'number', 'number', 'number'],
+            seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
 };
 
 function switchToColumn<T extends AgCartesianChartOptions>(opts: T): T {
@@ -579,5 +590,24 @@ describe('Axis Examples', () => {
             });
             await compare();
         });
+    });
+
+    describe('complex layout cases', () => {
+        for (const [exampleName, example] of Object.entries(EXAMPLES_LAYOUT)) {
+            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+                chart = await createChart(example.options);
+                await example.assertions(chart);
+            });
+
+            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+                chart = await createChart(example.options);
+                await compare();
+
+                if (example.extraScreenshotActions) {
+                    await example.extraScreenshotActions(chart);
+                    await compare();
+                }
+            });
+        }
     });
 });

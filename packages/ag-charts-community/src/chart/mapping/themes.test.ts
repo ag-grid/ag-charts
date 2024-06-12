@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgCharts } from '../../api/agCharts';
 import type {
     AgBarSeriesOptions,
     AgChartInstance,
@@ -8,7 +7,9 @@ import type {
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
 import {
     deproxy,
     expectWarningsCalls,

@@ -6,7 +6,7 @@ import type {
     AgCrosshairLabelRendererParams,
     AgSeriesTooltip,
     CandlestickVolumePreset,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
 
 function dateFormat(dateString: string, format: string) {
     const dateObject = new Date(dateString);
@@ -91,7 +91,7 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
             {
                 type: 'number',
                 position: 'right',
-                keys: ['open', 'close', 'high', 'low'],
+                keys: [openKey, closeKey, highKey, lowKey],
                 max: 210,
                 interval: {
                     maxSpacing: 50,
@@ -109,14 +109,29 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
                     enabled: true,
                     snap: false,
                 },
+                // @ts-expect-error
+                layoutConstraints: {
+                    stacked: false,
+                    width: 100,
+                    unit: 'percentage',
+                    align: 'start',
+                },
             },
             {
                 type: 'number',
-                position: 'left',
-                keys: ['volume'],
-                max: 1000000000,
+                position: 'right',
+                keys: [volumeKey],
                 label: { enabled: false },
                 crosshair: { enabled: false },
+                gridLine: { enabled: false },
+                nice: false,
+                // @ts-expect-error
+                layoutConstraints: {
+                    stacked: false,
+                    width: 25,
+                    unit: 'percentage',
+                    align: 'end',
+                },
             },
             {
                 type: 'category',

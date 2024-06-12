@@ -39,6 +39,10 @@ import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOpt
 import type { AgLocaleThemeableOptions } from './localeOptions';
 import type { CssColor } from './types';
 
+// import type { AgChartThemeName } from 'ag-shared';
+
+// export type { AgChartThemeName } from 'ag-shared';
+
 export type AgChartThemeName =
     | 'ag-default'
     | 'ag-default-dark'

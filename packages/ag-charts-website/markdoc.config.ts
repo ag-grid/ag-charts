@@ -50,6 +50,27 @@ export default defineMarkdocConfig({
         featureComparator: {
             render: component('./src/components/featureComparator/FeatureComparator.astro'),
         },
+        flex: {
+            render: component('./src/components/flex/Flex.astro'),
+            attributes: {
+                direction: { type: String, matches: ['row', 'column'] },
+                alignItems: {
+                    type: String,
+                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
+                },
+                justifyContent: {
+                    type: String,
+                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
+                },
+                gap: {
+                    type: String,
+                    matches: ['size-6', 'size-10'],
+                },
+                mobileWrap: {
+                    type: Boolean,
+                },
+            },
+        },
         image,
         imageCaption: {
             render: component('./src/components/image/ImageCaption'),

@@ -1,11 +1,3 @@
-import type { AxisContext } from '../../module/axisContext';
-import type { ModuleInstance } from '../../module/baseModule';
-import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
-import { ModuleMap } from '../../module/moduleMap';
-import type { AxisOptionModule } from '../../module/optionsModule';
-import type { FromToDiff } from '../../motion/fromToMotion';
-import { fromToMotion } from '../../motion/fromToMotion';
-import { resetMotion } from '../../motion/resetMotion';
 import type {
     AgAxisCaptionFormatterParams,
     AgAxisLabelFormatterParams,
@@ -14,7 +6,16 @@ import type {
     FontSize,
     FontStyle,
     FontWeight,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
+import type { AxisContext } from '../../module/axisContext';
+import type { ModuleInstance } from '../../module/baseModule';
+import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
+import { ModuleMap } from '../../module/moduleMap';
+import type { AxisOptionModule } from '../../module/optionsModule';
+import type { FromToDiff } from '../../motion/fromToMotion';
+import { fromToMotion } from '../../motion/fromToMotion';
+import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
@@ -178,6 +179,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     abstract get direction(): ChartAxisDirection;
+
+    layoutConstraints: ChartAxis['layoutConstraints'] = {
+        stacked: true,
+        align: 'start',
+        width: 100,
+        unit: 'percent',
+    };
 
     boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;

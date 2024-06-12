@@ -81,7 +81,7 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: TooltipPointerEvent<'hover' | 'keyboard'>,
+        event: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { offsetX, offsetY } = event;

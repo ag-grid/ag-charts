@@ -6,7 +6,8 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
-} from '../../../options/series/cartesian/barOptions';
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import {
     COLOR_STRING,

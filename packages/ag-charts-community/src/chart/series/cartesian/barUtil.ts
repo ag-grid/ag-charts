@@ -1,7 +1,8 @@
+import type { AgBarSeriesFormatterParams, AgBarSeriesStyle, Styler } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
-import type { AgBarSeriesFormatterParams, AgBarSeriesStyle, Styler } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';

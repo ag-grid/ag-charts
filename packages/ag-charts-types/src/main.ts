@@ -1,4 +1,5 @@
 export * from './api/presetOptions';
+export * from './chart/annotationsOptions';
 export * from './chart/axisOptions';
 export * from './chart/callbackOptions';
 export * from './chart/crosshairOptions';
@@ -12,6 +13,7 @@ export * from './chart/eventOptions';
 export * from './chart/gradientLegendOptions';
 export * from './chart/labelOptions';
 export * from './chart/legendOptions';
+export * from './chart/localeOptions';
 export * from './chart/navigatorOptions';
 export * from './chart/polarAxisOptions';
 export * from './chart/toolbarOptions';

@@ -1,4 +1,5 @@
-import type { AgPolarChartOptions } from '../../../../options/agChartOptions';
+import type { AgPolarChartOptions } from 'ag-charts-types';
+
 import { DATA_MANY_LONG_LABELS, DATA_MARKET_SHARE, DATA_MARKET_SHARE_WITH_NEGATIVE_VALUES } from './data';
 
 export const PIE_SERIES: AgPolarChartOptions = {

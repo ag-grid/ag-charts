@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOptions';
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

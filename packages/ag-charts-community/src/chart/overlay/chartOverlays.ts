@@ -5,13 +5,13 @@ import { Overlay } from './overlay';
 
 export class ChartOverlays extends BaseProperties {
     @Validate(OBJECT)
-    readonly loading = new Overlay('ag-chart-loading-overlay', 'overlay.loading-data');
+    readonly loading = new Overlay('ag-chart-loading-overlay', 'overlayLoadingData');
 
     @Validate(OBJECT)
-    readonly noData = new Overlay('ag-chart-no-data-overlay', 'overlay.no-data');
+    readonly noData = new Overlay('ag-chart-no-data-overlay', 'overlayNoData');
 
     @Validate(OBJECT)
-    readonly noVisibleSeries = new Overlay('ag-chart-no-visible-series', 'overlay.no-visible-series');
+    readonly noVisibleSeries = new Overlay('ag-chart-no-visible-series', 'overlayNoVisibleSeries');
 
     getFocusInfo(
         localeManager: LocaleManager

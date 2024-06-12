@@ -65,7 +65,7 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
 
 export function validateDatumPointDirection(domain: any[] = [], value: any, continuous: boolean) {
     if (continuous) {
-        return value >= domain[0] && value <= domain[1];
+        return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates
 }

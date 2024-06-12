@@ -1,5 +1,6 @@
+import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
+
 import type { ModuleContext } from '../module/moduleContext';
-import type { FontStyle, FontWeight, TextAlign, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
 import { joinFunctions } from '../util/function';

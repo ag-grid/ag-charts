@@ -1,8 +1,9 @@
+import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';

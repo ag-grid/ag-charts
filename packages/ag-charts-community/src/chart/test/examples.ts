@@ -1,8 +1,5 @@
-import type {
-    AgCartesianChartOptions,
-    AgHierarchyChartOptions,
-    AgPolarChartOptions,
-} from '../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgHierarchyChartOptions, AgPolarChartOptions } from 'ag-charts-types';
+
 import {
     DATA_APPLE_REVENUE_BY_PRODUCT,
     DATA_BROWSER_MARKET_SHARE,

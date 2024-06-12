@@ -1,5 +1,6 @@
+import type { FontStyle, FontWeight } from 'ag-charts-types';
+
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';

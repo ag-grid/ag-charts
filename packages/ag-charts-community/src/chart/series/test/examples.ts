@@ -3,7 +3,8 @@ import type {
     AgCartesianChartOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { DATA_APPLE_REVENUE_BY_PRODUCT, DATA_BROWSER_MARKET_SHARE } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
 import {

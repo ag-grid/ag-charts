@@ -102,7 +102,7 @@ export function numberFormat(format: string | FormatterOptions) {
 
 // formatRegEx structure: (fill? + align)? sign? symbol? zero? width? comma? precision? tilde? type?
 const formatRegEx = /^(?:(.)?([<>=^]))?([+\-( ])?([$€£¥₣₹#])?(0)?(\d+)?(,)?(?:\.(\d+))?(~)?([%a-z])?$/i;
-const surroundedRegEx = /^(.*?)#{(.+?)}(.*?)$/;
+const surroundedRegEx = /^((?:[^#]|#[^{])*)#{([^}]+)}(.*)$/;
 
 const integerTypes: Record<string, (n: number) => string> = {
     b: (n) => absFloor(n).toString(2),

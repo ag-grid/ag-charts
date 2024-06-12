@@ -1,8 +1,8 @@
+import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions, Formatter } from 'ag-charts-types';
+
 import type { AxisContext } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
-import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
-import type { Formatter } from '../options/chart/callbackOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
@@ -60,7 +60,7 @@ export interface ChartAxis {
     type: string;
     update(primaryTickCount?: number, animated?: boolean): number | undefined;
     updateScale(): void;
-    updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
+    updatePosition(): void;
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
@@ -69,6 +69,12 @@ export interface ChartAxis {
         values?: any[];
         minSpacing?: number;
         maxSpacing?: number;
+    };
+    layoutConstraints: {
+        stacked: boolean;
+        align: 'start' | 'end';
+        width: number;
+        unit: 'percent' | 'px';
     };
 }
 

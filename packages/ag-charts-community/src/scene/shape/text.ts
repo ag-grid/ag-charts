@@ -1,11 +1,5 @@
-import type {
-    FontFamily,
-    FontSize,
-    FontStyle,
-    FontWeight,
-    OverflowStrategy,
-    TextWrap,
-} from '../../options/chart/types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, OverflowStrategy, TextWrap } from 'ag-charts-types';
+
 import { memoizeFunction } from '../../util/memo';
 import { type LineMetrics, TextMeasurer } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
