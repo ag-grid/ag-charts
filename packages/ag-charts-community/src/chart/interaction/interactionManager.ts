@@ -139,8 +139,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private readonly debug = Debug.create(true, 'interaction');
 
     private rootElement: HTMLElement;
-    private readonly canvasElement: HTMLCanvasElement;
-
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
     private mouseDown = false;
@@ -157,12 +155,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
-        private readonly domManager: DOMManager
+        private readonly domManager: DOMManager,
+        private readonly canvasElement: HTMLCanvasElement
     ) {
         super();
 
         this.rootElement = this.domManager.getDocumentRoot();
-        this.canvasElement = this.domManager.getDocumentCanvas();
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch') || type === 'wheel') {

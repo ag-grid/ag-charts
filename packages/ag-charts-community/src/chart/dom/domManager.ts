@@ -293,17 +293,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return docRoot;
     }
 
-    getDocumentCanvas(): HTMLCanvasElement {
-        const { children } = this.rootElements['canvas'].element;
-        for (let i = 0; i < children.length; i++) {
-            const e = children[i];
-            if (e instanceof HTMLCanvasElement) {
-                return e;
-            }
-        }
-        throw new Error('unable to find HTMLCanvasElement');
-    }
-
     getChildBoundingClientRect(type: DOMElementClass) {
         const { children } = this.rootElements[type];
 
