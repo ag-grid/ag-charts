@@ -14,9 +14,10 @@ type DOMElementConfig = {
     eventTypes?: string[];
 };
 
+const CANVAS_EVENT_TYPES = ['focus', 'blur', 'keydown', 'keyup'] as const;
 const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
-    ['canvas', { childElementType: 'canvas', eventTypes: ['focus', 'blur'] }],
+    ['canvas', { childElementType: 'canvas' }],
     ['canvas-overlay', { childElementType: 'div' }],
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
@@ -237,17 +238,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions
     ) {
-        this.element.addEventListener(type, listener, options);
-
-        domElementConfig.forEach((config, elType) => {
-            if (!config.eventTypes?.includes(type)) return;
-
-            const els = this.rootElements[elType];
+        const canvasEvents: readonly string[] = CANVAS_EVENT_TYPES;
+        if (canvasEvents.includes(type)) {
+            const els = this.rootElements['canvas'];
             els.listeners.push([type, listener, options]);
             els.children.forEach((el) => {
                 el.addEventListener(type, listener);
             });
-        });
+        } else {
+            this.element.addEventListener(type, listener, options);
+        }
     }
 
     removeEventListener<K extends keyof HTMLElementEventMap>(
@@ -255,17 +255,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | EventListenerOptions
     ) {
-        this.element.removeEventListener(type, listener, options);
-
-        domElementConfig.forEach((config, elType) => {
-            if (!config.eventTypes?.includes(type)) return;
-
-            const els = this.rootElements[elType];
+        const canvasEvents: readonly string[] = CANVAS_EVENT_TYPES;
+        if (canvasEvents.includes(type)) {
+            const els = this.rootElements['canvas'];
             els.listeners = els.listeners.filter(([t, l]) => t !== type && l !== listener);
             els.children.forEach((el) => {
                 el.removeEventListener(type, listener, options);
             });
-        });
+        } else {
+            this.element.removeEventListener(type, listener, options);
+        }
     }
 
     getBoundingClientRect() {

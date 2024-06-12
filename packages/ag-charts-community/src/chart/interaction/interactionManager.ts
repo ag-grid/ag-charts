@@ -55,7 +55,6 @@ type SUPPORTED_EVENTS =
     | 'wheel';
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide'];
-const KEYBOARD_EVENT_HANDLERS = ['blur', 'focus', 'keydown', 'keyup'] as const;
 const EVENT_HANDLERS = [
     'click',
     'dblclick',
@@ -68,6 +67,10 @@ const EVENT_HANDLERS = [
     'touchend',
     'touchcancel',
     'wheel',
+    'blur',
+    'focus',
+    'keydown',
+    'keyup',
 ] as const;
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = PreventableEvent & {
@@ -155,8 +158,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     public constructor(
         private readonly keyboardOptions: { readonly enabled: boolean },
-        private readonly domManager: DOMManager,
-        private readonly canvasElement: HTMLCanvasElement
+        private readonly domManager: DOMManager
     ) {
         super();
 
@@ -172,10 +174,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
-        }
-
-        for (const type of KEYBOARD_EVENT_HANDLERS) {
-            this.canvasElement.addEventListener(type, this.eventHandler);
         }
 
         this.containerChanged(true);
@@ -201,9 +199,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     override destroy() {
         super.destroy();
 
-        for (const type of KEYBOARD_EVENT_HANDLERS) {
-            this.canvasElement.removeEventListener(type, this.eventHandler);
-        }
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().removeEventListener(type, this.eventHandler);
         }
