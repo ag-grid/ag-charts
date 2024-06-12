@@ -1,4 +1,4 @@
-export const en: Record<string, string> = {
+export const AG_CHARTS_LOCALE_EN: Record<string, string> = {
     // Screen reader announcement when the focused item becomes visible
     ariaAnnounceVisible: 'visible',
     // Screen reader announcement when the focused item becomes hidden
