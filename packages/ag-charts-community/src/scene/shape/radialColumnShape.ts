@@ -1,5 +1,6 @@
 import { angleBetween, normalizeAngle360 } from '../../util/angle';
 import { isEqual } from '../../util/number';
+import { BBox } from '../bbox';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { Path, ScenePathChangeDetection } from './path';
 
@@ -45,6 +46,30 @@ export class RadialColumnShape extends Path {
     @ScenePathChangeDetection()
     isRadiusAxisReversed?: boolean = false;
 
+    override computeBBox(): BBox {
+        const { innerRadius, outerRadius, columnWidth } = this;
+        const rotation = this.getRotation();
+        const left = -columnWidth / 2;
+        const right = columnWidth / 2;
+        const top = -outerRadius;
+        const bottom = -innerRadius;
+
+        let x0 = Infinity;
+        let y0 = Infinity;
+        let x1 = -Infinity;
+        let y1 = -Infinity;
+
+        for (let i = 0; i < 4; i += 1) {
+            const { x, y } = rotatePoint(i % 2 === 0 ? left : right, i < 2 ? top : bottom, rotation);
+            x0 = Math.min(x, x0);
+            y0 = Math.min(y, y0);
+            x1 = Math.max(x, x1);
+            y1 = Math.max(y, y1);
+        }
+
+        return new BBox(x0, y0, x1 - x0, y1 - y0);
+    }
+
     private getRotation() {
         const { startAngle, endAngle } = this;
         const midAngle = angleBetween(startAngle, endAngle);
@@ -77,7 +102,6 @@ export class RadialColumnShape extends Path {
             [left, top],
             [right, top],
             [right, bottom],
-            [left, bottom],
         ].map(([x, y]) => rotatePoint(x, y, rotation));
 
         path.clear(true);
@@ -86,7 +110,6 @@ export class RadialColumnShape extends Path {
         path.lineTo(points[1].x, points[1].y);
         path.lineTo(points[2].x, points[2].y);
         path.lineTo(points[3].x, points[3].y);
-        path.lineTo(points[0].x, points[0].y);
 
         path.closePath();
     }

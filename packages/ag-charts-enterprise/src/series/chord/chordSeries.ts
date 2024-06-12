@@ -17,7 +17,7 @@ import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
 const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
-const { Sector, Text } = _Scene;
+const { Sector, Text, BBox, sectorBox } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
     size: number;
@@ -517,5 +517,42 @@ export class ChordSeries extends FlowProportionSeries<
 
     override getLabelData(): _Util.PointLabelDatum[] {
         return [];
+    }
+
+    protected override computeFocusBounds({
+        datumIndex,
+        seriesRect,
+    }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        const datum = this.contextNodeData?.nodeData[datumIndex];
+        if (datum == null) return;
+
+        let bbox: _Scene.BBox;
+        if (datum.type === FlowProportionDatumType.Node) {
+            bbox = sectorBox({
+                startAngle: datum.startAngle,
+                endAngle: datum.endAngle,
+                innerRadius: datum.innerRadius,
+                outerRadius: datum.outerRadius,
+            }).translate(datum.centerX, datum.centerY);
+        } else if (datum.type === FlowProportionDatumType.Link) {
+            bbox = BBox.merge([
+                sectorBox({
+                    startAngle: datum.startAngle1,
+                    endAngle: datum.endAngle1,
+                    innerRadius: 0,
+                    outerRadius: datum.radius,
+                }),
+                sectorBox({
+                    startAngle: datum.startAngle2,
+                    endAngle: datum.endAngle2,
+                    innerRadius: 0,
+                    outerRadius: datum.radius,
+                }),
+            ]).translate(datum.centerX, datum.centerY);
+        } else {
+            return;
+        }
+
+        return this.contentGroup.inverseTransformBBox(bbox).clip(seriesRect);
     }
 }

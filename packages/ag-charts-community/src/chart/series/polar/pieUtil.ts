@@ -1,8 +1,10 @@
+import { sectorBox } from 'packages/ag-charts-community/src/scene/util/sector';
+
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import { BBox } from '../../../scene/bbox';
 import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
-import { displacePointFromVector, isBetweenAngles, toRadians } from '../../../util/angle';
+import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Circle } from '../../marker/circle';
 import type { PickFocusInputs, SeriesNodePickMatch } from '../series';
 
@@ -166,28 +168,5 @@ export function computeSectorSeriesFocusBounds(series: SectorSeries, opts: PickF
 }
 
 export function computeSectorFocusBounds(datum: SectorVariables, centerX: number, centerY: number): BBox | undefined {
-    // To calculate the bbox of the sector, we find the min & max X/Y coords of
-    // 1) the points of the straight lines of the sector and
-    // 2) the points on the top/right/left/bottom of the outer arc (if the sector passes through these).
-    const pointVars: { radius: number; angle: number }[] = [
-        { radius: datum.innerRadius, angle: datum.startAngle },
-        { radius: datum.innerRadius, angle: datum.endAngle },
-        { radius: datum.outerRadius, angle: datum.startAngle },
-        { radius: datum.outerRadius, angle: datum.endAngle },
-    ];
-    const rightAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-    for (const rightAngle of rightAngles) {
-        if (isBetweenAngles(rightAngle, datum.startAngle, datum.endAngle)) {
-            pointVars.push({ radius: datum.outerRadius, angle: rightAngle });
-        }
-    }
-    const points = pointVars.map(({ radius, angle }) => displacePointFromVector(centerX, centerY, radius, angle));
-    const xs = points.map((p) => p.x);
-    const ys = points.map((p) => p.y);
-
-    const x = Math.min(...xs);
-    const y = Math.min(...ys);
-    const width = Math.max(...xs) - x;
-    const height = Math.max(...ys) - y;
-    return new BBox(x, y, width, height);
+    return sectorBox(datum).translate(centerX, centerY);
 }

@@ -168,6 +168,12 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         return this;
     }
 
+    translate(x: number, y: number) {
+        this.x += x;
+        this.y += y;
+        return this;
+    }
+
     combine(other: BBox) {
         const { x, y, width, height } = this;
         this.x = Math.min(x, other.x);

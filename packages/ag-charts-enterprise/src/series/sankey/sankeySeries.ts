@@ -20,7 +20,7 @@ import {
 
 const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
 const { sanitizeHtml } = _Util;
-const { Rect, Text } = _Scene;
+const { Rect, Text, BBox } = _Scene;
 
 export interface SankeyNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
@@ -523,5 +523,26 @@ export class SankeySeries extends FlowProportionSeries<
 
     override getLabelData(): _Util.PointLabelDatum[] {
         return [];
+    }
+
+    protected override computeFocusBounds({
+        datumIndex,
+        seriesRect,
+    }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+        const datum = this.contextNodeData?.nodeData[datumIndex];
+        if (datum == null) return;
+
+        let bbox: _Scene.BBox;
+        if (datum.type === FlowProportionDatumType.Node) {
+            const { x, y, width, height } = datum;
+            bbox = new BBox(x, y, width, height);
+        } else if (datum.type === FlowProportionDatumType.Link) {
+            const { x1, x2, y1, y2, height } = datum;
+            bbox = new BBox(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1) + height);
+        } else {
+            return;
+        }
+
+        return this.contentGroup.inverseTransformBBox(bbox).clip(seriesRect);
     }
 }
