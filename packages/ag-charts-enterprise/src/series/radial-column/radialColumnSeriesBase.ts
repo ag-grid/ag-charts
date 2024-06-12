@@ -410,8 +410,8 @@ export abstract class RadialColumnSeriesBase<
 
         const idFn = (datum: RadialColumnNodeDatum) => datum.angleValue;
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
-            const format = this.properties.formatter
-                ? this.ctx.callbackCache.call(this.properties.formatter, {
+            const format = this.properties.itemStyler
+                ? this.ctx.callbackCache.call(this.properties.itemStyler, {
                       datum,
                       fill,
                       stroke,
@@ -483,7 +483,7 @@ export abstract class RadialColumnSeriesBase<
 
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
-        const { angleKey, radiusKey, angleName, radiusName, fill, stroke, strokeWidth, formatter, tooltip } =
+        const { angleKey, radiusKey, angleName, radiusName, fill, stroke, strokeWidth, itemStyler, tooltip } =
             this.properties;
         const { angleValue, radiusValue, datum, itemId } = nodeDatum;
 
@@ -499,8 +499,8 @@ export abstract class RadialColumnSeriesBase<
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${angleString}: ${radiusString}`);
 
-        const { fill: color } = (formatter &&
-            this.ctx.callbackCache.call(formatter, {
+        const { fill: color } = (itemStyler &&
+            this.ctx.callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 fill,

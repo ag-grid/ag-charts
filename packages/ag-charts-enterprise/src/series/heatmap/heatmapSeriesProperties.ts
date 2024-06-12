@@ -4,6 +4,7 @@ import type {
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
     AgHeatmapSeriesTooltipRendererParams,
+    Styler,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
@@ -72,7 +73,7 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     itemPadding: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat;
+    itemStyler?: Styler<AgHeatmapSeriesFormatterParams<any>, AgHeatmapSeriesFormat>;
 
     @Validate(OBJECT)
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();

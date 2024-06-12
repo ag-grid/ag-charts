@@ -376,8 +376,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const idFn = (datum: RadialBarNodeDatum) => datum.radiusValue;
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
-            const format = this.properties.formatter
-                ? this.ctx.callbackCache.call(this.properties.formatter, {
+            const format = this.properties.itemStyler
+                ? this.ctx.callbackCache.call(this.properties.itemStyler, {
                       datum,
                       fill,
                       stroke,
@@ -472,7 +472,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
-        const { angleKey, angleName, radiusKey, radiusName, fill, stroke, strokeWidth, formatter, tooltip } =
+        const { angleKey, angleName, radiusKey, radiusName, fill, stroke, strokeWidth, itemStyler, tooltip } =
             this.properties;
         const { angleValue, radiusValue, datum, itemId } = nodeDatum;
 
@@ -488,8 +488,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const title = sanitizeHtml(angleName);
         const content = sanitizeHtml(`${radiusString}: ${angleString}`);
 
-        const { fill: color } = (formatter &&
-            this.ctx.callbackCache.call(formatter, {
+        const { fill: color } = (itemStyler &&
+            this.ctx.callbackCache.call(itemStyler, {
                 datum,
                 fill,
                 stroke,

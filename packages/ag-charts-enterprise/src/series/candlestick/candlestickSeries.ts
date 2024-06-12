@@ -16,7 +16,7 @@ const { extractDecoratedProperties, mergeDefaults } = _ModuleSupport;
 export class CandlestickSeries extends CandlestickSeriesBase<
     CandlestickGroup,
     AgCandlestickSeriesItemOptions,
-    CandlestickSeriesProperties,
+    CandlestickSeriesProperties<any, AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>>,
     CandlestickNodeDatum,
     AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>
 > {

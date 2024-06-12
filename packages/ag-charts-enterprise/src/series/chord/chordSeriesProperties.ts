@@ -4,6 +4,7 @@ import {
     type AgChordSeriesLinkStyle,
     type AgChordSeriesOptions,
     type AgChordSeriesTooltipRendererParams,
+    type Styler,
     _ModuleSupport,
     _Scene,
 } from 'ag-charts-community';
@@ -132,7 +133,7 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     readonly node = new ChordSeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgChordSeriesFormatterParams<any>) => AgChordSeriesLinkStyle;
+    itemStyler?: Styler<AgChordSeriesFormatterParams<any>, AgChordSeriesLinkStyle>;
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams>();

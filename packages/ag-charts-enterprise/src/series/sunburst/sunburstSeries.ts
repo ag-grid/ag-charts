@@ -472,16 +472,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const { datum, fill, stroke, depth } = node;
         const {
             ctx: { callbackCache },
-            properties: { formatter },
+            properties: { itemStyler },
         } = this;
 
-        if (!formatter || datum == null || depth == null) {
+        if (!itemStyler || datum == null || depth == null) {
             return {};
         }
 
         const { colorKey, labelKey, sizeKey, strokeWidth } = this.properties;
 
-        const result = callbackCache.call(formatter, {
+        const result = callbackCache.call(itemStyler, {
             seriesId: this.id,
             depth,
             datum,

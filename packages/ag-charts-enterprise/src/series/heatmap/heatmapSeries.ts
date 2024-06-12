@@ -316,7 +316,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             xKey,
             yKey,
             colorKey,
-            formatter,
+            itemStyler,
             highlightStyle: {
                 item: {
                     fill: highlightedFill,
@@ -352,8 +352,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     : this.properties.strokeWidth;
 
             let format: AgHeatmapSeriesFormat | undefined;
-            if (formatter) {
-                format = callbackCache.call(formatter, {
+            if (itemStyler) {
+                format = callbackCache.call(itemStyler, {
                     datum: datum.datum,
                     fill,
                     stroke,
@@ -419,7 +419,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, colorKey, xName, yName, colorName, stroke, strokeWidth, colorRange, formatter, tooltip } =
+        const { xKey, yKey, colorKey, xName, yName, colorName, stroke, strokeWidth, colorRange, itemStyler, tooltip } =
             this.properties;
         const {
             colorScale,
@@ -432,8 +432,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         let format: AgHeatmapSeriesFormat | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 datum: nodeDatum,
                 xKey,
                 yKey,

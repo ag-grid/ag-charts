@@ -2,6 +2,7 @@ import {
     type Direction,
     type FontStyle,
     type FontWeight,
+    type Formatter,
     type TextAlign,
     _ModuleSupport,
     _Util,
@@ -183,9 +184,9 @@ export function Stroke<T extends Constructor>(Parent: T) {
 
 export interface AnnotationAxisLabelFormatterParams {
     readonly value: any;
-    readonly formatter?: (x: any) => string;
+    readonly formatter?: Formatter<any>;
 }
-export type AnnotationAxisLabelFormatter = (params: AnnotationAxisLabelFormatterParams) => string;
+
 export function Label<T extends Constructor>(Parent: T) {
     class LabelOptions extends Parent {
         @Validate(POSITIVE_NUMBER)
@@ -210,7 +211,7 @@ export function Label<T extends Constructor>(Parent: T) {
         color?: string;
 
         @Validate(FUNCTION, { optional: true })
-        formatter?: AnnotationAxisLabelFormatter = undefined;
+        formatter?: Formatter<AnnotationAxisLabelFormatterParams>;
     }
     return LabelOptions;
 }

@@ -402,9 +402,9 @@ export class TreemapSeries<
 
     private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
         const { datum, depth, children } = node;
-        const { colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group, formatter } = this.properties;
+        const { colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group, itemStyler } = this.properties;
 
-        if (!formatter || datum == null || depth == null) {
+        if (!itemStyler || datum == null || depth == null) {
             return {};
         }
 
@@ -413,7 +413,7 @@ export class TreemapSeries<
         const stroke = this.getNodeStroke(node);
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
-        const result = this.ctx.callbackCache.call(formatter, {
+        const result = this.ctx.callbackCache.call(itemStyler, {
             seriesId: this.id,
             depth,
             datum,

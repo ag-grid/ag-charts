@@ -433,7 +433,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             id: seriesId,
             ctx: { callbackCache },
         } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, formatter } = this.properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = this.properties;
         const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
             nodeDatum;
         const activeStyles: AgBoxPlotSeriesStyles = {
@@ -448,8 +448,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             whisker: extractDecoratedProperties(whisker),
         };
 
-        if (formatter) {
-            const formatStyles = callbackCache.call(formatter, {
+        if (itemStyler) {
+            const formatStyles = callbackCache.call(itemStyler, {
                 datum,
                 seriesId,
                 highlighted,

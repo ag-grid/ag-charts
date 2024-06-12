@@ -752,7 +752,7 @@ export class MapMarkerSeries
             colorName,
             labelKey,
             labelName,
-            formatter,
+            itemStyler,
             tooltip,
             latitudeName,
             longitudeName,
@@ -784,8 +784,8 @@ export class MapMarkerSeries
 
         let format: AgMapShapeSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 latitudeKey,
@@ -841,7 +841,7 @@ export class MapMarkerSeries
             stroke,
             strokeOpacity,
             shape,
-            formatter,
+            itemStyler,
         } = properties;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
         const params: _Util.RequireOptional<AgSeriesMarkerFormatterParams<MapMarkerNodeDatum>> &
@@ -864,9 +864,9 @@ export class MapMarkerSeries
             shape,
             highlighted,
         };
-        if (formatter !== undefined) {
+        if (itemStyler !== undefined) {
             return callbackCache.call(
-                formatter,
+                itemStyler,
                 params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
                     _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
             );
