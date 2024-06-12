@@ -2,7 +2,7 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { PixelSize } from '../../chart/types';
-import type { AgLineStyle } from '../lineOptions';
+import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
@@ -47,7 +47,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     /** Configuration for the markers used in the series.  */
     marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys>;
     /** Configuration for the line used in the series. */
-    line?: AgLineStyle;
+    interpolation?: AgInterpolationType;
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */

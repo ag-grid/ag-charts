@@ -1,7 +1,7 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { AgLineStyle } from '../lineOptions';
+import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type {
@@ -22,7 +22,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<AgLineSeriesOptionsKeys, TDatum>;
     /** Configuration for the line used in the series. */
-    line?: AgLineStyle;
+    interpolation?: AgInterpolationType;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */

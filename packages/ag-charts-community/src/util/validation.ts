@@ -186,9 +186,6 @@ export function UNION(options: string[], message: string = 'a') {
 export const MIN_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), LESS_THAN('maxSpacing')), NAN);
 export const MAX_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), GREATER_THAN('minSpacing')), NAN);
 
-export const LINE_STYLE = UNION(['linear', 'smooth', 'step'], 'a line style');
-export const LINE_STEP_POSITION = UNION(['start', 'middle', 'end']);
-
 export function predicateWithMessage(
     predicate: ValidatePredicate,
     message: Exclude<ValidatePredicate['message'], undefined>

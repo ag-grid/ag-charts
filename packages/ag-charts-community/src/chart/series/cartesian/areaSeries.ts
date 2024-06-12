@@ -576,12 +576,12 @@ export class AreaSeries extends CartesianSeries<
     private updateFillPath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
         const { points, phantomPoints } = contextData.fillData;
         const [fill] = paths;
-        const { line } = this.properties;
+        const { interpolation } = this.properties;
 
         fill.path.clear(true);
         for (const range of pathRanges(points)) {
-            plotPath(pathRangePoints(points, range), fill, line, false);
-            plotPath(pathRangePointsReverse(phantomPoints, range), fill, line, true);
+            plotPath(pathRangePoints(points, range), fill, interpolation, false);
+            plotPath(pathRangePointsReverse(phantomPoints, range), fill, interpolation, true);
             fill.path.closePath();
         }
         fill.checkPathDirty();
@@ -591,11 +591,11 @@ export class AreaSeries extends CartesianSeries<
         const { points } = contextData.strokeData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
-        const { line } = this.properties;
+        const { interpolation } = this.properties;
 
         strokePath.clear(true);
         for (const range of pathRanges(points)) {
-            plotPath(pathRangePoints(points, range), stroke, line);
+            plotPath(pathRangePoints(points, range), stroke, interpolation);
         }
         stroke.checkPathDirty();
     }
@@ -827,7 +827,7 @@ export class AreaSeries extends CartesianSeries<
             contextData,
             previousContextData,
             this.processedData?.reduced?.diff,
-            this.properties.line
+            this.properties.interpolation
         );
         if (fns === undefined) {
             // Un-animatable diff in data, skip all animations.

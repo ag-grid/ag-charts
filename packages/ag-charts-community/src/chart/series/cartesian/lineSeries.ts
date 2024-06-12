@@ -497,12 +497,13 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     private updateLinePaths(paths: Path[], contextData: CartesianSeriesNodeDataContext<LineNodeDatum>) {
+        const { interpolation } = this.properties;
         const { nodeData } = contextData;
         const [lineNode] = paths;
 
         lineNode.path.clear(true);
         for (const range of pathRanges(nodeData)) {
-            plotPath(pathRangePoints(nodeData, range), lineNode, this.properties.line);
+            plotPath(pathRangePoints(nodeData, range), lineNode, interpolation);
         }
         lineNode.checkPathDirty();
     }
@@ -563,7 +564,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             contextData,
             previousContextData,
             this.processedData?.reduced?.diff,
-            this.properties.line
+            this.properties.interpolation
         );
         if (fns === undefined) {
             skip();

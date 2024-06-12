@@ -18,7 +18,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Month',
             yKey: 'min',
             yName: 'Min Temperature',
-            line: { style: 'smooth' },
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'line',
@@ -26,7 +26,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Month',
             yKey: 'max',
             yName: 'Max Temperature',
-            line: { style: 'smooth' },
+            interpolation: { type: 'smooth' },
         },
     ],
 };
@@ -35,35 +35,35 @@ const chart = AgCharts.create(options);
 
 function lineStyleLinear() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'linear' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'linear' };
     });
     chart.update(options);
 }
 
 function lineStyleSmooth() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'smooth' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'smooth' };
     });
     chart.update(options);
 }
 
 function lineStyleStepStart() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'step', position: 'start' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'start' };
     });
     chart.update(options);
 }
 
 function lineStyleStepMiddle() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'step', position: 'middle' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'middle' };
     });
     chart.update(options);
 }
 
 function lineStyleStepEnd() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'step', position: 'end' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'end' };
     });
     chart.update(options);
 }

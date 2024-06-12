@@ -6,7 +6,7 @@ import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import type { LineProperties } from './lineProperties';
+import type { InterpolationProperties } from './interpolationProperties';
 import {
     determinePathStatus,
     pairCategoryData,
@@ -132,7 +132,7 @@ function areaPathRenderer(
     bottomPairData: PathPoint[],
     ratios: Partial<Record<PathPointChange, number>>,
     path: Path,
-    line: LineProperties | undefined
+    interpolation: InterpolationProperties | undefined
 ) {
     const topPaths = splitPairData(topPairData, ratios);
     const bottomPaths = splitPairData(bottomPairData, ratios);
@@ -143,8 +143,8 @@ function areaPathRenderer(
         const topPoints = topPaths[i];
         const bottomPoints = bottomPaths[i].reverse();
 
-        plotPath(topPoints, path, line, false);
-        plotPath(bottomPoints, path, line, true);
+        plotPath(topPoints, path, interpolation, false);
+        plotPath(bottomPoints, path, interpolation, true);
         path.path.closePath();
     }
 }
@@ -155,17 +155,17 @@ export function prepareAreaPathAnimationFns(
     topPairData: PathPoint[],
     bottomPairData: PathPoint[],
     visibleToggleMode: 'fade' | 'none',
-    line: LineProperties | undefined
+    interpolation: InterpolationProperties | undefined
 ) {
     const status = determinePathStatus(newData, oldData, topPairData);
     const removePhaseFn = (ratio: number, path: Path) => {
-        areaPathRenderer(topPairData, bottomPairData, { move: 0, out: ratio }, path, line);
+        areaPathRenderer(topPairData, bottomPairData, { move: 0, out: ratio }, path, interpolation);
     };
     const updatePhaseFn = (ratio: number, path: Path) => {
-        areaPathRenderer(topPairData, bottomPairData, { move: ratio }, path, line);
+        areaPathRenderer(topPairData, bottomPairData, { move: ratio }, path, interpolation);
     };
     const addPhaseFn = (ratio: number, path: Path) => {
-        areaPathRenderer(topPairData, bottomPairData, { move: 1, in: ratio }, path, line);
+        areaPathRenderer(topPairData, bottomPairData, { move: 1, in: ratio }, path, interpolation);
     };
     const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
@@ -176,7 +176,7 @@ export function prepareAreaPathAnimation(
     newData: AreaSeriesNodeDataContext,
     oldData: AreaSeriesNodeDataContext,
     diff: ProcessedOutputDiff | undefined,
-    line: LineProperties | undefined
+    interpolation: InterpolationProperties | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
@@ -217,7 +217,7 @@ export function prepareAreaPathAnimation(
     const bottomData = bottom.result;
     const stackVisible = oldData.stackVisible ? newData.stackVisible : false;
     const fadeMode = stackVisible ? 'none' : 'fade';
-    const fill = prepareAreaPathAnimationFns(newData, oldData, topData, bottomData, fadeMode, line);
+    const fill = prepareAreaPathAnimationFns(newData, oldData, topData, bottomData, fadeMode, interpolation);
     const marker = prepareMarkerAnimation(markerPairMap, status);
     return { status: fill.status, fill, marker };
 }

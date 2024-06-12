@@ -555,16 +555,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -592,16 +592,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -792,16 +792,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -829,16 +829,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -1029,16 +1029,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -1066,16 +1066,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,

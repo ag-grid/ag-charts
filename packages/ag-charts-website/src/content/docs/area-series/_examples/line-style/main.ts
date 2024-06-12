@@ -18,6 +18,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'subscriptions',
             yName: 'Subscriptions',
             stacked: true,
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -25,6 +26,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'services',
             yName: 'Services',
             stacked: true,
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -32,6 +34,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'products',
             yName: 'Products',
             stacked: true,
+            interpolation: { type: 'smooth' },
         },
     ],
 };
@@ -40,35 +43,35 @@ const chart = AgCharts.create(options);
 
 function lineStyleLinear() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'linear' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'linear' };
     });
     chart.update(options);
 }
 
 function lineStyleSmooth() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'smooth' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'smooth' };
     });
     chart.update(options);
 }
 
 function lineStyleStepStart() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'step', position: 'start' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'start' };
     });
     chart.update(options);
 }
 
 function lineStyleStepMiddle() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'step', position: 'middle' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'middle' };
     });
     chart.update(options);
 }
 
 function lineStyleStepEnd() {
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).line = { style: 'step', position: 'end' };
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: 'end' };
     });
     chart.update(options);
 }

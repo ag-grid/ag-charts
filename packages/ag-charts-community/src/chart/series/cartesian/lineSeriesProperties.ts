@@ -22,7 +22,7 @@ import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
-import { LineProperties } from './lineProperties';
+import { InterpolationProperties } from './interpolationProperties';
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -78,7 +78,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     lineDashOffset: number = 0;
 
     @Validate(OBJECT)
-    line?: LineProperties = new LineProperties();
+    interpolation: InterpolationProperties = new InterpolationProperties();
 
     @Validate(OBJECT)
     readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();

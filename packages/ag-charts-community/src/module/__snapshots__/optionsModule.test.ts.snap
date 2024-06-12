@@ -216,16 +216,16 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
   },
   "series": [
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -254,16 +254,16 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "yName": "Marriages",
     },
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -292,16 +292,16 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "yName": "Civil partnerships",
     },
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -821,16 +821,16 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "yName": "Female cattle",
     },
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1239,16 +1239,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1282,16 +1282,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1325,16 +1325,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1368,16 +1368,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1411,16 +1411,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1454,16 +1454,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -1497,16 +1497,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -2966,16 +2966,16 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   },
   "series": [
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3004,16 +3004,16 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "yKey": "magnitude",
     },
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3042,16 +3042,16 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "yKey": "magnitude",
     },
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3080,16 +3080,16 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "yKey": "magnitude",
     },
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3499,16 +3499,16 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3553,16 +3553,16 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3607,16 +3607,16 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3661,16 +3661,16 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -3715,16 +3715,16 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7255,16 +7255,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7299,16 +7299,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7343,16 +7343,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7387,16 +7387,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7431,16 +7431,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7475,16 +7475,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7519,16 +7519,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7563,16 +7563,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7607,16 +7607,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7651,16 +7651,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7695,16 +7695,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7739,16 +7739,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7783,16 +7783,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7827,16 +7827,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7871,16 +7871,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -7915,16 +7915,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8351,16 +8351,16 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   },
   "series": [
     {
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8739,16 +8739,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8800,16 +8800,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8861,16 +8861,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8922,16 +8922,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -8983,16 +8983,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -9044,16 +9044,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -9105,16 +9105,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 4,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10661,16 +10661,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     {
       "fill": "#c16068",
       "fillOpacity": 0.8,
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10710,16 +10710,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     {
       "fill": "#a2bf8a",
       "fillOpacity": 0.8,
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10759,16 +10759,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     {
       "fill": "#ebcc87",
       "fillOpacity": 0.8,
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -10808,16 +10808,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     {
       "fill": "#80a0c3",
       "fillOpacity": 0.8,
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -11837,16 +11837,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -11880,16 +11880,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "strokeWidth": 3,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12861,16 +12861,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "dimOpacity": 0.2,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12921,16 +12921,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "dimOpacity": 0.2,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -12981,16 +12981,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "dimOpacity": 0.2,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -13041,16 +13041,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "dimOpacity": 0.2,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -13101,16 +13101,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "dimOpacity": 0.2,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
@@ -13161,16 +13161,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "dimOpacity": 0.2,
         },
       },
+      "interpolation": {
+        "position": "end",
+        "tension": 1,
+        "type": "linear",
+      },
       "label": {
         "color": "rgb(70, 70, 70)",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
-      },
-      "line": {
-        "position": "end",
-        "style": "linear",
-        "tension": 1,
       },
       "lineDash": [
         0,
