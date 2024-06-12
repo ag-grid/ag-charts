@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { isPlainObject } from '../util/type-guards';
+import { expectWarningsCalls, setupMockConsole } from '../../chart/test/utils';
+import { isPlainObject } from '../../util/type-guards';
 import type { Memento, MementoOriginator } from './memento';
 import { MementoCaretaker } from './memento';
-import { expectWarningsCalls, setupMockConsole } from './test/utils';
 
 describe('Memento Caretaker', () => {
     setupMockConsole();

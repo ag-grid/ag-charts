@@ -1,5 +1,6 @@
 import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from 'ag-charts-types';
 
+import type { MementoCaretaker } from '../api/state/memento';
 import { moduleRegistry } from '../module/module';
 import { deepClone } from '../util/json';
 import { mergeDefaults } from '../util/object';
@@ -7,7 +8,6 @@ import { ActionOnSet } from '../util/proxy';
 import type { DeepPartial } from '../util/types';
 import type { Chart, ChartExtendedOptions } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
-import type { MementoCaretaker } from './memento';
 
 export interface AgChartProxy extends AgChartInstance {
     chart: Chart;

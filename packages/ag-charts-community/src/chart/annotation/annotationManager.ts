@@ -1,10 +1,10 @@
 import type { AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
+import type { Memento, MementoOriginator } from '../../api/state/memento';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { isPlainObject } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
-import type { Memento, MementoOriginator } from '../memento';
 
 export interface AnnotationsRestoreEvent {
     type: 'restore-annotations';

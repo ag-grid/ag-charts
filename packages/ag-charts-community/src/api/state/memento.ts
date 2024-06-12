@@ -1,5 +1,5 @@
-import { Logger } from '../util/logger';
-import { isDate, isPlainObject } from '../util/type-guards';
+import { Logger } from '../../util/logger';
+import { isDate, isPlainObject } from '../../util/type-guards';
 
 export interface Memento {
     type: string;
