@@ -1,3 +1,12 @@
+import {
+    type AgBaseAxisOptions,
+    type AgCartesianAxisOptions,
+    type AgChartOptions,
+    type AgPolarAxisOptions,
+    type AgTooltipPositionOptions,
+    AgTooltipPositionType,
+} from 'ag-charts-types';
+
 import { PRESETS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
@@ -16,11 +25,6 @@ import {
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
-import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
-import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
-import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesianOptions';
-import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
 import { setDocument, setWindow } from '../util/dom';

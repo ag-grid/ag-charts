@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOptions';
 import { deepClone } from '../../../util/json';
 import {
     DATA_FRACTIONAL_LOG_AXIS,

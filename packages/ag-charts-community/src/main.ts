@@ -1,5 +1,5 @@
 // Documented APIs.
-export * from './options/agChartOptions';
+export * from 'ag-charts-types';
 export * as time from './util/time/index';
 export { AgCharts } from './api/agCharts';
 export { VERSION } from './version';

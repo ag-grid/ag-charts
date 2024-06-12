@@ -4,7 +4,8 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';

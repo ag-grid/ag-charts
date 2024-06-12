@@ -1,4 +1,5 @@
-import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../../options/agChartOptions';
+import type { AgChartLegendOrientation, FontStyle, FontWeight } from 'ag-charts-types';
+
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';

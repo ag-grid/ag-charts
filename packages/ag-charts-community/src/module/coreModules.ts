@@ -1,10 +1,10 @@
+import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgChartOptions } from 'ag-charts-types';
+
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions } from '../options/agChartOptions';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
-import type { NextSeriesOptionTypes } from '../options/next';
 import type { BaseModule, ChartTypes, ModuleInstance } from './baseModule';
-import type { NextSeriesTypes, RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';
+import type { RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
 type ModuleInstanceConstructor<M> = new (moduleContext: ModuleContext) => M;
@@ -28,14 +28,14 @@ export interface LegendModule extends BaseModule {
     themeTemplate?: {};
 }
 
-type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number] | NextSeriesOptionTypes;
+type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
 type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Extensible<T[K]> : T[K] } & {
     __extends__?: string;
 };
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = SeriesType extends NextSeriesTypes
-    ? any
-    : Extensible<NonNullable<AgChartThemeOverrides[SeriesType]>>;
+export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<
+    NonNullable<AgChartThemeOverrides[SeriesType]>
+>;
 
 export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     SeriesOptionsTypes,

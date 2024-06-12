@@ -1,12 +1,11 @@
+import type { AgBaseAxisOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions } from 'ag-charts-types';
+
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
-import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
-import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';

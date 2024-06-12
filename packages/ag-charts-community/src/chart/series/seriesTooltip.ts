@@ -1,5 +1,5 @@
-import type { InteractionRange } from '../../options/agChartOptions';
-import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult } from '../../options/chart/tooltipOptions';
+import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, InteractionRange } from 'ag-charts-types';
+
 import { BaseProperties } from '../../util/properties';
 import type { RequireOptional } from '../../util/types';
 import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, Validate } from '../../util/validation';

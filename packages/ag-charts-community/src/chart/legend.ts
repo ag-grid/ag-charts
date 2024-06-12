@@ -1,4 +1,3 @@
-import type { ModuleContext } from '../module/moduleContext';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -9,7 +8,9 @@ import type {
     AgChartLegendPosition,
     FontStyle,
     FontWeight,
-} from '../options/agChartOptions';
+} from 'ag-charts-types';
+
+import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import { RedrawType } from '../scene/node';

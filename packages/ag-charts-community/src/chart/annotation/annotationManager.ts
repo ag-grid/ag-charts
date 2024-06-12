@@ -1,4 +1,5 @@
-import type { AgAnnotationsThemeableOptions } from '../../options/chart/annotationsOptions';
+import type { AgAnnotationsThemeableOptions } from 'ag-charts-types';
+
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { isPlainObject } from '../../util/type-guards';

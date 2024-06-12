@@ -1,4 +1,5 @@
-import type { TextWrap } from '../options/chart/types';
+import type { TextWrap } from 'ag-charts-types';
+
 import { createCanvasContext } from './canvas.util';
 
 // Allows for mutation of a readonly type by making all properties writable.

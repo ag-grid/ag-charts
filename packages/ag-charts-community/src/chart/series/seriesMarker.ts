@@ -1,8 +1,5 @@
-import type {
-    AgSeriesMarkerFormatterParams,
-    AgSeriesMarkerStyle,
-    ISeriesMarker,
-} from '../../options/series/markerOptions';
+import type { AgSeriesMarkerFormatterParams, AgSeriesMarkerStyle, ISeriesMarker } from 'ag-charts-types';
+
 import { RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
 import type { RequireOptional } from '../../util/types';

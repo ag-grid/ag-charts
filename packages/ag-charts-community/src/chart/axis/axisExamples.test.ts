@@ -6,7 +6,8 @@ import type {
     AgCartesianAxisType,
     AgCartesianChartOptions,
     AgPolarChartOptions,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { ChartUpdateType } from '../chartUpdateType';

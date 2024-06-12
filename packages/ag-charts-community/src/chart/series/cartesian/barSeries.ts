@@ -1,11 +1,7 @@
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams, FontStyle, FontWeight } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type {
-    AgBarSeriesStyle,
-    AgErrorBoundSeriesTooltipRendererParams,
-    FontStyle,
-    FontWeight,
-} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';

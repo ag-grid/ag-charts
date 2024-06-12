@@ -6,7 +6,7 @@ import type {
     AgCrosshairLabelRendererParams,
     AgSeriesTooltip,
     CandlestickVolumePreset,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
 
 function dateFormat(dateString: string, format: string) {
     const dateObject = new Date(dateString);

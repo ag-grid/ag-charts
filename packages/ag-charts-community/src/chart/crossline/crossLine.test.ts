@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCharts } from '../../api/agCharts';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartInstance,
     AgCrossLineLabelPosition,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
