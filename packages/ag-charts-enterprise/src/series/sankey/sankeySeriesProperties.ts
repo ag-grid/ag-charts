@@ -6,6 +6,7 @@ import {
     type AgSankeySeriesNodeOptions,
     type AgSankeySeriesOptions,
     type AgSankeySeriesTooltipRendererParams,
+    type Styler,
     _ModuleSupport,
     _Scene,
     _Util,
@@ -160,7 +161,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly node = new SankeySeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgSankeySeriesFormatterParams<any>) => AgSankeySeriesLinkStyle;
+    itemStyler?: Styler<AgSankeySeriesFormatterParams<any>, AgSankeySeriesLinkStyle>;
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams>();

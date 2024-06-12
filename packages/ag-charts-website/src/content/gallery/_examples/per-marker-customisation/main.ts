@@ -66,7 +66,7 @@ const options: AgChartOptions = {
             sizeName: 'Magnitude',
             size: minSize,
             maxSize: maxSize,
-            formatter: (params) => {
+            itemStyler: (params) => {
                 return {
                     fill: params.highlighted ? params.fill : calculateColour(params.size),
                 };

@@ -5,6 +5,7 @@ import type {
     AgRadialSeriesOptionsKeys,
     FillOptions,
     StrokeOptions,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
@@ -69,7 +70,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgRadarSeriesTooltipRendererParams) => AgRadarSeriesFormat;
+    itemStyler?: Styler<AgRadarSeriesTooltipRendererParams, AgRadarSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;

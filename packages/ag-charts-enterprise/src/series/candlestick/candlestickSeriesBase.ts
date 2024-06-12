@@ -9,7 +9,7 @@ import {
 } from 'ag-charts-community';
 
 import type { CandlestickBaseGroup } from './candlestickGroup';
-import type { CandlestickSeriesBaseItems, CandlestickSeriesBaseProperties } from './candlestickSeriesProperties';
+import type { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeBaseDatum } from './candlestickTypes';
 import { prepareCandlestickAnimationFunctions } from './candlestickUtil';
 
@@ -65,12 +65,7 @@ class CandlestickSeriesNodeEvent<
 export abstract class CandlestickSeriesBase<
     TItemShapeGroup extends CandlestickBaseGroup<TNodeDatum, TItemOptions>,
     TItemOptions extends AgCandlestickSeriesItemOptions,
-    TSeriesOptions extends CandlestickSeriesBaseProperties<
-        any,
-        TItemOptions,
-        CandlestickSeriesBaseItems<TItemOptions>,
-        TFormatterParams
-    >,
+    TSeriesOptions extends CandlestickSeriesProperties<any, TFormatterParams>,
     TNodeDatum extends CandlestickNodeBaseDatum,
     TFormatterParams extends AgCandlestickSeriesBaseFormatterParams<TNodeDatum>,
 > extends _ModuleSupport.AbstractBarSeries<TItemShapeGroup, TSeriesOptions, TNodeDatum> {
@@ -502,11 +497,11 @@ export abstract class CandlestickSeriesBase<
             id: seriesId,
             ctx: { callbackCache },
         } = this;
-        const { xKey, openKey = '', closeKey, highKey, lowKey, formatter } = this.properties;
+        const { xKey, openKey = '', closeKey, highKey, lowKey, itemStyler } = this.properties;
 
-        if (formatter) {
+        if (itemStyler) {
             const formatStyles = callbackCache.call(
-                formatter,
+                itemStyler,
                 this.getFormatterParams({
                     ...nodeDatum,
                     seriesId,

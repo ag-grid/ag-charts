@@ -3,6 +3,7 @@ import type {
     AgAxisCaptionOptions,
     FontStyle,
     FontWeight,
+    Formatter,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -49,5 +50,5 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     wrapping: TextWrap = 'always';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgAxisCaptionFormatterParams) => string;
+    formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }

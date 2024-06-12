@@ -413,7 +413,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            formatter,
+            itemStyler,
             shadow,
             highlightStyle: { item: itemHighlightStyle },
         } = this.properties;
@@ -455,7 +455,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 highlightStyle: itemHighlightStyle,
                 yKey,
                 style,
-                formatter,
+                itemStyler: itemStyler,
                 stackGroup,
             });
             config.crisp = crisp;
@@ -494,7 +494,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup, legendItemName } =
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, itemStyler, stackGroup, legendItemName } =
             this.properties;
         const { xValue, yValue, datum, itemId } = nodeDatum;
 
@@ -505,8 +505,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         let format: AgBarSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 xKey,

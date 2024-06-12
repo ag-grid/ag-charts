@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -112,7 +112,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular tile based on the input parameters. */
-    formatter?: (params: AgTreemapSeriesFormatterParams<TDatum>) => AgTreemapSeriesStyle;
+    itemStyler?: Styler<AgTreemapSeriesFormatterParams<TDatum>, AgTreemapSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }

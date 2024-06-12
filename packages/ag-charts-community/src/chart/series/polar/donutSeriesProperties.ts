@@ -4,6 +4,7 @@ import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
@@ -161,7 +162,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgDonutSeriesFormatterParams<any>) => AgDonutSeriesFormat;
+    itemStyler?: Styler<AgDonutSeriesFormatterParams<any>, AgDonutSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;

@@ -1,4 +1,4 @@
-import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from 'ag-charts-types';
+import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions, Formatter } from 'ag-charts-types';
 
 import type { AxisContext } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
@@ -85,7 +85,7 @@ export interface ChartAxisLabel extends FontOptions {
     avoidCollisions: boolean;
     enabled: boolean;
     format?: string;
-    formatter?: (params: AgAxisLabelFormatterParams) => string;
+    formatter?: Formatter<AgAxisLabelFormatterParams>;
     getSideFlag(): ChartAxisLabelFlipFlag;
     maxHeight?: number;
     maxWidth?: number;

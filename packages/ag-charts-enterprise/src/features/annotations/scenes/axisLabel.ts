@@ -1,7 +1,7 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type Formatter, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { calculateAxisLabelPosition } from '../../../utils/position';
-import type { AnnotationAxisLabelFormatter, AnnotationAxisLabelProperties } from '../annotationProperties';
+import type { AnnotationAxisLabelProperties } from '../annotationProperties';
 import type { AnnotationAxisContext } from '../annotationTypes';
 
 const { calculateLabelTranslation } = _ModuleSupport;
@@ -90,11 +90,7 @@ export class AxisLabel extends _Scene.Group {
         rect.width = labelBBox.width;
     }
 
-    getFormattedValue(value: any, formatter?: AnnotationAxisLabelFormatter) {
-        if (formatter) {
-            return formatter(value);
-        }
-
-        return String(value);
+    getFormattedValue(value: any, formatter?: Formatter<any>) {
+        return formatter?.(value) ?? String(value);
     }
 }

@@ -8,6 +8,7 @@ import type {
     AgChartLegendPosition,
     FontStyle,
     FontWeight,
+    Formatter,
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
@@ -71,7 +72,7 @@ class LegendLabel extends BaseProperties {
     fontFamily: string = 'Verdana, sans-serif';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgChartLegendLabelFormatterParams) => string = undefined;
+    formatter?: Formatter<AgChartLegendLabelFormatterParams>;
 }
 
 class LegendMarker extends BaseProperties {

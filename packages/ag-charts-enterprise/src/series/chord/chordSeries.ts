@@ -391,14 +391,14 @@ export class ChordSeries extends FlowProportionSeries<
             properties,
             ctx: { callbackCache },
         } = this;
-        const { fromKey, toKey, sizeKey, formatter } = properties;
+        const { fromKey, toKey, sizeKey, itemStyler } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
 
         datumSelection.each((link, datum) => {
             let format: AgChordSeriesLinkStyle | undefined;
-            if (formatter != null) {
+            if (itemStyler != null) {
                 const params: _Util.RequireOptional<AgChordSeriesFormatterParams> = {
                     seriesId,
                     datum: datum.datum,
@@ -416,7 +416,7 @@ export class ChordSeries extends FlowProportionSeries<
                     tension,
                     highlighted: isHighlight,
                 };
-                format = callbackCache.call(formatter, params as AgChordSeriesFormatterParams);
+                format = callbackCache.call(itemStyler, params as AgChordSeriesFormatterParams);
             }
 
             link.centerX = datum.centerX;
@@ -451,7 +451,7 @@ export class ChordSeries extends FlowProportionSeries<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { fromKey, toKey, sizeKey, sizeName, formatter, tooltip } = properties;
+        const { fromKey, toKey, sizeKey, sizeName, itemStyler, tooltip } = properties;
         const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
         const { datum, itemId } = nodeDatum;
 
@@ -477,8 +477,8 @@ export class ChordSeries extends FlowProportionSeries<
 
         let format: AgChordSeriesLinkStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum: datum.datum,
                 itemId: datum.itemId,

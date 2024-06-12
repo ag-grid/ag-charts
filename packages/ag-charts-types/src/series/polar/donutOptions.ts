@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -120,7 +120,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** The spacing between Donut sectors. */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the Donut sectors. */
-    formatter?: (params: AgDonutSeriesFormatterParams<TDatum>) => AgDonutSeriesFormat;
+    itemStyler?: Styler<AgDonutSeriesFormatterParams<TDatum>, AgDonutSeriesFormat>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = any>

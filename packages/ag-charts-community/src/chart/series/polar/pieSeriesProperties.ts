@@ -1,10 +1,10 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import type {
     AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
     AgPieSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
@@ -125,7 +125,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
+    itemStyler?: Styler<AgPieSeriesFormatterParams<any>, AgPieSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;

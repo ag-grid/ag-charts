@@ -399,14 +399,14 @@ export class SankeySeries extends FlowProportionSeries<
             properties,
             ctx: { callbackCache },
         } = this;
-        const { fromKey, toKey, sizeKey, formatter } = properties;
+        const { fromKey, toKey, sizeKey, itemStyler } = properties;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
 
         datumSelection.each((link, datum) => {
             let format: AgSankeySeriesLinkStyle | undefined;
-            if (formatter != null) {
+            if (itemStyler != null) {
                 const params: _Util.RequireOptional<AgSankeySeriesFormatterParams> = {
                     seriesId,
                     datum: datum.datum,
@@ -423,7 +423,7 @@ export class SankeySeries extends FlowProportionSeries<
                     lineDashOffset,
                     highlighted: isHighlight,
                 };
-                format = callbackCache.call(formatter, params as AgSankeySeriesFormatterParams);
+                format = callbackCache.call(itemStyler, params as AgSankeySeriesFormatterParams);
             }
 
             link.x1 = datum.x1;
@@ -457,7 +457,7 @@ export class SankeySeries extends FlowProportionSeries<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { fromKey, toKey, sizeKey, sizeName, formatter, tooltip } = properties;
+        const { fromKey, toKey, sizeKey, sizeName, itemStyler, tooltip } = properties;
         const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
         const { datum, itemId } = nodeDatum;
 
@@ -483,8 +483,8 @@ export class SankeySeries extends FlowProportionSeries<
 
         let format: AgSankeySeriesLinkStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum: datum.datum,
                 itemId: datum.itemId,

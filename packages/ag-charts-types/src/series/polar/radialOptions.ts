@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -14,7 +14,7 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams>;
     /** A formatter function for adjusting the styling of the radial columns. */
-    formatter?: (params: AgRadialSeriesFormatterParams<TDatum>) => AgRadialSeriesFormat;
+    itemStyler?: Styler<AgRadialSeriesFormatterParams<TDatum>, AgRadialSeriesFormat>;
 }
 
 export interface AgRadialSeriesOptionsKeys {

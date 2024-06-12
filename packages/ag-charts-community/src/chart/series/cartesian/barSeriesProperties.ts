@@ -5,6 +5,7 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
@@ -73,7 +74,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle;
+    itemStyler?: Styler<AgBarSeriesFormatterParams<any>, AgBarSeriesStyle>;
 
     @Validate(OBJECT, { optional: true })
     readonly shadow = new DropShadow();

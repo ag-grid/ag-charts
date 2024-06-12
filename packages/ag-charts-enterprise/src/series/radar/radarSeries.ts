@@ -305,8 +305,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             const fill = this.getMarkerFill(highlightedStyle);
             const stroke = highlightedStyle?.stroke ?? marker.stroke ?? this.properties.stroke;
             const strokeWidth = highlightedStyle?.strokeWidth ?? marker.strokeWidth ?? this.properties.strokeWidth ?? 1;
-            const format = marker.formatter
-                ? this.ctx.callbackCache.call(marker.formatter, {
+            const format = marker.itemStyler
+                ? this.ctx.callbackCache.call(marker.itemStyler, {
                       datum: datum.datum,
                       angleKey,
                       radiusKey,
@@ -370,7 +370,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
 
-        const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
+        const { itemStyler: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
         const strokeWidth = markerStrokeWidth ?? this.properties.strokeWidth;
 
         const { fill: color } = (markerFormatter &&

@@ -49,12 +49,12 @@ const options: AgChartOptions = {
             sizeName: 'Magnitude',
             size: minSize,
             maxSize: maxSize,
-            formatter: (params: any) => ({
-                fill: params.highlighted ? params.fill : calculateColour(params.size),
-            }),
             strokeWidth: 0,
             fillOpacity: 0.7,
             strokeOpacity: 0.7,
+            itemStyler(params) {
+                return { fill: params.highlighted ? params.fill : calculateColour(params.size) };
+            },
         },
     ],
     axes: [

@@ -2,9 +2,10 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
     AgErrorBarFormatterParams,
-    AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
     AgScatterSeriesOptions,
     AgScatterSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import {
     Chart,
@@ -20,8 +21,6 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
-
-export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
 
 const SERIES_CANADA = {
     data: [
@@ -696,8 +695,8 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should apply formatter as expected', async () => {
-        const formatter: ErrorBarFormatter = (params) => {
+    it('should apply itemStyler as expected', async () => {
+        const itemStyler: Styler<AgErrorBarFormatterParams<any>, AgErrorBarThemeableOptions> = (params) => {
             let stroke, cap;
             switch (params.datum[params.xKey]) {
                 case 'Jan':
@@ -742,7 +741,7 @@ describe('ErrorBars', () => {
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
                         strokeWidth: 3,
-                        formatter,
+                        itemStyler,
                     },
                 },
             ],
@@ -750,7 +749,7 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should set formatter highlighted param as expected', async () => {
+    it('should set itemStyler highlighted param as expected', async () => {
         const result: boolean[] = [];
         chart = await createEnterpriseChart({
             series: [
@@ -758,7 +757,7 @@ describe('ErrorBars', () => {
                     ...SERIES_CANADA,
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
-                        formatter: (param: AgErrorBarFormatterParams) => {
+                        itemStyler: (param: AgErrorBarFormatterParams<any>) => {
                             result.push(param.highlighted);
                             return {};
                         },
@@ -767,7 +766,7 @@ describe('ErrorBars', () => {
             ],
         });
 
-        // Check formatter initialisation
+        // Check itemStyler initialisation
         const allfalse = [false, false, false, false, false, false, false, false, false, false, false, false];
         expect(result).toStrictEqual(allfalse);
         result.length = 0;

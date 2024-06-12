@@ -442,7 +442,7 @@ export class MapShapeSeries
             ctx: { callbackCache },
         } = this;
         const { datumSelection, isHighlight } = opts;
-        const { idKey, colorKey, labelKey, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, formatter } =
+        const { idKey, colorKey, labelKey, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, itemStyler } =
             properties;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -456,7 +456,7 @@ export class MapShapeSeries
             }
 
             let format: AgMapShapeSeriesStyle | undefined;
-            if (formatter != null) {
+            if (itemStyler != null) {
                 const params: _Util.RequireOptional<AgMapShapeSeriesFormatterParams> = {
                     seriesId,
                     datum: datum.datum,
@@ -473,7 +473,7 @@ export class MapShapeSeries
                     lineDashOffset,
                     highlighted: isHighlight,
                 };
-                format = callbackCache.call(formatter, params as AgMapShapeSeriesFormatterParams);
+                format = callbackCache.call(itemStyler, params as AgMapShapeSeriesFormatterParams);
             }
 
             geoGeometry.visible = true;
@@ -671,7 +671,7 @@ export class MapShapeSeries
             labelName,
             stroke,
             strokeWidth,
-            formatter,
+            itemStyler,
             tooltip,
         } = properties;
         const { datum, fill, idValue, colorValue, labelValue, itemId } = nodeDatum;
@@ -689,8 +689,8 @@ export class MapShapeSeries
 
         let format: AgMapShapeSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 idKey,

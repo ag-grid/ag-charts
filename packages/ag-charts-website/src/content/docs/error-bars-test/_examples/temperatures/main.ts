@@ -14,7 +14,7 @@ const highlightStyle = {
     series: { dimOpacity: 0.3 },
 };
 
-const formatter = (param: AgErrorBarFormatterParams) => {
+const itemStyler = (param: AgErrorBarFormatterParams<any>) => {
     const errorBarStyle = { strokeWidth: 3 };
     if (param.highlighted) {
         return { ...errorBarStyle, ...highlightStyle.item };
@@ -37,7 +37,7 @@ const options: AgCartesianChartOptions = {
             errorBar: {
                 yLowerKey: 'temperatureLower',
                 yUpperKey: 'temperatureUpper',
-                formatter,
+                itemStyler,
             },
             highlightStyle,
         },
@@ -49,7 +49,7 @@ const options: AgCartesianChartOptions = {
             errorBar: {
                 yLowerKey: 'temperatureLower',
                 yUpperKey: 'temperatureUpper',
-                formatter,
+                itemStyler,
             },
             highlightStyle,
         },

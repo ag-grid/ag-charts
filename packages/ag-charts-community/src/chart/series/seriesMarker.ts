@@ -1,4 +1,4 @@
-import type { AgSeriesMarkerFormatterParams, AgSeriesMarkerStyle, ISeriesMarker } from 'ag-charts-types';
+import type { AgSeriesMarkerFormatterParams, AgSeriesMarkerStyle, ISeriesMarker, Styler } from 'ag-charts-types';
 
 import { RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
@@ -62,9 +62,7 @@ export class SeriesMarker<TParams = never, TDatum = any>
 
     @Validate(FUNCTION, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    formatter?: (
-        params: AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>
-    ) => AgSeriesMarkerStyle | undefined;
+    itemStyler?: Styler<AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
     getStyle(): AgSeriesMarkerStyle {
         const { size, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this;

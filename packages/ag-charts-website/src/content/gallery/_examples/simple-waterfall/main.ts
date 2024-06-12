@@ -29,7 +29,7 @@ const options: AgChartOptions = {
             item: {
                 positive: {
                     name: 'Outs',
-                    formatter: ({ value }) => ({
+                    itemStyler: ({ value }) => ({
                         fillOpacity: Math.max(0.5, value / 17.5),
                     }),
                     label: {
@@ -38,7 +38,7 @@ const options: AgChartOptions = {
                 },
                 negative: {
                     name: 'Ins',
-                    formatter: ({ value }) => ({
+                    itemStyler: ({ value }) => ({
                         fillOpacity: Math.max(0.5, Math.abs(value) / 75),
                     }),
                     label: {

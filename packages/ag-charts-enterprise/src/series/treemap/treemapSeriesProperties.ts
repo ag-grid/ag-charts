@@ -4,6 +4,7 @@ import type {
     AgTreemapSeriesOptions,
     AgTreemapSeriesStyle,
     AgTreemapSeriesTooltipRendererParams,
+    Styler,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
@@ -171,7 +172,7 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
     secondaryLabelKey?: string;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle;
+    itemStyler?: Styler<AgTreemapSeriesFormatterParams, AgTreemapSeriesStyle>;
 
     @Validate(OBJECT)
     override readonly highlightStyle = new TreemapSeriesHighlightStyle();

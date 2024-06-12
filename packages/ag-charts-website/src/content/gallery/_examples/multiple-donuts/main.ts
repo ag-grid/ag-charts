@@ -26,7 +26,7 @@ const options: AgChartOptions = {
             outerRadiusRatio: 0.8,
             innerRadiusRatio: 0.6,
             fillOpacity: 0.5,
-            formatter: ({ datum, fills }) => {
+            itemStyler: ({ datum, fills }) => {
                 const index = datum['index'];
                 const colorIndex = index < 9 ? 0 : 1;
                 return {
@@ -43,7 +43,7 @@ const options: AgChartOptions = {
             outerRadiusRatio: 0.6,
             innerRadiusRatio: 0.4,
             fillOpacity: 0.8,
-            formatter: ({ datum, fills }) => {
+            itemStyler: ({ datum, fills }) => {
                 const index = datum['index'];
                 const colorIndex = index < 3 ? 0 : 1;
                 return {

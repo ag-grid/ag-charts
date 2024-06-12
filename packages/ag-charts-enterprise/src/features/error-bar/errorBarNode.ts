@@ -9,9 +9,7 @@ type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
-export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
-
-type FormatOptions = Pick<AgErrorBarOptions, 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey' | 'formatter'>;
+type FormatOptions = Pick<AgErrorBarOptions<any>, 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey' | 'itemStyler'>;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
@@ -81,9 +79,12 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getFormatterParams(options: FormatOptions, highlighted: boolean): AgErrorBarFormatterParams | undefined {
+    private getFormatterParams(
+        options: FormatOptions,
+        highlighted: boolean
+    ): AgErrorBarFormatterParams<any> | undefined {
         const { datum } = this;
-        if (datum == null || options.formatter == null) return;
+        if (datum == null || options.itemStyler == null) return;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
         return {
             datum: datum.datum,
@@ -98,12 +99,12 @@ export class ErrorBarNode extends _Scene.Group {
         };
     }
 
-    private formatStyles(style: AgErrorBarThemeableOptions, formatters: FormatOptions, highlighted: boolean) {
+    private formatStyles(style: AgErrorBarThemeableOptions, options: FormatOptions, highlighted: boolean) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getFormatterParams(formatters, highlighted);
-        if (params !== undefined && formatters.formatter !== undefined) {
-            const result = formatters.formatter(params);
+        const params = this.getFormatterParams(options, highlighted);
+        if (params != null && options.itemStyler != null) {
+            const result = options.itemStyler(params);
             whiskerStyle = mergeDefaults(result, whiskerStyle);
             capsStyle = mergeDefaults(result?.cap, result, capsStyle);
         }

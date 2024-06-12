@@ -561,7 +561,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
-                formatter,
+                itemStyler,
                 shadow: fillShadow,
             } = this.getItemConfig(seriesItemType);
             const style: _ModuleSupport.RectConfig = {
@@ -582,7 +582,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                formatter,
+                itemStyler: itemStyler,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
@@ -629,12 +629,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId } = this;
         const { xKey, yKey, xName, yName, tooltip } = this.properties;
         const { datum, itemId, xValue, yValue } = nodeDatum;
-        const { fill, strokeWidth, name, formatter } = this.getItemConfig(itemId);
+        const { fill, strokeWidth, name, itemStyler } = this.getItemConfig(itemId);
 
         let format;
 
-        if (formatter) {
-            format = this.ctx.callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = this.ctx.callbackCache.call(itemStyler, {
                 datum,
                 value: yValue,
                 xKey,

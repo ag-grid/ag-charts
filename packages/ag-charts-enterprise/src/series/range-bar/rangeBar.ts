@@ -410,7 +410,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
-                formatter,
+                itemStyler,
                 shadow: fillShadow,
             } = this.properties;
             const style: _ModuleSupport.RectConfig = {
@@ -433,7 +433,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                formatter,
+                itemStyler: itemStyler,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
@@ -483,13 +483,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, fill, strokeWidth, formatter, tooltip } =
+        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, fill, strokeWidth, itemStyler, tooltip } =
             this.properties;
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
         let format;
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 datum,
                 xKey,
                 yLowKey,

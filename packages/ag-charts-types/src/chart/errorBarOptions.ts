@@ -1,10 +1,9 @@
-import type { AgCartesianSeriesTooltipRendererParams } from '../series/cartesian/cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
-import type { AgChartCallbackParams } from './callbackOptions';
+import type { DatumCallbackParams, Styler } from './callbackOptions';
 import type { PixelSize, Ratio } from './types';
 
-export interface AgErrorBarFormatterParams
-    extends Omit<AgChartCallbackParams<any>, 'itemId'>,
+export interface AgErrorBarFormatterParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
         SeriesKeyOptions,
         ErrorBarKeyOptions {
     readonly highlighted: boolean;
@@ -44,12 +43,12 @@ interface ErrorBarNameOptions {
     yUpperName?: string;
 }
 
-interface ErrorBarFormatterOption {
+interface ErrorBarFormatterOption<TDatum> {
     /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarThemeableOptions | undefined;
+    itemStyler?: Styler<AgErrorBarFormatterParams<TDatum>, AgErrorBarThemeableOptions>;
 }
 
-interface ErrorBarCapOptions extends ErrorBarStylingOptions {
+export interface ErrorBarCapOptions extends ErrorBarStylingOptions {
     /** Absolute length of caps in pixels. */
     length?: PixelSize;
     /** Length of caps relative to the shape used by the series. */
@@ -63,14 +62,8 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
 
-export interface AgErrorBarOptions
+export interface AgErrorBarOptions<TDatum>
     extends ErrorBarKeyOptions,
         ErrorBarNameOptions,
-        ErrorBarFormatterOption,
+        ErrorBarFormatterOption<TDatum>,
         AgErrorBarThemeableOptions {}
-
-export interface AgErrorBarTooltipParams
-    // Note: AgCartesianSeriesTooltipRendererParams includes SeriesKeyOptions & SeriesNameOptions
-    extends AgCartesianSeriesTooltipRendererParams<any>,
-        ErrorBarKeyOptions,
-        ErrorBarNameOptions {}
