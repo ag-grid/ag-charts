@@ -7,7 +7,7 @@
 | ag-charts-community  | [![npm](https://img.shields.io/npm/dm/ag-charts-community)](https://www.npmjs.com/package/ag-charts-community) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) <br> |
 | ag-charts-enterprise |    [![npm](https://img.shields.io/npm/dm/ag-charts-enterprise)](https://www.npmjs.com/package/ag-charts-enterprise) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) |
 
-AG Charts Community
+AG Charts Types
 
 AG Charts is a fully-featured and highly customizable JavaScript charting library. The professional choice for developers building enterprise applications.
 

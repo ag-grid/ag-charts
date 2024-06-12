@@ -8,6 +8,7 @@ echo "Preparing release branch ${BRANCH}"
 git switch ${BRANCH}
 NEW_VERSION=$(node ./tools/calculate-next-version.js)
 ./tools/bump-versions.sh ${NEW_VERSION}
+./tools/readme/sync-readme.js
 git commit -a -m "Release prep for ${NEW_VERSION}"
 git tag latest-beta-version -f
 
