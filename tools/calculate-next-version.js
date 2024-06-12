@@ -1,8 +1,12 @@
 const fs = require('fs');
 
+const ignoreList = ['external/ag-shared']
+
 const versions = new Set();
 const packageDirectories = JSON.parse(fs.readFileSync('package.json').toString())?.workspaces?.packages;
 for (const packageDir of packageDirectories) {
+    if (ignoreList.includes(packageDir)) continue;
+    
     const packageJsonFilename = `${packageDir}/package.json`;
     if (!fs.existsSync(packageJsonFilename)) continue;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonFilename).toString());
