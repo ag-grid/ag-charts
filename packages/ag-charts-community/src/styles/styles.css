@@ -41,11 +41,15 @@
     --ag-charts-toolbar-size: 34px;
     --ag-charts-toolbar-padding: calc(var(--ag-charts-size) * 2);
     --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
-    --ag-charts-toolbar-focus-border-color: var(--ag-charts-active-color);
-    --ag-charts-toolbar-active-color: color-mix(
+    --ag-charts-toolbar-focus-color: color-mix(
         in srgb,
         var(--ag-charts-background-color),
         var(--ag-charts-active-color) 12%
+    );
+    --ag-charts-toolbar-active-color: color-mix(
+        in srgb,
+        var(--ag-charts-background-color),
+        var(--ag-charts-active-color) 24%
     );
     --ag-charts-toolbar-disabled-foreground-color: var(
         --ag-disabled-foreground-color,
@@ -93,6 +97,13 @@
 
 /********
 * ICONS *
+
+To create an icon uri:
+    1. Copy .svg file contents and paste markup into https://svgomg.net/
+    2. Choose a precision that seems appropriate (usually 3)
+    3. Copy new markup into https://www.svgviewer.dev/svg-to-data-uri
+    4. Copy base64 data uri
+
 ********/
 [class^='ag-charts-icon'] {
     display: block;
@@ -132,15 +143,19 @@
 }
 
 .ag-charts-icon-trend-line {
-    mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNwbGluZSI+PGNpcmNsZSBjeD0iMTkiIGN5PSI1IiByPSIyIi8+PGNpcmNsZSBjeD0iNSIgY3k9IjE5IiByPSIyIi8+PHBhdGggZD0iTTUgMTdBMTIgMTIgMCAwIDEgMTcgNSIvPjwvc3ZnPg==);
+    mask-image: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjIgMjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyIj48cGF0aCBkPSJNMTMuNTQyIDEwLjIyNUg3Ljk1OEEzLjI1MSAzLjI1MSAwIDEgMCA0Ljc1IDE0YTMuMjUzIDMuMjUzIDAgMCAwIDMuMTAxLTIuMjc1aDUuNzk4QTMuMjUxIDMuMjUxIDAgMSAwIDE2Ljc1IDcuNWEzLjI1MyAzLjI1MyAwIDAgMC0zLjIwOCAyLjcyNVpNNC43NSA5YTEuNzUgMS43NSAwIDEgMS0uMDAxIDMuNTAxQTEuNzUgMS43NSAwIDAgMSA0Ljc1IDlabTEyIDBhMS43NSAxLjc1IDAgMSAxLS4wMDEgMy41MDFBMS43NSAxLjc1IDAgMCAxIDE2Ljc1IDlaIi8+PC9zdmc+);
+}
+
+.ag-charts-icon-horizontal-line {
+    mask-image: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjIgMjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyIj48cGF0aCBkPSJNNy41ODEgMTAuMjVIM2EuNzUuNzUgMCAwIDAgMCAxLjVoNC41ODFBMy41MDMgMy41MDMgMCAwIDAgMTEgMTQuNWEzLjUwMyAzLjUwMyAwIDAgMCAzLjQxOS0yLjc1SDE5YS43NS43NSAwIDAgMCAwLTEuNWgtNC41ODFBMy41MDMgMy41MDMgMCAwIDAgMTEgNy41YTMuNTAzIDMuNTAzIDAgMCAwLTMuNDE5IDIuNzVaTTExIDlhMiAyIDAgMSAxLS4wMDEgNC4wMDFBMiAyIDAgMCAxIDExIDlaIi8+PC9zdmc+);
 }
 
 .ag-charts-icon-parallel-channel {
-    mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXRyYWluLXRyYWNrIj48cGF0aCBkPSJNMiAxNyAxNyAyIi8+PHBhdGggZD0ibTIgMTQgOCA4Ii8+PHBhdGggZD0ibTUgMTEgOCA4Ii8+PHBhdGggZD0ibTggOCA4IDgiLz48cGF0aCBkPSJtMTEgNSA4IDgiLz48cGF0aCBkPSJtMTQgMiA4IDgiLz48cGF0aCBkPSJNNyAyMiAyMiA3Ii8+PC9zdmc+);
+    mask-image: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjIgMjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyIj48cGF0aCBkPSJNMTQuMjk0IDEzLjkgOS4wNyAxNS44NzdhMy4yNSAzLjI1IDAgMCAwLTUuODU0IDIuNzc3IDMuMjUyIDMuMjUyIDAgMCAwIDQuMTkgMS44ODkgMy4yNTMgMy4yNTMgMCAwIDAgMi4wOTUtMy4yMjVsNS40MjMtMi4wNTNhMy4yNTUgMy4yNTUgMCAwIDAgMy43MDYgMS4wMzEgMy4yNTIgMy4yNTIgMCAwIDAgMS44ODktNC4xOSAzLjI1MiAzLjI1MiAwIDAgMC00LjE5LTEuODkgMy4yNTMgMy4yNTMgMCAwIDAtMi4wMzUgMy42ODRabS04LjY1NyAxLjk2N2ExLjc1IDEuNzUgMCAwIDEgMS4yMzggMy4yNzMgMS43NSAxLjc1IDAgMCAxLTEuMjM4LTMuMjczWm0xMS4yMjMtNC4yNDhhMS43NTEgMS43NTEgMCAwIDEgMS4yMzkgMy4yNzQgMS43NSAxLjc1IDAgMCAxLTEuMjM5LTMuMjc0Wm0tNC41MDgtNS4xMDdMNy4xMjkgOC40ODlhMy4yNTMgMy4yNTMgMCAwIDAtMy45NjQtMS40MTQgMy4yNTIgMy4yNTIgMCAwIDAtMS44OSA0LjE5IDMuMjUzIDMuMjUzIDAgMCAwIDQuMTkgMS44OUEzLjI1NCAzLjI1NCAwIDAgMCA3LjU2IDkuOTI5bDUuNDIzLTIuMDUyYTMuMjUgMy4yNSAwIDEgMCAxLjQwNS01LjA0OWwtLjIxNC4wODEuMjE0LS4wODFhMy4yNTQgMy4yNTQgMCAwIDAtMi4wMzYgMy42ODRaTTMuNjk2IDguNDc4YTEuNzUgMS43NSAwIDEgMSAxLjIzOCAzLjI3NSAxLjc1IDEuNzUgMCAwIDEtMS4yMzgtMy4yNzVabTExLjIyMy00LjI0N2ExLjc1IDEuNzUgMCAxIDEgMS4yMzggMy4yNzYgMS43NSAxLjc1IDAgMCAxLTEuMjM4LTMuMjc2WiIvPjwvc3ZnPg==);
 }
 
 .ag-charts-icon-disjoint-channel {
-    mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXJhaWwtc3ltYm9sIj48cGF0aCBkPSJNNSAxNWgxNCIvPjxwYXRoIGQ9Ik01IDloMTQiLz48cGF0aCBkPSJtMTQgMjAtNS01IDYtNi01LTUiLz48L3N2Zz4=);
+    mask-image: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjIgMjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyIj48cGF0aCBkPSJtOC4wODEgMTcuMzM3IDUuNzYuNjY0YTMuMjU0IDMuMjU0IDAgMCAwIDIuODIgMi42MTYgMy4yNTMgMy4yNTMgMCAwIDAgMy42MDEtMi44NTcgMy4yNTMgMy4yNTMgMCAwIDAtMi44NTctMy42MDEgMy4yNTIgMy4yNTIgMCAwIDAtMy40OTggMi4zNGwtNS41NDgtLjYzOWEzLjI1NCAzLjI1NCAwIDAgMC0yLjg3NS0zLjA3NSAzLjI1MyAzLjI1MyAwIDAgMC0zLjYwMSAyLjg1NyAzLjI1MyAzLjI1MyAwIDAgMCAyLjg1NyAzLjYwMSAzLjI1NCAzLjI1NCAwIDAgMCAzLjM0MS0xLjkwNlptOS4xNTMtMS42ODdhMS43NSAxLjc1IDAgMSAxLS40MDMgMy40NzggMS43NSAxLjc1IDAgMCAxIC40MDMtMy40NzhaTTUuMzEyIDE0LjI3NWExLjc1IDEuNzUgMCAxIDEtLjQgMy40NzUgMS43NSAxLjc1IDAgMCAxIC40LTMuNDc1Wm04LjA0LTkuNzYzTDguMTI5IDYuNDg5YTMuMjUzIDMuMjUzIDAgMCAwLTMuOTY0LTEuNDE0IDMuMjUyIDMuMjUyIDAgMCAwLTEuODkgNC4xOSAzLjI1MyAzLjI1MyAwIDAgMCA0LjE5IDEuODlBMy4yNTQgMy4yNTQgMCAwIDAgOC41NiA3LjkyOWw1LjQyMy0yLjA1MkEzLjI1IDMuMjUgMCAxIDAgMTUuMzg4LjgyOGEzLjI1NCAzLjI1NCAwIDAgMC0yLjAzNiAzLjY4NFpNNC42OTYgNi40NzhhMS43NSAxLjc1IDAgMSAxIDEuMjM4IDMuMjc1IDEuNzUgMS43NSAwIDAgMS0xLjIzOC0zLjI3NVptMTEuMjIzLTQuMjQ3YTEuNzUgMS43NSAwIDEgMSAxLjIzOCAzLjI3NiAxLjc1IDEuNzUgMCAwIDEtMS4yMzgtMy4yNzZaIi8+PC9zdmc+);
 }
 
 .ag-charts-icon-color {

@@ -101,11 +101,21 @@
     width: auto;
 }
 
+.ag-charts-toolbar__section {
+    display: inherit;
+    flex-direction: inherit;
+    flex-wrap: inherit;
+    justify-content: inherit;
+    max-width: inherit;
+    width: inherit;
+}
+
 .ag-charts-toolbar__button {
     align-items: center;
     background: var(--ag-charts-toolbar-background-color);
     border: var(--ag-charts-toolbar-border);
-    border-radius: var(--ag-charts-button-radius);
+    border-left: 0;
+    border-right: 0;
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
     font-size: 14px;
@@ -113,22 +123,47 @@
     height: var(--ag-charts-toolbar-size);
     justify-content: center;
     margin: 0;
+    padding: 0;
     pointer-events: all;
     transition: background-color 0.25s ease-in-out;
     width: var(--ag-charts-toolbar-size);
 }
 
+.ag-charts-toolbar__button:first-child {
+    border-bottom-left-radius: var(--ag-charts-button-radius);
+    border-left: var(--ag-charts-toolbar-border);
+    border-top-left-radius: var(--ag-charts-button-radius);
+}
+
+.ag-charts-toolbar__button:last-child {
+    border-bottom-right-radius: var(--ag-charts-button-radius);
+    border-right: var(--ag-charts-toolbar-border);
+    border-top-right-radius: var(--ag-charts-button-radius);
+}
+
 .ag-charts-toolbar--left .ag-charts-toolbar__button,
 .ag-charts-toolbar--right .ag-charts-toolbar__button {
+    border-bottom: 0;
+    border-left: var(--ag-charts-toolbar-border);
+    border-right: var(--ag-charts-toolbar-border);
+    border-top: 0;
+    border-radius: 0;
     max-width: 100%;
     overflow: hidden;
 }
 
-.ag-charts-toolbar--floating .ag-charts-toolbar__button,
-.ag-charts-toolbar--floating-top .ag-charts-toolbar__button,
-.ag-charts-toolbar--floating-bottom .ag-charts-toolbar__button {
-    background: var(--ag-charts-toolbar-background-color);
-    border: var(--ag-charts-toolbar-border);
+.ag-charts-toolbar--left .ag-charts-toolbar__button:first-child,
+.ag-charts-toolbar--right .ag-charts-toolbar__button:first-child {
+    border-top: var(--ag-charts-toolbar-border);
+    border-top-left-radius: var(--ag-charts-button-radius);
+    border-top-right-radius: var(--ag-charts-button-radius);
+}
+
+.ag-charts-toolbar--left .ag-charts-toolbar__button:last-child,
+.ag-charts-toolbar--right .ag-charts-toolbar__button:last-child {
+    border-bottom: var(--ag-charts-toolbar-border);
+    border-bottom-left-radius: var(--ag-charts-button-radius);
+    border-bottom-right-radius: var(--ag-charts-button-radius);
 }
 
 .ag-charts-toolbar__button--hidden-value,
@@ -138,10 +173,10 @@
 
 .ag-charts-toolbar__button:hover,
 .ag-charts-toolbar__button:focus {
-    border-color: var(--ag-charts-toolbar-focus-border-color);
+    background: var(--ag-charts-toolbar-focus-color);
 }
 
-.ag-charts-toolbar__button--active {
+.ag-charts-toolbar__button.ag-charts-toolbar__button--active {
     background: var(--ag-charts-toolbar-active-color);
 }
 
