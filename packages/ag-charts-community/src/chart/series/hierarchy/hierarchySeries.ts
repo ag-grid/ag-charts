@@ -447,6 +447,18 @@ export abstract class HierarchySeries<
         }
     }
 
+    getDatumAriaText(datum: SeriesNodeDatum, description: string): string | undefined {
+        if (!(datum instanceof HierarchyNode)) {
+            Logger.error(`datum is not HierarchyNode: ${datum}`);
+            return;
+        }
+        return this.ctx.localeManager.t('ariaAnnounceHierarchyDatum', {
+            level: (datum.depth ?? -1) + 1,
+            count: datum.children.length,
+            description,
+        });
+    }
+
     protected computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
         const bbox = this.computeFocusBounds(nodeDatum);
         if (bbox) {
