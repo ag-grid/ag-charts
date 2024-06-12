@@ -483,8 +483,4 @@ export abstract class FlowProportionSeries<
 
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
-
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return;
-    }
 }

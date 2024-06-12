@@ -8,6 +8,7 @@ import {
     clockwiseAngles,
     isPointInSector,
     radiiScalingFactor,
+    sectorBox,
 } from '../util/sector';
 import { Path, ScenePathChangeDetection } from './path';
 
@@ -110,8 +111,7 @@ export class Sector extends Path {
     }
 
     override computeBBox(): BBox {
-        const radius = this.outerRadius;
-        return new BBox(this.centerX - radius, this.centerY - radius, radius * 2, radius * 2);
+        return sectorBox(this).translate(this.centerX, this.centerY);
     }
 
     private normalizedRadii() {
