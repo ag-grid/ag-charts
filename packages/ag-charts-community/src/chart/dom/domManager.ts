@@ -109,7 +109,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private container?: HTMLElement;
     private containerSize?: Size;
 
-    public readonly guardedElement: GuardedElement;
+    public guardedElement?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
@@ -134,13 +134,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
                 return r;
             },
             {} as typeof this.rootElements
-        );
-
-        const tabGuards = this.element.querySelectorAll('.ag-charts-tab-guard');
-        this.guardedElement = new GuardedElement(
-            this.rootElements.canvas.element,
-            tabGuards[0] as HTMLElement,
-            tabGuards[1] as HTMLElement
         );
 
         let hidden = false;
@@ -173,7 +166,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             el.element.remove();
         });
 
-        this.guardedElement.destroy();
+        this.guardedElement?.destroy();
         this.element.remove();
     }
 
@@ -222,10 +215,19 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
+    private createTabGuards(): GuardedElement {
+        const canvasElement = this.rootElements['canvas'].element.children[0];
+        const tabGuards = this.element.querySelectorAll('.ag-charts-tab-guard');
+        return new GuardedElement(
+            canvasElement as HTMLCanvasElement,
+            tabGuards[0] as HTMLElement,
+            tabGuards[1] as HTMLElement
+        );
+    }
+
     setTabIndex(tabIndex: number) {
-        this.rootElements.canvas.children.forEach((el) => {
-            el.tabIndex = tabIndex;
-        });
+        this.guardedElement ??= this.createTabGuards();
+        this.guardedElement.tabIndex = tabIndex;
     }
 
     addEventListener<K extends keyof HTMLElementEventMap>(
