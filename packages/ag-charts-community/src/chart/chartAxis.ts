@@ -1,7 +1,8 @@
+import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from 'ag-charts-types';
+
 import type { AxisContext } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
-import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';

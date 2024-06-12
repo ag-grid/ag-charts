@@ -1,7 +1,8 @@
+import type { InteractionRange } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import type { InteractionRange } from '../../../options/chart/types';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { type Node, PointerEvents } from '../../../scene/node';

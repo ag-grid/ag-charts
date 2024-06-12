@@ -1,15 +1,16 @@
+import type {
+    AgCartesianSeriesOptions,
+    AgChartOptions,
+    AgFlowProportionSeriesOptions,
+    AgHierarchySeriesOptions,
+    AgPolarSeriesOptions,
+    AgTopologySeriesOptions,
+} from 'ag-charts-types';
+
 import type { SeriesConstructor, SeriesModule } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
 import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
-import type {
-    AgCartesianSeriesOptions,
-    AgFlowProportionSeriesOptions,
-    AgHierarchySeriesOptions,
-    AgPolarSeriesOptions,
-} from '../../options/agChartOptions';
-import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
-import type { AgTopologySeriesOptions } from '../../options/series/topology/topologyOptions';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { SeriesType } from '../mapping/types';

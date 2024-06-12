@@ -5,7 +5,8 @@ import type {
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
     AgPieSeriesTooltipRendererParams,
-} from '../../../options/series/polar/pieOptions';
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import { BaseProperties } from '../../../util/properties';
 import {

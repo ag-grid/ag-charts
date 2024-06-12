@@ -1,6 +1,7 @@
 import { afterEach, beforeEach } from '@jest/globals';
 
 import { flushTimings, loadBuiltExampleOptions, logTimings, recordTiming, setupMockConsole } from 'ag-charts-test';
+import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import {
     CartesianSeries,
@@ -9,7 +10,6 @@ import {
 } from '../src/chart/series/cartesian/cartesianSeries';
 import { AgChartProxy, IMAGE_SNAPSHOT_DEFAULTS, deproxy, prepareTestOptions } from '../src/chart/test/utils';
 import { AgCharts } from '../src/main';
-import { AgChartInstance, AgChartOptions } from '../src/options/agChartOptions';
 import { Point } from '../src/scene/point';
 import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
 
@@ -54,6 +54,11 @@ export function benchmark(
         global.gc();
         return process.memoryUsage();
     }
+
+    beforeEach(() => {
+        if (!global.gc) return;
+        global.gc();
+    });
 
     it(
         name,

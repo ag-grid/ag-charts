@@ -177,18 +177,11 @@ module.exports = {
             },
         },
         {
-            name: 'ag-isolated-options',
-            comment: 'Options modules should be isolated from implementation modules.',
-            severity: 'error',
-            from: { path: '^src/options' },
-            to: { pathNot: '^src/options' },
-        },
-        {
             name: 'ag-isolated-utils',
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
             from: { path: '^src/util/' },
-            to: { pathNot: ['^src/util/', '^src/options/', 'node_modules', '^fs$', 'ag-charts-test'] },
+            to: { pathNot: ['^src/util/', 'ag-charts-types', 'node_modules', '^fs$', 'ag-charts-test'] },
         },
         {
             name: 'ag-isolated-scales',
@@ -202,14 +195,14 @@ module.exports = {
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
             from: { path: '^src/scene/' },
-            to: { pathNot: ['^src/options/chart/types', '^src/scale/', '^src/scene/', '^src/util/', 'node_modules'] },
+            to: { pathNot: ['ag-charts-types', '^src/scale/', '^src/scene/', '^src/util/', 'node_modules'] },
         },
         {
             name: 'ag-avoid-bundles',
             comment: "Don't use top-level export bundles internally.",
             severity: 'error',
             from: { path: 'src/.*/' },
-            to: { path: 'src/[^/]*.ts', pathNot: 'src/version.ts' },
+            to: { path: 'src/[^/]*.ts', pathNot: ['src/version.ts', 'ag-charts-types/'] },
         },
     ],
     options: {

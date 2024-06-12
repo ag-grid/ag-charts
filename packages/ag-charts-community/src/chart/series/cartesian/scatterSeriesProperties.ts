@@ -4,7 +4,8 @@ import type {
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import type { SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';

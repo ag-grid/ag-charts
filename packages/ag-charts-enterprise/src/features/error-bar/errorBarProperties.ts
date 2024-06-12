@@ -1,6 +1,6 @@
 import { type AgErrorBarOptions, _ModuleSupport } from 'ag-charts-community';
 
-import type { ErrorBarCapFormatter, ErrorBarFormatter } from './errorBarNode';
+import type { ErrorBarFormatter } from './errorBarNode';
 
 const {
     BaseProperties,
@@ -40,9 +40,6 @@ class ErrorBarCap extends BaseProperties<NonNullable<AgErrorBarOptions['cap']>> 
 
     @Validate(RATIO, { optional: true })
     lengthRatio?: number;
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: ErrorBarCapFormatter;
 }
 
 export class ErrorBarProperties extends BaseProperties<AgErrorBarOptions> {

@@ -134,5 +134,8 @@ describe('number format', () => {
     test('padding with prefix and suffix', () => {
         expect(numberFormat('🌧️ #{0>2.0f} °C')(4)).toBe('🌧️ 04 °C');
         expect(numberFormat('🌧️ #{0>2.0f} °C')(12)).toBe('🌧️ 12 °C');
+        expect(numberFormat('#thisIsIgnored #{0>2.0f} #thisIsAlsoIgnored')(12)).toBe(
+            '#thisIsIgnored 12 #thisIsAlsoIgnored'
+        );
     });
 });

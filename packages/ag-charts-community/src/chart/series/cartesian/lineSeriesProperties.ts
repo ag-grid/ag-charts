@@ -5,7 +5,8 @@ import type {
     AgLineSeriesTooltipRendererParams,
     FontStyle,
     FontWeight,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import {
     BOOLEAN,
     COLOR_STRING,

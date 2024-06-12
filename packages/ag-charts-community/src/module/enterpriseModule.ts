@@ -1,5 +1,6 @@
+import type { AgChartOptions } from 'ag-charts-types';
+
 import type { DOMManager } from '../chart/dom/domManager';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 
 export interface LicenseManager {
     setLicenseKey: (key?: string, gridContext?: boolean) => void;

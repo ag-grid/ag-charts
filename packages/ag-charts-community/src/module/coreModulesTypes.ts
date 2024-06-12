@@ -1,8 +1,7 @@
-import type { SeriesOptionsTypes } from '../chart/mapping/types';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
-import type { NextSeriesOptionTypes } from '../options/next';
+import type { AgChartOptions } from 'ag-charts-types';
 
-export type NextSeriesTypes = NextSeriesOptionTypes['type'];
+import type { SeriesOptionsTypes } from '../chart/mapping/types';
+
 export type RequiredSeriesType = NonNullable<SeriesOptionsTypes['type']>;
 
 export interface SeriesPaletteFactoryParams {

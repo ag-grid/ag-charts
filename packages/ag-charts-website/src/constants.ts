@@ -33,6 +33,7 @@ export const PUBLISHED_URLS = {
     'ag-charts-vue3': `${NPM_CDN}/ag-charts-vue3@${agChartsVueVersion}/`,
     'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/package/main.cjs.js`,
     'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/package/main.cjs.js`,
+    'ag-charts-types': `${NPM_CDN}/ag-charts-types@${agChartsVersion}/dist/package/main.cjs.js`,
 };
 export const PUBLISHED_UMD_URLS = {
     'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/umd/ag-charts-community.js`,

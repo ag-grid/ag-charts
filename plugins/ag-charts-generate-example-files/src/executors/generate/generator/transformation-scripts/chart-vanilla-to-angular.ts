@@ -20,7 +20,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     });
 
     const imports = [`import { Component${bindings.usesChartApi ? ', ViewChild' : ''} } from '@angular/core';`];
-    imports.push(`import { AgChartsAngular } from 'ag-charts-angular';`);
+    imports.push(`import { AgCharts } from 'ag-charts-angular';`);
 
     addBindingImports([...bImports], imports, true, true);
 
@@ -46,11 +46,11 @@ function getComponentMetadata(bindings: any, property: any) {
 }
 
 function getAngularTag(attributes: string[]) {
-    return `<ag-charts-angular
+    return `<ag-charts
         style="height: 100%;"
         ${attributes.join(`
         `)}
-    ></ag-charts-angular>`;
+    ></ag-charts>`;
 }
 
 function getTemplate(bindings: any, attributes: string[]): string {
@@ -87,7 +87,7 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
         @Component({
             selector: 'my-app',
             standalone: true,
-            imports: [AgChartsAngular],
+            imports: [AgCharts],
             template: \`${template}\`
         })
         export class AppComponent {
@@ -96,8 +96,8 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
 
             ${
                 bindings.usesChartApi
-                    ? `\n    @ViewChild(AgChartsAngular)
-            public agCharts!: AgChartsAngular;\n`
+                    ? `\n    @ViewChild(AgCharts)
+            public agCharts!: AgCharts;\n`
                     : ''
             }
             constructor() {
@@ -152,7 +152,7 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
             @Component({
                 selector: '${selector}',
                 standalone: true,
-                imports: [AgChartsAngular],
+                imports: [AgCharts],
                 template: \`${template}\`
             })
             class ${className} {

@@ -1,3 +1,5 @@
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
@@ -399,7 +401,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return new Group();
     }
 
-    public getFormattedMarkerStyle(datum: BubbleNodeDatum) {
+    public getFormattedMarkerStyle(datum: BubbleNodeDatum): AgSeriesMarkerStyle & { size: number } {
         const { xKey, yKey, sizeKey, labelKey } = this.properties;
         return this.getMarkerStyle(this.properties.marker, {
             datum,

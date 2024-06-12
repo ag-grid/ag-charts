@@ -5,7 +5,8 @@ import type {
     AgBubbleSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
     LabelPlacement,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';

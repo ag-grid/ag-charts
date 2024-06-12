@@ -1,4 +1,5 @@
-import type { AgChartThemePalette } from '../../options/agChartOptions';
+import type { AgChartThemePalette } from 'ag-charts-types';
+
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,

@@ -1,10 +1,6 @@
+import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from 'ag-charts-types';
+
 import { moduleRegistry } from '../module/module';
-import type {
-    AgChartInstance,
-    AgChartOptions,
-    DownloadOptions,
-    ImageDataUrlOptions,
-} from '../options/chart/chartBuilderOptions';
 import { deepClone } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import { ActionOnSet } from '../util/proxy';

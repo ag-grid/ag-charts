@@ -43,6 +43,9 @@ const commonConfig = {
         '^.+\\.css$': 'jest-text-transformer',
         '^.+\\.html$': 'jest-text-transformer',
     },
+    moduleNameMapper: {
+        '^ag-charts-types$': '<rootDir>/../ag-charts-types/src/main.ts',
+    },
 };
 
 const reporters: any[] = ['default'];

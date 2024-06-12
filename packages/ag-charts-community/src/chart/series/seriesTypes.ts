@@ -1,4 +1,5 @@
-import type { AgContextMenuOptions } from '../../options/chart/contextMenuOptions';
+import type { AgContextMenuOptions } from 'ag-charts-types';
+
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';

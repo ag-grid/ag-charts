@@ -1,5 +1,6 @@
+import type { AgAxisCaptionFormatterParams } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
 import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Matrix } from '../../scene/matrix';

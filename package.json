@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "9.3.1-beta.20240611",
+  "version": "9.3.1-beta.20240612.924",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -8,9 +8,9 @@
     "package": "nx pack --prod && nx pack:verify --prod",
     "subrepo": "tsx external/ag-website-shared/scripts/subrepo",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "preinstall": "run-s preinstall:*",
+    "preinstall": "npx --package=npm-run-all -- run-s preinstall:*",
     "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
-    "postinstall": "run-s postinstall:*",
+    "postinstall": "npx run-s postinstall:*",
     "postinstall:patch": "patch-package",
     "postinstall:verify-canvas-binary-present": "test -f node_modules/canvas/build/Release/canvas.node",
     "postinstall:nx-daemon-prebuild-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
@@ -132,6 +132,7 @@
       "packages/ag-charts-enterprise",
       "packages/ag-charts-angular",
       "packages/ag-charts-react",
+      "packages/ag-charts-types",
       "packages/ag-charts-vue3",
       "packages/ag-charts-website",
       "packages/ag-charts-website-e2e",

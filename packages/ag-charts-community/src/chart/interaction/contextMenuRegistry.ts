@@ -1,4 +1,5 @@
-import type { AgContextMenuOptions } from '../../options/chart/contextMenuOptions';
+import type { AgContextMenuOptions } from 'ag-charts-types';
+
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';

@@ -1,4 +1,5 @@
-import type { FontStyle, FontWeight } from '../options/agChartOptions';
+import type { FontStyle, FontWeight } from 'ag-charts-types';
+
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';

@@ -1,4 +1,5 @@
-import type { TextAlign } from '../../options/agChartOptions';
+import type { TextAlign } from 'ag-charts-types';
+
 import type { BBox } from '../../scene/bbox';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';

@@ -4,7 +4,8 @@ import type {
     AgHistogramSeriesTooltipRendererParams,
     FontStyle,
     FontWeight,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
 import {

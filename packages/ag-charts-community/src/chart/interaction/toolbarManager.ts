@@ -1,4 +1,5 @@
-import type { AgToolbarOptions } from '../../options/chart/toolbarOptions';
+import type { AgToolbarOptions } from 'ag-charts-types';
+
 import { BaseManager } from '../baseManager';
 import type { ToolbarGroup } from '../toolbar/toolbarTypes';
 
