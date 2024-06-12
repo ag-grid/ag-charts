@@ -9,10 +9,13 @@ export function processFunction(code: string): string {
 
 function getImports(bindings, componentFileNames: string[], { typeParts }): string[] {
     const {
-        imports: bImports = [],
         chartSettings: { enterprise = false },
     } = bindings;
 
+    const bImports = bindings.imports.map((i) => ({
+        ...i,
+        imports: i.imports.filter((imp) => imp !== 'AgCharts'),
+    }));
     bImports.push({
         module: enterprise ? `'ag-charts-enterprise'` : `'ag-charts-community'`,
         isNamespaced: false,
@@ -47,13 +50,24 @@ function getComponentMetadata(bindings: any, property: any) {
 
 function getAngularTag(attributes: string[]) {
     return `<ag-charts
-        style="height: 100%;"
         ${attributes.join(`
         `)}
     ></ag-charts>`;
 }
 
-function getTemplate(bindings: any, attributes: string[]): string {
+function getTemplate(bindings: any, id: string, attributes: string[]): string {
+    attributes = [...attributes];
+
+    Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
+        if (key === 'style') {
+            attributes.push(`style=${JSON.stringify(value as any)}`);
+        } else if (key === 'class') {
+            attributes.push(`class=${JSON.stringify(value as any)}`);
+        } else {
+            throw new Error(`Unknown chart attribute: ${key}`);
+        }
+    });
+
     const agChartTag = getAngularTag(attributes);
 
     let template = bindings.template ?? agChartTag;
@@ -75,7 +89,7 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
     if (placeholders.length <= 1) {
         const options = properties.find((p) => p.name === 'options');
         const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(bindings, options);
-        const template = getTemplate(bindings, propertyAttributes);
+        const template = getTemplate(bindings, placeholders[0], propertyAttributes);
 
         const instanceMethods = bindings.instanceMethods.map(processFunction);
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
