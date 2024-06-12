@@ -25,10 +25,6 @@ const getHsva = (input: string) => {
 export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly element: HTMLElement;
 
-    static isManagedChildDOMElement(domManager: _ModuleSupport.DOMManager, element: HTMLElement) {
-        return domManager.isManagedChildDOMElement(element, canvasOverlay, moduleId);
-    }
-
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -126,5 +122,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
     hide() {
         this.element.replaceChildren();
+    }
+
+    isChildElement(element: HTMLElement) {
+        return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, moduleId);
     }
 }

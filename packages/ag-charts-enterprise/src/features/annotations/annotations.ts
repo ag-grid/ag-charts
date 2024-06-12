@@ -531,6 +531,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
+            colorPicker,
             state,
             ctx: { domManager },
         } = this;
@@ -538,8 +539,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (
             targetElement &&
-            (_ModuleSupport.ToolbarManager.isManagedChildDOMElement(domManager, targetElement) ||
-                ColorPicker.isManagedChildDOMElement(domManager, targetElement))
+            (ToolbarManager.isChildElement(domManager, targetElement) || colorPicker.isChildElement(targetElement))
         ) {
             return;
         }

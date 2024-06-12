@@ -57,7 +57,7 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         return event.group === group;
     }
 
-    static isManagedChildDOMElement(domManager: DOMManager, element: HTMLElement) {
+    static isChildElement(domManager: DOMManager, element: HTMLElement) {
         for (const position of TOOLBAR_POSITIONS) {
             if (domManager.isManagedChildDOMElement(element, 'canvas-overlay', `toolbar-${position}`)) {
                 return true;
