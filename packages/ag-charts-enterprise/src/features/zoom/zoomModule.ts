@@ -19,27 +19,27 @@ export const ZoomModule: _ModuleSupport.Module = {
                 buttons: [
                     {
                         icon: 'zoom-out',
-                        tooltip: 'toolbar-zoom.zoom-out',
+                        tooltip: 'toolbarZoomZoomOut',
                         value: 'zoom-out',
                     },
                     {
                         icon: 'zoom-in',
-                        tooltip: 'toolbar-zoom.zoom-in',
+                        tooltip: 'toolbarZoomZoomIn',
                         value: 'zoom-in',
                     },
                     {
                         icon: 'pan-left',
-                        tooltip: 'toolbar-zoom.pan-left',
+                        tooltip: 'toolbarZoomPanLeft',
                         value: 'pan-left',
                     },
                     {
                         icon: 'pan-right',
-                        tooltip: 'toolbar-zoom.pan-right',
+                        tooltip: 'toolbarZoomPanRight',
                         value: 'pan-right',
                     },
                     {
                         icon: 'reset',
-                        tooltip: 'toolbar-zoom.reset',
+                        tooltip: 'toolbarZoomReset',
                         value: 'reset',
                     },
                 ],
