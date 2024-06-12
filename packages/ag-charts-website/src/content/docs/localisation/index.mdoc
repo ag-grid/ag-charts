@@ -24,12 +24,14 @@ If a locale is provided but is missing values, the default English will be used 
 
 Overrides for individual translations can be done by applying overrides to an existing locale.
 
+{% chartExampleRunner title="Custom Text Values" name="custom-text-values" type="generated" /%}
+
 ```js
 {
     locale: {
         localeText: {
             ...AG_CHARTS_LOCALE_EN,
-            contextMenuDownload: 'Download a copy of this chart',
+            contextMenuDownload: 'Save this Chart to My Computer',
         },
     }
 }
@@ -79,6 +81,8 @@ If you return `undefined` from this function, it will fall back to the default b
 
 {% tabItem id="FormatJS" label="FormatJS" %}
 
+{% flex direction="column" gap="size-6" %}
+
 ```js
 import { createIntl } from '@formatjs/intl';
 
@@ -103,9 +107,15 @@ AgCharts.create({
 });
 ```
 
+{% link href="https://codesandbox.io/p/devbox/ag-charts-formatjs-s88pll" isExternal=true %}View in CodeSandbox{% /link %}
+
+{% /flex %}
+
 {% /tabItem %}
 
 {% tabItem id="I18Next" label="I18Next" %}
+
+{% flex direction="column" gap="size-6" %}
 
 ```js
 import i18next from 'i18next';
@@ -124,7 +134,7 @@ await i18next.init({
 AgCharts.create({
     // ...
     locale: {
-        formatMessage({ key, variables }) {
+        getLocaleText({ key, variables }) {
             if (!i18next.exists(key)) {
                 // Fallback to default behaviour for missing messages
                 return undefined;
@@ -135,6 +145,10 @@ AgCharts.create({
 });
 ```
 
+{% link href="https://codesandbox.io/p/devbox/ag-charts-i18next-kxzhft" isExternal=true %}View in CodeSandbox{% /link %}
+
+{% /flex %}
+
 {% /tabItem %}
 
 {% /if %}
@@ -142,6 +156,8 @@ AgCharts.create({
 {% if isFramework("react") %}
 
 {% tabItem id="React Intl" label="React Intl" %}
+
+{% flex direction="column" gap="size-6" %}
 
 ```jsx
 import { IntlProvider, useIntl } from 'react-intl';
@@ -178,9 +194,15 @@ const App = () => {
 }
 ```
 
+{% link href="https://codesandbox.io/p/devbox/ag-charts-formatjs-s88pll" isExternal=true %}View in CodeSandbox{% /link %}
+
+{% /flex %}
+
 {% /tabItem %}
 
 {% tabItem id="React I18Next" label="React I18Next" %}
+
+{% flex direction="column" gap="size-6" %}
 
 ```js
 import i18next from 'i18next';
@@ -203,7 +225,7 @@ const MyChart = () => {
     const options = {
         // ...
         locale: {
-            formatMessage({ key, variables }) {
+            getLocaleText({ key, variables }) {
                 if (!i18n.exists(key)) {
                     // Fallback to default behaviour for missing messages
                     return undefined;
@@ -216,6 +238,10 @@ const MyChart = () => {
     return <AgCharts options={options} />;
 }
 ```
+
+{% link href="https://codesandbox.io/p/devbox/ag-charts-i18next-kxzhft" isExternal=true %}View in CodeSandbox{% /link %}
+
+{% /flex %}
 
 {% /tabItem %}
 
