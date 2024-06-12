@@ -149,6 +149,6 @@
       }
     }
   },
-  "tags": ["fw"],
+  "tags": ["fw", "no-batching"],
   "implicitDependencies": ["ag-charts-community"]
 }
