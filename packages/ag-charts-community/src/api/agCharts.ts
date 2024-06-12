@@ -14,7 +14,6 @@ import {
     isAgPolarChartOptions,
     isAgTopologyChartOptions,
 } from '../chart/mapping/types';
-import { MementoCaretaker } from '../chart/memento';
 import { PolarChart } from '../chart/polarChart';
 import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
@@ -25,6 +24,7 @@ import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
+import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
 

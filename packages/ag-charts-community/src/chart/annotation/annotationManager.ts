@@ -1,57 +1,50 @@
 import type { AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
+import type { MementoOriginator } from '../../api/state/memento';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { isPlainObject } from '../../util/type-guards';
+import { isArray } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
-import type { Memento, MementoOriginator } from '../memento';
 
 export interface AnnotationsRestoreEvent {
     type: 'restore-annotations';
-    annotations: AnnotationsMemento['annotations'];
+    annotations: AnnotationsMemento;
 }
 
-export class AnnotationsMemento implements Memento {
-    type = 'annotations';
-
-    constructor(
-        public readonly version: string,
-        public readonly annotations?: any
-    ) {}
-}
+export type AnnotationsMemento = any[];
 
 export class AnnotationManager
     extends BaseManager<AnnotationsRestoreEvent['type'], AnnotationsRestoreEvent>
-    implements MementoOriginator
+    implements MementoOriginator<AnnotationsMemento>
 {
-    public mementoOriginatorName = 'Annotations';
+    public mementoOriginatorKey = 'annotations' as const;
 
-    private annotations?: any;
+    private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
 
     constructor(private readonly annotationRoot: Group) {
         super();
     }
 
-    public createMemento(version: string) {
-        return new AnnotationsMemento(version, this.annotations);
+    public createMemento() {
+        return this.annotations;
     }
 
     public guardMemento(blob: unknown): blob is AnnotationsMemento {
-        return isPlainObject(blob) && 'type' in blob && blob.type === 'annotations';
+        return isArray(blob);
     }
 
-    public restoreMemento(memento: AnnotationsMemento) {
+    public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento) {
         // Migration from older versions can be implemented here.
 
         this.listeners.dispatch('restore-annotations', {
             type: 'restore-annotations',
-            annotations: memento.annotations,
+            annotations: memento,
         });
     }
 
-    public updateData(annotations?: any) {
-        this.annotations = annotations;
+    public updateData(annotations?: AnnotationsMemento) {
+        this.annotations = annotations ?? [];
     }
 
     public attachNode(node: Node) {

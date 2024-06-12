@@ -85,8 +85,8 @@ export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
     /** Returns a base64-encoded image data URL for the given `AgChartInstance`.*/
     getImageDataURL(options?: ImageDataUrlOptions): Promise<string>;
 
-    saveAnnotations(): Promise<string>;
-    restoreAnnotations(blob: unknown): Promise<void>;
+    getState(): Required<AgChartState>;
+    setState(state: AgChartState): Promise<void>;
 
     /** Destroy the chart instance and any allocated resources supporting its rendering. */
     destroy(): void;
@@ -122,3 +122,10 @@ export interface ImageDataUrlOptions {
     /** A MIME-type string indicating the image format. The default format type is `image/png`. Options: `image/png`, `image/jpeg`.  */
     fileFormat?: string;
 }
+
+export interface AgChartState {
+    version: string;
+    annotations?: AgChartSerializableState;
+}
+
+export type AgChartSerializableState = any;
