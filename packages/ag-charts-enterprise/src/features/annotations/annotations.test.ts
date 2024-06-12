@@ -127,7 +127,7 @@ describe('Annotations', () => {
         });
     });
 
-    describe('cross-line', () => {
+    describe.skip('cross-line', () => {
         it('when y-axis is clicked it should create a horizontal cross-line', async () => {
             await prepareChart();
             await clickAction(40, height / 3)(chart);

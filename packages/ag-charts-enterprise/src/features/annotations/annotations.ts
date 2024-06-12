@@ -12,6 +12,8 @@ import type {
 } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
+import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
+import axisButtonCss from './axisButton.css';
 import { CrossLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
@@ -37,6 +39,7 @@ const {
     ToolbarManager,
     Validate,
     REGIONS,
+    ChartAxisDirection,
 } = _ModuleSupport;
 const { Vec2 } = _Util;
 
@@ -54,6 +57,7 @@ type AnnotationAxis = {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
     bounds: _Scene.BBox;
+    button: AxisButton;
 };
 
 const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
@@ -153,18 +157,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
 
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
-        const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
-        const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         const otherRegions = Object.values(REGIONS)
             .filter((region) => ![REGIONS.SERIES, REGIONS.HORIZONTAL_AXES, REGIONS.VERTICAL_AXES].includes(region))
             .map((region) => ctx.regionManager.getRegion(region));
 
+        ctx.domManager.addStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS, axisButtonCss);
+
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
             () => this.colorPicker.destroy(),
-            horizontalAxesRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.HORIZONTAL_AXES), All),
-            verticalAxesRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.VERTICAL_AXES), All),
             seriesRegion.addListener('hover', (event) => this.onHover(event, REGIONS.SERIES), All),
             seriesRegion.addListener('click', (event) => this.onClick(event, REGIONS.SERIES), All),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
@@ -176,7 +178,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
-            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
+            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
         );
     }
 
@@ -320,27 +323,36 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        this.seriesRect = event.series.rect;
+        const seriesRect = event.series.paddedRect;
+        this.seriesRect = seriesRect;
 
         for (const axisLayout of event.axes ?? []) {
             if (axisLayout.direction === _ModuleSupport.ChartAxisDirection.X) {
-                this.xAxis = this.getAxis(axisLayout, event.series.rect);
+                this.xAxis = this.getAxis(axisLayout, seriesRect, this.xAxis?.button);
             } else {
-                this.yAxis = this.getAxis(axisLayout, event.series.rect);
+                this.yAxis = this.getAxis(axisLayout, seriesRect, this.yAxis?.button);
             }
         }
 
         this.updateAnnotations();
     }
 
-    private getAxis(axisLayout: _ModuleSupport.AxisLayout, seriesRect: _Scene.BBox): AnnotationAxis {
+    private getAxis(
+        axisLayout: _ModuleSupport.AxisLayout,
+        seriesRect: _Scene.BBox,
+        button?: AxisButton
+    ): AnnotationAxis {
         const axisCtx = this.ctx.axisManager.getAxisContext(axisLayout.direction)[0];
 
         const { position: axisPosition = 'bottom' } = axisCtx;
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = buildBounds(new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height), axisPosition, padding);
 
-        return { layout: axisLayout, context: axisCtx, bounds };
+        const region = axisCtx.direction === ChartAxisDirection.X ? 'horizontal-axes' : 'vertical-axes';
+
+        button ??= new AxisButton(this.ctx, axisCtx, seriesRect, (coords) => this.onAxisButtonClick(coords, region));
+
+        return { layout: axisLayout, context: axisCtx, bounds, button };
     }
 
     private updateAnnotations() {
@@ -506,21 +518,48 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private onAxisClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
+    private onAxisButtonClick(coords?: Coords, region?: _ModuleSupport.RegionName) {
         this.onCancel();
-        this.onAxisClickAdding(event, region);
+        this.onAxisClickAdding(coords, region);
     }
 
-    private onAxisClickAdding(
-        event: _ModuleSupport.PointerInteractionEvent<'click'>,
-        region: _ModuleSupport.RegionName
-    ) {
+    private onAxisClickAdding(coords?: Coords, region?: _ModuleSupport.RegionName) {
         if (!this.annotationData) return;
 
         this.ctx.interactionManager.pushState(InteractionState.Annotations);
         this.state.transition(AnnotationType.CrossLine);
 
-        this.onClickAdding(event, region);
+        const {
+            active,
+            annotationData,
+            annotations,
+            state,
+            ctx: { toolbarManager },
+        } = this;
+
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+
+        const context = this.getAnnotationContext();
+        if (!annotationData || !context) return;
+
+        const datum = annotationData?.at(-1);
+
+        if (!coords) {
+            return;
+        }
+
+        const point = invertCoords(coords, context);
+
+        const node = active != null ? annotations.nodes()[active] : undefined;
+
+        if (!validateDatumPoint(context, point)) {
+            return;
+        }
+
+        const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
+        state.transition('click', data);
+
+        this.update();
     }
 
     private onClickSelecting() {
