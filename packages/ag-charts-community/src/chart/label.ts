@@ -1,4 +1,10 @@
-import type { AgChartLabelFormatterParams, AgChartLabelOptions, FontStyle, FontWeight, Formatter } from 'ag-charts-types';
+import type {
+    AgChartLabelFormatterParams,
+    AgChartLabelOptions,
+    FontStyle,
+    FontWeight,
+    Formatter,
+} from 'ag-charts-types';
 
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
