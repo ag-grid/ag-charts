@@ -1,16 +1,20 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
+import { getFunctionName, removeFunctionKeyword } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
-import { convertTemplate, getImport, indentTemplate, toAssignment, toConst, toInput, toMember } from './vue-utils';
+import { convertTemplate, getImport, indentTemplate } from './vue-utils';
 
 function processFunction(code: string): string {
     return wrapOptionsUpdateCode(removeFunctionKeyword(code));
 }
 
 function getImports(componentFileNames: string[], bindings): string[] {
-    const imports = ["import { createApp } from 'vue';", "import { AgChartsVue } from 'ag-charts-vue3';"];
+    const imports = ["import { createApp } from 'vue';", "import { AgCharts } from 'ag-charts-vue3';"];
 
-    const chartImport = getChartImports(bindings.imports, bindings.usesChartApi);
+    const chartImports = bindings.imports.map((i) => ({
+        ...i,
+        imports: i.imports.filter((imp) => imp !== 'AgCharts'),
+    }));
+    const chartImport = getChartImports(chartImports, bindings.usesChartApi);
     if (chartImport) {
         imports.push(chartImport);
     }
@@ -26,7 +30,7 @@ function getImports(componentFileNames: string[], bindings): string[] {
     return imports;
 }
 
-function getPropertyBindings(bindings: any, property: any) {
+function getPropertyBindings(bindings: any, id: string, property: any) {
     const propertyAssignments = [];
     const propertyVars = [];
     const propertyAttributes = [];
@@ -34,11 +38,21 @@ function getPropertyBindings(bindings: any, property: any) {
     propertyVars.push(`${property.name}: ${property.value}`);
     propertyAttributes.push(`:options="${property.name}"`);
 
+    Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
+        if (key === 'style') {
+            propertyAttributes.push(`style=${JSON.stringify(value as any)}`);
+        } else if (key === 'class') {
+            propertyAttributes.push(`class=${JSON.stringify(value as any)}`);
+        } else {
+            throw new Error(`Unknown chart attribute: ${key}`);
+        }
+    });
+
     return { propertyAssignments, propertyVars, propertyAttributes };
 }
 
 function getVueTag(bindings: any, attributes: string[]) {
-    return `<ag-charts-vue\n` + (bindings.usesChartApi ? `ref="agCharts"\n` : '') + attributes.join('\n') + `\n/>`;
+    return `<ag-charts\n` + (bindings.usesChartApi ? `ref="agCharts"\n` : '') + attributes.join('\n') + `\n/>`;
 }
 
 function getTemplate(bindings: any, attributes: string[]): string {
@@ -83,7 +97,11 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
 
     if (placeholders.length <= 1) {
         const options = properties.find((p) => p.name === 'options');
-        const { propertyAssignments, propertyVars, propertyAttributes } = getPropertyBindings(bindings, options);
+        const { propertyAssignments, propertyVars, propertyAttributes } = getPropertyBindings(
+            bindings,
+            placeholders[0],
+            options
+        );
         const template = getTemplate(bindings, propertyAttributes);
 
         mainFile = `
@@ -94,7 +112,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             const ChartExample = {
                 template: \`\n${template}\n  \`,
                 components: {
-                    'ag-charts-vue': AgChartsVue
+                    'ag-charts': AgCharts
                 },
                 data() {
                     return {
@@ -157,6 +175,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             const propertyName = bindings.chartProperties[id];
             const { propertyVars, propertyAttributes } = getPropertyBindings(
                 bindings,
+                id,
                 properties.find((p) => p.name === propertyName)
             );
             const template = getVueTag(bindings, propertyAttributes);
@@ -166,7 +185,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             const ${className} = {
                 template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
                 components: {
-                    'ag-charts-vue': AgChartsVue
+                    'ag-charts': AgCharts
                 },
                 data() {
                     return {

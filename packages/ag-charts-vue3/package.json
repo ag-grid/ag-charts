@@ -4,8 +4,16 @@
   "version": "9.3.1-beta.20240612.924",
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
-  "main": "lib/AgChartsVue.js",
-  "typings": "lib/AgChartsVue.d.ts",
+  "main": "./dist/package/index.cjs.js",
+  "module": "./dist/package/index.esm.mjs",
+  "type": "module",
+  "types": "./dist/types/src/index.d.ts",
+  "exports": {
+    "import": "./dist/package/index.esm.mjs",
+    "require": "./dist/package/index.cjs.js",
+    "types": "./dist/types/src/index.d.ts",
+    "default": "./dist/package/index.cjs.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -30,19 +38,14 @@
   "devDependencies": {
     "ag-charts-community": "9.3.1-beta.20240612.924",
     "@types/node": "18.18.11",
-    "@vue/cli-plugin-typescript": "5.0.8",
-    "@vue/cli-service": "5.0.8",
     "typescript": "^5.4.5",
     "vue": "^3.0.0",
-    "core-js": "3.22.7",
-    "vue-class-component": "8.0.0-rc.1",
     "@babel/types": "7.17.12",
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
     "ag-charts-community": "9.3.1-beta.20240612.924",
-    "vue": "^3.0.0",
-    "vue-class-component": ">= ^8.0.0-beta.3"
+    "vue": "^3.0.0"
   },
   "publishConfig": {
     "access": "public"
