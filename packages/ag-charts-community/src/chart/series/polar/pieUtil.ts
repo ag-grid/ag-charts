@@ -1,9 +1,8 @@
-import { sectorBox } from 'packages/ag-charts-community/src/scene/util/sector';
-
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import { BBox } from '../../../scene/bbox';
 import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
+import { sectorBox } from '../../../scene/util/sector';
 import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Circle } from '../../marker/circle';
 import type { PickFocusInputs, SeriesNodePickMatch } from '../series';
