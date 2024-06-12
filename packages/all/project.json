@@ -95,7 +95,7 @@
       "options": {
         "parallel": false,
         "commands": [
-          "nx run generate-gallery-thumbnail --example=simple-bar",
+          "nx run ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail",
           "node {projectRoot}/watch.js & nx run ag-charts-website:dev"
         ]
       },
