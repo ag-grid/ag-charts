@@ -148,5 +148,7 @@
         "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-react/package"]
       }
     }
-  }
+  },
+  "tags": ["fw"],
+  "implicitDependencies": ["ag-charts-community"]
 }

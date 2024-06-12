@@ -47,5 +47,6 @@
       }
     }
   },
-  "tags": ["fw"]
+  "tags": ["fw"],
+  "implicitDependencies": ["ag-charts-community"]
 }
