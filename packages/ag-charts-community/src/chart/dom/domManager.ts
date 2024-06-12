@@ -47,7 +47,9 @@ const STYLES = `
 }
 
 .ag-charts-tab-guard {
-    display: none;
+    opacity: 0;
+    width: 0px;
+    height: 0px;
 }
 
 .ag-charts-canvas-overlay {
