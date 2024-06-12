@@ -1,4 +1,10 @@
-import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from 'ag-charts-types';
+import type {
+    AgChartInstance,
+    AgChartOptions,
+    AgChartState,
+    DownloadOptions,
+    ImageDataUrlOptions,
+} from 'ag-charts-types';
 
 import type { MementoCaretaker } from '../api/state/memento';
 import { moduleRegistry } from '../module/module';
@@ -100,12 +106,12 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
     }
 
-    async saveAnnotations() {
-        return this.factoryApi.caretaker.save(this.chart.ctx.annotationManager);
+    getState() {
+        return this.factoryApi.caretaker.save(this.chart.ctx.annotationManager) as Required<AgChartState>;
     }
 
-    async restoreAnnotations(blob: unknown) {
-        this.factoryApi.caretaker.restore(this.chart.ctx.annotationManager, blob);
+    async setState(state: AgChartState) {
+        this.factoryApi.caretaker.restore(state, this.chart.ctx.annotationManager);
         await this.chart.waitForUpdate();
     }
 

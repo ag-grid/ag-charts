@@ -1,17 +1,14 @@
 import { Logger } from '../../util/logger';
-import { isDate, isPlainObject } from '../../util/type-guards';
+import { isDate, isObject } from '../../util/type-guards';
 
-export interface Memento {
-    type: string;
-    version: string;
+export interface MementoOriginator<Memento extends any = any> {
+    mementoOriginatorKey: string;
+    createMemento(): Memento;
+    guardMemento(blob: unknown): blob is Memento;
+    restoreMemento(version: string, mementoVersion: string, blob: Memento): void;
 }
 
-export interface MementoOriginator {
-    mementoOriginatorName: string;
-    createMemento(version: string): Memento;
-    guardMemento(blob: unknown): boolean;
-    restoreMemento(blob: Memento): void;
-}
+type MementoCaretakerPacket = Record<'version', string> & Record<string, any>;
 
 /**
  * The caretaker manages the encoding and decoding of mementos from originators, ensuring they can be provided to and
@@ -26,71 +23,85 @@ export class MementoCaretaker {
         this.version = version.split('-')[0];
     }
 
-    save(originator: MementoOriginator) {
-        return this.encode(originator, originator.createMemento(this.version));
+    save(...originators: Array<MementoOriginator>) {
+        const packet: MementoCaretakerPacket = { version: this.version };
+        for (const originator of Object.values(originators)) {
+            packet[originator.mementoOriginatorKey] = this.encode(originator, originator.createMemento());
+        }
+        return packet;
     }
 
-    restore(originator: MementoOriginator, blob: unknown) {
-        if (typeof blob !== 'string') {
-            Logger.warnOnce(
-                `${originator.mementoOriginatorName} - Could not restore data of type [${typeof blob}], expecting a string, ignoring.`
-            );
+    restore(blob: unknown, ...originators: Array<MementoOriginator>) {
+        if (typeof blob !== 'object') {
+            Logger.warnOnce(`Could not restore data of type [${typeof blob}], expecting an object, ignoring.`);
             return;
         }
 
-        const memento = this.decode(originator, blob);
-
-        if (!originator.guardMemento(memento)) {
-            Logger.warnOnce(
-                `${originator.mementoOriginatorName} - Could not restore data, memento was invalid, ignoring.`,
-                memento
-            );
+        if (blob == null) {
+            Logger.warnOnce(`Could not restore data of type [null], expecting an object, ignoring.`);
             return;
         }
 
-        originator.restoreMemento(memento);
+        if (!('version' in blob) || typeof blob.version !== 'string') {
+            Logger.warnOnce(`Could not restore data, missing [version] string in object, ignoring.`);
+            return;
+        }
+
+        for (const originator of originators) {
+            if (!(originator.mementoOriginatorKey in blob)) {
+                // Silently skip restoring this originator, as we are happy restoring partial state
+                continue;
+            }
+
+            const memento = this.decode(originator, (blob as any)[originator.mementoOriginatorKey]);
+
+            if (!originator.guardMemento(memento)) {
+                Logger.warnOnce(
+                    `Could not restore [${originator.mementoOriginatorKey}] data, value was invalid, ignoring.`,
+                    memento
+                );
+                return;
+            }
+
+            originator.restoreMemento(this.version, blob.version, memento);
+        }
     }
 
     /**
-     * Encode a memento as a base64 string. Base64 encoding only supports utf-8, so multi-byte unicode characters are
-     * converted into multiple single-byte utf-8 characters.
+     * Encode a memento as a serializable object, encoding any non-serializble types.
      */
-    private encode(originator: MementoOriginator, memento: Memento) {
+    private encode(originator: MementoOriginator, memento: any) {
         try {
-            const mementoString = JSON.stringify(memento, this.encodeTypes);
-            const bytes = new TextEncoder().encode(mementoString);
-            const binaryString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join('');
-            return btoa(binaryString);
+            return JSON.parse(JSON.stringify(memento, this.encodeTypes));
         } catch (error) {
-            throw new Error(`${originator.mementoOriginatorName} - Failed to encode memento [${error}].`, {
+            throw new Error(`Failed to encode [${originator.mementoOriginatorKey}] value [${error}].`, {
                 cause: error,
             });
         }
     }
 
     /**
-     * Decode an encoded memento, translating multiple single-byte uft-8 characters back into multi-byte unicode.
+     * Decode an encoded memento, decoding any non-serializable types.
      */
-    private decode(originator: MementoOriginator, encoded: string) {
+    private decode(originator: MementoOriginator, encoded: unknown) {
         try {
-            const binaryString = atob(encoded);
-            const bytes = Uint8Array.from(binaryString, (m) => m.codePointAt(0) ?? 0);
-            const blobString = new TextDecoder().decode(bytes);
-            return JSON.parse(blobString, this.decodeTypes);
+            return JSON.parse(JSON.stringify(encoded), this.decodeTypes) as unknown;
         } catch (error) {
-            throw new Error(`${originator.mementoOriginatorName} - Failed to decode memento [${error}].`, {
+            throw new Error(`Failed to decode [${originator.mementoOriginatorKey}] value [${error}].`, {
                 cause: error,
             });
         }
     }
 
     private encodeTypes(this: any, key: any, value: any) {
-        if (isDate(this[key])) return { __type: 'date', value: String(this[key]) };
+        if (isDate(this[key])) {
+            return { __type: 'date', value: String(this[key]) };
+        }
         return value;
     }
 
     private decodeTypes(this: any, key: any, value: any) {
-        if (isPlainObject(this[key]) && '__type' in this[key] && this[key].__type === 'date') {
+        if (isObject(this[key]) && '__type' in this[key] && this[key].__type === 'date') {
             return new Date(this[key].value);
         }
         return value;
