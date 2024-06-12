@@ -23,18 +23,16 @@ if (versions.size !== 1) {
 const currentVersion = versions.values().next().value;
 let [semverPart, oldSuffix] = currentVersion.split('-');
 
-const suffix = oldSuffix?.split('.')[0] ?? 'beta';
 const now = new Date();
 const todayStr = now.toISOString().split('T')[0].replaceAll('-', '');
-let time = -1;
-let newVersion;
-let newSuffix;
-do {
-    if (newSuffix != null) {
-        time = now.getUTCHours() * 100 + now.getUTCMinutes();
-    }
-    newSuffix = `${suffix}.${todayStr}${time >= 0 ? '.' + time : ''}`;
-    newVersion = `${semverPart}-${newSuffix}`;
-} while (newSuffix <= oldSuffix);
 
-console.log(newVersion);
+const [tag, dateStr, timeStr] = oldSuffix?.split('.')
+if (dateStr !== todayStr) {
+    console.log(`${semverPart}-${tag}.${todayStr}`);
+    process.exit(0);
+}
+
+const h = now.getUTCHours();
+const m = now.getUTCMinutes();
+const time = `${h < 10 ? '0' : ''}${h}${m < 10 ? '0' : ''}${m}`;
+console.log(`${semverPart}-${tag}.${todayStr}.${time}`);
