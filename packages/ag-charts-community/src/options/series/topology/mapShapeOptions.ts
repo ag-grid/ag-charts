@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
@@ -31,7 +31,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
-    itemStyler?: (params: AgMapShapeSeriesFormatterParams) => AgMapShapeSeriesStyle;
+    itemStyler?: Styler<AgMapShapeSeriesFormatterParams, AgMapShapeSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
 }

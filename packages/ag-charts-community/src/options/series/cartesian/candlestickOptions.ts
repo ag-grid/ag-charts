@@ -1,3 +1,4 @@
+import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -44,7 +45,7 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: (params: AgCandlestickSeriesFormatterParams<TDatum>) => AgCandlestickSeriesItemOptions;
+    itemStyler?: Styler<AgCandlestickSeriesFormatterParams<TDatum>, AgCandlestickSeriesItemOptions>;
 }
 
 export interface AgCandlestickSeriesOptions<TDatum = any>

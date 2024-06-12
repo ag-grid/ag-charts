@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/no-duplicate-string */
+import type { Styler } from '../../../options/chart/callbackOptions';
 import type {
     AgPieSeriesFormat,
     AgPieSeriesFormatterParams,
@@ -124,7 +125,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
+    itemStyler?: Styler<AgPieSeriesFormatterParams<any>, AgPieSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;

@@ -1,3 +1,4 @@
+import type { Styler } from '../../../options/chart/callbackOptions';
 import type {
     AgDonutSeriesFormat,
     AgDonutSeriesFormatterParams,
@@ -160,7 +161,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: (params: AgDonutSeriesFormatterParams<any>) => AgDonutSeriesFormat;
+    itemStyler?: Styler<AgDonutSeriesFormatterParams<any>, AgDonutSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;

@@ -5,6 +5,7 @@ import type {
     AgBubbleSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
     LabelPlacement,
+    Styler,
 } from '../../../options/agChartOptions';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { SizedPoint } from '../../../scene/point';
@@ -123,7 +124,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     strokeOpacity!: number;
 
     @ProxyProperty('marker.formatter', { optional: true })
-    itemStyler?: (params: any) => AgSeriesMarkerStyle | undefined;
+    itemStyler?: Styler<any, AgSeriesMarkerStyle>;
 
     @Validate(OBJECT)
     readonly label = new BubbleSeriesLabel();

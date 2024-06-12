@@ -1,3 +1,4 @@
+import type { Styler } from '../../options/chart/callbackOptions';
 import type {
     AgSeriesMarkerFormatterParams,
     AgSeriesMarkerStyle,
@@ -65,9 +66,7 @@ export class SeriesMarker<TParams = never, TDatum = any>
 
     @Validate(FUNCTION, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    itemStyler?: (
-        params: AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>
-    ) => AgSeriesMarkerStyle | undefined;
+    itemStyler?: Styler<AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
     getStyle(): AgSeriesMarkerStyle {
         const { size, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this;

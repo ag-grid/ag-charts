@@ -35,7 +35,7 @@ export interface AgScatterSeriesThemeableOptions<TDatum = any>
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    styler?: Styler<any, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<any, AgSeriesMarkerStyle>;
 }
 
 export interface AgScatterSeriesOptionsKeys {

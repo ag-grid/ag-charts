@@ -1,3 +1,4 @@
+import type { Styler } from '../../../options/chart/callbackOptions';
 import type {
     AgBarSeriesFormatterParams,
     AgBarSeriesLabelFormatterParams,
@@ -72,7 +73,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle;
+    itemStyler?: Styler<AgBarSeriesFormatterParams<any>, AgBarSeriesStyle>;
 
     @Validate(OBJECT, { optional: true })
     readonly shadow = new DropShadow();

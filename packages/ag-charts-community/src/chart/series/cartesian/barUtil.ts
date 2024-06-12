@@ -1,7 +1,7 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
-import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
+import type { AgBarSeriesFormatterParams, AgBarSeriesStyle, Styler } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
@@ -86,7 +86,7 @@ export function getRectConfig<
     isHighlighted: boolean;
     style: RectConfig;
     highlightStyle: SeriesItemHighlightStyle;
-    itemStyler?: (params: Params & ExtraParams) => AgBarSeriesStyle;
+    itemStyler?: Styler<Params & ExtraParams, AgBarSeriesStyle>;
     seriesId: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {

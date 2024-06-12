@@ -1,3 +1,4 @@
+import type { Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LabelPlacement, PixelSize } from '../../chart/types';
@@ -32,7 +33,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = any>
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     domain?: [number, number];
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: (params: any) => AgSeriesMarkerStyle | undefined;
+    itemStyler?: Styler<any, AgSeriesMarkerStyle>;
 }
 
 export interface AgBubbleSeriesOptionsKeys {

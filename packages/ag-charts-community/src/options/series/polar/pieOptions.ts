@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -92,7 +92,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     /** The spacing between Pie sectors. */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the pie sectors. */
-    itemStyler?: (params: AgPieSeriesFormatterParams<TDatum>) => AgPieSeriesFormat;
+    itemStyler?: Styler<AgPieSeriesFormatterParams<TDatum>, AgPieSeriesFormat>;
 }
 
 export interface AgPieSeriesOptions<TDatum = any>
