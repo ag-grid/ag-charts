@@ -1,10 +1,12 @@
 const { spawn } = require('child_process');
+const fs = require('node:fs/promises');
 
 const QUIET_PERIOD_MS = 1000;
 const BATCH_LIMIT = 50;
 const PROJECT_ECHO_LIMIT = 3;
 const IGNORED_PROJECTS = ['all', 'ag-charts-website'];
 const NX_ARGS = ['--output-style', 'compact'];
+const BUILD_QUEUE_EMPTY_FILE = 'node_modules/.cache/ag-charts.build-queue.empty';
 
 if ((process.env.BUILD_FWS ?? '0') !== '1') {
     IGNORED_PROJECTS.push('ag-charts-angular', 'ag-charts-react', 'ag-charts-vue3');
@@ -161,11 +163,28 @@ async function build() {
         await spawnNxRun(target, config, [...projects.values()]);
         success(`Completed build for: ${targetMsg}`);
         success(`Build queue has ${buildBuffer.length} remaining.`);
+
+        if (buildBuffer.length === 0) {
+            await touchBuildQueueEmptyFile();
+        }
     } catch (e) {
-        error(`Build failed for: ${targetMsg}`);
+        error(`Build failed for: ${targetMsg}: ${e}`);
     } finally {
         buildRunning = false;
         scheduleBuild();
+    }
+}
+
+async function touchBuildQueueEmptyFile() {
+    try {
+        const time = new Date();
+        await fs.utimes(BUILD_QUEUE_EMPTY_FILE, time, time);
+    } catch (err) {
+        if ('ENOENT' !== err.code) {
+            throw err;
+        }
+        const fh = await fs.open(BUILD_QUEUE_EMPTY_FILE, 'a');
+        await fh.close();
     }
 }
 
