@@ -93,11 +93,10 @@
       "inputs": [],
       "outputs": [],
       "options": {
-        "parallel": true,
+        "parallel": false,
         "commands": [
           "nx run generate-gallery-thumbnail --example=simple-bar",
-          "node {projectRoot}/watch.js",
-          "nx run ag-charts-website:dev"
+          "node {projectRoot}/watch.js & nx run ag-charts-website:dev"
         ]
       },
       "configurations": {
