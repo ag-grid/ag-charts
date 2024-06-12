@@ -106,10 +106,11 @@ export function invertCoords(coords: Coords, context: AnnotationContext) {
 }
 
 export function invert(n: Coords['x' | 'y'], context: AnnotationAxisContext) {
+    const halfBandwidth = (context.scaleBandwidth() ?? 0) / 2;
     if (context.continuous) {
-        return context.scaleInvert?.(n);
+        return context.scaleInvert(n - halfBandwidth);
     }
-    return context.scaleInvertNearest?.(n);
+    return context.scaleInvertNearest(n - halfBandwidth);
 }
 
 export function calculateAxisLabelPadding(axisLayout: _ModuleSupport.AxisLayout) {

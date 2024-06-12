@@ -1,4 +1,4 @@
-import { type AgCartesianAxisPosition, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 export enum AnnotationType {
     Line = 'line',
@@ -59,19 +59,23 @@ export interface StateClickEvent<Annotation, Scene> {
 
 export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
 
-export type AnnotationAxisContext = {
-    direction: _ModuleSupport.ChartAxisDirection;
-    continuous: boolean;
-    position?: AgCartesianAxisPosition;
-    scaleDomain: _ModuleSupport.AxisContext['scaleDomain'];
-    scaleBandwidth: _ModuleSupport.AxisContext['scaleBandwidth'];
-    scaleConvert: _ModuleSupport.AxisContext['scaleConvert'];
-    scaleInvert: _ModuleSupport.AxisContext['scaleInvert'];
-    scaleInvertNearest: _ModuleSupport.AxisContext['scaleInvertNearest'];
-    scaleValueFormatter: _ModuleSupport.AxisContext['scaleValueFormatter'];
+export interface AnnotationAxisContext
+    extends Pick<
+        _ModuleSupport.AxisContext,
+        | 'continuous'
+        | 'direction'
+        | 'position'
+        | 'scaleBandwidth'
+        | 'scaleConvert'
+        | 'scaleDomain'
+        | 'scaleInvert'
+        | 'scaleInvertNearest'
+        | 'scaleValueFormatter'
+    > {
     bounds: _Scene.BBox;
     labelPadding: number;
-};
+}
+
 export type AnnotationContext = {
     seriesRect: _Scene.BBox;
     xAxis: AnnotationAxisContext;
