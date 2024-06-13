@@ -125,12 +125,6 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return this._step;
     }
 
-    private _inset: number = 1;
-    get inset(): number {
-        this.refresh();
-        return this._inset;
-    }
-
     private _rawBandwidth: number = 1;
     get rawBandwidth(): number {
         this.refresh();
@@ -179,31 +173,30 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         const { _paddingOuter: paddingOuter, round } = this;
         const rangeDistance = r1 - r0;
 
-        let rawStep: number, step: number, inset: number;
+        let rawStep: number, step: number, start: number;
 
         if (count === 1) {
             paddingInner = 0;
             rawStep = rangeDistance * (1 - paddingOuter * 2);
             step = round ? Math.round(rawStep) : rawStep;
-            inset = rangeDistance * paddingOuter;
+            start = rangeDistance * paddingOuter;
         } else {
             rawStep = rangeDistance / Math.max(1, count - paddingInner + paddingOuter * 2);
             step = round ? Math.floor(rawStep) : rawStep;
-            inset = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
+            start = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
         }
 
         let bandwidth = step * (1 - paddingInner);
 
         if (round) {
-            inset = Math.round(inset);
+            start = Math.round(start);
             bandwidth = Math.round(bandwidth);
         }
 
         this._step = step;
-        this._inset = inset;
         this._bandwidth = bandwidth;
         this._rawBandwidth = rawStep * (1 - paddingInner);
-        this.ordinalRange = this._domain.map((_, i) => inset + step * i);
+        this.ordinalRange = this._domain.map((_, i) => start + step * i);
     }
 
     private getIndex(value: D) {
