@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
 const magnitude = (x: number, y: number) => Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 

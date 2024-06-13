@@ -61,8 +61,8 @@ export abstract class Handle extends _Scene.Group {
 }
 
 export class InvariantHandle extends Handle {
-    static override HANDLE_SIZE = 7;
-    static override GLOW_SIZE = 9;
+    static override readonly HANDLE_SIZE = 7;
+    static override readonly GLOW_SIZE = 9;
 
     override handle = new _Scene.Circle();
     override glow = new _Scene.Circle();
@@ -86,8 +86,8 @@ export class InvariantHandle extends Handle {
 }
 
 export class UnivariantHandle extends Handle {
-    static override HANDLE_SIZE = 12;
-    static override GLOW_SIZE = 16;
+    static override readonly HANDLE_SIZE = 12;
+    static override readonly GLOW_SIZE = 16;
 
     override handle = new _Scene.Rect();
     override glow = new _Scene.Rect();
@@ -152,8 +152,8 @@ export class UnivariantHandle extends Handle {
 }
 
 export class DivariantHandle extends Handle {
-    static override HANDLE_SIZE = 11;
-    static override GLOW_SIZE = 17;
+    static override readonly HANDLE_SIZE = 11;
+    static override readonly GLOW_SIZE = 17;
 
     override handle = new _Scene.Circle();
     override glow = new _Scene.Circle();

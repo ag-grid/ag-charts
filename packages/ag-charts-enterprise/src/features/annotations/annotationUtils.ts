@@ -3,6 +3,8 @@ import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-communi
 import type { AnnotationPoint } from './annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Coords, Point } from './annotationTypes';
 
+const { Logger } = _Util;
+
 export function validateDatumLine(
     context: AnnotationContext,
     datum: { start: Point; end: Point },
@@ -26,7 +28,7 @@ export function validateDatumValue(
     const valid = validateDatumPointDirection(scaleDomain(), datum.value, continuous);
 
     if (!valid && warningPrefix) {
-        _Util.Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${datum.value}]]`);
+        Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${datum.value}]]`);
     }
 
     return valid;
@@ -35,7 +37,7 @@ export function validateDatumValue(
 export function validateDatumPoint(context: AnnotationContext, point: Point, warningPrefix?: string) {
     if (point.x == null || point.y == null) {
         if (warningPrefix) {
-            _Util.Logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
+            Logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
         }
         return false;
     }
@@ -53,9 +55,7 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
         if (validX) text = 'y domain';
         if (validY) text = 'x domain';
         if (warningPrefix) {
-            _Util.Logger.warnOnce(
-                `${warningPrefix}is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
-            );
+            Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`);
         }
         return false;
     }

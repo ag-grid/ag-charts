@@ -3,13 +3,13 @@ import { _Scene } from 'ag-charts-community';
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
-import { Channel } from '../scenes/channelScene';
+import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { ParallelChannelAnnotation } from './parallelChannelProperties';
 
 type ChannelHandle = keyof ParallelChannel['handles'];
 
-export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
+export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
     static override is(value: unknown): value is ParallelChannel {
         return Annotation.isCheck(value, 'parallel-channel');
     }
@@ -131,13 +131,13 @@ export class ParallelChannel extends Channel<ParallelChannelAnnotation> {
         for (const [index, invertedMove] of invertedMoves.entries()) {
             switch (moves[index]) {
                 case 'topLeft':
-                    datum.start.x = invertedMove!.x;
-                    datum.start.y = invertedMove!.y;
+                    datum.start.x = invertedMove.x;
+                    datum.start.y = invertedMove.y;
                     break;
 
                 case 'topRight':
-                    datum.end.x = invertedMove!.x;
-                    datum.end.y = invertedMove!.y;
+                    datum.end.x = invertedMove.x;
+                    datum.end.y = invertedMove.y;
                     break;
             }
         }

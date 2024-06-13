@@ -7,6 +7,7 @@ export * from './util/number';
 export * from './util/padding';
 export * from './util/sanitize';
 export * from './util/value';
+export * from './util/vector';
 export * from './util/zip';
 
 export { isValidDate as isDate, isFiniteNumber as isNumber, isString } from './util/type-guards';
