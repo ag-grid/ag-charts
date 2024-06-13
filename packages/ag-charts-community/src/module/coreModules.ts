@@ -50,6 +50,10 @@ type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> =
           ? AgPolarChartOptions['axes']
           : never;
 
+export type SeriesTooltipDefaults = {
+    range: 'exact' | 'nearest';
+};
+
 export interface SeriesModule<
     SeriesType extends RequiredSeriesType = RequiredSeriesType,
     ChartType extends ChartTypes = ChartTypes,
@@ -60,6 +64,7 @@ export interface SeriesModule<
     instanceConstructor: SeriesConstructor;
     hidden?: boolean;
 
+    tooltipDefaults: SeriesTooltipDefaults;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
     enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;

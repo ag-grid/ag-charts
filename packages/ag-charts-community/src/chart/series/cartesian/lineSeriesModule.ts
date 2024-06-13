@@ -13,6 +13,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     identifier: 'line',
     instanceConstructor: LineSeries,
     stackable: true,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

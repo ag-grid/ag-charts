@@ -249,10 +249,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? { colourIndex: 0, userPalette }
                 : paletteOptions;
             const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
+            const defaultTooltipRange = this.getTooltipRangeDefaults(options, series.type);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
                 defaultTooltipPosition,
+                defaultTooltipRange,
                 seriesTheme,
                 palette,
                 { visible: true }
@@ -460,6 +462,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             result.yOffset = yOffset;
         }
         return { tooltip: { position: result } };
+    }
+
+    // AG-11591 Support for new series-specific & legacy chart-global 'tooltip.range' options
+    //
+    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
+    // global option (`chart.tooltip.range`) that could override the theme. But now, the tooltip range
+    // option is series-specific.
+    //
+    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
+    // 'nearest' to undefined.
+    private getTooltipRangeDefaults(options: T, seriesType: SeriesType) {
+        return {
+            tooltip: {
+                range: options.tooltip?.range ?? seriesRegistry.getTooltipDefauls(seriesType)?.range,
+            },
+        };
     }
 
     private deprecationWarnings(options: Partial<T>) {

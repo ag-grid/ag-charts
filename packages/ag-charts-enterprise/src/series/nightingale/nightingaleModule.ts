@@ -12,6 +12,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
 
     identifier: 'nightingale',
     instanceConstructor: NightingaleSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,

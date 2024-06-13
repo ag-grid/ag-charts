@@ -13,6 +13,7 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
 
     identifier: 'map-line-background',
     instanceConstructor: MapLineBackgroundSeries,
+    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

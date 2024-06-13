@@ -13,6 +13,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     identifier: 'waterfall',
     solo: true,
     instanceConstructor: WaterfallSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,

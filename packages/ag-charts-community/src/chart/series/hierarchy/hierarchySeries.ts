@@ -128,7 +128,6 @@ export abstract class HierarchySeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            defaultTooltipRange: 'exact',
             contentGroupVirtual: false,
         });
 

@@ -11,6 +11,7 @@ export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = 
 
     identifier: 'radial-column',
     instanceConstructor: RadialColumnSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
