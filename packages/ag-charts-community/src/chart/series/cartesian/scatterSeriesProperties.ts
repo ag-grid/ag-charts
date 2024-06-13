@@ -1,4 +1,5 @@
 import type {
+    AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
     AgScatterSeriesOptionsKeys,
@@ -87,7 +88,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     strokeOpacity!: number;
 
     @ProxyProperty('marker.formatter', { optional: true })
-    itemStyler?: Styler<any, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgScatterSeriesItemStylerParams<any>, AgSeriesMarkerStyle>;
 
     @Validate(OBJECT)
     readonly label = new ScatterSeriesLabel();

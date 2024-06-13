@@ -22,24 +22,24 @@ interface SeriesKeyOptions {
 }
 
 interface ErrorBarKeyOptions {
-    /** The key to use to retrieve lower bound error values from the x axis data. */
+    /** The key to use to retrieve lower bound error values from the x-axis data. */
     xLowerKey?: string;
-    /** The key to use to retrieve upper bound error values from the x axis data. */
+    /** The key to use to retrieve upper bound error values from the x-axis data. */
     xUpperKey?: string;
-    /** The key to use to retrieve lower bound error values from the y axis data. */
+    /** The key to use to retrieve lower bound error values from the y-axis data. */
     yLowerKey?: string;
-    /** The key to use to retrieve upper bound error values from the y axis data. */
+    /** The key to use to retrieve upper bound error values from the y-axis data. */
     yUpperKey?: string;
 }
 
 interface ErrorBarNameOptions {
-    /** Human-readable description of the lower bound error value for the x axis. This is the value to use in tooltips or labels. */
+    /** Human-readable description of the lower bound error value for the x-axis. This is the value to use in tooltips or labels. */
     xLowerName?: string;
-    /** Human-readable description of the upper bound error value for the x axis. This is the value to use in tooltips or labels. */
+    /** Human-readable description of the upper bound error value for the x-axis. This is the value to use in tooltips or labels. */
     xUpperName?: string;
-    /** Human-readable description of the lower bound error value for the y axis. This is the value to use in tooltips or labels. */
+    /** Human-readable description of the lower bound error value for the y-axis. This is the value to use in tooltips or labels. */
     yLowerName?: string;
-    /** Human-readable description of the upper bound error value for the y axis. This is the value to use in tooltips or labels. */
+    /** Human-readable description of the upper bound error value for the y-axis. This is the value to use in tooltips or labels. */
     yUpperName?: string;
 }
 
