@@ -1,7 +1,5 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords } from '../annotationTypes';
-
 const { isObject } = _ModuleSupport;
 
 export abstract class Annotation extends _Scene.Group {
@@ -20,7 +18,6 @@ export abstract class Annotation extends _Scene.Group {
 
     public abstract toggleHandles(show: boolean | Record<string, boolean>): void;
     public abstract toggleActive(active: boolean): void;
-    public abstract dragHandle(datum: any, target: Coords, context: AnnotationContext, onInvalid: () => void): void;
     public abstract stopDragging(): void;
     public abstract getAnchor(): { x: number; y: number };
     public abstract getCursor(): string;

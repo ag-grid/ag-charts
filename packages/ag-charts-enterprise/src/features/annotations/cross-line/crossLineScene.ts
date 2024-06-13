@@ -1,12 +1,14 @@
-import type { Direction, _Scene } from 'ag-charts-community';
+import { type Direction, type _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Coords } from '../annotationTypes';
-import { invertCoords, validateDatumPoint } from '../annotationUtils';
+import { convert, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { AxisLabel } from '../scenes/axisLabel';
 import { UnivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
 import type { CrossLineAnnotation } from './crossLineProperties';
+
+const { Vec2 } = _Util;
 
 export class CrossLine extends Annotation {
     static override is(value: unknown): value is CrossLine {
@@ -22,6 +24,10 @@ export class CrossLine extends Annotation {
     private readonly axisLabel = new AxisLabel();
 
     private seriesRect?: _Scene.BBox;
+    private dragState?: {
+        offset: Coords;
+        middle: Coords;
+    };
 
     constructor() {
         super();
@@ -104,22 +110,41 @@ export class CrossLine extends Annotation {
         this.middle.toggleActive(active);
     }
 
-    override dragHandle(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
-        const { activeHandle } = this;
+    public dragStart(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext) {
+        const middle =
+            datum.direction === 'horizontal'
+                ? { x: target.x, y: convert(datum.value, context.yAxis) }
+                : { x: convert(datum.value, context.yAxis), y: target.y };
 
-        if (!activeHandle || datum.value == null) return;
+        this.dragState = {
+            offset: target,
+            middle,
+        };
+    }
 
-        const { direction } = datum;
-        this[activeHandle].toggleDragging(true);
-        const point = invertCoords(this[activeHandle].drag(target).point, context);
+    public drag(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+        const { activeHandle, dragState } = this;
+
+        let coords;
+
+        if (activeHandle) {
+            this[activeHandle].toggleDragging(true);
+            coords = this[activeHandle].drag(target).point;
+        } else if (dragState) {
+            coords = Vec2.add(dragState.middle, Vec2.sub(target, dragState.offset));
+        } else {
+            return;
+        }
+
+        const point = invertCoords(coords, context);
 
         if (!validateDatumPoint(context, point)) {
             onInvalid();
             return;
         }
 
-        const horizontal = direction === 'horizontal';
-        datum?.set({ value: horizontal ? point.y : point.x });
+        const horizontal = datum.direction === 'horizontal';
+        datum.set({ value: horizontal ? point.y : point.x });
     }
 
     override stopDragging() {
