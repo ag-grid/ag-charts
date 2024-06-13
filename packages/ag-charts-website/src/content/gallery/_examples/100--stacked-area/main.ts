@@ -2,6 +2,8 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const interpolation = { type: 'smooth' } as const;
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -19,6 +21,7 @@ const options: AgChartOptions = {
             yName: 'Coal',
             normalizedTo: 100,
             stacked: true,
+            interpolation,
         },
         {
             type: 'area',
@@ -27,6 +30,7 @@ const options: AgChartOptions = {
             yName: 'Petroleum',
             normalizedTo: 100,
             stacked: true,
+            interpolation,
         },
         {
             type: 'area',
@@ -35,6 +39,7 @@ const options: AgChartOptions = {
             yName: 'Natural gas',
             normalizedTo: 100,
             stacked: true,
+            interpolation,
         },
         {
             type: 'area',
@@ -43,6 +48,7 @@ const options: AgChartOptions = {
             yName: 'Bioenergy & waste',
             normalizedTo: 100,
             stacked: true,
+            interpolation,
         },
         {
             type: 'area',
@@ -51,6 +57,7 @@ const options: AgChartOptions = {
             yName: 'Nuclear',
             normalizedTo: 100,
             stacked: true,
+            interpolation,
         },
         {
             type: 'area',
@@ -59,6 +66,7 @@ const options: AgChartOptions = {
             yName: 'Wind, solar & hydro',
             normalizedTo: 100,
             stacked: true,
+            interpolation,
         },
         {
             type: 'area',
@@ -67,6 +75,7 @@ const options: AgChartOptions = {
             yName: 'Imported',
             normalizedTo: 100,
             stacked: true,
+            interpolation,
         },
     ],
     axes: [
