@@ -1,5 +1,5 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { convertFunctionToConstProperty, convertFunctionToProperty } from './parser-utils';
+import { convertFunctionToConstProperty, convertFunctionToProperty, isFinancialCharts } from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
@@ -17,6 +17,7 @@ function needsWrappingInFragment(bindings: any) {
 }
 
 function getImports(componentFilenames: string[], bindings): string[] {
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
     const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
     if (needsWrappingInFragment(bindings)) reactImports.push('Fragment');
@@ -24,7 +25,7 @@ function getImports(componentFilenames: string[], bindings): string[] {
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
         `import { createRoot } from 'react-dom/client';`,
-        `import { AgCharts } from 'ag-charts-react';`,
+        `import { ${type} } from 'ag-charts-react';`,
     ];
 
     const chartImports = bindings.imports.map((i) => ({
@@ -50,7 +51,8 @@ function getImports(componentFilenames: string[], bindings): string[] {
 }
 
 function getAgChartTag(bindings: any, componentAttributes: string[]): string {
-    return `<AgCharts
+    const tag = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    return `<${tag}
         ${bindings.usesChartApi ? 'ref={chartRef}' : ''}
         ${componentAttributes.join(`
         `)}

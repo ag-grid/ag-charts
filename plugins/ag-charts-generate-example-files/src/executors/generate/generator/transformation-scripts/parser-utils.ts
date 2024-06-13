@@ -724,3 +724,7 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
         imports.push(`import { ${tData} } from './interfaces'`);
     }
 }
+
+export function isFinancialCharts(bindings: any) {
+    return bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions';
+}
