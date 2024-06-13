@@ -12,6 +12,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
 
     identifier: 'scatter',
     instanceConstructor: ScatterSeries,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

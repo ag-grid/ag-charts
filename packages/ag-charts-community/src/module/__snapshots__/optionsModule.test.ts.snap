@@ -246,6 +246,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -284,6 +285,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -322,6 +324,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -786,6 +789,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "stroke": "#c16068",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -823,6 +829,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "stroke": "#a2bf8a",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -860,6 +869,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1287,6 +1297,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1330,6 +1341,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1373,6 +1385,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1416,6 +1429,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1459,6 +1473,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1502,6 +1517,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1545,6 +1561,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -1972,6 +1989,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2012,6 +2030,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2052,6 +2071,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2092,6 +2112,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2132,6 +2153,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#a69400",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2172,6 +2194,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#603c88",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2212,6 +2235,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#575757",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2252,6 +2276,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "stroke": "#7d2f6d",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -2645,6 +2670,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "bubble",
       "visible": true,
@@ -3042,6 +3068,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -3080,6 +3107,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -3118,6 +3146,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -3156,6 +3185,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -3591,6 +3621,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -3645,6 +3676,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -3699,6 +3731,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -3753,6 +3786,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -3807,6 +3841,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -4228,6 +4263,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "stroke": "#2b5c95",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -4632,6 +4670,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "stroke": "rgba(0, 117, 163, 0.9)",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "job",
@@ -5016,6 +5057,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "bubble",
       "visible": true,
@@ -5402,6 +5444,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "bubble",
       "visible": true,
@@ -5798,6 +5841,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "stroke": "#19A0AA",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "month",
@@ -5840,6 +5886,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "stroke": "#F15F36",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "month",
@@ -6258,6 +6307,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "stroke": "rgba(0, 117, 163, 0.9)",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -6301,6 +6353,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "stroke": "rgba(226, 188, 34, 0.9)",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -6725,6 +6780,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "stroke": "#2b5c95",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -6770,6 +6828,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "stroke": "#cc6f10",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -6815,6 +6876,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "stroke": "#1e652e",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -6860,6 +6924,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "stroke": "#18859e",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -6905,6 +6972,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "stroke": "#a69400",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -6950,6 +7020,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "stroke": "#603c88",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -6995,6 +7068,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "stroke": "#575757",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "year",
@@ -7411,6 +7487,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7455,6 +7532,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7499,6 +7577,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7543,6 +7622,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7587,6 +7667,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7631,6 +7712,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7675,6 +7757,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7719,6 +7802,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7763,6 +7847,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7807,6 +7892,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7851,6 +7937,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7895,6 +7982,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7939,6 +8027,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -7983,6 +8072,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -8027,6 +8117,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -8071,6 +8162,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "line",
       "visible": true,
@@ -8515,6 +8607,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "line",
@@ -8928,6 +9021,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -8989,6 +9083,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -9050,6 +9145,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -9111,6 +9207,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -9172,6 +9269,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -9233,6 +9331,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -9294,6 +9393,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "area",
       "visible": true,
@@ -9707,6 +9807,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "stroke": "#006428",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "area",
@@ -9751,6 +9854,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "stroke": "#996500",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "area",
@@ -9795,6 +9901,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "stroke": "#a10000",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "area",
@@ -10218,6 +10327,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "stroke": "#f39c12",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -10261,6 +10373,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "stroke": "#d35400",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -10304,6 +10419,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "stroke": "#27ae60",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -10347,6 +10465,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "stroke": "#2980b9",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -10390,6 +10511,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "stroke": "#8e44ad",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -10433,6 +10557,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "stroke": "#2c3e50",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -10870,6 +10997,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -10919,6 +11047,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -10968,6 +11097,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -11017,6 +11147,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -11423,6 +11554,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -11789,6 +11921,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "text": "Annual Count",
       },
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "donut",
@@ -12055,6 +12188,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "line",
@@ -12098,6 +12232,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "line",
@@ -12456,6 +12591,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "spacing": 5,
       },
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "pie",
@@ -12694,6 +12830,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "position": {
           "type": "node",
         },
+        "range": "nearest",
       },
       "type": "scatter",
       "visible": true,
@@ -13112,6 +13249,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -13172,6 +13310,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -13232,6 +13371,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -13292,6 +13432,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -13352,6 +13493,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -13412,6 +13554,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "position": {
           "type": "node",
         },
+        "range": "nearest",
         "renderer": [Function],
       },
       "type": "area",
@@ -13847,6 +13990,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "stroke": "#2b5c95",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -13890,6 +14036,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "stroke": "#cc6f10",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -13933,6 +14082,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "stroke": "#1e652e",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -13976,6 +14128,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "stroke": "#18859e",
       "strokeWidth": 0,
+      "tooltip": {
+        "range": "exact",
+      },
       "type": "bar",
       "visible": true,
       "xKey": "type",
@@ -14387,6 +14542,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "stroke": "#4086a4",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -14433,6 +14589,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "stroke": "#b1a235",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -14479,6 +14636,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "stroke": "#6c8a2b",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -14525,6 +14683,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "stroke": "#a03e24",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",
@@ -14571,6 +14730,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "stroke": "#af5517",
       "strokeWidth": 0,
       "tooltip": {
+        "range": "exact",
         "renderer": [Function],
       },
       "type": "bar",

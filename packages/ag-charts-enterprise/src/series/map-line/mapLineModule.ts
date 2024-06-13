@@ -14,6 +14,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
 
     identifier: 'map-line',
     instanceConstructor: MapLineSeries,
+    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

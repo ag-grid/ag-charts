@@ -7,7 +7,7 @@ import type {
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 
-import type { SeriesConstructor, SeriesModule } from '../../module/coreModules';
+import type { SeriesConstructor, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
 import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -27,6 +27,7 @@ export type SeriesOptions =
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
     defaultAxes?: object[];
+    tooltipDefaults?: SeriesTooltipDefaults;
     paletteFactory?: SeriesPaletteFactory;
     solo?: boolean;
     groupable?: boolean;
@@ -44,6 +45,7 @@ export class SeriesRegistry {
         {
             chartTypes: [chartType],
             instanceConstructor,
+            tooltipDefaults,
             defaultAxes,
             themeTemplate,
             enterpriseThemeTemplate,
@@ -59,6 +61,7 @@ export class SeriesRegistry {
         this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
         this.seriesMap.set(seriesType, {
             instanceConstructor,
+            tooltipDefaults,
             defaultAxes,
             paletteFactory,
             solo,
@@ -101,6 +104,10 @@ export class SeriesRegistry {
 
     getPaletteFactory(seriesType: SeriesType) {
         return this.seriesMap.get(seriesType)?.paletteFactory;
+    }
+
+    getTooltipDefauls(seriesType: SeriesType) {
+        return this.seriesMap.get(seriesType)?.tooltipDefaults;
     }
 
     isSolo(seriesType: SeriesType) {

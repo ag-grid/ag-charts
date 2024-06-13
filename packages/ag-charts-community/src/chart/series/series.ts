@@ -4,7 +4,6 @@ import type {
     AgSeriesMarkerFormatterParams,
     AgSeriesMarkerStyle,
     ISeriesMarker,
-    InteractionRange,
 } from 'ag-charts-types';
 
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
@@ -268,7 +267,6 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
-    defaultTooltipRange: InteractionRange;
 };
 
 export abstract class Series<
@@ -303,9 +301,6 @@ export abstract class Series<
     }
 
     readonly canHaveAxes: boolean;
-
-    // This property is used to keep backward compatibility with the old global `tooltip.range` option.
-    readonly defaultTooltipRange: InteractionRange;
 
     get type(): SeriesType {
         return (this.constructor as any).type ?? '';
@@ -422,14 +417,12 @@ export abstract class Series<
             directionNames = {},
             contentGroupVirtual = true,
             canHaveAxes = false,
-            defaultTooltipRange,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
-        this.defaultTooltipRange = defaultTooltipRange;
 
         this.contentGroup = this.rootGroup.appendChild(
             new Group({

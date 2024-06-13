@@ -434,6 +434,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -472,6 +475,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -510,6 +516,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -548,6 +557,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -584,6 +596,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -621,6 +634,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -671,6 +685,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -709,6 +726,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -747,6 +767,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -785,6 +808,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -821,6 +847,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -858,6 +885,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -908,6 +936,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -946,6 +977,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -984,6 +1018,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1022,6 +1059,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1058,6 +1098,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -1095,6 +1136,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,

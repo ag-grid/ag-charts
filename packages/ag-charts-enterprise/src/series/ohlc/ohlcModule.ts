@@ -10,6 +10,7 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
 
     identifier: 'ohlc',
     instanceConstructor: OhlcSeries,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,

@@ -115,7 +115,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 x: ['xName'],
                 y: ['yLowName', 'yHighName', 'yName'],
             },
-            defaultTooltipRange: 'exact',
             datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,

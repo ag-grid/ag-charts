@@ -12,6 +12,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
 
     identifier: 'sunburst',
     instanceConstructor: SunburstSeries,
+    tooltipDefaults: { range: 'exact' },
     solo: true,
     themeTemplate: {
         series: {
