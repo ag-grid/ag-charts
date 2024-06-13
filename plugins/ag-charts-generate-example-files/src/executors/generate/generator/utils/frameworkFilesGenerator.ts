@@ -55,10 +55,10 @@ const createVueFilesGenerator =
         sourceGenerator: (bindings: any, componentFilenames: string[]) => Promise<string>;
         internalFramework: InternalFramework;
     }): ConfigGenerator =>
-    async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
+    async ({ typedBindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let mainJs = await sourceGenerator(deepCloneObject(bindings), []);
+        let mainJs = await sourceGenerator(deepCloneObject(typedBindings), []);
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
@@ -170,13 +170,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
+    reactFunctional: async ({ typedBindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let indexJsx = await vanillaToReactFunctional(deepCloneObject(bindings), []);
+        let indexJsx = await vanillaToReactFunctional(deepCloneObject(typedBindings), []);
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
