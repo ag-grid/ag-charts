@@ -121,7 +121,7 @@ export abstract class PolarSeries<
             canHaveAxes,
         });
 
-        this.showFocusBox = false;
+        this.showFocusBox = true; // TODO(olegat) remove
         this.itemGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 

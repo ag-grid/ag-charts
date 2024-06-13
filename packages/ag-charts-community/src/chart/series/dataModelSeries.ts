@@ -1,6 +1,7 @@
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
+import type { Path } from '../../scene/shape/path';
 import { clamp } from '../../util/number';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
@@ -73,6 +74,10 @@ export abstract class DataModelSeries<
         }
     }
 
+    protected computeFocusPath(_opts: PickFocusInputs): Path | undefined {
+        return undefined;
+    }
+
     protected abstract computeFocusBounds(opts: PickFocusInputs): BBox | undefined;
 
     public abstract getNodeData(): TDatum[] | undefined;
@@ -90,7 +95,8 @@ export abstract class DataModelSeries<
 
         const { showFocusBox } = this;
         const datum = nodeData[datumIndex];
-        const bbox = this.computeFocusBounds({ ...opts, datumIndex });
+        const derivedOpts = { ...opts, datumIndex };
+        const bbox = this.computeFocusPath(derivedOpts) ?? this.computeFocusBounds(derivedOpts);
         if (bbox !== undefined) {
             return { bbox, showFocusBox, datum, datumIndex };
         }

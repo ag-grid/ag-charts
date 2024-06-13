@@ -1,3 +1,4 @@
+import type { Path } from '../../scene/shape/path';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { getDocument } from '../../util/dom';
 import type { DOMManager } from './domManager';
@@ -22,6 +23,13 @@ export class FocusIndicator {
         this.domManager.removeChild('canvas-overlay', focusStyles.block);
     }
 
+    public updatePath(path: Path | undefined) {
+        if (path == null) {
+            return this.hideSVG();
+        }
+        this.redrawSVG(this.createPath(path));
+    }
+
     public updateBBox(rect: BBoxValues | undefined) {
         if (rect == null) {
             return this.hideSVG();
@@ -39,8 +47,14 @@ export class FocusIndicator {
         this.svg.append(element);
     }
 
+    private createPath(scenePath: Path) {
+        const path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', scenePath.computeSVGDataPath());
+        return path;
+    }
+
     private createRect(bbox: BBoxValues) {
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const rect = getDocument().createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('x', bbox.x.toString());
         rect.setAttribute('y', bbox.y.toString());
         rect.setAttribute('width', bbox.width.toString());

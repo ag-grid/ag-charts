@@ -3,12 +3,12 @@ import type { AgPieSeriesFormat } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
-import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
+import { Path } from '../../../scene/shape/path';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
@@ -1399,7 +1399,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
     }
 
-    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeSectorSeriesFocusBounds(this, opts);
+    protected override computeFocusPath(opts: PickFocusInputs): Path | undefined {
+        const datum = this.getNodeData()?.[opts.datumIndex];
+        if (datum !== undefined) {
+            return this.itemSelection.select((node): node is Sector => node.datum === datum)[0];
+        }
+        return undefined;
+    }
+
+    protected override computeFocusBounds(): undefined {
+        return undefined;
     }
 }
