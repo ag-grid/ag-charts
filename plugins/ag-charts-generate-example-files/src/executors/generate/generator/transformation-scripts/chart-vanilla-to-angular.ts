@@ -50,10 +50,7 @@ function getComponentMetadata(bindings: any, property: any) {
 }
 
 function getAngularTag(bindings: any, attributes: string[]) {
-    let tag = 'ag-charts';
-    if (bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions') {
-        tag = 'ag-financial-charts';
-    }
+    const tag = isFinancialCharts(bindings) ? 'ag-financial-charts' : 'ag-charts';
     return `<${tag}
         ${attributes.join(`
         `)}
