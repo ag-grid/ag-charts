@@ -31,10 +31,18 @@ export class RadiusCategoryAxis extends RadiusAxis {
     }
 
     protected getTickRadius(tickDatum: _ModuleSupport.TickDatum): number {
-        const { scale } = this;
+        const { scale, innerRadiusRatio } = this;
+
         const maxRadius = scale.range[0];
-        const minRadius = maxRadius * this.innerRadiusRatio;
-        const tickRange = (maxRadius - minRadius) / scale.domain.length;
-        return maxRadius - tickDatum.translationY + minRadius - tickRange / 2;
+        const minRadius = maxRadius * innerRadiusRatio;
+
+        if (scale instanceof BandScale) {
+            const ticks = scale.ticks();
+            const index = ticks.length - 1 - ticks.indexOf(tickDatum.tickId);
+            return index === 0 ? minRadius : scale.inset + scale.step * (index - 0.5) + scale.bandwidth / 2;
+        } else {
+            const tickRange = (maxRadius - minRadius) / scale.domain.length;
+            return maxRadius - tickDatum.translationY + minRadius - tickRange / 2;
+        }
     }
 }
