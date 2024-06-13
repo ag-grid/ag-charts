@@ -101,7 +101,7 @@ export const GALLERY_IMAGE_DPR_ENHANCEMENT = import.meta.env?.PUBLIC_GALLERY_IMA
 function getChartsUrl() {
     if (SITE_URL == null) return;
 
-    if (SITE_URL?.includes('localhost:4610')) {
+    if (SITE_URL?.includes('localhost:4600')) {
         return 'https://localhost:4600';
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://charts-staging.ag-grid.com';
