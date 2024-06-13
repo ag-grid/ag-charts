@@ -1,16 +1,20 @@
 import type { BBoxValues } from '../../util/bboxinterface';
-import { setElementBBox } from '../../util/dom';
+import { getDocument } from '../../util/dom';
 import type { DOMManager } from './domManager';
 import * as focusStyles from './focusStyles';
 
 export class FocusIndicator {
     private readonly element: HTMLElement;
+    private readonly svg: SVGSVGElement;
 
     constructor(private readonly domManager: DOMManager) {
         const { css, block, elements, modifiers } = focusStyles;
+        this.svg = getDocument().createElementNS('http://www.w3.org/2000/svg', 'svg');
+
         domManager.addStyles(block, css);
         this.element = domManager.addChild('canvas-overlay', block);
         this.element.classList.add(block, elements.indicator, modifiers.hidden);
+        this.element.append(this.svg);
     }
 
     public destroy() {
@@ -20,11 +24,27 @@ export class FocusIndicator {
 
     public updateBBox(rect: BBoxValues | undefined) {
         if (rect == null) {
-            this.element.classList.add(focusStyles.modifiers.hidden);
-            return;
+            return this.hideSVG();
         }
+        this.redrawSVG(this.createRect(rect));
+    }
 
+    private hideSVG() {
+        this.element.classList.add(focusStyles.modifiers.hidden);
+    }
+
+    private redrawSVG(element: Element) {
+        this.svg.innerHTML = '';
         this.element.classList.remove(focusStyles.modifiers.hidden);
-        setElementBBox(this.element, rect);
+        this.svg.append(element);
+    }
+
+    private createRect(bbox: BBoxValues) {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', bbox.x.toString());
+        rect.setAttribute('y', bbox.y.toString());
+        rect.setAttribute('width', bbox.width.toString());
+        rect.setAttribute('height', bbox.height.toString());
+        return rect;
     }
 }
