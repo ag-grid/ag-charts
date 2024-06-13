@@ -4,7 +4,7 @@ import type { FocusIndicator } from '../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
-import { type PreventableEvent, type Unpreventable, buildPreventable } from './preventableEvent';
+import { type Unpreventable, buildPreventable } from './preventableEvent';
 import type { RegionName } from './regions';
 
 const REGION_TAB_ORDERING: RegionName[] = ['series'];
