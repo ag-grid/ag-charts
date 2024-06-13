@@ -231,6 +231,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.guardedElement.tabIndex = tabIndex;
     }
 
+    getBrowserFocusDelta(): -1 | 0 | 1 {
+        return this.guardedElement?.getBrowserFocusDelta() ?? 0;
+    }
+
     addEventListener<K extends keyof HTMLElementEventMap>(
         type: K,
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
