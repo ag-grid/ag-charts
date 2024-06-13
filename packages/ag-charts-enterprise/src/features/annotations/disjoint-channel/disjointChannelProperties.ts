@@ -40,7 +40,6 @@ export class DisjointChannelAnnotation extends Annotation(
             bottom.start.y -= this.startHeight;
             bottom.end.y -= this.endHeight;
         } else {
-            // TODO
             _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 

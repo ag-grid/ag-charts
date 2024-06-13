@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationPoint } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';

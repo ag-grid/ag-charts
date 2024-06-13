@@ -131,13 +131,13 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
         for (const [index, invertedMove] of invertedMoves.entries()) {
             switch (moves[index]) {
                 case 'topLeft':
-                    datum.start.x = invertedMove!.x;
-                    datum.start.y = invertedMove!.y;
+                    datum.start.x = invertedMove.x;
+                    datum.start.y = invertedMove.y;
                     break;
 
                 case 'topRight':
-                    datum.end.x = invertedMove!.x;
-                    datum.end.y = invertedMove!.y;
+                    datum.end.x = invertedMove.x;
+                    datum.end.y = invertedMove.y;
                     break;
             }
         }

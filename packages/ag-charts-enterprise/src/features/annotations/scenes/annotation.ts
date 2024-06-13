@@ -12,8 +12,6 @@ export abstract class Annotation extends _Scene.Group {
     public abstract type: string;
     public abstract activeHandle?: string;
 
-    // TODO: stats
-
     abstract override containsPoint(x: number, y: number): boolean;
 
     public abstract toggleHandles(show: boolean | Record<string, boolean>): void;

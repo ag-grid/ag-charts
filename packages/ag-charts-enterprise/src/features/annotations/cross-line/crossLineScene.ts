@@ -194,11 +194,9 @@ export class CrossLine extends Annotation {
             const scaledValue = scaleConvert(datum.value);
             x1 = scaledValue;
             x2 = scaledValue;
-            y1 = 0;
             y2 = bounds.height;
         } else {
             const scaledValue = scaleConvert(datum.value);
-            x1 = 0;
             x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;
