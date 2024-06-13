@@ -14,10 +14,9 @@ type DOMElementConfig = {
     eventTypes?: string[];
 };
 
-const CANVAS_EVENT_TYPES = ['focus', 'blur', 'keydown', 'keyup'] as const;
 const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
-    ['canvas', { childElementType: 'canvas' }],
+    ['canvas', { childElementType: 'canvas', eventTypes: ['focus', 'blur'] }],
     ['canvas-overlay', { childElementType: 'div' }],
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
@@ -109,16 +108,15 @@ type LiveDOMElement = {
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
     private readonly element: HTMLElement;
-    private readonly canvasElement: HTMLCanvasElement;
     private container?: HTMLElement;
     private containerSize?: Size;
 
-    public readonly guardedElement: GuardedElement;
+    public guardedElement?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
 
-    constructor(container: HTMLElement | undefined, canvasElement: HTMLCanvasElement | undefined) {
+    constructor(container?: HTMLElement) {
         super();
 
         const templateEl = createElement('div');
@@ -155,14 +153,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (container) {
             this.setContainer(container);
         }
-
-        this.canvasElement = canvasElement ?? (this.addChild('canvas', 'scene-canvas') as HTMLCanvasElement);
-        const tabGuards = this.element.querySelectorAll('.ag-charts-tab-guard');
-        this.guardedElement = new GuardedElement(
-            this.rootElements.canvas.element,
-            tabGuards[0] as HTMLElement,
-            tabGuards[1] as HTMLElement
-        );
     }
 
     override destroy() {
@@ -178,7 +168,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             el.element.remove();
         });
 
-        this.guardedElement.destroy();
+        this.guardedElement?.destroy();
         this.element.remove();
     }
 
@@ -194,10 +184,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         centerStyle.width = `${this.containerSize?.width ?? 0}px`;
         centerStyle.height = `${this.containerSize?.height ?? 0}px`;
-    }
-
-    getCanvasElement() {
-        return this.canvasElement;
     }
 
     setContainer(newContainer: HTMLElement) {
@@ -231,7 +217,17 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
+    private createTabGuards(): GuardedElement {
+        const canvasElement = this.rootElements['canvas'].element.querySelector<HTMLCanvasElement>('canvas');
+        const tabGuards = this.element.querySelectorAll<HTMLElement>('.ag-charts-tab-guard');
+        if (canvasElement == null || tabGuards[0] == null || tabGuards[1] == null) {
+            throw new Error('AG Charts - error initialising canvas tab guards');
+        }
+        return new GuardedElement(canvasElement, tabGuards[0], tabGuards[1]);
+    }
+
     setTabIndex(tabIndex: number) {
+        this.guardedElement ??= this.createTabGuards();
         this.guardedElement.tabIndex = tabIndex;
     }
 
@@ -240,16 +236,17 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions
     ) {
-        const canvasEvents: readonly string[] = CANVAS_EVENT_TYPES;
-        if (canvasEvents.includes(type)) {
-            const els = this.rootElements['canvas'];
+        this.element.addEventListener(type, listener, options);
+
+        domElementConfig.forEach((config, elType) => {
+            if (!config.eventTypes?.includes(type)) return;
+
+            const els = this.rootElements[elType];
             els.listeners.push([type, listener, options]);
             els.children.forEach((el) => {
                 el.addEventListener(type, listener);
             });
-        } else {
-            this.element.addEventListener(type, listener, options);
-        }
+        });
     }
 
     removeEventListener<K extends keyof HTMLElementEventMap>(
@@ -257,16 +254,17 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | EventListenerOptions
     ) {
-        const canvasEvents: readonly string[] = CANVAS_EVENT_TYPES;
-        if (canvasEvents.includes(type)) {
-            const els = this.rootElements['canvas'];
+        this.element.removeEventListener(type, listener, options);
+
+        domElementConfig.forEach((config, elType) => {
+            if (!config.eventTypes?.includes(type)) return;
+
+            const els = this.rootElements[elType];
             els.listeners = els.listeners.filter(([t, l]) => t !== type && l !== listener);
             els.children.forEach((el) => {
                 el.removeEventListener(type, listener, options);
             });
-        } else {
-            this.element.removeEventListener(type, listener, options);
-        }
+        });
     }
 
     getBoundingClientRect() {

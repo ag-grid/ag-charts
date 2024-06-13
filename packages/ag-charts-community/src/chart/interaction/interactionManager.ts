@@ -142,6 +142,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private readonly debug = Debug.create(true, 'interaction');
 
     private rootElement: HTMLElement;
+
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
     private mouseDown = false;

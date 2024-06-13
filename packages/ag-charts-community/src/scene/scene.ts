@@ -7,6 +7,18 @@ import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
 import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
 
+type DOMManagerLike = {
+    addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
+};
+
+interface SceneOptions {
+    width?: number;
+    height?: number;
+    pixelRatio?: number;
+    canvasPosition?: 'absolute';
+    domManager?: DOMManagerLike;
+}
+
 export class Scene {
     static readonly className = 'Scene';
 
@@ -20,8 +32,20 @@ export class Scene {
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
 
-    constructor(canvasOptions: CanvasOptions) {
-        this.canvas = new HdpiCanvas(canvasOptions);
+    private domManager?: DOMManagerLike;
+
+    constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
+        this.domManager = domManager;
+
+        const canvasOpts: CanvasOptions = {
+            width,
+            height,
+            pixelRatio,
+        };
+        if (domManager) {
+            canvasOpts.canvasConstructor = () => domManager.addChild('canvas', 'scene-canvas') as HTMLCanvasElement;
+        }
+        this.canvas = new HdpiCanvas(canvasOpts);
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });
@@ -35,10 +59,18 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
-    // Do not use. This is called by ag-grid's sparklines.
-    setContainer(container: HTMLElement) {
-        this.canvas.element.remove();
-        container.appendChild(this.canvas.element);
+    setContainer(value: HTMLElement | DOMManagerLike) {
+        const isElement = (v: unknown): v is HTMLElement => {
+            return typeof (v as any).tagName !== 'undefined';
+        };
+        if (isElement(value)) {
+            const { element } = this.canvas;
+            element.parentElement?.removeChild(element);
+            value.appendChild(element);
+        } else {
+            this.domManager = value;
+            this.domManager.addChild('canvas', 'scene-canvas', this.canvas.element);
+        }
         return this;
     }
 
