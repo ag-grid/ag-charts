@@ -1,11 +1,11 @@
 import type {
     AgAxisLabelFormatterParams,
     AgBarSeriesFormatterParams,
+    AgCandlestickVolumePreset,
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
     AgCrosshairLabelRendererParams,
     AgSeriesTooltip,
-    CandlestickVolumePreset,
 } from 'ag-charts-types';
 
 function dateFormat(dateString: string, format: string) {
@@ -36,14 +36,16 @@ const tooltipOptions: AgSeriesTooltip<any> = {
     },
 };
 
-export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartesianChartOptions {
+export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCartesianChartOptions {
     const {
+        type: _type,
         xKey = 'date',
         highKey = 'high',
         openKey = 'open',
         lowKey = 'low',
         closeKey = 'close',
         volumeKey = 'volume',
+        ...unusedOpts
     } = opts;
     return {
         zoom: {
@@ -154,5 +156,6 @@ export function candlestickVolumePreset(opts: CandlestickVolumePreset): AgCartes
         annotations: {
             enabled: true,
         },
+        ...unusedOpts,
     };
 }
