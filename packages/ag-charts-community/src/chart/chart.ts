@@ -410,8 +410,9 @@ export abstract class Chart extends Observable {
         });
     }
 
-    getDatumAriaText(_datum: SeriesNodeDatum, html: TooltipContent): string {
-        return html.ariaLabel;
+    private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
+        const description = html.ariaLabel;
+        return datum.series.getDatumAriaText?.(datum, description) ?? description;
     }
 
     resetAnimations() {

@@ -483,4 +483,19 @@ export abstract class FlowProportionSeries<
 
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
+
+    getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
+        if (datum.type === FlowProportionDatumType.Link) {
+            return this.ctx.localeManager.t('ariaAnnounceFlowProportionLink', {
+                from: datum.fromNode.id,
+                to: datum.toNode.id,
+                size: datum.size,
+                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+            });
+        } else if (datum.type === FlowProportionDatumType.Node) {
+            return this.ctx.localeManager.t('ariaAnnounceFlowProportionNode', {
+                description,
+            });
+        }
+    }
 }
