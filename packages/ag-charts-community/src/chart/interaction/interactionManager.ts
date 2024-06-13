@@ -6,7 +6,7 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
+import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -459,7 +459,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-    }): Omit<PointerInteractionEvent<PointerInteractionTypes>, 'preventDefault'> {
+    }): Unpreventable<PointerInteractionEvent<PointerInteractionTypes>> {
         const { type, event, clientX, clientY } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 

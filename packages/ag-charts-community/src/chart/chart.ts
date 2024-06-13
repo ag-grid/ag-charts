@@ -1404,6 +1404,7 @@ export abstract class Chart extends Observable {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
+            return;
         }
         this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent });
     }
@@ -1412,6 +1413,7 @@ export abstract class Chart extends Observable {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
+            return;
         }
         this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent });
     }
