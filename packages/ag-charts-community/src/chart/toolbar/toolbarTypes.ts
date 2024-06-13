@@ -22,6 +22,7 @@ export function isAnimatingFloatingPosition(
 }
 
 export interface ToolbarButton {
+    section?: string;
     icon?: string;
     label?: string;
     tooltip?: string;

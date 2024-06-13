@@ -3,6 +3,7 @@ import { ToolbarPosition } from './toolbarTypes';
 export const block = 'ag-charts-toolbar';
 export const elements = {
     align: 'ag-charts-toolbar__align',
+    section: 'ag-charts-toolbar__section',
     button: 'ag-charts-toolbar__button',
     icon: 'ag-charts-toolbar__icon',
     label: 'ag-charts-toolbar__label',

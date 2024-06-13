@@ -223,9 +223,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        this.reset();
-
         if (!ToolbarManager.isGroup('annotations', event)) {
+            this.reset();
+            this.update();
+            return;
+        }
+
+        if (event.value === 'clear') {
+            this.clear();
             this.update();
             return;
         }
@@ -243,6 +248,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
         state.transition(annotation);
 
+        this.reset();
         this.update();
     }
 
@@ -764,7 +770,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private clear() {
-        this.annotations.clear();
+        this.annotationData?.splice(0, this.annotationData?.length);
         this.reset();
     }
 

@@ -26,6 +26,8 @@ export type AgToolbarGroupPosition =
     | 'floating-bottom';
 
 export interface AgToolbarButton {
+    /** Section in which to group the button. */
+    section?: string;
     /** Icon to display on the button. */
     icon?: AgIconName;
     /** Text label to display on the button. */
@@ -44,6 +46,7 @@ type IconNameAnnotation =
     | 'color'
     | 'delete'
     | 'lock'
+    | 'reset'
     | 'unlock';
 type IconNameZoom = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset' | 'zoom-in' | 'zoom-out';
 
@@ -53,11 +56,12 @@ export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
 }
 
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
-    /** An annotation type. */
+    section?: 'create' | 'tools';
+    /** An annotation type or action. */
     value: AgToolbarAnnotationsButtonValue;
 }
 
-export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel' | 'disjoint-channel';
+export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel' | 'disjoint-channel' | 'clear';
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {

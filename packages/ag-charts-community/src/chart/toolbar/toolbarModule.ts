@@ -16,16 +16,25 @@ const annotations: AgToolbarOptions['annotations'] = {
             icon: 'trend-line',
             tooltip: 'toolbarAnnotationsTrendLine',
             value: 'line',
+            section: 'create',
         },
         {
             icon: 'parallel-channel',
             tooltip: 'toolbarAnnotationsParallelChannel',
             value: 'parallel-channel',
+            section: 'create',
         },
         {
             icon: 'disjoint-channel',
             tooltip: 'toolbarAnnotationsDisjointChannel',
             value: 'disjoint-channel',
+            section: 'create',
+        },
+        {
+            icon: 'reset',
+            tooltip: 'toolbarAnnotationsClearAll',
+            value: 'clear',
+            section: 'tools',
         },
     ],
 };
