@@ -20,7 +20,7 @@ const DATA_UK_LABOUR_MARKET_FEB_2020 = [
 @Component({
     selector: `host-component`,
     standalone: true,
-    template: ` <ag-charts-angular [options]="options"></ag-charts-angular>`,
+    template: ` <ag-charts [options]="options"></ag-charts>`,
 })
 class TestHostComponent {
     options: AgChartOptions = {
