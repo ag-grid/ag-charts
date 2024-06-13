@@ -6,6 +6,13 @@ import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 // Work-around for typing issues with Angular 13+ (see AG-6969),
 type OffscreenCanvasRenderingContext2D = any;
 
+export interface CanvasOptions {
+    width?: number;
+    height?: number;
+    pixelRatio?: number;
+    canvasElement?: HTMLCanvasElement;
+}
+
 /**
  * Wraps the native Canvas element and overrides its CanvasRenderingContext2D to
  * provide resolution independent rendering based on `window.devicePixelRatio`.
@@ -25,13 +32,11 @@ export class HdpiCanvas {
     height: number = 300;
     pixelRatio: number;
 
-    constructor(options: { width?: number; height?: number; pixelRatio?: number }) {
-        const { width, height, pixelRatio } = options;
-
+    constructor({ width, height, pixelRatio, canvasElement }: CanvasOptions) {
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
-        this.element = createElement('canvas');
+        this.element = canvasElement ?? createElement('canvas');
         // Safari needs a width and height set before calling getContext or the output can appear blurry
         // Must also be `display: block` so the height doesn't get increased by `inline-block` layout
         this.element.style.display = 'block';

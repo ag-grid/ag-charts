@@ -88,7 +88,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         if (this.isClicking) {
             this.isMouseBlurred = true;
         } else {
-            const delta = this.domManager.guardedElement?.getBrowserFocusDelta() ?? 0;
+            const delta = this.domManager.guardedElement.getBrowserFocusDelta() ?? 0;
             this.dispatch('browserfocus', delta, event);
             this.dispatch('tab', delta, event);
         }

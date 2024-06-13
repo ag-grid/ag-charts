@@ -1,18 +1,11 @@
 import { Debug } from '../util/debug';
 import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
-import { HdpiCanvas } from './canvas/hdpiCanvas';
+import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
 import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
-
-interface SceneOptions {
-    width?: number;
-    height?: number;
-    pixelRatio?: number;
-    canvasPosition?: 'absolute';
-}
 
 export class Scene {
     static readonly className = 'Scene';
@@ -27,13 +20,8 @@ export class Scene {
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
 
-    constructor({ width, height, pixelRatio }: SceneOptions) {
-        this.canvas = new HdpiCanvas({
-            width,
-            height,
-            pixelRatio,
-        });
-
+    constructor(canvasOptions: CanvasOptions) {
+        this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });
@@ -47,6 +35,7 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
+    // Do not use. This is called by ag-grid's sparklines.
     setContainer(container: HTMLElement) {
         this.canvas.element.remove();
         container.appendChild(this.canvas.element);

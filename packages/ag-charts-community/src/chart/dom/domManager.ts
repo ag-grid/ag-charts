@@ -109,15 +109,16 @@ type LiveDOMElement = {
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
     private readonly element: HTMLElement;
+    private readonly canvasElement: HTMLCanvasElement;
     private container?: HTMLElement;
     private containerSize?: Size;
 
-    public guardedElement?: GuardedElement;
+    public readonly guardedElement: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
 
-    constructor(container?: HTMLElement) {
+    constructor(container: HTMLElement | undefined, canvasElement: HTMLCanvasElement | undefined) {
         super();
 
         const templateEl = createElement('div');
@@ -154,6 +155,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (container) {
             this.setContainer(container);
         }
+
+        this.canvasElement = canvasElement ?? (this.addChild('canvas', 'scene-canvas') as HTMLCanvasElement);
+        const tabGuards = this.element.querySelectorAll('.ag-charts-tab-guard');
+        this.guardedElement = new GuardedElement(
+            this.rootElements.canvas.element,
+            tabGuards[0] as HTMLElement,
+            tabGuards[1] as HTMLElement
+        );
     }
 
     override destroy() {
@@ -169,7 +178,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             el.element.remove();
         });
 
-        this.guardedElement?.destroy();
+        this.guardedElement.destroy();
         this.element.remove();
     }
 
@@ -185,6 +194,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         centerStyle.width = `${this.containerSize?.width ?? 0}px`;
         centerStyle.height = `${this.containerSize?.height ?? 0}px`;
+    }
+
+    getCanvasElement() {
+        return this.canvasElement;
     }
 
     setContainer(newContainer: HTMLElement) {
@@ -218,18 +231,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
-    private createTabGuards(): GuardedElement {
-        const canvasElement = this.rootElements['canvas'].element.children[0];
-        const tabGuards = this.element.querySelectorAll('.ag-charts-tab-guard');
-        return new GuardedElement(
-            canvasElement as HTMLCanvasElement,
-            tabGuards[0] as HTMLElement,
-            tabGuards[1] as HTMLElement
-        );
-    }
-
     setTabIndex(tabIndex: number) {
-        this.guardedElement ??= this.createTabGuards();
         this.guardedElement.tabIndex = tabIndex;
     }
 

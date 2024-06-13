@@ -76,15 +76,15 @@ export class ChartContext implements ModuleContext {
         }
     ) {
         const { scene, root, syncManager, container, updateCallback, updateMutex, overrideDevicePixelRatio } = vars;
+
+        const transferredCanvasElement: HTMLCanvasElement | undefined = scene?.canvas.element;
         this.chartService = chart;
         this.syncManager = syncManager;
         this.zoomManager = chart.zoomManager;
-        this.domManager = new DOMManager(container);
+        this.domManager = new DOMManager(container, transferredCanvasElement);
 
-        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
-        const parent = this.domManager.addChild('canvas', 'scene-canvas', this.scene.canvas.element).parentElement;
-        if (!parent) throw new Error('AG Charts - error get canvas parent');
-        this.scene.setContainer(parent);
+        const canvasElement: HTMLCanvasElement = this.domManager.getCanvasElement();
+        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, canvasElement });
         this.scene.setRoot(root);
 
         this.axisManager = new AxisManager(root);
