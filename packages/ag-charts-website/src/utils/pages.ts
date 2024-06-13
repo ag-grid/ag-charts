@@ -46,7 +46,7 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 
     'ag-charts-thumbnails/**': 'dist/generated-thumbnails/ag-charts-website/gallery/_examples/**/*.{png,webp}',
 
-    'en.ts': 'packages/ag-charts-community/src/chart/locale/en.ts',
+    'en.ts': 'packages/ag-charts-community/src/locales/en.ts',
 };
 
 /**
