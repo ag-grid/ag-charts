@@ -7,5 +7,5 @@ export const PRESETS: { [K in Preset['type']]: (p: Preset & { type: K }) => AgCh
 };
 
 export function isAgFinancialChartOptions(x: any): x is AgFinancialChartOptions {
-    return x.type != null && Object.keys(PRESETS).includes(x.type);
+    return x.type != null && PRESETS[x.type] != null;
 }
