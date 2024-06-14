@@ -343,7 +343,7 @@ export function getTypes(node: ts.Node) {
     return typesToInclude;
 }
 
-const CHART_API_EXPRESSIONS = [/AgCharts.(?!create)/, /chart.(?!(update))/];
+const CHART_API_EXPRESSIONS = [/AgCharts\.(?!create|createFinancialChart)/, /chart\.(?!update)/];
 export function usesChartApi(node: ts.Node) {
     if (ts.isCallExpression(node)) {
         const nodeText = node.getText();
