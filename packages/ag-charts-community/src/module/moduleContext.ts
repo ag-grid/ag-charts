@@ -23,6 +23,7 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { LocaleManager } from '../chart/locale/localeManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
+import type { KeyNavManager } from '../module-support';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
@@ -49,6 +50,7 @@ export interface ModuleContext {
     readonly focusIndicator: FocusIndicator;
     readonly highlightManager: HighlightManager;
     readonly interactionManager: InteractionManager;
+    readonly keyNavManager: KeyNavManager;
     readonly localeManager: LocaleManager;
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;

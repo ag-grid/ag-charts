@@ -2,17 +2,16 @@ import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
-import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';
 import type { RegionBBoxProvider, RegionName } from './regions';
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & { region: RegionName } } & {
-    [K in KeyNavEventType]: KeyNavEvent<K> & { region: RegionName };
+export type RegionEvent<K extends PointerInteractionTypes = PointerInteractionTypes> = PointerInteractionEvent<K> & {
+    region: RegionName;
+    bboxProviderId?: string;
 };
-
-export type RegionEvent = (PointerInteractionEvent | KeyNavEvent) & { region: RegionName; bboxProviderId?: string };
+type TypeInfo = { [K in PointerInteractionTypes]: RegionEvent<K> };
 type RegionHandler = (event: RegionEvent) => void;
 
 class RegionListeners extends Listeners<RegionEvent['type'], RegionHandler> {}
@@ -56,21 +55,12 @@ export class RegionManager {
 
     constructor(
         private readonly interactionManager: InteractionManager,
-        private readonly keyNavManager: KeyNavManager,
         private readonly focusIndicator: FocusIndicator
     ) {
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
-            ),
-            this.keyNavManager.addListener('blur', this.onNav.bind(this)),
-            this.keyNavManager.addListener('focus', this.onNav.bind(this)),
-            this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
-            this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
-            this.keyNavManager.addListener('nav-zoom', this.onNav.bind(this)),
-            this.keyNavManager.addListener('submit', this.onNav.bind(this)),
-            this.keyNavManager.addListener('cancel', this.onNav.bind(this)),
-            this.keyNavManager.addListener('delete', this.onNav.bind(this))
+            )
         );
     }
 
@@ -148,7 +138,7 @@ export class RegionManager {
     // Create and dispatch a copy of the InteractionEvent.
     private dispatch(
         region: Region | undefined,
-        partialEvent: Unpreventable<PointerInteractionEvent> | Unpreventable<KeyNavEvent>,
+        partialEvent: Unpreventable<PointerInteractionEvent>,
         bboxProviderId?: string
     ) {
         if (region == null) return;
@@ -253,10 +243,5 @@ export class RegionManager {
             }
         }
         return { region: currentRegion, bboxProviderId: currentBBoxProviderId };
-    }
-
-    private onNav(event: KeyNavEvent<KeyNavEventType>) {
-        const focusedRegion = this.regions.get('series');
-        this.dispatch(focusedRegion, event);
     }
 }

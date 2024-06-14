@@ -6,7 +6,6 @@ import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
-import { REGIONS } from '../interaction/regions';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
@@ -39,15 +38,14 @@ export class SeriesAreaFocusManager extends BaseManager {
     ) {
         super();
 
-        const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
         this.destroyFns.push(
             this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
-            seriesRegion.addListener('blur', () => this.onBlur()),
-            seriesRegion.addListener('focus', (event) => this.onFocus(event)),
-            seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
-            seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
-            seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
+            this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
+            this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
+            this.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
+            this.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
+            this.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
             this.ctx.zoomManager.addListener('zoom-change', () => {
                 this.ctx.focusIndicator.updateBounds(undefined);
             })

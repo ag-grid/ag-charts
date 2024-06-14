@@ -419,8 +419,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
-            seriesRegion.addListener('delete', this.onDelete.bind(this), All),
+            ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this)),
+            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this)),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsState),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
