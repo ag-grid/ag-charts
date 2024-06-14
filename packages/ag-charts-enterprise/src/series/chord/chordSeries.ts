@@ -20,7 +20,6 @@ const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger }
 const { Sector, Text, BBox, sectorBox } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
-    size: number;
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -120,7 +119,6 @@ export class ChordSeries extends FlowProportionSeries<
                 return {
                     ...node,
                     label,
-                    size: 0,
                     centerX,
                     centerY,
                     innerRadius: NaN,
@@ -139,18 +137,17 @@ export class ChordSeries extends FlowProportionSeries<
                 startAngle2: NaN,
                 endAngle2: NaN,
             }),
-            { includeCircularReferences: true }
+            {
+                includeCircularReferences: true,
+                nodeSizeMode: 'sum',
+            }
         );
 
         let totalSize = 0;
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }, id) => {
-            const size =
-                linksBefore.reduce((acc, { link }) => acc + link.size, 0) +
-                linksAfter.reduce((acc, { link }) => acc + link.size, 0);
-            if (size === 0) {
+        nodeGraph.forEach(({ datum: node }, id) => {
+            if (node.size === 0) {
                 nodeGraph.delete(id);
             } else {
-                node.size = size;
                 totalSize += node.size;
             }
         });

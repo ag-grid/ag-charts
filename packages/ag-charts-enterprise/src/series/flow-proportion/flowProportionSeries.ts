@@ -24,6 +24,9 @@ export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum 
     type: FlowProportionDatumType.Node;
     index: number;
     id: string;
+    linksIn: number;
+    linksOut: number;
+    size: number;
     label: string | undefined;
     fill: string;
     stroke: string;
@@ -156,11 +159,11 @@ export abstract class FlowProportionSeries<
         this.nodesProcessedData = nodesDataModel?.processedData;
 
         const { fills, strokes } = this.properties;
+        const fromIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'fromValue');
+        const toIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'toValue');
+
         const processedNodes = new Map<string, FlowProportionNodeDatum>();
         if (nodesDataModel == null) {
-            const fromIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'fromValue');
-            const toIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'toValue');
-
             const createImplicitNode = (id: string): FlowProportionNodeDatum => {
                 const index = processedNodes.size;
                 const label = id;
@@ -174,6 +177,9 @@ export abstract class FlowProportionSeries<
                     type: FlowProportionDatumType.Node,
                     index,
                     id,
+                    size: 0,
+                    linksIn: 0,
+                    linksOut: 0,
                     label,
                     fill,
                     stroke,
@@ -185,13 +191,19 @@ export abstract class FlowProportionSeries<
                 const toId: string | undefined = values[toIdIdx];
                 if (fromId == null || toId == null) return;
 
-                if (!processedNodes.has(fromId)) {
-                    processedNodes.set(fromId, createImplicitNode(fromId));
+                let fromNode = processedNodes.get(fromId);
+                if (fromNode == null) {
+                    fromNode = createImplicitNode(fromId);
+                    processedNodes.set(fromId, fromNode);
                 }
+                fromNode.linksOut += 1;
 
-                if (!processedNodes.has(toId)) {
-                    processedNodes.set(toId, createImplicitNode(toId));
+                let toNode = processedNodes.get(toId);
+                if (toNode == null) {
+                    toNode = createImplicitNode(toId);
+                    processedNodes.set(toId, toNode);
                 }
+                toNode.linksIn += 1;
             });
         } else {
             const nodeIdIdx = nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'idValue');
@@ -208,6 +220,10 @@ export abstract class FlowProportionSeries<
                 const fill = fills[index % fills.length];
                 const stroke = strokes[index % strokes.length];
 
+                const linksOut = 0;
+                const linksIn = 0;
+                const size = 0;
+
                 processedNodes.set(id, {
                     series: this,
                     itemId: undefined,
@@ -215,10 +231,29 @@ export abstract class FlowProportionSeries<
                     type: FlowProportionDatumType.Node,
                     index,
                     id,
+                    size,
+                    linksOut,
+                    linksIn,
                     label,
                     fill,
                     stroke,
                 });
+            });
+
+            linksDataModel.processedData.data.forEach(({ values }) => {
+                const fromId: string | undefined = values[fromIdIdx];
+                const toId: string | undefined = values[toIdIdx];
+                if (fromId == null || toId == null) return;
+
+                const fromNode = processedNodes.get(fromId);
+                if (fromNode != null) {
+                    fromNode.linksOut += 1;
+                }
+
+                const toNode = processedNodes.get(toId);
+                if (toNode != null) {
+                    toNode.linksIn += 1;
+                }
             });
         }
 
@@ -228,7 +263,7 @@ export abstract class FlowProportionSeries<
     protected getNodeGraph(
         createNode: (node: FlowProportionNodeDatum) => TNodeDatum,
         createLink: (link: FlowProportionLinkDatum<TNodeDatum>) => TLinkDatum,
-        { includeCircularReferences }: { includeCircularReferences: boolean }
+        { includeCircularReferences, nodeSizeMode }: { includeCircularReferences: boolean; nodeSizeMode: 'max' | 'sum' }
     ) {
         const { dataModel: linksDataModel, processedData: linksProcessedData } = this;
 
@@ -283,6 +318,20 @@ export abstract class FlowProportionSeries<
             baseLinks,
             includeCircularReferences
         );
+
+        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+            const numLinksBefore = linksBefore.reduce((acc, { link }) => acc + link.size, 0);
+            const numLinksAfter = linksAfter.reduce((acc, { link }) => acc + link.size, 0);
+
+            switch (nodeSizeMode) {
+                case 'sum':
+                    node.size = numLinksBefore + numLinksAfter;
+                    break;
+                case 'max':
+                    node.size = Math.max(numLinksBefore, numLinksAfter);
+                    break;
+            }
+        });
 
         this.nodeCount = nodeGraph.size;
         this.linkCount = links.length;
@@ -486,7 +535,7 @@ export abstract class FlowProportionSeries<
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
-    getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
+    getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>) {
         if (datum.type === FlowProportionDatumType.Link) {
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionLink', {
                 index: datum.index + 1,
@@ -500,7 +549,10 @@ export abstract class FlowProportionSeries<
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionNode', {
                 index: datum.index + 1,
                 count: this.nodeCount,
-                description,
+                size: datum.size,
+                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+                linksIn: datum.linksIn,
+                linksOut: datum.linksOut,
             });
         }
     }

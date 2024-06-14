@@ -35,7 +35,6 @@ const { Label } = _Scene;
 const ALIGNMENT = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum {
-    size: number;
     x: number;
     y: number;
     width: number;

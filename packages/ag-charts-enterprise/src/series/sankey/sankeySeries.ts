@@ -94,7 +94,6 @@ export class SankeySeries extends FlowProportionSeries<
                 return {
                     ...node,
                     label,
-                    size: 0,
                     x: NaN,
                     y: NaN,
                     width: nodeWidth,
@@ -109,7 +108,7 @@ export class SankeySeries extends FlowProportionSeries<
                 y2: NaN,
                 height: NaN,
             }),
-            { includeCircularReferences: false }
+            { includeCircularReferences: false, nodeSizeMode: 'max' }
         );
         type EnhancedNodeGraphEntry = NodeGraphEntry<SankeyNodeDatum, SankeyLinkDatum> & {
             columnIndex: number;
@@ -131,12 +130,8 @@ export class SankeySeries extends FlowProportionSeries<
 
         nodeGraph.forEach((graphNode) => {
             const { datum: node, linksBefore, linksAfter, maxPathLengthBefore, maxPathLengthAfter } = graphNode;
-            const size = Math.max(
-                linksBefore.reduce((acc, { link }) => acc + link.size, 0),
-                linksAfter.reduce((acc, { link }) => acc + link.size, 0)
-            );
 
-            if ((linksBefore.length === 0 && linksAfter.length === 0) || size === 0) {
+            if ((linksBefore.length === 0 && linksAfter.length === 0) || node.size === 0) {
                 graphNode.columnIndex = -1;
                 return;
             }
@@ -172,9 +167,8 @@ export class SankeySeries extends FlowProportionSeries<
             }
 
             node.x = column.x;
-            node.size = size;
             column.nodes.push(graphNode);
-            column.size += size;
+            column.size += node.size;
 
             graphNode.columnIndex = column.index;
         });

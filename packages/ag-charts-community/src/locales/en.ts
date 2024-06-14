@@ -10,9 +10,10 @@ export const AG_CHARTS_LOCALE_EN: Record<string, string> = {
     // Screen reader announcement when focusing an item in a treemap or sunburst chart
     ariaAnnounceHierarchyDatum: 'level ${level}[number], ${count}[number] children, ${description}',
     // Screen reader announcement when focusing a link in a Sankey or chord chart
-    ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}',
+    ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, ${from} to ${to}, ${sizeName} ${size}',
     // Screen reader announcement when focusing a node in a Sankey or chord chart
-    ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
+    ariaAnnounceFlowProportionNode:
+        'node ${index} of ${count}, ${sizeName} ${size}, ${linksOut} links start at this node, ${linksIn} links end at this node',
     // Screen reader text for the legend button
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button
