@@ -72,9 +72,9 @@ export interface AgContinuousAxisOptions<
 }
 
 export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | number> extends AgAxisBaseIntervalOptions {
-    /** The step value between ticks specified as a TimeInterval. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    /** The axis interval specified as a TimeInterval. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: T;
-    /** Maximum gap in pixels between tick lines. */
+    /** Maximum gap in pixels between items. */
     maxSpacing?: PixelSize;
 }
 
@@ -97,7 +97,7 @@ export interface AgAxisGridLineOptions {
 }
 
 export interface AgAxisBaseTickOptions {
-    /** Set to `false` to hide the axis tick lines. */
+    /** Set to `false` to hide the axis ticks. */
     enabled?: boolean;
     /** The width in pixels of the axis ticks. */
     width?: PixelSize;
@@ -108,9 +108,9 @@ export interface AgAxisBaseTickOptions {
 }
 
 export interface AgAxisBaseIntervalOptions {
-    /** Array of values in axis units to display as ticks along the axis. The values in this array must be compatible with the axis type. */
+    /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
     values?: any[];
-    /** Minimum gap in pixels between tick lines. */
+    /** Minimum gap in pixels between intervals. */
     minSpacing?: PixelSize;
 }
 
