@@ -272,16 +272,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected processAnnotationsOptions(options: T, annotationsThemes: any) {
         if (!isAgCartesianChartOptions(options)) return;
 
-        if (options.annotations == null) return;
+        if (options.initialState == null) return;
 
         this.annotationThemes = annotationsThemes;
 
-        const processedAnnotations = options.annotations.initial?.map((annotation) => {
+        options.initialState.annotations = options.initialState.annotations?.map((annotation) => {
             const annotationTheme = annotationsThemes[annotation.type];
             return mergeDefaults(annotation, annotationTheme);
         });
-
-        options.annotations.initial = processedAnnotations;
     }
 
     protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {

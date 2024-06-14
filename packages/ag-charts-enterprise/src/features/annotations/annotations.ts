@@ -30,7 +30,6 @@ import type { Annotation } from './scenes/annotation';
 
 const {
     BOOLEAN,
-    OBJECT_ARRAY,
     ChartUpdateType,
     Cursor,
     InteractionState,
@@ -126,12 +125,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
-
-    @_ModuleSupport.ObserveChanges<Annotations>((target, initial: AnnotationPropertiesArray) => {
-        target.annotationData ??= initial;
-    })
-    @Validate(OBJECT_ARRAY, { optional: true })
-    public initial = new PropertiesArray(this.createAnnotationDatum);
 
     public axesButtons = new AxesButtons();
 

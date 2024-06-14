@@ -22,11 +22,11 @@ export abstract class BaseModuleInstance {
     }
 }
 
-class ModuleRegistry {
+export class ModuleRegistry {
     readonly modules: Module[] = [];
 
-    private readonly dependencies: Set<string> = new Set();
-    private readonly dependents: Set<string> = new Set();
+    private readonly dependencies: Map<string, Set<string>> = new Map();
+    private readonly dependents: Map<string, Set<string>> = new Map();
 
     register(...modules: Module[]) {
         for (const module of modules) {
@@ -56,48 +56,67 @@ class ModuleRegistry {
     }
 
     *byType<T extends Module>(...types: Module['type'][]): Generator<T> {
-        for (const module of this.modules) {
-            if (types.includes(module.type) && this.dependencies.has(module.optionsKey)) {
-                yield module as T;
+        const { dependents } = this;
+
+        const yielded = new Set();
+
+        let count = 0;
+        const maxCount = 3;
+
+        const modulesByType = this.modules.filter((module) => types.includes(module.type));
+
+        // Ignore non-existant dependencies, e.g a community module that optionally depends on an enterprise module.
+        for (const [key, dependencies] of dependents.entries()) {
+            for (const dep of dependencies) {
+                if (!modulesByType.find((module) => module.optionsKey === dep)) {
+                    dependencies.delete(dep);
+                }
+            }
+
+            if (dependencies.size === 0) {
+                dependents.delete(key);
             }
         }
 
-        for (const module of this.modules) {
-            if (
-                types.includes(module.type) &&
-                !this.dependencies.has(module.optionsKey) &&
-                !this.dependents.has(module.optionsKey)
-            ) {
-                yield module as T;
-            }
-        }
+        do {
+            for (const module of modulesByType) {
+                if (
+                    !types.includes(module.type) ||
+                    yielded.has(module.optionsKey) ||
+                    dependents.has(module.optionsKey)
+                ) {
+                    continue;
+                }
 
-        for (const module of this.modules) {
-            if (types.includes(module.type) && this.dependents.has(module.optionsKey)) {
                 yield module as T;
+                yielded.add(module.optionsKey);
+
+                for (const [key, dependencies] of dependents.entries()) {
+                    dependencies.delete(module.optionsKey);
+                    if (dependencies.size === 0) {
+                        dependents.delete(key);
+                    }
+                }
             }
+
+            count++;
+        } while (yielded.size < modulesByType.length && count < maxCount);
+
+        if (dependents.size > 0) {
+            throw new Error(`Could not resolve module dependencies: [${[...dependents.keys()]}]`);
         }
     }
 
     private registerDependencies(module: Module) {
         if (module.dependencies == null || module.dependencies.length === 0) return;
 
-        if (this.dependencies.has(module.optionsKey)) {
-            throw new Error(
-                `Module [${module.optionsKey}] can not both be depended upon by any module and have dependencies of [${module.dependencies}].`
-            );
+        for (const key of module.dependencies) {
+            const dependencies = this.dependencies.get(key) ?? new Set();
+            dependencies.add(module.optionsKey);
+            this.dependencies.set(key, dependencies);
         }
 
-        for (const dep of module.dependencies) {
-            if (this.dependents.has(dep)) {
-                throw new Error(
-                    `Module [${dep}] can not both be depended upon by any module and have dependencies of [${module.optionsKey}].`
-                );
-            }
-            this.dependencies.add(dep);
-        }
-
-        this.dependents.add(module.optionsKey);
+        this.dependents.set(module.optionsKey, new Set(module.dependencies));
     }
 }
 

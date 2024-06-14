@@ -1,3 +1,4 @@
+import type { AgInitialStateOptions } from '../api/initialStateOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
@@ -217,4 +218,6 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
     data?: TDatum[];
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
+    /** The initial state of the chart. This must be a serializable value. */
+    initialState?: AgInitialStateOptions;
 }

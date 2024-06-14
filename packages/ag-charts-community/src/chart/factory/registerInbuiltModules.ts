@@ -1,3 +1,4 @@
+import { InitialStateModule } from '../../api/state/initialStateModule';
 import { moduleRegistry } from '../../module/module';
 import { CategoryAxis } from '../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
@@ -23,6 +24,7 @@ export function registerInbuiltModules() {
     moduleRegistry.register(
         BackgroundModule,
         CommunityLegendModule,
+        InitialStateModule,
         LocaleModule,
         NavigatorModule,
         ToolbarModule,

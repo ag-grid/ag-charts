@@ -16,7 +16,7 @@ type MementoCaretakerPacket = Record<'version', string> & Record<string, any>;
  * is also versioned to ensure it can be migrated to newer versions of the originator.
  */
 export class MementoCaretaker {
-    private readonly version: string;
+    public readonly version: string;
 
     constructor(version: string) {
         // Strip out version suffixes, e.g. `-beta`

@@ -36,8 +36,6 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 
 // --- Options ---
 export interface AgAnnotationsOptions extends Toggleable {
-    /** The initial set of annotations to display. */
-    initial?: AgAnnotation[];
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
 }
@@ -69,7 +67,7 @@ export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
 }
 
 export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
-    value: string | number | Date;
+    value: AgAnnotationValue;
     axisLabel?: AgAnnotationAxisLabel;
 }
 
@@ -130,7 +128,7 @@ interface AnnotationLinePoints {
 
 export interface AgAnnotationPoint {
     /** The x-value of the point. */
-    x: string | number | Date;
+    x: AgAnnotationValue;
     /** The y-value of the point. */
     y: number;
 }
@@ -155,3 +153,10 @@ interface Cappable {
 }
 
 export type Cap = 'arrow' | 'circle';
+
+export type AgAnnotationValue = string | number | AgStateSerializableDate;
+
+export interface AgStateSerializableDate {
+    __type: 'date';
+    value: string | number;
+}
