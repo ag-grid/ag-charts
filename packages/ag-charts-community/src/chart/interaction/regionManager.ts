@@ -6,8 +6,6 @@ import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManage
 import { type Unpreventable, buildPreventable } from './preventableEvent';
 import type { RegionBBoxProvider, RegionName } from './regions';
 
-const REGION_TAB_ORDERING: RegionName[] = ['series'];
-
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
 type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & { region: RegionName } } & {
@@ -47,8 +45,6 @@ function addHandler<T extends RegionEvent['type']>(
 }
 
 export class RegionManager {
-    private currentTabIndex = 0;
-
     private currentRegion?: Region;
     private currentBBoxProviderId?: string;
     private isDragging = false;
@@ -68,7 +64,7 @@ export class RegionManager {
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
             ),
             this.keyNavManager.addListener('blur', this.onNav.bind(this)),
-            this.keyNavManager.addListener('tab', this.onTab.bind(this)),
+            this.keyNavManager.addListener('focus', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-zoom', this.onNav.bind(this)),
@@ -259,61 +255,8 @@ export class RegionManager {
         return { region: currentRegion, bboxProviderId: currentBBoxProviderId };
     }
 
-    private getTabRegion(tabIndex: number | undefined): Region | undefined {
-        if (tabIndex !== undefined && tabIndex >= 0 && tabIndex < REGION_TAB_ORDERING.length) {
-            return this.regions.get(REGION_TAB_ORDERING[tabIndex]);
-        }
-        return undefined;
-    }
-
-    private getNextInteractableTabIndex(currentIndex: number, delta: number): number | undefined {
-        const direction = delta < 0 ? -1 : 1;
-        let i = currentIndex;
-        while (delta !== 0) {
-            const region = this.getTabRegion(i + direction);
-            if (region === undefined) {
-                return undefined;
-            } else {
-                delta = delta - direction;
-            }
-            i = i + direction;
-        }
-        return i;
-    }
-
-    private validateCurrentTabIndex() {
-        // This currentTabIndex might be referencing a region that is no longer interactable.
-        // If that's the case, then refresh the focus to the first interactable region.
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
-        if (focusedRegion !== undefined) {
-            this.currentTabIndex = this.getNextInteractableTabIndex(-1, 1) ?? 0;
-        }
-    }
-
-    private onTab(event: KeyNavEvent<'tab'>) {
-        this.validateCurrentTabIndex();
-        const newTabIndex = this.getNextInteractableTabIndex(this.currentTabIndex, event.delta);
-        const newRegion = this.getTabRegion(newTabIndex);
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
-        if (newTabIndex !== undefined) {
-            this.currentTabIndex = newTabIndex;
-        }
-
-        if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
-            // Build a distinct consumable event, since we don't care about consumed status of blur.
-            const { delta, sourceEvent } = event;
-            const blurEvent = buildPreventable({ type: 'blur' as const, delta, sourceEvent });
-            this.dispatch(focusedRegion, blurEvent);
-        }
-        if (newRegion === undefined) {
-            this.focusIndicator.updateBounds(undefined);
-        } else {
-            this.dispatch(newRegion, event);
-        }
-    }
-
-    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete'>) {
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
+    private onNav(event: KeyNavEvent<KeyNavEventType>) {
+        const focusedRegion = this.regions.get('series');
         this.dispatch(focusedRegion, event);
     }
 }

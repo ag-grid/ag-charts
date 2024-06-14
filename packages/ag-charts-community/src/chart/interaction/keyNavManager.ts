@@ -9,15 +9,7 @@ import type {
 import { InteractionState } from './interactionManager';
 import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
-export type KeyNavEventType =
-    | 'blur'
-    | 'tab'
-    | 'nav-hori'
-    | 'nav-vert'
-    | 'nav-zoom'
-    | 'submit'
-    | 'cancel'
-    | 'delete';
+export type KeyNavEventType = 'blur' | 'focus' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = PreventableEvent & {
     type: T;
@@ -89,7 +81,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             return;
         }
 
-        this.dispatch('tab', 0, event);
+        this.dispatch('focus', 0, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
@@ -98,15 +90,6 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         this.isMouseBlurred = false;
 
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
-
-        if (code === 'Tab') {
-            if (shiftKey) {
-                return this.dispatch('tab', -1, event);
-            } else {
-                return this.dispatch('tab', 1, event);
-            }
-        }
-
         if (altKey || shiftKey || metaKey || ctrlKey) return;
 
         switch (code) {

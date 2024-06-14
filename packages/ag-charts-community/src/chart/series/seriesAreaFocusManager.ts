@@ -44,7 +44,7 @@ export class SeriesAreaFocusManager extends BaseManager {
             this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             seriesRegion.addListener('blur', () => this.onBlur()),
-            seriesRegion.addListener('tab', (event) => this.onTab(event)),
+            seriesRegion.addListener('focus', (event) => this.onFocus(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
@@ -77,7 +77,7 @@ export class SeriesAreaFocusManager extends BaseManager {
         }
     }
 
-    private onTab(event: KeyNavEvent<'tab'>): void {
+    private onFocus(event: KeyNavEvent<'focus'>): void {
         this.handleFocus(0, 0);
         event.preventDefault();
         this.focus.hasFocus = true;
