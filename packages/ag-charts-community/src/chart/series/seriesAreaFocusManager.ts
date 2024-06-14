@@ -48,7 +48,6 @@ export class SeriesAreaFocusManager extends BaseManager {
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
-            this.ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             this.ctx.zoomManager.addListener('zoom-change', () => {
                 this.ctx.focusIndicator.updateBounds(undefined);
             })
@@ -94,20 +93,6 @@ export class SeriesAreaFocusManager extends BaseManager {
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
         event.preventDefault();
-    }
-
-    private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
-        if (event.delta > 0) {
-            this.focus.datum = undefined;
-            this.focus.series = undefined;
-            this.focus.datumIndex = 0;
-            this.focus.seriesIndex = 0;
-        } else if (event.delta < 0) {
-            this.focus.datum = undefined;
-            this.focus.series = undefined;
-            this.focus.datumIndex = Infinity;
-            this.focus.seriesIndex = Infinity;
-        }
     }
 
     private onAnimationStart() {
