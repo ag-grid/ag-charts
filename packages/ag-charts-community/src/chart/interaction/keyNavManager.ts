@@ -1,5 +1,4 @@
 import { BaseManager } from '../baseManager';
-import type { DOMManager } from '../dom/domManager';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -35,10 +34,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     private isMouseBlurred: boolean = false;
     private isClicking: boolean = false;
 
-    constructor(
-        interactionManager: InteractionManager,
-        private readonly domManager: DOMManager
-    ) {
+    constructor(interactionManager: InteractionManager) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
