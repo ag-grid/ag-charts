@@ -68,7 +68,6 @@ export class RegionManager {
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
             ),
             this.keyNavManager.addListener('blur', this.onNav.bind(this)),
-            this.keyNavManager.addListener('browserfocus', this.onBrowserFocus.bind(this)),
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
@@ -288,14 +287,6 @@ export class RegionManager {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         if (focusedRegion !== undefined) {
             this.currentTabIndex = this.getNextInteractableTabIndex(-1, 1) ?? 0;
-        }
-    }
-
-    private onBrowserFocus(event: KeyNavEvent<'browserfocus'>) {
-        if (event.delta > 0) {
-            this.currentTabIndex = -1;
-        } else if (event.delta < 0) {
-            this.currentTabIndex = REGION_TAB_ORDERING.length;
         }
     }
 

@@ -11,7 +11,6 @@ import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
 export type KeyNavEventType =
     | 'blur'
-    | 'browserfocus'
     | 'tab'
     | 'nav-hori'
     | 'nav-vert'
@@ -80,9 +79,6 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
-        const delta = this.domManager.getBrowserFocusDelta();
-
-        this.dispatch('browserfocus', delta, event);
         this.hasBrowserFocus = true;
 
         // CRT-420 - Differentiate between keyboard-nav focus and click focus (when browser tab is also
@@ -93,7 +89,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             return;
         }
 
-        this.dispatch('tab', delta, event);
+        this.dispatch('tab', 0, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
