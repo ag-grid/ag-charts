@@ -432,22 +432,35 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const {
             id: seriesId,
             ctx: { callbackCache },
+            properties,
         } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, fillOpacity, backgroundFill } =
-            this.properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, backgroundFill } = properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill: string;
-        try {
-            fill = Color.mix(
-                Color.fromString(backgroundFill),
-                Color.fromString(nodeDatum.fill),
-                fillOpacity
-            ).toString();
-        } catch {
+        let fillOpacity: number | undefined;
+
+        // @todo(AG-11876) Use fillOpacity to match area, range area, radar area, chord, and sankey series
+        const useFakeFill = true;
+        if (useFakeFill) {
             fill = nodeDatum.fill;
+            fillOpacity = properties.fillOpacity;
+        } else {
+            try {
+                fill = Color.mix(
+                    Color.fromString(backgroundFill),
+                    Color.fromString(nodeDatum.fill),
+                    properties.fillOpacity
+                ).toString();
+            } catch {
+                fill = nodeDatum.fill;
+            }
+
+            fillOpacity = undefined;
         }
+
         const activeStyles: AgBoxPlotSeriesStyles = {
             fill,
+            fillOpacity,
             stroke,
             strokeWidth,
             strokeOpacity,

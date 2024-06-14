@@ -3,6 +3,8 @@ import { type _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
 import { BoxPlotSeries } from './boxPlotSeries';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
+const { Color } = _Util;
+
 export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -34,8 +36,17 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
             fills: [fill],
             strokes: [stroke],
         } = takeColors(1);
+
+        // @todo(AG-11876) Use fillOpacity to match area, range area, radar area, chord, and sankey series
+        let fakeFill: string;
+        try {
+            fakeFill = Color.mix(Color.fromString(backgroundFill), Color.fromString(fill), 0.3).toString();
+        } catch {
+            fakeFill = fill;
+        }
+
         return {
-            fill,
+            fill: fakeFill,
             stroke,
             backgroundFill,
         };
