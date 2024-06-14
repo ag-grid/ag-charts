@@ -22,6 +22,7 @@ const {
 } = _ModuleSupport;
 const { motion } = _Scene;
 const { ContinuousScale } = _Scale;
+const { Color } = _Util;
 
 class BoxPlotSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -431,10 +432,32 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const {
             id: seriesId,
             ctx: { callbackCache },
+            properties,
         } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = this.properties;
-        const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
-            nodeDatum;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, backgroundFill } = properties;
+        const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
+        let fill: string;
+        let fillOpacity: number | undefined;
+
+        // @todo(AG-11876) Use fillOpacity to match area, range area, radar area, chord, and sankey series
+        const useFakeFill = true;
+        if (useFakeFill) {
+            fill = nodeDatum.fill;
+            fillOpacity = properties.fillOpacity;
+        } else {
+            try {
+                fill = Color.mix(
+                    Color.fromString(backgroundFill),
+                    Color.fromString(nodeDatum.fill),
+                    properties.fillOpacity
+                ).toString();
+            } catch {
+                fill = nodeDatum.fill;
+            }
+
+            fillOpacity = undefined;
+        }
+
         const activeStyles: AgBoxPlotSeriesStyles = {
             fill,
             fillOpacity,
