@@ -184,10 +184,22 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (groupCount === 0) return;
 
-        if (event.sourceEvent.target instanceof HTMLElement) {
-            this.lastFocus = event.sourceEvent.target;
-        }
+        this.lastFocus = this.getLastFocus(event);
         this.show();
+    }
+
+    private getLastFocus(event: ContextMenuEvent): HTMLElement | undefined {
+        // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
+        // the event.sourceEvent instances are mostly indistinguishable.
+        //
+        // However, when right-clicking with the mouse, the target element will the
+        // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
+        // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
+        // use to determine the device that triggered the contextmenu event.
+        if (event.sourceEvent.target instanceof HTMLElement && 'tabindex' in event.sourceEvent.target.attributes) {
+            return event.sourceEvent.target;
+        }
+        return undefined;
     }
 
     private show() {
@@ -214,7 +226,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             orientation: 'vertical',
             onEscape: () => this.hide(),
         });
-        buttons[0]?.focus();
+
+        if (this.lastFocus) buttons[0]?.focus();
     }
 
     private hide() {
