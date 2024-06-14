@@ -3,6 +3,7 @@ import type { AgPieSeriesFormat } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
+import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -40,12 +41,7 @@ import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation }
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
-import {
-    computeSectorSeriesFocusBounds,
-    pickByMatchingAngle,
-    preparePieSeriesAnimationFunctions,
-    resetPieSelectionsFn,
-} from './pieUtil';
+import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<PieNodeDatum, TEvent> {
