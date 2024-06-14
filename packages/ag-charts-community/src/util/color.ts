@@ -1,4 +1,3 @@
-import { Logger } from './logger';
 import { clamp } from './number';
 
 export interface IColor {
@@ -7,6 +6,8 @@ export interface IColor {
     readonly b: number;
     readonly a: number;
 }
+
+const lerp = (x: number, y: number, t: number) => x * (1 - t) + y * t;
 
 const srgbToLinear = (value: number) => {
     const sign = value < 0 ? -1 : 1;
@@ -104,15 +105,6 @@ export class Color implements IColor {
         throw new Error(`Invalid color string: '${str}'`);
     }
 
-    static tryParseFromString(str: string): Color {
-        try {
-            return Color.fromString(str);
-        } catch (e) {
-            Logger.warnOnce(`invalid color string: '${str}'.`);
-            return Color.fromArray([0, 0, 0]);
-        }
-    }
-
     // See https://drafts.csswg.org/css-color/#hex-notation
     static parseHex(input: string): [number, number, number, number] | undefined {
         input = input.replace(/ /g, '').slice(1);
@@ -155,10 +147,11 @@ export class Color implements IColor {
 
     private static stringToRgba(str: string): number[] | undefined {
         // Find positions of opening and closing parentheses.
-        let [po, pc] = [NaN, NaN];
+        let po = -1;
+        let pc = -1;
         for (let i = 0; i < str.length; i++) {
             const c = str[i];
-            if (!po && c === '(') {
+            if (po === -1 && c === '(') {
                 po = i;
             } else if (c === ')') {
                 pc = i;
@@ -166,18 +159,16 @@ export class Color implements IColor {
             }
         }
 
-        const contents = po && pc && str.substring(po + 1, pc);
-        if (!contents) {
-            return;
-        }
+        if (po === -1 || pc === -1) return;
 
+        const contents = str.substring(po + 1, pc);
         const parts = contents.split(',');
         const rgba: number[] = [];
 
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             let value = parseFloat(part);
-            if (isNaN(value)) {
+            if (!Number.isFinite(value)) {
                 return;
             }
             if (part.indexOf('%') >= 0) {
@@ -280,8 +271,6 @@ export class Color implements IColor {
         return Color.RGBtoHSB(this.r, this.g, this.b);
     }
 
-    static didDebug = false;
-
     static RGBtoOKLCH(r: number, g: number, b: number): [number, number, number] {
         const LSRGB0 = srgbToLinear(r);
         const LSRGB1 = srgbToLinear(g);
@@ -333,7 +322,7 @@ export class Color implements IColor {
         let s: number;
         if (max === min) {
             // Achromatic
-            h = NaN;
+            h = 0;
             s = 0;
         } else {
             const delta = max - min;
@@ -354,6 +343,8 @@ export class Color implements IColor {
     }
 
     static HSLtoRGB(h: number, s: number, l: number): [number, number, number] {
+        h = ((h % 360) + 360) % 360; // normalize hue to [0, 360] interval
+
         if (s === 0) {
             // Achromatic
             return [l, l, l];
@@ -380,17 +371,16 @@ export class Color implements IColor {
 
     /**
      * Converts the given RGB triple to an array of HSB (HSV) components.
-     * The hue component will be `NaN` for achromatic colors.
      */
     static RGBtoHSB(r: number, g: number, b: number): [number, number, number] {
         const min = Math.min(r, g, b);
         const max = Math.max(r, g, b);
 
         const S = max === 0 ? 0 : (max - min) / max;
-        let H = NaN;
+        let H = 0;
 
         // min == max, means all components are the same
-        // and the color is a shade of gray with no hue (H is NaN)
+        // and the color is a shade of gray with no hue
         if (min !== max) {
             const delta = max - min;
             const rc = (max - r) / delta;
@@ -416,10 +406,7 @@ export class Color implements IColor {
      * Converts the given HSB (HSV) triple to an array of RGB components.
      */
     static HSBtoRGB(H: number, S: number, B: number): [number, number, number] {
-        if (isNaN(H)) {
-            H = 0;
-        }
-        H = (((H % 360) + 360) % 360) / 360; // normalize hue to [0, 360] interval, then scale to [0, 1]
+        H = ((H % 360) + 360) % 360; // normalize hue to [0, 360] interval
 
         let r = 0;
         let g = 0;
@@ -471,46 +458,17 @@ export class Color implements IColor {
         return [r, g, b];
     }
 
-    private derive(hueShift: number, saturationFactor: number, brightnessFactor: number, opacityFactor: number): Color {
-        const hsb = Color.RGBtoHSB(this.r, this.g, this.b);
-
-        let b = hsb[2];
-        if (b == 0 && brightnessFactor > 1.0) {
-            b = 0.05;
-        }
-
-        const h = (((hsb[0] + hueShift) % 360) + 360) % 360;
-        const s = clamp(0, hsb[1] * saturationFactor, 1);
-        b = clamp(0, b * brightnessFactor, 1);
-        const a = clamp(0, this.a * opacityFactor, 1);
-        const rgba = Color.HSBtoRGB(h, s, b);
-        rgba.push(a);
-        return Color.fromArray(rgba);
-    }
-
-    brighter(): Color {
-        return this.derive(0, 1.0, 1.0 / 0.7, 1.0);
-    }
-
-    darker(): Color {
-        return this.derive(0, 1.0, 0.7, 1.0);
-    }
-
-    static interpolate(color: string, other: string) {
-        const c0 = Color.tryParseFromString(color);
-        const c1 = Color.tryParseFromString(other);
-        return (t: number) => {
-            const i = (x: number, y: number) => x * (1 - t) + y * t;
-            const c = new Color(i(c0.r, c1.r), i(c0.g, c1.g), i(c0.b, c1.b), i(c0.a, c1.a));
-            return c.toString();
-        };
+    static mix(c0: Color, c1: Color, t: number) {
+        return new Color(lerp(c0.r, c1.r, t), lerp(c0.g, c1.g, t), lerp(c0.b, c1.b, t), lerp(c0.a, c1.a, t));
     }
 
     /**
      * CSS Color Module Level 4:
      * https://drafts.csswg.org/css-color/#named-colors
      */
-    private static readonly nameToHex: { [key: string]: string } = Object.freeze({
+    private static readonly nameToHex: Record<string, string> = {
+        // @ts-expect-error
+        __proto__: null,
         aliceblue: '#F0F8FF',
         antiquewhite: '#FAEBD7',
         aqua: '#00FFFF',
@@ -660,5 +618,5 @@ export class Color implements IColor {
         whitesmoke: '#F5F5F5',
         yellow: '#FFFF00',
         yellowgreen: '#9ACD32',
-    });
+    };
 }

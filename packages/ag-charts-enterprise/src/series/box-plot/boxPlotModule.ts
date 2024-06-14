@@ -25,7 +25,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 
-    paletteFactory: ({ takeColors, userPalette, themeTemplateParameters }) => {
+    paletteFactory: ({ takeColors, themeTemplateParameters }) => {
         const themeBackgroundColor = themeTemplateParameters.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
@@ -35,8 +35,9 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
             strokes: [stroke],
         } = takeColors(1);
         return {
-            fill: userPalette ? fill : _Util.Color.interpolate(fill, backgroundFill)(0.7),
+            fill,
             stroke,
+            backgroundFill,
         };
     },
 

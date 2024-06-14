@@ -3,6 +3,7 @@ import { _Theme } from 'ag-charts-community';
 export const BOX_PLOT_SERIES_THEME = {
     series: {
         direction: 'vertical' as const,
+        fillOpacity: 0.3,
         strokeWidth: 2,
     },
     axes: {
