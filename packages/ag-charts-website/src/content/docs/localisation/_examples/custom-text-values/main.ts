@@ -6,7 +6,7 @@ const options: AgChartOptions = {
         text: 'Custom Context Menu Text',
     },
     subtitle: {
-        text: 'Right click to show context menu',
+        text: 'Hover toolbar icons for tooltips, right click to show context menu',
     },
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
@@ -16,14 +16,26 @@ const options: AgChartOptions = {
         { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
         { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
     ],
-    series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+    series: [{ type: 'line', xKey: 'month', yKey: 'iceCreamSales' }],
     contextMenu: {
+        enabled: true,
+    },
+    zoom: {
         enabled: true,
     },
     locale: {
         localeText: {
             ...AG_CHARTS_LOCALE_EN,
+            toolbarZoomZoomOut: 'Zoom Out of the Chart',
+            toolbarZoomZoomIn: 'Zoom In to the Chart',
+            toolbarZoomPanLeft: 'Pan the Chart Left',
+            toolbarZoomPanRight: 'Pan the Chart Right',
+            toolbarZoomPanStart: 'Pan the Chart to the Start',
+            toolbarZoomPanEnd: 'Pan the Chart to the End',
+            toolbarZoomReset: "Reset the Chart's Zoom",
             contextMenuDownload: 'Save this Chart to My Computer',
+            contextMenuZoomToCursor: 'Zoom the Chart to Your Cursor',
+            contextMenuPanToCursor: 'Pan the Chart to Your Cursor',
         },
     },
 };
