@@ -1,16 +1,21 @@
 import { Path } from '../../scene/shape/path';
 import type { BBoxValues } from '../../util/bboxinterface';
-import { getDocument } from '../../util/dom';
+import { getDocument, setElementBBox } from '../../util/dom';
 import type { DOMManager } from './domManager';
 import * as focusStyles from './focusStyles';
 
 export class FocusIndicator {
     private readonly element: HTMLElement;
     private readonly svg: SVGSVGElement;
+    private readonly path: SVGPathElement;
+    private readonly div: HTMLDivElement;
 
     constructor(private readonly domManager: DOMManager) {
         const { css, block, elements, modifiers } = focusStyles;
+        this.div = getDocument().createElement('div');
         this.svg = getDocument().createElementNS('http://www.w3.org/2000/svg', 'svg');
+        this.path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
+        this.svg.append(this.path);
 
         domManager.addStyles(block, css);
         this.element = domManager.addChild('canvas-overlay', block);
@@ -25,44 +30,19 @@ export class FocusIndicator {
 
     updateBounds(bounds: Path | BBoxValues | undefined) {
         if (bounds === undefined) {
-            this.hide();
+            this.element.classList.add(focusStyles.modifiers.hidden);
         } else if (bounds instanceof Path) {
-            this.updatePath(bounds);
+            this.path.setAttribute('d', bounds.computeSVGDataPath());
+            this.show(this.svg);
         } else {
-            this.updateBBox(bounds);
+            setElementBBox(this.div, bounds);
+            this.show(this.div);
         }
     }
 
-    private updatePath(path: Path) {
-        this.redrawSVG(this.createPath(path));
-    }
-
-    private updateBBox(rect: BBoxValues) {
-        this.redrawSVG(this.createRect(rect));
-    }
-
-    private hide() {
-        this.element.classList.add(focusStyles.modifiers.hidden);
-    }
-
-    private redrawSVG(element: Element) {
-        this.svg.innerHTML = '';
+    private show(child: Element) {
         this.element.classList.remove(focusStyles.modifiers.hidden);
-        this.svg.append(element);
-    }
-
-    private createPath(scenePath: Path) {
-        const path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', scenePath.computeSVGDataPath());
-        return path;
-    }
-
-    private createRect(bbox: BBoxValues) {
-        const rect = getDocument().createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', bbox.x.toString());
-        rect.setAttribute('y', bbox.y.toString());
-        rect.setAttribute('width', bbox.width.toString());
-        rect.setAttribute('height', bbox.height.toString());
-        return rect;
+        this.element.innerHTML = '';
+        this.element.append(child);
     }
 }
