@@ -8,5 +8,5 @@ export const PRESETS: { [K in Preset['type']]: (p: Preset & { type: K }) => AgCh
 
 export function isAgFinancialChartOptions(x: any): x is AgFinancialChartOptions {
     const { type } = x;
-    return type != null && typeof type === 'string' && PRESETS[type as Preset['type']] != null;
+    return typeof type === 'string' && PRESETS[type as Preset['type']] != null;
 }
