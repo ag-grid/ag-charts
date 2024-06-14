@@ -7,7 +7,6 @@ import {
     AgTooltipPositionType,
 } from 'ag-charts-types';
 
-import { PRESETS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -76,8 +75,6 @@ enum GroupingType {
 
 const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
 
-const debug = Debug.create(true, 'opts');
-
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
@@ -105,12 +102,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        const presetOptions = this.processPreset(options);
-
-        this.processedOptions = deepClone(
-            mergeDefaults(options, presetOptions, themeDefaults, this.defaultAxes),
-            cloneOptions
-        ) as T;
+        this.processedOptions = deepClone(mergeDefaults(options, themeDefaults, this.defaultAxes), cloneOptions) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
@@ -178,22 +170,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             Logger.warnOnce('bullet series cannot be synced, disabling synchronization.');
             delete options.sync;
         }
-    }
-
-    protected processPreset(options: T) {
-        const { preset } = options;
-        if (preset == null) return {};
-
-        let presetInput = preset;
-        if (typeof presetInput === 'string') {
-            presetInput = { type: presetInput };
-        }
-
-        const result = PRESETS[presetInput.type](presetInput);
-
-        debug('>>> AgCharts.processPreset() - applying preset', presetInput, result);
-
-        return result;
     }
 
     protected swapAxesPosition(options: T) {

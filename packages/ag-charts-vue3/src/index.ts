@@ -36,7 +36,7 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
     props: {
         options: {
             type: Object as PropType<AgFinancialChartOptions>,
-            default: (): AgFinancialChartOptions => ({ preset: 'candlestick-volume' }),
+            default: (): AgFinancialChartOptions => ({ type: 'candlestick-volume' }),
         },
     },
     data(): { chart: AgChartInstance | undefined } {

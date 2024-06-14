@@ -1,4 +1,4 @@
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, Preset } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
@@ -24,6 +24,7 @@ import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
+import { PRESETS, isAgFinancialChartOptions } from './preset/presets';
 import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
@@ -99,9 +100,19 @@ export abstract class AgCharts {
         return chart as unknown as AgChartInstance<O>;
     }
 
-    public static createFinancialChart(opts: AgFinancialChartOptions) {
-        return this.create<AgFinancialChartOptions>(opts);
+    public static createFinancialChart(options: AgFinancialChartOptions) {
+        if (!isAgFinancialChartOptions(options)) throw new Error('AG Charts - unrecognized financial options type');
+
+        return this.create(processPreset(options)) as unknown as AgChartInstance<AgFinancialChartOptions>;
     }
+}
+
+function processPreset(preset: Preset) {
+    const result = PRESETS[preset.type](preset);
+
+    debug('>>> AgCharts.processPreset() - applying preset', preset, result);
+
+    return result;
 }
 
 class AgChartsInternal {
