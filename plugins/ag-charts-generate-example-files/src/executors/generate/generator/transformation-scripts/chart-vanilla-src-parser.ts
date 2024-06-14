@@ -49,6 +49,8 @@ export function parser({
 }) {
     const bindings = internalParser(readAsJsFile(srcFile, { includeImports: true }), html, exampleSettings);
     const typedBindings = internalParser(srcFile, html, exampleSettings);
+    // Ensure options type percolates through for JS cases.
+    Object.assign(bindings.optionsTypeInfo, typedBindings.optionsTypeInfo);
     return { bindings, typedBindings };
 }
 
