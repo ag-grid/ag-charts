@@ -9,7 +9,6 @@ import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
-import { Path } from '../../../scene/shape/path';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
@@ -30,12 +29,7 @@ import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    type SeriesNodeEventTypes,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-} from '../series';
+import { type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -1393,13 +1387,5 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     protected override onDataChange() {
         const { data, seriesItemEnabled } = this;
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
-    }
-
-    protected override computeFocusBounds(opts: PickFocusInputs): Path | undefined {
-        const datum = this.getNodeData()?.[opts.datumIndex];
-        if (datum !== undefined) {
-            return this.itemSelection.select((node): node is Sector => node.datum === datum)[0];
-        }
-        return undefined;
     }
 }
