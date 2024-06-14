@@ -26,7 +26,7 @@ interface BaseChartProps {
 function getOptions(options: AgChartOptions, containerRef: RefObject<HTMLElement | null>): AgChartOptions {
     return {
         ...options,
-        container: containerRef.current ?? undefined,
+        container: containerRef.current,
     };
 }
 
