@@ -1,13 +1,13 @@
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { invertCoords } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
-import { Channel } from '../scenes/channelScene';
+import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { DisjointChannelAnnotation } from './disjointChannelProperties';
 
 type ChannelHandle = keyof DisjointChannel['handles'];
 
-export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
+export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
     static override is(value: unknown): value is DisjointChannel {
         return Annotation.isCheck(value, 'disjoint-channel');
     }
