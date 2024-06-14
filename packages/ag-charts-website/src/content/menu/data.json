@@ -86,8 +86,8 @@
                         "path": "axes-types"
                     },
                     {
-                        "title": "Axis Ticks",
-                        "path": "axes-ticks"
+                        "title": "Axis Intervals",
+                        "path": "axes-intervals"
                     },
                     {
                         "title": "Axis Domain",
