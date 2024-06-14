@@ -59,6 +59,7 @@
     "puppeteer-core": "7.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.44.1",
     "algoliasearch": "4.20.0",
     "puppeteer-core": "7.1.0"
   }

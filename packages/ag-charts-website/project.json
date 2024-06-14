@@ -112,6 +112,18 @@
         }
       }
     },
+    "test:e2e": {
+      "dependsOn": ["^build", "generate-examples"],
+      "inputs": ["{projectRoot}/playwright.config.ts"],
+      "outputs": [],
+      "command": "npx playwright test",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "configurations": {
+        "watch": {}
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "configurations": {
