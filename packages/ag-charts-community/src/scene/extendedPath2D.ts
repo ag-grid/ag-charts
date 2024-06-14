@@ -327,7 +327,7 @@ export class ExtendedPath2D {
                     const y0 = oy + cy + Math.sin(a0) * r;
                     const x1 = ox + cx + Math.cos(a1) * r;
                     const y1 = oy + cy + Math.sin(a1) * r;
-                    const largeArcFlag = angleDiff(a0, a1) > Math.PI ? 1 : 0;
+                    const largeArcFlag = angleDiff(a0, a1, !!ccw) > Math.PI ? 1 : 0;
                     const sweepFlag = (ccw + 1) % 2;
                     buffer.push('L', x0, y0, 'A', r, r, 0, largeArcFlag, sweepFlag, x1, y1);
                     break;

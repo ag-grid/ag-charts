@@ -58,7 +58,10 @@ export function toDegrees(radians: number): number {
     return (radians / Math.PI) * 180;
 }
 
-export function angleDiff(angle0: number, angle1: number) {
+export function angleDiff(angle0: number, angle1: number, counterClockwise: boolean) {
+    if (counterClockwise) {
+        [angle0, angle1] = [angle1, angle0];
+    }
     const a0 = normalizeAngle360(angle0);
     const a1 = normalizeAngle360(angle1) + twoPi;
     return (a1 - a0) % twoPi;
