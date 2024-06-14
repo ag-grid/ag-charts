@@ -7,7 +7,6 @@ import {
     AgTooltipPositionType,
 } from 'ag-charts-types';
 
-import { PRESETS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -76,8 +75,6 @@ enum GroupingType {
 
 const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
 
-const debug = Debug.create(true, 'opts');
-
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
@@ -105,12 +102,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        const presetOptions = this.processPreset(options);
-
-        this.processedOptions = deepClone(
-            mergeDefaults(options, presetOptions, themeDefaults, this.defaultAxes),
-            cloneOptions
-        ) as T;
+        this.processedOptions = deepClone(mergeDefaults(options, themeDefaults, this.defaultAxes), cloneOptions) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
@@ -180,22 +172,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    protected processPreset(options: T) {
-        const { preset } = options;
-        if (preset == null) return {};
-
-        let presetInput = preset;
-        if (typeof presetInput === 'string') {
-            presetInput = { type: presetInput };
-        }
-
-        const result = PRESETS[presetInput.type](presetInput);
-
-        debug('>>> AgCharts.processPreset() - applying preset', presetInput, result);
-
-        return result;
-    }
-
     protected swapAxesPosition(options: T) {
         if (isAgCartesianChartOptions(options)) {
             const [axis0, axis1] = options.axes ?? [];
@@ -249,10 +225,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? { colourIndex: 0, userPalette }
                 : paletteOptions;
             const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
+            const defaultTooltipRange = this.getTooltipRangeDefaults(options, series.type);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
                 defaultTooltipPosition,
+                defaultTooltipRange,
                 seriesTheme,
                 palette,
                 { visible: true }
@@ -460,6 +438,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             result.yOffset = yOffset;
         }
         return { tooltip: { position: result } };
+    }
+
+    // AG-11591 Support for new series-specific & legacy chart-global 'tooltip.range' options
+    //
+    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
+    // global option (`chart.tooltip.range`) that could override the theme. But now, the tooltip range
+    // option is series-specific.
+    //
+    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
+    // 'nearest' to undefined.
+    private getTooltipRangeDefaults(options: T, seriesType: SeriesType) {
+        return {
+            tooltip: {
+                range: options.tooltip?.range ?? seriesRegistry.getTooltipDefauls(seriesType)?.range,
+            },
+        };
     }
 
     private deprecationWarnings(options: Partial<T>) {

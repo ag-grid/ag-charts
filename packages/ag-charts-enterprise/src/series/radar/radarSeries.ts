@@ -62,7 +62,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,
-            defaultTooltipRange: 'nearest',
             animationResetFns: {
                 item: resetMarkerFn,
             },

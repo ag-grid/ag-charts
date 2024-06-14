@@ -13,6 +13,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
 
     identifier: 'sankey',
     instanceConstructor: SankeySeries,
+    tooltipDefaults: { range: 'exact' },
 
     themeTemplate: {
         seriesArea: {

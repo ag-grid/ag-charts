@@ -12,6 +12,7 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
 
     identifier: 'heatmap',
     instanceConstructor: HeatmapSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,

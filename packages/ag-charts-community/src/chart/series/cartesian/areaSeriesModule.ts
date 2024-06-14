@@ -13,6 +13,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     instanceConstructor: AreaSeries,
     stackable: true,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

@@ -275,13 +275,25 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const align = this[group].align ?? 'start';
         const position = this[group].position ?? 'top';
-        const parent = this.positionAlignments[position][align];
+        const alignElement = this.positionAlignments[position][align];
 
-        if (!parent) return;
+        if (!alignElement) return;
+
+        let prevSection;
+
+        let section = createElement('div');
+        section.classList.add(styles.elements.section);
+        alignElement.appendChild(section);
 
         for (const options of buttons ?? []) {
+            if (prevSection !== options.section) {
+                section = createElement('div');
+                section.classList.add(styles.elements.section);
+                alignElement.appendChild(section);
+            }
+            prevSection = options.section;
             const button = this.createButtonElement(group, options);
-            parent.appendChild(button);
+            section.appendChild(button);
             this.groupButtons[group].push(button);
         }
 
@@ -299,7 +311,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         this.groupDestroyFns[group] = initToolbarKeyNav({
             orientation: 'horizontal',
-            toolbar: parent,
+            toolbar: alignElement,
             buttons: this.groupButtons[group],
             onEscape,
             onFocus,

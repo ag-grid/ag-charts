@@ -11,6 +11,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
 
     identifier: 'box-plot',
     instanceConstructor: BoxPlotSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,

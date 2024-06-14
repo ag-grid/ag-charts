@@ -1,7 +1,8 @@
 import type { AgToolbarOptions } from 'ag-charts-types';
 
 import { BaseManager } from '../baseManager';
-import type { ToolbarGroup } from '../toolbar/toolbarTypes';
+import type { DOMManager } from '../dom/domManager';
+import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
 
 type EventTypes =
     | 'button-pressed'
@@ -59,6 +60,15 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         event: ToolbarEvent
     ): event is ToolbarButtonPressedEvent<ToolbarEventButtonValue<T>> {
         return event.group === group;
+    }
+
+    static isChildElement(domManager: DOMManager, element: HTMLElement) {
+        for (const position of TOOLBAR_POSITIONS) {
+            if (domManager.isManagedChildDOMElement(element, 'canvas-overlay', `toolbar-${position}`)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     pressButton(group: ToolbarGroup, value: any) {

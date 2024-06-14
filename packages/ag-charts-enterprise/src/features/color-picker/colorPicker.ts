@@ -8,6 +8,7 @@ const { createElement } = _ModuleSupport;
 const { Color } = _Util;
 
 const moduleId = 'color-picker';
+const canvasOverlay = 'canvas-overlay';
 
 const getHsva = (input: string) => {
     try {
@@ -29,9 +30,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
         ctx.domManager.addStyles(moduleId, colorPickerStyles);
 
-        this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
+        this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
 
-        this.destroyFns.push(() => ctx.domManager.removeChild('canvas-overlay', moduleId));
+        this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
 
     show(opts: { anchor?: { x: number; y: number }; color?: string; onChange?: (colorString: string) => void }) {
@@ -123,7 +124,7 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.replaceChildren();
     }
 
-    isVisible() {
-        return this.element.children.length > 0;
+    isChildElement(element: HTMLElement) {
+        return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, moduleId);
     }
 }

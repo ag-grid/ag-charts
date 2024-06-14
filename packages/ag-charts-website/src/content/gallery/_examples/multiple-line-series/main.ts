@@ -13,8 +13,11 @@ const options: AgChartOptions = {
         overrides: {
             line: {
                 series: {
+                    interpolation: {
+                        type: 'smooth',
+                    },
                     marker: {
-                        size: 5,
+                        enabled: false,
                     },
                     tooltip: {
                         renderer: ({ title, datum, xKey, yKey, xName }: AgLineSeriesTooltipRendererParams) => ({

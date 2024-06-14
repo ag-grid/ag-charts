@@ -1,6 +1,6 @@
 import { convertTemplate, getImport } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
-import { addBindingImports, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
+import { addBindingImports, convertFunctionToProperty, isFinancialCharts, isInstanceMethod } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
@@ -12,6 +12,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
         chartSettings: { enterprise = false },
     } = bindings;
 
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
     const bImports = bindings.imports.map((i) => ({
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
@@ -23,7 +24,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     });
 
     const imports = [`import { Component${bindings.usesChartApi ? ', ViewChild' : ''} } from '@angular/core';`];
-    imports.push(`import { AgCharts } from 'ag-charts-angular';`);
+    imports.push(`import { ${type} } from 'ag-charts-angular';`);
 
     addBindingImports([...bImports], imports, true, true);
 
@@ -48,11 +49,12 @@ function getComponentMetadata(bindings: any, property: any) {
     return { propertyAttributes, propertyVars, propertyAssignments };
 }
 
-function getAngularTag(attributes: string[]) {
-    return `<ag-charts
+function getAngularTag(bindings: any, attributes: string[]) {
+    const tag = isFinancialCharts(bindings) ? 'ag-financial-charts' : 'ag-charts';
+    return `<${tag}
         ${attributes.join(`
         `)}
-    ></ag-charts>`;
+    ></${tag}>`;
 }
 
 function getTemplate(bindings: any, id: string, attributes: string[]): string {
@@ -68,7 +70,7 @@ function getTemplate(bindings: any, id: string, attributes: string[]): string {
         }
     });
 
-    const agChartTag = getAngularTag(attributes);
+    const agChartTag = getAngularTag(bindings, attributes);
 
     let template = bindings.template ?? agChartTag;
     Object.values(bindings.placeholders).forEach((placeholder) => {
@@ -80,6 +82,7 @@ function getTemplate(bindings: any, id: string, attributes: string[]): string {
 
 export async function vanillaToAngular(bindings: any, componentFileNames: string[]): Promise<string> {
     const { properties, declarations, optionsTypeInfo } = bindings;
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
     const opsTypeInfo = optionsTypeInfo;
     const imports = getImports(bindings, componentFileNames, opsTypeInfo);
     const placeholders = Object.keys(bindings.placeholders);
@@ -101,7 +104,7 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
         @Component({
             selector: 'my-app',
             standalone: true,
-            imports: [AgCharts],
+            imports: [${type}],
             template: \`${template}\`
         })
         export class AppComponent {
@@ -110,8 +113,8 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
 
             ${
                 bindings.usesChartApi
-                    ? `\n    @ViewChild(AgCharts)
-            public agCharts!: AgCharts;\n`
+                    ? `\n    @ViewChild(${type})
+            public agCharts!: ${type};\n`
                     : ''
             }
             constructor() {
@@ -159,14 +162,14 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
                 properties.find((p) => p.name === propertyName)
             );
 
-            const template = getAngularTag(propertyAttributes);
+            const template = getAngularTag(bindings, propertyAttributes);
 
             indexFile = `${indexFile}
 
             @Component({
                 selector: '${selector}',
                 standalone: true,
-                imports: [AgCharts],
+                imports: [${type}],
                 template: \`${template}\`
             })
             class ${className} {

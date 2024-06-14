@@ -3,11 +3,11 @@ import { _Scene } from 'ag-charts-community';
 import type { AnnotationPoint } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';
-import { Annotation } from './annotation';
 import type { Handle } from './handle';
+import { LinearScene } from './linearScene';
 import { CollidableLine } from './shapes';
 
-export abstract class Channel<
+export abstract class ChannelScene<
     Datum extends {
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
@@ -16,7 +16,7 @@ export abstract class Channel<
         end: Pick<AnnotationPoint, 'x' | 'y'>;
         bottom: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> };
     },
-> extends Annotation {
+> extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
     protected seriesRect?: _Scene.BBox;
 

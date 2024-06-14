@@ -38,6 +38,7 @@ const {
     Validate,
     REGIONS,
 } = _ModuleSupport;
+const { Vec2 } = _Util;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -165,6 +166,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             verticalAxesRegion.addListener('click', (event) => this.onAxisClick(event, REGIONS.VERTICAL_AXES), All),
             seriesRegion.addListener('hover', (event) => this.onHover(event, REGIONS.SERIES), All),
             seriesRegion.addListener('click', (event) => this.onClick(event, REGIONS.SERIES), All),
+            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
@@ -223,9 +225,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        this.reset();
-
         if (!ToolbarManager.isGroup('annotations', event)) {
+            this.reset();
+            this.update();
+            return;
+        }
+
+        if (event.value === 'clear') {
+            this.clear();
             this.update();
             return;
         }
@@ -243,6 +250,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
         state.transition(annotation);
 
+        this.reset();
         this.update();
     }
 
@@ -457,11 +465,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (!annotationData || !context) return;
 
-        const offset = {
-            x: event.offsetX - (seriesRect?.x ?? 0),
-            y: event.offsetY - (seriesRect?.y ?? 0),
-        };
-
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
         const point = invertCoords(offset, context);
         const valid = validateDatumPoint(context, point);
         cursorManager.updateCursor('annotations', valid ? undefined : Cursor.NotAllowed);
@@ -561,10 +565,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!annotationData || !context) return;
 
         const datum = annotationData?.at(-1);
-        const offset = {
-            x: event.offsetX - (seriesRect?.x ?? 0),
-            y: event.offsetY - (seriesRect?.y ?? 0),
-        };
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
         const point = invertCoords(offset, context);
 
         const node = active != null ? annotations.nodes()[active] : undefined;
@@ -579,24 +580,59 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
-        // TODO: This shouldn't happen. Prevent drags on color picker triggering here.
-        if (this.colorPicker.isVisible()) return;
+    private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
+        const { annotationData, annotations, hovered, seriesRect } = this;
 
-        // Only track pointer offset for drag + click prevention when we are placing the first point
-        if (this.state.is('start')) {
-            this.dragOffset = { x: event.offsetX, y: event.offsetY };
+        if (this.isOtherElement(event)) {
+            return;
         }
 
-        if (this.state.is('idle')) {
+        const context = this.getAnnotationContext();
+
+        if (hovered == null || annotationData == null || !this.state.is('idle') || context == null) return;
+
+        const datum = annotationData[hovered];
+        const node = annotations.nodes()[hovered];
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+
+        if (Line.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
+
+        if (CrossLine.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
+
+        if (DisjointChannel.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
+
+        if (ParallelChannel.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
+    }
+
+    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        const { state } = this;
+
+        if (this.isOtherElement(event)) {
+            return;
+        }
+
+        // Only track pointer offset for drag + click prevention when we are placing the first point
+        if (state.is('start')) {
+            this.dragOffset = Vec2.fromOffset(event);
+        }
+
+        if (state.is('idle')) {
             this.onClickSelecting();
-            this.onDragHandle(event);
+            this.onDragAnnotation(event);
         } else {
             this.onDragAdding(event);
         }
     }
 
-    private onDragHandle(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+    private onDragAnnotation(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
             annotationData,
             annotations,
@@ -611,32 +647,28 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         interactionManager.pushState(InteractionState.Annotations);
 
-        const { offsetX, offsetY } = event;
         const datum = annotationData[hovered];
         const node = annotations.nodes()[hovered];
-        const offset = {
-            x: offsetX - (seriesRect?.x ?? 0),
-            y: offsetY - (seriesRect?.y ?? 0),
-        };
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
         cursorManager.updateCursor('annotations');
 
         const onDragInvalid = () => this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
 
         if (LineAnnotation.is(datum) && Line.is(node)) {
-            node.dragHandle(datum, offset, context, onDragInvalid);
+            node.drag(datum, offset, context, onDragInvalid);
         }
 
         if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
-            node.dragHandle(datum, offset, context, onDragInvalid);
+            node.drag(datum, offset, context, onDragInvalid);
         }
 
         if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-            node.dragHandle(datum, offset, context, onDragInvalid);
+            node.drag(datum, offset, context, onDragInvalid);
         }
 
         if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-            node.dragHandle(datum, offset, context, onDragInvalid);
+            node.drag(datum, offset, context, onDragInvalid);
         }
 
         this.update();
@@ -655,13 +687,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (annotationData == null || context == null) return;
 
-        const { offsetX, offsetY } = event;
         const datum = active != null ? annotationData[active] : undefined;
         const node = active != null ? annotations.nodes()[active] : undefined;
-        const offset = {
-            x: offsetX - (seriesRect?.x ?? 0),
-            y: offsetY - (seriesRect?.y ?? 0),
-        };
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
         interactionManager.pushState(InteractionState.Annotations);
 
@@ -752,8 +780,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
+    private isOtherElement({ targetElement }: { targetElement?: HTMLElement }) {
+        const {
+            colorPicker,
+            ctx: { domManager },
+        } = this;
+
+        if (!targetElement) return false;
+
+        return ToolbarManager.isChildElement(domManager, targetElement) || colorPicker.isChildElement(targetElement);
+    }
+
     private clear() {
-        this.annotations.clear();
+        this.annotationData?.splice(0, this.annotationData?.length);
         this.reset();
     }
 

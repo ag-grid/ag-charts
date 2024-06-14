@@ -4,10 +4,11 @@ import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { DivariantHandle } from '../scenes/handle';
+import { LinearScene } from '../scenes/linearScene';
 import { CollidableLine } from '../scenes/shapes';
 import type { LineAnnotation } from './lineProperties';
 
-export class Line extends Annotation {
+export class Line extends LinearScene<LineAnnotation> {
     static override is(value: unknown): value is Line {
         return Annotation.isCheck(value, 'line');
     }
@@ -93,7 +94,7 @@ export class Line extends Annotation {
     override dragHandle(datum: LineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
         const { activeHandle } = this;
 
-        if (!activeHandle || datum.start == null || datum.end == null) return;
+        if (!activeHandle) return;
 
         this[activeHandle].toggleDragging(true);
         const point = invertCoords(this[activeHandle].drag(target).point, context);

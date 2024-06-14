@@ -1,3 +1,4 @@
+import type { AgCandlestickVolumePreset } from '../api/presetOptions';
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
@@ -36,9 +37,29 @@ export type AgChartOptions =
     | AgTopologyChartOptions
     | AgFlowProportionChartOptions;
 
+type AgFinancialChartPresets = AgCandlestickVolumePreset;
+
+export type AgFinancialChartOptions = AgFinancialChartPresets &
+    Pick<
+        AgCartesianChartOptions,
+        | 'data'
+        | 'container'
+        | 'width'
+        | 'height'
+        | 'minWidth'
+        | 'minHeight'
+        | 'theme'
+        | 'dataSource'
+        | 'title'
+        | 'subtitle'
+        | 'footnote'
+    >;
+
+export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
+
 type DeepPartial<T> = T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
-export interface AgChartInstance<O extends AgChartOptions = AgChartOptions> {
+export interface AgChartInstance<O extends AgChartInstanceOptions = AgChartOptions> {
     /**
      * Update an existing `AgChartInstance`. Options provided should be complete and not
      * partial.

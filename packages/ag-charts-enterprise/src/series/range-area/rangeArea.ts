@@ -87,7 +87,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         super({
             moduleCtx,
             hasMarkers: true,
-            defaultTooltipRange: 'nearest',
             pathsPerSeries: 2,
             directionKeys: {
                 [ChartAxisDirection.X]: ['xKey'],

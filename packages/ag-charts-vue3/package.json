@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-vue3",
   "description": "AG Charts Vue 3 Component",
-  "version": "9.3.1-beta.20240612.1657",
+  "version": "9.3.1-beta.20240613",
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "main": "./dist/package/index.cjs.js",
@@ -32,11 +32,11 @@
   ],
   "scripts": {
     "clean": "rimraf dist lib",
-    "build": "npx tsc -p tsconfig-lib.json && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib src/AgChartsVue.ts",
+    "build": "npx tsc -p tsconfig-lib.json && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib src/index.ts",
     "lint": "# vue-cli-service lint"
   },
   "devDependencies": {
-    "ag-charts-community": "9.3.1-beta.20240612.1657",
+    "ag-charts-community": "9.3.1-beta.20240613",
     "@types/node": "18.18.11",
     "typescript": "^5.4.5",
     "vue": "^3.0.0",
@@ -44,7 +44,7 @@
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
-    "ag-charts-community": "9.3.1-beta.20240612.1657",
+    "ag-charts-community": "9.3.1-beta.20240613",
     "vue": "^3.0.0"
   },
   "publishConfig": {

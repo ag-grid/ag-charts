@@ -10,9 +10,9 @@ export const AG_CHARTS_LOCALE_EN: Record<string, string> = {
     // Screen reader announcement when focusing an item in a treemap or sunburst chart
     ariaAnnounceHierarchyDatum: 'level ${level}[number], ${count}[number] children, ${description}',
     // Screen reader announcement when focusing a link in a Sankey or chord chart
-    ariaAnnounceFlowProportionLink: 'link from ${from} to ${to}, ${sizeName} ${size}',
+    ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}',
     // Screen reader announcement when focusing a node in a Sankey or chord chart
-    ariaAnnounceFlowProportionNode: 'node ${description}',
+    ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
     // Screen reader text for the legend button
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button
@@ -42,11 +42,13 @@ export const AG_CHARTS_LOCALE_EN: Record<string, string> = {
     // Default text for the 'no visible series' overlay
     overlayNoVisibleSeries: 'No visible series',
     // Text for the annotation toolbar's trend line button
-    toolbarAnnotationsTrendLine: 'Trend Line',
+    toolbarAnnotationsTrendLine: 'Trend line',
     // Text for the annotation toolbar's parallel channel button
-    toolbarAnnotationsParallelChannel: 'Parallel Channel',
+    toolbarAnnotationsParallelChannel: 'Parallel channel',
     // Text for the annotation toolbar's disjoint channel button
-    toolbarAnnotationsDisjointChannel: 'Disjoint Channel',
+    toolbarAnnotationsDisjointChannel: 'Disjoint channel',
+    // Text for the annotation toolbar's clear all button
+    toolbarAnnotationsClearAll: 'Clear all annotations',
     // Text for the annotation toolbar's color picker annotation button
     toolbarAnnotationsColor: 'Pick annotation color',
     // Text for the annotation toolbar's lock annotation button

@@ -11,6 +11,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     identifier: 'bullet',
     solo: true,
     instanceConstructor: BulletSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,

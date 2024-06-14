@@ -1,5 +1,5 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { getFunctionName, removeFunctionKeyword } from './parser-utils';
+import { getFunctionName, isFinancialCharts, removeFunctionKeyword } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 import { convertTemplate, getImport, indentTemplate } from './vue-utils';
 
@@ -8,7 +8,8 @@ function processFunction(code: string): string {
 }
 
 function getImports(componentFileNames: string[], bindings): string[] {
-    const imports = ["import { createApp } from 'vue';", "import { AgCharts } from 'ag-charts-vue3';"];
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const imports = ["import { createApp } from 'vue';", `import { ${type} } from 'ag-charts-vue3';`];
 
     const chartImports = bindings.imports.map((i) => ({
         ...i,
@@ -51,13 +52,13 @@ function getPropertyBindings(bindings: any, id: string, property: any) {
     return { propertyAssignments, propertyVars, propertyAttributes };
 }
 
-function getVueTag(bindings: any, attributes: string[]) {
-    return `<ag-charts\n` + (bindings.usesChartApi ? `ref="agCharts"\n` : '') + attributes.join('\n') + `\n/>`;
+function getVueTag(tag: string, bindings: any, attributes: string[]) {
+    return `<${tag}\n` + (bindings.usesChartApi ? `ref="agCharts"\n` : '') + attributes.join('\n') + `\n/>`;
 }
 
-function getTemplate(bindings: any, attributes: string[]): string {
+function getTemplate(tag: string, bindings: any, attributes: string[]): string {
     /* prettier-ignore */
-    const agChartTag = getVueTag(bindings, attributes)
+    const agChartTag = getVueTag(tag, bindings, attributes)
 
     let template = bindings.template ?? agChartTag;
     Object.values(bindings.placeholders).forEach((placeholder) => {
@@ -87,6 +88,8 @@ function getAllMethods(bindings: any): [string[], string[], string[]] {
 
 export async function vanillaToVue3(bindings: any, componentFileNames: string[]): Promise<string> {
     const { properties } = bindings;
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const tag = isFinancialCharts(bindings) ? 'ag-financial-charts' : 'ag-charts';
     const imports = getImports(componentFileNames, bindings);
     const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
     const placeholders = Object.keys(bindings.placeholders);
@@ -102,7 +105,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             placeholders[0],
             options
         );
-        const template = getTemplate(bindings, propertyAttributes);
+        const template = getTemplate(tag, bindings, propertyAttributes);
 
         mainFile = `
             ${imports.join('\n')}
@@ -112,7 +115,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             const ChartExample = {
                 template: \`\n${template}\n  \`,
                 components: {
-                    'ag-charts': AgCharts
+                    '${tag}': ${type}
                 },
                 data() {
                     return {
@@ -178,14 +181,14 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
                 id,
                 properties.find((p) => p.name === propertyName)
             );
-            const template = getVueTag(bindings, propertyAttributes);
+            const template = getVueTag(tag, bindings, propertyAttributes);
 
             mainFile = `${mainFile}
 
             const ${className} = {
                 template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
                 components: {
-                    'ag-charts': AgCharts
+                    '${tag}': ${type}
                 },
                 data() {
                     return {

@@ -47,7 +47,9 @@ const STYLES = `
 }
 
 .ag-charts-tab-guard {
-    display: none;
+    opacity: 0;
+    width: 0px;
+    height: 0px;
 }
 
 .ag-charts-canvas-overlay {
@@ -56,8 +58,6 @@ const STYLES = `
     left: 0;
     right: 0;
     bottom: 0;
-
-    z-index: 1000;
 }
 
 .ag-charts-canvas-overlay > * {
@@ -109,7 +109,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private container?: HTMLElement;
     private containerSize?: Size;
 
-    public readonly guardedElement: GuardedElement;
+    public guardedElement?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
@@ -134,13 +134,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
                 return r;
             },
             {} as typeof this.rootElements
-        );
-
-        const tabGuards = this.element.querySelectorAll('.ag-charts-tab-guard');
-        this.guardedElement = new GuardedElement(
-            this.rootElements.canvas.element,
-            tabGuards[0] as HTMLElement,
-            tabGuards[1] as HTMLElement
         );
 
         let hidden = false;
@@ -173,7 +166,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             el.element.remove();
         });
 
-        this.guardedElement.destroy();
+        this.guardedElement?.destroy();
         this.element.remove();
     }
 
@@ -222,10 +215,22 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
+    private createTabGuards(): GuardedElement {
+        const canvasElement = this.rootElements['canvas'].element.querySelector<HTMLCanvasElement>('canvas');
+        const tabGuards = this.element.querySelectorAll<HTMLElement>('.ag-charts-tab-guard');
+        if (canvasElement == null || tabGuards[0] == null || tabGuards[1] == null) {
+            throw new Error('AG Charts - error initialising canvas tab guards');
+        }
+        return new GuardedElement(canvasElement, tabGuards[0], tabGuards[1]);
+    }
+
     setTabIndex(tabIndex: number) {
-        this.rootElements.canvas.children.forEach((el) => {
-            el.tabIndex = tabIndex;
-        });
+        this.guardedElement ??= this.createTabGuards();
+        this.guardedElement.tabIndex = tabIndex;
+    }
+
+    getBrowserFocusDelta(): -1 | 0 | 1 {
+        return this.guardedElement?.getBrowserFocusDelta() ?? 0;
     }
 
     addEventListener<K extends keyof HTMLElementEventMap>(

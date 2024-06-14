@@ -165,13 +165,13 @@ const MyChart = (options) => {
 {% if isFramework("angular") %}
 
 ```javascript
-import { AgChartsAngular } from 'ag-charts-angular';
+import { AgCharts } from 'ag-charts-angular';
 
 @Component({
     selector: 'my-app',
     standalone: true,
-    imports: [AgChartsAngular],
-    template: `<ag-charts-angular style="height: 100%" [options]="options"></ag-charts-angular> `,
+    imports: [AgCharts],
+    template: `<ag-charts style="height: 100%" [options]="options"></ag-charts> `,
 })
 export class MyAppComponent {
     /* ... */
@@ -183,11 +183,11 @@ export class MyAppComponent {
 {% if isFramework("vue") %}
 
 ```javascript
-import { AgChartsVue } from 'ag-charts-vue3';
+import { AgCharts } from 'ag-charts-vue3';
 
 const MyChart = {
-    template: `<ag-charts-vue :options="options"></ag-charts-vue>`,
-    components: { 'ag-charts-vue': AgChartsVue },
+    template: `<ag-charts :options="options"></ag-charts>`,
+    components: { 'ag-charts': AgCharts },
     /* ... */
 };
 ```

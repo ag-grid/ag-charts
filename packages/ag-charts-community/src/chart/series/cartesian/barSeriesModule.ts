@@ -14,6 +14,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     instanceConstructor: BarSeries,
     stackable: true,
     groupable: true,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

@@ -1,4 +1,4 @@
-export type CandlestickVolumePreset = {
+export type AgCandlestickVolumePreset = {
     type: 'candlestick-volume';
 
     xKey?: string;
@@ -9,4 +9,4 @@ export type CandlestickVolumePreset = {
     volumeKey?: string;
 };
 
-export type Preset = CandlestickVolumePreset;
+export type Preset = AgCandlestickVolumePreset;

@@ -1,5 +1,3 @@
-import type { InteractionRange } from 'ag-charts-types';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -95,7 +93,6 @@ export abstract class PolarSeries<
         useLabelLayer = false,
         pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
-        defaultTooltipRange,
         animationResetFns,
         ...opts
     }: {
@@ -103,7 +100,6 @@ export abstract class PolarSeries<
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;
-        defaultTooltipRange: InteractionRange;
         animationResetFns?: {
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
@@ -123,7 +119,6 @@ export abstract class PolarSeries<
                 [ChartAxisDirection.Y]: ['radiusName'],
             },
             canHaveAxes,
-            defaultTooltipRange,
         });
 
         this.showFocusBox = false;

@@ -18,6 +18,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
 
     identifier: 'map-shape',
     instanceConstructor: MapShapeSeries,
+    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
