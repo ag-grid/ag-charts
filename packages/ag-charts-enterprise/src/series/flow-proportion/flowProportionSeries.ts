@@ -22,6 +22,7 @@ export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDa
 
 export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Node;
+    index: number;
     id: string;
     label: string | undefined;
     fill: string;
@@ -57,6 +58,9 @@ export abstract class FlowProportionSeries<
     protected get nodes() {
         return this.properties.nodes ?? this._chartNodes;
     }
+
+    protected nodeCount: number = 0;
+    protected linkCount: number = 0;
 
     private readonly nodesDataController = new DataController('standalone');
     protected nodesDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
@@ -158,15 +162,17 @@ export abstract class FlowProportionSeries<
             const toIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'toValue');
 
             const createImplicitNode = (id: string): FlowProportionNodeDatum => {
+                const index = processedNodes.size;
                 const label = id;
-                const fill = fills[processedNodes.size % fills.length];
-                const stroke = strokes[processedNodes.size % strokes.length];
+                const fill = fills[index % fills.length];
+                const stroke = strokes[index % strokes.length];
 
                 return {
                     series: this,
                     itemId: undefined,
                     datum: {}, // Must be a referential object for tooltips
                     type: FlowProportionDatumType.Node,
+                    index,
                     id,
                     label,
                     fill,
@@ -207,6 +213,7 @@ export abstract class FlowProportionSeries<
                     itemId: undefined,
                     datum,
                     type: FlowProportionDatumType.Node,
+                    index,
                     id,
                     label,
                     fill,
@@ -231,6 +238,9 @@ export abstract class FlowProportionSeries<
                 [],
                 includeCircularReferences
             );
+
+            this.nodeCount = 0;
+            this.linkCount = 0;
             return { nodeGraph, links, maxPathLength };
         }
 
@@ -247,24 +257,13 @@ export abstract class FlowProportionSeries<
         });
 
         const baseLinks: TLinkDatum[] = [];
-        const linkIndices = new Map<string, { value: number }>();
-        const linkIndexId = (a: string, b: string) => JSON.stringify([a, b]);
-        linksProcessedData.data.forEach(({ datum, values }) => {
+        linksProcessedData.data.forEach(({ datum, values }, index) => {
             const fromId: string = values[fromIdIdx];
             const toId: string = values[toIdIdx];
             const size: number = sizeIdx != null ? values[sizeIdx] : 1;
             const fromNode = nodesById.get(fromId);
             const toNode = nodesById.get(toId);
             if (size <= 0 || fromNode == null || toNode == null) return;
-            const indexId = linkIndexId(fromId, toId);
-            let indexCell = linkIndices.get(indexId);
-            if (indexCell == null) {
-                indexCell = { value: 0 };
-                linkIndices.set(indexId, indexCell);
-            }
-
-            const index = indexCell.value;
-            indexCell.value += 1;
 
             const link = createLink({
                 series: this,
@@ -284,6 +283,9 @@ export abstract class FlowProportionSeries<
             baseLinks,
             includeCircularReferences
         );
+
+        this.nodeCount = nodeGraph.size;
+        this.linkCount = links.length;
 
         return { nodeGraph, links, maxPathLength };
     }
@@ -487,6 +489,8 @@ export abstract class FlowProportionSeries<
     getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
         if (datum.type === FlowProportionDatumType.Link) {
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionLink', {
+                index: datum.index + 1,
+                count: this.linkCount,
                 from: datum.fromNode.id,
                 to: datum.toNode.id,
                 size: datum.size,
@@ -494,6 +498,8 @@ export abstract class FlowProportionSeries<
             });
         } else if (datum.type === FlowProportionDatumType.Node) {
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionNode', {
+                index: datum.index + 1,
+                count: this.nodeCount,
                 description,
             });
         }
