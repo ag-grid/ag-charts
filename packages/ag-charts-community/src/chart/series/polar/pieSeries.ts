@@ -1395,15 +1395,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
     }
 
-    protected override computeFocusPath(opts: PickFocusInputs): Path | undefined {
+    protected override computeFocusBounds(opts: PickFocusInputs): Path | undefined {
         const datum = this.getNodeData()?.[opts.datumIndex];
         if (datum !== undefined) {
             return this.itemSelection.select((node): node is Sector => node.datum === datum)[0];
         }
-        return undefined;
-    }
-
-    protected override computeFocusBounds(): undefined {
         return undefined;
     }
 }

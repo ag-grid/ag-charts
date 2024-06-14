@@ -1,4 +1,4 @@
-import type { Path } from '../../scene/shape/path';
+import { Path } from '../../scene/shape/path';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { getDocument } from '../../util/dom';
 import type { DOMManager } from './domManager';
@@ -18,26 +18,30 @@ export class FocusIndicator {
         this.element.append(this.svg);
     }
 
-    public destroy() {
+    destroy() {
         this.domManager.removeStyles(focusStyles.block);
         this.domManager.removeChild('canvas-overlay', focusStyles.block);
     }
 
-    public updatePath(path: Path | undefined) {
-        if (path == null) {
-            return this.hideSVG();
+    updateBounds(bounds: Path | BBoxValues | undefined) {
+        if (bounds === undefined) {
+            this.hide();
+        } else if (bounds instanceof Path) {
+            this.updatePath(bounds);
+        } else {
+            this.updateBBox(bounds);
         }
+    }
+
+    private updatePath(path: Path) {
         this.redrawSVG(this.createPath(path));
     }
 
-    public updateBBox(rect: BBoxValues | undefined) {
-        if (rect == null) {
-            return this.hideSVG();
-        }
+    private updateBBox(rect: BBoxValues) {
         this.redrawSVG(this.createRect(rect));
     }
 
-    private hideSVG() {
+    private hide() {
         this.element.classList.add(focusStyles.modifiers.hidden);
     }
 

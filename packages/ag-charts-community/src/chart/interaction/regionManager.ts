@@ -297,7 +297,7 @@ export class RegionManager {
             this.dispatch(focusedRegion, blurEvent);
         }
         if (newRegion === undefined) {
-            this.focusIndicator.updateBBox(undefined);
+            this.focusIndicator.updateBounds(undefined);
         } else {
             this.dispatch(newRegion, event);
         }

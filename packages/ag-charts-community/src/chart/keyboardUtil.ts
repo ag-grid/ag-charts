@@ -12,18 +12,14 @@ function computeCenter(bboxOrPath: Path | BBox | undefined) {
 
 export function makeKeyboardPointerEvent(
     focusIndicator: FocusIndicator | undefined,
-    pick: { bbox: Path | BBox | undefined; showFocusBox: boolean }
+    pick: { bounds: Path | BBox | undefined; showFocusBox: boolean }
 ): TooltipPointerEvent<'keyboard'> | undefined {
-    const { bbox, showFocusBox } = pick;
+    const { bounds, showFocusBox } = pick;
     if (showFocusBox) {
-        if (pick.bbox instanceof BBox) {
-            focusIndicator?.updateBBox(pick.bbox);
-        } else {
-            focusIndicator?.updatePath(pick.bbox);
-        }
+        focusIndicator?.updateBounds(bounds);
     }
 
-    const { x: offsetX, y: offsetY } = computeCenter(bbox) ?? {};
+    const { x: offsetX, y: offsetY } = computeCenter(bounds) ?? {};
     if (offsetX !== undefined && offsetY !== undefined) {
         return { type: 'keyboard', offsetX, offsetY };
     }

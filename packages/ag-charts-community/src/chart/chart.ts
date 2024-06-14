@@ -384,7 +384,7 @@ export abstract class Chart extends Observable {
             ctx.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
             ctx.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
-                this.ctx.focusIndicator.updateBBox(undefined);
+                this.ctx.focusIndicator.updateBounds(undefined);
                 this.series.map((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
@@ -1167,7 +1167,7 @@ export abstract class Chart extends Observable {
     }
 
     private onBlur(): void {
-        this.ctx.focusIndicator.updateBBox(undefined);
+        this.ctx.focusIndicator.updateBounds(undefined);
         this.resetPointer();
         this.focus.hasFocus = false;
         // Do not consume blur events to allow the browser-focus to leave the canvas element.
@@ -1238,7 +1238,7 @@ export abstract class Chart extends Observable {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.ctx.focusIndicator.updateBBox(overlayFocus.rect);
+            this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
