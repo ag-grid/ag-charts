@@ -406,7 +406,7 @@ export class Color implements IColor {
      * Converts the given HSB (HSV) triple to an array of RGB components.
      */
     static HSBtoRGB(H: number, S: number, B: number): [number, number, number] {
-        H = ((H % 360) + 360) % 360; // normalize hue to [0, 360] interval
+        H = (((H % 360) + 360) % 360) / 360; // normalize hue to [0, 360] interval, then scale to [0, 1]
 
         let r = 0;
         let g = 0;
