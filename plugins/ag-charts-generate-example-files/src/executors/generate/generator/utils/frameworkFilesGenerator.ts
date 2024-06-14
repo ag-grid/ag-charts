@@ -97,7 +97,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         );
         if (chartImports) {
             const allImports = `(${chartImports.imports.join('|')})`;
-            const toReplace = `(?<=['"])\\b${allImports}\\b`;
+            const toReplace = `(?<!['"])\\b${allImports}\\b`;
             const reg = new RegExp(toReplace, 'g');
             mainJs = mainJs.replace(reg, `agCharts.$1`);
         }
