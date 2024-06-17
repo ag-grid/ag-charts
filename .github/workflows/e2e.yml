@@ -19,7 +19,6 @@ jobs:
     e2e:
         runs-on: ubuntu-latest
         name: e2e tests
-        if: false
         env:
             NX_PARALLEL: 1
         steps:
