@@ -61,7 +61,9 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: nx test:e2e
-              run: yarn nx run-many -t test:e2e --configuration=ci --exclude all
+              run: |
+                  # yarn nx run-many -t test:e2e --configuration=ci --exclude all
+                  yarn nx run --output-style=streamed ag-charts-website:test:e2e --configuration=ci --shard=1/100
               timeout-minutes: 20
 
             - name: Perist test results
