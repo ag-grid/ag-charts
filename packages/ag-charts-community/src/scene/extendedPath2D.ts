@@ -1,4 +1,4 @@
-import { angleDiff } from '../sparklines-util';
+import { angleDiff } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
