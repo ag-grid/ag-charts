@@ -1,9 +1,10 @@
-import { AG_CHARTS_LOCALE_EN_US, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-community/locales/fr-FR.js';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Custom Context Menu Text',
+        text: 'French Language',
     },
     subtitle: {
         text: 'Hover toolbar icons for tooltips, right click to show context menu',
@@ -24,19 +25,7 @@ const options: AgChartOptions = {
         enabled: true,
     },
     locale: {
-        localeText: {
-            ...AG_CHARTS_LOCALE_EN_US,
-            toolbarZoomZoomOut: 'Zoom Out of the Chart',
-            toolbarZoomZoomIn: 'Zoom In to the Chart',
-            toolbarZoomPanLeft: 'Pan the Chart Left',
-            toolbarZoomPanRight: 'Pan the Chart Right',
-            toolbarZoomPanStart: 'Pan the Chart to the Start',
-            toolbarZoomPanEnd: 'Pan the Chart to the End',
-            toolbarZoomReset: "Reset the Chart's Zoom",
-            contextMenuDownload: 'Save this Chart to My Computer',
-            contextMenuZoomToCursor: 'Zoom the Chart to Your Cursor',
-            contextMenuPanToCursor: 'Pan the Chart to Your Cursor',
-        },
+        localeText: AG_CHARTS_LOCALE_FR_FR,
     },
 };
 

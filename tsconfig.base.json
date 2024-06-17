@@ -18,6 +18,7 @@
     "strictNullChecks": true,
     "paths": {
       "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],
+      "ag-charts-community/locales/*.js": ["packages/ag-charts-community/src/locales/*.ts"],
       "ag-charts-community-examples": ["packages/ag-charts-community-examples/src/index.ts"],
       "ag-charts-community-test": ["packages/ag-charts-community/src/main-test.ts"],
       "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"],

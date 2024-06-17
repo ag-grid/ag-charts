@@ -1,6 +1,6 @@
 import type { MessageFormatter } from 'ag-charts-types';
 
-import { AG_CHARTS_LOCALE_EN } from '../../locales/en';
+import { AG_CHARTS_LOCALE_EN_US } from '../../locales/en-US';
 import { Listeners } from '../../util/listeners';
 import { defaultMessageFormatter } from './defaultMessageFormatter';
 
@@ -24,7 +24,7 @@ export class LocaleManager extends Listeners<'locale-changed', () => void> {
     }
 
     t(key: string, variables: Record<string, any> = {}): string {
-        const { localeText = AG_CHARTS_LOCALE_EN, getLocaleText } = this;
+        const { localeText = AG_CHARTS_LOCALE_EN_US, getLocaleText } = this;
         const defaultValue: string | undefined = localeText[key];
 
         return (

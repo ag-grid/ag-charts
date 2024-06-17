@@ -49,7 +49,7 @@
                 defaultExtension: 'jsx',
             },
             'ag-charts-react': {
-                main: './dist/package/index.cjs.js',
+                main: './package/index.cjs.js',
                 defaultExtension: 'js',
             },
         },

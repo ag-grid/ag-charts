@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "declaration": true,
+        "rootDir": "./src/locales"
+    },
+    "include": ["src/locales/*.ts"],
+    "exclude": []
+}

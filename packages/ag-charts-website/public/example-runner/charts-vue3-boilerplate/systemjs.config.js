@@ -44,7 +44,7 @@
                 defaultExtension: 'js',
             },
             'ag-charts-vue3': {
-                main: './dist/package/index.cjs.js',
+                main: './package/index.cjs.js',
                 defaultExtension: 'js',
             },
         },

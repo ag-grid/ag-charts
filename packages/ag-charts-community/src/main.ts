@@ -7,7 +7,7 @@ export { VERSION } from './version';
 // Undocumented APIs used by examples.
 export { Marker } from './chart/marker/marker';
 
-export { AG_CHARTS_LOCALE_EN } from './locales/en';
+export { AG_CHARTS_LOCALE_EN_US } from './locales/en-US';
 
 // Undocumented APIs used by Integrated Charts.
 export * as _Scene from './integrated-charts-scene';

@@ -3,7 +3,11 @@
     "compilerOptions": {
         "declaration": true,
         "emitDeclarationOnly": true,
-        "types": ["node"]
+        "types": ["node"],
+        "moduleResolution": "Bundler",
+        "paths": {
+            "ag-charts-community/locales/*.js": ["packages/ag-charts-community/dist/locales/*.js"]
+        }
     },
     "include": ["src/*.ts"],
     "exclude": ["jest.config.ts", "jest.setup.ts", "src/main-test.ts", "**/*.test.ts"]

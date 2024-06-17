@@ -50,6 +50,11 @@
       "inputs": ["production", "^production"],
       "cache": true
     },
+    "build:locale": {
+      "dependsOn": [],
+      "inputs": ["production", "^production"],
+      "cache": true
+    },
     "build:package": {
       "dependsOn": ["^build:package"],
       "inputs": ["production", "^production"],

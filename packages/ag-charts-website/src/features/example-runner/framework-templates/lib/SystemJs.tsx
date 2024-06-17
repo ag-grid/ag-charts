@@ -22,9 +22,9 @@ const localPrefix = pathJoin(import.meta.env?.PUBLIC_SITE_URL, SITE_BASE_URL, DE
 
 const localConfiguration: Configuration = {
     chartMap: {
-        'ag-charts-react': `${localPrefix}/ag-charts-react`,
-        'ag-charts-angular': `${localPrefix}/ag-charts-angular`,
-        'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
+        'ag-charts-react': `${localPrefix}/ag-charts-react/dist`,
+        'ag-charts-angular': `${localPrefix}/ag-charts-angular/dist`,
+        'ag-charts-vue3': `${localPrefix}/ag-charts-vue3/dist`,
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
@@ -35,9 +35,9 @@ const localConfiguration: Configuration = {
 
 const buildAndArchivesConfiguration: Configuration = {
     chartMap: {
-        'ag-charts-react': `${localPrefix}/ag-charts-react`,
-        'ag-charts-angular': `${localPrefix}/ag-charts-angular`,
-        'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
+        'ag-charts-react': `${localPrefix}/ag-charts-react/dist`,
+        'ag-charts-angular': `${localPrefix}/ag-charts-angular/dist`,
+        'ag-charts-vue3': `${localPrefix}/ag-charts-vue3/dist`,
     },
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
@@ -99,9 +99,9 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
     if (isDev) {
         configuration.chartMap = {
             ...configuration.chartMap,
-            'ag-charts-community': `${localPrefix}/ag-charts-community`,
-            'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise`,
-            'ag-charts-types': `${localPrefix}/ag-charts-types`,
+            'ag-charts-community': `${localPrefix}/ag-charts-community/dist`,
+            'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist`,
+            'ag-charts-types': `${localPrefix}/ag-charts-types/dist`,
         };
     }
     configuration = getRelevantConfig(configuration, internalFramework);

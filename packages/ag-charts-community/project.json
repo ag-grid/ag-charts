@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:types", "build:package", "build:umd"],
+      "dependsOn": ["build:types", "build:package", "build:umd", "build:locale"],
       "inputs": [],
       "outputs": [],
       "configurations": {
@@ -14,9 +14,35 @@
         "production": {}
       }
     },
+    "build:locale": {
+      "executor": "@nx/js:tsc",
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/locales/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{projectRoot}/dist/locales",
+        "main": "{projectRoot}/src/locales/index.ts",
+        "rootDir": "{projectRoot}/src/locales",
+        "tsConfig": "{projectRoot}/tsconfig.locales.json",
+        "compiler": "tsc"
+      },
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
     "build:types": {
       "executor": "@nx/js:tsc",
-      "dependsOn": ["^build:types"],
+      "dependsOn": ["^build:types", "build:locale"],
       "inputs": [
         "{projectRoot}/package.json",
         "{projectRoot}/src/**/*",
@@ -78,9 +104,9 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-community/dist/package",
-        "main": "packages/ag-charts-community/src/main.ts",
-        "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
+        "outputPath": "{projectRoot}/dist/package",
+        "main": "{projectRoot}/src/main.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
         "target": "es6",
@@ -89,7 +115,7 @@
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-community/tsconfig.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.watch.json"
         },
         "production": {
           "sourcemap": false
@@ -98,14 +124,14 @@
     },
     "build:umd": {
       "executor": "@nx/esbuild:esbuild",
-      "dependsOn": ["build:package"],
+      "dependsOn": ["^build"],
       "inputs": ["jsOutputs"],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-community/dist/umd",
+        "outputPath": "{projectRoot}/dist/umd",
         "outputFileName": "ag-charts-community",
-        "main": "packages/ag-charts-community/dist/package/main.cjs.js",
-        "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
+        "main": "{projectRoot}/src/main-umd.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
         "target": "es6",
@@ -118,7 +144,7 @@
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-community/tsconfig.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.watch.json"
         },
         "production": {
           "sourcemap": false
