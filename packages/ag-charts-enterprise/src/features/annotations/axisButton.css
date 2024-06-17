@@ -10,6 +10,7 @@
     white-space: nowrap;
     z-index: var(--ag-charts-layer-tooltip);
     box-sizing: border-box;
+    pointer-events: none;
 }
 
 .ag-charts-annotations__axis-button-wrapper--hidden {
@@ -23,6 +24,8 @@
     border-radius: 10px;
     padding: 0;
     color: rgb(71, 71, 71);
+    cursor: pointer;
+    pointer-events: all;
 }
 
 .ag-charts-annotations__axis-button-icon {
