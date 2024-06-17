@@ -8,6 +8,20 @@ function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns.push(() => button.removeEventListener(type, listener));
 }
 
+function addEscapeEventListener(
+    destroyFns: (() => void)[],
+    elem: HTMLElement,
+    onEscape?: (event: KeyboardEvent) => void
+) {
+    if (onEscape) {
+        addRemovableEventListener(destroyFns, elem, 'keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onEscape(event);
+            }
+        });
+    }
+}
+
 function linkTwoButtons(
     destroyFns: (() => void)[],
     src: HTMLElement,
@@ -20,15 +34,17 @@ function linkTwoButtons(
     let handler: (event: KeyboardEvent) => void;
     if (managedTabIndices) {
         handler = (event: KeyboardEvent) => {
-            if (event.key !== key) return;
-            dst.focus();
-            dst.tabIndex = 0;
-            src.tabIndex = -1;
+            if (event.key !== key) {
+                dst.focus();
+                dst.tabIndex = 0;
+                src.tabIndex = -1;
+            }
         };
     } else {
         handler = (event: KeyboardEvent) => {
-            if (event.key !== key) return;
-            dst.focus();
+            if (event.key === key) {
+                dst.focus();
+            }
         };
     }
 
@@ -80,13 +96,7 @@ export function initToolbarKeyNav(opts: {
         const next = buttons[i + 1];
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
-        if (onEscape) {
-            addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Escape') {
-                    onEscape(event);
-                }
-            });
-        }
+        addEscapeEventListener(destroyFns, curr, onEscape);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, true);
         curr.tabIndex = i === 0 ? 0 : -1;
     }
@@ -113,16 +123,20 @@ export function initMenuKeyNav(opts: {
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
-        if (onEscape) {
-            addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Escape') {
-                    onEscape(event);
-                }
-            });
-        }
+        addEscapeEventListener(destroyFns, curr, onEscape);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, false);
         curr.tabIndex = -1;
     }
+
+    // Add handlers for the menu element itself.
+    menu.tabIndex = -1;
+    addEscapeEventListener(destroyFns, menu, onEscape);
+    addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
+        if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
+            ev.preventDefault();
+            buttons[0]?.focus();
+        }
+    });
 
     return destroyFns;
 }
