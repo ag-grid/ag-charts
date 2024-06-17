@@ -28,8 +28,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     @Invalidating
     override interval?: TimeInterval | number = undefined;
 
-    protected niceStart: number = NaN;
-
     protected override _domain: Date[] = [];
     protected timestamps: number[] = [];
     protected sortedTimestamps: number[] = [];
@@ -45,7 +43,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         this._domain = values;
         this.timestamps = unique(values.map(dateToNumber));
         this.sortedTimestamps = this.timestamps.slice().sort(compareNumbers);
-        this.niceStart = this.sortedTimestamps[0];
     }
     override get domain(): Date[] {
         return this._domain;
@@ -92,14 +89,13 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
                 ticks.push(new Date(value));
             }
         }
-
         return ticks;
     }
 
     override convert(d: Date): number {
         this.refresh();
         const n = Number(d);
-        if (n < this.niceStart) {
+        if (n < this.sortedTimestamps[0]) {
             return NaN;
         }
         let i = this.findInterval(n);
