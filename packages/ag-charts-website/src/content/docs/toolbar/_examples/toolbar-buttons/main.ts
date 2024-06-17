@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AG_CHARTS_LOCALE_EN, AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -23,13 +23,21 @@ const options: AgCartesianChartOptions = {
             start: new Date(2023, 10, 26),
         },
     },
+    locale: {
+        localeText: {
+            ...AG_CHARTS_LOCALE_EN,
+            myToolbarRange12Months: '12m',
+            myToolbarRange12MonthsAria: '12 months',
+            myTooltip: 'Click this button to show all trades',
+        },
+    },
     toolbar: {
         ranges: {
             enabled: true,
             buttons: [
-                { label: '6 months', value: 6 * MONTH },
-                { label: '12 months', value: 12 * MONTH },
-                { label: 'All', value: (start, end) => [start, end] },
+                { label: 'toolbarRange6Months', ariaLabel: 'toolbarRange6MonthsAria', value: 6 * MONTH },
+                { label: 'myToolbarRange12Months', ariaLabel: 'myToolbarRange12MonthsAria', value: 12 * MONTH },
+                { label: 'toolbarRangeAll', tooltip: 'myTooltip', value: (start, end) => [start, end] },
             ],
         },
     },
