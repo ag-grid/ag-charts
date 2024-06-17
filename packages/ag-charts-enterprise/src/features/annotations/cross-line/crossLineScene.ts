@@ -123,7 +123,9 @@ export class CrossLine extends Annotation {
     }
 
     public drag(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
-        const { activeHandle, dragState } = this;
+        const { activeHandle, dragState, locked } = this;
+
+        if (locked) return;
 
         let coords;
 
