@@ -96,18 +96,25 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             (i: any) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise')
         );
         if (chartImports) {
-            const allImports = `(${chartImports.imports.join('|')})`;
-            const toReplace = `(?<!['"])\\b${allImports}\\b`;
-            const reg = new RegExp(toReplace, 'g');
-            mainJs = mainJs.replace(reg, `agCharts.$1`);
+            const chartsExports = new Set([
+                'time',
+                'AgCharts',
+                'VERSION',
+                'Marker',
+                'AG_CHARTS_LOCALE_EN',
+                '_Scene',
+                '_Theme',
+                '_Scale',
+                '_Util',
+                '_ModuleSupport',
+            ]);
+            const nonTypeImports = chartImports.imports.filter((imp) => chartsExports.has(imp));
+            mainJs = `const { ${nonTypeImports.join(', ')} } = agCharts;` + '\n\n' + mainJs;
         }
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
-            mainJs =
-                mainJs +
-                `\n
-            ${getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' })}`;
+            mainJs = mainJs + '\n\n' + getDarkModeSnippet({ chartAPI: 'AgCharts' });
         }
 
         mainJs = await prettier.format(mainJs, { parser: 'babel' });
