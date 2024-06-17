@@ -398,4 +398,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         children.get(id)?.remove();
         children.delete(id);
     }
+
+    incrementDataCounter(name: string) {
+        const { dataset } = this.element;
+        dataset[name] ??= '0';
+        dataset[name] = String(Number(dataset[name]) + 1);
+    }
 }

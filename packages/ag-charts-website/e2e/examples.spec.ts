@@ -50,54 +50,63 @@ function toPageUrls(path: string) {
     return fws.map((fw) => ({ fw, url: `${baseUrl}/${fw}/${page}/examples/${example}`, status }));
 }
 
-let consoleWarnOrErrors: string[];
+test.describe('examples', () => {
+    let consoleWarnOrErrors: string[];
 
-test.beforeEach(({ page }) => {
-    consoleWarnOrErrors = [];
+    test.beforeEach(({ page }) => {
+        consoleWarnOrErrors = [];
 
-    page.on('console', (msg) => {
-        // We only care about warnings/errors.
-        if (msg.type() !== 'warning' || msg.type() !== 'error') return;
+        page.on('console', (msg) => {
+            // We only care about warnings/errors.
+            if (msg.type() !== 'warning' && msg.type() !== 'error') return;
 
-        // We don't care about the AG Charts license error message.
-        if (msg.text().startsWith('*')) return;
+            // We don't care about the AG Charts license error message.
+            if (msg.text().startsWith('*')) return;
 
-        consoleWarnOrErrors.push(msg.text());
-    });
-});
-
-test.afterEach(() => {
-    expect(consoleWarnOrErrors).toHaveLength(0);
-});
-
-const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts');
-
-for (const example of examples) {
-    const testUrls = toPageUrls(example);
-    for (const { url, status, fw } of testUrls) {
-        test.describe(`Framework: ${fw}`, () => {
-            test.describe(`Example ${example}`, () => {
-                if (status === 'ok') {
-                    test(`should load ${url}`, async ({ page }) => {
-                        await page.goto(url);
-                        await page.waitForLoadState('domcontentloaded');
-
-                        expect(await page.title()).not.toMatch(/Page Not Found/);
-
-                        // Wait for synchronous JS execution to complete before we start waiting
-                        // for <canvas/> to appear.
-                        await page.evaluate(() => 1);
-                        await page.waitForSelector('canvas', { timeout: 10_000 });
-                    });
-                }
-
-                if (status === '404') {
-                    test(`should 404 on ${url}`, async ({ page }) => {
-                        await page.goto(url);
-                        expect(await page.title()).toMatch(/Page Not Found/);
-                    });
-                }
-            });
+            consoleWarnOrErrors.push(msg.text());
         });
+
+        page.on('pageerror', (err) => {
+            consoleWarnOrErrors.push(err.message);
+        });
+    });
+
+    test.afterEach(() => {
+        expect(consoleWarnOrErrors).toHaveLength(0);
+    });
+
+    const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts');
+
+    for (const example of examples) {
+        const testUrls = toPageUrls(example);
+        for (const { url, status, fw } of testUrls) {
+            test.describe(`Framework: ${fw}`, () => {
+                test.describe(`Example ${example}`, () => {
+                    if (status === 'ok') {
+                        test(`should load ${url}`, async ({ page }) => {
+                            await page.goto(url);
+                            await page.waitForLoadState('domcontentloaded');
+
+                            expect(await page.title()).not.toMatch(/Page Not Found/);
+
+                            // Wait for synchronous JS execution to complete before we start waiting
+                            // for <canvas/> to appear.
+                            await page.evaluate(() => 1);
+                            await expect(page.locator('canvas')).toBeVisible({ timeout: 10_000 });
+                            await expect(page.locator('.ag-charts-wrapper')).toHaveAttribute('data-scene-renders', {
+                                timeout: 5_000,
+                            });
+                        });
+                    }
+
+                    if (status === '404') {
+                        test(`should 404 on ${url}`, async ({ page }) => {
+                            await page.goto(url);
+                            expect(await page.title()).toMatch(/Page Not Found/);
+                        });
+                    }
+                });
+            });
+        }
     }
-}
+});

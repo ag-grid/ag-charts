@@ -645,6 +645,8 @@ export abstract class Chart extends Observable {
                 for (const key in splits) {
                     delete splits[key];
                 }
+
+                this.ctx.domManager.incrementDataCounter('sceneRenders');
             // fallthrough
 
             case ChartUpdateType.NONE:
