@@ -257,7 +257,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(newZoom);
     }
 
-    private onDoubleClick(event: _ModuleSupport.PointerInteractionEvent<'dblclick'>) {
+    private onDoubleClick(
+        event: _ModuleSupport.PointerInteractionEvent<'dblclick'> & { preventZoomDblClick?: boolean }
+    ) {
         const { enabled, enableDoubleClickToReset, hoveredAxis, paddedRect } = this;
 
         if (!enabled || !enableDoubleClickToReset) return;
@@ -269,7 +271,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const { direction } = hoveredAxis;
             const axisZoom = direction === ChartAxisDirection.X ? x : y;
             this.updateAxisZoom(direction, axisZoom);
-        } else if (paddedRect?.containsPoint(event.offsetX, event.offsetY)) {
+        } else if (paddedRect?.containsPoint(event.offsetX, event.offsetY) && !event.preventZoomDblClick) {
             this.updateZoom({ x, y });
         }
     }
