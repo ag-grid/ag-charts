@@ -143,7 +143,9 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
         let template = bindings.template.trim();
         Object.entries(bindings.placeholders).forEach(([id, placeholder]) => {
             const selector = toKebabCase(id);
-            const { style } = bindings.chartAttributes[id];
+            let { style } = bindings.chartAttributes[id];
+            // display: grid needed because Angular adds additional dom nodes compared to other frameworks
+            style = `display: grid; ${style}`.trim();
             template = template.replace(placeholder, `<${selector} style="${style}"></${selector}>`);
         });
 
