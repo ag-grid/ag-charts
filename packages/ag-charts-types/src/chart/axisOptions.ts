@@ -71,10 +71,9 @@ export interface AgContinuousAxisOptions<
     interval?: AgAxisContinuousIntervalOptions<TInterval>;
 }
 
-export interface AgAxisContinuousIntervalOptions<TStep extends TimeInterval | number>
-    extends AgAxisBaseIntervalOptions {
+export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | number> extends AgAxisBaseIntervalOptions {
     /** The axis interval specified as a TimeInterval. If the configured interval results in too many items given the chart size, it will be ignored. */
-    step?: TStep;
+    step?: T;
     /** Maximum gap in pixels between items. */
     maxSpacing?: PixelSize;
 }
