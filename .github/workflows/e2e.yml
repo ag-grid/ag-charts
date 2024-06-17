@@ -62,6 +62,7 @@ jobs:
 
             - name: nx test:e2e
               run: yarn nx run-many -t test:e2e --configuration=ci --exclude all
+              timeout-minutes: 20
 
             - name: Perist test results
               if: always()

@@ -35,7 +35,13 @@ export default defineConfig({
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
+            use: {
+                ...devices['Desktop Chrome'],
+                ignoreHTTPSErrors: true,
+                launchOptions: {
+                    args: ['--ignore-certificate-errors'],
+                },
+            },
         },
 
         // {
