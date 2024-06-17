@@ -74,26 +74,32 @@ const ranges: AgToolbarOptions['ranges'] = {
     buttons: [
         {
             label: 'toolbarRange1Month',
+            ariaLabel: 'toolbarRange1MonthAria',
             value: MONTH,
         },
         {
             label: 'toolbarRange3Months',
+            ariaLabel: 'toolbarRange3MonthsAria',
             value: 3 * MONTH,
         },
         {
             label: 'toolbarRange6Months',
+            ariaLabel: 'toolbarRange6MonthsAria',
             value: 6 * MONTH,
         },
         {
             label: 'toolbarRangeYearToDate',
+            ariaLabel: 'toolbarRangeYearToDateAria',
             value: (_start, end) => [new Date(`${new Date(end).getFullYear()}-01-01`).getTime(), end],
         },
         {
             label: 'toolbarRange1Year',
+            ariaLabel: 'toolbarRange1YearAria',
             value: YEAR,
         },
         {
             label: 'toolbarRangeAll',
+            ariaLabel: 'toolbarRangeAllAria',
             value: (start, end) => [start, end],
         },
     ],

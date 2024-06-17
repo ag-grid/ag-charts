@@ -59,16 +59,28 @@ export const AG_CHARTS_LOCALE_EN: Record<string, string> = {
     toolbarAnnotationsDelete: 'Delete annotation',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1m',
+    // Aria label for the range toolbar's 1 month button
+    toolbarRange1MonthAria: '1 month',
     // Text for the range toolbar's 3 month button
     toolbarRange3Months: '3m',
+    // Aria label for the range toolbar's 3 month button
+    toolbarRange3MonthsAria: '3 months',
     // Text for the range toolbar's 6 month button
     toolbarRange6Months: '6m',
+    // Aria label for the range toolbar's 6 month button
+    toolbarRange6MonthsAria: '6 months',
     // Text for the range toolbar's year to date button
     toolbarRangeYearToDate: 'YTD',
+    // Aria label for the range toolbar's year to date month button
+    toolbarRangeYearToDateAria: 'Year to date',
     // Text for the range toolbar's 1 year button
     toolbarRange1Year: '1y',
+    // Aria label for the range toolbar's 1 year button
+    toolbarRange1YearAria: '1 year',
     // Text for the range toolbar's full range button
     toolbarRangeAll: 'All',
+    // Aria label for the range toolbar's full range button
+    toolbarRangeAllAria: 'All',
     // Text for the zoom toolbar's zoom out button
     toolbarZoomZoomOut: 'Zoom out',
     // Text for the zoom toolbar's zoom in button

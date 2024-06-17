@@ -23,8 +23,16 @@ export class LocaleManager extends Listeners<'locale-changed', () => void> {
         }
     }
 
-    t(key: string, variables: Record<string, any> = {}): string {
+    t(key: string, variables?: Record<string, any>): string;
+    t(key: undefined, variables?: Record<string, any>): undefined;
+    t(key: string | undefined, variables?: Record<string, any>): string | undefined;
+
+    t(key: string | undefined, variables?: Record<string, any>): string | undefined {
         const { localeText = AG_CHARTS_LOCALE_EN, getLocaleText } = this;
+
+        if (key === undefined) return undefined;
+        variables ??= {};
+
         const defaultValue: string | undefined = localeText[key];
 
         return (
