@@ -418,12 +418,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp = checkCrisp(
-            xAxis?.scale,
-            xAxis?.visibleRange,
-            this.smallestDataInterval,
-            this.largestDataInterval
-        );
+        const crisp =
+            this.properties.crisp ??
+            checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         opts.datumSelection.each((rect, datum) => {
