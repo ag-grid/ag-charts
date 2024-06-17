@@ -2,7 +2,8 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { Coords } from './annotationTypes';
 
-const { BaseModuleInstance, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } = _ModuleSupport;
+const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
+    _ModuleSupport;
 
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
@@ -29,9 +30,11 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.updateButtonElement();
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
+        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
 
         this.destroyFns.push(
-            seriesRegion.addListener('hover', (event) => this.onHover(event)),
+            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onLeave()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
@@ -61,7 +64,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+    private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
         const { enabled } = this;
         if (!enabled) return;
 
@@ -75,7 +78,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(false);
     }
 
-    private getButtonCoordinates(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+    private getButtonCoordinates(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
         const {
             axisCtx: { direction, position },
             seriesRect,
