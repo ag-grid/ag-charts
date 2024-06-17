@@ -13,9 +13,7 @@ const canvasOverlay = 'canvas-overlay';
 const getHsva = (input: string) => {
     try {
         const color = Color.fromString(input);
-        // eslint-disable-next-line prefer-const
-        let [h, s, v] = color.toHSB();
-        if (Number.isNaN(h)) h = 0;
+        const [h, s, v] = color.toHSB();
         return [h, s, v, color.a];
     } catch {
         return;

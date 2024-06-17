@@ -1,4 +1,5 @@
 .env.local
+playwright-report/
 
 # Generated gallery thumbnails. Should only need it on CI/deployment
 public/gallery/thumbnails

@@ -10,6 +10,7 @@ import type {
 
 import { DropShadow } from '../../../scene/dropShadow';
 import {
+    BOOLEAN,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -72,6 +73,9 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
 
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
+
+    @Validate(BOOLEAN, { optional: true })
+    crisp?: boolean = undefined;
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgBarSeriesFormatterParams<any>, AgBarSeriesStyle>;

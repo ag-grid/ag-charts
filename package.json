@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "9.3.1-beta.20240613",
+  "version": "9.3.1-beta.20240617",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -57,6 +57,7 @@
     "@types/pixelmatch": "^5.2.4",
     "@types/pngjs": "^6.0.1",
     "@types/prismjs": "^1.26.0",
+    "@types/prompts": "^2.4.9",
     "@types/react": "18.2.24",
     "@types/react-dom": "18.2.9",
     "@types/ws": "^8.5.10",
@@ -69,8 +70,8 @@
     "cheerio": "^1.0.0-rc.12",
     "chokidar": "^3.5.3",
     "classnames": "^2.3.2",
-    "cssnano-preset-lite": "^4.0.0",
     "cssnano": "^7.0.2",
+    "cssnano-preset-lite": "^4.0.0",
     "cypress": "^13.6.6",
     "dependency-cruiser": "^13.1.5",
     "esbuild": "^0.19.2",
@@ -104,6 +105,7 @@
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
     "prettier-plugin-astro": "^0.12.1",
+    "prompts": "^2.4.2",
     "raf": "3.4.1",
     "react": "^18.2.0",
     "react-animate-height": "^3.1.1",

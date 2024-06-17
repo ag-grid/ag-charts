@@ -35,9 +35,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setTickInterval(interval: number) {
+function setStep(step: number) {
     const axis = options.axes?.[1]! as AgNumberAxisOptions;
-    axis.interval = { step: interval };
+    axis.interval = { step: step };
     chart.update(options);
 }
 

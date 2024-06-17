@@ -28,6 +28,8 @@ export interface AgBarSeriesFormatterParams<TDatum>
 export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
+    /** Align bars to whole pixel values to remove anti-aliasing. */
+    crisp?: boolean;
 }
 
 export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames;

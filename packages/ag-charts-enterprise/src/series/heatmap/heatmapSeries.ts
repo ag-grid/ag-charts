@@ -15,7 +15,7 @@ const {
 } = _ModuleSupport;
 const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
-const { sanitizeHtml, Color, Logger } = _Util;
+const { sanitizeHtml, Logger } = _Util;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<_Scene.SizedPoint>;
@@ -310,22 +310,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const {
             id: seriesId,
             ctx: { callbackCache },
+            properties,
         } = this;
-        const {
-            xKey,
-            yKey,
-            colorKey,
-            itemStyler,
-            highlightStyle: {
-                item: {
-                    fill: highlightedFill,
-                    stroke: highlightedStroke,
-                    strokeWidth: highlightedDatumStrokeWidth,
-                    strokeOpacity: highlightedDatumStrokeOpacity,
-                    fillOpacity: highlightedFillOpacity,
-                },
-            },
-        } = this.properties;
+        const { xKey, yKey, colorKey, itemStyler } = properties;
+
+        const highlightStyle = isDatumHighlighted ? properties.highlightStyle.item : undefined;
+        const fillOpacity = highlightStyle?.fillOpacity ?? 1;
+        const stroke = highlightStyle?.stroke ?? properties.stroke;
+        const strokeWidth = highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth);
+        const strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity ?? 1;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const [visibleMin, visibleMax] = xAxis?.visibleRange ?? [];
@@ -335,20 +328,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         opts.datumSelection.each((rect, datum) => {
             const { point, width, height } = datum;
 
-            const fill =
-                isDatumHighlighted && highlightedFill !== undefined
-                    ? Color.interpolate(datum.fill, highlightedFill)(highlightedFillOpacity ?? 1)
-                    : datum.fill;
-            const stroke =
-                isDatumHighlighted && highlightedStroke !== undefined ? highlightedStroke : this.properties.stroke;
-            const strokeOpacity =
-                isDatumHighlighted && highlightedDatumStrokeOpacity !== undefined
-                    ? highlightedDatumStrokeOpacity
-                    : this.properties.strokeOpacity;
-            const strokeWidth =
-                isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
-                    ? highlightedDatumStrokeWidth
-                    : this.properties.strokeWidth;
+            const fill = highlightStyle?.fill ?? datum.fill;
 
             let format: AgHeatmapSeriesFormat | undefined;
             if (itemStyler) {
@@ -372,9 +352,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             rect.width = Math.ceil(width);
             rect.height = Math.ceil(height);
             rect.fill = format?.fill ?? fill;
+            rect.fillOpacity = format?.fillOpacity ?? fillOpacity;
             rect.stroke = format?.stroke ?? stroke;
-            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity ?? 1;
             rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
+            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
         });
     }
 

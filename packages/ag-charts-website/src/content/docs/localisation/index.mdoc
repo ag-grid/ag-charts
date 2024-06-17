@@ -2,7 +2,7 @@
 title: 'Localisation'
 ---
 
-All the displayed text in the grid is customisable for the purposes of localisation. This is done by providing locale information to the grid for the required language. Either provide an object of key/value pairs via the `localeText` property, or provide a `getLocaleText` callback to hook the grid up to your application's localisation.
+All the displayed text in charts is customisable for the purposes of localisation. This is done by providing locale information to charts for the required language. Either provide an object of key/value pairs via the `localeText` property, or provide a `getLocaleText` callback to hook charts up to your application's localisation.
 
 We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size, and only supports American English for formatting of numbers and dates.
 
@@ -31,7 +31,16 @@ Overrides for individual translations can be done by applying overrides to an ex
     locale: {
         localeText: {
             ...AG_CHARTS_LOCALE_EN,
+            toolbarZoomZoomOut: 'Zoom Out of the Chart',
+            toolbarZoomZoomIn: 'Zoom In to the Chart',
+            toolbarZoomPanLeft: 'Pan the Chart Left',
+            toolbarZoomPanRight: 'Pan the Chart Right',
+            toolbarZoomPanStart: 'Pan the Chart to the Start',
+            toolbarZoomPanEnd: 'Pan the Chart to the End',
+            toolbarZoomReset: 'Reset the Chart\'s Zoom',
             contextMenuDownload: 'Save this Chart to My Computer',
+            contextMenuZoomToCursor: 'Zoom the Chart to Your Cursor',
+            contextMenuPanToCursor: 'Pan the Chart to Your Cursor',
         },
     }
 }
