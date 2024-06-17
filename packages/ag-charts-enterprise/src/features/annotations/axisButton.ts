@@ -4,7 +4,7 @@ import type { Coords } from './annotationTypes';
 
 const { BaseModuleInstance, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } = _ModuleSupport;
 
-export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `annotations-axis-button`;
+export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
 export class AxisButton extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -44,9 +44,11 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             'canvas-overlay',
             `${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-${this.axisCtx.axisId}`
         );
-        wrapper.classList.add(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+        wrapper.classList.add(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-wrapper`);
 
         const button = createElement('button');
+        button.classList.add(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+
         wrapper.appendChild(button);
 
         return {
@@ -111,11 +113,11 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         if (button == null) return;
 
         const isVisible = this.enabled && visible;
-        this.toggleClass('hidden', !isVisible);
+        this.toggleClass('-hidden', !isVisible);
     }
 
     private toggleClass(name: string, include: boolean) {
-        this.wrapper.classList.toggle(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-${name}`, include);
+        this.wrapper.classList.toggle(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-wrapper-${name}`, include);
     }
 
     private updatePosition({ x, y }: Coords, visible: boolean) {
