@@ -20,7 +20,6 @@ const notServedGalleryExamples = [
     'cross-lines',
     'chart-customisation',
     'bubble-with-labels',
-    'bubble-with-custom-markers',
     'box-plot-scatter-combination',
     'bar-with-labels',
     'bar-series-error-bars',
@@ -39,7 +38,7 @@ function toPageUrls(path: string) {
             status = '404';
         }
 
-        return [{ fw: 'vanilla', url: `${baseUrl}/${pagePath}/examples/${example}`, status }];
+        return [{ fw: 'vanilla', url: `${baseUrl}/${pagePath}/examples/${example}`, status, pagePath, example }];
     }
     const page = pagePath.replace(/^docs\//, '');
 
@@ -47,7 +46,7 @@ function toPageUrls(path: string) {
         status = 'skip';
     }
 
-    return fws.map((fw) => ({ fw, url: `${baseUrl}/${fw}/${page}/examples/${example}`, status }));
+    return fws.map((fw) => ({ fw, url: `${baseUrl}/${fw}/${page}/examples/${example}`, status, pagePath, example }));
 }
 
 test.describe('examples', () => {
@@ -84,9 +83,9 @@ test.describe('examples', () => {
 
     for (const example of examples) {
         const testUrls = toPageUrls(example);
-        for (const { url, status, fw } of testUrls) {
+        for (const { url, status, fw, pagePath, example: exampleName } of testUrls) {
             test.describe(`Framework: ${fw}`, () => {
-                test.describe(`Example ${example}`, () => {
+                test.describe(`Example ${pagePath}: ${exampleName}`, () => {
                     if (status === 'ok') {
                         test(`should load ${url}`, async ({ page }) => {
                             await page.goto(url);
