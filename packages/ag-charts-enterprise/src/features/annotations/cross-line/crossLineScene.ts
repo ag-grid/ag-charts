@@ -114,7 +114,7 @@ export class CrossLine extends Annotation {
         const middle =
             datum.direction === 'horizontal'
                 ? { x: target.x, y: convert(datum.value, context.yAxis) }
-                : { x: convert(datum.value, context.yAxis), y: target.y };
+                : { x: convert(datum.value, context.xAxis), y: target.y };
 
         this.dragState = {
             offset: target,
