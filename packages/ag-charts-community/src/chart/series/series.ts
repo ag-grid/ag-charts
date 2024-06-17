@@ -15,6 +15,7 @@ import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
+import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -76,7 +77,7 @@ export type PickFocusOutputs = {
     datumIndex: number;
     datum: SeriesNodeDatum;
     otherIndex?: number;
-    bbox: BBox;
+    bounds: BBox | Path;
     showFocusBox: boolean;
 };
 
