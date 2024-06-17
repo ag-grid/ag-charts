@@ -100,17 +100,13 @@ export function processMembers(
     let { members } = interfaceRef;
     const { prioritise, include, exclude } = config;
     const isInterface = interfaceRef.kind === 'interface';
-    const genericsMap = new Map(
-        isInterface
-            ? interfaceRef.typeParams?.map((typeParam, i) => [
-                  typeParam.name,
-                  typeArguments?.[i] ?? typeParam.default ?? typeParam.constraint,
-              ])
-            : null
-    );
-    if (isInterface && interfaceRef.genericsMap) {
-        for (const [key, value] of Object.entries(interfaceRef.genericsMap)) {
-            genericsMap.set(key, value);
+    const genericsMap = new Map(isInterface ? Object.entries(interfaceRef.genericsMap ?? {}) : null);
+    if (isInterface && interfaceRef.typeParams) {
+        for (const [i, typeParam] of interfaceRef.typeParams.entries()) {
+            genericsMap.set(
+                typeParam.name,
+                normalizeType(typeArguments?.[i] ?? typeParam.default ?? typeParam.constraint)
+            );
         }
     }
     if (include?.length || exclude?.length) {
