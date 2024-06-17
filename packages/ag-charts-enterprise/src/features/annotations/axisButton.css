@@ -13,7 +13,7 @@
 }
 
 .ag-charts-annotations__axis-button-wrapper--hidden {
-    top: -10000px !important;
+    display: none;
 }
 
 .ag-charts-annotations__axis-button {
