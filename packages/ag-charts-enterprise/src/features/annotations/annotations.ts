@@ -140,6 +140,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.cursorManager.updateCursor('annotations');
                 ctx.interactionManager.popState(InteractionState.Annotations);
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+                ctx.tooltipManager.unsuppressTooltip('annotations');
                 for (const annotationType of ANNOTATION_BUTTONS) {
                     ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
                 }
@@ -217,7 +218,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const {
             state,
-            ctx: { interactionManager, toolbarManager },
+            ctx: { interactionManager, toolbarManager, tooltipManager },
         } = this;
 
         if (ToolbarManager.isGroup('annotationOptions', event)) {
@@ -236,6 +237,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.update();
             return;
         }
+
+        tooltipManager.suppressTooltip('annotations');
 
         const annotation = stringToAnnotationType(event.value);
         if (!annotation) {
