@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { Coords } from './annotationTypes';
 
@@ -83,15 +83,21 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         const { clientWidth: buttonWidth, clientHeight: buttonHeight } = this.button;
 
+        const [minY, maxY] = [seriesRect.y, seriesRect.y + seriesRect.height - buttonHeight];
+        const [minX, maxX] = [seriesRect.x, seriesRect.x + seriesRect.width - buttonWidth];
+
         let x = 0;
         let y = 0;
         if (direction === ChartAxisDirection.X) {
             x = event.offsetX - buttonWidth / 2;
-            y = position === 'top' ? seriesRect.y : seriesRect.y + seriesRect.height - buttonHeight;
+            y = position === 'top' ? minY : maxY;
         } else {
-            x = position === 'left' ? seriesRect.x : seriesRect.x + seriesRect.width - buttonWidth;
+            x = position === 'left' ? minX : maxX;
             y = event.offsetY - buttonHeight / 2;
         }
+
+        x = _Util.clamp(minX, x, maxX);
+        y = _Util.clamp(minY, y, maxY);
 
         return { x, y };
     }
