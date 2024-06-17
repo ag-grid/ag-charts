@@ -4,6 +4,7 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
+import { setAttribute } from '../../sparklines-util';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { ObserveChanges } from '../../util/proxy';
@@ -492,6 +493,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         button.innerHTML = inner;
+        setAttribute(button, 'aria-label', options.ariaLabel);
     }
 
     private onButtonPress(group: ToolbarGroup, value: any) {
