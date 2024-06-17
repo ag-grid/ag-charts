@@ -131,6 +131,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     private updateButtonElement() {
         const { button } = this;
         button.onclick = _ModuleSupport.makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
-        button.innerHTML = `<span>+</span>`;
+
+        button.innerHTML = `<span class="ag-charts-icon-plus ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
     }
 }
