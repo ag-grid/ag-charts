@@ -260,7 +260,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDoubleClick(event: _ModuleSupport.PointerInteractionEvent<'dblclick'>) {
         const { enabled, enableDoubleClickToReset, hoveredAxis, paddedRect } = this;
 
-        if (!enabled || !enableDoubleClickToReset || event.defaultPrevented) return;
+        if (!enabled || !enableDoubleClickToReset) return;
         event.preventDefault();
 
         const { x, y } = this.getResetZoom();
