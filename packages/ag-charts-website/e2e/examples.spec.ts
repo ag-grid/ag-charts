@@ -52,9 +52,11 @@ function toPageUrls(path: string) {
 
 test.describe('examples', () => {
     let consoleWarnOrErrors: string[];
+    let ignore404s = false;
 
     test.beforeEach(({ page }) => {
         consoleWarnOrErrors = [];
+        ignore404s = false;
 
         page.on('console', (msg) => {
             // We only care about warnings/errors.
@@ -62,6 +64,9 @@ test.describe('examples', () => {
 
             // We don't care about the AG Charts license error message.
             if (msg.text().startsWith('*')) return;
+
+            // Ignore 404s when expected
+            if (/the server responded with a status of 404 \(Not Found\)/.test(msg.text()) && ignore404s) return;
 
             consoleWarnOrErrors.push(msg.text());
         });
@@ -92,15 +97,20 @@ test.describe('examples', () => {
                             // Wait for synchronous JS execution to complete before we start waiting
                             // for <canvas/> to appear.
                             await page.evaluate(() => 1);
-                            await expect(page.locator('canvas')).toBeVisible({ timeout: 10_000 });
-                            await expect(page.locator('.ag-charts-wrapper')).toHaveAttribute('data-scene-renders', {
-                                timeout: 5_000,
-                            });
+                            await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10_000 });
+                            for (const elements of await page.locator('canvas').all()) {
+                                await expect(elements).toBeVisible();
+                            }
+                            await expect(page.locator('.ag-charts-wrapper').first()).toBeVisible({ timeout: 5_000 });
+                            for (const elements of await page.locator('.ag-charts-wrapper').all()) {
+                                await expect(elements).toHaveAttribute('data-scene-renders');
+                            }
                         });
                     }
 
                     if (status === '404') {
                         test(`should 404 on ${url}`, async ({ page }) => {
+                            ignore404s = true;
                             await page.goto(url);
                             expect(await page.title()).toMatch(/Page Not Found/);
                         });
