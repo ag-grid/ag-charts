@@ -108,6 +108,11 @@ export function processMembers(
               ])
             : null
     );
+    if (isInterface && interfaceRef.genericsMap) {
+        for (const [key, value] of Object.entries(interfaceRef.genericsMap)) {
+            genericsMap.set(key, value);
+        }
+    }
     if (include?.length || exclude?.length) {
         members = members.filter(
             (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
