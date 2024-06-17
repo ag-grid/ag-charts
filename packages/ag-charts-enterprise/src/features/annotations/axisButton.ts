@@ -14,8 +14,33 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     private readonly wrapper: HTMLElement;
     private coords?: Coords;
 
-    setup(domManager: _ModuleSupport.DOMManager) {
-        const wrapper = domManager.addChild(
+    constructor(
+        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly axisCtx: _ModuleSupport.AxisContext,
+        private readonly seriesRect: _Scene.BBox,
+        private readonly onButtonClick: (coords?: Coords) => void
+    ) {
+        super();
+
+        const { button, wrapper } = this.setup();
+        this.wrapper = wrapper;
+        this.button = button;
+        this.toggleVisibility(false);
+        this.updateButtonElement();
+
+        const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
+
+        this.destroyFns.push(
+            seriesRegion.addListener('hover', (event) => this.onHover(event)),
+            seriesRegion.addListener('leave', () => this.onLeave()),
+            () => this.destroyElements(),
+            () => this.wrapper.remove(),
+            () => this.button.remove()
+        );
+    }
+
+    private setup() {
+        const wrapper = this.ctx.domManager.addChild(
             'canvas-overlay',
             `${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-${this.axisCtx.axisId}`
         );
@@ -30,33 +55,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         };
     }
 
-    destroyElements(domManager: _ModuleSupport.DOMManager) {
-        domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
-    }
-
-    constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
-        private readonly axisCtx: _ModuleSupport.AxisContext,
-        private readonly seriesRect: _Scene.BBox,
-        private readonly onButtonClick: (coords?: Coords) => void
-    ) {
-        super();
-
-        const { button, wrapper } = this.setup(ctx.domManager);
-        this.wrapper = wrapper;
-        this.button = button;
-        this.toggleVisibility(false);
-        this.updateButtonElement();
-
-        const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
-
-        this.destroyFns.push(
-            seriesRegion.addListener('hover', (event) => this.onHover(event)),
-            seriesRegion.addListener('leave', () => this.onLeave()),
-            () => this.destroyElements(ctx.domManager),
-            () => this.wrapper.remove(),
-            () => this.button.remove()
-        );
+    private destroyElements() {
+        this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {

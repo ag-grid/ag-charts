@@ -520,27 +520,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onAxisButtonClick(coords?: Coords, region?: _ModuleSupport.RegionName) {
         this.onCancel();
-        this.onAxisClickAdding(coords, region);
-    }
 
-    private onAxisClickAdding(coords?: Coords, region?: _ModuleSupport.RegionName) {
-        if (!this.annotationData) return;
-
-        this.ctx.interactionManager.pushState(InteractionState.Annotations);
-        this.state.transition(AnnotationType.CrossLine);
+        const context = this.getAnnotationContext();
+        if (!this.annotationData || !context) return;
 
         const {
             active,
             annotationData,
             annotations,
             state,
-            ctx: { toolbarManager },
+            ctx: { toolbarManager, interactionManager },
         } = this;
 
-        toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+        interactionManager.pushState(InteractionState.Annotations);
+        state.transition(AnnotationType.CrossLine);
 
-        const context = this.getAnnotationContext();
-        if (!annotationData || !context) return;
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
 
         const datum = annotationData?.at(-1);
 
