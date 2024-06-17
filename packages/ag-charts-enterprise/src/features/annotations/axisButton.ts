@@ -68,7 +68,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(true);
         const buttonCoords = this.getButtonCoordinates(event);
         this.coords = this.getAxisCoordinates(buttonCoords);
-        this.updatePosition(buttonCoords, this.enabled);
+        this.updatePosition(buttonCoords);
     }
 
     private onLeave() {
@@ -126,11 +126,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.wrapper.classList.toggle(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-wrapper-${name}`, include);
     }
 
-    private updatePosition({ x, y }: Coords, visible: boolean) {
-        if (!visible) {
-            return;
-        }
-
+    private updatePosition({ x, y }: Coords) {
         this.wrapper.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     }
 
