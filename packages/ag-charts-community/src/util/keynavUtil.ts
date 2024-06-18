@@ -11,15 +11,13 @@ function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
 function addEscapeEventListener(
     destroyFns: (() => void)[],
     elem: HTMLElement,
-    onEscape?: (event: KeyboardEvent) => void
+    onEscape: (event: KeyboardEvent) => void
 ) {
-    if (onEscape) {
-        addRemovableEventListener(destroyFns, elem, 'keydown', (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                onEscape(event);
-            }
-        });
-    }
+    addRemovableEventListener(destroyFns, elem, 'keydown', (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            onEscape(event);
+        }
+    });
 }
 
 function linkTwoButtons(
@@ -96,7 +94,7 @@ export function initToolbarKeyNav(opts: {
         const next = buttons[i + 1];
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
-        addEscapeEventListener(destroyFns, curr, onEscape);
+        if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, true);
         curr.tabIndex = i === 0 ? 0 : -1;
     }
@@ -123,14 +121,14 @@ export function initMenuKeyNav(opts: {
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
-        addEscapeEventListener(destroyFns, curr, onEscape);
+        if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, false);
         curr.tabIndex = -1;
     }
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    addEscapeEventListener(destroyFns, menu, onEscape);
+    if (onEscape) addEscapeEventListener(destroyFns, menu, onEscape);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();
