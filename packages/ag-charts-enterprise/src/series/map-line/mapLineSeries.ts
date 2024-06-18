@@ -10,7 +10,7 @@ import {
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
 import { lineStringCenter } from '../map-util/lineStringUtil';
-import { computeGeoFocusBounds } from '../map-util/mapUtil';
+import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -653,6 +653,6 @@ export class MapLineSeries
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeGeoFocusBounds(this, opts);
+        return findFocusedGeoGeometry(this, opts)?.computeTransformedBBox();
     }
 }

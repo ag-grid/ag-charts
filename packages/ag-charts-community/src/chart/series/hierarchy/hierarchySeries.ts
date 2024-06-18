@@ -7,6 +7,7 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
+import type { Path } from '../../../scene/shape/path';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { Logger } from '../../../util/logger';
 import { clamp } from '../../../util/number';
@@ -404,7 +405,7 @@ export abstract class HierarchySeries<
 
     protected focusPath: FocusPathNode<TDatum>[] = [];
 
-    protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
+    protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | Path | undefined;
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         if (this.rootNode.children.length === 0) return undefined;
