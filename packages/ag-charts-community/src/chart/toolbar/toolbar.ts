@@ -493,7 +493,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         button.innerHTML = inner;
-        setAttribute(button, 'aria-label', this.ctx.localeManager.t(options.ariaLabel));
+        setAttribute(button, 'aria-label', this.ctx.localeManager.tOptional(options.ariaLabel));
     }
 
     private onButtonPress(group: ToolbarGroup, value: any) {
