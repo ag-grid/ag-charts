@@ -110,7 +110,7 @@ jobs:
 
             - name: Test Report
               uses: dorny/test-reporter@v1
-              if: needs.test.result == 'success' || needs.test.result == 'failure'
+              if: needs.e2e.result == 'success' || needs.e2e.result == 'failure'
               id: testReport
               continue-on-error: true
               with:
@@ -144,15 +144,6 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Commit History
-              id: commits
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
-              run: |
-                  GIT_LOG=$(git log HEAD ^${{ needs.execute_blt.outputs.nx_base }} --format="%an (%h) %s")
-                  echo "GIT_LOG<<EOF" >> $GITHUB_ENV
-                  echo "$GIT_LOG" >> $GITHUB_ENV
-                  echo "EOF" >> $GITHUB_ENV
-
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
@@ -165,7 +156,3 @@ jobs:
                   SLACK_FOOTER: ''
                   SLACK_MESSAGE: >
                       E2E: ${{ needs.e2e.outputs.build == 'success' && '✅' || needs.e2e.outputs.build == 'failure' && '❌' || 'NA' }}
-
-                      *Changes:*
-
-                      ${{ env.GIT_LOG }}
