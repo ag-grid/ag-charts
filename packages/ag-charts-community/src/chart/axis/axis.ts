@@ -350,6 +350,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const shift = span * vr[0];
         const start = rr[0] - shift;
 
+        scale.setVisibleRange?.(vr);
         scale.range = [start, start + span];
         this.crossLines?.forEach((crossLine) => {
             crossLine.clippedRange = [rr[0], rr[1]];
