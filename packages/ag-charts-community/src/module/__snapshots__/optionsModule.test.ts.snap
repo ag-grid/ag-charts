@@ -11983,7 +11983,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
           "fontSize": 24,
           "fontStyle": undefined,
           "fontWeight": "bold",
-          "margin": 2,
+          "spacing": 2,
           "text": "29,570",
         },
         {
@@ -11992,7 +11992,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
           "fontSize": 16,
           "fontStyle": undefined,
           "fontWeight": undefined,
-          "margin": 2,
+          "spacing": 2,
           "text": "Total",
         },
       ],
