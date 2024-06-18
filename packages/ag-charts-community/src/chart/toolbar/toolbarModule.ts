@@ -45,9 +45,9 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     align: 'start',
     buttons: [
         {
-            icon: 'color',
+            icon: 'line-color',
             tooltip: 'toolbarAnnotationsColor',
-            value: 'color',
+            value: 'line-color',
         },
         {
             icon: 'lock',
