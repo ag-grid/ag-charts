@@ -172,7 +172,7 @@
 }
 
 .ag-charts-toolbar__button:hover,
-.ag-charts-toolbar__button:focus {
+.ag-charts-toolbar__button:focus-visible {
     background: var(--ag-charts-toolbar-focus-color);
 }
 
