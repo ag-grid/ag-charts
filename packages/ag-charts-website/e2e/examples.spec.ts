@@ -20,6 +20,7 @@ const notServedGalleryExamples = [
     'cross-lines',
     'chart-customisation',
     'bubble-with-labels',
+    'bubble-with-custom-markers',
     'box-plot-scatter-combination',
     'bar-with-labels',
     'bar-series-error-bars',

@@ -264,12 +264,11 @@ export abstract class Chart extends Observable {
     private readonly processors: UpdateProcessor[] = [];
 
     processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
-    userOptions: AgChartOptions = {};
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
 
     getOptions() {
-        return this.queuedUserOptions.at(-1) ?? this.userOptions;
+        return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
     }
 
     protected constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -1626,7 +1625,6 @@ export abstract class Chart extends Observable {
     applyOptions(chartOptions: ChartOptions) {
         const oldOpts = this.processedOptions;
         const deltaOptions = chartOptions.diffOptions(oldOpts);
-        const userOptions = chartOptions.userOptions;
 
         if (deltaOptions == null) return;
 
@@ -1682,7 +1680,6 @@ export abstract class Chart extends Observable {
 
         this.chartOptions = chartOptions;
         this.processedOptions = completeOptions;
-        this.userOptions = mergeDefaults(userOptions, this.userOptions);
 
         const navigatorModule = this.modulesManager.getModule<any>('navigator');
         const zoomModule = this.modulesManager.getModule<any>('zoom');
