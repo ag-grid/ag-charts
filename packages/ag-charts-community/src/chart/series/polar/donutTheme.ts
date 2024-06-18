@@ -64,7 +64,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             fontSize: 12,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_LABEL_COLOUR,
-            margin: 2,
+            spacing: 2,
         },
     },
 };

@@ -41,7 +41,7 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
     text!: string;
 
     @Validate(NUMBER)
-    margin: number = 2;
+    spacing: number = 2;
 
     override set(properties: T, _reset?: boolean) {
         return super.set(properties);
