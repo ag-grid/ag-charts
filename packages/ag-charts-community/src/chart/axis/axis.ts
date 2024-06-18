@@ -1408,9 +1408,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             moduleCtx: { callbackCache },
         } = this;
 
-        if (!isTickLabel && datumFormatter) {
-            return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
-        } else if (label.formatter) {
+        if (label.formatter) {
             return (datum, fractionDigits) =>
                 callbackCache.call(label.formatter as (params: AgAxisLabelFormatterParams) => string, {
                     value: (fractionDigits ?? 0) > 0 ? datum : String(datum),
@@ -1418,6 +1416,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     fractionDigits,
                     formatter: labelFormatter,
                 }) ?? datum;
+        } else if (!isTickLabel && datumFormatter) {
+            return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
         } else if (labelFormatter) {
             return (datum) => callbackCache.call(labelFormatter, datum) ?? String(datum);
         }
