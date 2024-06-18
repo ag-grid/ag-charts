@@ -112,14 +112,12 @@
 
 .ag-charts-color-picker__alpha-input::before {
     background:
-        linear-gradient(to right, hsla(var(--h), 100%, 50%, 0), hsla(var(--h), 100%, 50%, 1)),
+        linear-gradient(to right, transparent, var(--color)),
         var(--checker) top left / 4px 4px;
 }
 
 .ag-charts-color-picker__alpha-input::-webkit-slider-thumb {
-    /* Linear gradient is required to overlay colour */
-    background: linear-gradient(to bottom, hsla(var(--h), 100%, 50%, var(--a)), hsla(var(--h), 100%, 50%, var(--a)))
-        white;
+    background-color: transparent;
 }
 
 .ag-charts-color-picker__color-field {
