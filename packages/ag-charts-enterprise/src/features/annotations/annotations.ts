@@ -268,7 +268,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!annotationData || active == null) return;
 
         switch (event.value) {
-            case 'color':
+            case 'line-color':
                 this.colorPicker.show({
                     anchor: this.annotations.nodes()[active]?.getAnchor(),
                     color: this.getTypedDatum(annotationData[active])?.stroke,
@@ -800,7 +800,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null || !annotationData) return;
 
         const locked = annotationData?.at(active)?.locked ?? false;
-        toolbarManager.toggleButton('annotationOptions', 'color', { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'line-color', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'delete', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });

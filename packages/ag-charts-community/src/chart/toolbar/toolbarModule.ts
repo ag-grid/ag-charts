@@ -45,9 +45,9 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     align: 'start',
     buttons: [
         {
-            icon: 'color',
+            icon: 'line-color',
             tooltip: 'toolbarAnnotationsColor',
-            value: 'color',
+            value: 'line-color',
         },
         {
             icon: 'lock',
@@ -111,12 +111,12 @@ const zoom: AgToolbarOptions['zoom'] = {
     align: 'end',
     buttons: [
         {
-            icon: 'zoom-out',
+            icon: 'zoom-out-alt',
             tooltip: 'toolbarZoomZoomOut',
             value: 'zoom-out',
         },
         {
-            icon: 'zoom-in',
+            icon: 'zoom-in-alt',
             tooltip: 'toolbarZoomZoomIn',
             value: 'zoom-in',
         },
