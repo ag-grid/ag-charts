@@ -190,15 +190,16 @@ export class CrossLine extends Annotation {
         let y1 = 0;
         let y2 = 0;
 
-        const { bounds, scaleConvert } = context;
+        const { bounds, scaleConvert, scaleBandwidth } = context;
+        const halfBandwidth = (scaleBandwidth() ?? 0) / 2;
 
         if (datum.direction === 'vertical') {
-            const scaledValue = scaleConvert(datum.value);
+            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
             x1 = scaledValue;
             x2 = scaledValue;
             y2 = bounds.height;
         } else {
-            const scaledValue = scaleConvert(datum.value);
+            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
             x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;
