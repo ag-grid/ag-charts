@@ -101,7 +101,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
-    private readonly groupProxied = new Set<ToolbarGroup>();
+    private readonly groupProxied = new Map<ToolbarGroup, ToolbarProxyGroupOptionsEvent['options']>();
     private hasNewLocale = true;
 
     constructor(private readonly ctx: ModuleContext) {
@@ -241,7 +241,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {
         const { caller, group, options } = event;
 
-        this.groupProxied.add(group);
+        this.groupProxied.set(group, options);
 
         this.createGroup(group, options.enabled, options.position);
         this.createGroupButtons(group, options.buttons);
@@ -336,7 +336,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        const { elements, margin } = this;
+        const { elements, groupButtons, groupProxied, hasNewLocale, margin } = this;
 
         if (!elements.top.classList.contains(styles.modifiers.hidden)) {
             shrinkRect.shrink(elements.top.offsetHeight + margin * 2, 'top');
@@ -354,11 +354,20 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             shrinkRect.shrink(elements.left.offsetWidth + margin, 'left');
         }
 
-        if (this.hasNewLocale) {
+        if (hasNewLocale) {
             for (const group of TOOLBAR_GROUPS) {
-                this.groupButtons[group].forEach((element) => {
-                    const button = this[group].buttons?.find(({ value }) => value === element.dataset.toolbarValue);
+                const groupProxyOptions = groupProxied.get(group);
+                groupButtons[group].forEach((element) => {
+                    const {
+                        dataset: { toolbarValue },
+                    } = element;
+
+                    const button =
+                        groupProxyOptions?.buttons?.find(({ value }) => value === toolbarValue) ??
+                        this[group].buttons?.find(({ value }) => value === toolbarValue);
+
                     if (!button) return;
+
                     this.updateButtonText(element, button);
                 });
             }
