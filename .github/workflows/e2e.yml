@@ -58,14 +58,13 @@ jobs:
               if: steps.cache.outputs.cache-hit == 'true'
               run: yarn postinstall
             - name: playwright install
-              run: npx playwright install --with-deps
+              run: npx playwright install chromium --with-deps
 
             - name: nx run generate-gallery-thumbnail
               run: yarn nx run generate-gallery-thumbnail --example simple-bar
 
             - name: nx test:e2e
               run: |
-                  # yarn nx run-many -t test:e2e --configuration=ci --exclude all
                   yarn nx run --output-style=streamed ag-charts-website:test:e2e --configuration=ci --shard=1/100
               timeout-minutes: 20
 

@@ -65,7 +65,7 @@ export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SIT
 export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
 export const PRODUCTION_SITE_URL = 'https://charts.ag-grid.com';
 export const USE_PUBLISHED_PACKAGES = ['1', 'true'].includes(import.meta.env?.PUBLIC_USE_PUBLISHED_PACKAGES);
-
+export const FAIL_ON_UNMATCHED_GLOBS = ['1', 'true'].includes(import.meta.env?.FAIL_ON_UNMATCHED_GLOBS) ?? true;
 /**
  * Number of URL segments in `SITE_BASE_URL`
  */

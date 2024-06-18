@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import fs from 'fs/promises';
 import glob from 'glob';
 
-import { SITE_BASE_URL, TYPESCRIPT_INTERNAL_FRAMEWORKS, USE_PUBLISHED_PACKAGES } from '../constants';
+import { FAIL_ON_UNMATCHED_GLOBS, SITE_BASE_URL, TYPESCRIPT_INTERNAL_FRAMEWORKS, USE_PUBLISHED_PACKAGES } from '../constants';
 import { pathJoin } from './pathJoin';
 import { urlWithBaseUrl } from './urlWithBaseUrl';
 
@@ -185,7 +185,12 @@ export function getDevFiles(): DevFileRoute[] {
             const sourcePrefix = fullFilePath.substring(0, fullFilePath.indexOf('**'));
 
             const matches = glob.sync(fullFilePath);
-            if (matches.length === 0) throw new Error(`No files match the glob ${fullFilePath}`);
+            if (matches.length === 0) {
+                if (FAIL_ON_UNMATCHED_GLOBS) throw new Error(`No files match the glob ${fullFilePath}`);
+                
+                // eslint-disable-next-line no-console
+                console.warn(`No files match the glob ${fullFilePath}`);
+            }
 
             for (const globFile of matches) {
                 const relativeFile = globFile.replace(sourcePrefix, '');

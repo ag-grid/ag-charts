@@ -84,6 +84,7 @@ export default defineConfig({
     webServer: {
         env: {
             PUBLIC_SITE_URL: 'https://localhost:4601',
+            FAIL_ON_UNMATCHED_GLOBS: 'false',
         },
         command: 'npx astro dev --port=4601 --host',
         url: 'https://localhost:4601/',
