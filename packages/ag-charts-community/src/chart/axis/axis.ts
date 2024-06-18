@@ -403,7 +403,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         if (format && scale && scale.tickFormat) {
             try {
-                this.labelFormatter = scale.tickFormat({ ticks, specifier: format });
+                const formatter = scale.tickFormat({ ticks, specifier: format });
+                this.labelFormatter = formatter;
+                this.datumFormatter = formatter;
             } catch (e) {
                 this.labelFormatter = defaultFormatter(0);
                 this.datumFormatter = defaultFormatter(1);
