@@ -10,7 +10,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const { fromToMotion, computeSectorFocusBounds } = _ModuleSupport;
+const { fromToMotion } = _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -595,11 +595,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    protected computeFocusBounds(
-        node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
-    ): _Scene.BBox | undefined {
-        const sector = this.groupSelection.selectByClass(Sector)[node.index];
-        const { x, y } = sector.inverseTransformPoint(0, 0);
-        return computeSectorFocusBounds(sector, x, y);
+    protected override computeFocusBounds(
+        nodeDatum: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
+    ): _Scene.Path | undefined {
+        let match: _Scene.Sector | undefined;
+        for (const { node, datum } of this.groupSelection) {
+            if (datum === nodeDatum) {
+                match = _Scene.Selection.selectByClass<_Scene.Sector>(node, _Scene.Sector)[0];
+            }
+        }
+        return match;
     }
 }
