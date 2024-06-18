@@ -1417,7 +1417,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     value: (fractionDigits ?? 0) > 0 ? datum : String(datum),
                     index,
                     fractionDigits,
-                    formatter: labelFormatter,
                 }) ?? datum;
         } else if (!isTickLabel && datumFormatter) {
             return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
