@@ -105,12 +105,12 @@ const zoom: AgToolbarOptions['zoom'] = {
     align: 'end',
     buttons: [
         {
-            icon: 'zoom-out',
+            icon: 'zoom-out-alt',
             tooltip: 'toolbarZoomZoomOut',
             value: 'zoom-out',
         },
         {
-            icon: 'zoom-in',
+            icon: 'zoom-in-alt',
             tooltip: 'toolbarZoomZoomIn',
             value: 'zoom-in',
         },

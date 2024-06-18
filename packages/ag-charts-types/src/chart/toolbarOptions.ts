@@ -12,6 +12,8 @@ export interface AgToolbarGroup extends Toggleable {
     align?: AgToolbarGroupAlignment;
     /** Position of the toolbar group on the outside of the chart. */
     position?: AgToolbarGroupPosition;
+    /** Size of the toolbar group buttons, defaults to 'normal'. */
+    size?: AgToolbarGroupSize;
     buttons?: AgToolbarButton[];
 }
 
@@ -24,6 +26,7 @@ export type AgToolbarGroupPosition =
     | 'floating'
     | 'floating-top'
     | 'floating-bottom';
+export type AgToolbarGroupSize = 'small' | 'normal';
 
 export interface AgToolbarButton {
     /** Section in which to group the button. */

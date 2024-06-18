@@ -55,7 +55,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     );
 
     private readonly margin = 10;
-    private readonly floatingDetectionRange = 28;
 
     private readonly elements: Record<ToolbarPosition, HTMLElement>;
 
@@ -143,7 +142,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const {
             enabled,
             elements,
-            floatingDetectionRange,
             ctx: { scene },
         } = this;
         const {
@@ -157,11 +155,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const bottom = elements[FloatingBottom];
         const top = elements[FloatingTop];
 
-        const bottomDetectionY = bottom.offsetTop - floatingDetectionRange;
+        const bottomDetectionY = bottom.offsetTop;
         const bottomVisible =
             (offsetY > bottomDetectionY && offsetY < scene.canvas.element.offsetHeight) || target === bottom;
 
-        const topDetectionY = top.offsetTop + top.offsetHeight + floatingDetectionRange;
+        const topDetectionY = top.offsetTop + top.offsetHeight;
         const topVisible = (offsetY > 0 && offsetY < topDetectionY) || target === top;
 
         this.translateFloatingElements(FloatingBottom, bottomVisible);
@@ -282,13 +280,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         let prevSection;
 
         let section = createElement('div');
-        section.classList.add(styles.elements.section);
+        section.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
         alignElement.appendChild(section);
 
         for (const options of buttons ?? []) {
             if (prevSection !== options.section) {
                 section = createElement('div');
-                section.classList.add(styles.elements.section);
+                section.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
                 alignElement.appendChild(section);
             }
             prevSection = options.section;
