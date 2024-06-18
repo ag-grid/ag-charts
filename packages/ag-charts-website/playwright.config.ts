@@ -22,6 +22,7 @@ export default defineConfig({
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [
         ['html', { open: process.env.CI ? 'on-failure' : 'never' }],
+        ['junit', { outputFile: '../../reports/ag-charts-website-e2e.xml' }],
         ['line'],
         ['json', { outputFile: '../../reports/ag-charts-website-e2e.json' }],
     ],
