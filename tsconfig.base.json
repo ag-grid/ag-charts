@@ -22,7 +22,6 @@
       "ag-charts-community-test": ["packages/ag-charts-community/src/main-test.ts"],
       "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"],
       "ag-charts-locale": ["packages/ag-charts-locale/src/main.ts"],
-      "ag-charts-locale/*": ["packages/ag-charts-locale/src/*"],
       "ag-charts-types": ["packages/ag-charts-types/src/main.ts"]
     }
   },

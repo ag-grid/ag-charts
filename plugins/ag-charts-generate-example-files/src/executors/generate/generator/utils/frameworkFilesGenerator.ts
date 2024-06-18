@@ -91,6 +91,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const mainFileName = getMainFileName(internalFramework)!;
         let mainJs = readAsJsFile(entryFile);
 
+        const localeImports = typedBindings.imports
+            .filter((i: any) => i.module.includes('ag-charts-locale'))
+            .flatMap((imp) => imp.imports);
+        if (localeImports.length > 0) {
+            mainJs = `const { ${localeImports.join(', ')} } = agChartsLocale;` + '\n' + mainJs;
+        }
+
         // Chart classes that need scoping
         const chartsExports = new Set([
             'time',
@@ -109,14 +116,11 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             .flatMap((imp) => imp.imports)
             .filter((imp) => chartsExports.has(imp));
         if (chartImports.length > 0) {
-            mainJs = `const { ${chartImports.join(', ')} } = agCharts;` + '\n\n' + mainJs;
+            mainJs = `const { ${chartImports.join(', ')} } = agCharts;` + '\n' + mainJs;
         }
 
-        const localeImports = typedBindings.imports
-            .filter((i: any) => i.module.includes('ag-charts-locale'))
-            .flatMap((imp) => imp.imports);
-        if (localeImports.length > 0) {
-            mainJs = `const { ${localeImports.join(', ')} } = agChartsLocale;` + '\n\n' + mainJs;
+        if (localeImports.length > 0 || chartImports.length > 0) {
+            mainJs = '\n' + mainJs;
         }
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker

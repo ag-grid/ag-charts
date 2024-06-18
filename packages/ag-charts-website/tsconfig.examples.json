@@ -11,7 +11,7 @@
         "paths": {
             "ag-charts-community": ["../ag-charts-community/dist/types/main.d.ts"],
             "ag-charts-enterprise": ["../ag-charts-enterprise/dist/types/main.d.ts"],
-            "ag-charts-community/locales/*.js": ["packages/ag-charts-community/dist/locales/*.d.ts"]
+            "ag-charts-locale": ["../ag-charts-locale/dist/types/main.d.ts"]
         }
     },
     "files": [],

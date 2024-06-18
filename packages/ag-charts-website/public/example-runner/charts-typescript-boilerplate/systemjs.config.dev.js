@@ -34,19 +34,19 @@
                 defaultExtension: 'ts',
             },
             'ag-charts-community': {
-                main: './package/main.cjs.js',
+                main: './dist/package/main.cjs.js',
                 defaultExtension: 'js',
             },
             'ag-charts-enterprise': {
-                main: './package/main.cjs.js',
+                main: './dist/package/main.cjs.js',
                 defaultExtension: 'js',
             },
             'ag-charts-types': {
-                main: './package/main.cjs.js',
+                main: './dist/package/main.cjs.js',
                 defaultExtension: 'js',
             },
             'ag-charts-locale': {
-                main: './package/main.cjs.js',
+                main: './dist/package/main.cjs.js',
                 defaultExtension: 'js',
             },
         },

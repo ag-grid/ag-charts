@@ -1,4 +1,4 @@
-export const AG_CHARTS_LOCALE_AR_RG = {
+export const AG_CHARTS_LOCALE_AR_EG = {
     ariaAnnounceVisible: 'مرئي',
     ariaAnnounceHidden: 'مخفي',
     ariaAnnounceHoverDatum: '${datum}',
