@@ -8,7 +8,7 @@ import { Annotation } from './annotation';
 const { Vec2 } = _Util;
 
 export abstract class LinearScene<
-    Datum extends { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> },
+    Datum extends { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'>; locked?: boolean },
 > extends Annotation {
     protected dragState?: {
         offset: Coords;
@@ -25,6 +25,8 @@ export abstract class LinearScene<
     }
 
     public drag(datum: Datum, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+        if (datum.locked) return;
+
         if (this.activeHandle) {
             this.dragHandle(datum, target, context, onInvalid);
         } else {

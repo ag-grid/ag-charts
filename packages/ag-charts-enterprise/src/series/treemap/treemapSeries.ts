@@ -800,7 +800,7 @@ export class TreemapSeries<
                 path.push(newFocus);
                 return this.computeFocusOutputs(newFocus);
             }
-        } else if (childDelta !== 0) {
+        } else if (childDelta !== 0 || this.focusSorted === undefined) {
             this.focusSorted ??= this.sortChildren(path[0].nodeDatum);
             const targetIndex = current.childIndex + childDelta;
             const maxIndex = (current.nodeDatum.parent?.children.length ?? 1) - 1;

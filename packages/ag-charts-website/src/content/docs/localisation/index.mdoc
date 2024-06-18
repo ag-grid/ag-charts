@@ -48,12 +48,14 @@ The default language of the grid is American English. However, we provide a numb
 
 To change the locale, set the `localeText` property in `locale` options to one of the built-in locales.
 
-Each built-in locale is available by importing `ag-charts-community/locale/<<BCP-47-Tag>>.js`, and the export is named `AG_CHARTS_LOCALE_<<LANGUAGE>>_<<REGION>>`. If you are using the UMD bundle, all locales are pre-bundled.
+Each built-in locale is available from the `ag-charts-locale` pacakge, and the each export is named `AG_CHARTS_LOCALE_<<LANGUAGE>>_<<REGION>>`.
+
+The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/`ag-charts-enterprise`.
 
 {% chartExampleRunner title="Installing a Locale" name="installing-locale" type="generated" /%}
 
 ```js
-import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-community/locale/fr-FR.js';
+import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 
 {
     locale: {

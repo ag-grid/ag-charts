@@ -36,8 +36,7 @@ const options: AgChartOptions = {
         scale: {
             interval: {
                 minSpacing: 1,
-                // @ts-ignore
-                interval: { values: [0, 1e6, 2e6, 3e6, 4e6] },
+                values: [0, 1e6, 2e6, 3e6, 4e6],
             },
             label: {
                 fontSize: 9,

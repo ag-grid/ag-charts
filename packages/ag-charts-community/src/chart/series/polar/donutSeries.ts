@@ -29,23 +29,13 @@ import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    type SeriesNodeEventTypes,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-} from '../series';
+import { type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
-import {
-    computeSectorSeriesFocusBounds,
-    pickByMatchingAngle,
-    preparePieSeriesAnimationFunctions,
-    resetPieSelectionsFn,
-} from './pieUtil';
+import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class DonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
@@ -1506,9 +1496,5 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     protected override onDataChange() {
         const { data, seriesItemEnabled } = this;
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
-    }
-
-    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeSectorSeriesFocusBounds(this, opts);
     }
 }

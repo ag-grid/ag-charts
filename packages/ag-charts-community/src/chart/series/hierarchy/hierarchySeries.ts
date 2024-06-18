@@ -459,13 +459,13 @@ export abstract class HierarchySeries<
     }
 
     protected computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
-        const bbox = this.computeFocusBounds(nodeDatum);
-        if (bbox) {
+        const bounds = this.computeFocusBounds(nodeDatum);
+        if (bounds) {
             return {
                 datum: nodeDatum,
                 datumIndex: childIndex,
                 otherIndex: nodeDatum.depth,
-                bbox,
+                bounds,
                 showFocusBox: true,
             };
         }

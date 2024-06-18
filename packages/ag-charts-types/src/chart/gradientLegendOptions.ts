@@ -1,20 +1,7 @@
-import type { AgAxisLabelFormatterParams } from './axisOptions';
+import type { AgAxisContinuousIntervalOptions, AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgChartLegendPosition } from './legendOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
-
-export interface AgGradientLegendLabelFormatterParams {
-    value: string;
-}
-
-export interface AgGradientLegendIntervalOptions {
-    /** Maximum gap in pixels between interval lines. */
-    minSpacing?: PixelSize;
-    /** Maximum gap in pixels between interval lines. */
-    maxSpacing?: PixelSize;
-    /** The step value between intervals specified as a number. If the configured interval results in too many intervals given the chart size, it will be ignored. */
-    step?: number;
-}
 
 export interface AgGradientLegendLabelOptions {
     /** The font style to use for the labels. */
@@ -39,7 +26,7 @@ export interface AgGradientLegendScaleOptions {
     /** Distance between the gradient box and the labels. */
     padding?: PixelSize;
     /** Options for intervals on the scale. */
-    interval?: AgGradientLegendIntervalOptions;
+    interval?: AgAxisContinuousIntervalOptions<number>;
 }
 
 export interface AgGradientLegendOptions {

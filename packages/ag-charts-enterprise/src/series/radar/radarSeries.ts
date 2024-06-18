@@ -688,7 +688,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return this.getMarkerStyle(this.properties.marker, { datum, angleKey, radiusKey, highlighted: true });
     }
 
-    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
 }

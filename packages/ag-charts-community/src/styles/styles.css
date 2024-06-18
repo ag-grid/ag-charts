@@ -29,6 +29,7 @@
     --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
 
     /* Layout */
+    --ag-charts-layer-tooltip: 1;
     --ag-charts-align: center;
     --ag-charts-justify: center;
 
@@ -66,7 +67,8 @@
     --ag-charts-button-radius: var(--ag-border-radius, 4px);
 
     /* Focus Indicator */
-    --ag-charts-focus-border: solid 2px var(--ag-input-focus-border-color, var(--ag-charts-active-color));
+    --ag-charts-focus-border-color: var(--ag-input-focus-border-color, var(--ag-charts-active-color));
+    --ag-charts-focus-border: solid 2px var(--ag-charts-focus-border-color);
     --ag-charts-focus-border-shadow: var(
         --ag-input-focus-box-shadow,
         0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 47%)
@@ -172,4 +174,8 @@ To create an icon uri:
 
 .ag-charts-icon-unlock {
     mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWxvY2stb3BlbiI+PHJlY3Qgd2lkdGg9IjE4IiBoZWlnaHQ9IjExIiB4PSIzIiB5PSIxMSIgcng9IjIiIHJ5PSIyIi8+PHBhdGggZD0iTTcgMTFWN2E1IDUgMCAwIDEgOS45LTEiLz48L3N2Zz4=);
+}
+
+.ag-charts-icon-plus {
+    mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXBsdXMiPjxwYXRoIGQ9Ik01IDEyaDE0Ii8+PHBhdGggZD0iTTEyIDV2MTQiLz48L3N2Zz4=);
 }

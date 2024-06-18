@@ -86,7 +86,7 @@ export class ProxyInteractionService {
 
     private update() {
         if (this.focusable) {
-            this.focusIndicator.updateBBox(this.focusable.computeTransformedBBox());
+            this.focusIndicator.updateBounds(this.focusable.computeTransformedBBox());
         }
     }
 
@@ -162,12 +162,12 @@ export class ProxyInteractionService {
         element.addEventListener('focus', (_event: FocusEvent): any => {
             this.focusable = focusable;
             element.style.setProperty('pointerEvents', null);
-            this.focusIndicator.updateBBox(focusable.computeTransformedBBox());
+            this.focusIndicator.updateBounds(focusable.computeTransformedBBox());
         });
         element.addEventListener('blur', (_event: FocusEvent): any => {
             this.focusable = undefined;
             element.style.pointerEvents = 'none';
-            this.focusIndicator.updateBBox(undefined);
+            this.focusIndicator.updateBounds(undefined);
         });
         if (onclick) {
             element.addEventListener('click', onclick);
