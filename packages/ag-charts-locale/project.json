@@ -185,5 +185,5 @@
     }
   },
   "implicitDependencies": [],
-  "tags": ["no-batching"]
+  "tags": ["no-batching", "no-sharding"]
 }
