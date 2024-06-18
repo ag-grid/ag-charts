@@ -328,7 +328,7 @@ export abstract class Chart extends Observable {
         const seriesRegion = ctx.regionManager.addRegion(
             REGIONS.SERIES,
             this.seriesRoot,
-            this.ctx.axisManager.axisGroup
+            this.ctx.axisManager.axisGridGroup
         );
 
         const horizontalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
@@ -1430,7 +1430,7 @@ export abstract class Chart extends Observable {
     }
 
     private checkSeriesNodeRange(
-        event: PointerOffsetsAndHistory,
+        event: PointerOffsetsAndHistory & { preventZoomDblClick?: boolean },
         callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
@@ -1445,6 +1445,17 @@ export abstract class Chart extends Observable {
 
         // Find the node if exactly matched and update the highlight picked node
         let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
+        if (pickedNode) {
+            // See: AG-11737#TC3, AG-11676
+            //
+            // The Zoom module's double-click handler resets the zoom, but only if there isn't an
+            // exact match on a node. This is counter-intuitive, and there's no built-in mechanism
+            // in the InteractionManager / RegionManager for the Zoom module to listen to non-exact
+            // series-rect double-clicks. As a workaround, we'll set this boolean to tell the Zoom
+            // double-click handler to ignore the event whenever we are double-clicking exactly on
+            // a node.
+            event.preventZoomDblClick = true;
+        }
 
         // First check if we should trigger the callback based on nearest node
         if (datum && nodeClickRange === 'nearest') {
