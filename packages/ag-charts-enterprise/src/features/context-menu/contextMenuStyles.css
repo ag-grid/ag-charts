@@ -29,6 +29,13 @@
     padding: 0.5em 0;
 }
 
+.ag-chart-context-menu__menu:focus {
+    /* Do not show a focus indicator around the context-menu. This makes our custom context-menu
+     * behave more like a native context-menu, and makes the behaviour more consistent when using
+     * a keyboard or mouse to bring up the context-menu. */
+    outline: none;
+}
+
 .ag-chart-context-menu__item {
     background: none;
     border: none;
