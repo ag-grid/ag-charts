@@ -117,7 +117,7 @@
 }
 
 .ag-charts-color-picker__alpha-input::-webkit-slider-thumb {
-    background-color: transparent;
+    background: transparent;
 }
 
 .ag-charts-color-picker__color-field {
