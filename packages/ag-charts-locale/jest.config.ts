@@ -1,6 +1,5 @@
 /* eslint-disable */
 import { readFileSync } from 'fs';
-import * as glob from 'glob';
 
 // Reading the SWC compilation config and remove the "exclude"
 // for the test files to be compiled by SWC
@@ -17,8 +16,6 @@ if (swcJestConfig.swcrc === undefined) {
 // jest needs EsModule Interop to find the default exported setup/teardown functions
 // swcJestConfig.module.noInterop = false;
 
-const tests = glob.sync('packages/ag-charts-locale/src/**/*.test.ts');
-
 const commonConfig = {
     resolver: undefined, // NX redirects CSS imports https://github.com/nrwl/nx/blob/7495f0664b19e8fa32ef693f43d709173b6a2bc4/packages/jest/plugins/resolver.ts#L43
     prettierPath: null,
@@ -34,13 +31,11 @@ if (process.env.CI != null || process.env.NX_TASK_TARGET_CONFIGURATION === 'ci')
     reporters.push(['jest-junit', { outputDirectory: 'reports', outputName: 'ag-charts-locale.xml' }]);
 }
 
-const pathFix = (v: string) => v.replace('packages/ag-charts-locale/', '**/');
 export default {
     reporters,
     projects: [
         {
             displayName: 'ag-charts-locale - unit',
-            testMatch: tests.map(pathFix),
             ...commonConfig,
         },
     ],
