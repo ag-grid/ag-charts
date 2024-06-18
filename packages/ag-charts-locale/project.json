@@ -139,8 +139,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-locale.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-locale/jest.config.ts",
-        "testPathIgnorePatterns": [".*/benchmarks/.*"],
+        "jestConfig": "{projectRoot}/jest.config.ts",
         "passWithNoTests": false
       },
       "configurations": {
@@ -151,13 +150,7 @@
           "updateSnapshot": true
         }
       },
-      "dependsOn": [
-        "build:test",
-        {
-          "projects": ["ag-charts-locale-examples"],
-          "target": "build"
-        }
-      ]
+      "dependsOn": ["build:test"]
     },
     "pack": {
       "executor": "nx:run-commands",
