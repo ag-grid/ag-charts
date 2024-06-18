@@ -7,7 +7,6 @@
         "noEmit": true,
         "noUnusedParameters": true,
         "noUnusedLocals": false,
-        "moduleResolution": "Bundler",
         "paths": {
             "ag-charts-community": ["../ag-charts-community/dist/types/main.d.ts"],
             "ag-charts-enterprise": ["../ag-charts-enterprise/dist/types/main.d.ts"],
