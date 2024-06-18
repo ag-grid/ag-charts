@@ -4,7 +4,7 @@
         "declaration": true,
         "emitDeclarationOnly": true,
         "types": ["node"],
-        "moduleResolution": "Bundler"
+        "rootDirs": ["./src"]
     },
     "include": ["src/**/*.ts"],
     "exclude": ["jest.config.ts", "jest.setup.ts", "src/main-test.ts", "**/*.test.ts", "**/test/**"]

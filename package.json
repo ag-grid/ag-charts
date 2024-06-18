@@ -133,6 +133,7 @@
       "packages/ag-charts-community-examples",
       "packages/ag-charts-enterprise",
       "packages/ag-charts-angular",
+      "packages/ag-charts-locale",
       "packages/ag-charts-react",
       "packages/ag-charts-types",
       "packages/ag-charts-vue3",

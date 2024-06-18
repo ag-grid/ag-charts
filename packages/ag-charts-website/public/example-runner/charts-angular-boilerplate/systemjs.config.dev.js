@@ -73,6 +73,10 @@
                 main: './package/main.cjs.js',
                 defaultExtension: 'js',
             },
+            'ag-charts-locale': {
+                main: './package/main.cjs.js',
+                defaultExtension: 'js',
+            },
             rxjs: {
                 defaultExtension: false,
             },

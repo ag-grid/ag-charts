@@ -1,5 +1,5 @@
-import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-community/locales/fr-FR.js';
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

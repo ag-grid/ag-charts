@@ -98,15 +98,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             'VERSION',
             'Marker',
             'AG_CHARTS_LOCALE_EN_US',
-            'AG_CHARTS_LOCALE_AR_EG',
-            'AG_CHARTS_LOCALE_BG_BG',
-            'AG_CHARTS_LOCALE_CS_CZ',
-            'AG_CHARTS_LOCALE_EN_US',
-            'AG_CHARTS_LOCALE_FR_FR',
-            'AG_CHARTS_LOCALE_HR_HR',
-            'AG_CHARTS_LOCALE_ZH_CN',
-            'AG_CHARTS_LOCALE_ZH_HK',
-            'AG_CHARTS_LOCALE_ZH_TW',
             '_Scene',
             '_Theme',
             '_Scale',
@@ -119,6 +110,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             .filter((imp) => chartsExports.has(imp));
         if (chartImports.length > 0) {
             mainJs = `const { ${chartImports.join(', ')} } = agCharts;` + '\n\n' + mainJs;
+        }
+
+        const localeImports = typedBindings.imports
+            .filter((i: any) => i.module.includes('ag-charts-locale'))
+            .flatMap((imp) => imp.imports);
+        if (localeImports.length > 0) {
+            mainJs = `const { ${localeImports.join(', ')} } = agChartsLocale;` + '\n\n' + mainJs;
         }
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker

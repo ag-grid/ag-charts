@@ -51,11 +51,15 @@
                 main: './package/main.cjs.js',
                 defaultExtension: 'js',
             },
+            'ag-charts-enterprise': {
+                main: './package/main.cjs.js',
+                defaultExtension: 'js',
+            },
             'ag-charts-types': {
                 main: './package/main.cjs.js',
                 defaultExtension: 'js',
             },
-            'ag-charts-enterprise': {
+            'ag-charts-locale': {
                 main: './package/main.cjs.js',
                 defaultExtension: 'js',
             },

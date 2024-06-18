@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:types", "build:package", "build:umd", "build:locale"],
+      "dependsOn": ["build:types", "build:package", "build:umd"],
       "inputs": [],
       "outputs": [],
       "configurations": {
@@ -14,35 +14,9 @@
         "production": {}
       }
     },
-    "build:locale": {
-      "executor": "@nx/js:tsc",
-      "inputs": [
-        "{projectRoot}/package.json",
-        "{projectRoot}/src/locales/*",
-        "{projectRoot}/tsconfig.*.json",
-        "tsDeclarations",
-        "sharedGlobals",
-        "defaultExcludes",
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "{projectRoot}/dist/locales",
-        "main": "{projectRoot}/src/locales/index.ts",
-        "rootDir": "{projectRoot}/src/locales",
-        "tsConfig": "{projectRoot}/tsconfig.locales.json",
-        "compiler": "tsc"
-      },
-      "configurations": {
-        "watch": {},
-        "production": {}
-      }
-    },
     "build:types": {
       "executor": "@nx/js:tsc",
-      "dependsOn": ["^build:types", "build:locale"],
+      "dependsOn": ["^build:types"],
       "inputs": [
         "{projectRoot}/package.json",
         "{projectRoot}/src/**/*",
@@ -124,13 +98,13 @@
     },
     "build:umd": {
       "executor": "@nx/esbuild:esbuild",
-      "dependsOn": ["^build"],
+      "dependsOn": ["build:package"],
       "inputs": ["jsOutputs"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "{projectRoot}/dist/umd",
         "outputFileName": "ag-charts-community",
-        "main": "{projectRoot}/src/main-umd.ts",
+        "main": "{projectRoot}/dist/package/main.cjs.js",
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
@@ -296,6 +270,6 @@
       }
     }
   },
-  "implicitDependencies": ["ag-charts-test"],
+  "implicitDependencies": ["ag-charts-test", "ag-charts-locale"],
   "tags": ["no-batching"]
 }

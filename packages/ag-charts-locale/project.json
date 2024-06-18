@@ -1,7 +1,7 @@
 {
-  "name": "ag-charts-enterprise",
+  "name": "ag-charts-locale",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/ag-charts-enterprise/src",
+  "sourceRoot": "packages/ag-charts-locale/src",
   "projectType": "library",
   "targets": {
     "build": {
@@ -30,14 +30,14 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-enterprise/dist/types",
-        "main": "packages/ag-charts-enterprise/src/main.ts",
-        "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.json",
+        "outputPath": "{projectRoot}/dist/types",
+        "main": "{projectRoot}/src/main.ts",
+        "tsConfig": "{projectRoot}/tsconfig.types.json",
         "compiler": "tsc"
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.watch.json"
+          "tsConfig": "packages/ag-charts-locale/tsconfig.types.watch.json"
         },
         "production": {}
       }
@@ -55,8 +55,7 @@
           "externalDependencies": ["npm:typescript"]
         }
       ],
-      "outputs": ["{projectRoot}/dist/test"],
-      "command": "npx tsc -p {projectRoot}/tsconfig.spec.json --outDir {projectRoot}/dist/test",
+      "command": "npx tsc -p {projectRoot}/tsconfig.spec.json",
       "configurations": {
         "watch": {},
         "production": {}
@@ -64,7 +63,7 @@
     },
     "build:package": {
       "executor": "@nx/esbuild:esbuild",
-      "dependsOn": ["^build:types"],
+      "dependsOn": ["^build"],
       "inputs": [
         "{projectRoot}/package.json",
         "{projectRoot}/src/**/*",
@@ -79,10 +78,9 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "{projectRoot}/dist/package",
-        "main": "{projectRoot}/src/main.ts",
+        "main": "{projectRoot}/src/*.ts",
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
-        "external": ["ag-charts-community"],
         "platform": "browser",
         "target": "es6",
         "format": ["cjs", "esm"],
@@ -99,12 +97,12 @@
     },
     "build:umd": {
       "executor": "@nx/esbuild:esbuild",
-      "dependsOn": ["build:package", "^build:package"],
+      "dependsOn": ["build:package"],
       "inputs": ["jsOutputs"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "{projectRoot}/dist/umd",
-        "outputFileName": "ag-charts-enterprise",
+        "outputFileName": "ag-charts-locale",
         "main": "{projectRoot}/dist/package/main.cjs.js",
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
@@ -126,7 +124,7 @@
         }
       }
     },
-    "lint:eslint": {
+    "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
         "eslintConfig": "{projectRoot}/.eslintrc.js"
@@ -137,36 +135,11 @@
         }
       }
     },
-    "lint:circular": {
-      "executor": "nx:run-script",
-      "inputs": ["{projectRoot}/src/**"],
-      "outputs": [],
-      "options": {
-        "script": "lint:circular"
-      }
-    },
-    "lint:depcruise": {
-      "executor": "nx:run-commands",
-      "inputs": ["{projectRoot}/src/**"],
-      "outputs": [],
-      "options": {
-        "cwd": "packages/ag-charts-community",
-        "commands": ["npx depcruise src"]
-      }
-    },
-
-    "lint": {
-      "executor": "nx:noop",
-      "dependsOn": ["lint:eslint", "lint:circular", "lint:depcruise"],
-      "configurations": {
-        "fix": {}
-      }
-    },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-enterprise.xml"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-locale.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-enterprise/jest.config.ts",
+        "jestConfig": "packages/ag-charts-locale/jest.config.ts",
         "testPathIgnorePatterns": [".*/benchmarks/.*"],
         "passWithNoTests": false
       },
@@ -181,7 +154,7 @@
       "dependsOn": [
         "build:test",
         {
-          "projects": ["ag-charts-community-examples"],
+          "projects": ["ag-charts-locale-examples"],
           "target": "build"
         }
       ]
@@ -191,33 +164,33 @@
       "dependsOn": ["build"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-enterprise",
+        "cwd": "packages/ag-charts-locale",
         "parallel": false,
-        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"]
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-locale.tgz"]
       }
     },
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
       "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
-      "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
+      "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-locale/"],
       "options": {
         "parallel": false,
         "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-enterprise",
-          "tar -xzf dist/packages/ag-charts-enterprise.tgz -C dist/packages/contents/ag-charts-enterprise/"
+          "mkdir -p dist/packages/contents/ag-charts-locale",
+          "tar -xzf dist/packages/ag-charts-locale.tgz -C dist/packages/contents/ag-charts-locale/"
         ]
       }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
+      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-locale/"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"]
+        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-locale/package"]
       }
     }
   },
-  "tags": ["no-batching"],
-  "implicitDependencies": ["ag-charts-community"]
+  "implicitDependencies": [],
+  "tags": ["no-batching"]
 }
