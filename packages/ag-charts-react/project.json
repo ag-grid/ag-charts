@@ -71,7 +71,7 @@
         "external": ["ag-charts-community", "react", "react-dom", "react/jsx-runtime"],
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
-        "target": "es6",
+        "target": "es2020",
         "format": ["cjs", "esm"],
         "sourcemap": true
       },

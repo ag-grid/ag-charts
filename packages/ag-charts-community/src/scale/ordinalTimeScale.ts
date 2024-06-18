@@ -1,5 +1,5 @@
-import { TickIntervals, getTickInterval } from '../util/ticks';
-import type { TimeInterval } from '../util/time/interval';
+import { unique } from '../util/array';
+import type { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
@@ -28,10 +28,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     @Invalidating
     override interval?: TimeInterval | number = undefined;
 
-    protected niceStart: number = NaN;
-
-    private medianInterval?: number;
-
     protected override _domain: Date[] = [];
     protected timestamps: number[] = [];
     protected sortedTimestamps: number[] = [];
@@ -45,39 +41,11 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         }
 
         this._domain = values;
-        this.timestamps = values.map(dateToNumber);
+        this.timestamps = unique(values.map(dateToNumber));
         this.sortedTimestamps = this.timestamps.slice().sort(compareNumbers);
-        this.updateIndex();
     }
     override get domain(): Date[] {
         return this._domain;
-    }
-
-    private updateIndex() {
-        const { sortedTimestamps } = this;
-        const intervals: number[] = [];
-
-        let lastValue: number | undefined;
-        for (const value of sortedTimestamps) {
-            if (lastValue != null) {
-                intervals.push(Math.abs(value - lastValue + 1));
-            }
-            lastValue = value;
-        }
-
-        const medianInterval = this.getMedianInterval(intervals);
-        const interval = OrdinalTimeScale.getTickInterval(medianInterval);
-
-        this.medianInterval = medianInterval;
-        this.niceStart = Number(interval.floor(sortedTimestamps[0]));
-    }
-
-    private getMedianInterval(intervals: number[]) {
-        intervals.sort(compareNumbers);
-        const middleIndex = Math.floor(intervals.length / 2);
-        return intervals.length > 2 && intervals.length % 2 === 0
-            ? (intervals[middleIndex - 1] + intervals[middleIndex + 1]) / 2
-            : intervals[middleIndex];
     }
 
     override ticks(): Date[] {
@@ -89,31 +57,13 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const isReversed = t0 > t1;
 
         let ticks;
-        if (this.interval != null) {
+        if (this.interval == null) {
+            ticks = this.getDefaultTicks(this.maxTickCount, isReversed);
+        } else {
             const [r0, r1] = this.range;
             const availableRange = Math.abs(r1 - r0);
             ticks = TimeScale.getTicksForInterval({ start, stop, interval: this.interval, availableRange }) ?? [];
         }
-
-        const n = this.domain.length;
-        const { maxTickCount, tickCount } = this;
-        let { minTickCount } = this;
-        let medianInterval;
-        if (isFinite(maxTickCount) && n <= maxTickCount) {
-            // Produce a tick for each band using the median interval to find a default tick interval as data intervals can be irregular
-            minTickCount = Math.max(1, n);
-            medianInterval = this.medianInterval;
-        }
-
-        ticks ??= this.getDefaultTicks({
-            start,
-            stop,
-            tickCount,
-            minTickCount,
-            maxTickCount,
-            isReversed,
-            interval: medianInterval,
-        });
 
         // max one tick per band
         const tickPositions = new Set<number>();
@@ -127,62 +77,25 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         });
     }
 
-    static getTickInterval(target: number) {
-        let prevInterval: (typeof TickIntervals)[number];
-        for (const tickInterval of TickIntervals) {
-            if (target <= tickInterval.duration) {
-                prevInterval ??= tickInterval;
-                break;
-            }
-            prevInterval = tickInterval;
-        }
-        const { timeInterval, step } = prevInterval!;
-        return timeInterval.every(step);
-    }
-
-    private getDefaultTicks({
-        start,
-        stop,
-        tickCount,
-        minTickCount,
-        maxTickCount,
-        isReversed,
-        interval,
-    }: {
-        start: number;
-        stop: number;
-        tickCount: number;
-        minTickCount: number;
-        maxTickCount: number;
-        isReversed: boolean;
-        interval?: number;
-    }) {
-        const tickInterval = getTickInterval(start, stop, tickCount, minTickCount, maxTickCount, interval);
-
-        if (!tickInterval) {
-            return [];
-        }
-
+    private getDefaultTicks(maxTickCount: number, isReversed?: boolean) {
         const ticks: Date[] = [];
         const count = this.timestamps.length;
         const tickEvery = Math.ceil(count / maxTickCount);
         for (const [index, value] of this.timestamps.entries()) {
             if (tickEvery > 0 && index % tickEvery) continue;
-
             if (isReversed) {
-                ticks.push(tickInterval.ceil(index + 1 === count ? this.niceStart : this.timestamps[index + 1] + 1));
+                ticks.push(new Date(this.timestamps[count - index - 1]));
             } else {
-                ticks.push(tickInterval.floor(value));
+                ticks.push(new Date(value));
             }
         }
-
         return ticks;
     }
 
     override convert(d: Date): number {
         this.refresh();
         const n = Number(d);
-        if (n < this.niceStart) {
+        if (n < this.sortedTimestamps[0]) {
             return NaN;
         }
         let i = this.findInterval(n);

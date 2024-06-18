@@ -16,8 +16,6 @@ export function readAsJsFile(srcFile, options: { includeImports: boolean } = und
     const tsFile = srcFile
         // Remove imports that are not required in javascript
         .replace(options?.includeImports ? '' : /import ((.|\r?\n)*?)from.*\r?\n/g, '')
-        // Replace ag-charts-community/locales/fr-FR.js with ag-charts-community
-        .replace(/\/locales\/\w{2}-\w{2}\.js/g, '')
         // Remove export statement
         .replace(/export /g, '');
 

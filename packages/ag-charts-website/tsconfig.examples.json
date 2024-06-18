@@ -1,8 +1,8 @@
 {
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
-        "module": "es2015",
-        "target": "es2016",
+        "module": "commonjs",
+        "target": "es2020",
         "strict": true,
         "noEmit": true,
         "noUnusedParameters": true,

@@ -84,7 +84,7 @@
         "esbuildConfig": "esbuild.config.cjs",
         "external": ["ag-charts-community"],
         "platform": "browser",
-        "target": "es6",
+        "target": "es2020",
         "format": ["cjs", "esm"],
         "sourcemap": true
       },
