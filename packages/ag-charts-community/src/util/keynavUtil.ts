@@ -32,17 +32,15 @@ function linkTwoButtons(
     let handler: (event: KeyboardEvent) => void;
     if (managedTabIndices) {
         handler = (event: KeyboardEvent) => {
-            if (event.key !== key) {
-                dst.focus();
-                dst.tabIndex = 0;
-                src.tabIndex = -1;
-            }
+            if (event.key !== key) return;
+            dst.focus();
+            dst.tabIndex = 0;
+            src.tabIndex = -1;
         };
     } else {
         handler = (event: KeyboardEvent) => {
-            if (event.key === key) {
-                dst.focus();
-            }
+            if (event.key !== key) return;
+            dst.focus();
         };
     }
 
