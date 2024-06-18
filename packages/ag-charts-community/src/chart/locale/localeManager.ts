@@ -33,12 +33,4 @@ export class LocaleManager extends Listeners<'locale-changed', () => void> {
             key
         );
     }
-
-    tOptional(key: string, variables?: Record<string, any>): string;
-    tOptional(key: undefined, variables?: Record<string, any>): undefined;
-    tOptional(key: string | undefined, variables?: Record<string, any>): string | undefined;
-    tOptional(key: string | undefined, variables?: Record<string, any>): string | undefined {
-        if (key === undefined) return undefined;
-        return this.t(key, variables ?? {});
-    }
 }
