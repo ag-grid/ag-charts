@@ -1,3 +1,4 @@
+import { StateManager } from '../api/state/stateManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
@@ -58,6 +59,7 @@ export class ChartContext implements ModuleContext {
     proxyInteractionService: ProxyInteractionService;
     regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
+    stateManager: StateManager;
     syncManager: SyncManager;
     toolbarManager: ToolbarManager;
     tooltipManager: TooltipManager;
@@ -107,6 +109,7 @@ export class ChartContext implements ModuleContext {
             this.focusIndicator
         );
         this.seriesStateManager = new SeriesStateManager();
+        this.stateManager = new StateManager();
         this.callbackCache = new CallbackCache();
 
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);

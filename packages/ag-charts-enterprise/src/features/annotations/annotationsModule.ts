@@ -7,7 +7,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
     optionsKey: 'annotations',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    dependencies: ['toolbar'],
+    dependencies: ['initialState', 'toolbar'],
     instanceConstructor: Annotations,
     themeTemplate: {
         annotations: {
