@@ -43,6 +43,7 @@ const {
     RATIO,
     STRING,
     UNION,
+    OR,
     ActionOnSet,
     ChartAxisDirection,
     ChartUpdateType,
@@ -160,8 +161,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly toolbar: ZoomToolbar;
 
     @ProxyProperty('panner.deceleration')
-    @Validate(NUMBER.restrict({ min: 0.0001, max: 1 }))
-    deceleration: number = 1;
+    @Validate(OR(NUMBER.restrict({ min: 0.0001, max: 1 }), UNION(['off', 'short', 'long'], 'a deceleration keyword')))
+    deceleration: number | 'off' | 'short' | 'long' = 'short';
 
     // State
     private dragState = DragState.None;
