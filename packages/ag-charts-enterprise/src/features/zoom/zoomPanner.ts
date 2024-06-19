@@ -18,8 +18,18 @@ interface ZoomCoordHistory {
 
 const maxZoomCoords = 16;
 
+const decelerationValues = {
+    off: 1,
+    short: 0.01,
+    long: 0.002,
+};
+
 export class ZoomPanner {
-    deceleration: number = 1;
+    deceleration: number | keyof typeof decelerationValues = 1;
+    private get decelerationValue(): number {
+        const { deceleration } = this;
+        return typeof deceleration === 'number' ? deceleration : decelerationValues[deceleration] ?? 1;
+    }
 
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
 
@@ -86,7 +96,7 @@ export class ZoomPanner {
         this.zoomCoordsHistoryIndex = 0;
         this.coordsHistory.length = 0;
 
-        if (deltaT > 0 && this.deceleration < 1) {
+        if (deltaT > 0 && this.decelerationValue < 1) {
             const xVelocity = deltaX / deltaT;
             const yVelocity = deltaY / deltaT;
             const velocity = Math.hypot(xVelocity, yVelocity);
@@ -109,7 +119,7 @@ export class ZoomPanner {
     }
 
     private animateInertia(t: number, prevT: number, t0: number, velocity: number, angle: number) {
-        const friction = 1 - this.deceleration;
+        const friction = 1 - this.decelerationValue;
 
         // Displacement at t = infinity
         const maxS = -velocity / Math.log(friction);

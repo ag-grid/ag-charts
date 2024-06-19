@@ -146,22 +146,31 @@ function NavProperty({
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
 
-    const [isExpanded, toggleExpanded] = useAutoExpand(() =>
-        config.keepExpanded?.includes(member.name)
-            ? true
-            : isInterfaceArray
-              ? typeof selection?.selection.pageInterface === 'string' &&
+    const [isExpanded, toggleExpanded] = useAutoExpand(() => {
+        if (config.keepExpanded?.includes(member.name)) {
+            return true;
+        }
+        if (isInterfaceArray) {
+            return (
+                typeof selection?.selection.pageInterface === 'string' &&
                 getInterfaceArrayTypes(reference, interfaceRef).some(
                     (item) => item.type === selection?.selection.pageInterface
                 )
-              : hasNestedPages
-                ? interfaceRef?.kind === 'interface' &&
-                  interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
-                : (selection?.selection.pageInterface === navData.pageInterface &&
-                      selection?.selection.hash?.startsWith(navData.hash) &&
-                      selection?.selection.hash !== navData.hash) ??
-                  false
-    );
+            );
+        }
+        if (hasNestedPages) {
+            return (
+                interfaceRef?.kind === 'interface' &&
+                interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
+            );
+        }
+        return (
+            (selection?.selection.pageInterface === navData.pageInterface &&
+                selection?.selection.hash?.startsWith(navData.hash) &&
+                selection?.selection.hash !== navData.hash) ??
+            false
+        );
+    });
 
     const isSelected =
         location?.pathname === navData.pathname &&

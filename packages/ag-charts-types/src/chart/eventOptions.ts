@@ -3,7 +3,7 @@ interface AgChartEvent<T extends string> {
     event: Event;
 }
 
-export interface AgNodeBaseClickEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
+export interface AgNodeClickEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
     /** Event type. */
     type: TEvent;
     /** Series ID, as specified in series.id (or generated if not specified) */
@@ -30,47 +30,19 @@ export interface AgNodeBaseClickEvent<TEvent extends string, TDatum> extends AgC
     radiusKey?: string;
 }
 
-export interface AgSeriesNodeClickEvent<TDatum> extends AgNodeBaseClickEvent<'seriesNodeClick', TDatum> {
-    /** Event type. */ type: 'seriesNodeClick';
-}
-
-export interface AgSeriesNodeDoubleClickEvent<TDatum> extends AgNodeBaseClickEvent<'seriesNodeDoubleClick', TDatum> {
-    /** Event type. */ type: 'seriesNodeDoubleClick';
-}
-
-export interface AgNodeClickEvent<TDatum> extends AgNodeBaseClickEvent<'nodeClick', TDatum> {
-    /** Event type. */ type: 'nodeClick';
-}
-
-export interface AgNodeDoubleClickEvent<TDatum> extends AgNodeBaseClickEvent<'nodeDoubleClick', TDatum> {
-    /** Event type. */ type: 'nodeDoubleClick';
-}
-
-export interface AgNodeContextMenuActionEvent<TDatum = any>
-    extends AgNodeBaseClickEvent<'nodeContextMenuAction', TDatum> {
-    /** Event type. */ type: 'nodeContextMenuAction';
-}
-
-export interface AgChartClickEvent extends AgChartEvent<'click'> {
-    /** Event type. */ type: 'click';
-}
-
-export interface AgChartDoubleClickEvent extends AgChartEvent<'doubleClick'> {
-    /** Event type. */ type: 'doubleClick';
-}
-
-export interface AgChartContextMenuEvent extends AgChartEvent<'contextMenuEvent'> {
-    /** Event type. */ type: 'contextMenuEvent';
-}
+export type AgChartClickEvent = AgChartEvent<'click'>;
+export type AgChartDoubleClickEvent = AgChartEvent<'doubleClick'>;
+export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
+export type AgNodeContextMenuActionEvent<TDatum = any> = AgNodeClickEvent<'nodeContextMenuAction', TDatum>;
 
 export interface AgBaseChartListeners<TDatum> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
      *  Useful for a chart containing multiple series.
      */
-    seriesNodeClick?: (event: AgSeriesNodeClickEvent<TDatum>) => any;
+    seriesNodeClick?: (event: AgNodeClickEvent<'seriesNodeClick', TDatum>) => any;
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is double clicked.
      * Useful for a chart containing multiple series.*/
-    seriesNodeDoubleClick?: (event: AgSeriesNodeDoubleClickEvent<TDatum>) => any;
+    seriesNodeDoubleClick?: (event: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => any;
     /** The listener to call when the chart is clicked. */
     click?: (event: AgChartClickEvent) => any;
     /** The listener to call when the chart is double clicked. */
@@ -79,7 +51,7 @@ export interface AgBaseChartListeners<TDatum> {
 
 export interface AgSeriesListeners<TDatum> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is clicked. */
-    nodeClick?: (params: AgNodeClickEvent<TDatum>) => void;
+    nodeClick?: (params: AgNodeClickEvent<'nodeClick', TDatum>) => void;
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is double clicked. */
-    nodeDoubleClick?: (params: AgNodeDoubleClickEvent<TDatum>) => void;
+    nodeDoubleClick?: (params: AgNodeClickEvent<'nodeDoubleClick', TDatum>) => void;
 }
