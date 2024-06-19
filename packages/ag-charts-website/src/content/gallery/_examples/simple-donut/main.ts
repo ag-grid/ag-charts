@@ -42,7 +42,7 @@ const options: AgChartOptions = {
                 {
                     text: 'Total',
                     fontSize: 16,
-                    margin: 10,
+                    spacing: 10,
                 },
             ],
             tooltip: {

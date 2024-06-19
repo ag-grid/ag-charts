@@ -44,15 +44,23 @@ const MONTH = 30 * 24 * 60 * 60 * 1000;
 
 // ...
 
+locale: {
+    localeText: {
+        ...AG_CHARTS_LOCALE_EN_US,
+        myToolbarRange12Months: '12m',
+        myToolbarRange12MonthsAria: '12 months',
+        myTooltip: 'Click this button to show all trades',
+    },
+},
 toolbar: {
     ranges: {
         buttons: [
-            { label: '6 months', value: 6 * MONTH },
-            { label: '12 months', value: 12 * MONTH },
-            { label: 'All', value: (start, end) => [start, end] },
-        ]
+            { label: 'toolbarRange6Months', ariaLabel: 'toolbarRange6MonthsAria', value: 6 * MONTH },
+            { label: 'myToolbarRange12Months', ariaLabel: 'myToolbarRange12MonthsAria', value: 12 * MONTH },
+            { label: 'toolbarRangeAll', tooltip: 'myTooltip', value: (start, end) => [start, end] },
+        ],
     },
-}
+},
 ```
 
 ## Groups

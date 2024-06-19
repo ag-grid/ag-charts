@@ -13,6 +13,7 @@ PACKAGES=(
     ag-charts-community
     ag-charts-enterprise
     ag-charts-types
+    ag-charts-locale
     ag-charts-angular
     ag-charts-react
     ag-charts-vue3

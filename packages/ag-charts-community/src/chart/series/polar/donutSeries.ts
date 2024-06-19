@@ -1194,7 +1194,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             text.textAlign = 'center';
             text.textBaseline = 'alphabetic';
             textBBoxes.push(text.computeBBox());
-            margins.push(datum.margin);
+            margins.push(datum.spacing);
         });
         const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);
         const getMarginBottom = (index: number) => (index === margins.length - 1 ? 0 : margins[index]);

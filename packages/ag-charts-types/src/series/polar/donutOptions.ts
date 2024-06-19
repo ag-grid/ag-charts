@@ -55,8 +55,8 @@ export interface AgDonutSeriesCalloutOptions {
 export interface AgDonutInnerLabel extends FontOptions {
     /** The text to show in the inner label. */
     text: string;
-    /** The margin in pixels before and after the inner label. */
-    margin?: PixelSize;
+    /** The spacing in pixels before and after the inner label. */
+    spacing?: PixelSize;
 }
 
 export interface AgDonutInnerLabelThemeOptions extends Omit<AgDonutInnerLabel, 'text'> {}

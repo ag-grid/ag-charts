@@ -105,6 +105,7 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
         target.ctx.toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
+        if (!enabled) target.clear();
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
@@ -268,7 +269,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!annotationData || active == null) return;
 
         switch (event.value) {
-            case 'color':
+            case 'line-color':
                 this.colorPicker.show({
                     anchor: this.annotations.nodes()[active]?.getAnchor(),
                     color: this.getTypedDatum(annotationData[active])?.stroke,
@@ -690,7 +691,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         cursorManager.updateCursor('annotations');
 
-        const onDragInvalid = () => this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
+        const onDragInvalid = () => cursorManager.updateCursor('annotations', Cursor.NotAllowed);
 
         if (LineAnnotation.is(datum) && Line.is(node)) {
             node.drag(datum, offset, context, onDragInvalid);
@@ -800,8 +801,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null || !annotationData) return;
 
         const locked = annotationData?.at(active)?.locked ?? false;
-        toolbarManager.toggleButton('annotationOptions', 'color', { visible: !locked });
-        toolbarManager.toggleButton('annotationOptions', 'delete', { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'line-color', { enabled: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'delete', { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
     }

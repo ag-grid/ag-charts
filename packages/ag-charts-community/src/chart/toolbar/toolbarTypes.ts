@@ -25,6 +25,7 @@ export interface ToolbarButton {
     section?: string;
     icon?: string;
     label?: string;
+    ariaLabel?: string;
     tooltip?: string;
     value: any;
 }

@@ -1,4 +1,4 @@
-import { AG_CHARTS_LOCALE_EN, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AG_CHARTS_LOCALE_EN_US, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -25,7 +25,7 @@ const options: AgChartOptions = {
     },
     locale: {
         localeText: {
-            ...AG_CHARTS_LOCALE_EN,
+            ...AG_CHARTS_LOCALE_EN_US,
             toolbarZoomZoomOut: 'Zoom Out of the Chart',
             toolbarZoomZoomIn: 'Zoom In to the Chart',
             toolbarZoomPanLeft: 'Pan the Chart Left',

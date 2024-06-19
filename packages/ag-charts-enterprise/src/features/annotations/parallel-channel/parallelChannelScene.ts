@@ -1,4 +1,4 @@
-import { _Scene } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { invertCoords, validateDatumPoint } from '../annotationUtils';
@@ -6,6 +6,8 @@ import { Annotation } from '../scenes/annotation';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { ParallelChannelAnnotation } from './parallelChannelProperties';
+
+const { Vec2 } = _Util;
 
 type ChannelHandle = keyof ParallelChannel['handles'];
 
@@ -92,15 +94,7 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
                 break;
         }
 
-        const invertedMoves = moves.map((move) =>
-            invertCoords(
-                {
-                    x: handles[move].handle.x + offset.x,
-                    y: handles[move].handle.y + offset.y,
-                },
-                context
-            )
-        );
+        const invertedMoves = moves.map((move) => invertCoords(Vec2.add(handles[move].handle, offset), context));
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
@@ -110,13 +104,7 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
 
         // Adjust the height if dragging a middle handle
         if ((activeHandle === 'topMiddle' || activeHandle === 'bottomMiddle') && datum.start.y != null) {
-            const topLeft = invertCoords(
-                {
-                    x: handles.topLeft.handle.x + offset.x,
-                    y: handles.topLeft.handle.y + offset.y,
-                },
-                context
-            );
+            const topLeft = invertCoords(Vec2.add(handles.topLeft.handle, offset), context);
 
             if (validateDatumPoint(context, topLeft)) {
                 if (activeHandle === 'topMiddle') {

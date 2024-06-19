@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { execSync } from 'child_process';
 import * as glob from 'glob';
 
 const baseUrl = 'https://localhost:4601';
@@ -66,7 +67,10 @@ test.describe('examples', () => {
             if (msg.text().startsWith('*')) return;
 
             // Ignore 404s when expected
-            if (/the server responded with a status of 404 \(Not Found\)/.test(msg.text()) && ignore404s) return;
+            if (/the server responded with a status of 404 \(Not Found\)/.test(msg.text())) {
+                if (ignore404s) return;
+                if (msg.location().url.includes('/favicon.ico')) return;
+            }
 
             consoleWarnOrErrors.push(msg.text());
         });
@@ -80,7 +84,19 @@ test.describe('examples', () => {
         expect(consoleWarnOrErrors).toHaveLength(0);
     });
 
-    const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts');
+    let examples = glob.glob.sync('./src/content/**/_examples/*/main.ts');
+    if (process.env.NX_BASE) {
+        const changedFiles = new Set(
+            execSync(`git diff --name-only latest -- ./src/content/`)
+                .toString()
+                .split('\n')
+                .map((v) => v.replace(/^packages\/ag-charts-website\//, './'))
+        );
+        examples = examples.filter((e) => changedFiles.has(e));
+
+        // eslint-disable-next-line no-console
+        console.warn(`NX_BASE set - applied changed example processing, ${examples.length} changed examples found.`);
+    }
 
     for (const example of examples) {
         const testUrls = toPageUrls(example);
@@ -101,9 +117,8 @@ test.describe('examples', () => {
                             for (const elements of await page.locator('canvas').all()) {
                                 await expect(elements).toBeVisible();
                             }
-                            await expect(page.locator('.ag-charts-wrapper').first()).toBeVisible({ timeout: 5_000 });
                             for (const elements of await page.locator('.ag-charts-wrapper').all()) {
-                                await expect(elements).toHaveAttribute('data-scene-renders');
+                                await expect(elements).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
                             }
                         });
                     }

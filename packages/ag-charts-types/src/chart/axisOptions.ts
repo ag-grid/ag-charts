@@ -118,7 +118,6 @@ export interface AgAxisLabelFormatterParams {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
-    readonly formatter?: Formatter<any>;
 }
 
 export interface AgBaseAxisLabelOptions {
