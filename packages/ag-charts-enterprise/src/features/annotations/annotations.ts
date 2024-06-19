@@ -105,6 +105,7 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
         target.ctx.toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
+        if (!enabled) target.clear();
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
