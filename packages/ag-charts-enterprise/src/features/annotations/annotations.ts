@@ -39,6 +39,7 @@ const {
     ToolbarManager,
     Validate,
     REGIONS,
+    UNION,
     ChartAxisDirection,
 } = _ModuleSupport;
 const { Vec2 } = _Util;
@@ -57,7 +58,7 @@ type AnnotationAxis = {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
     bounds: _Scene.BBox;
-    button: AxisButton;
+    button?: AxisButton;
 };
 
 const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
@@ -102,6 +103,16 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
     }
 }
 
+const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
+
+class AxesButtons {
+    @Validate(BOOLEAN)
+    public enabled: boolean = true;
+
+    @Validate(AXIS_TYPE, { optional: true })
+    public axes?: 'x' | 'y' | 'xy' = 'y';
+}
+
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
         target.ctx.toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
@@ -114,6 +125,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     })
     @Validate(OBJECT_ARRAY, { optional: true })
     public initial = new PropertiesArray(this.createAnnotationDatum);
+
+    public axesButtons = new AxesButtons();
 
     // State
     private readonly state: AnnotationsStateMachine;
@@ -344,13 +357,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     ): AnnotationAxis {
         const axisCtx = this.ctx.axisManager.getAxisContext(axisLayout.direction)[0];
 
-        const { position: axisPosition = 'bottom' } = axisCtx;
+        const { position: axisPosition = 'bottom', direction } = axisCtx;
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = buildBounds(new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height), axisPosition, padding);
 
         const region = axisCtx.direction === ChartAxisDirection.X ? 'horizontal-axes' : 'vertical-axes';
 
-        button ??= new AxisButton(this.ctx, axisCtx, seriesRect, (coords) => this.onAxisButtonClick(coords, region));
+        const { axesButtons } = this;
+        const buttonEnabled =
+            this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
+        if (buttonEnabled) {
+            button ??= new AxisButton(this.ctx, axisCtx, seriesRect, (coords) =>
+                this.onAxisButtonClick(coords, region)
+            );
+        } else {
+            button?.destroy();
+            button = undefined;
+        }
 
         return { layout: axisLayout, context: axisCtx, bounds, button };
     }
