@@ -15,17 +15,29 @@ export default defineConfig({
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: !!process.env.CI,
-    /* Retry on CI only */
-    retries: process.env.CI ? 2 : 0,
+    retries: 0,
     /* Opt out of parallel tests on CI. */
     workers: process.env.CI ? 1 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-    reporter: [['html'], ['line'], ['json', { outputFile: '../../reports/ag-charts-website-e2e.json' }]],
-    outputDir: '../../reports/',
+    reporter: [
+        [
+            'html',
+            {
+                open: process.env.CI ? 'on-failure' : 'never',
+                outputFolder: '../../reports/ag-charts-website-e2e-html/',
+            },
+        ],
+        ['junit', { outputFile: '../../reports/ag-charts-website-e2e.xml' }],
+        ['line'],
+        ['json', { outputFile: '../../reports/ag-charts-website-e2e.json' }],
+    ],
+    outputDir: '../../reports/ag-charts-website-e2e-reports/',
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */
         // baseURL: 'https://localhost:4601',
+
+        ignoreHTTPSErrors: true,
 
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry',
@@ -35,7 +47,12 @@ export default defineConfig({
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
+            use: {
+                ...devices['Desktop Chrome'],
+                launchOptions: {
+                    args: ['--ignore-certificate-errors'],
+                },
+            },
         },
 
         // {
@@ -73,6 +90,7 @@ export default defineConfig({
     webServer: {
         env: {
             PUBLIC_SITE_URL: 'https://localhost:4601',
+            FAIL_ON_UNMATCHED_GLOBS: 'false',
         },
         command: 'npx astro dev --port=4601 --host',
         url: 'https://localhost:4601/',

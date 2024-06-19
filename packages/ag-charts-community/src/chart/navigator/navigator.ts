@@ -37,7 +37,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public height: number = 30;
 
     @Validate(POSITIVE_NUMBER)
-    public margin: number = 10;
+    public spacing: number = 10;
 
     @ActionOnSet<Navigator>({
         newValue(min) {
@@ -157,9 +157,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
         if (this.enabled) {
-            const navigatorTotalHeight = this.height + this.margin;
+            const navigatorTotalHeight = this.height + this.spacing;
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + shrinkRect.height + this.margin;
+            this.y = shrinkRect.y + shrinkRect.height + this.spacing;
         } else {
             this.y = 0;
         }

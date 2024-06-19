@@ -72,7 +72,7 @@ export interface AgContinuousAxisOptions<
 }
 
 export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | number> extends AgAxisBaseIntervalOptions {
-    /** The axis interval specified as a TimeInterval. If the configured interval results in too many items given the chart size, it will be ignored. */
+    /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: T;
     /** Maximum gap in pixels between items. */
     maxSpacing?: PixelSize;
@@ -118,7 +118,6 @@ export interface AgAxisLabelFormatterParams {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
-    readonly formatter?: Formatter<any>;
 }
 
 export interface AgBaseAxisLabelOptions {

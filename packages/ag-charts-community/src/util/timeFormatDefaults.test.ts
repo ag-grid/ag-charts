@@ -45,8 +45,8 @@ describe('Default Date/Time Formatting', () => {
             const formatter = defaultTimeTickFormat(ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
-  ":17.300",
-  ":20.300",
+  ":17",
+  ":20",
 ]
 `);
         });
@@ -121,8 +121,8 @@ describe('Default Date/Time Formatting', () => {
             const formatter = defaultTimeTickFormat(ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
-  "01 AM Tue",
-  "01 AM Thu",
+  "Tue",
+  "Thu",
 ]
 `);
         });
@@ -143,8 +143,8 @@ describe('Default Date/Time Formatting', () => {
             const formatter = defaultTimeTickFormat(ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
-  "Sep 03",
-  "Oct 08",
+  "September",
+  "October",
 ]
 `);
         });
@@ -158,9 +158,9 @@ describe('Default Date/Time Formatting', () => {
             const formatter = defaultTimeTickFormat(ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
-  "Sep 01",
-  "Oct 01",
-  "Nov 01",
+  "September",
+  "October",
+  "November",
 ]
 `);
         });
@@ -185,8 +185,8 @@ describe('Default Date/Time Formatting', () => {
             const formatter = defaultTimeTickFormat(ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
-  "September 2019",
-  "September 2020",
+  "2019",
+  "2020",
 ]
 `);
         });
@@ -196,8 +196,8 @@ describe('Default Date/Time Formatting', () => {
             const formatter = defaultTimeTickFormat(ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
-  "September 2019",
-  "July 2023",
+  "2019",
+  "2023",
 ]
 `);
         });

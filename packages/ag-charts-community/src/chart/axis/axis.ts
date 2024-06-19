@@ -350,6 +350,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const shift = span * vr[0];
         const start = rr[0] - shift;
 
+        scale.setVisibleRange?.(vr);
         scale.range = [start, start + span];
         this.crossLines?.forEach((crossLine) => {
             crossLine.clippedRange = [rr[0], rr[1]];
@@ -402,7 +403,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         if (format && scale && scale.tickFormat) {
             try {
-                this.labelFormatter = scale.tickFormat({ ticks, specifier: format });
+                const formatter = scale.tickFormat({ ticks, specifier: format });
+                this.labelFormatter = formatter;
+                this.datumFormatter = formatter;
             } catch (e) {
                 this.labelFormatter = defaultFormatter(0);
                 this.datumFormatter = defaultFormatter(1);
@@ -1408,16 +1411,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             moduleCtx: { callbackCache },
         } = this;
 
-        if (!isTickLabel && datumFormatter) {
-            return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
-        } else if (label.formatter) {
+        if (label.formatter) {
             return (datum, fractionDigits) =>
                 callbackCache.call(label.formatter as (params: AgAxisLabelFormatterParams) => string, {
                     value: (fractionDigits ?? 0) > 0 ? datum : String(datum),
                     index,
                     fractionDigits,
-                    formatter: labelFormatter,
                 }) ?? datum;
+        } else if (!isTickLabel && datumFormatter) {
+            return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
         } else if (labelFormatter) {
             return (datum) => callbackCache.call(labelFormatter, datum) ?? String(datum);
         }

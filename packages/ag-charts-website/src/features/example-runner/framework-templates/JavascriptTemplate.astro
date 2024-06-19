@@ -5,6 +5,7 @@ interface Props {
 
     modifiedTimeMs: number;
     isEnterprise: boolean;
+    hasLocale: boolean;
 
     /**
      * All script file names
@@ -23,6 +24,7 @@ const {
     title,
     modifiedTimeMs,
     isEnterprise,
+    hasLocale,
     styleFiles,
     scriptFiles,
     indexFragment,
@@ -37,12 +39,18 @@ import { Styles } from './lib/Styles';
 import { Scripts } from './lib/Scripts';
 import { SITE_BASE_URL } from '@constants';
 import { pathJoin } from '@utils/pathJoin';
-import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
+import {
+    getCacheBustingUrl,
+    getChartEnterpriseScriptPath,
+    getChartLocaleScriptPath,
+    getChartScriptPath,
+} from '@utils/chartLibraryPaths';
 
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 
 const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
 const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
+const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUrl), modifiedTimeMs);
 ---
 
 <html lang="en">
@@ -62,6 +70,7 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
     <body>
         <Fragment set:html={indexFragment} />
         <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
+        {hasLocale && <script src={chartScriptLocalePath} />}
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <Styles
             baseUrl={appLocation}

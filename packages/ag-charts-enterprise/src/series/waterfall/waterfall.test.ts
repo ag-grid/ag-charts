@@ -325,11 +325,11 @@ describe('WaterfallSeries', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] ignored:",
+    "AG Charts - invalid value of type [string] for [WaterfallSeries-1 / yRaw] ignored:",
     "[-30]",
   ],
   [
-    "AG Charts - invalid value of type [object] ignored:",
+    "AG Charts - invalid value of type [object] for [WaterfallSeries-1 / yRaw] ignored:",
     "[50]",
   ],
 ]
@@ -352,11 +352,11 @@ describe('WaterfallSeries', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] ignored:",
+    "AG Charts - invalid value of type [string] for [WaterfallSeries-1 / yRaw] ignored:",
     "[-30]",
   ],
   [
-    "AG Charts - invalid value of type [object] ignored:",
+    "AG Charts - invalid value of type [object] for [WaterfallSeries-1 / yRaw] ignored:",
     "[50]",
   ],
 ]

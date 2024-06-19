@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "9.3.1-beta.20240617",
+  "version": "9.3.1-beta.20240618",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -13,6 +13,7 @@
     "postinstall": "npx run-s postinstall:*",
     "postinstall:patch": "patch-package",
     "postinstall:verify-canvas-binary-present": "test -f node_modules/canvas/build/Release/canvas.node",
+    "postinstall:playwright": "if (test \"${CI}\" == \"\") ; then npx playwright install --with-deps ; fi",
     "postinstall:nx-daemon-prebuild-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
     "postinstall:nx-plugin-build": "nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build",
     "postinstall:nx-daemon-restart": "(test -e .nx/cache/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\""
@@ -133,6 +134,7 @@
       "packages/ag-charts-community-examples",
       "packages/ag-charts-enterprise",
       "packages/ag-charts-angular",
+      "packages/ag-charts-locale",
       "packages/ag-charts-react",
       "packages/ag-charts-types",
       "packages/ag-charts-vue3",

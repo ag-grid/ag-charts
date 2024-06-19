@@ -226,8 +226,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             orientation: 'vertical',
             onEscape: () => this.hide(),
         });
-
-        if (this.lastFocus) buttons[0]?.focus();
+        newMenuElement.focus();
     }
 
     private hide() {

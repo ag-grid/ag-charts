@@ -17,6 +17,7 @@ HTMLCollection [
   >
     <div
       class="ag-chart-context-menu__menu"
+      tabindex="-1"
     >
       <button
         class="ag-chart-context-menu__item"

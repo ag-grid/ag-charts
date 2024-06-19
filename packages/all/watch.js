@@ -96,6 +96,7 @@ function nxProjectBuildTarget(project) {
     }
 
     switch (project) {
+        case 'ag-charts-locale':
         case 'ag-charts-types':
             return [
                 [project, ['build'], 'watch'],

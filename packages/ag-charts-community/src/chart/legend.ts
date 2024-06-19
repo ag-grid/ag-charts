@@ -129,7 +129,7 @@ class LegendItem extends BaseProperties {
     paddingY: number = 8;
 
     @Validate(BOOLEAN)
-    showSeriesStroke: boolean = false;
+    showSeriesStroke: boolean = true;
 
     @Validate(OBJECT)
     readonly marker = new LegendMarker();
@@ -315,8 +315,8 @@ export class Legend extends BaseProperties {
                 onclick: () => this.doClick(markerLabel.datum),
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
-                    const bbox = markerLabel?.computeTransformedBBox();
-                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bbox, showFocusBox: true });
+                    const bounds = markerLabel?.computeTransformedBBox();
+                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bounds, showFocusBox: true });
                     this.doHover(event, markerLabel.datum);
                     this.pagination.setPage(markerLabel.pageIndex);
                 },

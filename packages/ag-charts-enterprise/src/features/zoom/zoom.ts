@@ -1,6 +1,7 @@
 import type {
     AgToolbarGroupAlignment,
     AgToolbarGroupPosition,
+    AgToolbarGroupSize,
     AgToolbarZoomButton,
     AgZoomAnchorPoint,
     AgZoomButtons,
@@ -80,6 +81,9 @@ class ZoomButtonsProperties extends _ModuleSupport.BaseProperties<AgZoomButtons>
 
     @Validate(STRING)
     position?: AgToolbarGroupPosition = 'floating-bottom';
+
+    @Validate(STRING)
+    size?: AgToolbarGroupSize = 'small';
 
     @Validate(STRING)
     align?: AgToolbarGroupAlignment = 'center';
@@ -257,10 +261,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(newZoom);
     }
 
-    private onDoubleClick(event: _ModuleSupport.PointerInteractionEvent<'dblclick'>) {
+    private onDoubleClick(
+        event: _ModuleSupport.PointerInteractionEvent<'dblclick'> & { preventZoomDblClick?: boolean }
+    ) {
         const { enabled, enableDoubleClickToReset, hoveredAxis, paddedRect } = this;
 
-        if (!enabled || !enableDoubleClickToReset || event.defaultPrevented) return;
+        if (!enabled || !enableDoubleClickToReset) return;
         event.preventDefault();
 
         const { x, y } = this.getResetZoom();
@@ -269,7 +275,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const { direction } = hoveredAxis;
             const axisZoom = direction === ChartAxisDirection.X ? x : y;
             this.updateAxisZoom(direction, axisZoom);
-        } else if (paddedRect?.containsPoint(event.offsetX, event.offsetY)) {
+        } else if (paddedRect?.containsPoint(event.offsetX, event.offsetY) && !event.preventZoomDblClick) {
             this.updateZoom({ x, y });
         }
     }

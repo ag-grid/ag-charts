@@ -92,10 +92,23 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
     }
 }
 
-export function processMembers(interfaceRef: InterfaceNode | TypeLiteralNode | EnumNode, config: ApiReferenceConfig) {
+export function processMembers(
+    interfaceRef: InterfaceNode | TypeLiteralNode | EnumNode,
+    config: ApiReferenceConfig,
+    typeArguments?: string[]
+) {
     let { members } = interfaceRef;
     const { prioritise, include, exclude } = config;
     const isInterface = interfaceRef.kind === 'interface';
+    const genericsMap = new Map(isInterface ? Object.entries(interfaceRef.genericsMap ?? {}) : null);
+    if (isInterface && interfaceRef.typeParams) {
+        for (const [i, typeParam] of interfaceRef.typeParams.entries()) {
+            genericsMap.set(
+                typeParam.name,
+                normalizeType(typeArguments?.[i] ?? typeParam.default ?? typeParam.constraint)
+            );
+        }
+    }
     if (include?.length || exclude?.length) {
         members = members.filter(
             (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
@@ -105,9 +118,9 @@ export function processMembers(interfaceRef: InterfaceNode | TypeLiteralNode | E
         return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }
     return members.map((member) => {
-        const memberType = normalizeType(member.type);
-        if (isInterface && interfaceRef.genericsMap?.[memberType]) {
-            return { ...member, type: interfaceRef.genericsMap?.[memberType] };
+        if (isInterface) {
+            const memberType = normalizeType(member.type);
+            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType) } : member;
         }
         return member;
     });

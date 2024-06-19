@@ -170,6 +170,7 @@
     }
   },
   "implicitDependencies": [
+    "ag-charts-locale",
     "ag-charts-types",
     "ag-charts-community",
     "ag-charts-enterprise",

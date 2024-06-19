@@ -8,6 +8,7 @@ import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-pa
 import type { GeneratedContents, InternalFramework } from './types';
 import {
     getEntryFileName,
+    getHasLocale,
     getIsEnterprise,
     getProvidedExampleFiles,
     getProvidedExampleFolder,
@@ -133,6 +134,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     const htmlFiles = await getHtmlFiles({ folderPath, sourceFileList });
 
     const isEnterprise = getIsEnterprise({ entryFile });
+    const hasLocale = getHasLocale({ entryFile });
 
     const { bindings, typedBindings } = chartVanillaSrcParser({
         srcFile: entryFile,
@@ -180,6 +182,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const result: GeneratedContents = {
         isEnterprise,
+        hasLocale,
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
         htmlFiles: Object.keys(htmlFiles),

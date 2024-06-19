@@ -114,7 +114,7 @@ export class CrossLine extends Annotation {
         const middle =
             datum.direction === 'horizontal'
                 ? { x: target.x, y: convert(datum.value, context.yAxis) }
-                : { x: convert(datum.value, context.yAxis), y: target.y };
+                : { x: convert(datum.value, context.xAxis), y: target.y };
 
         this.dragState = {
             offset: target,
@@ -123,7 +123,9 @@ export class CrossLine extends Annotation {
     }
 
     public drag(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
-        const { activeHandle, dragState } = this;
+        const { activeHandle, dragState, locked } = this;
+
+        if (locked) return;
 
         let coords;
 
@@ -188,15 +190,16 @@ export class CrossLine extends Annotation {
         let y1 = 0;
         let y2 = 0;
 
-        const { bounds, scaleConvert } = context;
+        const { bounds, scaleConvert, scaleBandwidth } = context;
+        const halfBandwidth = (scaleBandwidth() ?? 0) / 2;
 
         if (datum.direction === 'vertical') {
-            const scaledValue = scaleConvert(datum.value);
+            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
             x1 = scaledValue;
             x2 = scaledValue;
             y2 = bounds.height;
         } else {
-            const scaledValue = scaleConvert(datum.value);
+            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
             x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;

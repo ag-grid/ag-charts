@@ -680,9 +680,9 @@
                         "name": "sankey"
                     },
                     {
-                        "title": "Advanced Sankey",
+                        "title": "Sankey Customisation",
                         "description": "",
-                        "name": "sankey-advanced"
+                        "name": "sankey-customisation"
                     }
                 ]
             }

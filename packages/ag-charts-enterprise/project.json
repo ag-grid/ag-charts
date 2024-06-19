@@ -78,19 +78,19 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-enterprise/dist/package",
-        "main": "packages/ag-charts-enterprise/src/main.ts",
-        "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
+        "outputPath": "{projectRoot}/dist/package",
+        "main": "{projectRoot}/src/main.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "external": ["ag-charts-community"],
         "platform": "browser",
-        "target": "es6",
+        "target": "es2020",
         "format": ["cjs", "esm"],
         "sourcemap": true
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-enterprise/tsconfig.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.watch.json"
         },
         "production": {
           "sourcemap": false
@@ -103,10 +103,10 @@
       "inputs": ["jsOutputs"],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-enterprise/dist/umd",
+        "outputPath": "{projectRoot}/dist/umd",
         "outputFileName": "ag-charts-enterprise",
-        "main": "packages/ag-charts-enterprise/dist/package/main.cjs.js",
-        "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
+        "main": "{projectRoot}/dist/package/main.cjs.js",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
         "target": "es6",
@@ -119,7 +119,7 @@
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-enterprise/tsconfig.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.watch.json"
         },
         "production": {
           "sourcemap": false

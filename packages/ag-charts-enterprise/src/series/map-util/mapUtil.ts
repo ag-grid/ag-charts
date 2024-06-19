@@ -39,16 +39,16 @@ type SomeMapSeries<TDatum> = {
     datumSelection: _Scene.Selection<GeoGeometry, TDatum>;
 };
 
-export function computeGeoFocusBounds<TDatum>(
+export function findFocusedGeoGeometry<TDatum>(
     series: SomeMapSeries<TDatum>,
     opts: _ModuleSupport.PickFocusInputs
-): _Scene.BBox | undefined {
+): GeoGeometry | undefined {
     const datum = series.contextNodeData?.nodeData[opts.datumIndex];
     if (datum === undefined) return undefined;
 
     for (const node of series.datumSelection.nodes()) {
         if (node.datum === datum) {
-            return node.computeTransformedBBox();
+            return node;
         }
     }
 

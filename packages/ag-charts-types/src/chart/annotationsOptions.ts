@@ -8,10 +8,18 @@ import type {
 
 // --- Theme ---
 export interface AgAnnotationsThemeableOptions {
+    axesButtons?: AgAnnotationAxesButtons;
     line?: AgLineAnnotationStyles;
     'cross-line'?: AgLineAnnotationStyles;
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
+}
+
+export interface AgAnnotationAxesButtons {
+    /** Whether the axes buttons should be shown. */
+    enabled?: boolean;
+    /** Axes which the buttons belong to. */
+    axes?: 'x' | 'y' | 'xy';
 }
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}

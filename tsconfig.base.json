@@ -9,7 +9,7 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "esModuleInterop": true,
-    "target": "es2015",
+    "target": "es2020",
     "module": "esnext",
     "lib": ["es2022", "dom"],
     "skipLibCheck": true,
@@ -21,6 +21,7 @@
       "ag-charts-community-examples": ["packages/ag-charts-community-examples/src/index.ts"],
       "ag-charts-community-test": ["packages/ag-charts-community/src/main-test.ts"],
       "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"],
+      "ag-charts-locale": ["packages/ag-charts-locale/src/main.ts"],
       "ag-charts-types": ["packages/ag-charts-types/src/main.ts"]
     }
   },

@@ -921,7 +921,10 @@ export class DataModel<
                     value = def.invalidValue;
                 } else {
                     if (this.mode !== 'integrated') {
-                        Logger.warnOnce(`invalid value of type [${typeof value}] ignored:`, `[${value}]`);
+                        Logger.warnOnce(
+                            `invalid value of type [${typeof value}] for [${def.scopes} / ${def.id}] ignored:`,
+                            `[${value}]`
+                        );
                     }
                     return INVALID_VALUE;
                 }

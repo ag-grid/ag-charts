@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import { clickAction, extractImageData, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import { extractImageData, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -22,9 +22,6 @@ describe('Annotations', () => {
         },
     };
 
-    let width = 0;
-    let height = 0;
-
     async function prepareChart(
         annotationsOptions?: AgCartesianChartOptions['annotations'],
         baseOptions = EXAMPLE_OPTIONS
@@ -34,8 +31,6 @@ describe('Annotations', () => {
             annotations: { ...baseOptions.annotations, ...(annotationsOptions ?? {}) },
         };
         prepareEnterpriseTestOptions(options);
-        width = options.width!;
-        height = options.height!;
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
     }
@@ -123,20 +118,6 @@ describe('Annotations', () => {
                     },
                 ],
             });
-            await compare();
-        });
-    });
-
-    describe('cross-line', () => {
-        it('when y-axis is clicked it should create a horizontal cross-line', async () => {
-            await prepareChart();
-            await clickAction(40, height / 3)(chart);
-            await compare();
-        });
-
-        it('when x-axis is clicked it should create a vertical cross-line', async () => {
-            await prepareChart();
-            await clickAction(width / 3, height - 30)(chart);
             await compare();
         });
     });
