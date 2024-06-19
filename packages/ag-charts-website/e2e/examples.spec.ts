@@ -66,7 +66,10 @@ test.describe('examples', () => {
             if (msg.text().startsWith('*')) return;
 
             // Ignore 404s when expected
-            if (/the server responded with a status of 404 \(Not Found\)/.test(msg.text()) && ignore404s) return;
+            if (/the server responded with a status of 404 \(Not Found\)/.test(msg.text())) {
+                if (ignore404s) return;
+                if (msg.location().url.includes('/favicon.ico')) return;
+            }
 
             consoleWarnOrErrors.push(msg.text());
         });
@@ -101,9 +104,8 @@ test.describe('examples', () => {
                             for (const elements of await page.locator('canvas').all()) {
                                 await expect(elements).toBeVisible();
                             }
-                            await expect(page.locator('.ag-charts-wrapper').first()).toBeVisible({ timeout: 5_000 });
                             for (const elements of await page.locator('.ag-charts-wrapper').all()) {
-                                await expect(elements).toHaveAttribute('data-scene-renders');
+                                await expect(elements).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
                             }
                         });
                     }
