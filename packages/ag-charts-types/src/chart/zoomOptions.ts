@@ -4,6 +4,7 @@ import type { Ratio } from './types';
 export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
 export type AgZoomAxes = 'x' | 'y' | 'xy';
 export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
+export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
@@ -47,7 +48,7 @@ export interface AgZoomOptions {
      * Rate of deceleration of panning when dragging and releasing a zoomed chart.
      * Default: `short`
      */
-    deceleration?: 'off' | 'short' | 'long' | Ratio;
+    deceleration?: AgZoomDeceleration;
     /**
      * Set to `true` to enable the zoom module.
      * Default: `false`
