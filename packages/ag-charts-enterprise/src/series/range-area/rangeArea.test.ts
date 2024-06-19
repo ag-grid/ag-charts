@@ -283,7 +283,7 @@ describe('RangeAreaSeries', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] ignored:",
+    "AG Charts - invalid value of type [string] for [RangeAreaSeries-1 / xValue] ignored:",
     "[invalid]",
   ],
 ]
@@ -317,7 +317,7 @@ describe('RangeAreaSeries', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] ignored:",
+    "AG Charts - invalid value of type [string] for [RangeAreaSeries-1 / xValue] ignored:",
     "[invalid]",
   ],
 ]
