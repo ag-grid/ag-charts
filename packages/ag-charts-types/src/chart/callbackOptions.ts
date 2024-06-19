@@ -23,6 +23,5 @@ export interface DatumCallbackParams<TDatum> {
     seriesId: string;
 }
 
-export type Callback<P, R> = (params: P) => R | undefined;
-export type Formatter<P> = Callback<P, string>;
-export type Styler<P, S> = Callback<P, S>;
+export type Formatter<P> = (params: P) => string | undefined;
+export type Styler<P, S> = (params: P) => S | undefined;
