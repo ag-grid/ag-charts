@@ -111,6 +111,7 @@ export interface AgAnnotationPoint {
 interface Lockable {
     /**
      * Whether the annotation should be locked to prevent editing.
+     *
      * Default: `false`
      */
     locked?: boolean;
