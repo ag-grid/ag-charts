@@ -1,7 +1,7 @@
 @use 'design-system' as *;
 
 :global(#docs-nav-collapser) {
-    $top-bar-height: 58px;
+    $top-bar-height: 64px;
 
     --right-margin: #{$spacing-size-16};
 
