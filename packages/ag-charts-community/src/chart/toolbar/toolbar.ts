@@ -337,43 +337,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        const { elements, groupButtons, groupProxied, hasNewLocale, margin } = this;
-
-        if (!elements.top.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.top.offsetHeight + margin * 2, 'top');
-        }
-
-        if (!elements.right.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.right.offsetWidth + margin, 'right');
-        }
-
-        if (!elements.bottom.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.bottom.offsetHeight + margin * 2, 'bottom');
-        }
-
-        if (!elements.left.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.left.offsetWidth + margin, 'left');
-        }
-
-        if (hasNewLocale) {
-            for (const group of TOOLBAR_GROUPS) {
-                const groupProxyOptions = groupProxied.get(group);
-                groupButtons[group].forEach((element) => {
-                    const {
-                        dataset: { toolbarValue },
-                    } = element;
-
-                    const button =
-                        groupProxyOptions?.buttons?.find(({ value }) => value === toolbarValue) ??
-                        this[group].buttons?.find(({ value }) => value === toolbarValue);
-
-                    if (!button) return;
-
-                    this.updateButtonText(element, button);
-                });
-            }
-            this.hasNewLocale = false;
-        }
+        this.refreshOuterLayout(shrinkRect);
+        this.refreshLocale();
 
         return { shrinkRect };
     }
@@ -403,6 +368,57 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         elements[FloatingBottom].style.top =
             `${seriesRect.y + seriesRect.height - elements[FloatingBottom].offsetHeight}px`;
+    }
+
+    private refreshOuterLayout(shrinkRect: BBox) {
+        const { elements, margin } = this;
+
+        if (!elements.top.classList.contains(styles.modifiers.hidden)) {
+            shrinkRect.shrink(elements.top.offsetHeight + margin * 2, 'top');
+        }
+
+        if (!elements.right.classList.contains(styles.modifiers.hidden)) {
+            shrinkRect.shrink(elements.right.offsetWidth + margin, 'right');
+        }
+
+        if (!elements.bottom.classList.contains(styles.modifiers.hidden)) {
+            shrinkRect.shrink(elements.bottom.offsetHeight + margin * 2, 'bottom');
+        }
+
+        if (!elements.left.classList.contains(styles.modifiers.hidden)) {
+            shrinkRect.shrink(elements.left.offsetWidth + margin, 'left');
+        }
+    }
+
+    private refreshLocale() {
+        const { groupButtons, groupProxied, hasNewLocale } = this;
+
+        if (!hasNewLocale) return;
+
+        for (const group of TOOLBAR_GROUPS) {
+            const groupProxyOptions = groupProxied.get(group);
+            groupButtons[group].forEach((element) => this.refreshButtonLocale(element, this[group], groupProxyOptions));
+        }
+
+        this.hasNewLocale = false;
+    }
+
+    private refreshButtonLocale(
+        element: HTMLButtonElement,
+        group: ToolbarGroupProperties,
+        groupProxyOptions?: ToolbarProxyGroupOptionsEvent['options']
+    ) {
+        const {
+            dataset: { toolbarValue },
+        } = element;
+
+        const button =
+            groupProxyOptions?.buttons?.find(({ value }) => value === toolbarValue) ??
+            group.buttons?.find(({ value }) => value === toolbarValue);
+
+        if (!button) return;
+
+        this.updateButtonText(element, button);
     }
 
     private toggleVisibilities() {
