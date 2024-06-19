@@ -390,6 +390,8 @@ jobs:
 
             - name: Kick-off E2E tests
               if: needs.test.result == 'success' && github.ref == 'refs/heads/latest'
+              env:
+                  GH_TOKEN: ${{ github.token }}
               run: gh workflow run e2e.yml --ref ${{github.ref}}
 
     sonarqube:
