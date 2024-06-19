@@ -1,6 +1,7 @@
 import type {
     AgToolbarGroupAlignment,
     AgToolbarGroupPosition,
+    AgToolbarGroupSize,
     AgToolbarZoomButton,
     AgZoomAnchorPoint,
     AgZoomButtons,
@@ -80,6 +81,9 @@ class ZoomButtonsProperties extends _ModuleSupport.BaseProperties<AgZoomButtons>
 
     @Validate(STRING)
     position?: AgToolbarGroupPosition = 'floating-bottom';
+
+    @Validate(STRING)
+    size?: AgToolbarGroupSize = 'small';
 
     @Validate(STRING)
     align?: AgToolbarGroupAlignment = 'center';

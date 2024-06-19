@@ -23,6 +23,7 @@ export interface Scale<D, R, I = number> {
     ticks?(): D[];
     tickFormat?(params: ScaleTickFormatParams): (x: any) => string;
     getDomain?(): D[];
+    setVisibleRange?(visibleRange: [number, number]): void;
     readonly bandwidth?: number;
     readonly step?: number;
     readonly inset?: number;

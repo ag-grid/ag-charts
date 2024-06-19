@@ -196,7 +196,7 @@ export interface AgNavigatorOptions {
     /** The height of the Navigator. */
     height?: PixelSize;
     /** The distance between the Navigator and the bottom axis of the chart. */
-    margin?: PixelSize;
+    spacing?: PixelSize;
     /** The start of the visible range in the `[0, 1]` interval. */
     min?: Ratio;
     /** The end of the visible range in the `[0, 1]` interval. */

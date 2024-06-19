@@ -10,7 +10,7 @@ import {
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
-import { computeGeoFocusBounds } from '../map-util/mapUtil';
+import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -101,7 +101,6 @@ export class MapShapeSeries
         });
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
-        this.showFocusBox = false;
     }
 
     setChartTopology(topology: any): void {
@@ -721,7 +720,7 @@ export class MapShapeSeries
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeGeoFocusBounds(this, opts);
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.Path | undefined {
+        return findFocusedGeoGeometry(this, opts);
     }
 }

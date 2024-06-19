@@ -4,6 +4,7 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
+import { setAttribute } from '../../util/attributeUtil';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { ObserveChanges } from '../../util/proxy';
@@ -55,7 +56,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     );
 
     private readonly margin = 10;
-    private readonly floatingDetectionRange = 28;
 
     private readonly elements: Record<ToolbarPosition, HTMLElement>;
 
@@ -102,7 +102,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
-    private readonly groupProxied = new Set<ToolbarGroup>();
+    private readonly groupProxied = new Map<ToolbarGroup, ToolbarProxyGroupOptionsEvent['options']>();
     private hasNewLocale = true;
 
     constructor(private readonly ctx: ModuleContext) {
@@ -143,7 +143,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const {
             enabled,
             elements,
-            floatingDetectionRange,
             ctx: { scene },
         } = this;
         const {
@@ -157,11 +156,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const bottom = elements[FloatingBottom];
         const top = elements[FloatingTop];
 
-        const bottomDetectionY = bottom.offsetTop - floatingDetectionRange;
+        const bottomDetectionY = bottom.offsetTop;
         const bottomVisible =
             (offsetY > bottomDetectionY && offsetY < scene.canvas.element.offsetHeight) || target === bottom;
 
-        const topDetectionY = top.offsetTop + top.offsetHeight + floatingDetectionRange;
+        const topDetectionY = top.offsetTop + top.offsetHeight;
         const topVisible = (offsetY > 0 && offsetY < topDetectionY) || target === top;
 
         this.translateFloatingElements(FloatingBottom, bottomVisible);
@@ -243,7 +242,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {
         const { caller, group, options } = event;
 
-        this.groupProxied.add(group);
+        this.groupProxied.set(group, options);
 
         this.createGroup(group, options.enabled, options.position);
         this.createGroupButtons(group, options.buttons);
@@ -282,13 +281,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         let prevSection;
 
         let section = createElement('div');
-        section.classList.add(styles.elements.section);
+        section.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
         alignElement.appendChild(section);
 
         for (const options of buttons ?? []) {
             if (prevSection !== options.section) {
                 section = createElement('div');
-                section.classList.add(styles.elements.section);
+                section.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
                 alignElement.appendChild(section);
             }
             prevSection = options.section;
@@ -338,7 +337,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        const { elements, margin } = this;
+        const { elements, groupButtons, groupProxied, hasNewLocale, margin } = this;
 
         if (!elements.top.classList.contains(styles.modifiers.hidden)) {
             shrinkRect.shrink(elements.top.offsetHeight + margin * 2, 'top');
@@ -356,11 +355,20 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             shrinkRect.shrink(elements.left.offsetWidth + margin, 'left');
         }
 
-        if (this.hasNewLocale) {
+        if (hasNewLocale) {
             for (const group of TOOLBAR_GROUPS) {
-                this.groupButtons[group].forEach((element) => {
-                    const button = this[group].buttons?.find(({ value }) => value === element.dataset.toolbarValue);
+                const groupProxyOptions = groupProxied.get(group);
+                groupButtons[group].forEach((element) => {
+                    const {
+                        dataset: { toolbarValue },
+                    } = element;
+
+                    const button =
+                        groupProxyOptions?.buttons?.find(({ value }) => value === toolbarValue) ??
+                        this[group].buttons?.find(({ value }) => value === toolbarValue);
+
                     if (!button) return;
+
                     this.updateButtonText(element, button);
                 });
             }
@@ -492,6 +500,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         button.innerHTML = inner;
+        const ariaLabel = options.ariaLabel ? this.ctx.localeManager.t(options.ariaLabel) : undefined;
+        setAttribute(button, 'aria-label', ariaLabel);
     }
 
     private onButtonPress(group: ToolbarGroup, value: any) {
