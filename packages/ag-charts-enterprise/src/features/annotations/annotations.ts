@@ -371,9 +371,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const buttonEnabled =
             this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
         if (buttonEnabled) {
-            button ??= new AxisButton(this.ctx, axisCtx, seriesRect, (coords) =>
-                this.onAxisButtonClick(coords, region)
+            button ??= new AxisButton(
+                this.ctx,
+                axisCtx,
+                (coords) => this.onAxisButtonClick(coords, region),
+                seriesRect
             );
+            button.update(seriesRect);
         } else {
             button?.destroy();
             button = undefined;
