@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
     e2e:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         strategy:
             fail-fast: false
             matrix:
@@ -85,7 +85,7 @@ jobs:
                       reports/
 
     report:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         needs: [e2e]
         if: cancelled() != true
         steps:
