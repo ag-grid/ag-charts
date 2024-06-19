@@ -318,6 +318,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (datum) {
             datum.stroke = color;
+            if ('axisLabel' in datum) {
+                datum.axisLabel.fill = color;
+                datum.axisLabel.stroke = color;
+            }
             if ('background' in datum) datum.background.fill = color;
         }
 
