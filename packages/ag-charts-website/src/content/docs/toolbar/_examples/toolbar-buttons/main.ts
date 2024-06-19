@@ -1,4 +1,4 @@
-import { AG_CHARTS_LOCALE_EN, AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AG_CHARTS_LOCALE_EN_US, AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions = {
     },
     locale: {
         localeText: {
-            ...AG_CHARTS_LOCALE_EN,
+            ...AG_CHARTS_LOCALE_EN_US,
             myToolbarRange12Months: '12m',
             myToolbarRange12MonthsAria: '12 months',
             myTooltip: 'Click this button to show all trades',

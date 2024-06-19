@@ -6,14 +6,64 @@ All the displayed text in charts is customisable for the purposes of localisatio
 
 We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size, and only supports American English for formatting of numbers and dates.
 
+## Provided Locales
+
+The default language of the grid is American English. However, we provide a number of translations that can be used as a starting point for commonly requested languages:
+
+| Locale                  | BCP 47 Tag |
+| ----------------------- | ---------- |
+| Arabic (Egyptian)       | ar-EG      |
+| Bulgarian               | bg-BG      |
+| Chinese (Hong Kong)     | zh-HK      |
+| Chinese (Simplified)    | zh-CN      |
+| Chinese (Taiwan)        | zh-TW      |
+| Croatian                | hr-HR      |
+| Czech                   | cs-CZ      |
+| Danish                  | da-DK      |
+| Dutch                   | nl-NL      |
+| Finnish                 | fi-FI      |
+| French                  | fr-FR      |
+| German                  | de-DE      |
+| Greek                   | el-GR      |
+| Hebrew                  | he-IL      |
+| Hungarian               | hu-HU      |
+| Italian                 | it-IT      |
+| Japanese                | ja-JP      |
+| Korean                  | ko-KR      |
+| Norwegian (Bokmål)      | nb-NO      |
+| ~~Persian~~             | ~~fa-IR~~  |
+| ~~Polish~~              | ~~pl-PL~~  |
+| ~~Portuguese~~          | ~~pt-PT~~  |
+| ~~Portuguese (Brazil)~~ | ~~pt-BR~~  |
+| ~~Romanian~~            | ~~ro-RO~~  |
+| ~~Slovak~~              | ~~sk-SK~~  |
+| ~~Spanish~~             | ~~es-ES~~  |
+| ~~Swedish~~             | ~~sv-SE~~  |
+| ~~Turkish~~             | ~~tr-TR~~  |
+| ~~Ukrainian~~           | ~~uk-UA~~  |
+| ~~Urdu (Pakistan)~~     | ~~ur-PK~~  |
+| ~~Vietnamese~~          | ~~vi-VN~~  |
+
+{% note %}
+Translations are provided as a starting point and may contain errors. We recommend you audit these files before using them in production.
+{% /note %}
+
 ## Installing a Locale
 
 To change the locale, set the `localeText` property in `locale` options to one of the built-in locales.
 
+Each built-in locale is available from the `ag-charts-locale` pacakge, and the each export is named `AG_CHARTS_LOCALE_<<LANGUAGE>>_<<REGION>>`.
+
+The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/`ag-charts-enterprise`.
+
+{% chartExampleRunner title="Installing a Locale" name="installing-locale" type="generated" /%}
+
 ```js
+import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
+
 {
     locale: {
-        localeText: AG_CHARTS_LOCALE_FR,
+        localeText: AG_CHARTS_LOCALE_FR_FR,
     }
 }
 ```
@@ -30,7 +80,7 @@ Overrides for individual translations can be done by applying overrides to an ex
 {
     locale: {
         localeText: {
-            ...AG_CHARTS_LOCALE_EN,
+            ...AG_CHARTS_LOCALE_EN_US,
             toolbarZoomZoomOut: 'Zoom Out of the Chart',
             toolbarZoomZoomIn: 'Zoom In to the Chart',
             toolbarZoomPanLeft: 'Pan the Chart Left',
@@ -56,7 +106,7 @@ Values can be formatted by appending a format style in square brackets, like `'$
 {
     locale: {
         localeText: {
-            ...AG_CHARTS_LOCALE_EN,
+            ...AG_CHARTS_LOCALE_EN_US,
             ariaAnnounceChart: 'chart with ${seriesCount} series',
             ariaValuePanRange: '${min}[percent] to ${max}[percent]',
         },
@@ -270,4 +320,4 @@ const MyChart = () => {
 
 ## All Built-In Translations
 
-{% embedSnippet url="/dev/en.ts" language="ts" /%}
+{% embedSnippet url="/dev/ag-charts-locale/dist/package/en-US.esm.mjs" language="ts" /%}

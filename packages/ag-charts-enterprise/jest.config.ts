@@ -45,6 +45,7 @@ const commonConfig = {
     moduleNameMapper: {
         '^ag-charts-community$': '<rootDir>/../ag-charts-community/src/main.ts',
         '^ag-charts-types$': '<rootDir>/../ag-charts-types/src/main.ts',
+        '^ag-charts-locale$': '<rootDir>/../ag-charts-locale/src/main.ts',
         '^ag-charts-community-test$': '<rootDir>/../ag-charts-community/src/main-test.ts',
     },
 };

@@ -34,10 +34,12 @@ export const PUBLISHED_URLS = {
     'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/package/main.cjs.js`,
     'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/package/main.cjs.js`,
     'ag-charts-types': `${NPM_CDN}/ag-charts-types@${agChartsVersion}/dist/package/main.cjs.js`,
+    'ag-charts-locale': `${NPM_CDN}/ag-charts-locale@${agChartsVersion}/dist/package/main.cjs.js`,
 };
 export const PUBLISHED_UMD_URLS = {
     'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/umd/ag-charts-community.js`,
     'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/umd/ag-charts-enterprise.js`,
+    'ag-charts-locale': `${NPM_CDN}/ag-charts-locale@${agChartsVersion}/dist/umd/ag-charts-locale.js`,
 };
 
 export const DOCS_TAB_ITEM_ID_PREFIX = 'reference-';
