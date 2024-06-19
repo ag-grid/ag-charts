@@ -272,10 +272,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected processAnnotationsOptions(options: T, annotationsThemes: any) {
         if (!isAgCartesianChartOptions(options)) return;
 
-        if (options.initialState == null) return;
-
+        if (options.annotations == null) return;
         this.annotationThemes = annotationsThemes;
 
+        if (options.initialState == null) return;
         options.initialState.annotations = options.initialState.annotations?.map((annotation) => {
             const annotationTheme = annotationsThemes[annotation.type];
             return mergeDefaults(annotation, annotationTheme);
