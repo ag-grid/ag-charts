@@ -84,6 +84,17 @@ test.describe('examples', () => {
     });
 
     const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts');
+    // if (process.env.NX_BASE) {
+    //     const changedFiles = new Set(
+    //         execSync(`git diff --name-only latest -- ./src/content/`)
+    //             .toString()
+    //             .split('\n')
+    //             .map((v) => v.replace(/^packages\/ag-charts-website\//, './'))
+    //     );
+    //     examples = examples.filter((e) => changedFiles.has(e));
+
+    //     console.warn(`NX_BASE set - applied changed example processing, ${examples.length} changed examples found.`);
+    // }
 
     for (const example of examples) {
         const testUrls = toPageUrls(example);
