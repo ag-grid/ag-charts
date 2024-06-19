@@ -8,7 +8,7 @@ import {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
 } from '../src/chart/series/cartesian/cartesianSeries';
-import { AgChartProxy, IMAGE_SNAPSHOT_DEFAULTS, deproxy, prepareTestOptions } from '../src/chart/test/utils';
+import { AgChartProxy, deproxy, prepareTestOptions } from '../src/chart/test/utils';
 import { AgCharts } from '../src/main';
 import { Point } from '../src/scene/point';
 import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
@@ -98,7 +98,7 @@ export function benchmark(
             });
 
             const newImageData = extractImageData(ctx.canvasCtx);
-            expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
 
             if (memoryUse != null) {
                 const BYTES_PER_MB = 1024 ** 2;

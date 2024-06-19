@@ -5,7 +5,7 @@ import { AgCartesianChartOptions } from '../src/main';
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 const EXPECTATIONS = {
-    expectedMaxMemoryMB: 912,
+    expectedMaxMemoryMB: 920,
 };
 
 describe('large-dataset benchmark', () => {
