@@ -9,7 +9,7 @@
 
 .ag-charts-focus.ag-charts-focus__indicator > div {
     position: absolute;
-    border: var(--ag-charts-focus-border);
+    outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
 
