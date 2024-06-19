@@ -18,8 +18,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly axisCtx: _ModuleSupport.AxisContext,
-        private readonly seriesRect: _Scene.BBox,
-        private readonly onButtonClick: (coords?: Coords) => void
+        private readonly onButtonClick: (coords?: Coords) => void,
+        private seriesRect: _Scene.BBox
     ) {
         super();
 
@@ -40,6 +40,10 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             () => this.wrapper.remove(),
             () => this.button.remove()
         );
+    }
+
+    update(seriesRect: _Scene.BBox) {
+        this.seriesRect = seriesRect;
     }
 
     private setup() {

@@ -40,7 +40,7 @@ export class AxisLabel extends _Scene.Group {
         this.updatePosition(opts);
     }
 
-    updateLabel({ value, styles, context }: UpdateOpts) {
+    private updateLabel({ value, styles, context }: UpdateOpts) {
         const { label } = this;
 
         const { fontWeight, fontSize, fontStyle, fontFamily, textAlign, color = 'white', formatter } = styles;
@@ -48,7 +48,7 @@ export class AxisLabel extends _Scene.Group {
         label.text = this.getFormattedValue(value, formatter ?? context.scaleValueFormatter());
     }
 
-    updateRect({ styles }: UpdateOpts) {
+    private updateRect({ styles }: UpdateOpts) {
         const { rect } = this;
 
         const { cornerRadius, fill, fillOpacity, stroke, strokeOpacity } = styles;
@@ -90,7 +90,7 @@ export class AxisLabel extends _Scene.Group {
         rect.width = labelBBox.width;
     }
 
-    getFormattedValue(value: any, formatter?: Formatter<any>) {
+    private getFormattedValue(value: any, formatter?: Formatter<any>) {
         return formatter?.(value) ?? String(value);
     }
 }
