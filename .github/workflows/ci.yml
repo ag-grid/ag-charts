@@ -272,7 +272,7 @@ jobs:
             - name: nx test (non-sharded)
               if: matrix.shard == 0
               id: test-no-shard
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci -p tag:no-sharding --exclude all
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude '*,!tag:no-sharding'
             - name: nx benchmark
               if: matrix.shard == 0
               id: benchmark
