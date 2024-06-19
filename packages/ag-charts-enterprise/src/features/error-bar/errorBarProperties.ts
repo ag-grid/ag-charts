@@ -1,5 +1,5 @@
 import {
-    type AgErrorBarFormatterParams,
+    type AgErrorBarItemStylerParams,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
     type ErrorBarCapOptions,
@@ -91,7 +91,7 @@ export class ErrorBarProperties extends BaseProperties<AgErrorBarOptions<any>> {
     lineDashOffset?: number;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgErrorBarFormatterParams<any>, AgErrorBarThemeableOptions>;
+    itemStyler?: Styler<AgErrorBarItemStylerParams<unknown>, AgErrorBarThemeableOptions>;
 
     @Validate(OBJECT)
     cap = new ErrorBarCap();

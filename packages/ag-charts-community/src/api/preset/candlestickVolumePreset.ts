@@ -1,9 +1,7 @@
 import type {
     AgAxisLabelFormatterParams,
-    AgBarSeriesFormatterParams,
     AgCandlestickVolumePreset,
     AgCartesianChartOptions,
-    AgCartesianSeriesTooltipRendererParams,
     AgCrosshairLabelRendererParams,
     AgSeriesTooltip,
 } from 'ag-charts-types';
@@ -21,7 +19,7 @@ const tooltipOptions: AgSeriesTooltip<any> = {
         xOffset: 70,
         yOffset: 20,
     },
-    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams) => {
+    renderer({ datum }) {
         const fill = datum.open < datum.close ? '#089981' : '#F23645';
         return `
            <div>
@@ -62,10 +60,8 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
                 type: 'bar',
                 xKey: 'date',
                 yKey: volumeKey,
-                itemStyler: (params: AgBarSeriesFormatterParams<any>) => {
-                    const { datum } = params;
-                    const fill = datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7';
-                    return { fill };
+                itemStyler({ datum }) {
+                    return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
                 },
                 tooltip: tooltipOptions,
             },

@@ -17,7 +17,7 @@ export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & A
 
 export type AgScatterSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgScatterSeriesOptionsKeys &
-    AgSeriesMarkerStyle;
+    Required<AgSeriesMarkerStyle>;
 
 export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams> {
     /**

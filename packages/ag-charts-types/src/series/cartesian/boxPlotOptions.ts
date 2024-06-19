@@ -1,18 +1,12 @@
-import type { Styler } from '../../chart/callbackOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, Ratio } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type {
-    AgSeriesFormatterParams,
-    AxisOptions,
-    FillOptions,
-    LineDashOptions,
-    StrokeOptions,
-} from './commonOptions';
+import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-interface BoxPlotUniqueOptions {
-    // required
+interface BoxPlotOptionsKeys {
+    /** The key used to retrieve x-values (categories) from the data. */
+    xKey: string;
     /** The key to use to retrieve minimum values from the data. */
     minKey: string;
     /** The key to use to retrieve lower quartile values from the data. */
@@ -23,7 +17,13 @@ interface BoxPlotUniqueOptions {
     q3Key: string;
     /** The key to use to retrieve maximum values from the data. */
     maxKey: string;
-    // optional
+}
+
+interface BoxPlotOptionsNames {
+    /** A descriptive label for x-values. */
+    xName?: string;
+    /** A descriptive label for y-values. */
+    yName?: string;
     /** A human-readable description of minimum values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     minName?: string;
     /** A human-readable description of lower quartile values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -42,12 +42,14 @@ export interface AgBoxPlotCapOptions {
 
 export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
-export type AgBoxPlotSeriesFormatterParams<TDatum> = AgSeriesFormatterParams<TDatum> &
-    Readonly<BoxPlotUniqueOptions & Omit<AxisOptions, 'yKey'> & FillOptions & StrokeOptions>;
+export type AgBoxPlotSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+    BoxPlotOptionsKeys &
+    Required<AgBoxPlotSeriesStyles>;
 
 export interface AgBoxPlotSeriesTooltipRendererParams
-    extends BoxPlotUniqueOptions,
-        Omit<AgCartesianSeriesTooltipRendererParams, 'yKey'> {
+    extends BoxPlotOptionsKeys,
+        BoxPlotOptionsNames,
+        AgSeriesTooltipRendererParams {
     fill?: CssColor;
 }
 
@@ -71,14 +73,14 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgBoxPlotSeriesFormatterParams<TDatum>, AgBoxPlotSeriesStyles>;
+    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyles>;
 }
 
 export interface AgBoxPlotSeriesOptions<TDatum = any>
     extends AgBoxPlotSeriesThemeableOptions<TDatum>,
         AgBaseSeriesOptions<TDatum>,
-        BoxPlotUniqueOptions,
-        Omit<AxisOptions, 'yKey'> {
+        BoxPlotOptionsKeys,
+        BoxPlotOptionsNames {
     /** Configuration for the Box Plot Series. */
     type: 'box-plot';
     /** Whether to group together (adjacently) separate columns. */

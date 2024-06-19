@@ -3,7 +3,7 @@ import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type {
-    AgCandlestickSeriesBaseFormatterParams,
+    AgCandlestickSeriesBaseItemStylerParams,
     AgCandlestickSeriesBaseOptions,
     AgCandlestickSeriesBaseTooltipRendererParams,
     AgCandlestickSeriesItemType,
@@ -14,7 +14,7 @@ export type AgOhlcSeriesItemType = AgCandlestickSeriesItemType;
 
 export interface AgOhlcSeriesBaseOptions extends AgCandlestickSeriesBaseOptions {}
 
-export interface AgOhlcSeriesFormatterParams<TDatum> extends AgCandlestickSeriesBaseFormatterParams<TDatum> {}
+export interface AgOhlcSeriesFormatterParams<TDatum> extends AgCandlestickSeriesBaseItemStylerParams<TDatum> {}
 
 export interface AgOhlcSeriesTooltipRendererParams
     extends AgCandlestickSeriesBaseTooltipRendererParams,

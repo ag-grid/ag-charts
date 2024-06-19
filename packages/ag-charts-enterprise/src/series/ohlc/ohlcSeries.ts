@@ -1,5 +1,5 @@
 import {
-    type AgCandlestickSeriesBaseFormatterParams,
+    type AgCandlestickSeriesBaseItemStylerParams,
     type AgOhlcSeriesFormatterParams,
     type AgOhlcSeriesItemOptions,
     _ModuleSupport,
@@ -57,7 +57,7 @@ export class OhlcSeries extends CandlestickSeriesBase<
     }
 
     protected override getFormatterParams(
-        params: AgCandlestickSeriesBaseFormatterParams<OhlcNodeDatum>
+        params: AgCandlestickSeriesBaseItemStylerParams<OhlcNodeDatum>
     ): AgOhlcSeriesFormatterParams<OhlcNodeDatum> {
         return params;
     }

@@ -4,7 +4,7 @@ import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type {
-    AgCandlestickSeriesBaseFormatterParams,
+    AgCandlestickSeriesBaseItemStylerParams,
     AgCandlestickSeriesBaseOptions,
     AgCandlestickSeriesBaseTooltipRendererParams,
 } from './candlestickBaseOptions';
@@ -13,7 +13,7 @@ import type { AxisOptions, FillOptions, LineDashOptions, StrokeOptions } from '.
 export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
 export interface AgCandlestickSeriesFormatterParams<TDatum>
-    extends AgCandlestickSeriesBaseFormatterParams<TDatum>,
+    extends AgCandlestickSeriesBaseItemStylerParams<TDatum>,
         FillOptions {}
 
 export interface AgCandlestickSeriesTooltipRendererParams

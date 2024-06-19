@@ -2,12 +2,10 @@ import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonO
 import type { DatumCallbackParams, Styler } from './callbackOptions';
 import type { PixelSize, Ratio } from './types';
 
-export interface AgErrorBarFormatterParams<TDatum>
-    extends DatumCallbackParams<TDatum>,
-        SeriesKeyOptions,
-        ErrorBarKeyOptions {
-    readonly highlighted: boolean;
-}
+export type AgErrorBarItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+    SeriesKeyOptions &
+    ErrorBarKeyOptions &
+    Required<AgErrorBarThemeableOptions>;
 
 interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
     /** Whether to display the error bars. */
@@ -45,7 +43,7 @@ interface ErrorBarNameOptions {
 
 interface ErrorBarFormatterOption<TDatum> {
     /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgErrorBarFormatterParams<TDatum>, AgErrorBarThemeableOptions>;
+    itemStyler?: Styler<AgErrorBarItemStylerParams<TDatum>, AgErrorBarThemeableOptions>;
 }
 
 export interface ErrorBarCapOptions extends ErrorBarStylingOptions {

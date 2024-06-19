@@ -1,8 +1,8 @@
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
-    AgSeriesMarkerFormatterParams,
     AgSeriesMarkerStyle,
+    AgSeriesMarkerStylerParams,
     ISeriesMarker,
 } from 'ag-charts-types';
 
@@ -760,7 +760,7 @@ export abstract class Series<
 
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size: params.datum.point?.size ?? 0 };
@@ -780,7 +780,7 @@ export abstract class Series<
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
         marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
         { applyTranslation = true } = {}
     ) {
