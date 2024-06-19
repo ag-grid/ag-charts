@@ -287,14 +287,14 @@ function MemberActions({
                     onToggle={onDetailsToggle}
                 />
             )}
-            {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} />}
+            {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} member={member} />}
         </div>
     );
 }
 
 type ApiNode = ApiReferenceNode | MemberNode;
 
-export function TypeCodeBlock({ apiNode }: { apiNode: ApiNode | ApiNode[] }) {
+export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[]; member: MemberNode }) {
     const reference = useContext(ApiReferenceContext);
 
     if (!reference) {
@@ -302,8 +302,8 @@ export function TypeCodeBlock({ apiNode }: { apiNode: ApiNode | ApiNode[] }) {
     }
 
     const codeSample = Array.isArray(apiNode)
-        ? apiNode.map((apiNode) => formatTypeToCode(apiNode, reference))
-        : formatTypeToCode(apiNode, reference);
+        ? apiNode.map((apiNode) => formatTypeToCode(apiNode, member, reference))
+        : formatTypeToCode(apiNode, member, reference);
 
     if (!codeSample?.length) {
         // eslint-disable-next-line no-console
