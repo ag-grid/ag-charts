@@ -8,7 +8,7 @@ import type {
 
 // --- Theme ---
 export interface AgAnnotationsThemeableOptions {
-    axesButtons: AgAnnotationAxesButtons;
+    axesButtons?: AgAnnotationAxesButtons;
     line?: AgLineAnnotationStyles;
     'cross-line'?: AgLineAnnotationStyles;
     'disjoint-channel'?: AgChannelAnnotationStyles;
