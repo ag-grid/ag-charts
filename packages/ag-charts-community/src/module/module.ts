@@ -65,26 +65,9 @@ export class ModuleRegistry {
 
         const modulesByType = this.modules.filter((module) => types.includes(module.type));
 
-        // Ignore non-existant dependencies, e.g a community module that optionally depends on an enterprise module.
-        for (const [key, dependencies] of dependents.entries()) {
-            for (const dep of dependencies) {
-                if (!modulesByType.find((module) => module.optionsKey === dep)) {
-                    dependencies.delete(dep);
-                }
-            }
-
-            if (dependencies.size === 0) {
-                dependents.delete(key);
-            }
-        }
-
         do {
             for (const module of modulesByType) {
-                if (
-                    !types.includes(module.type) ||
-                    yielded.has(module.optionsKey) ||
-                    dependents.has(module.optionsKey)
-                ) {
+                if (yielded.has(module.optionsKey) || dependents.has(module.optionsKey)) {
                     continue;
                 }
 

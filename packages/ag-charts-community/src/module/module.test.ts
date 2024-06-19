@@ -114,15 +114,12 @@ describe('Module', () => {
             );
         });
 
-        it('should ignore missing dependencies', () => {
+        it('should fail on missing dependencies', () => {
             moduleRegistry.register(two);
 
-            const order = [];
-            for (const module of moduleRegistry.byType('root')) {
-                order.push(module.optionsKey);
-            }
-
-            expect(order).toEqual(['two']);
+            expect(() => moduleRegistry.byType('root').next()).toThrowErrorMatchingInlineSnapshot(
+                `"Could not resolve module dependencies: [two]"`
+            );
         });
     });
 });
