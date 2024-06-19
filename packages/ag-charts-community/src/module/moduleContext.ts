@@ -23,7 +23,7 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { LocaleManager } from '../chart/locale/localeManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
-import type { KeyNavManager } from '../module-support';
+import type { KeyNavManager } from '../chart/interaction/keyNavManager';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
