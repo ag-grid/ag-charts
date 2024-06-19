@@ -44,11 +44,10 @@ export interface AgZoomOptions {
     /** A set of buttons to perform common zoom actions. */
     buttons?: AgZoomButtons;
     /**
-     * Rate of deceleration of panning when dragging and releasing a zoomed chart. A value of 1 will cause the panning to stop immediately when released.
-     * Typical values are between 0.01 for a short pan duration, and 0.002 for a long pan duration.
-     * Default: `1`
+     * Rate of deceleration of panning when dragging and releasing a zoomed chart.
+     * Default: `short`
      */
-    deceleration?: Ratio;
+    deceleration?: 'off' | 'short' | 'long' | Ratio;
     /**
      * Set to `true` to enable the zoom module.
      * Default: `false`
