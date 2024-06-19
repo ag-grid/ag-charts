@@ -14,6 +14,7 @@ env:
     NX_BRANCH: ${{ github.ref }}
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
+    AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,7 +22,7 @@ concurrency:
 
 jobs:
     e2e:
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         strategy:
             fail-fast: false
             matrix:
@@ -85,7 +86,7 @@ jobs:
                       reports/
 
     report:
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         needs: [e2e]
         if: cancelled() != true
         steps:
