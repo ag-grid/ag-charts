@@ -45,7 +45,7 @@ type SUPPORTED_EVENTS =
     | 'mousedown'
     | 'mousemove'
     | 'mouseup'
-    | 'mouseout'
+    | 'mouseleave'
     | 'mouseenter'
     | 'touchstart'
     | 'touchmove'
@@ -60,7 +60,7 @@ const EVENT_HANDLERS = [
     'dblclick',
     'contextmenu',
     'mousedown',
-    'mouseout',
+    'mouseleave',
     'mouseenter',
     'touchstart',
     'touchmove',
@@ -377,7 +377,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 this.recordUp(event);
                 return ['drag-end'];
 
-            case 'mouseout':
+            case 'mouseleave':
             case 'touchcancel':
                 return ['leave'];
 
