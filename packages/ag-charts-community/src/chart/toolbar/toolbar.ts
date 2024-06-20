@@ -337,8 +337,14 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
+        const { elements, margin } = this;
+
         this.refreshOuterLayout(shrinkRect);
         this.refreshLocale();
+
+        elements.top.style.top = `${shrinkRect.y - elements.top.offsetHeight - margin * 2}px`;
+        elements.top.style.left = `${margin}px`;
+        elements.top.style.width = `calc(100% - ${margin * 2}px)`;
 
         return { shrinkRect };
     }
@@ -347,10 +353,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const { elements, margin } = this;
         const { seriesRect } = opts;
         const { FloatingBottom, FloatingTop } = ToolbarPosition;
-
-        elements.top.style.top = `${seriesRect.y - elements.top.offsetHeight - margin * 2}px`;
-        elements.top.style.left = `${margin}px`;
-        elements.top.style.width = `calc(100% - ${margin * 2}px)`;
 
         elements.right.style.top = `${seriesRect.y + margin}px`;
         elements.right.style.right = `${margin}px`;
