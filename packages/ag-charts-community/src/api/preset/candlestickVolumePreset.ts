@@ -1,6 +1,7 @@
 import type {
     AgAxisLabelFormatterParams,
     AgBarSeriesFormatterParams,
+    AgBasePresetOptions,
     AgCandlestickVolumePreset,
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
@@ -36,7 +37,9 @@ const tooltipOptions: AgSeriesTooltip<any> = {
     },
 };
 
-export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCartesianChartOptions {
+export function candlestickVolumePreset(
+    opts: AgCandlestickVolumePreset & AgBasePresetOptions<'annotations'>
+): AgCartesianChartOptions {
     const {
         type: _type,
         xKey = 'date',
@@ -45,6 +48,7 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
         lowKey = 'low',
         closeKey = 'close',
         volumeKey = 'volume',
+        data,
         ...unusedOpts
     } = opts;
     return {
@@ -59,7 +63,7 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
         legend: { enabled: false },
         statusBar: {
             enabled: true,
-            data: (unusedOpts as any).data ?? [],
+            data: data ?? [],
             highKey,
             openKey,
             lowKey,
@@ -171,6 +175,7 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
         annotations: {
             enabled: true,
         },
+        data,
         ...unusedOpts,
     };
 }
