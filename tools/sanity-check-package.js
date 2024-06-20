@@ -1,6 +1,9 @@
+#!node
+
 const fs = require('fs');
 const path = require('path');
 const tsNode = require('ts-node');
+const glob = require('glob');
 
 tsNode.register();
 
@@ -52,7 +55,19 @@ async function check(type, field, filename) {
         success = false;
     }
 
-    if (!fs.existsSync(path.join(dir, filename))) {
+    let fileCount = 0;
+    if (filename.indexOf('*') >= 0) {
+        const matches = glob.sync(path.join(dir, filename));
+        fileCount += matches.length;
+        if (matches.length === 0) {
+            console.warn(
+                `[${packageJson.name}] ${filename}: Field '${field}' has invalid file reference glob: ${filename}`
+            );
+            success = false;
+        }
+    } else if (fs.existsSync(path.join(dir, filename))) {
+        fileCount++;
+    } else {
         console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has invalid file reference: ${filename}`);
         success = false;
     }
@@ -71,7 +86,7 @@ async function check(type, field, filename) {
     // }
 
     if (success) {
-        console.log(`[${packageJson.name}] ${filename} check success.`);
+        console.log(`[${packageJson.name}] ${filename} check success. [${fileCount} matches]`);
     } else {
         exitStatus = 1;
     }

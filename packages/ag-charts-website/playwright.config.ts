@@ -20,12 +20,18 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [
-        ['html', { open: process.env.CI ? 'on-failure' : 'never' }],
+        [
+            'html',
+            {
+                open: process.env.CI ? 'on-failure' : 'never',
+                outputFolder: '../../reports/ag-charts-website-e2e-html/',
+            },
+        ],
         ['junit', { outputFile: '../../reports/ag-charts-website-e2e.xml' }],
         ['line'],
         ['json', { outputFile: '../../reports/ag-charts-website-e2e.json' }],
     ],
-    outputDir: '../../reports/',
+    outputDir: '../../reports/ag-charts-website-e2e-reports/',
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */

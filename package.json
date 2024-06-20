@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "9.3.1-beta.20240618",
+  "version": "9.3.1-beta.20240620",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -134,6 +134,7 @@
       "packages/ag-charts-community-examples",
       "packages/ag-charts-enterprise",
       "packages/ag-charts-angular",
+      "packages/ag-charts-locale",
       "packages/ag-charts-react",
       "packages/ag-charts-types",
       "packages/ag-charts-vue3",

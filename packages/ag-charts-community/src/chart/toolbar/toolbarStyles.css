@@ -23,6 +23,10 @@
     transition: opacity 0.4s ease-in-out;
 }
 
+.ag-charts-toolbar--small {
+    --ag-charts-toolbar-size: var(--ag-charts-toolbar-size-small);
+}
+
 .ag-charts-toolbar--top,
 .ag-charts-toolbar--bottom {
     flex-direction: row;

@@ -41,6 +41,7 @@ export interface DevFileRoute {
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'resolved-interfaces.json': 'dist/packages/ag-charts-types/resolved-interfaces.AUTO.json',
 
+    'ag-charts-locale/dist/**': 'packages/ag-charts-locale/dist/**/*.{cjs,mjs,js,map}',
     'ag-charts-community/dist/**': 'packages/ag-charts-community/dist/**/*.{cjs,js,map}',
     'ag-charts-enterprise/dist/**': 'packages/ag-charts-enterprise/dist/**/*.{cjs,js,map}',
     'ag-charts-react/dist/**': 'packages/ag-charts-react/dist/**/*.{cjs,js,map}',
@@ -50,8 +51,6 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
         'packages/ag-charts-angular/dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs',
 
     'ag-charts-thumbnails/**': 'dist/generated-thumbnails/ag-charts-website/gallery/_examples/**/*.{png,webp}',
-
-    'en.ts': 'packages/ag-charts-community/src/locales/en.ts',
 };
 
 /**

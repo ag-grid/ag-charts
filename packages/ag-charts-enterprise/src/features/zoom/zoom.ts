@@ -1,6 +1,7 @@
 import type {
     AgToolbarGroupAlignment,
     AgToolbarGroupPosition,
+    AgToolbarGroupSize,
     AgToolbarZoomButton,
     AgZoomAnchorPoint,
     AgZoomButtons,
@@ -42,6 +43,7 @@ const {
     RATIO,
     STRING,
     UNION,
+    OR,
     ActionOnSet,
     ChartAxisDirection,
     ChartUpdateType,
@@ -80,6 +82,9 @@ class ZoomButtonsProperties extends _ModuleSupport.BaseProperties<AgZoomButtons>
 
     @Validate(STRING)
     position?: AgToolbarGroupPosition = 'floating-bottom';
+
+    @Validate(STRING)
+    size?: AgToolbarGroupSize = 'small';
 
     @Validate(STRING)
     align?: AgToolbarGroupAlignment = 'center';
@@ -156,8 +161,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly toolbar: ZoomToolbar;
 
     @ProxyProperty('panner.deceleration')
-    @Validate(NUMBER.restrict({ min: 0.0001, max: 1 }))
-    deceleration: number = 1;
+    @Validate(OR(RATIO, UNION(['off', 'short', 'long'], 'a deceleration')))
+    deceleration: number | 'off' | 'short' | 'long' = 'short';
 
     // State
     private dragState = DragState.None;

@@ -86,6 +86,7 @@ export interface AgChartCaptionOptions {
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
      * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
      * - `'never'` disables text wrapping.
+     *
      * Default: `'on-space'`
      */
     wrapping?: TextWrap;
@@ -116,16 +117,19 @@ export interface AgChartSyncOptions {
     groupId?: string;
     /**
      * Determines the axes to be synchronized across charts.
+     *
      * Default: `x`
      */
     axes?: 'x' | 'y' | 'xy';
     /**
      * Enables synchronization of node interactions across charts.
+     *
      * Default: `true`
      */
     nodeInteraction?: boolean;
     /**
      * Enables synchronization of zoom actions across charts.
+     *
      * Default: `true`
      */
     zoom?: boolean;
@@ -133,10 +137,12 @@ export interface AgChartSyncOptions {
 
 export interface AgKeyboardOptions {
     /** Toggles the keyboard navigation feature.
+     *
      * Default: `true`
      */
     enabled?: boolean;
     /** Allows setting the tabIndex of the chart canvas.
+     *
      * Default: `0`
      */
     tabIndex?: number;
@@ -149,11 +155,13 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     height?: PixelSize;
     /**
      * Sets the minimum height of the chart. Ignored if `height` is specified.
+     *
      * Default: `300`
      */
     minHeight?: PixelSize;
     /**
      * Sets the minimum width of the chart. Ignored if `width` is specified.
+     *
      * Default: `300`
      */
     minWidth?: PixelSize;

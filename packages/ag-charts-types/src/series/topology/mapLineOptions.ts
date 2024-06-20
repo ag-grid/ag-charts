@@ -57,6 +57,7 @@ export interface AgMapLineSeriesOptions<TDatum = any>
     topology?: GeoJSON;
     /**
      * The property to reference in the topology to match up with data.
+     *
      * Default: `name`
      */
     topologyIdKey?: string;

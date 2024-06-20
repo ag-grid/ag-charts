@@ -12,6 +12,8 @@ export interface AgToolbarGroup extends Toggleable {
     align?: AgToolbarGroupAlignment;
     /** Position of the toolbar group on the outside of the chart. */
     position?: AgToolbarGroupPosition;
+    /** Size of the toolbar group buttons, defaults to 'normal'. */
+    size?: AgToolbarGroupSize;
     buttons?: AgToolbarButton[];
 }
 
@@ -24,6 +26,7 @@ export type AgToolbarGroupPosition =
     | 'floating'
     | 'floating-top'
     | 'floating-bottom';
+export type AgToolbarGroupSize = 'small' | 'normal';
 
 export interface AgToolbarButton {
     /** Section in which to group the button. */
@@ -32,6 +35,8 @@ export interface AgToolbarButton {
     icon?: AgIconName;
     /** Text label to display on the button. */
     label?: string;
+    /** Text label to announce in screen readers. */
+    ariaLabel?: string;
     /** Tooltip text to display on hover over the button. */
     tooltip?: string;
     /** Value provided to caller when the button is pressed. */
@@ -43,12 +48,21 @@ type IconNameAnnotation =
     | 'trend-line'
     | 'parallel-channel'
     | 'disjoint-channel'
-    | 'color'
     | 'delete'
+    | 'line-color'
     | 'lock'
     | 'reset'
     | 'unlock';
-type IconNameZoom = 'pan-end' | 'pan-left' | 'pan-right' | 'pan-start' | 'reset' | 'zoom-in' | 'zoom-out';
+type IconNameZoom =
+    | 'pan-end'
+    | 'pan-left'
+    | 'pan-right'
+    | 'pan-start'
+    | 'reset'
+    | 'zoom-in'
+    | 'zoom-in-alt'
+    | 'zoom-out'
+    | 'zoom-out-alt';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
@@ -72,7 +86,7 @@ export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
 
-export type AgToolbarAnnotationOptionsButtonValue = 'color' | 'delete' | 'lock' | 'unlock';
+export type AgToolbarAnnotationOptionsButtonValue = 'line-color' | 'delete' | 'lock' | 'unlock';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

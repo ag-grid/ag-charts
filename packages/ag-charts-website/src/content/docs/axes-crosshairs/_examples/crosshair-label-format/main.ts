@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, time } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -10,6 +10,10 @@ const options: AgCartesianChartOptions = {
             strokes: ['#AC9BF5', '#5984C2', '#36A883', '#F5CA46'],
             fills: ['#AC9BF5', '#5984C2', '#36A883', '#F5CA46'],
         },
+    },
+    padding: {
+        left: 50,
+        right: 50,
     },
     series: [
         {
@@ -44,7 +48,9 @@ const options: AgCartesianChartOptions = {
             gridLine: {
                 style: [],
             },
-            nice: false,
+            interval: {
+                step: time.month.every(6),
+            },
             crosshair: {
                 enabled: true,
             },
@@ -73,7 +79,7 @@ const chart = AgCharts.create(options);
 function crosshairLabelFormat() {
     const crosshair = options.axes![0].crosshair!;
     crosshair.label = {
-        format: `%b %Y`,
+        format: `%d %b '%y`,
     };
     chart.update(options);
 }
@@ -84,7 +90,7 @@ function axisLabelFormat() {
     if (crosshair.label && crosshair.label.format) {
         delete axes0.crosshair!.label!.format;
     }
-    axes0.label = { format: `%Y` };
+    axes0.label = { format: `%b %Y` };
     chart.update(options);
 }
 

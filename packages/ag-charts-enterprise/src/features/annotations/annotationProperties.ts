@@ -184,7 +184,6 @@ export function Stroke<T extends Constructor>(Parent: T) {
 
 export interface AnnotationAxisLabelFormatterParams {
     readonly value: any;
-    readonly formatter?: Formatter<any>;
 }
 
 export function Label<T extends Constructor>(Parent: T) {

@@ -57,6 +57,21 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
             },
         },
         legend: { enabled: false },
+        statusBar: {
+            enabled: true,
+            data: (unusedOpts as any).data ?? [],
+            highKey,
+            openKey,
+            lowKey,
+            closeKey,
+            volumeKey,
+            positive: {
+                color: '#089981',
+            },
+            negative: {
+                color: '#F23645',
+            },
+        },
         series: [
             {
                 type: 'bar',

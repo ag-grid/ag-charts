@@ -2,6 +2,8 @@ name: e2e
 
 on:
     workflow_dispatch: {}
+    push:
+        tags: ['latest-success']
     schedule:
         - cron: '0 7 * * 1-5'
 
@@ -12,6 +14,7 @@ env:
     NX_BRANCH: ${{ github.ref }}
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
+    AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -101,6 +104,7 @@ jobs:
 
             - name: Merge JUnit Report XMLs
               run: |
+                  ls -R test-results/
                   yarn global add junit-report-merger
                   reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
                   mkdir -p reports/
@@ -128,7 +132,10 @@ jobs:
                   fi
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
-                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/e2e.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
+                  STATUSES=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s completed --json conclusion,status,headSha | jq -r '.[] | [.headSha," ",.conclusion] | add')
+
+                  LAST_WORKFLOW_STATUS=$(echo "$STATUSES" | grep -v "cancelled" | head -1 | awk '{print $2}')
+                  LAST_SUCCESS_COMMIT=$(echo "$STATUSES" | grep "success" | head -1 | awk '{print $1}')
                   if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
                     # Handle re-run cases - there is no way to query the previous run status, so we assume the most
                     # common scenario will be re-run after failure.
@@ -141,18 +148,31 @@ jobs:
                     echo "status is still $WORKFLOW_STATUS"
                     echo "changedState=false" >> $GITHUB_OUTPUT
                   fi
+                  echo "baseSha=${LAST_WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Commit History
+              id: commits
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
+              run: |
+                  GIT_LOG=$(git log HEAD ^${{ steps.lastJobStatus.outputs.baseSha }} --format="%an (%h) %s")
+                  echo "GIT_LOG<<EOF" >> $GITHUB_ENV
+                  echo "$GIT_LOG" >> $GITHUB_ENV
+                  echo "EOF" >> $GITHUB_ENV
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_CHANNEL: '@Alan T'
                   SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus }}
                   SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
                   SLACK_MESSAGE: >
                       E2E: ${{ needs.e2e.outputs.build == 'success' && '✅' || needs.e2e.outputs.build == 'failure' && '❌' || 'NA' }}
+
+                      *Changes:*
+
+                      ${{ env.GIT_LOG }}

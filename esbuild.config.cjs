@@ -13,6 +13,7 @@ const exportedNames = {
     'ag-charts-community': 'agCharts',
     'ag-charts-enterprise': 'agCharts',
     'ag-charts-react': 'AgCharts',
+    'ag-charts-locale': 'agChartsLocale',
 };
 
 /** @type {import('esbuild').Plugin} */
@@ -146,5 +147,9 @@ const options = {
     outExtension,
     plugins,
 };
+
+if (!process.env.NX_TASK_TARGET_TARGET?.endsWith('umd') && process.env.NX_TASK_TARGET_PROJECT === 'ag-charts-locale') {
+    options.outdir = path.join(__dirname, 'packages/ag-charts-locale/dist/package');
+}
 
 module.exports = options;
