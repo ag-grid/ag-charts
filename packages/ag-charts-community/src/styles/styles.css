@@ -40,7 +40,7 @@
         color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-foreground-color) 2%)
     );
     --ag-charts-toolbar-size: 34px;
-    --ag-charts-toolbar-size-small: 22px;
+    --ag-charts-toolbar-size-small: 24px;
     --ag-charts-toolbar-padding: calc(var(--ag-charts-size) * 2);
     --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
     --ag-charts-toolbar-focus-color: color-mix(
