@@ -2,6 +2,7 @@ import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-communi
 
 import type { AnnotationPoint } from './annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Coords, Point } from './annotationTypes';
+import { HorizontalLineAnnotation } from './cross-line/crossLineProperties';
 
 const { Logger } = _Util;
 
@@ -23,7 +24,7 @@ export function validateDatumValue(
     datum: { value?: string | number | Date; direction?: Direction },
     warningPrefix: string
 ) {
-    const axis = datum.direction === 'vertical' ? context.xAxis : context.yAxis;
+    const axis = HorizontalLineAnnotation.is(datum) ? context.yAxis : context.xAxis;
     const valid = validateDatumPointDirection(datum.value, axis);
 
     if (!valid && warningPrefix) {
