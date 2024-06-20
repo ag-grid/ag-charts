@@ -70,8 +70,7 @@ describe('Annotations', () => {
             await prepareChart({
                 initial: [
                     {
-                        type: 'cross-line',
-                        direction: 'horizontal',
+                        type: 'horizontal-line',
                         value: 75,
                     },
                 ],
@@ -83,8 +82,7 @@ describe('Annotations', () => {
             await prepareChart({
                 initial: [
                     {
-                        type: 'cross-line',
-                        direction: 'vertical',
+                        type: 'vertical-line',
                         value: new Date('2024-09-01'),
                     },
                 ],
