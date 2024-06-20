@@ -171,7 +171,6 @@ function NavProperty({
         ) {
             return true;
         }
-
         if (navData.hash.startsWith('reference-AgChartOptions-')) {
             const prePath = navData.hash.slice(25).split('-').filter(Boolean);
             if (selection?.selection.pathname.includes(prePath.join('/'))) {
