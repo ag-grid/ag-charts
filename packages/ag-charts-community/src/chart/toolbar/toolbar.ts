@@ -56,6 +56,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     );
 
     private readonly margin = 10;
+    private readonly floatingDetectionRange = 38;
 
     private readonly elements: Record<ToolbarPosition, HTMLElement>;
 
@@ -143,6 +144,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const {
             enabled,
             elements,
+            floatingDetectionRange,
             ctx: { scene },
         } = this;
         const {
@@ -156,11 +158,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const bottom = elements[FloatingBottom];
         const top = elements[FloatingTop];
 
-        const bottomDetectionY = bottom.offsetTop;
+        const bottomDetectionY = bottom.offsetTop - floatingDetectionRange;
         const bottomVisible =
             (offsetY > bottomDetectionY && offsetY < scene.canvas.element.offsetHeight) || target === bottom;
 
-        const topDetectionY = top.offsetTop + top.offsetHeight;
+        const topDetectionY = top.offsetTop + top.offsetHeight + floatingDetectionRange;
         const topVisible = (offsetY > 0 && offsetY < topDetectionY) || target === top;
 
         this.translateFloatingElements(FloatingBottom, bottomVisible);
