@@ -511,21 +511,13 @@ export class Legend extends BaseProperties {
             const lines: Line[] = [];
 
             datum.symbols.forEach((symbol) => {
-                const markerEnabled =
-                    this.item.marker.enabled ??
-                    (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
-                const lineEnabled = !!(symbol.line && showSeriesStroke);
-
-                if (lineEnabled) {
-                    lines.push(new Line());
-                }
-
                 const { shape: markerShape = symbol.marker.shape } = itemMarker;
+                const MarkerCtr = getMarker(markerShape);
 
-                if (markerEnabled) {
-                    const MarkerCtr = getMarker(markerShape);
-                    const marker = new MarkerCtr();
-                    markers.push(marker);
+                markers.push(new MarkerCtr());
+
+                if (symbol.line && showSeriesStroke) {
+                    lines.push(new Line());
                 }
             });
 
@@ -534,19 +526,12 @@ export class Legend extends BaseProperties {
         }
 
         datum.symbols.forEach((symbol, i) => {
-            const markerEnabled =
-                this.item.marker.enabled ??
-                (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
+            const markerEnabled = this.item.marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
             const lineEnabled = !!(symbol.line && showSeriesStroke);
-
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-
             const { size: markerSize } = itemMarker;
 
-            if (markerEnabled) {
-                const marker = markerLabel.markers[i];
-                marker.size = itemMarker.size;
-            }
+            markerLabel.markers[i].size = itemMarker.size;
 
             const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
             const markerLength = markerEnabled ? markerSize : 0;
