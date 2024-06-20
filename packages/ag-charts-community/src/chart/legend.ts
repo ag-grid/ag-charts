@@ -513,11 +513,11 @@ export class Legend extends BaseProperties {
                 const { shape: markerShape = symbol.marker.shape } = itemMarker;
                 const MarkerCtr = getMarker(markerShape);
 
-                markers.push(new MarkerCtr());
-
                 if (symbol.line && showSeriesStroke) {
                     lines.push(new Line());
                 }
+                // Important! marker must be created after line to ensure zIndex correctness
+                markers.push(new MarkerCtr());
             });
 
             markerLabel.markers = markers;
@@ -526,12 +526,12 @@ export class Legend extends BaseProperties {
 
         datum.symbols.forEach((symbol, i) => {
             const markerEnabled = this.item.marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
-            const lineEnabled = !!(symbol.line && showSeriesStroke);
+            const lineEnabled = symbol.line && showSeriesStroke;
             const spacing = symbol.marker.padding ?? itemMarker.padding;
             const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
             const markerLength = markerEnabled ? itemMarker.size : 0;
 
-            markerLabel.markers[i].size = itemMarker.size;
+            markerLabel.markers[i].size = markerLength;
             dimensionProps.push({ length: lineLength, spacing });
 
             if (markerEnabled || lineEnabled) {
