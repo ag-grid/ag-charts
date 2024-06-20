@@ -42,7 +42,6 @@ export class ParallelChannelAnnotation extends Annotation(
             bottom.start.y -= this.height;
             bottom.end.y -= this.height;
         } else {
-            // TODO
             _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 

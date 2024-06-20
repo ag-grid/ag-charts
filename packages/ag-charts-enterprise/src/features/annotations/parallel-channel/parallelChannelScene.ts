@@ -1,7 +1,7 @@
 import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { invertCoords, validateDatumPoint } from '../annotationUtils';
+import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
@@ -134,6 +134,24 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
             datum.set(prev);
             onInvalid();
         }
+    }
+
+    protected override getOtherCoords(
+        datum: ParallelChannelAnnotation,
+        topLeft: Coords,
+        topRight: Coords,
+        context: AnnotationContext
+    ): Coords[] {
+        const { dragState } = this;
+
+        if (!dragState) return [];
+
+        const height = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
+
+        const bottomLeft = Vec2.add(topLeft, Vec2.from(0, height));
+        const bottomRight = Vec2.add(topRight, Vec2.from(0, height));
+
+        return [bottomLeft, bottomRight];
     }
 
     override updateLines(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {

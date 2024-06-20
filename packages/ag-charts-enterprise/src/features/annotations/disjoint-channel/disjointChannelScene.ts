@@ -1,9 +1,13 @@
+import { _Util } from 'ag-charts-community';
+
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { invertCoords } from '../annotationUtils';
+import { convertPoint, invertCoords } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { DisjointChannelAnnotation } from './disjointChannelProperties';
+
+const { Vec2 } = _Util;
 
 type ChannelHandle = keyof DisjointChannel['handles'];
 
@@ -131,6 +135,25 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
             datum.set(prev);
             onInvalid();
         }
+    }
+
+    protected override getOtherCoords(
+        datum: DisjointChannelAnnotation,
+        topLeft: Coords,
+        topRight: Coords,
+        context: AnnotationContext
+    ): Coords[] {
+        const { dragState } = this;
+
+        if (!dragState) return [];
+
+        const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
+        const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
+
+        const bottomLeft = Vec2.add(topLeft, Vec2.from(0, startHeight));
+        const bottomRight = Vec2.add(topRight, Vec2.from(0, endHeight));
+
+        return [bottomLeft, bottomRight];
     }
 
     override updateLines(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
