@@ -164,12 +164,21 @@ function NavProperty({
                 interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
             );
         }
-        return (
-            (selection?.selection.pageInterface === navData.pageInterface &&
-                selection?.selection.hash?.startsWith(navData.hash) &&
-                selection?.selection.hash !== navData.hash) ??
-            false
-        );
+        if (
+            selection?.selection.pageInterface === navData.pageInterface &&
+            selection?.selection.hash?.startsWith(navData.hash) &&
+            selection?.selection.hash !== navData.hash
+        ) {
+            return true;
+        }
+
+        if (navData.hash.startsWith('reference-AgChartOptions-')) {
+            const prePath = navData.hash.slice(25).split('-').filter(Boolean);
+            if (selection?.selection.pathname.includes(prePath.join('/'))) {
+                return true;
+            }
+        }
+        return false;
     });
 
     const isSelected =

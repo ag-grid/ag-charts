@@ -252,9 +252,15 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
         if (specialType?.[item.type] === 'InterfaceArray') {
             const child = path.shift();
             if (child) {
-                data.pathname += `${item.name}/${child.name}/`;
+                if (data.hash.startsWith('reference-AgChartOptions-')) {
+                    const prePath = data.hash.slice(25).split('-').filter(Boolean).concat(item.name);
+                    data.pathname += `${prePath.join('/')}/${child.name}/`;
+                    data.pageTitle = { name: prePath.join('.'), type: child.name };
+                } else {
+                    data.pathname += `${item.name}/${child.name}/`;
+                    data.pageTitle = { name: item.name, type: child.name };
+                }
                 data.hash = `reference-${child.type}`;
-                data.pageTitle = { name: item.name, type: child.name };
                 data.pageInterface = child.type;
                 if (path.length === 0) {
                     data.hash += '-type';
@@ -381,17 +387,21 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
             const type = extractTypeValue(pageInterface);
             return {
                 params: { memberName, type },
-                props: { pageInterface, pageTitle: { name: memberName, type } },
+                props: { pageInterface, pageTitle: { name: memberName.replaceAll('/', '.'), type } },
             };
         };
     };
 
     const axesRef = reference.get('AgChartAxisOptions')!;
     const seriesRef = reference.get('AgChartSeriesOptions')!;
+    const annotationRef = reference.get('AgAnnotation')!;
+    const miniChartSeriesRef = reference.get('AgMiniChartSeriesOptions')!;
 
     return [
         ...getSubTypes(axesRef).map(createPageMapper('axes')),
         ...getSubTypes(seriesRef).map(createPageMapper('series')),
+        ...getSubTypes(annotationRef).map(createPageMapper('annotations/initial')),
+        ...getSubTypes(miniChartSeriesRef).map(createPageMapper('navigator/miniChart/series')),
     ];
 }
 
