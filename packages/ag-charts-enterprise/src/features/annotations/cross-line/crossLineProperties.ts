@@ -18,6 +18,8 @@ export class HorizontalLineAnnotation extends Annotation(
     AnnotationType.HorizontalLine,
     AnnotationCrossLine(AnnotationHandle(AnnotationAxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
 ) {
+    readonly direction = 'horizontal';
+
     static is(value: unknown): value is HorizontalLineAnnotation {
         return isObject(value) && value.type === AnnotationType.HorizontalLine;
     }
@@ -34,6 +36,8 @@ export class VerticalLineAnnotation extends Annotation(
     AnnotationType.VerticalLine,
     AnnotationCrossLine(AnnotationHandle(AnnotationAxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
 ) {
+    readonly direction = 'vertical';
+
     static is(value: unknown): value is VerticalLineAnnotation {
         return isObject(value) && value.type === AnnotationType.VerticalLine;
     }
