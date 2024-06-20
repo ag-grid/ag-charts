@@ -4,9 +4,7 @@ import type {
     AgBaseFinancialPresetOptions,
     AgCandlestickVolumePreset,
     AgCartesianChartOptions,
-    AgCartesianSeriesTooltipRendererParams,
     AgCrosshairLabelRendererParams,
-    AgSeriesTooltip,
 } from 'ag-charts-types';
 
 function dateFormat(dateString: string, format: string) {
@@ -15,27 +13,6 @@ function dateFormat(dateString: string, format: string) {
         ? dateObject.toLocaleString('en-GB', { day: 'numeric', month: 'short' })
         : dateObject.toLocaleString('en-GB', { month: 'short', year: '2-digit' });
 }
-
-const tooltipOptions: AgSeriesTooltip<any> = {
-    position: {
-        type: 'top-left',
-        xOffset: 70,
-        yOffset: 20,
-    },
-    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams) => {
-        const fill = datum.open < datum.close ? '#089981' : '#F23645';
-        return `
-           <div>
-           O<span style="color: ${fill}">${datum.open}</span>
-           H<span style="color: ${fill}">${datum.high}</span>
-           L<span style="color: ${fill}">${datum.low}</span>
-           C<span style="color: ${fill}">${datum.close}</span>
-           Vol <span style="color: ${fill}">${Intl.NumberFormat('en', {
-               notation: 'compact',
-               maximumSignificantDigits: 3,
-           }).format(datum.volume)}</span></div>`;
-    },
-};
 
 export function candlestickVolumePreset(
     opts: AgCandlestickVolumePreset & AgBaseFinancialPresetOptions
@@ -86,7 +63,6 @@ export function candlestickVolumePreset(
                     const fill = datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7';
                     return { fill };
                 },
-                tooltip: tooltipOptions,
             },
             {
                 type: 'candlestick',
@@ -105,7 +81,6 @@ export function candlestickVolumePreset(
                         stroke: '#F23645',
                     },
                 },
-                tooltip: tooltipOptions,
             },
         ],
         axes: [
@@ -175,6 +150,7 @@ export function candlestickVolumePreset(
         annotations: {
             enabled: true,
         },
+        tooltip: { enabled: false },
         data,
         ...unusedOpts,
     };
