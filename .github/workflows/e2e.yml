@@ -28,8 +28,6 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -93,8 +91,6 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3

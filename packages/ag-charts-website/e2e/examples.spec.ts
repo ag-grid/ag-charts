@@ -67,11 +67,11 @@ test.describe('examples', () => {
             if (msg.text().startsWith('*')) return;
 
             // Ignore 404s when expected
+            const notFoundMatcher = /the server responded with a status of 404 \(Not Found\)/;
             if (msg.location().url.includes('/favicon.ico')) return;
-            if (!ignore404s) {
-                expect(`${msg.location().url} - ${msg.text()}`).not.toMatch(
-                    /the server responded with a status of 404 \(Not Found\)/
-                );
+            if (notFoundMatcher.test(msg.text())) {
+                if (ignore404s) return;
+                expect(`${msg.location().url} - ${msg.text()}`).not.toMatch(notFoundMatcher);
             }
 
             consoleWarnOrErrors.push(msg.text());
