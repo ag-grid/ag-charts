@@ -2,7 +2,7 @@ import type { Direction } from 'ag-charts-types';
 
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
-import { createElement } from '../../util/dom';
+import { createElement, getDocument } from '../../util/dom';
 import type { LocaleManager } from '../locale/localeManager';
 import type { UpdateService } from '../updateService';
 import type { DOMManager } from './domManager';
@@ -32,7 +32,7 @@ type ContainerParams<T extends ProxyContainerType> = {
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
+        params: ElemParams<'button'> & { readonly textContent: TranslationKey; readonly hasAriaStatus?: boolean };
         result: HTMLButtonElement;
     };
     slider: {
@@ -122,7 +122,14 @@ export class ProxyInteractionService {
             this.initElement(params, button);
 
             this.addLocalisation(() => {
-                button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
+                const { hasAriaStatus, textContent } = params;
+                button.textContent = this.localeManager.t(textContent.id, textContent.params);
+                if (hasAriaStatus === true) {
+                    const status = getDocument().createElement('span');
+                    status.role = 'status';
+                    status.ariaLive = 'assertive';
+                    button.appendChild(status);
+                }
             });
         }
 

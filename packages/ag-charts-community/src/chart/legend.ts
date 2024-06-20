@@ -308,11 +308,12 @@ export class Legend extends BaseProperties {
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
+                hasAriaStatus: true,
                 focusable: markerLabel,
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => this.doClick(markerLabel.datum),
+                onclick: () => this.doClick(markerLabel.datum, markerLabel.proxyButton),
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
                     const bounds = markerLabel?.computeTransformedBBox();
@@ -983,7 +984,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum | undefined): boolean {
+    private doClick(datum: CategoryLegendDatum | undefined, proxyButton?: HTMLButtonElement): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -1012,8 +1013,11 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            const status: string = newEnabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden';
-            this.ctx.ariaAnnouncementService.announceValue(status);
+            const status = proxyButton?.querySelector<HTMLDivElement>(`span[role="status"]`);
+            if (status != null) {
+                const key = newEnabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden';
+                status.textContent = this.ctx.localeManager.t(key);
+            }
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
