@@ -1,4 +1,4 @@
-import type { AgCandlestickVolumePreset } from '../api/presetOptions';
+import type { AgFinancialChartPresets } from '../api/presetOptions';
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
@@ -37,23 +37,14 @@ export type AgChartOptions =
     | AgTopologyChartOptions
     | AgFlowProportionChartOptions;
 
-type AgFinancialChartPresets = AgCandlestickVolumePreset;
+export type AgBasePresetOptions = Pick<
+    AgCartesianChartOptions,
+    'data' | 'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'subtitle' | 'footnote'
+>;
 
-export type AgFinancialChartOptions = AgFinancialChartPresets &
-    Pick<
-        AgCartesianChartOptions,
-        | 'data'
-        | 'container'
-        | 'width'
-        | 'height'
-        | 'minWidth'
-        | 'minHeight'
-        | 'theme'
-        | 'dataSource'
-        | 'title'
-        | 'subtitle'
-        | 'footnote'
-    >;
+export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'annotations'>;
+
+export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
 
