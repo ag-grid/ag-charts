@@ -53,6 +53,7 @@ const STYLES = `
 }
 
 .ag-charts-canvas-overlay {
+    pointer-events: none;
     position: absolute;
     top: 0;
     left: 0;
