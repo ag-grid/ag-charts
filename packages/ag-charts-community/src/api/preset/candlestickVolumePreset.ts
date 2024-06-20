@@ -1,7 +1,7 @@
 import type {
     AgAxisLabelFormatterParams,
     AgBarSeriesFormatterParams,
-    AgBasePresetOptions,
+    AgBaseFinancialPresetOptions,
     AgCandlestickVolumePreset,
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
@@ -38,7 +38,7 @@ const tooltipOptions: AgSeriesTooltip<any> = {
 };
 
 export function candlestickVolumePreset(
-    opts: AgCandlestickVolumePreset & AgBasePresetOptions<'annotations'>
+    opts: AgCandlestickVolumePreset & AgBaseFinancialPresetOptions
 ): AgCartesianChartOptions {
     const {
         type: _type,

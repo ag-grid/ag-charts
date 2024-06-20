@@ -37,23 +37,14 @@ export type AgChartOptions =
     | AgTopologyChartOptions
     | AgFlowProportionChartOptions;
 
-export type AgBasePresetOptions<K extends keyof AgCartesianChartOptions = never> = Pick<
+export type AgBasePresetOptions = Pick<
     AgCartesianChartOptions,
-    | 'data'
-    | 'container'
-    | 'width'
-    | 'height'
-    | 'minWidth'
-    | 'minHeight'
-    | 'theme'
-    | 'dataSource'
-    | 'title'
-    | 'subtitle'
-    | 'footnote'
-    | K
+    'data' | 'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'subtitle' | 'footnote'
 >;
 
-export type AgFinancialChartOptions = AgFinancialChartPresets & AgBasePresetOptions<'annotations'>;
+export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'annotations'>;
+
+export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
 
