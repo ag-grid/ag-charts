@@ -143,8 +143,8 @@ export class CrossLine extends Annotation {
             return;
         }
 
-        const horizontal = HorizontalLineAnnotation.is(datum);
-        datum.set({ value: horizontal ? point.y : point.x });
+        const isHorizontal = HorizontalLineAnnotation.is(datum);
+        datum.set({ value: isHorizontal ? point.y : point.x });
     }
 
     override stopDragging() {
