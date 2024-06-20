@@ -44,8 +44,9 @@ function getImports(componentFilenames: string[], bindings): string[] {
         imports.push(`import 'ag-charts-enterprise';`);
     }
 
+    const skipModules = ["'ag-charts-community'", "'ag-charts-enterprise'"];
     addBindingImports(
-        bindings.imports.filter((i) => i.module !== "'ag-charts-community'" && i.module !== "'ag-charts-enterprise'"),
+        bindings.imports.filter((i) => !skipModules.includes(i.module) && !i.module.startsWith("'./")),
         imports,
         false,
         true
