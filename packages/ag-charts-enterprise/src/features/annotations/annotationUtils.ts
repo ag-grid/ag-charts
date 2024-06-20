@@ -23,7 +23,7 @@ export function validateDatumValue(
     datum: { value?: string | number | Date; direction?: Direction },
     warningPrefix: string
 ) {
-    const axis = datum.direction === 'vertical' ? context.xAxis : context.yAxis;
+    const axis = datum.direction === 'horizontal' ? context.yAxis : context.xAxis;
     const valid = validateDatumPointDirection(datum.value, axis);
 
     if (!valid && warningPrefix) {

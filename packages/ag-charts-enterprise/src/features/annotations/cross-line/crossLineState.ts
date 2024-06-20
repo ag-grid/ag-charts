@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { StateClickEvent } from '../annotationTypes';
-import { CrossLineAnnotation } from './crossLineProperties';
+import { type CrossLineAnnotation, HorizontalLineAnnotation, VerticalLineAnnotation } from './crossLineProperties';
 import type { CrossLine } from './crossLineScene';
 
 export function isHorizontalAxis(region: any) {
@@ -13,14 +13,10 @@ export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 
 
     constructor(appendDatum: (datum: CrossLineAnnotation) => void) {
         const onClick = ({ region, point }: StateClickEvent<CrossLineAnnotation, CrossLine>) => {
-            const datum = new CrossLineAnnotation();
             const horizontalAxis = isHorizontalAxis(region);
-            let direction = 'horizontal';
-            if (horizontalAxis) {
-                direction = 'vertical';
-            }
+            const datum = horizontalAxis ? new VerticalLineAnnotation() : new HorizontalLineAnnotation();
 
-            datum.set({ value: horizontalAxis ? point.x : point.y, direction });
+            datum.set({ value: horizontalAxis ? point.x : point.y });
             appendDatum(datum);
         };
 

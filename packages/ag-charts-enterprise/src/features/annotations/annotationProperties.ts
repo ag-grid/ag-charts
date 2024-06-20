@@ -1,5 +1,4 @@
 import {
-    type Direction,
     type FontStyle,
     type FontWeight,
     type Formatter,
@@ -26,7 +25,6 @@ const {
     POSITIVE_NUMBER,
     OR,
     UNION,
-    DIRECTION,
     BaseProperties,
     Validate,
 } = _ModuleSupport;
@@ -87,9 +85,6 @@ export function AnnotationCrossLine<T extends Constructor>(Parent: T) {
     class AnnotationCrossLineOptions extends Parent {
         @Validate(OR(STRING, NUMBER, DATE))
         value?: string | number | Date;
-
-        @Validate(DIRECTION)
-        direction: Direction = 'vertical';
     }
     return AnnotationCrossLineOptions;
 }

@@ -14,7 +14,7 @@ import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './an
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import axisButtonCss from './axisButton.css';
-import { CrossLineAnnotation } from './cross-line/crossLineProperties';
+import { HorizontalLineAnnotation, VerticalLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
 import { DisjointChannelAnnotation } from './disjoint-channel/disjointChannelProperties';
@@ -49,7 +49,8 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 type AnnotationScene = Line | CrossLine | DisjointChannel | ParallelChannel;
 type AnnotationProperties =
     | LineAnnotation
-    | CrossLineAnnotation
+    | HorizontalLineAnnotation
+    | VerticalLineAnnotation
     | ParallelChannelAnnotation
     | DisjointChannelAnnotation;
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
@@ -63,14 +64,16 @@ type AnnotationAxis = {
 
 const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
     [AnnotationType.Line]: LineAnnotation,
-    [AnnotationType.CrossLine]: CrossLineAnnotation,
+    [AnnotationType.HorizontalLine]: HorizontalLineAnnotation,
+    [AnnotationType.VerticalLine]: VerticalLineAnnotation,
     [AnnotationType.ParallelChannel]: ParallelChannelAnnotation,
     [AnnotationType.DisjointChannel]: DisjointChannelAnnotation,
 };
 
 const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
     [AnnotationType.Line]: Line,
-    [AnnotationType.CrossLine]: CrossLine,
+    [AnnotationType.HorizontalLine]: CrossLine,
+    [AnnotationType.VerticalLine]: CrossLine,
     [AnnotationType.DisjointChannel]: DisjointChannel,
     [AnnotationType.ParallelChannel]: ParallelChannel,
 };
@@ -87,8 +90,11 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
             idle: {
                 onEnter: () => onEnterIdle(),
                 [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
-                [AnnotationType.CrossLine]: new CrossLineStateMachine((datum) =>
-                    appendDatum(AnnotationType.CrossLine, datum)
+                [AnnotationType.HorizontalLine]: new CrossLineStateMachine((datum) =>
+                    appendDatum(AnnotationType.HorizontalLine, datum)
+                ),
+                [AnnotationType.VerticalLine]: new CrossLineStateMachine((datum) =>
+                    appendDatum(AnnotationType.VerticalLine, datum)
                 ),
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
@@ -419,7 +425,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     node.update(datum, context);
                 }
 
-                if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
+                if ((HorizontalLineAnnotation.is(datum) || VerticalLineAnnotation.is(datum)) && CrossLine.is(node)) {
                     node.update(datum, context);
                 }
 
@@ -558,18 +564,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const {
             active,
-            annotationData,
             annotations,
             state,
             ctx: { toolbarManager, interactionManager },
         } = this;
 
         interactionManager.pushState(InteractionState.Annotations);
-        state.transition(AnnotationType.CrossLine);
+
+        const isHorizontalLine = region === 'vertical-axes';
+        state.transition(isHorizontalLine ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
 
         toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
-
-        const datum = annotationData?.at(-1);
 
         if (!coords) {
             return;
@@ -583,7 +588,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
+        const data: StateClickEvent<AnnotationProperties, Annotation> = { node, point, region };
         state.transition('click', data);
 
         this.update();
@@ -728,7 +733,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             node.drag(datum, offset, context, onDragInvalid);
         }
 
-        if (CrossLineAnnotation.is(datum) && CrossLine.is(node)) {
+        if ((HorizontalLineAnnotation.is(datum) || VerticalLineAnnotation.is(datum)) && CrossLine.is(node)) {
             node.drag(datum, offset, context, onDragInvalid);
         }
 
@@ -841,7 +846,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     getTypedDatum(datum: unknown) {
         if (
             LineAnnotation.is(datum) ||
-            CrossLineAnnotation.is(datum) ||
+            HorizontalLineAnnotation.is(datum) ||
+            VerticalLineAnnotation.is(datum) ||
             DisjointChannelAnnotation.is(datum) ||
             ParallelChannelAnnotation.is(datum)
         ) {
