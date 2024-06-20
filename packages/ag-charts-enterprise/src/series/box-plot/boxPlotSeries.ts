@@ -458,9 +458,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fillOpacity = undefined;
         }
 
-        const activeStyles: AgBoxPlotSeriesStyles = {
+        const activeStyles: Required<AgBoxPlotSeriesStyles> = {
             fill,
-            fillOpacity,
+            fillOpacity: fillOpacity!,
             stroke,
             strokeWidth,
             strokeOpacity,

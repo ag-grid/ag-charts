@@ -79,14 +79,16 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getFormatterParams(
+    private getItemStylerParams(
         options: FormatOptions,
+        style: AgErrorBarThemeableOptions,
         highlighted: boolean
     ): AgErrorBarItemStylerParams<any> | undefined {
         const { datum } = this;
         if (datum == null || options.itemStyler == null) return;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
         return {
+            ...(style as Required<AgErrorBarThemeableOptions>),
             datum: datum.datum,
             seriesId: datum.datum.seriesId,
             xKey: datum.xKey,
@@ -102,7 +104,7 @@ export class ErrorBarNode extends _Scene.Group {
     private formatStyles(style: AgErrorBarThemeableOptions, options: FormatOptions, highlighted: boolean) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getFormatterParams(options, highlighted);
+        const params = this.getItemStylerParams(options, style, highlighted);
         if (params != null && options.itemStyler != null) {
             const result = options.itemStyler(params);
             whiskerStyle = mergeDefaults(result, whiskerStyle);
