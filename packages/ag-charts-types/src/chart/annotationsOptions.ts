@@ -36,6 +36,8 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 export interface AgAnnotationsOptions extends Toggleable {
     /** The initial set of annotations to display. */
     initial?: AgAnnotation[];
+    /** The options for the axes buttons */
+    axesButtons?: AgAnnotationAxesButtons;
 }
 
 export type AgAnnotation =
