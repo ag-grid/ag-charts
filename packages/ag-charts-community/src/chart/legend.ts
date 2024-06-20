@@ -513,9 +513,7 @@ export class Legend extends BaseProperties {
                 const { shape: markerShape = symbol.marker.shape } = itemMarker;
                 const MarkerCtr = getMarker(markerShape);
 
-                if (symbol.line && showSeriesStroke) {
-                    lines.push(new Line());
-                }
+                lines.push(new Line());
                 // Important! marker must be created after line to ensure zIndex correctness
                 markers.push(new MarkerCtr());
             });
@@ -531,7 +529,7 @@ export class Legend extends BaseProperties {
             const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
             const markerLength = markerEnabled ? itemMarker.size : 0;
 
-            markerLabel.markers[i].size = markerLength;
+            markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
             dimensionProps.push({ length: lineLength, spacing });
 
             if (markerEnabled || lineEnabled) {
