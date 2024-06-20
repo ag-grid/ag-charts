@@ -125,6 +125,7 @@ jobs:
 
             - name: nx test:e2e
               run: |
+                  cd packages/ag-charts-website/
                   npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
               timeout-minutes: 10
 
