@@ -93,8 +93,8 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
             });
         };
 
-        (['mousedown', 'keydown'] as const).forEach((event) => {
-            colorPickerContainer.addEventListener(event, (e) => {
+        (['mousedown', 'keydown'] as const).forEach((eventName) => {
+            colorPicker.addEventListener(eventName, (e) => {
                 e.stopPropagation();
             });
         });
