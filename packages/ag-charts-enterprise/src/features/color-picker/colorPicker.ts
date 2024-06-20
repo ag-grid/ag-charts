@@ -41,8 +41,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.replaceChildren(colorPickerContainer);
 
         const colorPicker = colorPickerContainer.firstElementChild! as HTMLDivElement;
-        const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
 
+        const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
+        const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
 
@@ -65,7 +66,7 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
             hueInput.value = `${h}`;
             alphaInput.value = `${a}`;
             if (document.activeElement !== colorInput) {
-                colorInput.value = colorString.slice(0, 7).toUpperCase();
+                colorInput.value = colorString.toUpperCase();
             }
 
             opts.onChange?.(colorString);
@@ -92,9 +93,26 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
             });
         };
 
-        colorPicker
-            .querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!
-            .addEventListener('mousedown', beginPaletteInteraction);
+        (['mousedown', 'keydown'] as const).forEach((event) => {
+            colorPickerContainer.addEventListener(event, (e) => {
+                e.stopPropagation();
+            });
+        });
+        paletteInput.addEventListener('mousedown', beginPaletteInteraction);
+        paletteInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                s = Math.min(Math.max(s - 0.01), 1);
+            } else if (e.key === 'ArrowRight') {
+                s = Math.min(Math.max(s + 0.01), 1);
+            } else if (e.key === 'ArrowUp') {
+                v = Math.min(Math.max(v + 0.01), 1);
+            } else if (e.key === 'ArrowDown') {
+                v = Math.min(Math.max(v - 0.01), 1);
+            } else {
+                return;
+            }
+            update();
+        });
         hueInput.addEventListener('input', (e) => {
             h = (e.currentTarget as HTMLInputElement).valueAsNumber ?? 0;
             update();
