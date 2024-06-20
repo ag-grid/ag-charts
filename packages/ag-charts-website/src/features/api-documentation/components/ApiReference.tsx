@@ -344,7 +344,10 @@ function useMemberAdditionalDetails(member: MemberNode) {
     if (typeof member.type === 'object' && member.type.kind === 'union') {
         const unionTypes = member.type.type
             .map((unionType) => typeof unionType === 'string' && reference?.get(unionType))
-            .filter((apiNode): apiNode is TypeAliasNode => typeof apiNode === 'object' && apiNode.kind === 'typeAlias');
+            .filter(
+                (apiNode): apiNode is TypeAliasNode =>
+                    typeof apiNode === 'object' && apiNode.kind === 'typeAlias' && !isInterfaceHidden(apiNode.name)
+            );
         if (unionTypes.length) {
             return unionTypes;
         }

@@ -177,6 +177,7 @@ export class ChartTheme {
                     paddingX: 16,
                     paddingY: 8,
                     marker: { size: 15, padding: 8 },
+                    showSeriesStroke: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
                         fontSize: FONT_SIZE.SMALL,

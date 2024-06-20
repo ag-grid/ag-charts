@@ -47,6 +47,7 @@ export type TextAlign = 'left' | 'center' | 'right';
  * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
  * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
  * - `'never'` disables text wrapping.
+ *
  * Default: `'on-space'`
  */
 export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';

@@ -22,6 +22,7 @@ export type AgScatterSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum
 export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams> {
     /**
      * Placement of label in relation to the marker.
+     *
      * Default: `top`
      */
     placement?: LabelPlacement;

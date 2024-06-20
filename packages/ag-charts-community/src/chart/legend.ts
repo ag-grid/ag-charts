@@ -129,7 +129,7 @@ class LegendItem extends BaseProperties {
     paddingY: number = 8;
 
     @Validate(BOOLEAN)
-    showSeriesStroke: boolean = true;
+    showSeriesStroke: boolean = false;
 
     @Validate(OBJECT)
     readonly marker = new LegendMarker();

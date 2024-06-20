@@ -13,6 +13,7 @@ import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { NavigatorModule } from './features/navigator/navigatorModule';
+import { StatusBarModule } from './features/status-bar/main';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
@@ -63,6 +64,7 @@ export function setupEnterpriseModules() {
         MapShapeModule,
         MapShapeBackgroundModule,
         NavigatorModule,
+        StatusBarModule,
         GradientLegendModule,
         HeatmapModule,
         NightingaleModule,

@@ -28,7 +28,10 @@ export class ZoomPanner {
     deceleration: number | keyof typeof decelerationValues = 1;
     private get decelerationValue(): number {
         const { deceleration } = this;
-        return typeof deceleration === 'number' ? deceleration : decelerationValues[deceleration] ?? 1;
+        return Math.max(
+            typeof deceleration === 'number' ? deceleration : decelerationValues[deceleration] ?? 1,
+            0.0001
+        );
     }
 
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
