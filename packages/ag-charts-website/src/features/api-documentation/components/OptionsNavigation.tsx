@@ -25,6 +25,7 @@ import { SearchBox } from './SearchBox';
 export const SelectionContext = createContext<{
     selection: NavigationData;
     setSelection: Dispatch<SetStateAction<NavigationData>>;
+    rootInterface: string;
 } | null>(null);
 
 export function OptionsNavigation({
@@ -171,8 +172,12 @@ function NavProperty({
         ) {
             return true;
         }
-        if (navData.hash.startsWith('reference-AgChartOptions-')) {
-            const prePath = navData.hash.slice(25).split('-').filter(Boolean);
+        const baseHash = `reference-${selection?.rootInterface}`;
+        if (navData.hash.startsWith(baseHash)) {
+            const prePath = navData.hash
+                .slice(baseHash.length + 1)
+                .split('-')
+                .filter(Boolean);
             if (selection?.selection.pathname.includes(prePath.join('/'))) {
                 return true;
             }

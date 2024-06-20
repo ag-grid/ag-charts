@@ -242,9 +242,10 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
 }
 
 export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[], specialType?: SpecialTypesMap) {
+    const baseHash = `reference-${basePath.type}`;
     const data: NavigationData = {
         pathname: basePath.name,
-        hash: `reference-${basePath.type}`,
+        hash: baseHash,
         pageTitle: { name: basePath.type },
         pageInterface: basePath.type,
     };
@@ -252,8 +253,12 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
         if (specialType?.[item.type] === 'InterfaceArray') {
             const child = path.shift();
             if (child) {
-                if (data.hash.startsWith('reference-AgChartOptions-')) {
-                    const prePath = data.hash.slice(25).split('-').filter(Boolean).concat(item.name);
+                if (data.hash.startsWith(baseHash)) {
+                    const prePath = data.hash
+                        .slice(baseHash.length + 1)
+                        .split('-')
+                        .filter(Boolean)
+                        .concat(item.name);
                     data.pathname += `${prePath.join('/')}/${child.name}/`;
                     data.pageTitle = { name: prePath.join('.'), type: child.name };
                 } else {
