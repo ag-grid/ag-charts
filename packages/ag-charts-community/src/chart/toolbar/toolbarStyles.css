@@ -5,7 +5,6 @@
     display: flex;
     flex-wrap: nowrap;
     opacity: 1;
-    padding: 0 var(--ag-charts-toolbar-padding);
     position: absolute;
     transform: translateY(0);
     transition:
@@ -25,6 +24,8 @@
 
 .ag-charts-toolbar--small {
     --ag-charts-toolbar-size: var(--ag-charts-toolbar-size-small);
+    --ag-charts-toolbar-font-size: var(--ag-charts-toolbar-font-size-small);
+    --ag-charts-toolbar-button-padding: var(--ag-charts-toolbar-button-padding-small);
 }
 
 .ag-charts-toolbar--top,
@@ -36,7 +37,6 @@
 .ag-charts-toolbar--left,
 .ag-charts-toolbar--right {
     flex-direction: column;
-    padding: var(--ag-charts-toolbar-padding) 0;
 }
 
 .ag-charts-toolbar--floating,
@@ -122,15 +122,15 @@
     border-right: 0;
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
-    font-size: 14px;
+    font-size: var(--ag-charts-toolbar-font-size);
     font-weight: 500;
-    height: var(--ag-charts-toolbar-size);
     justify-content: center;
     margin: 0;
-    padding: 0;
+    min-height: var(--ag-charts-toolbar-size);
+    min-width: var(--ag-charts-toolbar-size);
+    padding: var(--ag-charts-toolbar-button-padding);
     pointer-events: all;
     transition: background-color 0.25s ease-in-out;
-    width: var(--ag-charts-toolbar-size);
 }
 
 .ag-charts-toolbar__button:first-child {

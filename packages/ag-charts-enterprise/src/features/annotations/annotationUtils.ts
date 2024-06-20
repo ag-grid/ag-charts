@@ -23,9 +23,8 @@ export function validateDatumValue(
     datum: { value?: string | number | Date; direction?: Direction },
     warningPrefix: string
 ) {
-    const { continuous, scaleDomain } = datum.direction === 'vertical' ? context.xAxis : context.yAxis;
-
-    const valid = validateDatumPointDirection(scaleDomain(), datum.value, continuous);
+    const axis = datum.direction === 'horizontal' ? context.yAxis : context.xAxis;
+    const valid = validateDatumPointDirection(datum.value, axis);
 
     if (!valid && warningPrefix) {
         Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${datum.value}]]`);
@@ -42,13 +41,8 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
         return false;
     }
 
-    const {
-        xAxis: { continuous: continuousX, scaleDomain: scaleXDomain },
-        yAxis: { continuous: continuousY, scaleDomain: scaleYDomain },
-    } = context;
-
-    const validX = validateDatumPointDirection(scaleXDomain(), point.x, continuousX);
-    const validY = validateDatumPointDirection(scaleYDomain(), point.y, continuousY);
+    const validX = validateDatumPointDirection(point.x, context.xAxis);
+    const validY = validateDatumPointDirection(point.y, context.yAxis);
 
     if (!validX || !validY) {
         let text = 'x & y domains';
@@ -63,8 +57,9 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
     return true;
 }
 
-export function validateDatumPointDirection(domain: any[] = [], value: any, continuous: boolean) {
-    if (continuous) {
+export function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
+    const domain = context.scaleDomain();
+    if (domain && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates

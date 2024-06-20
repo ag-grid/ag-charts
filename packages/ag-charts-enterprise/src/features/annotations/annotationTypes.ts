@@ -2,7 +2,8 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 export enum AnnotationType {
     Line = 'line',
-    CrossLine = 'cross-line',
+    HorizontalLine = 'horizontal-line',
+    VerticalLine = 'vertical-line',
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 }
@@ -17,8 +18,10 @@ export function stringToAnnotationType(value: string) {
     switch (value) {
         case 'line':
             return AnnotationType.Line;
-        case 'cross-line':
-            return AnnotationType.CrossLine;
+        case 'horizontal-line':
+            return AnnotationType.HorizontalLine;
+        case 'vertical-line':
+            return AnnotationType.VerticalLine;
         case 'disjoint-channel':
             return AnnotationType.DisjointChannel;
         case 'parallel-channel':

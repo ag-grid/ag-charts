@@ -215,8 +215,24 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 y: isVertical ? midY : midX,
             };
 
-            const focusRectWidth = isVertical ? bandwidth : height;
-            const focusRectHeight = isVertical ? height : bandwidth;
+            let focusRect: (typeof nodeData)[number]['focusRect'];
+
+            if (isVertical) {
+                focusRect = {
+                    x: midPoint.x - bandwidth / 2,
+                    y: scaledValues.minValue,
+                    width: bandwidth,
+                    height: scaledValues.maxValue - scaledValues.minValue,
+                };
+            } else {
+                focusRect = {
+                    x: scaledValues.minValue,
+                    y: midPoint.y - bandwidth / 2,
+                    width: scaledValues.maxValue - scaledValues.minValue,
+                    height: bandwidth,
+                };
+            }
+
             nodeData.push({
                 series: this,
                 itemId: xValue,
@@ -234,12 +250,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 midPoint,
-                focusRect: {
-                    x: midPoint.x - focusRectWidth / 2,
-                    y: midPoint.y - focusRectHeight / 2,
-                    width: focusRectWidth,
-                    height: focusRectHeight,
-                },
+                focusRect,
             });
         });
 

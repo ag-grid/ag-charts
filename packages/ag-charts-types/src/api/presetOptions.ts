@@ -9,4 +9,6 @@ export type AgCandlestickVolumePreset = {
     volumeKey?: string;
 };
 
-export type Preset = AgCandlestickVolumePreset;
+export type AgFinancialChartPresets = AgCandlestickVolumePreset;
+
+export type Preset = AgFinancialChartPresets;

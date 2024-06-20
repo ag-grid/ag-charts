@@ -19,6 +19,7 @@
     --inner-width: 172px;
     --track-height: 12px;
     --palette-height: 136px;
+    --checker: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect x="0" y="0" width="4" height="4" fill="%23fff"/><path d="M0 0H2V4H4V2H0Z" fill="%23b2b2b2"/></svg>');
 }
 
 .ag-charts-color-picker__palette {
@@ -107,7 +108,6 @@
 
 .ag-charts-color-picker__alpha-input {
     margin-bottom: 7px;
-    --checker: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect x="0" y="0" width="4" height="4" fill="%23fff"/><path d="M0 0H2V4H4V2H0Z" fill="%23b2b2b2"/></svg>');
 }
 
 .ag-charts-color-picker__alpha-input::before {
@@ -138,9 +138,12 @@
     height: 16px;
     margin: 7px 0px 7px 7px;
     color: transparent;
-    background: var(--color);
+    /* Linear gradient required to overlay colour in image */
+    background:
+        linear-gradient(to right, var(--color-a), var(--color-a)),
+        var(--checker) top left / 4px 4px;
     border-radius: 2px;
-    border: 1px solid #0003;
+    box-shadow: inset 0 0 0 1px #0003;
 }
 
 .ag-charts-color-picker__color-input {

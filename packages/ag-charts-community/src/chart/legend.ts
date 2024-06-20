@@ -502,7 +502,6 @@ export class Legend extends BaseProperties {
 
     private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
         const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
-
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
 
@@ -511,22 +510,12 @@ export class Legend extends BaseProperties {
             const lines: Line[] = [];
 
             datum.symbols.forEach((symbol) => {
-                const markerEnabled =
-                    this.item.marker.enabled ??
-                    (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
-                const lineEnabled = !!(symbol.line && showSeriesStroke);
-
-                if (lineEnabled) {
-                    lines.push(new Line());
-                }
-
                 const { shape: markerShape = symbol.marker.shape } = itemMarker;
+                const MarkerCtr = getMarker(markerShape);
 
-                if (markerEnabled) {
-                    const MarkerCtr = getMarker(markerShape);
-                    const marker = new MarkerCtr();
-                    markers.push(marker);
-                }
+                lines.push(new Line());
+                // Important! marker must be created after line to ensure zIndex correctness
+                markers.push(new MarkerCtr());
             });
 
             markerLabel.markers = markers;
@@ -534,22 +523,13 @@ export class Legend extends BaseProperties {
         }
 
         datum.symbols.forEach((symbol, i) => {
-            const markerEnabled =
-                this.item.marker.enabled ??
-                (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
-            const lineEnabled = !!(symbol.line && showSeriesStroke);
-
+            const markerEnabled = this.item.marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
+            const lineEnabled = symbol.line && showSeriesStroke;
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-
-            const { size: markerSize } = itemMarker;
-
-            if (markerEnabled) {
-                const marker = markerLabel.markers[i];
-                marker.size = itemMarker.size;
-            }
-
             const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
-            const markerLength = markerEnabled ? markerSize : 0;
+            const markerLength = markerEnabled ? itemMarker.size : 0;
+
+            markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
             dimensionProps.push({ length: lineLength, spacing });
 
             if (markerEnabled || lineEnabled) {
@@ -558,7 +538,6 @@ export class Legend extends BaseProperties {
         });
 
         markerLabel.update(dimensionProps);
-
         return paddedSymbolWidth;
     }
 

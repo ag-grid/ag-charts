@@ -71,5 +71,6 @@ export interface Toggleable {
 }
 
 export interface Visible {
+    /** Whether the element should be visible. */
     visible?: boolean;
 }

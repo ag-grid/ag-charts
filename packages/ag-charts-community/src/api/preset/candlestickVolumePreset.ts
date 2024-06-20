@@ -1,9 +1,9 @@
 import type {
     AgAxisLabelFormatterParams,
+    AgBaseFinancialPresetOptions,
     AgCandlestickVolumePreset,
     AgCartesianChartOptions,
     AgCrosshairLabelRendererParams,
-    AgSeriesTooltip,
 } from 'ag-charts-types';
 
 function dateFormat(dateString: string, format: string) {
@@ -13,28 +13,9 @@ function dateFormat(dateString: string, format: string) {
         : dateObject.toLocaleString('en-GB', { month: 'short', year: '2-digit' });
 }
 
-const tooltipOptions: AgSeriesTooltip<any> = {
-    position: {
-        type: 'top-left',
-        xOffset: 70,
-        yOffset: 20,
-    },
-    renderer({ datum }) {
-        const fill = datum.open < datum.close ? '#089981' : '#F23645';
-        return `
-           <div>
-           O<span style="color: ${fill}">${datum.open}</span>
-           H<span style="color: ${fill}">${datum.high}</span>
-           L<span style="color: ${fill}">${datum.low}</span>
-           C<span style="color: ${fill}">${datum.close}</span>
-           Vol <span style="color: ${fill}">${Intl.NumberFormat('en', {
-               notation: 'compact',
-               maximumSignificantDigits: 3,
-           }).format(datum.volume)}</span></div>`;
-    },
-};
-
-export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCartesianChartOptions {
+export function candlestickVolumePreset(
+    opts: AgCandlestickVolumePreset & AgBaseFinancialPresetOptions
+): AgCartesianChartOptions {
     const {
         type: _type,
         xKey = 'date',
@@ -43,6 +24,7 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
         lowKey = 'low',
         closeKey = 'close',
         volumeKey = 'volume',
+        data,
         ...unusedOpts
     } = opts;
     return {
@@ -57,7 +39,7 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
         legend: { enabled: false },
         statusBar: {
             enabled: true,
-            data: (unusedOpts as any).data ?? [],
+            data: data ?? [],
             highKey,
             openKey,
             lowKey,
@@ -78,7 +60,6 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
                 itemStyler({ datum }) {
                     return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
                 },
-                tooltip: tooltipOptions,
             },
             {
                 type: 'candlestick',
@@ -97,7 +78,6 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
                         stroke: '#F23645',
                     },
                 },
-                tooltip: tooltipOptions,
             },
         ],
         axes: [
@@ -167,6 +147,8 @@ export function candlestickVolumePreset(opts: AgCandlestickVolumePreset): AgCart
         annotations: {
             enabled: true,
         },
+        tooltip: { enabled: false },
+        data,
         ...unusedOpts,
     };
 }

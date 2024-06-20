@@ -266,7 +266,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private createGroupButtons(group: ToolbarGroup, buttons?: Array<ToolbarButton>) {
+    private createGroupButtons(group: ToolbarGroup, buttons: Array<ToolbarButton> = []) {
         for (const button of this.groupButtons[group]) {
             button.remove();
         }
@@ -274,23 +274,27 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.groupDestroyFns[group].forEach((d) => d());
         this.groupDestroyFns[group] = [];
 
+        if (buttons.length === 0) return;
+
         const align = this[group].align ?? 'start';
         const position = this[group].position ?? 'top';
         const alignElement = this.positionAlignments[position][align];
 
         if (!alignElement) return;
 
-        let prevSection;
+        const nextSection = () => {
+            const newSection = createElement('div');
+            newSection.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
+            alignElement.appendChild(newSection);
+            return newSection;
+        };
 
-        let section = createElement('div');
-        section.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
-        alignElement.appendChild(section);
+        let section = nextSection();
+        let prevSection = buttons.at(0)?.section;
 
-        for (const options of buttons ?? []) {
+        for (const options of buttons) {
             if (prevSection !== options.section) {
-                section = createElement('div');
-                section.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
-                alignElement.appendChild(section);
+                section = nextSection();
             }
             prevSection = options.section;
             const button = this.createButtonElement(group, options);
@@ -345,7 +349,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.refreshLocale();
 
         elements.top.style.top = `${shrinkRect.y - elements.top.offsetHeight - margin * 2}px`;
-        elements.top.style.left = `${margin}px`;
+        elements.top.style.left = `${shrinkRect.x}px`;
         elements.top.style.width = `calc(100% - ${margin * 2}px)`;
 
         return { shrinkRect };

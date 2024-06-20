@@ -63,6 +63,7 @@ const STYLES = `
 
 .ag-charts-canvas-overlay > * {
     position: absolute;
+    pointer-events: auto;
 }
 `;
 
@@ -282,21 +283,17 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         // to attach listeners etc.. to that node, not the document body.
         while (parent != null) {
             if (parent === docRoot) {
-                return docRoot;
+                return undefined;
             }
             if (parent.parentNode instanceof DocumentFragment) {
                 // parentNode is a Shadow DOM.
                 return parent;
             }
-            if (parent.parentNode == null) {
-                // Node is not attached to the DOM, fallback to docRoot.
-                return docRoot;
-            }
 
             parent = parent.parentNode as HTMLElement;
         }
 
-        return docRoot;
+        return undefined;
     }
 
     getChildBoundingClientRect(type: DOMElementClass) {

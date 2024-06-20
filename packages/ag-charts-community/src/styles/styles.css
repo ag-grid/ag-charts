@@ -41,7 +41,6 @@
     );
     --ag-charts-toolbar-size: 34px;
     --ag-charts-toolbar-size-small: 24px;
-    --ag-charts-toolbar-padding: calc(var(--ag-charts-size) * 2);
     --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
     --ag-charts-toolbar-focus-color: color-mix(
         in srgb,
@@ -63,6 +62,10 @@
         var(--ag-charts-toolbar-foreground-color) 6%
     );
     --ag-charts-toolbar-gap: var(--ag-charts-size);
+    --ag-charts-toolbar-font-size: 14px;
+    --ag-charts-toolbar-font-size-small: 12px;
+    --ag-charts-toolbar-button-padding: 8px;
+    --ag-charts-toolbar-button-padding-small: 3px;
 
     /* Buttons */
     --ag-charts-button-radius: var(--ag-border-radius, 4px);

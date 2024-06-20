@@ -25,6 +25,7 @@ import { SearchBox } from './SearchBox';
 export const SelectionContext = createContext<{
     selection: NavigationData;
     setSelection: Dispatch<SetStateAction<NavigationData>>;
+    rootInterface: string;
 } | null>(null);
 
 export function OptionsNavigation({
@@ -164,12 +165,24 @@ function NavProperty({
                 interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
             );
         }
-        return (
-            (selection?.selection.pageInterface === navData.pageInterface &&
-                selection?.selection.hash?.startsWith(navData.hash) &&
-                selection?.selection.hash !== navData.hash) ??
-            false
-        );
+        if (
+            selection?.selection.pageInterface === navData.pageInterface &&
+            selection?.selection.hash?.startsWith(navData.hash) &&
+            selection?.selection.hash !== navData.hash
+        ) {
+            return true;
+        }
+        const baseHash = `reference-${selection?.rootInterface}`;
+        if (navData.hash.startsWith(baseHash)) {
+            const prePath = navData.hash
+                .slice(baseHash.length + 1)
+                .split('-')
+                .filter(Boolean);
+            if (selection?.selection.pathname.includes(prePath.join('/'))) {
+                return true;
+            }
+        }
+        return false;
     });
 
     const isSelected =
