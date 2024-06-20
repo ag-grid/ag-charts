@@ -789,8 +789,16 @@ export class TreemapSeries<
     private focusSorted?: { childAt: (i: number) => _ModuleSupport.HierarchyNode<TDatum> };
 
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
         const { focusPath: path } = this;
+
+        // Initialise this.focusSorted
+        if (path.length < 2 || this.focusSorted == null) {
+            path.length = 1;
+            this.focusSorted = this.sortChildren(path[0].nodeDatum);
+            path.push({ nodeDatum: this.focusSorted.childAt(0), childIndex: 0 });
+        }
+
+        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
         const current = path[path.length - 1];
 
         if (depthDelta === 1) {
@@ -800,8 +808,7 @@ export class TreemapSeries<
                 path.push(newFocus);
                 return this.computeFocusOutputs(newFocus);
             }
-        } else if (childDelta !== 0 || this.focusSorted === undefined) {
-            this.focusSorted ??= this.sortChildren(path[0].nodeDatum);
+        } else if (childDelta !== 0) {
             const targetIndex = current.childIndex + childDelta;
             const maxIndex = (current.nodeDatum.parent?.children.length ?? 1) - 1;
             current.childIndex = clamp(0, targetIndex, maxIndex);

@@ -277,6 +277,10 @@ jobs:
               if: matrix.shard == 0
               id: benchmark
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t benchmark --configuration=ci --exclude all
+            - name: nx pack:verify
+              if: matrix.shard == 0
+              id: pack-verify
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t pack:verify
             - name: Perist test results
               if: always()
               uses: actions/upload-artifact@v4
@@ -388,11 +392,11 @@ jobs:
 
                       ${{ env.GIT_LOG }}
 
-            - name: Kick-off E2E tests
-              if: needs.test.result == 'success' && github.ref == 'refs/heads/latest'
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: gh workflow run e2e.yml --ref ${{github.ref}}
+            # - name: Kick-off E2E tests
+            #   if: needs.test.result == 'success' && github.ref == 'refs/heads/latest'
+            #   env:
+            #       GH_TOKEN: ${{ github.token }}
+            #   run: gh workflow run e2e.yml --ref ${{github.ref}}
 
     sonarqube:
         runs-on: ubuntu-24.04

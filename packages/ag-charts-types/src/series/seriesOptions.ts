@@ -40,6 +40,7 @@ export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesOpt
 export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.
+     *
      * Default: `auto-generated value`
      */
     id?: string;
