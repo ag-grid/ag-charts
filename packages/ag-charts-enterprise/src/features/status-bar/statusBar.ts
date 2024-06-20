@@ -171,6 +171,8 @@ export class StatusBar
     }
 
     private updateHighlight() {
+        if (!this.enabled) return;
+
         const activeHighlight = this.highlightManager.getActiveHighlight();
 
         if (activeHighlight == null) {
@@ -183,7 +185,7 @@ export class StatusBar
         const datum = activeHighlight.datum;
         const label = activeHighlight.itemId === 'up' ? this.positive : this.negative;
         for (const { value, key } of Object.values(this.labels)) {
-            const datumValue = datum[this[key]];
+            const datumValue = datum?.[this[key]];
 
             value.setFont(label);
             value.fill = label.color;
