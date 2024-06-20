@@ -55,6 +55,7 @@ export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions {
      * `fixed` - all labels remain in a fixed orientation of horizontal text.
      * `parallel` - labels are in a circle around the axis.
      * `perpendicular` - labels are in the radial direction perpendicular to the axis.
+     *
      * Default: `fixed`
      */
     orientation?: AgAngleAxisLabelOrientation;

@@ -426,8 +426,8 @@ function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
                 .reduce(
                     (result, next) => {
                         // Re-join lines split due to line-length constraints; paragraphs should
-                        // end on a double newline.
-                        if (/^[a-zA-Z0-9]+/.test(next)) {
+                        // end on a double newline or use `\` at the end of the line. (standard markdown)
+                        if (!result.at(-1)?.endsWith('\\') && /^[a-zA-Z0-9]+/.test(next)) {
                             result[result.length - 1] += ' ' + next;
                         } else {
                             result.push(next);

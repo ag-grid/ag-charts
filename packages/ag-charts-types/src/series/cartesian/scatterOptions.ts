@@ -18,6 +18,7 @@ export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & A
 export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams> {
     /**
      * Placement of label in relation to the marker.
+     *
      * Default: `top`
      */
     placement?: LabelPlacement;
