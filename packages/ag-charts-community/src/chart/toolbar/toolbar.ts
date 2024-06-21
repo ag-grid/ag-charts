@@ -332,9 +332,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
-        // Our styles only use 'row' and 'column'. Ignore other flex-direction values with `!`.
+        // Our styles only use 'row' and 'column'. Unit tests use 'inherit' and ''.
+        // Ignore other flex-direction values with `!`.
         const { flexDirection } = getComputedStyle(alignElement);
-        const orientation = ({ row: 'horizontal', column: 'vertical' } as const)[flexDirection]!;
+        const orientation = (
+            { '': 'horizontal', inherit: 'horizontal', row: 'horizontal', column: 'vertical' } as const
+        )[flexDirection];
+        if (!orientation) throw TypeError(`AG Charts - unexpected flex-direction [${flexDirection}]`);
 
         this.groupDestroyFns[group] = initToolbarKeyNav({
             orientation,
