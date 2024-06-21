@@ -1,50 +1,20 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { PixelSize } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeBarSeriesFormatterParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        FillOptions,
-        StrokeOptions {
-    readonly itemId: string;
-    readonly highlighted: boolean;
-    readonly xKey: string;
-    readonly yLowKey: string;
-    readonly yHighKey: string;
-    readonly labelKey?: string;
-}
+export type AgRangeBarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+    AgRangeBarSeriesOptionsKeys &
+    Required<AgRangeBarSeriesStyles>;
 
-export interface AgRangeBarSeriesFormat {
-    fill?: CssColor;
-    fillOpacity?: Opacity;
-    stroke?: CssColor;
-    strokeWidth?: PixelSize;
-}
+export type AgRangeBarSeriesStyles = FillOptions & StrokeOptions & LineDashOptions;
 
-export interface AgRangeBarSeriesTooltipRendererParams
-    extends Omit<AgCartesianSeriesTooltipRendererParams, 'yKey' | 'yValue'> {
-    /** The Id to distinguish the type of datum. This can be `low` or `high`. */
-    itemId: string;
-
-    /** yKey as specified on series options. */
-    readonly yLowKey: string;
-    /** yLowValue as read from series data via the yLowKey property. */
-    readonly yLowValue?: any;
-    /** yLowName as specified on series options. */
-    readonly yLowName?: string;
-
-    /** yKey as specified on series options. */
-    readonly yHighKey: string;
-    /** yHighValue as read from series data via the yHighKey property. */
-    readonly yHighValue?: any;
-    /** yHighName as specified on series options. */
-    readonly yHighName?: string;
-}
+export type AgRangeBarSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
+    AgRangeBarSeriesOptionsKeys &
+    AgRangeBarSeriesOptionsNames;
 
 export interface AgRangeBarSeriesLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams> {
@@ -58,9 +28,7 @@ export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
 export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     extends AgBaseCartesianThemeableOptions<TDatum>,
-        FillOptions,
-        StrokeOptions,
-        LineDashOptions {
+        AgRangeBarSeriesStyles {
     /**
      * Bar rendering direction.
      *
@@ -70,7 +38,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
@@ -78,7 +46,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgRangeBarSeriesFormatterParams<TDatum>, AgRangeBarSeriesFormat>;
+    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum>, AgRangeBarSeriesStyles>;
 }
 
 export type AgRangeBarSeriesLabelFormatterParams = AgRangeBarSeriesOptionsKeys & AgRangeBarSeriesOptionsNames;
@@ -95,12 +63,12 @@ export interface AgRangeBarSeriesOptionsKeys {
 export interface AgRangeBarSeriesOptionsNames {
     /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     xName?: string;
+    /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    yName?: string;
     /** A human-readable description of the y-low-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yLowName?: string;
     /** A human-readable description of the y-high-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yHighName?: string;
-    /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    yName?: string;
 }
 
 export interface AgRangeBarSeriesOptions<TDatum = any>

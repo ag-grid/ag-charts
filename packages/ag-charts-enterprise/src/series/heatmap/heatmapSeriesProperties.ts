@@ -1,8 +1,8 @@
 import type {
-    AgHeatmapSeriesFormat,
-    AgHeatmapSeriesFormatterParams,
+    AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
+    AgHeatmapSeriesStyle,
     AgHeatmapSeriesTooltipRendererParams,
     Styler,
     TextAlign,
@@ -73,11 +73,11 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     itemPadding: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgHeatmapSeriesFormatterParams<any>, AgHeatmapSeriesFormat>;
+    itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<any>, AgHeatmapSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgHeatmapSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgHeatmapSeriesTooltipRendererParams<any>>();
 }

@@ -1,5 +1,5 @@
 import type {
-    AgMapLineSeriesFormatterParams,
+    AgMapLineSeriesItemStylerParams,
     AgMapLineSeriesLabelFormatterParams,
     AgMapLineSeriesOptions,
     AgMapLineSeriesStyle,
@@ -102,7 +102,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgMapLineSeriesFormatterParams<any>, AgMapLineSeriesStyle>;
+    itemStyler?: Styler<AgMapLineSeriesItemStylerParams<any>, AgMapLineSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new Label<AgMapLineSeriesLabelFormatterParams>();

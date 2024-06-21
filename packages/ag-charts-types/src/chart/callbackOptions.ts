@@ -26,4 +26,4 @@ export interface DatumCallbackParams<TDatum, TItemId extends string = string> {
 }
 
 export type Formatter<P> = (params: P) => string | undefined;
-export type Styler<P extends DatumCallbackParams<any>, S> = (params: P) => S | undefined;
+export type Styler<P, S> = (params: P) => S | undefined;

@@ -1,4 +1,4 @@
-import type { AgRadialSeriesFormat } from 'ag-charts-community';
+import type { AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
@@ -382,7 +382,7 @@ export abstract class RadialColumnSeriesBase<
         node: ItemPathType,
         datum: RadialColumnNodeDatum,
         highlight: boolean,
-        format: AgRadialSeriesFormat | undefined
+        format: AgRadialSeriesStyle | undefined
     ): void;
 
     protected updateSectorSelection(

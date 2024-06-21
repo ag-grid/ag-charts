@@ -1,4 +1,4 @@
-import type { AgHeatmapSeriesFormat, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
+import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -330,7 +330,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
             const fill = highlightStyle?.fill ?? datum.fill;
 
-            let format: AgHeatmapSeriesFormat | undefined;
+            let format: AgHeatmapSeriesStyle | undefined;
             if (itemStyler) {
                 format = callbackCache.call(itemStyler, {
                     datum: datum.datum,
@@ -410,7 +410,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const { datum, xValue, yValue, colorValue, itemId } = nodeDatum;
         const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
 
-        let format: AgHeatmapSeriesFormat | undefined;
+        let format: AgHeatmapSeriesStyle | undefined;
 
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {

@@ -1,5 +1,5 @@
 import type {
-    AgMapMarkerSeriesFormatterParams,
+    AgMapMarkerSeriesItemStylerParams,
     AgMapMarkerSeriesLabelFormatterParams,
     AgMapMarkerSeriesOptions,
     AgMapMarkerSeriesStyle,
@@ -145,7 +145,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     strokeOpacity: number = 1;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgMapMarkerSeriesFormatterParams<any>, AgMapMarkerSeriesStyle>;
+    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<any>, AgMapMarkerSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new MapMarkerSeriesLabel();
