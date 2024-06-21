@@ -12,7 +12,6 @@ import type { Point } from '../scene/point';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
-import styles from '../styles/styles';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { setAttribute } from '../util/attributeUtil';
@@ -1658,6 +1657,7 @@ export abstract class Chart extends Observable {
             'axes',
             'topology',
             'nodes',
+            'initialState',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1710,7 +1710,6 @@ export abstract class Chart extends Observable {
             miniChart.axes = [];
         }
 
-        this.ctx.domManager.addStyles('chart', styles);
         this.ctx.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
@@ -1723,6 +1722,23 @@ export abstract class Chart extends Observable {
             forceNodeDataRefresh,
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+    }
+
+    applyInitialState() {
+        const {
+            ctx: { annotationManager, stateManager },
+        } = this;
+
+        const options = this.getOptions();
+
+        if (options.initialState?.annotations != null) {
+            const annotations = options.initialState.annotations.map((annotation) => {
+                const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
+                return mergeDefaults(annotation, annotationTheme);
+            });
+
+            stateManager.setState(annotationManager, annotations);
+        }
     }
 
     private maybeResetAnimations(seriesStatus: SeriesChangeType) {

@@ -3,6 +3,8 @@ import { createElement, getDocument } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
+import BASE_DOM from './domLayout.html';
+import STYLES from './domStyles.css';
 
 const CANVAS_CENTER_CLASS = 'canvas-center';
 const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-overlay'] as const;
@@ -20,65 +22,6 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['canvas-overlay', { childElementType: 'div' }],
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
-
-const STYLES = `
-.ag-charts-wrapper {
-    position: relative;
-}
-
-.ag-charts-canvas-center {
-    width: 100%;
-    height: 100%;
-
-    position: absolute;
-    touch-action: auto;
-
-    display: flex;
-    align-items: var(--ag-charts-align);
-    justify-content: var(--ag-charts-justify);
-}
-
-.ag-charts-canvas-container, .ag-charts-canvas {
-    position: relative;
-}
-
-.ag-charts-canvas-container > *, , .ag-charts-canvas > * {
-    display: block;
-}
-
-.ag-charts-tab-guard {
-    opacity: 0;
-    width: 0px;
-    height: 0px;
-}
-
-.ag-charts-canvas-overlay {
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-.ag-charts-canvas-overlay > * {
-    position: absolute;
-    pointer-events: auto;
-}
-`;
-
-const BASE_DOM = `
-<div class="ag-charts-wrapper ag-charts-styles" data-ag-charts>
-    <div class="ag-charts-canvas-center">
-        <div class="ag-charts-canvas-container">
-            <div class="ag-charts-tab-guard"></div>
-            <div class="ag-charts-canvas"></div>
-            <div class="ag-charts-tab-guard"></div>
-            <div class="ag-charts-canvas-overlay"></div>
-        </div>
-    </div>
-</div>
-`;
 
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
     // Detect when the chart becomes invisible and hide the tooltip as well.

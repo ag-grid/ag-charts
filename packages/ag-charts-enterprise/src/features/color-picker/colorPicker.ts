@@ -76,8 +76,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
         const beginPaletteInteraction = (e: MouseEvent) => {
             e.preventDefault();
-            colorInput.blur();
-            const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+            const currentTarget = e.currentTarget as HTMLDivElement;
+            currentTarget.focus();
+            const rect = currentTarget.getBoundingClientRect();
 
             const mouseMove = ({ pageX, pageY }: MouseEvent) => {
                 s = Math.min(Math.max((pageX - rect.left) / rect.width, 0), 1);
@@ -111,6 +112,7 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
             } else {
                 return;
             }
+            e.preventDefault();
             update();
         });
         hueInput.addEventListener('input', (e) => {
@@ -134,6 +136,14 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
                 update();
             }
         });
+    }
+
+    setAnchor(anchor: { x: number; y: number }) {
+        const colorPicker = this.element.firstElementChild?.firstElementChild as HTMLDivElement | undefined;
+        if (colorPicker) {
+            colorPicker.style.setProperty('left', `${anchor.x}px`);
+            colorPicker.style.setProperty('top', `${anchor.y}px`);
+        }
     }
 
     hide() {

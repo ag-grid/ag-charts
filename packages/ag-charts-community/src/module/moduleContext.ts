@@ -1,3 +1,4 @@
+import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
@@ -52,6 +53,7 @@ export interface ModuleContext {
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;
     readonly seriesStateManager: SeriesStateManager;
+    readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
     readonly toolbarManager: ToolbarManager;
     readonly tooltipManager: TooltipManager;

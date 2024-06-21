@@ -100,7 +100,7 @@ export class MaterialDark extends DarkTheme {
             MaterialDark.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_DARK_FILLS.BLUE);
 
         return params;

@@ -97,7 +97,7 @@ export class VividLight extends ChartTheme {
             VividLight.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
 
         return params;

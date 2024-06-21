@@ -10,16 +10,14 @@
 .ag-charts-focus.ag-charts-focus__indicator > div {
     position: absolute;
     outline: var(--ag-charts-focus-border);
+    outline-width: 2px;
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
 
 .ag-charts-focus.ag-charts-focus__indicator > svg {
     width: 100%;
     height: 100%;
-}
-
-.ag-charts-focus.ag-charts-focus__indicator > svg > * {
-    fill: rgba(0, 0, 0, 0);
+    fill: none;
     stroke: var(--ag-charts-focus-border-color);
     stroke-width: 2px;
 }

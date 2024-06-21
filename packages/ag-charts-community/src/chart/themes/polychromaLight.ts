@@ -105,7 +105,7 @@ export class PolychromaLight extends ChartTheme {
             PolychromaLight.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_LIGHT_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_LIGHT_FILLS.BLUE);
 
         return params;

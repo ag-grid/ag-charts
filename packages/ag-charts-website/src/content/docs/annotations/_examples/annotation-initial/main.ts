@@ -29,7 +29,10 @@ const options: AgChartOptions = {
         text: 'by gender',
     },
     annotations: {
-        initial: [
+        enabled: true,
+    },
+    initialState: {
+        annotations: [
             {
                 type: 'line',
                 locked: true,

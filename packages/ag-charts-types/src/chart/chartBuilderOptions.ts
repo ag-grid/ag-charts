@@ -42,7 +42,8 @@ export type AgBasePresetOptions = Pick<
     'data' | 'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'subtitle' | 'footnote'
 >;
 
-export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'annotations'>;
+export type AgBaseFinancialPresetOptions = AgBasePresetOptions &
+    Pick<AgCartesianChartOptions, 'annotations' | 'initialState'>;
 
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 

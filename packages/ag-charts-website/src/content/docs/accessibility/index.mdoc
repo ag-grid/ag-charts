@@ -24,14 +24,17 @@ AG Charts fully supports keyboard navigation as an element of accessibility, all
 
 The following keys are available:
 
--   {% kbd "⇥ Tab" /%} moves focus between chart components. These are:
+-   {% kbd "⇥ Tab" /%} moves focus between chart components. These include:
     -   Series
     -   Legend
     -   Legend pagination control
+    -   Toolbars
+    -   Navigator
 -   {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, or between legend items.
 -   {% kbd "↑" /%}{% kbd "↓" /%} moves focus between series in a chart.  
     Please note that datapoints and series are traversed in declared order which may not match the visual display.
 -   {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} toggles legend items and triggers any click listeners for the focused item.
+-   In Windows, {% kbd "⇧ Shift"/%}+{% kbd "F10"/%} or {% kbd "≡ Menu"/%} opens the context menu. On Mac this is done with {% kbd "⌃⌥⇧ M" /%} when Voiceover is enabled.
 
 {% chartExampleRunner title="Keyboard Navigation" name="keyboard-navigation" type="generated" /%}
 
