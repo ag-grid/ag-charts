@@ -176,7 +176,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             .map((region) => ctx.regionManager.getRegion(region));
 
         ctx.domManager.addStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS, axisButtonCss);
-        ctx.stateManager.restoreState(ctx.annotationManager);
 
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),

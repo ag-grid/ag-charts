@@ -1,3 +1,4 @@
+import { jsonDiff } from '../../util/json';
 import { VERSION } from '../../version';
 import { MementoCaretaker, type MementoOriginator } from './memento';
 
@@ -6,6 +7,10 @@ export class StateManager {
     private readonly state = new Map<string, any>();
 
     setState(originator: MementoOriginator, value: any) {
+        if (jsonDiff(this.state.get(originator.mementoOriginatorKey), value) == null) {
+            return;
+        }
+
         this.state.set(originator.mementoOriginatorKey, value);
         this.restoreState(originator);
     }
