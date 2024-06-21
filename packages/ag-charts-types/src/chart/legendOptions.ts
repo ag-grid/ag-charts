@@ -58,8 +58,8 @@ export interface AgChartLegendItemOptions {
     paddingX?: PixelSize;
     /** The vertical spacing in pixels to use between legend items. */
     paddingY?: PixelSize;
-    /** Set to `true` to show the stroke styling of line and area series in the legend.
-     *  If enabled, will hide legend marker if series markers are disabled. */
+    /** Set to `false` to hide the legend line line representing the stroke styling of line and area series.
+     *  If enabled, legend marker will be hidden if series markers are disabled. */
     showSeriesStroke?: boolean;
 }
 

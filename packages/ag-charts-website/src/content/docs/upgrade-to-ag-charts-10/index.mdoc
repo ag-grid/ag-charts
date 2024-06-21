@@ -13,7 +13,7 @@ Users of integrated charting on AG Grid, should refer to this migration guide wh
 
 This release includes the following breaking changes:
 
--   The `AgChart` entrypoint has been renamed to `AgCharts`.
+-   The `AgChart` entrypoint is renamed to `AgCharts`.
 -   AgCharts.update() moved to AgChartInstance.update().
 -   AgCharts.updateDelta() moved to AgChartInstance.updateDelta().
 -   AgCharts.download() moved to AgChartInstance.download().
@@ -22,11 +22,13 @@ This release includes the following breaking changes:
 -   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
 -   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
 -   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
+-   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
 
 **Series Changes**
 
 -   `innerRadiusOffset`, `innerRadiusRatio`, `innerCircle`, `innerLabels` are removed from `pie` series. Use `donut` series instead.
 -   `pie` and `donut` series strokes are now rendered on the inside of each sector. Instead of using `strokeWidth` to add spacing between the sectors, use `sectorSpacing`.
+-   `innerLabels.margin` on `donut` series is renamed to `innerLabels.spacing`.
 -   `scatter` and `bubble` series options contained within `marker` object are moved to the top level. `marker.enabled` is removed.
 
 **Axes Changes**
@@ -36,14 +38,16 @@ This release includes the following breaking changes:
 -   `axes.line.color` is renamed to `axes.line.stroke`.
 -   `axes.tick.minSpacing`, `axes.tick.maxSpacing`, `axes.tick.values` are moved to `axes.interval`.
 -   `axes.tick.interval` is moved to `axes.interval.step`.
+-   `formatter` property removed from `AgAxisLabelFormatterParams`.
 
 **Miscellaneous**
 
 -   `legend.item.line.length` is now the length of the entire legend item line, regardless of whether or not a marker is present.
--   `legend.item.toggleSeriesVisible` has been replaced by `legend.toggleSeries`.
--   `AgGradientLegendOptions.stop` has been removed, use `scale` instead.
--   `AgContextMenuActionParams` has been replaced by `AgNodeContextMenuActionEvent`.
--   `AgNodeContextMenuActionEvent.itemId` has been removed, use `xKey`, `yKey`, `angleKey` etc instead.
+-   `legend.item.toggleSeriesVisible` is replaced by `legend.toggleSeries`.
+-   `AgGradientLegendOptions.stop` is removed, use `scale` instead.
+-   `navigator.margin` is renamed to `navigator.spacing`.
+-   `AgContextMenuActionParams` is replaced by `AgNodeContextMenuActionEvent`.
+-   `AgNodeContextMenuActionEvent.itemId` is removed, use `xKey`, `yKey`, `angleKey` etc instead.
 -   `fontWeight` no longer supports Strings for numeric values. Use numbers instead.
 -   `AgChartThemeOptionalPalette` has been renamed and replaces `AgChartThemePalette`.
 -   `type` property removed without replacement from
@@ -54,8 +58,18 @@ This release includes the following breaking changes:
 
 **ag-charts-react**
 
+-   The `AgChartsReact` export is renamed to `AgCharts`.
 -   The height of the chart container is no longer automatically set to 100%.
 -   `containerStyle` is renamed to `style`.
+
+**ag-charts-angular**
+
+-   The `AgChartsAngular` export is renamed to `AgCharts`.
+-   The `ag-charts-angular` template tag is renamed to `ag-charts`.
+
+**ag-charts-vue3**
+
+-   The `AgChartsVue` export is renamed to `AgCharts`.
 
 ## Behaviour Changes
 
@@ -67,12 +81,15 @@ This release includes the following behaviour changes:
 -   `pie` and `donut` series strokes now default to palette colours.
 -   `pie` and `donut` series `strokeWidth` now defaults to `0`.
 -   Crosshairs now `snap` by default for number axis of `range-bar` and `range-area` series. Use `snap: false` to change.
+-   `legend.item.showSeriesStroke` defaults to `true`.
 
 **Other Changes**
 
 -   Pan left and Pan right zoom buttons move the chart by one step rather than the entire viewport width.
 -   Time format in tooltips and crosshair labels defaults to a prettier format.
 -   Time and Number format in tooltips now follows the `axis[].format` if provided. Use a tooltip renderer to specify a tooltip specific format.
+-   The `zoom-in` and `zoom-out` icons have been changed. The previous ones are renamed to `zoom-in-alt` and `zoom-out-alt`.
+-   The zoom icons are now grouped. Use the `section` option to create your own groupings.
 -   Wrapped and truncated text may display differently.
     -   More precise text measurement allows display of more characters from longer labels to be displayed before wrapping or truncating.
     -   Wrapping strategy is improved to give more balanced lines.
