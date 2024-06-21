@@ -30,7 +30,6 @@ import type { Annotation } from './scenes/annotation';
 
 const {
     BOOLEAN,
-    OBJECT_ARRAY,
     ChartUpdateType,
     Cursor,
     InteractionState,
@@ -127,17 +126,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     @Validate(BOOLEAN)
     public enabled: boolean = true;
 
-    @_ModuleSupport.ObserveChanges<Annotations>((target, initial: AnnotationPropertiesArray) => {
-        target.annotationData ??= initial;
-    })
-    @Validate(OBJECT_ARRAY, { optional: true })
-    public initial = new PropertiesArray(this.createAnnotationDatum);
-
     public axesButtons = new AxesButtons();
 
     // State
     private readonly state: AnnotationsStateMachine;
-    private annotationData?: AnnotationPropertiesArray;
+    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
     private hovered?: number;
     private active?: number;
     private dragOffset?: Coords;
@@ -217,7 +210,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private appendDatum(type: AnnotationType, datum: AnnotationProperties) {
-        this.annotationData?.push(datum);
+        this.annotationData.push(datum);
         const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
         if (styles) datum.set(styles);
 
@@ -231,10 +224,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!this.enabled) return;
 
         this.clear();
-
-        this.annotationData ??= new PropertiesArray(this.createAnnotationDatum);
         this.annotationData.set(event.annotations);
-
         this.update();
     }
 
@@ -285,7 +275,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { active, annotationData } = this;
 
-        if (!annotationData || active == null) return;
+        if (active == null) return;
 
         switch (event.value) {
             case 'line-color':
@@ -319,7 +309,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onColorPickerChange(color: string) {
         const { active, annotationData } = this;
 
-        if (active == null || !annotationData) return;
+        if (active == null) return;
 
         const datum = this.getTypedDatum(annotationData[active]);
 
@@ -407,7 +397,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        annotationManager.updateData(annotationData?.toJson());
+        annotationManager.updateData(annotationData.toJson());
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
@@ -516,7 +506,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const context = this.getAnnotationContext();
 
-        if (!annotationData || !context) return;
+        if (!context) return;
 
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
         const point = invertCoords(offset, context);
@@ -636,9 +626,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
 
         const context = this.getAnnotationContext();
-        if (!annotationData || !context) return;
+        if (!context) return;
 
-        const datum = annotationData?.at(-1);
+        const datum = annotationData.at(-1);
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
         const point = invertCoords(offset, context);
 
@@ -815,7 +805,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onDelete() {
         const { active, annotationData, state } = this;
 
-        if (active == null || !annotationData) return;
+        if (active == null) return;
 
         if (!state.is('idle')) {
             state.transition('cancel');
@@ -834,9 +824,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { toolbarManager },
         } = this;
 
-        if (active == null || !annotationData) return;
+        if (active == null) return;
 
-        const locked = annotationData?.at(active)?.locked ?? false;
+        const locked = annotationData.at(active)?.locked ?? false;
         toolbarManager.toggleButton('annotationOptions', 'line-color', { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', 'delete', { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
@@ -867,7 +857,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private clear() {
-        this.annotationData?.splice(0, this.annotationData?.length);
+        this.annotationData.splice(0, this.annotationData.length);
         this.reset();
     }
 

@@ -1,4 +1,4 @@
-import type { AgAnnotationsThemeableOptions } from 'ag-charts-types';
+import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { Group } from '../../scene/group';
@@ -11,7 +11,7 @@ export interface AnnotationsRestoreEvent {
     annotations: AnnotationsMemento;
 }
 
-export type AnnotationsMemento = any[];
+export type AnnotationsMemento = AgAnnotation[];
 
 export class AnnotationManager
     extends BaseManager<AnnotationsRestoreEvent['type'], AnnotationsRestoreEvent>
