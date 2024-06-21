@@ -160,7 +160,6 @@ export class StatusBar
         for (const { label, title, value, domain, formatter } of Object.values(this.labels)) {
             let maxValueWidth = 0;
             if (domain.length > 0) {
-                domain.length > 0;
                 maxValueWidth = Math.max(
                     Text.measureText(formatter.format(domain[0]), this.positive.getFont(), 'alphabetic', 'left').width,
                     Text.measureText(formatter.format(domain[1]), this.positive.getFont(), 'alphabetic', 'left').width,
