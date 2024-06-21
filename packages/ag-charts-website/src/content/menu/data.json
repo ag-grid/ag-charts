@@ -74,6 +74,10 @@
                     {
                         "title": "Upgrading to Enterprise",
                         "path": "licensing"
+                    },
+                    {
+                        "title": "Installing Your Licence Key",
+                        "path": "license-install"
                     }
                 ]
             },

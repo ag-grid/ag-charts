@@ -3,9 +3,9 @@ import Note from '@ag-website-shared/components/alert/Note';
 import Success from '@ag-website-shared/components/alert/Success';
 import Warning from '@ag-website-shared/components/alert/Warning';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
+import fwLogos from '@ag-website-shared/images/fw-logos';
 import { FrameworkSelectorInsideDocs } from '@components/framework-selector-inside-doc/FrameworkSelectorInsideDocs';
-import { Snippet } from '@components/snippet/Snippet';
-import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { type FunctionComponent, useMemo } from 'react';
 
@@ -282,7 +282,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ framework, path, menuIt
                                                 <td>
                                                     <img
                                                         className={styles.frameworkLogo}
-                                                        src={urlWithBaseUrl(`/images/fw-logos/${framework}.svg`)}
+                                                        src={fwLogos[framework]}
                                                         alt={framework}
                                                     />{' '}
                                                     {framework}
