@@ -1,12 +1,19 @@
 name: e2e
 
 on:
-    workflow_dispatch: {}
     push:
         tags: ['latest-success']
     schedule:
         - cron: '0 7 * * 1-5'
-
+    workflow_dispatch:
+        inputs:
+            update:
+                type: 'choice'
+                required: true
+                default: 'false'
+                options:
+                    - 'true'
+                    - 'false'
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
     NX_NO_CLOUD: true
@@ -15,6 +22,7 @@ env:
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -170,10 +178,28 @@ jobs:
               run: npx playwright install chromium --with-deps
 
             - name: nx test:e2e
+              if: github.event.inputs.update != 'true'
               run: |
                   cd packages/ag-charts-website/
                   npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
               timeout-minutes: 10
+            - name: nx test:e2e (update)
+              if: github.event.inputs.update == 'true'
+              run: |
+                  cd packages/ag-charts-website/
+                  npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }} -u
+              timeout-minutes: 10
+
+            - name: Commit Snapshot Changes
+              id: commit_changes
+              if: github.event.inputs.update == 'true'
+              run: |
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add .
+                  git commit -m "Update snapshots (shard ${{ matrix.shard }})."
+                  git push origin ${BRANCH_NAME}
 
             - name: Perist test results
               if: always()
