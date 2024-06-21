@@ -16,8 +16,8 @@ export interface AgCandlestickSeriesFormatterParams<TDatum>
     extends AgCandlestickSeriesBaseItemStylerParams<TDatum>,
         FillOptions {}
 
-export interface AgCandlestickSeriesTooltipRendererParams
-    extends AgCandlestickSeriesBaseTooltipRendererParams,
+export interface AgCandlestickSeriesTooltipRendererParams<TDatum>
+    extends AgCandlestickSeriesBaseTooltipRendererParams<TDatum>,
         AgCandlestickSeriesBaseOptions {
     fill?: CssColor;
 }
@@ -43,7 +43,7 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         AgCandlestickSeriesStyles {
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgCandlestickSeriesFormatterParams<TDatum>, AgCandlestickSeriesItemOptions>;
 }

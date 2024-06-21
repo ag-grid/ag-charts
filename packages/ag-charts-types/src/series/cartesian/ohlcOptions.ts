@@ -16,8 +16,8 @@ export interface AgOhlcSeriesBaseOptions extends AgCandlestickSeriesBaseOptions 
 
 export interface AgOhlcSeriesFormatterParams<TDatum> extends AgCandlestickSeriesBaseItemStylerParams<TDatum> {}
 
-export interface AgOhlcSeriesTooltipRendererParams
-    extends AgCandlestickSeriesBaseTooltipRendererParams,
+export interface AgOhlcSeriesTooltipRendererParams<TDatum>
+    extends AgCandlestickSeriesBaseTooltipRendererParams<TDatum>,
         AgOhlcSeriesBaseOptions {
     stroke?: CssColor;
 }
@@ -40,7 +40,7 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual items, based on the given parameters. If the current datum is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgOhlcSeriesFormatterParams<TDatum>, AgOhlcSeriesItemOptions>;
 }
