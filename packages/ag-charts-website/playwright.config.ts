@@ -24,7 +24,7 @@ export default defineConfig({
         [
             'html',
             {
-                open: process.env.CI ? 'on-failure' : 'never',
+                open: process.env.CI ? 'never' : 'on-failure',
                 outputFolder: '../../reports/ag-charts-website-e2e-html/',
             },
         ],
@@ -52,6 +52,10 @@ export default defineConfig({
                 ...devices['Desktop Chrome'],
                 launchOptions: {
                     args: ['--ignore-certificate-errors'],
+                },
+                viewport: {
+                    width: 800,
+                    height: 600,
                 },
             },
         },

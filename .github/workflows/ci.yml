@@ -84,7 +84,7 @@ jobs:
                     echo "NX_BASE=latest-success" >> $GITHUB_ENV
                     echo "type=latest" >> $GITHUB_OUTPUT
                     git fetch origin latest-success
-                  elif [[ ${branch} =~ 'b[0-9]\..+' ]] ; then
+                  elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
                     # Release
                     echo "base=${branch}" >> $GITHUB_OUTPUT
                     echo "NX_BASE=${branch}" >> $GITHUB_ENV
@@ -393,10 +393,10 @@ jobs:
                       ${{ env.GIT_LOG }}
 
             - name: Kick-off E2E tests
-              if: needs.test.result == 'success' && github.ref == 'refs/heads/latest'
+              if: needs.test.result == 'success'
               env:
                   GH_TOKEN: ${{ github.token }}
-              run: gh workflow run e2e.yml --ref ${{github.ref}}
+              run: gh workflow run e2e.yml --ref ${{github.head_ref || github.ref}}
 
     sonarqube:
         runs-on: ubuntu-24.04

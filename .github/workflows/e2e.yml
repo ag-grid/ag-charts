@@ -1,12 +1,19 @@
 name: e2e
 
 on:
-    workflow_dispatch: {}
     push:
         tags: ['latest-success']
     schedule:
         - cron: '0 7 * * 1-5'
-
+    workflow_dispatch:
+        inputs:
+            update:
+                type: 'choice'
+                required: true
+                default: 'false'
+                options:
+                    - 'true'
+                    - 'false'
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
     NX_NO_CLOUD: true
@@ -15,6 +22,7 @@ env:
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,10 +32,43 @@ jobs:
     init:
         runs-on: ubuntu-latest
         name: initialisation
+        outputs:
+            nx_base: ${{ steps.nx_config.outputs.base }}
         steps:
+            - id: status
+              name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: format
+                  status: in_progress
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Nx Affected SHA Setup
+              id: nx_config
+              run: |
+                  branch=$(git branch --show-current)
+                  if [[ ${branch} == 'latest' ]] ; then
+                    # Latest
+                    echo "base=latest-e2e-success" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=latest-e2e-success" >> $GITHUB_ENV
+                    echo "type=latest" >> $GITHUB_OUTPUT
+                    git fetch origin latest-e2e-success
+                  elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
+                    # Release
+                    echo "base=${branch}" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                    echo "type=release" >> $GITHUB_OUTPUT
+                  else
+                    # PR
+                    echo "base=origin/latest" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=origin/latest" >> $GITHUB_ENV
+                    echo "type=pr" >> $GITHUB_OUTPUT
+                    git fetch origin latest
+                  fi
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -76,6 +117,13 @@ jobs:
                   path: |
                       dist/
                       packages/*/dist/
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  check_id: ${{ steps.status.outputs.check_id }}
+                  conclusion: ${{job.status}}
 
     e2e:
         runs-on: ubuntu-latest
@@ -87,10 +135,20 @@ jobs:
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
+            - id: status
+              name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: e2e test (${{ matrix.shard }}/${{ strategy.job-total }})
+                  status: in_progress
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -120,10 +178,30 @@ jobs:
               run: npx playwright install chromium --with-deps
 
             - name: nx test:e2e
+              if: github.event.inputs.update != 'true'
               run: |
                   cd packages/ag-charts-website/
                   npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
               timeout-minutes: 10
+            - name: nx test:e2e (update)
+              if: github.event.inputs.update == 'true'
+              run: |
+                  cd packages/ag-charts-website/
+                  npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }} -u
+              timeout-minutes: 10
+
+            - name: Commit Snapshot Changesasdasads
+              id: commit_changes
+              if: github.event.inputs.update == 'true'
+              run: |
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add .
+                  if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+                    git commit -m "Update snapshots (shard ${{ matrix.shard }})."
+                    git push origin ${BRANCH_NAME}
+                  fi
 
             - name: Perist test results
               if: always()
@@ -132,6 +210,13 @@ jobs:
                   name: test-results-e2e-shard-${{matrix.shard}}
                   path: |
                       reports/
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  check_id: ${{ steps.status.outputs.check_id }}
+                  conclusion: ${{job.status}}
 
     report:
         runs-on: ubuntu-latest

@@ -54,33 +54,47 @@ function convertPageUrls(path: string) {
 test.describe('examples', () => {
     const config = setupIntrinsicAssertions();
 
-    let examples = glob.glob.sync('./src/content/**/_examples/*/main.ts');
+    const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
     if (process.env.NX_BASE) {
+        const exampleGenChanged = execSync(
+            `git diff --name-only ${process.env.NX_BASE} -- ../../plugins/ag-charts-generate-example-files/`
+        )
+            .toString()
+            .split('\n')
+            .some((t) => t.trim().length > 0);
         const changedFiles = new Set(
-            execSync(`git diff --name-only latest -- ./src/content/`)
+            execSync(`git diff --name-only ${process.env.NX_BASE} -- ./src/content/`)
                 .toString()
                 .split('\n')
                 .map((v) => v.replace(/^packages\/ag-charts-website\//, './'))
         );
-        examples = examples.filter((e) => changedFiles.has(e));
+        let affectedCount = 0;
+        for (const example of examples) {
+            example.affected = exampleGenChanged || changedFiles.has(example.path);
+            affectedCount += example.affected ? 1 : 0;
+        }
 
         // eslint-disable-next-line no-console
-        console.warn(`NX_BASE set - applied changed example processing, ${examples.length} changed examples found.`);
+        console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
     }
 
-    for (const example of examples) {
-        const testUrls = convertPageUrls(example);
+    for (const { path, affected } of examples) {
+        const testUrls = convertPageUrls(path);
         for (const { url, status, fw, pagePath, example: exampleName } of testUrls) {
             test.describe(`Framework: ${fw}`, () => {
                 test.describe(`Example ${pagePath}: ${exampleName}`, () => {
                     if (status === 'ok') {
                         test(`should load ${url}`, async ({ page }) => {
+                            test.skip(!affected, 'unaffected example');
+
                             await gotoExample(page, url);
                         });
                     }
 
                     if (status === '404') {
                         test(`should 404 on ${url}`, async ({ page }) => {
+                            test.skip(!affected, 'unaffected example');
+
                             config.ignore404s = true;
                             await page.goto(url);
                             expect(await page.title()).toMatch(/Page Not Found/);
