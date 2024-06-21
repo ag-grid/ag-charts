@@ -12,7 +12,6 @@ import type { Point } from '../scene/point';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
-import styles from '../styles/styles';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { setAttribute } from '../util/attributeUtil';
@@ -1709,7 +1708,6 @@ export abstract class Chart extends Observable {
             miniChart.axes = [];
         }
 
-        this.ctx.domManager.addStyles('chart', styles);
         this.ctx.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);

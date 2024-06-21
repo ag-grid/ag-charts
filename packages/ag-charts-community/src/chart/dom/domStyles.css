@@ -1,12 +1,65 @@
 /********
 * RESET *
 ********/
-[class^='ag-charts'],
-[class^='ag-charts']:focus,
-[class^='ag-charts']:after,
-[class^='ag-charts']:before {
+.ag-charts-root,
+.ag-charts-root:focus,
+.ag-charts-root:after,
+.ag-charts-root:before,
+.ag-charts-root *,
+.ag-charts-root *:focus,
+.ag-charts-root *:after,
+.ag-charts-root *:before {
     box-sizing: border-box;
     outline: none;
+}
+
+/***************
+* CHART LAYOUT *
+***************/
+.ag-charts-wrapper {
+    position: relative;
+}
+
+.ag-charts-canvas-center {
+    width: 100%;
+    height: 100%;
+
+    position: absolute;
+    touch-action: auto;
+
+    display: flex;
+    align-items: var(--ag-charts-align);
+    justify-content: var(--ag-charts-justify);
+}
+
+.ag-charts-canvas-container,
+.ag-charts-canvas {
+    position: relative;
+}
+
+.ag-charts-canvas-container > *,
+.ag-charts-canvas > * {
+    display: block;
+}
+
+.ag-charts-tab-guard {
+    opacity: 0;
+    width: 0px;
+    height: 0px;
+}
+
+.ag-charts-canvas-overlay {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.ag-charts-canvas-overlay > * {
+    position: absolute;
+    pointer-events: auto;
 }
 
 /********
