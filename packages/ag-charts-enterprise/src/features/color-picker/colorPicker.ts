@@ -138,6 +138,14 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
+    setAnchor(anchor: { x: number; y: number }) {
+        const colorPicker = this.element.firstElementChild?.firstElementChild as HTMLDivElement | undefined;
+        if (colorPicker) {
+            colorPicker.style.setProperty('left', `${anchor.x}px`);
+            colorPicker.style.setProperty('top', `${anchor.y}px`);
+        }
+    }
+
     hide() {
         this.element.replaceChildren();
     }
