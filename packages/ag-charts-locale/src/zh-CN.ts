@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaLabelLegendPagination: '图例分页',
     ariaLabelLegendPagePrevious: '上一传奇页面',
     ariaLabelLegendPageNext: '下一页图例',
-    ariaLabelLegendItem: '图例项 ${index}[number]，共有 ${count}[number] 个，${label}，${visibility}',
+    ariaLabelLegendItem: '${label}，图例项 ${index}[number]，共有 ${count}[number] 个',
     ariaLabelLegendItemUnknown: '未知图例项目',
     ariaLabelNavigator: '导航器',
     ariaLabelNavigatorRange: '范围',
