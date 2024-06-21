@@ -5,6 +5,7 @@ import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
     UNIT,
+    constrainAxis,
     constrainZoom,
     definedZoomState,
     dx,
@@ -16,14 +17,19 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const { ToolbarManager } = _ModuleSupport;
+const { ChartAxisDirection, ToolbarManager } = _ModuleSupport;
 
 export class ZoomToolbar {
     constructor(
         private readonly toolbarManager: _ModuleSupport.ToolbarManager,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getResetZoom: () => DefinedZoomState,
-        private readonly updateZoom: (zoom: DefinedZoomState) => void
+        private readonly updateZoom: (zoom: DefinedZoomState) => void,
+        private readonly updateAxisZoom: (
+            axisId: string,
+            direction: _ModuleSupport.ChartAxisDirection,
+            partialZoom: _ModuleSupport.ZoomState | undefined
+        ) => void
     ) {}
 
     public toggle(enabled: boolean | undefined, zoom: DefinedZoomState, props: ZoomProperties) {
@@ -77,6 +83,76 @@ export class ZoomToolbar {
     private onButtonPressZoom(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
         if (!ToolbarManager.isGroup('zoom', event)) return;
 
+        if (props.independentAxes && event.value !== 'reset') {
+            const axisZooms = this.zoomManager.getAxisZooms();
+            for (const [axisId, { direction, zoom }] of Object.entries(axisZooms)) {
+                if (zoom == null) continue;
+                this.onButtonPressZoomAxis(event, props, axisId, direction, zoom);
+            }
+        } else {
+            this.onButtonPressZoomUnified(event, props);
+        }
+    }
+
+    private onButtonPressZoomAxis(
+        event: _ModuleSupport.ToolbarButtonPressedEvent,
+        props: ZoomProperties,
+        axisId: string,
+        direction: _ModuleSupport.ChartAxisDirection,
+        zoom: _ModuleSupport.ZoomState
+    ) {
+        if (!ToolbarManager.isGroup('zoom', event)) return;
+
+        const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
+
+        let newZoom = { ...zoom };
+        const delta = zoom.max - zoom.min;
+
+        switch (event.value) {
+            case 'pan-start':
+                newZoom.max = delta;
+                newZoom.min = 0;
+                break;
+
+            case 'pan-end':
+                newZoom.min = newZoom.max - delta;
+                newZoom.max = UNIT.max;
+                break;
+
+            case 'pan-left':
+                newZoom.min -= delta * scrollingStep;
+                newZoom.max -= delta * scrollingStep;
+                break;
+
+            case 'pan-right':
+                newZoom.min += delta * scrollingStep;
+                newZoom.max += delta * scrollingStep;
+                break;
+
+            case 'zoom-in':
+            case 'zoom-out': {
+                const isDirectionX = direction === ChartAxisDirection.X;
+                const isScalingDirection = (isDirectionX && isScalingX) || (!isDirectionX && isScalingY);
+
+                let scale = event.value === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
+                if (!isScalingDirection) scale = 1;
+
+                const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
+                const useAnchorPointY = anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : anchorPointY;
+                const useAnchorPoint = isDirectionX ? useAnchorPointX : useAnchorPointY;
+
+                newZoom.max = newZoom.min + (newZoom.max - newZoom.min) * scale;
+                newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, useAnchorPoint);
+                break;
+            }
+        }
+
+        this.updateAxisZoom(axisId, direction, constrainAxis(newZoom));
+    }
+
+    private onButtonPressZoomUnified(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
+        if (!ToolbarManager.isGroup('zoom', event)) return;
+
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         const oldZoom = definedZoomState(this.zoomManager.getZoom());
@@ -98,16 +174,16 @@ export class ZoomToolbar {
                 break;
 
             case 'pan-left':
-            case 'pan-right': {
-                const distance = scrollingStep * dx(zoom);
-                zoom = translateZoom(zoom, event.value === 'pan-left' ? -distance : distance, 0);
+                zoom = translateZoom(zoom, -dx(zoom) * scrollingStep, 0);
                 break;
-            }
+
+            case 'pan-right':
+                zoom = translateZoom(zoom, dx(zoom) * scrollingStep, 0);
+                break;
 
             case 'zoom-in':
             case 'zoom-out': {
                 const scale = event.value === 'zoom-in' ? 1 - scrollingStep : 1 + scrollingStep;
-
                 const useAnchorPointX = anchorPointX === 'pointer' ? DEFAULT_ANCHOR_POINT_X : anchorPointX;
                 const useAnchorPointY = anchorPointY === 'pointer' ? DEFAULT_ANCHOR_POINT_Y : anchorPointY;
 

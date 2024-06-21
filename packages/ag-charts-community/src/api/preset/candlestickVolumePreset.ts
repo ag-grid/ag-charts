@@ -30,6 +30,8 @@ export function candlestickVolumePreset(
     return {
         zoom: {
             enabled: true,
+            // @ts-expect-error
+            enableIndependentAxes: true,
         },
         toolbar: {
             ranges: {
