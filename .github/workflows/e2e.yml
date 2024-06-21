@@ -190,7 +190,7 @@ jobs:
                   npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }} -u
               timeout-minutes: 10
 
-            - name: Commit Snapshot Changes
+            - name: Commit Snapshot Changesasdasads
               id: commit_changes
               if: github.event.inputs.update == 'true'
               run: |
@@ -198,8 +198,10 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git add .
-                  git commit -m "Update snapshots (shard ${{ matrix.shard }})."
-                  git push origin ${BRANCH_NAME}
+                  if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+                    git commit -m "Update snapshots (shard ${{ matrix.shard }})."
+                    git push origin ${BRANCH_NAME}
+                  fi
 
             - name: Perist test results
               if: always()
