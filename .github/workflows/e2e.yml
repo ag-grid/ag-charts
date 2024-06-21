@@ -181,9 +181,9 @@ jobs:
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
                   STATUSES=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s completed --json conclusion,status,headSha | jq -r '.[] | [.headSha," ",.conclusion] | add')
-
                   LAST_WORKFLOW_STATUS=$(echo "$STATUSES" | grep -v "cancelled" | head -1 | awk '{print $2}')
-                  LAST_SUCCESS_COMMIT=$(echo "$STATUSES" | grep "success" | head -1 | awk '{print $1}')
+                  LAST_SUCCESS_COMMIT=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s success --json headSha | jq -r '. | first | .headSha')
+
                   if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
                     # Handle re-run cases - there is no way to query the previous run status, so we assume the most
                     # common scenario will be re-run after failure.
@@ -196,7 +196,7 @@ jobs:
                     echo "status is still $WORKFLOW_STATUS"
                     echo "changedState=false" >> $GITHUB_OUTPUT
                   fi
-                  echo "baseSha=${LAST_WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
+                  echo "baseSha=${LAST_SUCCESS_COMMIT}" >> $GITHUB_OUTPUT
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
