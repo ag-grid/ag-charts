@@ -130,7 +130,9 @@
     min-width: var(--ag-charts-toolbar-size);
     padding: var(--ag-charts-toolbar-button-padding);
     pointer-events: all;
-    transition: background-color 0.25s ease-in-out;
+    transition:
+        background-color 0.25s ease-in-out,
+        color 0.25s ease-in-out;
 }
 
 .ag-charts-toolbar__button:first-child {
@@ -186,7 +188,8 @@
 }
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
-    background: var(--ag-charts-toolbar-active-color);
+    background: var(--ag-charts-toolbar-active-background-color);
+    color: var(--ag-charts-toolbar-active-color);
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
