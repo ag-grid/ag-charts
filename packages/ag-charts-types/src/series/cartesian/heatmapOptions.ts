@@ -64,8 +64,3 @@ export interface AgHeatmapSeriesOptions<TDatum = any>
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'. */
     colorRange?: string[];
 }
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;
