@@ -180,7 +180,7 @@ jobs:
                   fi
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
-                  STATUSES=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s completed --json conclusion,status | jq -r '.[] | .conclusion)
+                  STATUSES=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s completed --json conclusion,status | jq -r '.[] | .conclusion')
                   LAST_WORKFLOW_STATUS=$(echo "$STATUSES" | grep -v "cancelled" | head -1 | awk '{print $2}')
 
                   if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
