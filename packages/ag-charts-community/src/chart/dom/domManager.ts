@@ -275,20 +275,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return { x, y };
     }
 
-    isManagedDOMElement(el: HTMLElement, container = this.element) {
-        while (el && el !== container) {
-            if (el.parentElement == null) return false;
-            el = el.parentElement;
-        }
-
-        return true;
-    }
-
     isManagedChildDOMElement(el: HTMLElement, domElementClass: DOMElementClass, id: string) {
         const { children } = this.rootElements[domElementClass];
 
         const search = children?.get(id);
-        return search != null && this.isManagedDOMElement(el, search);
+        return search != null && el.contains(search);
     }
 
     isEventOverElement(event: Event | MouseEvent | TouchEvent) {

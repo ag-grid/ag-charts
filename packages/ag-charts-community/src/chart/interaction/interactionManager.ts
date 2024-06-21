@@ -8,22 +8,22 @@ import type { DOMManager } from '../dom/domManager';
 import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
-    'click' as const,
-    'dblclick' as const,
-    'contextmenu' as const,
-    'hover' as const,
-    'drag-start' as const,
-    'drag' as const,
-    'drag-end' as const,
-    'leave' as const,
-    'enter' as const,
-    'page-left' as const,
-    'wheel' as const,
-];
+    'click',
+    'dblclick',
+    'contextmenu',
+    'hover',
+    'drag-start',
+    'drag',
+    'drag-end',
+    'leave',
+    'enter',
+    'page-left',
+    'wheel',
+] as const;
 
-const FOCUS_INTERACTION_TYPES = ['blur' as const, 'focus' as const];
+const FOCUS_INTERACTION_TYPES = ['blur', 'focus'] as const;
 
-const KEY_INTERACTION_TYPES = ['keydown' as const, 'keyup' as const];
+const KEY_INTERACTION_TYPES = ['keydown', 'keyup'] as const;
 
 export type PointerInteractionTypes = (typeof POINTER_INTERACTION_TYPES)[number];
 
@@ -55,22 +55,22 @@ type SUPPORTED_EVENTS =
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS = [
-    'click' as const,
-    'dblclick' as const,
-    'contextmenu' as const,
-    'mousedown' as const,
-    'mouseleave' as const,
-    'mouseenter' as const,
-    'touchstart' as const,
-    'touchmove' as const,
-    'touchend' as const,
-    'touchcancel' as const,
-    'wheel' as const,
-    'blur' as const,
-    'focus' as const,
-    'keydown' as const,
-    'keyup' as const,
-];
+    'click',
+    'dblclick',
+    'contextmenu',
+    'mousedown',
+    'mouseleave',
+    'mouseenter',
+    'touchstart',
+    'touchmove',
+    'touchend',
+    'touchcancel',
+    'wheel',
+    'blur',
+    'focus',
+    'keydown',
+    'keyup',
+] as const;
 
 type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = PreventableEvent & {
     type: T;
@@ -191,8 +191,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         this.destroyFns.push(
-            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseenter', this.overlayEventHandler),
-            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseleave', this.overlayEventHandler)
+            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseover', this.overlayEventHandler),
+            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseout', this.overlayEventHandler)
         );
 
         this.containerChanged(true);
@@ -259,15 +259,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private processCanvasOverlayEvent(event: SupportedEvent) {
+        const target = event.target as HTMLElement;
+        if (target?.matches('[data-pointer-exclusive], [data-pointer-exclusive] *') === false) return;
+
         let isOverCanvasOverlay: boolean;
         switch (event.type) {
-            case 'mouseenter':
-            case 'touchstart':
+            case 'mouseover':
                 isOverCanvasOverlay = true;
                 break;
 
-            case 'mouseleave':
-            case 'touchcancel':
+            case 'mouseout':
                 isOverCanvasOverlay = false;
                 break;
 

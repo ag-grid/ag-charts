@@ -362,9 +362,9 @@ export abstract class Chart extends Observable {
             ),
             horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
-            seriesRegion.addListener('leave', (event) => this.onLeave(event)),
-            horizontalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
-            verticalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
+            seriesRegion.addListener('leave', () => this.onLeave()),
+            horizontalAxesRegion.addListener('leave', () => this.onLeave()),
+            verticalAxesRegion.addListener('leave', () => this.onLeave()),
             seriesRegion.addListener('blur', () => this.onBlur()),
             seriesRegion.addListener('tab', (event) => this.onTab(event)),
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
@@ -373,8 +373,6 @@ export abstract class Chart extends Observable {
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), All),
             ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
-            ctx.interactionManager.addListener('enter', () => this.update(ChartUpdateType.SCENE_RENDER)),
-            ctx.interactionManager.addListener('leave', (event) => this.onLeave(event, true)),
             ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
 
             ctx.animationManager.addListener('animation-frame', () => {
@@ -1136,10 +1134,7 @@ export abstract class Chart extends Observable {
         this.update(ChartUpdateType.SCENE_RENDER);
     }
 
-    protected onLeave(event: PointerInteractionEvent<'leave'>, force = false): void {
-        const el = event.relatedElement;
-        if (!force && el && this.ctx.domManager.isManagedDOMElement(el)) return;
-
+    protected onLeave(): void {
         this.resetPointer();
         this.update(ChartUpdateType.SCENE_RENDER);
         this.ctx.cursorManager.updateCursor('chart');
