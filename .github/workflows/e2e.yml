@@ -24,10 +24,43 @@ jobs:
     init:
         runs-on: ubuntu-latest
         name: initialisation
+        outputs:
+            nx_base: ${{ steps.nx_config.outputs.base }}
         steps:
+            - id: status
+              name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: format
+                  status: in_progress
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Nx Affected SHA Setup
+              id: nx_config
+              run: |
+                  branch=$(git branch --show-current)
+                  if [[ ${branch} == 'latest' ]] ; then
+                    # Latest
+                    echo "base=latest-e2e-success" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=latest-e2e-success" >> $GITHUB_ENV
+                    echo "type=latest" >> $GITHUB_OUTPUT
+                    git fetch origin latest-e2e-success
+                  elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
+                    # Release
+                    echo "base=${branch}" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                    echo "type=release" >> $GITHUB_OUTPUT
+                  else
+                    # PR
+                    echo "base=origin/latest" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=origin/latest" >> $GITHUB_ENV
+                    echo "type=pr" >> $GITHUB_OUTPUT
+                    git fetch origin latest
+                  fi
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -76,6 +109,13 @@ jobs:
                   path: |
                       dist/
                       packages/*/dist/
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  check_id: ${{ steps.status.outputs.check_id }}
+                  conclusion: ${{job.status}}
 
     e2e:
         runs-on: ubuntu-latest
@@ -87,7 +127,15 @@ jobs:
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
+            - id: status
+              name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: e2e test (${{ matrix.shard }}/${{ strategy.job-total }})
+                  status: in_progress
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
@@ -132,6 +180,13 @@ jobs:
                   name: test-results-e2e-shard-${{matrix.shard}}
                   path: |
                       reports/
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v1.6.1
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  check_id: ${{ steps.status.outputs.check_id }}
+                  conclusion: ${{job.status}}
 
     report:
         runs-on: ubuntu-latest

@@ -114,7 +114,7 @@
     },
     "test:e2e": {
       "dependsOn": ["^build", "generate-examples"],
-      "inputs": ["{projectRoot}/playwright.config.ts", "{projectRoot}/e2e/**"],
+      "inputs": ["{projectRoot}/playwright.config.ts", "{projectRoot}/e2e/**", { "env": "NX_BASE" }],
       "outputs": [],
       "command": "npx playwright test",
       "options": {
