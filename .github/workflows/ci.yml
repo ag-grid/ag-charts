@@ -222,7 +222,7 @@ jobs:
         if: needs.execute_blt.outputs.test_count > 0
         strategy:
             matrix:
-                shard: [0, 1, 2, 3, 4]
+                shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
