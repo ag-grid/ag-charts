@@ -1,14 +1,14 @@
 /********
 * RESET *
 ********/
-.ag-charts-root,
-.ag-charts-root:focus,
-.ag-charts-root:after,
-.ag-charts-root:before,
-.ag-charts-root *,
-.ag-charts-root *:focus,
-.ag-charts-root *:after,
-.ag-charts-root *:before {
+.ag-charts-wrapper,
+.ag-charts-wrapper:focus,
+.ag-charts-wrapper:after,
+.ag-charts-wrapper:before,
+.ag-charts-wrapper *,
+.ag-charts-wrapper *:focus,
+.ag-charts-wrapper *:after,
+.ag-charts-wrapper *:before {
     box-sizing: border-box;
     outline: none;
 }
@@ -78,7 +78,7 @@
     --ag-charts-size: var(--ag-grid-size, 8px);
 
     /* Borders */
-    --ag-charts-border: var(--ag-borders, solid 1px);
+    --ag-charts-border: var(--ag-charts-border-color) var(--ag-borders, solid 1px);
     --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
 
     /* Layout */
@@ -125,7 +125,7 @@
 
     /* Focus Indicator */
     --ag-charts-focus-border-color: var(--ag-input-focus-border-color, var(--ag-charts-active-color));
-    --ag-charts-focus-border: solid 2px var(--ag-charts-focus-border-color);
+    --ag-charts-focus-border: solid 1px var(--ag-charts-focus-border-color);
     --ag-charts-focus-border-shadow: var(
         --ag-input-focus-box-shadow,
         0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 47%)

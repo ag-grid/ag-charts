@@ -50,7 +50,7 @@
 
 .ag-charts-color-picker__palette:active,
 .ag-charts-color-picker__palette:focus {
-    outline: 1px solid var(--ag-charts-active-color);
+    outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
 
@@ -96,7 +96,7 @@
 .ag-charts-color-picker__hue-input:focus::before,
 .ag-charts-color-picker__alpha-input:active::before,
 .ag-charts-color-picker__alpha-input:focus::before {
-    outline: 1px solid var(--ag-charts-active-color);
+    outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
 
@@ -136,7 +136,7 @@
 
 .ag-charts-color-picker__color-field {
     display: flex;
-    border: 1px solid var(--ag-charts-border-color);
+    border: var(--ag-charts-border);
     background: var(--ag-charts-background-color);
     border-radius: 4px;
     overflow: hidden;
