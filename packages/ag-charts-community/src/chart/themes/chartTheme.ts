@@ -418,7 +418,7 @@ export class ChartTheme {
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke
         );
-        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
 

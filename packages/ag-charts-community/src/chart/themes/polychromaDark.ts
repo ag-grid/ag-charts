@@ -99,7 +99,7 @@ export class PolychromaDark extends DarkTheme {
             PolychromaDark.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
 
         return params;

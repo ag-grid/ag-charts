@@ -100,7 +100,7 @@ export class VividDark extends DarkTheme {
             VividDark.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_DARK_FILLS.BLUE);
 
         return params;

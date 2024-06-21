@@ -101,7 +101,7 @@ export class MaterialLight extends ChartTheme {
             MaterialLight.getWaterfallSeriesDefaultTotalColors().stroke
         );
 
-        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
 
         return params;
