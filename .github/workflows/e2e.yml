@@ -180,9 +180,8 @@ jobs:
                   fi
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
-                  STATUSES=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s completed --json conclusion,status,headSha | jq -r '.[] | [.headSha," ",.conclusion] | add')
+                  STATUSES=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s completed --json conclusion,status | jq -r '.[] | .conclusion')
                   LAST_WORKFLOW_STATUS=$(echo "$STATUSES" | grep -v "cancelled" | head -1 | awk '{print $2}')
-                  LAST_SUCCESS_COMMIT=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s success --json headSha | jq -r '. | first | .headSha')
 
                   if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
                     # Handle re-run cases - there is no way to query the previous run status, so we assume the most
@@ -196,7 +195,6 @@ jobs:
                     echo "status is still $WORKFLOW_STATUS"
                     echo "changedState=false" >> $GITHUB_OUTPUT
                   fi
-                  echo "baseSha=${LAST_SUCCESS_COMMIT}" >> $GITHUB_OUTPUT
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -204,10 +202,17 @@ jobs:
               id: commits
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
-                  GIT_LOG=$(git log HEAD ^${{ steps.lastJobStatus.outputs.baseSha }} --format="%an (%h) %s")
+                  GIT_LOG=$(git log HEAD ^latest-e2e-success --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
+
+            - name: Tag Latest Successful Commit
+              if: success() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus == 'success'
+              uses: EndBug/latest-tag@latest
+              with:
+                  ref: latest-e2e-success
+                  description: Latest commit to pass GitHub Actions workflow on latest branch.
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
@@ -219,7 +224,7 @@ jobs:
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
                   SLACK_MESSAGE: >
-                      E2E: ${{ needs.e2e.outputs.build == 'success' && '✅' || needs.e2e.outputs.build == 'failure' && '❌' || 'NA' }}
+                      E2E: ${{ needs.e2e.result == 'success' && '✅' || needs.e2e.result== 'failure' && '❌' || 'NA' }}
 
                       *Changes:*
 

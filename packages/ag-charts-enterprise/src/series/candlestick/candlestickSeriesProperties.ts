@@ -1,9 +1,7 @@
 import type {
-    AgCandlestickSeriesBaseFormatterParams,
+    AgCandlestickSeriesBaseItemStylerParams,
     AgCandlestickSeriesBaseOptions,
-    AgCandlestickSeriesFormatterParams,
     AgCandlestickSeriesItemOptions,
-    AgCandlestickSeriesStyles,
     AgCandlestickSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
@@ -65,9 +63,6 @@ export class CandlestickSeriesItem extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgCandlestickSeriesFormatterParams<any>, AgCandlestickSeriesStyles>;
-
     @Validate(OBJECT)
     readonly wick = new CandlestickSeriesWick();
 }
@@ -86,8 +81,8 @@ export interface CandlestickSeriesBaseItems<T> {
 }
 
 export class CandlestickSeriesProperties<
-    T extends Omit<AgCandlestickSeriesBaseOptions, 'openKey'>,
-    StylerParams extends AgCandlestickSeriesBaseFormatterParams<unknown>,
+    T extends AgCandlestickSeriesBaseOptions,
+    StylerParams extends AgCandlestickSeriesBaseItemStylerParams<unknown>,
 > extends AbstractBarSeriesProperties<T> {
     @Validate(STRING)
     xKey!: string;
@@ -123,7 +118,7 @@ export class CandlestickSeriesProperties<
     lowName?: string;
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
 
     @Validate(OBJECT)
     readonly item: CandlestickSeriesBaseItems<any> = new CandlestickSeriesItems();

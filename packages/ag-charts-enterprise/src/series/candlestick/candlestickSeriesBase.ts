@@ -1,5 +1,5 @@
 import {
-    type AgCandlestickSeriesBaseFormatterParams,
+    type AgCandlestickSeriesBaseItemStylerParams,
     type AgCandlestickSeriesItemOptions,
     type AgCandlestickSeriesItemType,
     _ModuleSupport,
@@ -50,7 +50,7 @@ class CandlestickSeriesNodeEvent<
             any,
             any,
             CandlestickNodeBaseDatum,
-            AgCandlestickSeriesBaseFormatterParams<CandlestickNodeBaseDatum>
+            AgCandlestickSeriesBaseItemStylerParams<CandlestickNodeBaseDatum>
         >
     ) {
         super(type, nativeEvent, datum, series);
@@ -67,7 +67,7 @@ export abstract class CandlestickSeriesBase<
     TItemOptions extends AgCandlestickSeriesItemOptions,
     TSeriesOptions extends CandlestickSeriesProperties<any, TFormatterParams>,
     TNodeDatum extends CandlestickNodeBaseDatum,
-    TFormatterParams extends AgCandlestickSeriesBaseFormatterParams<TNodeDatum>,
+    TFormatterParams extends AgCandlestickSeriesBaseItemStylerParams<TNodeDatum>,
 > extends _ModuleSupport.AbstractBarSeries<TItemShapeGroup, TSeriesOptions, TNodeDatum> {
     protected override readonly NodeEvent = CandlestickSeriesNodeEvent;
 
@@ -423,10 +423,11 @@ export abstract class CandlestickSeriesBase<
             { title, content, backgroundColor: styles.stroke },
             {
                 seriesId: this.id,
+                highlighted: false,
                 datum,
                 ...styles,
                 xKey,
-                openKey: openKey ?? '',
+                openKey,
                 closeKey,
                 highKey,
                 lowKey,
@@ -519,7 +520,9 @@ export abstract class CandlestickSeriesBase<
         return this.getSeriesStyles(nodeDatum);
     }
 
-    protected abstract getFormatterParams(params: AgCandlestickSeriesBaseFormatterParams<TNodeDatum>): TFormatterParams;
+    protected abstract getFormatterParams(
+        params: AgCandlestickSeriesBaseItemStylerParams<TNodeDatum>
+    ): TFormatterParams;
     protected abstract getSeriesStyles(_nodeDatum: TNodeDatum): TItemOptions;
     protected abstract getActiveStyles(nodeDatum: TNodeDatum, highlighted: boolean): TItemOptions;
 }

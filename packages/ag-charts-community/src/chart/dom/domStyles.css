@@ -95,11 +95,12 @@
     --ag-charts-toolbar-size: 34px;
     --ag-charts-toolbar-size-small: 24px;
     --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
-    --ag-charts-toolbar-focus-color: color-mix(
+    --ag-charts-toolbar-hover-color: color-mix(
         in srgb,
         var(--ag-charts-background-color),
         var(--ag-charts-active-color) 12%
     );
+    --ag-charts-toolbar-focus-color: var(--ag-charts-active-color);
     --ag-charts-toolbar-active-color: color-mix(
         in srgb,
         var(--ag-charts-background-color),

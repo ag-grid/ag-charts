@@ -1,6 +1,8 @@
-import type { AgChartCallbackParams, Styler } from '../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../chart/callbackOptions';
 import type { MarkerShape, PixelSize } from '../chart/types';
 import type { FillOptions, StrokeOptions } from './cartesian/commonOptions';
+
+export type AgSeriesMarkerStylerParams<TDatum> = DatumCallbackParams<TDatum> & AgSeriesMarkerStyle;
 
 export interface AgSeriesMarkerStyle extends FillOptions, StrokeOptions {
     /** The size in pixels of the markers. */
@@ -9,15 +11,11 @@ export interface AgSeriesMarkerStyle extends FillOptions, StrokeOptions {
     shape?: MarkerShape;
 }
 
-export interface AgSeriesMarkerFormatterParams<TDatum> extends AgChartCallbackParams<TDatum>, AgSeriesMarkerStyle {
-    highlighted: boolean;
-}
-
 export interface AgSeriesMarkerOptions<TDatum, TParams> extends AgSeriesMarkerStyle {
     /** Whether to show markers. */
     enabled?: boolean;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgSeriesMarkerFormatterParams<TDatum> & TParams, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgSeriesMarkerStylerParams<TDatum> & TParams, AgSeriesMarkerStyle>;
 }
 
 export interface ISeriesMarker<TDatum, TParams> extends AgSeriesMarkerOptions<TDatum, TParams> {

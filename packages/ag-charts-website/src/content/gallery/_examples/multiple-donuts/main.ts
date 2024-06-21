@@ -4,9 +4,9 @@ import { getData } from './data';
 
 const data = getData();
 const tooltip = {
-    renderer: ({ datum, angleKey }: AgPieSeriesTooltipRendererParams) => ({
-        content: `${datum[angleKey]} Litres`,
-    }),
+    renderer({ datum, angleKey }: AgPieSeriesTooltipRendererParams) {
+        return { content: `${datum[angleKey]} Litres` };
+    },
 };
 
 const options: AgChartOptions = {
@@ -26,12 +26,8 @@ const options: AgChartOptions = {
             outerRadiusRatio: 0.8,
             innerRadiusRatio: 0.6,
             fillOpacity: 0.5,
-            itemStyler: ({ datum, fills }) => {
-                const index = datum['index'];
-                const colorIndex = index < 9 ? 0 : 1;
-                return {
-                    fill: fills[colorIndex],
-                };
+            itemStyler({ datum }) {
+                return { fill: datum['index'] < 9 ? '#5090dc' : '#ffa03a' };
             },
             tooltip,
         },
@@ -43,12 +39,8 @@ const options: AgChartOptions = {
             outerRadiusRatio: 0.6,
             innerRadiusRatio: 0.4,
             fillOpacity: 0.8,
-            itemStyler: ({ datum, fills }) => {
-                const index = datum['index'];
-                const colorIndex = index < 3 ? 0 : 1;
-                return {
-                    fill: fills[colorIndex],
-                };
+            itemStyler({ datum }) {
+                return { fill: datum['index'] < 3 ? '#5090dc' : '#ffa03a' };
             },
             tooltip,
         },

@@ -1,5 +1,5 @@
 import type {
-    AgBarSeriesFormatterParams,
+    AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
@@ -78,7 +78,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     crisp?: boolean = undefined;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgBarSeriesFormatterParams<any>, AgBarSeriesStyle>;
+    itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
 
     @Validate(OBJECT, { optional: true })
     readonly shadow = new DropShadow();

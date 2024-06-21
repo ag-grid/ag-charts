@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams } from 'ag-charts-enterprise';
 
 import { getData, getData2 } from './data';
 
@@ -14,7 +14,7 @@ const highlightStyle = {
     series: { dimOpacity: 0.3 },
 };
 
-const itemStyler = (param: AgErrorBarFormatterParams<any>) => {
+const itemStyler = (param: AgErrorBarItemStylerParams<any>) => {
     const errorBarStyle = { strokeWidth: 3 };
     if (param.highlighted) {
         return { ...errorBarStyle, ...highlightStyle.item };

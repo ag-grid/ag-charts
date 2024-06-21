@@ -6,7 +6,7 @@ on:
             version:
                 type: string
                 required: true
-                default: '9.3.0'
+                default: '10.0.0'
             type:
                 type: 'choice'
                 required: true
@@ -50,12 +50,6 @@ jobs:
               run: |
                   yarn install --ignore-scripts
 
-            - name: Merge Latest
-              id: merge_branch
-              if: ${{ github.event.inputs.type == 'update' }}
-              run: |
-                  git merge origin/latest
-
             - name: Reset Package Version
               id: reset_version
               if: ${{ github.event.inputs.type == 'create' }}
@@ -77,9 +71,16 @@ jobs:
                   echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
                   echo "tag=b${NEW_VERSION}" >> $GITHUB_OUTPUT
 
+            - name: Sync README.md Changes
+              id: update_readme
+              run: ./tools/readme/sync-readme.js
+
             - name: Commit Changes
               id: commit_changes
               run: |
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git add .
                   git commit -m "Release prep for ${{ steps.update_version.outputs.version }}."
                   git push -f origin ${BRANCH_NAME}
