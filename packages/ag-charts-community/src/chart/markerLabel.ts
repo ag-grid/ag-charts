@@ -7,10 +7,11 @@ import type { Line } from '../scene/shape/line';
 import { Text } from '../scene/shape/text';
 import { arraysEqual } from '../util/array';
 import { ProxyPropertyOnWrite } from '../util/proxy';
+import type { CategoryLegendDatum } from './legendDatum';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
 
-export class MarkerLabel extends Group {
+export class MarkerLabel extends Group<CategoryLegendDatum | undefined> {
     static override readonly className = 'MarkerLabel';
 
     private readonly label = new Text();

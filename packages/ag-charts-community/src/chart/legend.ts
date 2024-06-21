@@ -14,7 +14,7 @@ import type {
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
-import { RedrawType } from '../scene/node';
+import { Node, RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
@@ -301,7 +301,7 @@ export class Legend extends BaseProperties {
     }
 
     private initLegendItemToolbar() {
-        this.itemSelection.each((markerLabel, _, i) => {
+        this.itemSelection.each((markerLabel, datum, i) => {
             // Create the hidden CSS button.
             markerLabel.proxyCheckbox ??= this.ctx.proxyInteractionService.createProxyElement({
                 type: 'checkbox',
@@ -309,11 +309,11 @@ export class Legend extends BaseProperties {
                 ariaLabel: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
                 focusable: markerLabel,
-                checked: markerLabel.datum.enabled,
+                checked: datum.enabled,
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => this.doClick(markerLabel.datum, markerLabel.proxyCheckbox),
+                onclick: () => this.doClick(markerLabel),
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
                     const bounds = markerLabel?.computeTransformedBBox();
@@ -902,7 +902,8 @@ export class Legend extends BaseProperties {
             strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
         };
     }
-    private getDatumForPoint(x: number, y: number): CategoryLegendDatum | undefined {
+
+    private getMarkerLabelForPoint(x: number, y: number): MarkerLabel | undefined {
         const visibleChildBBoxes: BBox[] = [];
         const closestLeftTop = { dist: Infinity, datum: undefined as any };
         for (const child of this.group.children) {
@@ -913,7 +914,7 @@ export class Legend extends BaseProperties {
             childBBox.grow(this.item.paddingX / 2, 'horizontal');
             childBBox.grow(this.item.paddingY / 2, 'vertical');
             if (childBBox.containsPoint(x, y)) {
-                return child.datum;
+                return child;
             }
 
             const distX = x - childBBox.x - this.item.paddingX / 2;
@@ -951,18 +952,25 @@ export class Legend extends BaseProperties {
         return actualBBox;
     }
 
+    private getMarkerLabelForContextMenuEvent(params: AgChartLegendContextMenuEvent): MarkerLabel | undefined {
+        const markerLabel = this.itemSelection.select<MarkerLabel>(
+            (node: Node<CategoryLegendDatum | undefined>): node is MarkerLabel => {
+                return node.datum?.itemId === params.itemId;
+            }
+        );
+        return markerLabel[0];
+    }
+
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
-        const datum = this.data.find((v) => v.itemId === params.itemId);
-        this.doClick(datum);
+        this.doClick(this.getMarkerLabelForContextMenuEvent(params));
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
-        const datum = this.data.find((v) => v.itemId === params.itemId);
-        this.doDoubleClick(datum);
+        this.doDoubleClick(this.getMarkerLabelForContextMenuEvent(params));
     }
 
     private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
-        const legendItem = this.getDatumForPoint(event.offsetX, event.offsetY);
+        const legendItem = this.getMarkerLabelForPoint(event.offsetX, event.offsetY)?.datum;
 
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
@@ -974,8 +982,8 @@ export class Legend extends BaseProperties {
     }
 
     private checkLegendClick(event: PointerInteractionEvent<'click'>) {
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
-        if (this.doClick(datum)) {
+        const markerLabel = this.getMarkerLabelForPoint(event.offsetX, event.offsetY);
+        if (this.doClick(markerLabel)) {
             event.preventDefault();
         }
     }
@@ -984,7 +992,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum | undefined, checkbox?: HTMLInputElement): boolean {
+    private doClick(markerLabel: MarkerLabel | undefined): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -992,7 +1000,8 @@ export class Legend extends BaseProperties {
             toggleSeries,
         } = this;
 
-        if (!datum) {
+        const { datum, proxyCheckbox } = markerLabel ?? {};
+        if (!datum || !proxyCheckbox) {
             return false;
         }
 
@@ -1013,7 +1022,7 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            if (checkbox) checkbox.ariaChecked = `${newEnabled}`;
+            proxyCheckbox.ariaChecked = `${newEnabled}`;
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -1034,13 +1043,13 @@ export class Legend extends BaseProperties {
     }
 
     private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
-        if (this.doDoubleClick(datum)) {
+        const markerLabel = this.getMarkerLabelForPoint(event.offsetX, event.offsetY);
+        if (this.doDoubleClick(markerLabel)) {
             event.preventDefault();
         }
     }
 
-    private doDoubleClick(datum: CategoryLegendDatum | undefined): boolean {
+    private doDoubleClick(markerLabel: MarkerLabel | undefined): boolean {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
@@ -1052,7 +1061,8 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        if (!datum) {
+        const { datum, proxyCheckbox } = markerLabel ?? {};
+        if (!datum || !proxyCheckbox) {
             return false;
         }
 
@@ -1067,11 +1077,13 @@ export class Legend extends BaseProperties {
             const numVisibleItems = legendData.filter((d) => d.enabled).length;
 
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
+            const enabled = clickedItem?.enabled ?? false;
 
+            proxyCheckbox.checked = enabled;
             this.ctx.chartEventManager.legendItemDoubleClick(
                 series,
                 itemId,
-                clickedItem?.enabled ?? false,
+                enabled,
                 numVisibleItems,
                 clickedItem?.legendItemName
             );
@@ -1091,7 +1103,7 @@ export class Legend extends BaseProperties {
         const { offsetX, offsetY } = event;
         event.preventDefault();
 
-        const datum = this.getDatumForPoint(offsetX, offsetY);
+        const datum = this.getMarkerLabelForPoint(offsetX, offsetY)?.datum;
         this.doHover(event, datum);
     }
 
@@ -1154,7 +1166,7 @@ export class Legend extends BaseProperties {
             toggleSeries,
             listeners: { legendItemClick: clickListener, legendItemDoubleClick: dblclickListener },
         } = this;
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        const datum = this.getMarkerLabelForPoint(event.offsetX, event.offsetY)?.datum;
         if (enabled && datum !== undefined && (toggleSeries || clickListener != null || dblclickListener != null)) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
