@@ -202,6 +202,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
     );
     protected readonly crossLineGroup = new Group({ name: `${this.id}-CrossLines` });
+    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: Layers.SERIES_ANNOTATION_ZINDEX });
 
     readonly gridGroup = new Group({ name: `${this.id}-Axis-grid` });
     protected readonly gridLineGroup = this.gridGroup.appendChild(
@@ -365,12 +366,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         gridNode.appendChild(this.gridGroup);
         axisNode.appendChild(this.axisGroup);
         axisNode.appendChild(this.crossLineGroup);
+        axisNode.appendChild(this.labelGroup);
+    }
+
+    attachLabel(axisLabelNode: Node) {
+        this.labelGroup.append(axisLabelNode);
     }
 
     detachAxis(axisNode: Node, gridNode: Node) {
         gridNode.removeChild(this.gridGroup);
         axisNode.removeChild(this.axisGroup);
         axisNode.removeChild(this.crossLineGroup);
+        axisNode.removeChild(this.labelGroup);
     }
 
     getAxisGroup(): Group {
@@ -1527,6 +1534,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 ? (val) => scale.invertNearest?.(val)
                 : (val) => scale.invert?.(val),
             scaleInvertNearest: (val) => scale.invertNearest?.(val),
+            attachLabel: (node: Node) => this.attachLabel(node),
         };
     }
 
