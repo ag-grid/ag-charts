@@ -121,7 +121,9 @@
         "cwd": "packages/ag-charts-website"
       },
       "configurations": {
-        "watch": {}
+        "update": {
+          "command": "npx playwright test -u"
+        }
       }
     },
     "lint": {
