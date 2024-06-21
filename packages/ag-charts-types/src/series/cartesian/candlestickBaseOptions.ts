@@ -1,9 +1,13 @@
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgSeriesFormatterParams, AxisOptions, StrokeOptions } from './commonOptions';
+import type { DatumCallbackParams } from '../../chart/callbackOptions';
+import type { StrokeOptions } from './commonOptions';
 
 export type AgCandlestickSeriesItemType = 'up' | 'down';
 
-export interface AgCandlestickSeriesBaseOptions {
+export type AgCandlestickSeriesBaseOptions = AgCandlestickSeriesOptionsKeys & AgCandlestickSeriesOptionsNames;
+
+export interface AgCandlestickSeriesOptionsKeys {
+    /** xKey as specified on series options. */
+    xKey: string;
     /** The key to use to retrieve open values from the data. */
     openKey: string;
     /** The key to use to retrieve close values from the data. */
@@ -12,6 +16,13 @@ export interface AgCandlestickSeriesBaseOptions {
     highKey: string;
     /** The key to use to retrieve low values from the data. */
     lowKey: string;
+}
+
+export interface AgCandlestickSeriesOptionsNames {
+    /** xName as specified on series options. */
+    xName?: string;
+    /** yName as specified on series options. */
+    yName?: string;
     /** A human-readable description of open values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     openName?: string;
     /** A human-readable description of close values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -22,16 +33,13 @@ export interface AgCandlestickSeriesBaseOptions {
     lowName?: string;
 }
 
-export type AgCandlestickSeriesBaseFormatterParams<TDatum> = AgSeriesFormatterParams<TDatum> &
-    Readonly<
-        AgCandlestickSeriesBaseOptions &
-            Omit<AxisOptions, 'yKey'> &
-            StrokeOptions & {
-                /** Identifier showing whether the data element is rising (`up`) or falling (`down`). */
-                itemId: AgCandlestickSeriesItemType;
-                highlighted: boolean;
-            }
-    >;
+export type AgCandlestickSeriesBaseItemStylerParams<TDatum> = DatumCallbackParams<TDatum, AgCandlestickSeriesItemType> &
+    AgCandlestickSeriesOptionsKeys &
+    StrokeOptions;
 
-export interface AgCandlestickSeriesBaseTooltipRendererParams
-    extends Omit<AgCartesianSeriesTooltipRendererParams, 'yKey'> {}
+export type AgCandlestickSeriesBaseTooltipRendererParams<TDatum = unknown> = DatumCallbackParams<
+    TDatum,
+    AgCandlestickSeriesItemType
+> &
+    AgCandlestickSeriesOptionsKeys &
+    AgCandlestickSeriesOptionsNames;

@@ -32,6 +32,7 @@ export interface AgMapMarkerSeriesLabel<TDatum>
     extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams> {
     /**
      * Placement of label in relation to the marker.
+     *
      * Default: `bottom`
      */
     placement?: LabelPlacement;
@@ -63,6 +64,7 @@ export interface AgMapMarkerSeriesOptions<TDatum = any>
     topology?: GeoJSON;
     /**
      * The property to reference in the topology to match up with data.
+     *
      * Default: `name`
      */
     topologyIdKey?: string;

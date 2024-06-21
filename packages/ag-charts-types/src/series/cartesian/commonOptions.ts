@@ -71,17 +71,6 @@ export interface Toggleable {
 }
 
 export interface Visible {
+    /** Whether the element should be visible. */
     visible?: boolean;
-}
-
-/**
- * Represents parameters for formatting data in a chart series.
- */
-export interface AgSeriesFormatterParams<TDatum> {
-    /** The data point associated with the series. */
-    readonly datum: TDatum;
-    /** The unique identifier of the series. */
-    readonly seriesId: string;
-    /** Indicates whether the element is highlighted. */
-    readonly highlighted: boolean;
 }

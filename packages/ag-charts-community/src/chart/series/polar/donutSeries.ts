@@ -1,4 +1,4 @@
-import type { AgDonutSeriesFormat } from 'ag-charts-types';
+import type { AgDonutSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -84,7 +84,7 @@ interface DonutNodeDatum extends SeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: { [key in keyof Required<AgDonutSeriesFormat>]: AgDonutSeriesFormat[key] };
+    readonly sectorFormat: { [key in keyof Required<AgDonutSeriesStyle>]: AgDonutSeriesStyle[key] };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
@@ -469,17 +469,17 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             }
         );
 
-        let format: AgDonutSeriesFormat | undefined;
+        let format: AgDonutSeriesStyle | undefined;
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
                 datum,
                 angleKey,
                 radiusKey,
-                fill,
+                fill: fill!,
+                fillOpacity,
                 stroke,
-                fills,
-                strokes,
                 strokeWidth,
+                strokeOpacity,
                 highlighted: isDatumHighlighted,
                 seriesId: this.id,
             });

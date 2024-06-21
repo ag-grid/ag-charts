@@ -1,17 +1,27 @@
 import type {
     FillOptions,
+    FontOptions,
     LineDashOptions,
     StrokeOptions,
     Toggleable,
     Visible,
 } from '../series/cartesian/commonOptions';
+import type { Formatter } from './callbackOptions';
+import type { PixelSize } from './types';
 
 // --- Theme ---
 export interface AgAnnotationsThemeableOptions {
+    axesButtons?: AgAnnotationAxesButtons;
     line?: AgLineAnnotationStyles;
-    'cross-line'?: AgLineAnnotationStyles;
+    'horizontal-line'?: AgLineAnnotationStyles;
+    'vertical-line'?: AgLineAnnotationStyles;
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
+}
+
+export interface AgAnnotationAxesButtons extends Toggleable {
+    /** Axes which the buttons belong to. */
+    axes?: 'x' | 'y' | 'xy';
 }
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -26,13 +36,14 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 
 // --- Options ---
 export interface AgAnnotationsOptions extends Toggleable {
-    /** The initial set of annotations to display. */
-    initial?: AgAnnotation[];
+    /** The options for the axes buttons */
+    axesButtons?: AgAnnotationAxesButtons;
 }
 
 export type AgAnnotation =
     | AgLineAnnotation
-    | AgCrossLineAnnotation
+    | AgHorizontalLineAnnotation
+    | AgVerticalLineAnnotation
     | AgDisjointChannelAnnotation
     | AgParallelChannelAnnotation;
 
@@ -47,10 +58,32 @@ export interface AgLineAnnotation
     type: 'line';
 }
 
+export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
+    type: 'horizontal-line';
+}
+
+export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
+    type: 'vertical-line';
+}
+
 export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
-    type: 'cross-line';
-    direction: 'horizontal' | 'vertical';
-    value: string | number | Date;
+    value: AgAnnotationValue;
+    axisLabel?: AgAnnotationAxisLabel;
+}
+
+export interface AgAnnotationAxisLabel extends FillOptions, StrokeOptions, LineDashOptions, AgAnnotationLabelOptions {
+    /** Apply rounded corners to the axis label container. */
+    cornerRadius?: PixelSize;
+}
+
+export interface AgAnnotationLabelOptions extends Toggleable, FontOptions {
+    /** A custom formatting function used to convert values into text for display by labels. */
+    formatter?: Formatter<AgAnnotationLabelFormatterParams>;
+}
+
+export interface AgAnnotationLabelFormatterParams {
+    /** The default label value that would have been used without a formatter. */
+    value: any;
 }
 
 export interface AgParallelChannelAnnotation
@@ -95,7 +128,7 @@ interface AnnotationLinePoints {
 
 export interface AgAnnotationPoint {
     /** The x-value of the point. */
-    x: string | number | Date;
+    x: AgAnnotationValue;
     /** The y-value of the point. */
     y: number;
 }
@@ -103,6 +136,7 @@ export interface AgAnnotationPoint {
 interface Lockable {
     /**
      * Whether the annotation should be locked to prevent editing.
+     *
      * Default: `false`
      */
     locked?: boolean;
@@ -119,3 +153,10 @@ interface Cappable {
 }
 
 export type Cap = 'arrow' | 'circle';
+
+export type AgAnnotationValue = string | number | AgStateSerializableDate;
+
+export interface AgStateSerializableDate {
+    __type: 'date';
+    value: string | number;
+}

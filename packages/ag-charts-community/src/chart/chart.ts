@@ -1040,12 +1040,11 @@ export abstract class Chart extends Observable {
         ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
         ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
 
-        const modulePromises = this.modulesManager.mapModules(async (m) => {
+        for (const m of this.modulesManager.modules()) {
             if (m.performLayout != null) {
                 ctx = await m.performLayout(ctx);
             }
-        });
-        await Promise.all(modulePromises);
+        }
 
         return ctx.shrinkRect;
     }
@@ -1657,6 +1656,7 @@ export abstract class Chart extends Observable {
             'axes',
             'topology',
             'nodes',
+            'initialState',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1722,6 +1722,23 @@ export abstract class Chart extends Observable {
             forceNodeDataRefresh,
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+    }
+
+    applyInitialState() {
+        const {
+            ctx: { annotationManager, stateManager },
+        } = this;
+
+        const options = this.getOptions();
+
+        if (options.initialState?.annotations != null) {
+            const annotations = options.initialState.annotations.map((annotation) => {
+                const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
+                return mergeDefaults(annotation, annotationTheme);
+            });
+
+            stateManager.setState(annotationManager, annotations);
+        }
     }
 
     private maybeResetAnimations(seriesStatus: SeriesChangeType) {

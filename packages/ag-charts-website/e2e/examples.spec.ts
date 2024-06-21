@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 import { execSync } from 'child_process';
 import * as glob from 'glob';
 
-const baseUrl = 'https://localhost:4601';
-const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'];
+import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
+
 const ignorePages = ['benchmarks', /.*-test/];
 const notServedGalleryExamples = [
     'time-axis-with-irregular-intervals',
@@ -29,7 +29,7 @@ const notServedGalleryExamples = [
     '100--stacked-bar',
 ];
 
-function toPageUrls(path: string) {
+function convertPageUrls(path: string) {
     const astroPath = path.split('content/').at(1)!;
     const [pagePath, examplePath] = astroPath.split('/_examples/');
     const example = examplePath.replace(/\/[a-zA-Z-]+\.ts$/, '');
@@ -40,7 +40,7 @@ function toPageUrls(path: string) {
             status = '404';
         }
 
-        return [{ fw: 'vanilla', url: `${baseUrl}/${pagePath}/examples/${example}`, status, pagePath, example }];
+        return toGalleryPageUrls(example).map((r) => ({ ...r, status, pagePath }));
     }
     const page = pagePath.replace(/^docs\//, '');
 
@@ -48,41 +48,11 @@ function toPageUrls(path: string) {
         status = 'skip';
     }
 
-    return fws.map((fw) => ({ fw, url: `${baseUrl}/${fw}/${page}/examples/${example}`, status, pagePath, example }));
+    return toExamplePageUrls(page, example).map((r) => ({ ...r, status, pagePath }));
 }
 
 test.describe('examples', () => {
-    let consoleWarnOrErrors: string[];
-    let ignore404s = false;
-
-    test.beforeEach(({ page }) => {
-        consoleWarnOrErrors = [];
-        ignore404s = false;
-
-        page.on('console', (msg) => {
-            // We only care about warnings/errors.
-            if (msg.type() !== 'warning' && msg.type() !== 'error') return;
-
-            // We don't care about the AG Charts license error message.
-            if (msg.text().startsWith('*')) return;
-
-            // Ignore 404s when expected
-            if (/the server responded with a status of 404 \(Not Found\)/.test(msg.text())) {
-                if (ignore404s) return;
-                if (msg.location().url.includes('/favicon.ico')) return;
-            }
-
-            consoleWarnOrErrors.push(msg.text());
-        });
-
-        page.on('pageerror', (err) => {
-            consoleWarnOrErrors.push(err.message);
-        });
-    });
-
-    test.afterEach(() => {
-        expect(consoleWarnOrErrors).toHaveLength(0);
-    });
+    const config = setupIntrinsicAssertions();
 
     let examples = glob.glob.sync('./src/content/**/_examples/*/main.ts');
     if (process.env.NX_BASE) {
@@ -99,33 +69,19 @@ test.describe('examples', () => {
     }
 
     for (const example of examples) {
-        const testUrls = toPageUrls(example);
+        const testUrls = convertPageUrls(example);
         for (const { url, status, fw, pagePath, example: exampleName } of testUrls) {
             test.describe(`Framework: ${fw}`, () => {
                 test.describe(`Example ${pagePath}: ${exampleName}`, () => {
                     if (status === 'ok') {
                         test(`should load ${url}`, async ({ page }) => {
-                            await page.goto(url);
-                            await page.waitForLoadState('domcontentloaded');
-
-                            expect(await page.title()).not.toMatch(/Page Not Found/);
-
-                            // Wait for synchronous JS execution to complete before we start waiting
-                            // for <canvas/> to appear.
-                            await page.evaluate(() => 1);
-                            await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10_000 });
-                            for (const elements of await page.locator('canvas').all()) {
-                                await expect(elements).toBeVisible();
-                            }
-                            for (const elements of await page.locator('.ag-charts-wrapper').all()) {
-                                await expect(elements).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
-                            }
+                            await gotoExample(page, url);
                         });
                     }
 
                     if (status === '404') {
                         test(`should 404 on ${url}`, async ({ page }) => {
-                            ignore404s = true;
+                            config.ignore404s = true;
                             await page.goto(url);
                             expect(await page.title()).toMatch(/Page Not Found/);
                         });

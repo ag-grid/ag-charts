@@ -1,8 +1,8 @@
-import type { AgChartOptions, AgFinancialChartOptions, Preset } from 'ag-charts-types';
+import type { AgFinancialChartOptions, Preset } from 'ag-charts-types';
 
 import { candlestickVolumePreset } from './candlestickVolumePreset';
 
-export const PRESETS: { [K in Preset['type']]: (p: Preset & { type: K }) => AgChartOptions } = {
+export const PRESETS = {
     'candlestick-volume': candlestickVolumePreset,
 };
 

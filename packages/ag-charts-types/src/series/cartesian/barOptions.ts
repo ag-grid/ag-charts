@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
@@ -15,13 +15,10 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOp
     placement?: AgBarSeriesLabelPlacement;
 }
 
-export interface AgBarSeriesFormatterParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
+export interface AgBarSeriesItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
         AgBarSeriesOptionsKeys,
-        FillOptions,
-        StrokeOptions,
-        LineDashOptions {
-    readonly highlighted: boolean;
+        Required<AgBarSeriesStyle> {
     readonly stackGroup?: string;
 }
 
@@ -58,7 +55,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgBarSeriesFormatterParams<TDatum>, AgBarSeriesStyle>;
+    itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum>, AgBarSeriesStyle>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
 }

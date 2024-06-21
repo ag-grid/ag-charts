@@ -1,4 +1,4 @@
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, Preset } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
@@ -103,16 +103,11 @@ export abstract class AgCharts {
     public static createFinancialChart(options: AgFinancialChartOptions) {
         if (!isAgFinancialChartOptions(options)) throw new Error('AG Charts - unrecognized financial options type');
 
-        return this.create(processPreset(options)) as unknown as AgChartInstance<AgFinancialChartOptions>;
+        const presetOptions = PRESETS[options.type](options);
+        debug('>>> AgCharts.createFinancialChart() - applying preset', options, presetOptions);
+
+        return this.create(presetOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
     }
-}
-
-function processPreset(preset: Preset) {
-    const result = PRESETS[preset.type](preset);
-
-    debug('>>> AgCharts.processPreset() - applying preset', preset, result);
-
-    return result;
 }
 
 class AgChartsInternal {
@@ -178,6 +173,7 @@ class AgChartsInternal {
             // so we need to remove all queue items up to the last successfully applied item.
             const queueIdx = chartRef.queuedUserOptions.indexOf(userOptions) + 1;
             chartRef.queuedUserOptions.splice(0, queueIdx);
+            chartRef.applyInitialState();
         });
 
         return proxy;

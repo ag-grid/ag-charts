@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
-    AgErrorBarFormatterParams,
+    AgErrorBarItemStylerParams,
     AgErrorBarThemeableOptions,
     AgScatterSeriesOptions,
     AgScatterSeriesTooltipRendererParams,
@@ -696,7 +696,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply itemStyler as expected', async () => {
-        const itemStyler: Styler<AgErrorBarFormatterParams<any>, AgErrorBarThemeableOptions> = (params) => {
+        const itemStyler: Styler<AgErrorBarItemStylerParams<any>, AgErrorBarThemeableOptions> = (params) => {
             let stroke, cap;
             switch (params.datum[params.xKey]) {
                 case 'Jan':
@@ -757,7 +757,7 @@ describe('ErrorBars', () => {
                     ...SERIES_CANADA,
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
-                        itemStyler: (param: AgErrorBarFormatterParams<any>) => {
+                        itemStyler: (param: AgErrorBarItemStylerParams<any>) => {
                             result.push(param.highlighted);
                             return {};
                         },

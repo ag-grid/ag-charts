@@ -1,5 +1,5 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { getFunctionName, isFinancialCharts, removeFunctionKeyword } from './parser-utils';
+import { addBindingImports, getFunctionName, isFinancialCharts, removeFunctionKeyword } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 import { convertTemplate, getImport, indentTemplate } from './vue-utils';
 
@@ -19,6 +19,14 @@ function getImports(componentFileNames: string[], bindings): string[] {
     if (chartImport) {
         imports.push(chartImport);
     }
+
+    const skipModules = ["'ag-charts-community'", "'ag-charts-enterprise'"];
+    addBindingImports(
+        bindings.imports.filter((i) => !skipModules.includes(i.module) && !i.module.startsWith("'./")),
+        imports,
+        false,
+        true
+    );
 
     if (componentFileNames) {
         imports.push(...componentFileNames.map(getImport));

@@ -31,7 +31,7 @@ const annotations: AgToolbarOptions['annotations'] = {
             section: 'create',
         },
         {
-            icon: 'reset',
+            icon: 'delete',
             tooltip: 'toolbarAnnotationsClearAll',
             value: 'clear',
             section: 'tools',

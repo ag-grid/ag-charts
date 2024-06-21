@@ -19,7 +19,22 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                 },
             },
-            'cross-line': {
+            'horizontal-line': {
+                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                strokeWidth: 2,
+                strokeOpacity: 1,
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                },
+                axisLabel: {
+                    enabled: true,
+                    color: 'white',
+                    fill: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    fontSize: 12,
+                    padding: 8,
+                },
+            },
+            'vertical-line': {
                 stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                 strokeWidth: 2,
                 strokeOpacity: 1,

@@ -1,5 +1,10 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { convertFunctionToConstProperty, convertFunctionToProperty, isFinancialCharts } from './parser-utils';
+import {
+    addBindingImports,
+    convertFunctionToConstProperty,
+    convertFunctionToProperty,
+    isFinancialCharts,
+} from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
@@ -38,6 +43,14 @@ function getImports(componentFilenames: string[], bindings): string[] {
     } else if (bindings.chartSettings.enterprise) {
         imports.push(`import 'ag-charts-enterprise';`);
     }
+
+    const skipModules = ["'ag-charts-community'", "'ag-charts-enterprise'"];
+    addBindingImports(
+        bindings.imports.filter((i) => !skipModules.includes(i.module) && !i.module.startsWith("'./")),
+        imports,
+        false,
+        true
+    );
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
         imports.push(`import deepClone from 'deepclone';`);
@@ -183,12 +196,6 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
             ${wrapper}
         );
         `;
-    }
-
-    if (bindings.usesChartApi) {
-        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current$3');
-        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.$1(');
-        indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current');
     }
 
     return indexFile;

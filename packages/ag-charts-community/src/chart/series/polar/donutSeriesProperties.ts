@@ -1,8 +1,8 @@
 import type {
-    AgDonutSeriesFormat,
-    AgDonutSeriesFormatterParams,
+    AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
+    AgDonutSeriesStyle,
     AgDonutSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-types';
@@ -162,7 +162,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgDonutSeriesFormatterParams<any>, AgDonutSeriesFormat>;
+    itemStyler?: Styler<AgDonutSeriesItemStylerParams<unknown>, AgDonutSeriesStyle>;
 
     @Validate(DEGREE)
     rotation: number = 0;

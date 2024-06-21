@@ -1,3 +1,4 @@
+import type { AgInitialStateOptions } from '../api/initialStateOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
@@ -86,6 +87,7 @@ export interface AgChartCaptionOptions {
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
      * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
      * - `'never'` disables text wrapping.
+     *
      * Default: `'on-space'`
      */
     wrapping?: TextWrap;
@@ -116,16 +118,19 @@ export interface AgChartSyncOptions {
     groupId?: string;
     /**
      * Determines the axes to be synchronized across charts.
+     *
      * Default: `x`
      */
     axes?: 'x' | 'y' | 'xy';
     /**
      * Enables synchronization of node interactions across charts.
+     *
      * Default: `true`
      */
     nodeInteraction?: boolean;
     /**
      * Enables synchronization of zoom actions across charts.
+     *
      * Default: `true`
      */
     zoom?: boolean;
@@ -133,10 +138,12 @@ export interface AgChartSyncOptions {
 
 export interface AgKeyboardOptions {
     /** Toggles the keyboard navigation feature.
+     *
      * Default: `true`
      */
     enabled?: boolean;
     /** Allows setting the tabIndex of the chart canvas.
+     *
      * Default: `0`
      */
     tabIndex?: number;
@@ -149,11 +156,13 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     height?: PixelSize;
     /**
      * Sets the minimum height of the chart. Ignored if `height` is specified.
+     *
      * Default: `300`
      */
     minHeight?: PixelSize;
     /**
      * Sets the minimum width of the chart. Ignored if `width` is specified.
+     *
      * Default: `300`
      */
     minWidth?: PixelSize;
@@ -165,7 +174,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     background?: AgChartBackground;
     /** Configuration for the title shown at the top of the chart. */
     title?: AgChartCaptionOptions;
-    /** Configuration for the subtitle shown beneath the chart title. Note: a subtitle will only be shown if a title is also present. */
+    /** Configuration for the subtitle shown beneath the chart title.
+     * __Note:__ A subtitle will only be shown if a title is also present. */
     subtitle?: AgChartSubtitleOptions;
     /** Configuration for the footnote shown at the bottom of the chart. */
     footnote?: AgChartFooterOptions;
@@ -209,4 +219,6 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
     data?: TDatum[];
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
+    /** The initial state of the chart. This must be a serializable value. */
+    initialState?: AgInitialStateOptions;
 }

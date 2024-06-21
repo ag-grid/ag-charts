@@ -29,7 +29,9 @@ export type AgToolbarGroupPosition =
 export type AgToolbarGroupSize = 'small' | 'normal';
 
 export interface AgToolbarButton {
-    /** Section in which to group the button. */
+    /** Section name used for grouping of buttons.
+     *
+     * Adjacent buttons with the same section are grouped together.*/
     section?: string;
     /** Icon to display on the button. */
     icon?: AgIconName;

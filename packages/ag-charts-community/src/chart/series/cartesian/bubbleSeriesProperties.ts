@@ -2,8 +2,9 @@ import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
+    AgBubbleSeriesStyles,
     AgBubbleSeriesTooltipRendererParams,
-    AgSeriesMarkerStyle,
+    BubbleSeriesItemStylerParams,
     LabelPlacement,
     Styler,
 } from 'ag-charts-types';
@@ -124,8 +125,8 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.strokeOpacity')
     strokeOpacity!: number;
 
-    @ProxyProperty('marker.formatter', { optional: true })
-    itemStyler?: Styler<any, AgSeriesMarkerStyle>;
+    @ProxyProperty('marker.itemStyler', { optional: true })
+    itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyles>;
 
     @Validate(OBJECT)
     readonly label = new BubbleSeriesLabel();

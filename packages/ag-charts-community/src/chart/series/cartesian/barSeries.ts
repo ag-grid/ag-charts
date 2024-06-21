@@ -512,6 +512,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 stroke,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 highlighted: false,
+                cornerRadius: this.properties.cornerRadius,
+                crisp: Boolean(this.properties.crisp),
+                fillOpacity: this.properties.fillOpacity,
+                strokeOpacity: this.properties.strokeOpacity,
+                lineDash: this.properties.lineDash ?? [],
+                lineDashOffset: this.properties.lineDashOffset,
             });
         }
 

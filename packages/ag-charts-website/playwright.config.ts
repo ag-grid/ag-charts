@@ -15,7 +15,8 @@ export default defineConfig({
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: !!process.env.CI,
-    retries: 0,
+    /* Retry on CI only */
+    retries: process.env.CI ? 2 : 0,
     /* Opt out of parallel tests on CI. */
     workers: process.env.CI ? 1 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -89,11 +90,12 @@ export default defineConfig({
     /* Run your local dev server before starting the tests */
     webServer: {
         env: {
-            PUBLIC_SITE_URL: 'https://localhost:4601',
+            PUBLIC_SITE_URL: 'http://localhost:4601',
             FAIL_ON_UNMATCHED_GLOBS: 'false',
+            PUBLIC_HTTPS_SERVER: 'false',
         },
         command: 'npx astro dev --port=4601 --host',
-        url: 'https://localhost:4601/',
+        url: 'http://localhost:4601/',
         ignoreHTTPSErrors: true,
         reuseExistingServer: !process.env.CI,
     },
