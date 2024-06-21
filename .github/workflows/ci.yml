@@ -396,7 +396,7 @@ jobs:
               if: needs.test.result == 'success'
               env:
                   GH_TOKEN: ${{ github.token }}
-              run: gh workflow run e2e.yml --ref ${{github.ref}}
+              run: gh workflow run e2e.yml --ref ${{github.head_ref || github.ref}}
 
     sonarqube:
         runs-on: ubuntu-24.04
