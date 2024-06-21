@@ -303,17 +303,17 @@ export class Legend extends BaseProperties {
     private initLegendItemToolbar() {
         this.itemSelection.each((markerLabel, _, i) => {
             // Create the hidden CSS button.
-            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
+            markerLabel.proxyCheckbox ??= this.ctx.proxyInteractionService.createProxyElement({
+                type: 'checkbox',
                 id: `ag-charts-legend-item-${i}`,
-                textContent: this.getItemAriaText(i),
+                ariaLabel: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
-                hasAriaStatus: true,
                 focusable: markerLabel,
+                checked: markerLabel.datum.enabled,
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => this.doClick(markerLabel.datum, markerLabel.proxyButton),
+                onclick: () => this.doClick(markerLabel.datum, markerLabel.proxyCheckbox),
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
                     const bounds = markerLabel?.computeTransformedBBox();
@@ -324,10 +324,10 @@ export class Legend extends BaseProperties {
             });
         });
 
-        const buttons: HTMLButtonElement[] = this.itemSelection
+        const buttons: HTMLInputElement[] = this.itemSelection
             .nodes()
-            .map((markerLabel) => markerLabel.proxyButton)
-            .filter((button): button is HTMLButtonElement => !!button);
+            .map((markerLabel) => markerLabel.proxyCheckbox)
+            .filter((button): button is HTMLInputElement => !!button);
         initToolbarKeyNav({
             orientation: this.getOrientation(),
             buttons,
@@ -809,7 +809,7 @@ export class Legend extends BaseProperties {
 
             // Update the hidden CSS button.
             const { width, height } = markerLabel.computeBBox();
-            setElementBBox(markerLabel.proxyButton, { x, y, width, height });
+            setElementBBox(markerLabel.proxyCheckbox, { x, y, width, height });
         });
     }
 
@@ -984,7 +984,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum | undefined, proxyButton?: HTMLButtonElement): boolean {
+    private doClick(datum: CategoryLegendDatum | undefined, checkbox?: HTMLInputElement): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -1013,11 +1013,7 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            const status = proxyButton?.querySelector<HTMLDivElement>(`span[role="status"]`);
-            if (status != null) {
-                const key = newEnabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden';
-                status.textContent = this.ctx.localeManager.t(key);
-            }
+            if (checkbox) checkbox.ariaChecked = `${newEnabled}`;
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -1172,7 +1168,6 @@ export class Legend extends BaseProperties {
                 id: 'ariaLabelLegendItem',
                 params: {
                     label,
-                    visibility: datum.enabled ? 'visible' : 'hidden',
                     index: nodeIndex + 1,
                     count: this.data.length,
                 },

@@ -36,10 +36,10 @@ export class MarkerLabel extends Group {
 
     override destroy() {
         super.destroy();
-        this.proxyButton?.remove();
+        this.proxyCheckbox?.remove();
     }
 
-    proxyButton?: HTMLButtonElement;
+    proxyCheckbox?: HTMLInputElement;
 
     pageIndex: number = NaN;
 

@@ -2,7 +2,7 @@ import type { Direction } from 'ag-charts-types';
 
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
-import { createElement, getDocument } from '../../util/dom';
+import { createElement } from '../../util/dom';
 import type { LocaleManager } from '../locale/localeManager';
 import type { UpdateService } from '../updateService';
 import type { DOMManager } from './domManager';
@@ -32,8 +32,12 @@ type ContainerParams<T extends ProxyContainerType> = {
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: TranslationKey; readonly hasAriaStatus?: boolean };
+        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
         result: HTMLButtonElement;
+    };
+    checkbox: {
+        params: ElemParams<'checkbox'> & { readonly ariaLabel: TranslationKey; readonly checked: boolean };
+        result: HTMLInputElement;
     };
     slider: {
         params: ElemParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly ariaOrientation: Direction };
@@ -49,7 +53,7 @@ type ProxyMeta = {
     };
 };
 
-type ProxyElementType = 'button' | 'slider';
+type ProxyElementType = 'button' | 'checkbox' | 'slider';
 type ProxyContainerType = 'toolbar' | 'group';
 
 function checkType<T extends keyof ProxyMeta>(
@@ -60,7 +64,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div', group: 'div' } as const;
+    const map = { button: 'button', checkbox: 'input', slider: 'input', toolbar: 'div', group: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -122,14 +126,19 @@ export class ProxyInteractionService {
             this.initElement(params, button);
 
             this.addLocalisation(() => {
-                const { hasAriaStatus, textContent } = params;
-                button.textContent = this.localeManager.t(textContent.id, textContent.params);
-                if (hasAriaStatus === true) {
-                    const status = getDocument().createElement('span');
-                    status.role = 'status';
-                    status.ariaLive = 'assertive';
-                    button.appendChild(status);
-                }
+                button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
+            });
+        }
+
+        if (checkType('checkbox', meta)) {
+            const { params, result: checkbox } = meta;
+            this.initElement(params, checkbox);
+            checkbox.type = 'checkbox';
+            checkbox.checked = params.checked;
+            checkbox.style.margin = '0px';
+
+            this.addLocalisation(() => {
+                checkbox.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
             });
         }
 
