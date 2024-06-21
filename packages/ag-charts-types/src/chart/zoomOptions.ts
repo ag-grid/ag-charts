@@ -72,11 +72,6 @@ export interface AgZoomOptions {
      */
     enableDoubleClickToReset?: boolean;
     /**
-     * Set to `true` to enable independent axis zooming.
-     * Default: `false`
-     */
-    enableIndependentAxes?: boolean;
-    /**
      * Set to `true` to enable panning while zoomed.
      *
      * Default: `true`

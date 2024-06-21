@@ -112,7 +112,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public enableDoubleClickToReset = true;
 
     @Validate(BOOLEAN)
-    private enableIndependentAxes = false;
+    public enableIndependentAxes = false;
 
     @Validate(BOOLEAN)
     public enablePanning = true;
