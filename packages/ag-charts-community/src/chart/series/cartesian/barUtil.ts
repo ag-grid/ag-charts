@@ -1,4 +1,4 @@
-import type { AgBarSeriesFormatterParams, AgBarSeriesStyle, Styler } from 'ag-charts-types';
+import type { AgBarSeriesItemStylerParams, AgBarSeriesStyle, Styler } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
@@ -71,7 +71,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
 
 export function getRectConfig<
-    Params extends Omit<AgBarSeriesFormatterParams<any>, 'yKey' | 'value'>,
+    Params extends Omit<AgBarSeriesItemStylerParams<any>, 'yKey' | 'value'>,
     ExtraParams extends {},
 >({
     datum,

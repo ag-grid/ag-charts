@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -22,17 +22,11 @@ export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams> extends AgChar
     positionRatio?: Ratio;
 }
 
-export interface AgDonutSeriesFormatterParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        FillOptions,
-        StrokeOptions,
-        AgDonutSeriesOptionsKeys {
-    readonly highlighted: boolean;
-    readonly fills: CssColor[];
-    readonly strokes: CssColor[];
-}
+export type AgDonutSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+    AgDonutSeriesOptionsKeys &
+    Required<AgDonutSeriesStyle>;
 
-export type AgDonutSeriesFormat = FillOptions & StrokeOptions;
+export type AgDonutSeriesStyle = FillOptions & StrokeOptions;
 
 export interface AgDonutTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */
@@ -120,7 +114,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** The spacing between Donut sectors. */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the Donut sectors. */
-    itemStyler?: Styler<AgDonutSeriesFormatterParams<TDatum>, AgDonutSeriesFormat>;
+    itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = any>

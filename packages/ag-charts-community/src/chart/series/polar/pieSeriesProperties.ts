@@ -1,8 +1,8 @@
 import type {
-    AgPieSeriesFormat,
-    AgPieSeriesFormatterParams,
+    AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
+    AgPieSeriesStyle,
     AgPieSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-types';
@@ -125,7 +125,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgPieSeriesFormatterParams<any>, AgPieSeriesFormat>;
+    itemStyler?: Styler<AgPieSeriesItemStylerParams<unknown>, AgPieSeriesStyle>;
 
     @Validate(DEGREE)
     rotation: number = 0;

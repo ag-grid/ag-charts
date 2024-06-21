@@ -1,4 +1,4 @@
-import type { AgPieSeriesFormat } from 'ag-charts-types';
+import type { AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -81,7 +81,7 @@ interface PieNodeDatum extends SeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: { [key in keyof Required<AgPieSeriesFormat>]: AgPieSeriesFormat[key] };
+    readonly sectorFormat: { [key in keyof Required<AgPieSeriesStyle>]: AgPieSeriesStyle[key] };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
@@ -452,17 +452,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             }
         );
 
-        let format: AgPieSeriesFormat | undefined;
+        let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
                 datum,
                 angleKey,
                 radiusKey,
-                fill,
+                fill: fill!,
+                strokeOpacity,
                 stroke,
-                fills,
-                strokes,
                 strokeWidth,
+                fillOpacity,
                 highlighted: isDatumHighlighted,
                 seriesId: this.id,
             });

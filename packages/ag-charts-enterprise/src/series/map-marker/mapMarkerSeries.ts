@@ -1,8 +1,8 @@
 import {
     type AgMapMarkerSeriesOptionsKeys,
     type AgMapShapeSeriesStyle,
-    type AgSeriesMarkerFormatterParams,
     type AgSeriesMarkerStyle,
+    type AgSeriesMarkerStylerParams,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -843,7 +843,7 @@ export class MapMarkerSeries
             itemStyler,
         } = properties;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
-        const params: _Util.RequireOptional<AgSeriesMarkerFormatterParams<MapMarkerNodeDatum>> &
+        const params: _Util.RequireOptional<AgSeriesMarkerStylerParams<MapMarkerNodeDatum>> &
             _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys> = {
             seriesId,
             datum: datum.datum,
@@ -866,7 +866,7 @@ export class MapMarkerSeries
         if (itemStyler !== undefined) {
             return callbackCache.call(
                 itemStyler,
-                params as AgSeriesMarkerFormatterParams<MapMarkerNodeDatum> &
+                params as AgSeriesMarkerStylerParams<MapMarkerNodeDatum> &
                     _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
             );
         }

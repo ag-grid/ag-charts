@@ -1,5 +1,5 @@
 import {
-    type AgCandlestickSeriesBaseFormatterParams,
+    type AgCandlestickSeriesBaseItemStylerParams,
     type AgCandlestickSeriesFormatterParams,
     type AgCandlestickSeriesItemOptions,
     _ModuleSupport,
@@ -107,7 +107,7 @@ export class CandlestickSeries extends CandlestickSeriesBase<
     }
 
     protected override getFormatterParams(
-        params: AgCandlestickSeriesBaseFormatterParams<CandlestickNodeDatum>
+        params: AgCandlestickSeriesBaseItemStylerParams<CandlestickNodeDatum>
     ): AgCandlestickSeriesFormatterParams<CandlestickNodeDatum> {
         return params;
     }

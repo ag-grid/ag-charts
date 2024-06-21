@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -22,17 +22,11 @@ export interface AgPieSeriesSectorLabelOptions<TDatum, TParams> extends AgChartL
     positionRatio?: Ratio;
 }
 
-export interface AgPieSeriesFormatterParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        FillOptions,
-        StrokeOptions,
-        AgPieSeriesOptionsKeys {
-    readonly highlighted: boolean;
-    readonly fills: CssColor[];
-    readonly strokes: CssColor[];
-}
+export type AgPieSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+    AgPieSeriesOptionsKeys &
+    Required<AgPieSeriesStyle>;
 
-export type AgPieSeriesFormat = FillOptions & StrokeOptions;
+export type AgPieSeriesStyle = FillOptions & StrokeOptions;
 
 export interface AgPieTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */
@@ -92,7 +86,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     /** The spacing between Pie sectors. */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the pie sectors. */
-    itemStyler?: Styler<AgPieSeriesFormatterParams<TDatum>, AgPieSeriesFormat>;
+    itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
 }
 
 export interface AgPieSeriesOptions<TDatum = any>

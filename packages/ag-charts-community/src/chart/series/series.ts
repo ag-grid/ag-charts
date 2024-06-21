@@ -1,8 +1,8 @@
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
-    AgSeriesMarkerFormatterParams,
     AgSeriesMarkerStyle,
+    AgSeriesMarkerStylerParams,
     ISeriesMarker,
 } from 'ag-charts-types';
 
@@ -64,10 +64,10 @@ export type SeriesNodePickMatch = {
 };
 
 export type PickFocusInputs = {
-    // datum delta is stricly +ve/-ve when changing datum focus, or 0 when changing series focus.
+    // datum delta is strictly +ve/-ve when changing datum focus, or 0 when changing series focus.
     readonly datumIndex: number;
     readonly datumIndexDelta: number;
-    // 'other' means 'depth' for hierarchial charts, or 'series' for all other charts
+    // 'other' means 'depth' for hierarchical charts, or 'series' for all other charts
     readonly otherIndex: number;
     readonly otherIndexDelta: number;
     readonly seriesRect?: Readonly<BBox>;
@@ -760,7 +760,7 @@ export abstract class Series<
 
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size: params.datum.point?.size ?? 0 };
@@ -780,7 +780,7 @@ export abstract class Series<
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
         marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
         { applyTranslation = true } = {}
     ) {

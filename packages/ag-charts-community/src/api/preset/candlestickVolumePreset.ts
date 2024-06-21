@@ -1,6 +1,5 @@
 import type {
     AgAxisLabelFormatterParams,
-    AgBarSeriesFormatterParams,
     AgBaseFinancialPresetOptions,
     AgCandlestickVolumePreset,
     AgCartesianChartOptions,
@@ -58,10 +57,8 @@ export function candlestickVolumePreset(
                 type: 'bar',
                 xKey: 'date',
                 yKey: volumeKey,
-                itemStyler: (params: AgBarSeriesFormatterParams<any>) => {
-                    const { datum } = params;
-                    const fill = datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7';
-                    return { fill };
+                itemStyler({ datum }) {
+                    return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
                 },
             },
             {
