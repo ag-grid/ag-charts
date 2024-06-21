@@ -332,8 +332,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
+        // Our styles only use 'row' and 'column'. Ignore other flex-direction values with `!`.
+        const { flexDirection } = getComputedStyle(alignElement);
+        const orientation = ({ row: 'horizontal', column: 'vertical' } as const)[flexDirection]!;
+
         this.groupDestroyFns[group] = initToolbarKeyNav({
-            orientation: 'horizontal',
+            orientation,
             toolbar: alignElement,
             buttons: this.groupButtons[group],
             onEscape,
