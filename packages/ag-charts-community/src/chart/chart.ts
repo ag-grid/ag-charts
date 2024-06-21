@@ -374,6 +374,8 @@ export abstract class Chart extends Observable {
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), All),
             ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
+            ctx.interactionManager.addListener('enter', () => this.update(ChartUpdateType.SCENE_RENDER)),
+            ctx.interactionManager.addListener('leave', (event) => this.onLeave(event, true)),
             ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
 
             ctx.animationManager.addListener('animation-frame', () => {
@@ -1135,9 +1137,9 @@ export abstract class Chart extends Observable {
         this.update(ChartUpdateType.SCENE_RENDER);
     }
 
-    protected onLeave(event: PointerInteractionEvent<'leave'>): void {
+    protected onLeave(event: PointerInteractionEvent<'leave'>, force = false): void {
         const el = event.relatedElement;
-        if (el && this.ctx.domManager.isManagedDOMElement(el)) return;
+        if (!force && el && this.ctx.domManager.isManagedDOMElement(el)) return;
 
         this.resetPointer();
         this.update(ChartUpdateType.SCENE_RENDER);

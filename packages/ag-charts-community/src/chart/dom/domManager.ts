@@ -235,6 +235,19 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.guardedElement?.getBrowserFocusDelta() ?? 0;
     }
 
+    addEventListenerOnElement<K extends keyof HTMLElementEventMap>(
+        elementType: DOMElementClass,
+        type: K,
+        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+        options?: boolean | AddEventListenerOptions
+    ) {
+        const { element } = this.rootElements[elementType];
+        element.addEventListener(type, listener, options);
+        return () => {
+            element.removeEventListener(type, listener, options);
+        };
+    }
+
     addEventListener<K extends keyof HTMLElementEventMap>(
         type: K,
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
@@ -336,16 +349,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     isEventOverElement(event: Event | MouseEvent | TouchEvent) {
-        let element = event.target;
-
-        if (element == null) return false;
-
-        while (element !== this.element) {
-            element = (element as HTMLElement).parentElement;
-            if (element == null) return false;
-        }
-
-        return true;
+        const element = event.target as HTMLElement | null;
+        return element != null && this.element.contains(element);
     }
 
     addStyles(id: string, styles: string) {
