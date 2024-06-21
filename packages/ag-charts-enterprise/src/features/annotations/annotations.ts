@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
@@ -89,11 +89,13 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
             idle: {
                 onEnter: () => onEnterIdle(),
                 [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
-                [AnnotationType.HorizontalLine]: new CrossLineStateMachine((datum) =>
-                    appendDatum(AnnotationType.HorizontalLine, datum)
+                [AnnotationType.HorizontalLine]: new CrossLineStateMachine(
+                    (datum) => appendDatum(AnnotationType.HorizontalLine, datum),
+                    'horizontal'
                 ),
-                [AnnotationType.VerticalLine]: new CrossLineStateMachine((datum) =>
-                    appendDatum(AnnotationType.VerticalLine, datum)
+                [AnnotationType.VerticalLine]: new CrossLineStateMachine(
+                    (datum) => appendDatum(AnnotationType.VerticalLine, datum),
+                    'vertical'
                 ),
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
@@ -180,8 +182,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
             () => this.colorPicker.destroy(),
-            seriesRegion.addListener('hover', (event) => this.onHover(event, REGIONS.SERIES), All),
-            seriesRegion.addListener('click', (event) => this.onClick(event, REGIONS.SERIES), All),
+            seriesRegion.addListener('hover', (event) => this.onHover(event), All),
+            seriesRegion.addListener('click', (event) => this.onClick(event), All),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
@@ -367,7 +369,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = buildBounds(new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height), axisPosition, padding);
 
-        const region = axisCtx.direction === ChartAxisDirection.X ? 'horizontal-axes' : 'vertical-axes';
+        const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
         const { axesButtons } = this;
         const buttonEnabled =
@@ -376,7 +378,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             button ??= new AxisButton(
                 this.ctx,
                 axisCtx,
-                (coords) => this.onAxisButtonClick(coords, region),
+                (coords) => this.onAxisButtonClick(coords, lineDirection),
                 seriesRect
             );
             button.update(seriesRect);
@@ -471,11 +473,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>, region: _ModuleSupport.RegionName) {
+    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
         if (this.state.is('idle')) {
             this.onHoverSelecting(event);
         } else {
-            this.onHoverAdding(event, region);
+            this.onHoverAdding(event);
         }
     }
 
@@ -500,7 +502,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onHoverAdding(event: _ModuleSupport.PointerInteractionEvent<'hover'>, region?: _ModuleSupport.RegionName) {
+    private onHoverAdding(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
         const {
             annotationData,
             annotations,
@@ -528,13 +530,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         node.toggleActive(true);
 
-        const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
+        const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point };
         this.state.transition('hover', data);
 
         this.update();
     }
 
-    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
+    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
         const { dragOffset, state } = this;
 
         // Prevent clicks triggered on the exact same event as the drag when placing the second point. This "double"
@@ -547,11 +549,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (state.is('idle')) {
             this.onClickSelecting();
         } else {
-            this.onClickAdding(event, region);
+            this.onClickAdding(event);
         }
     }
 
-    private onAxisButtonClick(coords?: Coords, region?: _ModuleSupport.RegionName) {
+    private onAxisButtonClick(coords?: Coords, direction?: Direction) {
         this.onCancel();
 
         const context = this.getAnnotationContext();
@@ -566,8 +568,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         interactionManager.pushState(InteractionState.Annotations);
 
-        const isHorizontalLine = region === 'vertical-axes';
-        state.transition(isHorizontalLine ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
+        const isHorizontal = direction === 'horizontal';
+        state.transition(isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
 
         toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
 
@@ -583,7 +585,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const data: StateClickEvent<AnnotationProperties, Annotation> = { node, point, region };
+        const data: StateClickEvent<AnnotationProperties, Annotation> = { node, point };
         state.transition('click', data);
 
         this.update();
@@ -618,7 +620,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>, region: _ModuleSupport.RegionName) {
+    private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
         const {
             active,
             annotationData,
@@ -643,7 +645,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point, region };
+        const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point };
         state.transition('click', data);
 
         this.update();
