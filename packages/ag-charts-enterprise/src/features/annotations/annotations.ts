@@ -197,6 +197,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
+            ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
             () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
@@ -290,7 +291,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         switch (event.value) {
             case 'line-color':
                 this.colorPicker.show({
-                    anchor: this.annotations.nodes()[active]?.getAnchor(),
                     color: this.getTypedDatum(annotationData[active])?.stroke,
                     onChange: this.onColorPickerChange.bind(this),
                 });
@@ -314,6 +314,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.update();
+    }
+
+    private onToolbarButtonMoved(event: _ModuleSupport.ToolbarButtonMovedEvent) {
+        const { rect } = event;
+        this.colorPicker.setAnchor(Vec2.add(rect, Vec2.from(0, rect.height + 4)));
     }
 
     private onColorPickerChange(color: string) {

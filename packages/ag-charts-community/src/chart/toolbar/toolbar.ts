@@ -3,7 +3,7 @@ import type { AgToolbarGroupPosition } from 'ag-charts-types';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
 import { setAttribute } from '../../util/attributeUtil';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
@@ -237,8 +237,26 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (!this.positions[ToolbarPosition.Floating].has(group)) return;
 
         const element = this.elements[ToolbarPosition.Floating];
+        if (element.classList.contains(styles.modifiers.hidden)) return;
+
         element.style.top = `${anchor.y - element.offsetHeight - this.margin}px`;
         element.style.left = `${anchor.x - element.offsetWidth / 2}px`;
+
+        for (const button of this.groupButtons[group]) {
+            if (button.classList.contains(styles.modifiers.button.hiddenToggled)) return;
+
+            const parent = button.offsetParent as HTMLElement | null;
+            this.ctx.toolbarManager.buttonMoved(
+                group,
+                button.dataset.toolbarValue,
+                new BBox(
+                    button.offsetLeft - button.offsetWidth + (parent?.offsetLeft ?? 0),
+                    button.offsetTop + (parent?.offsetTop ?? 0),
+                    button.offsetWidth,
+                    button.offsetWidth
+                )
+            );
+        }
     }
 
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {

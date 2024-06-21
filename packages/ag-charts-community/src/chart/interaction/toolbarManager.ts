@@ -1,5 +1,6 @@
 import type { AgToolbarOptions } from 'ag-charts-types';
 
+import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
 import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
@@ -7,6 +8,7 @@ import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
 type EventTypes =
     | 'button-pressed'
     | 'button-toggled'
+    | 'button-moved'
     | 'cancelled'
     | 'floating-anchor-changed'
     | 'group-toggled'
@@ -14,6 +16,7 @@ type EventTypes =
 type ToolbarEvent =
     | ToolbarButtonPressedEvent
     | ToolbarButtonToggledEvent
+    | ToolbarButtonMovedEvent
     | ToolbarCancelledEvent
     | ToolbarFloatingAnchorChangedEvent
     | ToolbarGroupToggledEvent
@@ -47,6 +50,11 @@ export interface ToolbarButtonToggledEvent<T = any> extends Event<'button-toggle
     active: boolean;
     enabled: boolean;
     visible: boolean;
+}
+
+export interface ToolbarButtonMovedEvent<T = any> extends Event<'button-moved'> {
+    value: T;
+    rect: BBox;
 }
 
 export interface ToolbarProxyGroupOptionsEvent extends Event<'proxy-group-options'> {
@@ -94,6 +102,10 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
 
     changeFloatingAnchor(group: ToolbarGroup, anchor: { x: number; y: number }) {
         this.listeners.dispatch('floating-anchor-changed', { type: 'floating-anchor-changed', group, anchor });
+    }
+
+    buttonMoved(group: ToolbarGroup, value: any, rect: BBox) {
+        this.listeners.dispatch('button-moved', { type: 'button-moved', group, value, rect });
     }
 
     proxyGroupOptions<T extends ToolbarGroup>(caller: string, group: T, options: Partial<AgToolbarOptions[T]>) {
