@@ -14,13 +14,13 @@ const annotations: AgToolbarOptions['annotations'] = {
     buttons: [
         {
             icon: 'horizontal-line',
-            tooltip: 'toolbarAnnotationsTrendLine',
+            tooltip: 'toolbarAnnotationsHorizontalLine',
             value: 'horizontal-line',
             section: 'create',
         },
         {
             icon: 'vertical-line',
-            tooltip: 'toolbarAnnotationsTrendLine',
+            tooltip: 'toolbarAnnotationsVerticalLine',
             value: 'vertical-line',
             section: 'create',
         },

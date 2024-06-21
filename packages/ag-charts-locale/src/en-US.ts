@@ -43,6 +43,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     overlayNoVisibleSeries: 'No visible series',
     // Text for the annotation toolbar's trend line button
     toolbarAnnotationsTrendLine: 'Trend line',
+    // Text for the annotation toolbar's horizontal line button
+    toolbarAnnotationsHorizontalLine: 'Horizontal line',
+    // Text for the annotation toolbar's vertical line button
+    toolbarAnnotationsVerticalLine: 'Vertical line',
     // Text for the annotation toolbar's parallel channel button
     toolbarAnnotationsParallelChannel: 'Parallel channel',
     // Text for the annotation toolbar's disjoint channel button
