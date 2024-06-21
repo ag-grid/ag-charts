@@ -119,7 +119,6 @@
     background: var(--ag-charts-toolbar-background-color);
     border: var(--ag-charts-toolbar-border);
     border-left: 0;
-    border-right: 0;
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
     font-size: var(--ag-charts-toolbar-font-size);
@@ -180,6 +179,7 @@
 }
 
 .ag-charts-toolbar .ag-charts-toolbar__button:focus-visible {
+    border-left: var(--ag-charts-toolbar-border);
     border-color: var(--ag-charts-toolbar-focus-color);
     box-shadow: var(--ag-charts-focus-border-shadow);
     z-index: 1;

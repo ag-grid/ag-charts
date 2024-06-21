@@ -74,6 +74,7 @@ export class CrossLine extends Annotation {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
         const x = x1 + (x2 - x1) / 2;
