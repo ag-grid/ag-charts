@@ -65,6 +65,8 @@ export class ModuleRegistry {
 
         const modulesByType = this.modules.filter((module) => types.includes(module.type));
 
+        // Iterate through modules yielding those that have no dependencies and repeating while any modules still have
+        // un-yielded dependencies. Escape out if circular or missing dependencies.
         do {
             for (const module of modulesByType) {
                 if (yielded.has(module.optionsKey) || dependents.has(module.optionsKey)) {
