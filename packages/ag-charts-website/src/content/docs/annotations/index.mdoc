@@ -11,10 +11,61 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 {% chartExampleRunner title="Annotations Initial" name="annotation-initial" type="generated" /%}
 
 ```ts
-annotations: {
-    initial: [
+initialState: {
+    annotations: [
         {
             type: 'line',
+            // ...
+        },
+    ],
+}
+```
+
+## State
+
+```ts
+const chart = AgCharts.create(options);
+
+const state = chart.getState();
+// state == { version: '10.0.0', annotations: [ ... ] }
+
+chart.setState({
+    version: '10.0.0',
+    annotations: [
+        // ...
+    ],
+});
+```
+
+State is serializable, so any date/time values are changed from `new Date('2024-06-21')` into `{ __type: 'date', value: 1718928000000 }`. And equally, when setting state any dates must be defined similarly.
+
+```ts
+chart.setState({
+    version: '10.0.0',
+    annotations: [
+        {
+            type: 'line',
+            start: {
+                x: { __type: 'date', value: '2024-06-21' },
+                y: 1234,
+            },
+            // ...
+        },
+    ],
+});
+```
+
+And equivalent using `initialState`, where the `version` is not required as it will assume the latest version:
+
+```ts
+initialState: {
+    annotations: [
+        {
+            type: 'line',
+            start: {
+                x: { __type: 'date', value: '2024-06-21' },
+                y: 1234,
+            },
             // ...
         },
     ],
