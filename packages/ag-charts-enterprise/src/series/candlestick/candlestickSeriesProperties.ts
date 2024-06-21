@@ -118,7 +118,7 @@ export class CandlestickSeriesProperties<
     lowName?: string;
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
 
     @Validate(OBJECT)
     readonly item: CandlestickSeriesBaseItems<any> = new CandlestickSeriesItems();
