@@ -20,31 +20,13 @@ function addEscapeEventListener(
     });
 }
 
-function linkTwoButtons(
-    destroyFns: (() => void)[],
-    src: HTMLElement,
-    dst: HTMLElement | undefined,
-    key: string,
-    managedTabIndices: boolean
-) {
+function linkTwoButtons(destroyFns: (() => void)[], src: HTMLElement, dst: HTMLElement | undefined, key: string) {
     if (!dst) return;
 
-    let handler: (event: KeyboardEvent) => void;
-    if (managedTabIndices) {
-        handler = (event: KeyboardEvent) => {
-            if (event.key !== key) return;
-            dst.focus();
-            dst.tabIndex = 0;
-            src.tabIndex = -1;
-        };
-    } else {
-        handler = (event: KeyboardEvent) => {
-            if (event.key !== key) return;
-            dst.focus();
-        };
-    }
-
-    addRemovableEventListener(destroyFns, src, 'keydown', handler);
+    addRemovableEventListener(destroyFns, src, 'keydown', (event: KeyboardEvent) => {
+        if (event.key !== key) return;
+        dst.focus();
+    });
 }
 
 function linkThreeButtons(
@@ -53,11 +35,10 @@ function linkThreeButtons(
     next: HTMLElement | undefined,
     nextKey: string,
     prev: HTMLElement | undefined,
-    prevKey: string,
-    managedTabIndices: boolean
+    prevKey: string
 ) {
-    linkTwoButtons(destroyFns, curr, prev, prevKey, managedTabIndices);
-    linkTwoButtons(destroyFns, curr, next, nextKey, managedTabIndices);
+    linkTwoButtons(destroyFns, curr, prev, prevKey);
+    linkTwoButtons(destroyFns, curr, next, nextKey);
     addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
         if (event.key === nextKey || event.key === prevKey) {
             event.preventDefault();
@@ -85,15 +66,27 @@ export function initToolbarKeyNav(opts: {
     toolbar.role = 'toolbar';
     toolbar.ariaOrientation = orientation;
 
+    // Assistive Technologies might provide functionality to focus on any element at random.
+    // For example, in VoiceOver the user can press Ctrl+Opt+Shift Up to leave the toolbar, and then
+    // focus on the first item by pressing Ctrl+Opt+Shift Down to enter the toolbar again.
+    // Therefore, we must use brute-force to ensure that there's only one tabIndex=0 in the toolbar.
+    const setTabIndices = (event: FocusEvent) => {
+        if (event.target && 'tabIndex' in event.target) {
+            buttons.forEach((b) => (b.tabIndex = -1));
+            event.target.tabIndex = 0;
+        }
+    };
+
     const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
         const prev = buttons[i - 1];
         const curr = buttons[i];
         const next = buttons[i + 1];
+        addRemovableEventListener(destroyFns, curr, 'focus', setTabIndices);
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
         if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, true);
+        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
         curr.tabIndex = i === 0 ? 0 : -1;
     }
 
@@ -120,7 +113,7 @@ export function initMenuKeyNav(opts: {
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
         if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, false);
+        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
         curr.tabIndex = -1;
     }
 
