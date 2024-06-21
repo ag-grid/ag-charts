@@ -37,7 +37,7 @@ jobs:
         steps:
             - id: status
               name: Update Status
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
@@ -118,7 +118,7 @@ jobs:
                       dist/
                       packages/*/dist/
             - name: Update Status
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -139,7 +139,7 @@ jobs:
         steps:
             - id: status
               name: Update Status
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: e2e test (${{ matrix.shard }}/${{ strategy.job-total }})
@@ -190,7 +190,7 @@ jobs:
                   npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }} -u
               timeout-minutes: 10
 
-            - name: Commit Snapshot Changesasdasads
+            - name: Commit Snapshot Changes
               id: commit_changes
               if: github.event.inputs.update == 'true'
               run: |
@@ -211,7 +211,7 @@ jobs:
                   path: |
                       reports/
             - name: Update Status
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}

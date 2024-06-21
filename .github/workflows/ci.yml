@@ -47,21 +47,21 @@ jobs:
         steps:
             - id: init_format
               name: Update Status (format)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
                   status: queued
             - id: init_lint
               name: Update Status (lint)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: lint
                   status: queued
             - id: init_build
               name: Update Status (build)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
@@ -151,7 +151,7 @@ jobs:
                     yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
                   fi
             - name: Update Status (format)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -169,7 +169,7 @@ jobs:
               env:
                   ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
             - name: Update Status (lint)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -194,7 +194,7 @@ jobs:
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
 
             - name: Update Status (build)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
