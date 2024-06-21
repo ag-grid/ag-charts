@@ -175,9 +175,14 @@
     display: none;
 }
 
-.ag-charts-toolbar__button:hover,
-.ag-charts-toolbar__button:focus-visible {
-    background: var(--ag-charts-toolbar-focus-color);
+.ag-charts-toolbar__button:hover {
+    background: var(--ag-charts-toolbar-hover-color);
+}
+
+.ag-charts-toolbar .ag-charts-toolbar__button:focus-visible {
+    border-color: var(--ag-charts-toolbar-focus-color);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    z-index: 1;
 }
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
