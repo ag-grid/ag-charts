@@ -20,12 +20,20 @@ function addEscapeEventListener(
     });
 }
 
+function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
+    return (
+        !(event.altKey || event.ctrlKey || event.metaKey) &&
+        (event.key === key || morekeys.some((key) => event.key === key))
+    );
+}
+
 function linkTwoButtons(destroyFns: (() => void)[], src: HTMLElement, dst: HTMLElement | undefined, key: string) {
     if (!dst) return;
 
     addRemovableEventListener(destroyFns, src, 'keydown', (event: KeyboardEvent) => {
-        if (event.key !== key) return;
-        dst.focus();
+        if (matchesKey(event, key)) {
+            dst.focus();
+        }
     });
 }
 
@@ -40,7 +48,7 @@ function linkThreeButtons(
     linkTwoButtons(destroyFns, curr, prev, prevKey);
     linkTwoButtons(destroyFns, curr, next, nextKey);
     addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
-        if (event.key === nextKey || event.key === prevKey) {
+        if (matchesKey(event, nextKey, prevKey)) {
             event.preventDefault();
         }
     });
