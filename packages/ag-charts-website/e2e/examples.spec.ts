@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { execSync } from 'child_process';
 import * as glob from 'glob';
 
-const baseUrl = 'https://localhost:4601';
+const baseUrl = 'http://localhost:4601';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'];
 const ignorePages = ['benchmarks', /.*-test/];
 const notServedGalleryExamples = [
