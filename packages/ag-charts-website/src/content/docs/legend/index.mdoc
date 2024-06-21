@@ -57,7 +57,7 @@ legend: {
 
 ## Series Stroke
 
-It is possible not to display a line in the Legend item, representing the stroke style of the series.
+The Legend item includes a line, representing the stroke style of the series. Use `showSeriesStroke` to disable this.
 
 {% chartExampleRunner title="Series Stroke" name="legend-seriesStroke" type="generated" /%}
 
@@ -181,9 +181,11 @@ legend: {
 }
 ```
 
-The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively. For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
+The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively.
+For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
 
-In this scenario, both the listener and the item toggle behaviour will occur. In the above example, clicking or double clicking a Legend item will toggle the series visibility as well as logging a message to the browser console via a `legendItemClick` event.
+In this scenario, both the listener and the item toggle behaviour will occur. In the above example, clicking or double clicking a Legend item
+will toggle the series visibility as well as logging a message to the browser console via a `legendItemClick` event.
 
 ## API Reference
 
