@@ -49,6 +49,10 @@ export class StatusBar
             id: 'openValue' as const,
             key: 'openKey' as const,
             domain: [0, 0],
+            formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
         },
         high: {
             label: 'H',
@@ -57,6 +61,10 @@ export class StatusBar
             id: 'highValue' as const,
             key: 'highKey' as const,
             domain: [0, 0],
+            formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
         },
         low: {
             label: 'L',
@@ -65,6 +73,10 @@ export class StatusBar
             id: 'lowValue' as const,
             key: 'lowKey' as const,
             domain: [0, 0],
+            formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
         },
         close: {
             label: 'C',
@@ -73,6 +85,10 @@ export class StatusBar
             id: 'closeValue' as const,
             key: 'closeKey' as const,
             domain: [0, 0],
+            formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
         },
         volume: {
             label: 'Vol',
@@ -81,6 +97,11 @@ export class StatusBar
             id: 'volumeValue' as const,
             key: 'volumeKey' as const,
             domain: [0, 0],
+            formatter: new Intl.NumberFormat('en-US', {
+                notation: 'compact',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
         },
     };
 
@@ -93,6 +114,7 @@ export class StatusBar
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup),
+            ctx.layoutService.addListener('before-series', (e) => this.startPerformLayout(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
@@ -114,11 +136,7 @@ export class StatusBar
         }
     }
 
-    private formatValue(value: number) {
-        return value.toFixed(2);
-    }
-
-    async performLayout(opts: { shrinkRect: _Scene.BBox }): Promise<{ shrinkRect: _Scene.BBox }> {
+    startPerformLayout(opts: { shrinkRect: _Scene.BBox }): { shrinkRect: _Scene.BBox } {
         const { shrinkRect } = opts;
         const innerSpacing = 4;
         const outerSpacing = 12;
@@ -139,7 +157,27 @@ export class StatusBar
         const offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
 
         let left = 0;
-        for (const { label, title, value, domain } of Object.values(this.labels)) {
+        for (const { label, title, value, domain, formatter } of Object.values(this.labels)) {
+            let maxValueWidth = 0;
+            if (domain.length > 0) {
+                domain.length > 0;
+                maxValueWidth = Math.max(
+                    Text.measureText(formatter.format(domain[0]), this.positive.getFont(), 'alphabetic', 'left').width,
+                    Text.measureText(formatter.format(domain[1]), this.positive.getFont(), 'alphabetic', 'left').width,
+                    Text.measureText(formatter.format(domain[0]), this.negative.getFont(), 'alphabetic', 'left').width,
+                    Text.measureText(formatter.format(domain[1]), this.negative.getFont(), 'alphabetic', 'left').width
+                );
+            }
+
+            if (maxValueWidth === 0) {
+                title.visible = false;
+                value.visible = false;
+                continue;
+            }
+
+            title.visible = true;
+            value.visible = true;
+
             const titleMetrics = Text.measureText(label, this.title.getFont(), 'alphabetic', 'left');
             title.setFont(this.title);
             title.fill = this.title.color;
@@ -150,12 +188,6 @@ export class StatusBar
 
             left += titleMetrics.width + innerSpacing;
 
-            const maxValueWidth = Math.max(
-                Text.measureText(this.formatValue(domain[0]), this.positive.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(this.formatValue(domain[1]), this.positive.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(this.formatValue(domain[0]), this.negative.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(this.formatValue(domain[1]), this.negative.getFont(), 'alphabetic', 'left').width
-            );
             value.textBaseline = 'alphabetic';
             value.translationY = offsetTop;
             value.translationX = left;
@@ -184,12 +216,14 @@ export class StatusBar
 
         const datum = activeHighlight.datum;
         const label = activeHighlight.itemId === 'up' ? this.positive : this.negative;
-        for (const { value, key } of Object.values(this.labels)) {
+        for (const { domain, value, key, formatter } of Object.values(this.labels)) {
+            if (domain.length === 0) continue;
+
             const datumValue = datum?.[this[key]];
 
             value.setFont(label);
             value.fill = label.color;
-            value.text = typeof datumValue === 'number' ? this.formatValue(datumValue) : '';
+            value.text = typeof datumValue === 'number' ? formatter.format(datumValue) : '';
         }
     }
 }

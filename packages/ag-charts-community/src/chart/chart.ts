@@ -1040,12 +1040,11 @@ export abstract class Chart extends Observable {
         ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
         ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
 
-        const modulePromises = this.modulesManager.mapModules(async (m) => {
+        for (const m of this.modulesManager.modules()) {
             if (m.performLayout != null) {
                 ctx = await m.performLayout(ctx);
             }
-        });
-        await Promise.all(modulePromises);
+        }
 
         return ctx.shrinkRect;
     }
