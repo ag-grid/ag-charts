@@ -85,7 +85,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     cornerRadius?: PixelSize;
     /** The spacing between Pie sectors. */
     sectorSpacing?: PixelSize;
-    /** A formatter function for adjusting the styling of the pie sectors. */
+    /** A styler function for adjusting the styling of the pie sectors. */
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
 }
 

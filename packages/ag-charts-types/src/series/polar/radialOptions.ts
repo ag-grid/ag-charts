@@ -13,7 +13,7 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams>;
-    /** A formatter function for adjusting the styling of the radial columns. */
+    /** A styler function for adjusting the styling of the radial columns. */
     itemStyler?: Styler<AgRadialSeriesFormatterParams<TDatum>, AgRadialSeriesFormat>;
 }
 

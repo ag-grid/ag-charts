@@ -113,7 +113,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     cornerRadius?: PixelSize;
     /** The spacing between Donut sectors. */
     sectorSpacing?: PixelSize;
-    /** A formatter function for adjusting the styling of the Donut sectors. */
+    /** A styler function for adjusting the styling of the Donut sectors. */
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
 }
 
