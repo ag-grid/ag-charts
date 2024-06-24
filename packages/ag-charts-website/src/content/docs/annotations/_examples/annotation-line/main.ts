@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -14,36 +14,7 @@ const options: AgChartOptions = {
     footnote: {
         text: '1 Minute',
     },
-    series: [
-        {
-            type: 'candlestick',
-            xKey: 'date',
-            xName: 'Time',
-            lowKey: 'low',
-            highKey: 'high',
-            openKey: 'open',
-            closeKey: 'close',
-        },
-    ],
-    axes: [
-        {
-            type: 'ordinal-time',
-            position: 'bottom',
-            label: {
-                format: '%H:%M',
-            },
-        },
-        {
-            type: 'number',
-            position: 'right',
-            label: {
-                formatter: ({ value }) => Number(value).toLocaleString(),
-            },
-        },
-    ],
-    annotations: {
-        enabled: true,
-    },
+    timeFormat: '%H:%M',
     initialState: {
         annotations: [
             {
@@ -68,4 +39,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgCharts.create(options);
+AgCharts.createFinancialChart(options);

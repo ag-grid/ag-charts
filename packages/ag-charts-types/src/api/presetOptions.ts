@@ -6,6 +6,8 @@ export type AgPriceVolumePreset = {
     lowKey?: string;
     closeKey?: string;
     volumeKey?: string;
+
+    timeFormat?: string;
 };
 
 export type AgFinancialChartPresets = AgPriceVolumePreset;

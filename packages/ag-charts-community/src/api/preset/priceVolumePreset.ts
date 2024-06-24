@@ -1,17 +1,4 @@
-import type {
-    AgAxisLabelFormatterParams,
-    AgBaseFinancialPresetOptions,
-    AgCartesianChartOptions,
-    AgCrosshairLabelRendererParams,
-    AgPriceVolumePreset,
-} from 'ag-charts-types';
-
-function dateFormat(dateString: string, format: string) {
-    const dateObject = new Date(dateString);
-    return format == 'd-m'
-        ? dateObject.toLocaleString('en-GB', { day: 'numeric', month: 'short' })
-        : dateObject.toLocaleString('en-GB', { month: 'short', year: '2-digit' });
-}
+import type { AgBaseFinancialPresetOptions, AgCartesianChartOptions, AgPriceVolumePreset } from 'ag-charts-types';
 
 export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions): AgCartesianChartOptions {
     const {
@@ -22,6 +9,7 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
         closeKey = 'close',
         volumeKey = 'volume',
         chartType = 'candlestick',
+        timeFormat = '%d-%b',
         data,
         ...unusedOpts
     } = opts;
@@ -121,7 +109,6 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                 type: 'number',
                 position: 'right',
                 keys: [openKey, closeKey, highKey, lowKey],
-                max: 210,
                 interval: {
                     maxSpacing: 50,
                 },
@@ -163,20 +150,15 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                 },
             },
             {
-                type: 'category',
+                type: 'ordinal-time',
                 position: 'bottom',
                 label: {
                     enabled: true,
                     autoRotate: false,
-                    formatter: ({ value }: AgAxisLabelFormatterParams) => dateFormat(value, 'd-m'),
+                    format: timeFormat,
                 },
                 crosshair: {
                     enabled: true,
-                    label: {
-                        renderer: ({ value }: AgCrosshairLabelRendererParams) => {
-                            return { text: dateFormat(value, 'd-m') };
-                        },
-                    },
                 },
             },
         ],
