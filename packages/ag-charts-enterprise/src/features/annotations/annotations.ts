@@ -283,6 +283,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.colorPicker.show({
                     color: this.getTypedDatum(annotationData[active])?.stroke,
                     onChange: this.onColorPickerChange.bind(this),
+                    onClose: this.onColorPickerClose.bind(this),
                 });
                 break;
 
@@ -329,6 +330,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.defaultColor = color;
         this.update();
+    }
+
+    private onColorPickerClose() {
+        this.colorPicker.hide();
     }
 
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
