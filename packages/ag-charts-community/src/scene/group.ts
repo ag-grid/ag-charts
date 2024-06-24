@@ -6,7 +6,7 @@ import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 
-export class Group extends Node {
+export class Group<TDatum = any> extends Node<TDatum> {
     static className = 'Group';
 
     static is(value: unknown): value is Group {

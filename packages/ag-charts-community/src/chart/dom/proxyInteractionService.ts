@@ -35,6 +35,10 @@ type ProxyMeta = {
         params: ElemParams<'button'> & { readonly textContent: TranslationKey };
         result: HTMLButtonElement;
     };
+    checkbox: {
+        params: ElemParams<'checkbox'> & { readonly ariaLabel: TranslationKey; readonly checked: boolean };
+        result: HTMLInputElement;
+    };
     slider: {
         params: ElemParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly ariaOrientation: Direction };
         result: HTMLInputElement;
@@ -49,7 +53,7 @@ type ProxyMeta = {
     };
 };
 
-type ProxyElementType = 'button' | 'slider';
+type ProxyElementType = 'button' | 'checkbox' | 'slider';
 type ProxyContainerType = 'toolbar' | 'group';
 
 function checkType<T extends keyof ProxyMeta>(
@@ -60,7 +64,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div', group: 'div' } as const;
+    const map = { button: 'button', checkbox: 'input', slider: 'input', toolbar: 'div', group: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -123,6 +127,18 @@ export class ProxyInteractionService {
 
             this.addLocalisation(() => {
                 button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
+            });
+        }
+
+        if (checkType('checkbox', meta)) {
+            const { params, result: checkbox } = meta;
+            this.initElement(params, checkbox);
+            checkbox.type = 'checkbox';
+            checkbox.checked = params.checked;
+            checkbox.style.margin = '0px';
+
+            this.addLocalisation(() => {
+                checkbox.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
             });
         }
 
