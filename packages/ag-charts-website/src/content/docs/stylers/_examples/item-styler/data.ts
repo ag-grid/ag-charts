@@ -1,6 +1,5 @@
 // Source: https://www.gov.uk/government/statistics/total-energy-section-1-energy-trends
 export const data = [
-    'https://charts-staging.ag-grid.com/dev/ag-charts-enterprise/dist/package/main.cjs.js',
     {
         month: 'Jan',
         coal: 0.8,
