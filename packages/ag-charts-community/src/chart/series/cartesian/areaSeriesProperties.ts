@@ -19,7 +19,6 @@ import {
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { MarkerSelectionDatum } from './areaUtil';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
@@ -67,7 +66,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     readonly shadow = new DropShadow();
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgAreaSeriesOptionsKeys, MarkerSelectionDatum>();
+    readonly marker = new SeriesMarker<AgAreaSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgAreaSeriesLabelFormatterParams>();

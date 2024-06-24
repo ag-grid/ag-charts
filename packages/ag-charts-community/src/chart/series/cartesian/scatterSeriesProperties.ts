@@ -97,5 +97,5 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.
-    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys, ScatterNodeDatum>();
+    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys>();
 }

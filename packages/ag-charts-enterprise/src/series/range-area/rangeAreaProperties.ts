@@ -92,7 +92,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     readonly shadow = new DropShadow().set({ enabled: false });
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys, RangeAreaMarkerDatum>();
+    readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new RangeAreaSeriesLabel();

@@ -23,9 +23,9 @@ export const MARKER_SHAPE = predicateWithMessage(
     `a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
 );
 
-export class SeriesMarker<TParams = never, TDatum = any>
+export class SeriesMarker<TParams = never>
     extends ChangeDetectableProperties
-    implements ISeriesMarker<TDatum, RequireOptional<TParams>>
+    implements ISeriesMarker<RequireOptional<TParams>>
 {
     @Validate(BOOLEAN)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
@@ -62,7 +62,7 @@ export class SeriesMarker<TParams = never, TDatum = any>
 
     @Validate(FUNCTION, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    itemStyler?: Styler<AgSeriesMarkerStylerParams<TDatum> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
     getStyle(): AgSeriesMarkerStyle {
         const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this;

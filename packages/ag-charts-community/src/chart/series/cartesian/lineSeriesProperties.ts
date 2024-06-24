@@ -81,7 +81,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     interpolation: InterpolationProperties = new InterpolationProperties();
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();
+    readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();

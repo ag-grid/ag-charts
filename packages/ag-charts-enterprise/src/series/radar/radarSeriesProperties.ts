@@ -77,7 +77,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     rotation: number = 0;
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys, RadarNodeDatum>();
+    readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgRadarSeriesLabelFormatterParams>();
