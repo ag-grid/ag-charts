@@ -8,6 +8,7 @@ const formatters = ['number', 'percent', 'date', 'time', 'datetime'];
 const formatterRegExp = /\[([^\]]*)\]/g;
 const variableRegExp = /(\$\{\w+\})/g;
 
+// TODO: re-enable once all translations are added (https://ag-grid.atlassian.net/browse/AG-11957)
 describe.skip('translations', () => {
     describe.each(Object.keys(locales))('%s', (locale) => {
         const translations = (locales as any)[locale] as Record<string, string>;
