@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelLegendPagination: 'Efsane Sayfalama',
     ariaLabelLegendPagePrevious: 'Önceki Efsane Sayfası',
     ariaLabelLegendPageNext: 'Sonraki Efsane Sayfası',
-    ariaLabelLegendItem: 'Gösterge öğesi ${index}[number] / ${count}[number], ${label}, ${visibility}',
+    ariaLabelLegendItem: '${label}, Gösterge öğesi ${index}[number] / ${count}[number]',
     ariaLabelLegendItemUnknown: 'Bilinmeyen efsane öğesi',
     ariaLabelNavigator: 'Gezgin',
     ariaLabelNavigatorRange: 'Aralık',

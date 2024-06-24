@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaLabelLegendPagination: 'Stránkovanie legendy',
     ariaLabelLegendPagePrevious: 'Predchádzajúca stránka legendy',
     ariaLabelLegendPageNext: 'Ďalšia strana legendy',
-    ariaLabelLegendItem: 'Položka legendy ${index}[number] z ${count}[number], ${label}, ${visibility}',
+    ariaLabelLegendItem: '${label}, Položka legendy ${index}[number] z ${count}[number]',
     ariaLabelLegendItemUnknown: 'Neznáma položka legendy',
     ariaLabelNavigator: 'Navigátor',
     ariaLabelNavigatorRange: 'Rozsah',
