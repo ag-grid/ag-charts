@@ -356,7 +356,7 @@ export abstract class Series<
 
     set visible(value: boolean) {
         this.properties.visible = value;
-        this.visibleChanged();
+        this.visibleMaybeChanged();
     }
 
     get visible() {
@@ -571,9 +571,10 @@ export abstract class Series<
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
         this.nodeDataRefresh = true;
+        this.visibleMaybeChanged();
     }
 
-    visibleChanged() {
+    private visibleMaybeChanged() {
         this.ctx.seriesStateManager.registerSeries(this);
     }
 
