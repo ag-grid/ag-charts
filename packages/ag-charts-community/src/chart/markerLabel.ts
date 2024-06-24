@@ -93,8 +93,19 @@ export class MarkerLabel extends Group<CategoryLegendDatum | undefined> {
     get lines(): Line[] {
         return this._lines;
     }
-    update(dimensionProps: { length: number; spacing: number }[]) {
+
+    private calcOffsetX(dimensionProps: { length: number; spacing: number }[], requiredLength: number): number {
+        const n = Math.max(this.markers.length, this.lines.length);
+        let totalLength: number = 0;
+        for (let i = 0; i < n; i++) {
+            totalLength += Math.max(dimensionProps[i].length, this.markers[i].size ?? 0);
+        }
+        return requiredLength - totalLength;
+    }
+
+    update(dimensionProps: { length: number; spacing: number }[], requiredLength: number) {
         const { markers, lines } = this;
+        const offsetX = this.calcOffsetX(dimensionProps, requiredLength);
 
         let shift = 0;
         for (let i = 0; i < Math.max(markers.length, lines.length); i++) {
@@ -107,7 +118,7 @@ export class MarkerLabel extends Group<CategoryLegendDatum | undefined> {
             if (marker) {
                 const center = (marker.constructor as MarkerConstructor).center;
 
-                marker.x = (center.x - 0.5) * size + length / 2 + shift;
+                marker.x = (center.x - 0.5) * size + length / 2 + shift + offsetX;
                 marker.y = (center.y - 0.5) * size;
             }
 
