@@ -42,17 +42,19 @@ export class Line extends Shape implements DistantObject {
 
     override computeBBox(): BBox {
         return new BBox(
-            Math.min(this.x1, this.x2) - this.strokeWidth / 2,
-            Math.min(this.y1, this.y2) - this.strokeWidth / 2,
-            Math.abs(this.x2 - this.x1) + this.strokeWidth,
-            Math.abs(this.y2 - this.y1) + this.strokeWidth
+            Math.min(this.x1, this.x2),
+            Math.min(this.y1, this.y2),
+            Math.abs(this.x2 - this.x1),
+            Math.abs(this.y2 - this.y1)
         );
     }
 
     isPointInPath(px: number, py: number): boolean {
         if (this.x1 === this.x2 || this.y1 === this.y2) {
             const { x, y } = this.transformPoint(px, py);
-            return this.computeBBox().containsPoint(x, y);
+            return this.computeBBox()
+                .grow(this.strokeWidth / 2)
+                .containsPoint(x, y);
         }
         return false;
     }
