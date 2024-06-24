@@ -581,7 +581,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                itemStyler: itemStyler,
+                itemStyler,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
