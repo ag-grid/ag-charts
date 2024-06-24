@@ -12,9 +12,9 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum>>;
     /** A styler function for adjusting the styling of the radial columns. */
-    itemStyler?: Styler<AgRadialSeriesFormatterParams<TDatum>, AgRadialSeriesFormat>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum>, AgRadialSeriesStyle>;
 
 }
 
