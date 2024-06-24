@@ -2,12 +2,17 @@ import { _Scene } from 'ag-charts-community';
 
 import type { Coords } from '../annotationTypes';
 
+type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Rect]?: _Scene.Rect[K] };
+type DivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Circle]?: _Scene.Circle[K] };
+
 export abstract class Handle extends _Scene.Group {
     public static readonly HANDLE_SIZE: number;
     public static readonly GLOW_SIZE: number;
+    public static readonly INACTIVE_STROKE_WIDTH = 1;
 
     protected abstract handle: _Scene.Rect | _Scene.Circle;
     protected abstract glow: _Scene.Rect | _Scene.Circle;
+    protected active = false;
     protected locked = false;
 
     override visible = false;
@@ -29,8 +34,10 @@ export abstract class Handle extends _Scene.Group {
     }
 
     public toggleActive(active: boolean) {
-        this.handle.strokeWidth = active ? 1.5 : 1;
-        this.handle.dirtyPath = true;
+        this.active = active;
+        if (!active) {
+            this.handle.strokeWidth = Handle.INACTIVE_STROKE_WIDTH;
+        }
     }
 
     public toggleHovered(hovered: boolean) {
@@ -72,12 +79,12 @@ export class InvariantHandle extends Handle {
         this.append([this.handle]);
 
         this.handle.size = InvariantHandle.HANDLE_SIZE;
-        this.handle.strokeWidth = 1;
+        this.handle.strokeWidth = Handle.INACTIVE_STROKE_WIDTH;
         this.handle.zIndex = 2;
     }
 
     override update(styles: { [K in keyof _Scene.Circle]?: _Scene.Circle[K] }) {
-        this.handle.setProperties(styles);
+        this.handle.setProperties({ ...styles, strokeWidth: Handle.INACTIVE_STROKE_WIDTH });
     }
 
     override drag(target: Coords): { point: Coords; offset: Coords } {
@@ -88,23 +95,26 @@ export class InvariantHandle extends Handle {
 export class UnivariantHandle extends Handle {
     static override readonly HANDLE_SIZE = 12;
     static override readonly GLOW_SIZE = 16;
+    static readonly CORNER_RADIUS = 4;
 
     override handle = new _Scene.Rect();
     override glow = new _Scene.Rect();
 
     public gradient: 'horizontal' | 'vertical' = 'horizontal';
 
+    private cachedStyles?: { [K in keyof _Scene.Rect]?: _Scene.Rect[K] };
+
     constructor() {
         super();
         this.append([this.glow, this.handle]);
 
-        this.handle.cornerRadius = 4;
+        this.handle.cornerRadius = UnivariantHandle.CORNER_RADIUS;
         this.handle.width = UnivariantHandle.HANDLE_SIZE;
         this.handle.height = UnivariantHandle.HANDLE_SIZE;
-        this.handle.strokeWidth = 1;
+        this.handle.strokeWidth = Handle.INACTIVE_STROKE_WIDTH;
         this.handle.zIndex = 2;
 
-        this.glow.cornerRadius = 4;
+        this.glow.cornerRadius = UnivariantHandle.CORNER_RADIUS;
         this.glow.width = UnivariantHandle.GLOW_SIZE;
         this.glow.height = UnivariantHandle.GLOW_SIZE;
         this.glow.strokeWidth = 0;
@@ -115,17 +125,53 @@ export class UnivariantHandle extends Handle {
 
     override toggleLocked(locked: boolean): void {
         super.toggleLocked(locked);
-        this.handle.visible = !locked;
-        this.glow.visible = !locked;
+
+        if (locked) {
+            const offset = (UnivariantHandle.HANDLE_SIZE - InvariantHandle.HANDLE_SIZE) / 2;
+            this.handle.cornerRadius = 1;
+            this.handle.fill = this.handle.stroke;
+            this.handle.strokeWidth = 0;
+            this.handle.x += offset;
+            this.handle.y += offset;
+            this.handle.width = InvariantHandle.HANDLE_SIZE;
+            this.handle.height = InvariantHandle.HANDLE_SIZE;
+            this.glow.width = InvariantHandle.GLOW_SIZE;
+            this.glow.height = InvariantHandle.GLOW_SIZE;
+        } else {
+            this.handle.cornerRadius = UnivariantHandle.CORNER_RADIUS;
+            this.handle.width = UnivariantHandle.HANDLE_SIZE;
+            this.handle.height = UnivariantHandle.HANDLE_SIZE;
+            this.glow.width = UnivariantHandle.GLOW_SIZE;
+            this.glow.height = UnivariantHandle.GLOW_SIZE;
+            if (this.cachedStyles) {
+                this.handle.setProperties(this.cachedStyles);
+            }
+        }
     }
 
-    override update(styles: { [K in keyof _Scene.Rect]?: _Scene.Rect[K] }) {
+    override update(styles: UnivariantHandleStyles) {
+        if (!this.active) {
+            delete styles.strokeWidth;
+        }
+
+        if (this.locked) {
+            delete styles.fill;
+            delete styles.strokeWidth;
+
+            const offset = (UnivariantHandle.HANDLE_SIZE - InvariantHandle.HANDLE_SIZE) / 2;
+            styles.x -= offset;
+            styles.y -= offset;
+        } else {
+            this.cachedStyles = styles;
+        }
+
         this.handle.setProperties(styles);
         this.glow.setProperties({
             ...styles,
             x: (styles.x ?? this.glow.x) - 2,
             y: (styles.y ?? this.glow.y) - 2,
-            fill: styles.stroke ?? styles.fill,
+            strokeWidth: 0,
+            fill: styles.stroke,
         });
     }
 
@@ -158,12 +204,14 @@ export class DivariantHandle extends Handle {
     override handle = new _Scene.Circle();
     override glow = new _Scene.Circle();
 
+    private cachedStyles?: DivariantHandleStyles;
+
     constructor() {
         super();
         this.append([this.glow, this.handle]);
 
         this.handle.size = DivariantHandle.HANDLE_SIZE;
-        this.handle.strokeWidth = 1;
+        this.handle.strokeWidth = Handle.INACTIVE_STROKE_WIDTH;
         this.handle.zIndex = 2;
 
         this.glow.size = DivariantHandle.GLOW_SIZE;
@@ -175,12 +223,34 @@ export class DivariantHandle extends Handle {
 
     override toggleLocked(locked: boolean): void {
         super.toggleLocked(locked);
-        this.handle.size = locked ? InvariantHandle.HANDLE_SIZE : DivariantHandle.HANDLE_SIZE;
-        this.glow.size = locked ? InvariantHandle.GLOW_SIZE : DivariantHandle.GLOW_SIZE;
+
+        if (locked) {
+            this.handle.fill = this.handle.stroke;
+            this.handle.strokeWidth = 0;
+            this.handle.size = InvariantHandle.HANDLE_SIZE;
+            this.glow.size = InvariantHandle.GLOW_SIZE;
+        } else {
+            this.handle.size = DivariantHandle.HANDLE_SIZE;
+            this.glow.size = DivariantHandle.GLOW_SIZE;
+            if (this.cachedStyles) {
+                this.handle.setProperties(this.cachedStyles);
+            }
+        }
     }
 
-    override update(styles: { [K in keyof _Scene.Circle]?: _Scene.Circle[K] }) {
+    override update(styles: DivariantHandleStyles) {
+        if (!this.active) {
+            delete styles.strokeWidth;
+        }
+
+        if (this.locked) {
+            delete styles.fill;
+            delete styles.strokeWidth;
+        } else {
+            this.cachedStyles = styles;
+        }
+
         this.handle.setProperties(styles);
-        this.glow.setProperties({ ...styles, fill: styles.stroke });
+        this.glow.setProperties({ ...styles, strokeWidth: 0, fill: styles.stroke });
     }
 }

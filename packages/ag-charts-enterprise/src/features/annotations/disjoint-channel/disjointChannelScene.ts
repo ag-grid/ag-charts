@@ -189,6 +189,7 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? datum.strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
         topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });
