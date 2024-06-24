@@ -8,6 +8,8 @@
     color: var(--ag-charts-toolbar-foreground-color);
     background: var(--ag-charts-toolbar-background-color);
     border-radius: 4px;
+    /* Needs to beat .ag-crosshair-label */
+    z-index: 99999;
 
     --h: 0;
     --s: 0;
