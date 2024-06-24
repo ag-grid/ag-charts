@@ -1,6 +1,6 @@
-import { type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationAxisContext, AnnotationContext, Coords } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convert, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { AxisLabel } from '../scenes/axisLabel';
@@ -9,6 +9,7 @@ import { CollidableLine } from '../scenes/shapes';
 import { type CrossLineAnnotation, HorizontalLineAnnotation } from './crossLineProperties';
 
 const { Vec2 } = _Util;
+const { ChartAxisDirection } = _ModuleSupport;
 
 export class CrossLine extends Annotation {
     static override is(value: unknown): value is CrossLine {
@@ -21,7 +22,7 @@ export class CrossLine extends Annotation {
 
     private readonly line = new CollidableLine();
     private readonly middle = new UnivariantHandle();
-    private readonly axisLabel = new AxisLabel();
+    private axisLabel?: AxisLabel;
 
     private seriesRect?: _Scene.BBox;
     private dragState?: {
@@ -31,12 +32,12 @@ export class CrossLine extends Annotation {
 
     constructor() {
         super();
-        this.append([this.line, this.middle, this.axisLabel]);
+        this.append([this.line, this.middle]);
     }
 
     public update(datum: CrossLineAnnotation, context: AnnotationContext) {
         const { line, middle } = this;
-        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity, value } = datum;
+        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { seriesRect } = context;
 
         this.locked = locked ?? false;
@@ -83,15 +84,41 @@ export class CrossLine extends Annotation {
         middle.gradient = isHorizontal ? 'horizontal' : 'vertical';
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
 
-        const { axisLabel } = this;
+        this.updateAxisLabel(datum, axisContext, coords);
+    }
+
+    private createAxisLabel(context: AnnotationAxisContext) {
+        const axisLabel = new AxisLabel();
+        context.attachLabel(axisLabel);
+        return axisLabel;
+    }
+
+    private updateAxisLabel(
+        datum: CrossLineAnnotation,
+        axisContext: AnnotationAxisContext,
+        { x1, y1, x2, y2 }: LineCoords
+    ) {
+        if (!this.axisLabel) {
+            this.axisLabel = this.createAxisLabel(axisContext);
+        }
+
+        const { axisLabel, seriesRect } = this;
         if (datum.axisLabel.enabled) {
             axisLabel.visible = this.visible;
+
             const [labelX, labelY] =
                 axisContext.position === 'left' || axisContext.position === 'top' ? [x1, y1] : [x2, y2];
+
+            const labelPosition = axisContext.direction === ChartAxisDirection.X ? labelX : labelY;
+            if (!axisContext.inRange(labelPosition)) {
+                axisLabel.visible = false;
+                return;
+            }
+
             axisLabel.update({
-                x: labelX,
-                y: labelY,
-                value,
+                x: labelX + (seriesRect?.x ?? 0),
+                y: labelY + (seriesRect?.y ?? 0),
+                value: datum.value,
                 styles: datum.axisLabel,
                 context: axisContext,
             });
