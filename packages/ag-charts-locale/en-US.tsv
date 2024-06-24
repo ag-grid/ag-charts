@@ -1,0 +1,54 @@
+key	translation	description
+ariaAnnounceVisible	visible	Screen reader announcement when the focused item becomes visible
+ariaAnnounceHidden	hidden	Screen reader announcement when the focused item becomes hidden
+ariaAnnounceHoverDatum	${datum}	Screen reader announcement when focusing an item in the chart
+ariaAnnounceChart	chart, ${seriesCount}[number] series, ${caption}	Screen reader announcement when focusing a chart
+ariaAnnounceHierarchyDatum	level ${level}[number], ${count}[number] children, ${description}	Screen reader announcement when focusing an item in a treemap or sunburst chart
+ariaAnnounceFlowProportionLink	link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}	Screen reader announcement when focusing a link in a Sankey or chord chart
+ariaAnnounceFlowProportionNode	node ${index} of ${count}, ${description}	Screen reader announcement when focusing a node in a Sankey or chord chart
+ariaLabelLegend	Legend	Screen reader text for the legend button
+ariaLabelLegendPagination	Legend Pagination	Screen reader text for the legend pagination button
+ariaLabelLegendPagePrevious	Previous Legend Page	Screen reader text for the previous legend page button
+ariaLabelLegendPageNext	Next Legend Page	Screen reader text for the next legend page button
+ariaLabelLegendItem	${label}, Legend item ${index}[number] of ${count}[number]	Screen reader text for the an item in the legend
+ariaLabelLegendItemUnknown	Unknown legend item	Screen reader text for the an unknown item in the legend
+ariaLabelNavigator	Navigator	Screen reader text for the navigator element
+ariaLabelNavigatorRange	Range	Screen reader text for an accessibility control that changes the position of the navigator's range
+ariaLabelNavigatorMinimum	Minimum	Screen reader text for an accessibility control that changes the start of the navigator's range
+ariaLabelNavigatorMaximum	Maximum	Screen reader text for an accessibility control that changes the end of the navigator's range
+ariaValuePanRange	${min}[percent] to ${max}[percent]	Screen reader text for the value of the navigator's range
+overlayLoadingData	Loading data...	Default text for the 'loading data' overlay
+overlayNoData	No data to display	Default text for the 'no data' overlay
+overlayNoVisibleSeries	No visible series	Default text for the 'no visible series' overlay
+toolbarAnnotationsTrendLine	Trend line	Text for the annotation toolbar's trend line button
+toolbarAnnotationsParallelChannel	Parallel channel	Text for the annotation toolbar's parallel channel button
+toolbarAnnotationsDisjointChannel	Disjoint channel	Text for the annotation toolbar's disjoint channel button
+toolbarAnnotationsClearAll	Clear all annotations	Text for the annotation toolbar's clear all button
+toolbarAnnotationsColor	Pick annotation color	Text for the annotation toolbar's color picker annotation button
+toolbarAnnotationsLock	Lock annotation	Text for the annotation toolbar's lock annotation button
+toolbarAnnotationsUnlock	Unlock annotation	Text for the annotation toolbar's unlock annotation button
+toolbarAnnotationsDelete	Delete annotation	Text for the annotation toolbar's delete annotation button
+toolbarRange1Month	1m	Text for the range toolbar's 1 month button
+toolbarRange1MonthAria	1 month	Aria label for the range toolbar's 1 month button
+toolbarRange3Months	3m	Text for the range toolbar's 3 month button
+toolbarRange3MonthsAria	3 months	Aria label for the range toolbar's 3 month button
+toolbarRange6Months	6m	Text for the range toolbar's 6 month button
+toolbarRange6MonthsAria	6 months	Aria label for the range toolbar's 6 month button
+toolbarRangeYearToDate	YTD	Text for the range toolbar's year to date button
+toolbarRangeYearToDateAria	Year to date	Aria label for the range toolbar's year to date month button
+toolbarRange1Year	1y	Text for the range toolbar's 1 year button
+toolbarRange1YearAria	1 year	Aria label for the range toolbar's 1 year button
+toolbarRangeAll	All	Text for the range toolbar's full range button
+toolbarRangeAllAria	All	Aria label for the range toolbar's full range button
+toolbarZoomZoomOut	Zoom out	Text for the zoom toolbar's zoom out button
+toolbarZoomZoomIn	Zoom in	Text for the zoom toolbar's zoom in button
+toolbarZoomPanLeft	Pan left	Text for the zoom toolbar's pan left button
+toolbarZoomPanRight	Pan right	Text for the zoom toolbar's pan right button
+toolbarZoomPanStart	Pan to the start	Text for the zoom toolbar's pan to the start button
+toolbarZoomPanEnd	Pan to the end	Text for the zoom toolbar's pan to the end button
+toolbarZoomReset	Reset the zoom	Text for the zoom toolbar's pan reset button
+contextMenuDownload	Download	Text for the context menu's download button
+contextMenuToggleSeriesVisibility	Toggle Visibility	Text for the context menu's toggle series visibility button
+contextMenuToggleOtherSeries	Toggle Other Series	Text for the context menu's toggle other series visibility button
+contextMenuZoomToCursor	Zoom to here	Text for the context menu's zoom to point button
+contextMenuPanToCursor	Pan to here	Text for the context menu's pan to point button

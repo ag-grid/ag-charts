@@ -4,5 +4,8 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSaveMode": "file",
   "eslint.validate": ["json"],
-  "prettier.ignorePath": ".prettierignore.local"
+  "prettier.ignorePath": ".prettierignore.local",
+  "[tsv]": {
+    "editor.insertSpaces": false
+  }
 }
