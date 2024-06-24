@@ -101,11 +101,12 @@
         var(--ag-charts-active-color) 12%
     );
     --ag-charts-toolbar-focus-color: var(--ag-charts-active-color);
-    --ag-charts-toolbar-active-color: color-mix(
+    --ag-charts-toolbar-active-background-color: color-mix(
         in srgb,
         var(--ag-charts-background-color),
         var(--ag-charts-active-color) 24%
     );
+    --ag-charts-toolbar-active-color: var(--ag-active-color, #5090dc);
     --ag-charts-toolbar-disabled-foreground-color: var(
         --ag-disabled-foreground-color,
         color-mix(in srgb, transparent, var(--ag-charts-toolbar-foreground-color) 50%)
