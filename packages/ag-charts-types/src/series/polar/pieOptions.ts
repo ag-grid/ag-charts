@@ -80,7 +80,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams<TDatum>>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
     /** The spacing between Pie sectors. */
@@ -122,8 +122,8 @@ export interface AgPieSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgPieSeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgPieSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgPieSeriesOptionsKeys,
         AgPieSeriesOptionsNames {}
 

@@ -1,6 +1,5 @@
 import { type Formatter, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { calculateAxisLabelPosition } from '../../../utils/position';
 import type { AnnotationAxisLabelProperties } from '../annotationProperties';
 import type { AnnotationAxisContext } from '../annotationTypes';
 
@@ -71,21 +70,14 @@ export class AxisLabel extends _Scene.Group {
             bbox: labelBBox,
         });
 
-        label.translationX = x + xTranslation;
-        label.translationY = y + yTranslation;
+        const translationX = x + xTranslation;
+        const translationY = y + yTranslation;
 
-        const labelContainer = calculateAxisLabelPosition({
-            x,
-            y,
-            labelBBox,
-            bounds: context.bounds,
-            axisPosition: axisPosition,
-            axisDirection: context.direction,
-            padding: context.labelPadding,
-        });
+        label.translationX = translationX;
+        label.translationY = translationY;
 
-        rect.x = labelContainer.x;
-        rect.y = labelContainer.y;
+        rect.x = translationX - labelBBox.width / 2;
+        rect.y = translationY - labelBBox.height / 2;
         rect.height = labelBBox.height;
         rect.width = labelBBox.width;
     }

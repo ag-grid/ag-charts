@@ -482,22 +482,42 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, fill, strokeWidth, itemStyler, tooltip } =
-            this.properties;
-        const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
+        const {
+            xKey,
+            yLowKey,
+            yHighKey,
+            xName,
+            yLowName,
+            yHighName,
+            yName,
+            fill,
+            strokeWidth,
+            itemStyler,
+            tooltip,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        } = this.properties;
+        const { datum, xValue, yLowValue, yHighValue } = nodeDatum;
 
         let format;
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
+                highlighted: false,
+                seriesId,
                 datum,
                 xKey,
                 yLowKey,
                 yHighKey,
                 fill,
+                fillOpacity,
+                stroke,
                 strokeWidth,
-                highlighted: false,
-                seriesId,
-                itemId,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
             });
         }
 
@@ -526,6 +546,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         return tooltip.toTooltipHtml(defaults, {
+            itemId: undefined,
             datum,
             xKey,
             xName,
@@ -536,10 +557,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             yName,
             color,
             seriesId,
-            itemId,
             title,
-            yHighValue,
-            yLowValue,
         });
     }
 

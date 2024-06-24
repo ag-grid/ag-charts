@@ -1,5 +1,5 @@
 import {
-    type AgChordSeriesFormatterParams,
+    type AgChordSeriesItemStylerParams,
     type AgChordSeriesLabelFormatterParams,
     type AgChordSeriesLinkStyle,
     type AgChordSeriesOptions,
@@ -133,8 +133,8 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     readonly node = new ChordSeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgChordSeriesFormatterParams<any>, AgChordSeriesLinkStyle>;
+    itemStyler?: Styler<AgChordSeriesItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
 }

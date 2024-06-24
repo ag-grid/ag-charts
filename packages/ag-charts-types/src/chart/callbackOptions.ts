@@ -14,16 +14,19 @@ export interface SeriesCallbackParams {
     seriesId: string;
 }
 
-export interface DatumCallbackParams<TDatum, TItemId extends string = string> {
+export interface DatumCallbackParams<TDatum> {
     /** The data point associated with the label. */
     datum: TDatum;
     /** The unique identifier of the series. */
     seriesId: string;
     /** Indicates whether the element is highlighted. */
     highlighted: boolean;
+}
+
+export interface DatumItemCallbackParams<ItemType extends string, TDatum> extends DatumCallbackParams<TDatum> {
     /** The unique identifier of the item. */
-    itemId?: TItemId;
+    itemId: ItemType;
 }
 
 export type Formatter<P> = (params: P) => string | undefined;
-export type Styler<P extends DatumCallbackParams<any>, S> = (params: P) => S | undefined;
+export type Styler<P, S> = (params: P) => S | undefined;

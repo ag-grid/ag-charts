@@ -1,9 +1,9 @@
 import type {
-    AgRangeBarSeriesFormat,
-    AgRangeBarSeriesFormatterParams,
+    AgRangeBarSeriesItemStylerParams,
     AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
     AgRangeBarSeriesOptions,
+    AgRangeBarSeriesStyles,
     AgRangeBarSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
@@ -79,7 +79,7 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRangeBarSeriesFormatterParams<any>, AgRangeBarSeriesFormat>;
+    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<unknown>, AgRangeBarSeriesStyles>;
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });

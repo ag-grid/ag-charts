@@ -64,6 +64,7 @@ export class Line extends LinearScene<LineAnnotation> {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
         start.update({ ...handleStyles, x: x1, y: y1 });

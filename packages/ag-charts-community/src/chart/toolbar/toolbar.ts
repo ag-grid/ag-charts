@@ -332,14 +332,34 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
+        const orientation = this.computeAriaOrientation(alignElement);
         this.groupDestroyFns[group] = initToolbarKeyNav({
-            orientation: 'horizontal',
+            orientation,
             toolbar: alignElement,
             buttons: this.groupButtons[group],
             onEscape,
             onFocus,
             onBlur,
         });
+    }
+
+    private computeAriaOrientation(elem: HTMLElement): 'horizontal' | 'vertical' {
+        // Our styles only use 'row' and 'column'. Unit tests use ''.
+        const flexDirection = this.computedStyle(elem, 'flex-direction', 'row');
+        const orientation = ({ row: 'horizontal', column: 'vertical' } as const)[flexDirection];
+        if (!orientation) throw TypeError(`AG Charts - unexpected flex-direction [${flexDirection}]`);
+        return orientation;
+    }
+
+    private computedStyle(elem: HTMLElement, property: string, defaultValue: string): string {
+        // We could use the global getComputedStyle function, but it doesn't always work as intended in tests.
+        let value: string;
+        let current: HTMLElement | null = elem;
+        do {
+            value = current!.style.getPropertyValue(property);
+            current = current!.parentElement;
+        } while (current != null && value !== '');
+        return value === '' ? defaultValue : value;
     }
 
     private toggleGroup(caller: string, group: ToolbarGroup, enabled?: boolean) {

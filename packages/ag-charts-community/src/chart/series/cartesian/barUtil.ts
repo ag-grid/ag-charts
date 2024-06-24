@@ -70,10 +70,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
 
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
 
-export function getRectConfig<
-    Params extends Omit<AgBarSeriesItemStylerParams<any>, 'yKey' | 'value'>,
-    ExtraParams extends {},
->({
+export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<any>, 'yKey'>, ExtraParams extends {}>({
     datum,
     isHighlighted,
     style,
@@ -91,13 +88,18 @@ export function getRectConfig<
     seriesId: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
-    const { fill, fillOpacity, stroke, strokeWidth } = mergeDefaults(isHighlighted && highlightStyle, style);
     const {
+        fill,
+        fillOpacity,
+        stroke,
+        strokeWidth,
         strokeOpacity,
-        fillShadow,
         lineDash,
         lineDashOffset,
         cornerRadius = 0,
+    } = mergeDefaults(isHighlighted && highlightStyle, style);
+    const {
+        fillShadow,
         topLeftCornerRadius = true,
         topRightCornerRadius = true,
         bottomRightCornerRadius = true,
@@ -110,8 +112,12 @@ export function getRectConfig<
             datum: datum.datum,
             xKey: datum.xKey,
             fill,
+            fillOpacity,
             stroke,
             strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
             cornerRadius,
             highlighted: isHighlighted,
             seriesId,

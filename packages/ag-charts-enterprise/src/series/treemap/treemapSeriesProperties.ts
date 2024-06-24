@@ -1,5 +1,5 @@
 import type {
-    AgTreemapSeriesFormatterParams,
+    AgTreemapSeriesItemStylerParams,
     AgTreemapSeriesLabelFormatterParams,
     AgTreemapSeriesOptions,
     AgTreemapSeriesStyle,
@@ -172,7 +172,7 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
     secondaryLabelKey?: string;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgTreemapSeriesFormatterParams, AgTreemapSeriesStyle>;
+    itemStyler?: Styler<AgTreemapSeriesItemStylerParams<unknown>, AgTreemapSeriesStyle>;
 
     @Validate(OBJECT)
     override readonly highlightStyle = new TreemapSeriesHighlightStyle();

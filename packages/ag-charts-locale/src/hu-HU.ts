@@ -11,7 +11,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelLegendPagination: 'Jelmagyarázat Lapozás',
     ariaLabelLegendPagePrevious: 'Előző jelmagyarázat oldal',
     ariaLabelLegendPageNext: 'Következő jelmagyarázat oldal',
-    ariaLabelLegendItem: 'Jelmagyarázat elem ${index}[number] a(z) ${count}[number] közül, ${label}, ${visibility}',
+    ariaLabelLegendItem: '${label}, Jelmagyarázat elem ${index}[number] a(z) ${count}[number] közül',
     ariaLabelLegendItemUnknown: 'Ismeretlen jelmagyarázati elem',
     ariaLabelNavigator: 'Navigátor',
     ariaLabelNavigatorRange: 'Tartomány',

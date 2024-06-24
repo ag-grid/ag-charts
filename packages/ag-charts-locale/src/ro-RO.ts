@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelLegendPagination: 'Pagini legendă',
     ariaLabelLegendPagePrevious: 'Pagina precedentă a legendei',
     ariaLabelLegendPageNext: 'Pagina următoare a legendei',
-    ariaLabelLegendItem: 'Elementul legendei ${index}[number] din ${count}[number], ${label}, ${visibility}',
+    ariaLabelLegendItem: '${label}, Elementul legendei ${index}[number] din ${count}[number]',
     ariaLabelLegendItemUnknown: 'Element necunoscut din legendă',
     ariaLabelNavigator: 'Navigator',
     ariaLabelNavigatorRange: 'Interval',

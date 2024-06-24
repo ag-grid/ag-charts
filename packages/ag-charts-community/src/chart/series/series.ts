@@ -759,7 +759,7 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TDatum, TParams>,
+        marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
@@ -779,7 +779,7 @@ export abstract class Series<
 
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
-        marker: ISeriesMarker<TDatum, TParams>,
+        marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
         { applyTranslation = true } = {}

@@ -451,7 +451,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 highlightStyle: itemHighlightStyle,
                 yKey,
                 style,
-                itemStyler: itemStyler,
+                itemStyler,
                 stackGroup,
             });
             config.crisp = crisp;
@@ -513,7 +513,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 highlighted: false,
                 cornerRadius: this.properties.cornerRadius,
-                crisp: Boolean(this.properties.crisp),
                 fillOpacity: this.properties.fillOpacity,
                 strokeOpacity: this.properties.strokeOpacity,
                 lineDash: this.properties.lineDash ?? [],

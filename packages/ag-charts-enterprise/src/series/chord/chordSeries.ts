@@ -1,5 +1,5 @@
 import {
-    type AgChordSeriesFormatterParams,
+    type AgChordSeriesItemStylerParams,
     type AgChordSeriesLinkStyle,
     _ModuleSupport,
     _Scene,
@@ -398,7 +398,7 @@ export class ChordSeries extends FlowProportionSeries<
         datumSelection.each((link, datum) => {
             let format: AgChordSeriesLinkStyle | undefined;
             if (itemStyler != null) {
-                const params: _Util.RequireOptional<AgChordSeriesFormatterParams> = {
+                format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
                     itemId: datum.itemId,
@@ -414,8 +414,7 @@ export class ChordSeries extends FlowProportionSeries<
                     lineDashOffset,
                     tension,
                     highlighted: isHighlight,
-                };
-                format = callbackCache.call(itemStyler, params as AgChordSeriesFormatterParams);
+                } as AgChordSeriesItemStylerParams);
             }
 
             link.centerX = datum.centerX;
@@ -451,7 +450,7 @@ export class ChordSeries extends FlowProportionSeries<
         }
 
         const { fromKey, toKey, sizeKey, sizeName, itemStyler, tooltip } = properties;
-        const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
+        const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset, tension } = properties.link;
         const { datum, itemId } = nodeDatum;
 
         let title: string;
@@ -479,18 +478,18 @@ export class ChordSeries extends FlowProportionSeries<
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
                 seriesId,
-                datum: datum.datum,
-                itemId: datum.itemId,
+                datum,
                 fromKey,
                 toKey,
                 sizeKey,
                 fill,
                 fillOpacity,
                 strokeOpacity,
-                stroke,
+                stroke: stroke!,
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                tension,
                 highlighted: false,
             });
         }

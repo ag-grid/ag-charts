@@ -1,32 +1,24 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgHeatmapSeriesFormatterParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        AgHeatmapSeriesOptionsKeys,
-        FillOptions,
-        StrokeOptions {
-    readonly highlighted: boolean;
-}
+export type AgHeatmapSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+    AgHeatmapSeriesOptionsKeys &
+    Required<AgHeatmapSeriesStyle>;
 
-export type AgHeatmapSeriesFormat = FillOptions & StrokeOptions;
+export type AgHeatmapSeriesStyle = FillOptions & StrokeOptions;
 
 export type AgHeatmapSeriesLabelFormatterParams = AgHeatmapSeriesOptionsKeys & AgHeatmapSeriesOptionsNames;
 
-export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesTooltipRendererParams {
-    /** colorKey as specified on series options. */
-    readonly colorKey?: string;
-    /** colorName as specified on series options. */
-    readonly colorName?: string;
-}
+export type AgHeatmapSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
+    AgHeatmapSeriesOptionsKeys &
+    AgHeatmapSeriesOptionsNames;
 
 export interface AgHeatmapSeriesThemeableOptions<TDatum = any>
-    extends StrokeOptions,
+    extends AgHeatmapSeriesStyle,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Options for the label in each cell. */
     label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
@@ -39,9 +31,9 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = any>
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgHeatmapSeriesFormatterParams<TDatum>, AgHeatmapSeriesFormat>;
+    itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<TDatum>, AgHeatmapSeriesStyle>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgHeatmapSeriesOptionsKeys {
@@ -72,8 +64,3 @@ export interface AgHeatmapSeriesOptions<TDatum = any>
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'. */
     colorRange?: string[];
 }
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;

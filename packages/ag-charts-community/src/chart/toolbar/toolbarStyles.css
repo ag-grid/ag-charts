@@ -28,6 +28,7 @@
     --ag-charts-toolbar-button-padding: var(--ag-charts-toolbar-button-padding-small);
 }
 
+/* Note: We also use the computed flex-direction to determine the aria-orientation. */
 .ag-charts-toolbar--top,
 .ag-charts-toolbar--bottom {
     flex-direction: row;
@@ -53,6 +54,8 @@
 .ag-charts-toolbar--floating {
     padding: 0;
     width: auto;
+    /* Needs to beat .ag-crosshair-label */
+    z-index: 99999;
 }
 
 .ag-charts-toolbar--floating-top {
@@ -119,7 +122,6 @@
     background: var(--ag-charts-toolbar-background-color);
     border: var(--ag-charts-toolbar-border);
     border-left: 0;
-    border-right: 0;
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
     font-size: var(--ag-charts-toolbar-font-size);
@@ -130,7 +132,9 @@
     min-width: var(--ag-charts-toolbar-size);
     padding: var(--ag-charts-toolbar-button-padding);
     pointer-events: all;
-    transition: background-color 0.25s ease-in-out;
+    transition:
+        background-color 0.25s ease-in-out,
+        color 0.25s ease-in-out;
 }
 
 .ag-charts-toolbar__button:first-child {
@@ -180,13 +184,15 @@
 }
 
 .ag-charts-toolbar .ag-charts-toolbar__button:focus-visible {
+    border-left: var(--ag-charts-toolbar-border);
     border-color: var(--ag-charts-toolbar-focus-color);
     box-shadow: var(--ag-charts-focus-border-shadow);
     z-index: 1;
 }
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
-    background: var(--ag-charts-toolbar-active-color);
+    background: var(--ag-charts-toolbar-active-background-color);
+    color: var(--ag-charts-toolbar-active-color);
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {

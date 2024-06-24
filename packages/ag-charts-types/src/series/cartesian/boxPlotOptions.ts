@@ -46,10 +46,10 @@ export type AgBoxPlotSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum
     BoxPlotOptionsKeys &
     Required<AgBoxPlotSeriesStyles>;
 
-export interface AgBoxPlotSeriesTooltipRendererParams
+export interface AgBoxPlotSeriesTooltipRendererParams<TDatum>
     extends BoxPlotOptionsKeys,
         BoxPlotOptionsNames,
-        AgSeriesTooltipRendererParams {
+        AgSeriesTooltipRendererParams<TDatum> {
     fill?: CssColor;
 }
 
@@ -71,7 +71,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyles>;
 }

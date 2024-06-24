@@ -33,7 +33,12 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
 
-    show(opts: { anchor?: { x: number; y: number }; color?: string; onChange?: (colorString: string) => void }) {
+    show(opts: {
+        anchor?: { x: number; y: number };
+        color?: string;
+        onChange: (colorString: string) => void;
+        onClose: () => void;
+    }) {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
 
         const colorPickerContainer = createElement('div');
@@ -65,6 +70,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
             hueInput.value = `${h}`;
             alphaInput.value = `${a}`;
+
+            alphaInput.classList.toggle('ag-charts-color-picker__alpha-input--opaque', a === 1);
+
             if (document.activeElement !== colorInput) {
                 colorInput.value = colorString.toUpperCase();
             }
@@ -94,10 +102,20 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
             });
         };
 
-        (['mousedown', 'keydown'] as const).forEach((eventName) => {
-            colorPicker.addEventListener(eventName, (e) => {
-                e.stopPropagation();
-            });
+        colorPicker.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        });
+        colorPicker.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            switch (e.key) {
+                case 'Enter':
+                case 'Escape':
+                    opts.onClose?.();
+                    break;
+                default:
+                    return;
+            }
+            e.preventDefault();
         });
         paletteInput.addEventListener('mousedown', beginPaletteInteraction);
         paletteInput.addEventListener('keydown', (e) => {

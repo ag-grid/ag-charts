@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumItemCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
@@ -9,25 +9,22 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
-export interface AgWaterfallSeriesFormatterParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        AgWaterfallSeriesOptionsKeys,
-        FillOptions,
-        StrokeOptions {
-    readonly itemId: AgWaterfallSeriesItemType;
-    readonly highlighted: boolean;
-    readonly value: number;
-}
+export type AgWaterfallSeriesItemStylerParams<TDatum> = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum> &
+    AgWaterfallSeriesOptionsKeys &
+    Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams = AgWaterfallSeriesOptionsKeys &
     AgWaterfallSeriesOptionsNames & { itemId: AgWaterfallSeriesItemType };
 
-export type AgWaterfallSeriesFormat = FillOptions & StrokeOptions;
+export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each bar. */
+    cornerRadius?: PixelSize;
+}
 
 export interface AgWaterfallSeriesTooltipRendererParams<TDatum = any>
     extends AgCartesianSeriesTooltipRendererParams<TDatum> {
     /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
-    itemId: string;
+    itemId: AgWaterfallSeriesItemType;
 }
 
 export interface AgWaterfallSeriesItemTooltip {
@@ -105,17 +102,15 @@ export interface WaterfallSeriesTotalMeta {
     axisLabel: any;
 }
 
-export interface AgWaterfallSeriesItemOptions<TDatum> extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgWaterfallSeriesItemOptions<TDatum> extends AgWaterfallSeriesStyle {
     /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */
     label?: AgWaterfallSeriesLabelOptions<TDatum, AgWaterfallSeriesLabelFormatterParams>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
-    /** Apply rounded corners to each bar. */
-    cornerRadius?: PixelSize;
     /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgWaterfallSeriesFormatterParams<TDatum>, AgWaterfallSeriesFormat>;
+    itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<TDatum>, AgWaterfallSeriesStyle>;
     /** Series item specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesItemTooltip;
 }
@@ -134,8 +129,3 @@ export interface AgWaterfallSeriesLineOptions {
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
 }
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;

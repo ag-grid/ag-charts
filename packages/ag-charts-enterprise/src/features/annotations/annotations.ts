@@ -119,9 +119,28 @@ class AxesButtons {
 }
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
-        target.ctx.toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
-        if (!enabled) target.clear();
+    // TODO: When the 'restore-annotations' event is triggered from `ActionsOnSet.newValue()`, the module is still
+    // disabled when `onRestoreAnnotations()` is called, preventing the state from being restored. However,
+    // when `ObserveChanges()` is first called `target.enabled === false`, rather than `undefined`. So
+    // there is no way to detect if the module was actively disabled. This flag simulates a combined
+    // behaviour of both and is toggled when the module is actively disabled and enabled.
+    private __hackWasDisabled = false;
+
+    @_ModuleSupport.ObserveChanges<Annotations, boolean>((target, enabled) => {
+        const {
+            ctx: { annotationManager, stateManager, toolbarManager },
+        } = target;
+
+        toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
+
+        // Restore the annotations only if this module was previously disabled
+        if (target.__hackWasDisabled && enabled) {
+            stateManager.restoreState(annotationManager);
+            target.__hackWasDisabled = false;
+        } else if (enabled === false) {
+            target.__hackWasDisabled = true;
+            target.clear();
+        }
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
@@ -283,6 +302,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.colorPicker.show({
                     color: this.getTypedDatum(annotationData[active])?.stroke,
                     onChange: this.onColorPickerChange.bind(this),
+                    onClose: this.onColorPickerClose.bind(this),
                 });
                 break;
 
@@ -329,6 +349,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.defaultColor = color;
         this.update();
+    }
+
+    private onColorPickerClose() {
+        this.colorPicker.hide();
     }
 
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
