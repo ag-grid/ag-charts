@@ -451,7 +451,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, this.calcMaxLineLength());
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, this.calcMarkerWidth());
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -501,7 +501,7 @@ export class Legend extends BaseProperties {
         return { oldPages };
     }
 
-    private calcMaxLineLength(): number {
+    private calcMarkerWidth(): number {
         // AG-11950 Calculate the length of the longest legend symbol to ensure that the text / symbols stay aligned.
         let result: number = 0;
         const { showSeriesStroke, marker: itemMarker, line: itemLine } = this.item;
@@ -517,8 +517,8 @@ export class Legend extends BaseProperties {
         return result;
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, maxLineLength: number): number {
-        const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, markerWidth: number): number {
+        const { showSeriesStroke, marker: itemMarker, paddingX } = this.item;
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
 
@@ -543,14 +543,12 @@ export class Legend extends BaseProperties {
             const markerEnabled = this.item.marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
             const lineEnabled = symbol.line && showSeriesStroke;
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-            const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
-            const markerLength = markerEnabled ? itemMarker.size : 0;
 
             markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
-            dimensionProps.push({ length: Math.max(maxLineLength, lineLength), spacing });
+            dimensionProps.push({ length: markerWidth, spacing });
 
             if (markerEnabled || lineEnabled) {
-                paddedSymbolWidth += spacing + Math.max(maxLineLength, lineLength, markerLength);
+                paddedSymbolWidth += spacing + markerWidth;
             }
         });
 
