@@ -6,6 +6,7 @@ export function getData() {
             high: 165.42,
             low: 162.43,
             close: 165.12,
+            volume: 95056600,
         },
         {
             date: 1646145000000,
@@ -13,6 +14,7 @@ export function getData() {
             high: 166.6,
             low: 161.97,
             close: 163.2,
+            volume: 83474400,
         },
         {
             date: 1646231400000,
@@ -20,6 +22,7 @@ export function getData() {
             high: 167.36,
             low: 162.95,
             close: 166.56,
+            volume: 79724800,
         },
         {
             date: 1646317800000,
@@ -27,6 +30,7 @@ export function getData() {
             high: 168.91,
             low: 165.55,
             close: 166.23,
+            volume: 76678400,
         },
         {
             date: 1646404200000,
@@ -34,6 +38,7 @@ export function getData() {
             high: 165.55,
             low: 162.1,
             close: 163.17,
+            volume: 83737200,
         },
         {
             date: 1646663400000,
@@ -41,6 +46,7 @@ export function getData() {
             high: 165.02,
             low: 159.04,
             close: 159.3,
+            volume: 96418800,
         },
         {
             date: 1646749800000,
@@ -48,6 +54,7 @@ export function getData() {
             high: 162.88,
             low: 155.8,
             close: 157.44,
+            volume: 131148300,
         },
         {
             date: 1646836200000,
@@ -55,6 +62,7 @@ export function getData() {
             high: 163.41,
             low: 159.41,
             close: 162.95,
+            volume: 91454900,
         },
         {
             date: 1646922600000,
@@ -62,6 +70,7 @@ export function getData() {
             high: 160.39,
             low: 155.98,
             close: 158.52,
+            volume: 105342000,
         },
         {
             date: 1647009000000,
@@ -69,6 +78,7 @@ export function getData() {
             high: 159.28,
             low: 154.5,
             close: 154.73,
+            volume: 96970100,
         },
         {
             date: 1647264600000,
@@ -76,6 +86,7 @@ export function getData() {
             high: 154.12,
             low: 150.1,
             close: 150.62,
+            volume: 108732100,
         },
         {
             date: 1647351000000,
@@ -83,6 +94,7 @@ export function getData() {
             high: 155.57,
             low: 150.38,
             close: 155.09,
+            volume: 92964300,
         },
         {
             date: 1647437400000,
@@ -90,6 +102,7 @@ export function getData() {
             high: 160,
             low: 154.46,
             close: 159.59,
+            volume: 102300200,
         },
         {
             date: 1647523800000,
@@ -97,6 +110,7 @@ export function getData() {
             high: 161,
             low: 157.63,
             close: 160.62,
+            volume: 75615400,
         },
         {
             date: 1647610200000,
@@ -104,6 +118,7 @@ export function getData() {
             high: 164.48,
             low: 159.76,
             close: 163.98,
+            volume: 123511700,
         },
         {
             date: 1647869400000,
@@ -111,6 +126,7 @@ export function getData() {
             high: 166.35,
             low: 163.01,
             close: 165.38,
+            volume: 95811400,
         },
         {
             date: 1647955800000,
@@ -118,6 +134,7 @@ export function getData() {
             high: 169.42,
             low: 164.91,
             close: 168.82,
+            volume: 81532000,
         },
         {
             date: 1648042200000,
@@ -125,6 +142,7 @@ export function getData() {
             high: 172.64,
             low: 167.65,
             close: 170.21,
+            volume: 98062700,
         },
         {
             date: 1648128600000,
@@ -132,6 +150,7 @@ export function getData() {
             high: 174.14,
             low: 170.21,
             close: 174.07,
+            volume: 90131400,
         },
         {
             date: 1648215000000,
@@ -139,6 +158,7 @@ export function getData() {
             high: 175.28,
             low: 172.75,
             close: 174.72,
+            volume: 80546200,
         },
         {
             date: 1648474200000,
@@ -146,6 +166,7 @@ export function getData() {
             high: 175.73,
             low: 172,
             close: 175.6,
+            volume: 90371900,
         },
         {
             date: 1648560600000,
@@ -153,6 +174,7 @@ export function getData() {
             high: 179.01,
             low: 176.34,
             close: 178.96,
+            volume: 100589400,
         },
         {
             date: 1648647000000,
@@ -160,6 +182,7 @@ export function getData() {
             high: 179.61,
             low: 176.7,
             close: 177.77,
+            volume: 92633200,
         },
         {
             date: 1648733400000,
@@ -167,6 +190,7 @@ export function getData() {
             high: 178.03,
             low: 174.4,
             close: 174.61,
+            volume: 103049300,
         },
         {
             date: 1648819800000,
@@ -174,6 +198,7 @@ export function getData() {
             high: 174.88,
             low: 171.94,
             close: 174.31,
+            volume: 78751300,
         },
         {
             date: 1649079000000,
@@ -181,6 +206,7 @@ export function getData() {
             high: 178.49,
             low: 174.44,
             close: 178.44,
+            volume: 76468400,
         },
         {
             date: 1649165400000,
@@ -188,6 +214,7 @@ export function getData() {
             high: 178.3,
             low: 174.42,
             close: 175.06,
+            volume: 73401800,
         },
         {
             date: 1649251800000,
@@ -195,6 +222,7 @@ export function getData() {
             high: 173.63,
             low: 170.13,
             close: 171.83,
+            volume: 89058800,
         },
         {
             date: 1649338200000,
@@ -202,6 +230,7 @@ export function getData() {
             high: 173.36,
             low: 169.85,
             close: 172.14,
+            volume: 77594700,
         },
         {
             date: 1649424600000,
@@ -209,6 +238,7 @@ export function getData() {
             high: 171.78,
             low: 169.2,
             close: 170.09,
+            volume: 76575500,
         },
         {
             date: 1649683800000,
@@ -216,6 +246,7 @@ export function getData() {
             high: 169.03,
             low: 165.5,
             close: 165.75,
+            volume: 72246700,
         },
         {
             date: 1649770200000,
@@ -223,6 +254,7 @@ export function getData() {
             high: 169.87,
             low: 166.64,
             close: 167.66,
+            volume: 79265200,
         },
         {
             date: 1649856600000,
@@ -230,6 +262,7 @@ export function getData() {
             high: 171.04,
             low: 166.77,
             close: 170.4,
+            volume: 70618900,
         },
         {
             date: 1649943000000,
@@ -237,6 +270,7 @@ export function getData() {
             high: 171.27,
             low: 165.04,
             close: 165.29,
+            volume: 75329400,
         },
         {
             date: 1650288600000,
@@ -244,6 +278,7 @@ export function getData() {
             high: 166.6,
             low: 163.57,
             close: 165.07,
+            volume: 69023900,
         },
         {
             date: 1650375000000,
@@ -251,6 +286,7 @@ export function getData() {
             high: 167.82,
             low: 163.91,
             close: 167.4,
+            volume: 67723800,
         },
         {
             date: 1650461400000,
@@ -258,6 +294,7 @@ export function getData() {
             high: 168.88,
             low: 166.1,
             close: 167.23,
+            volume: 67929800,
         },
         {
             date: 1650547800000,
@@ -265,6 +302,7 @@ export function getData() {
             high: 171.53,
             low: 165.91,
             close: 166.42,
+            volume: 87227800,
         },
         {
             date: 1650634200000,
@@ -272,6 +310,7 @@ export function getData() {
             high: 167.87,
             low: 161.5,
             close: 161.79,
+            volume: 84882400,
         },
         {
             date: 1650893400000,
@@ -279,6 +318,7 @@ export function getData() {
             high: 163.17,
             low: 158.46,
             close: 162.88,
+            volume: 96046400,
         },
         {
             date: 1650979800000,
@@ -286,6 +326,7 @@ export function getData() {
             high: 162.34,
             low: 156.72,
             close: 156.8,
+            volume: 95623200,
         },
         {
             date: 1651066200000,
@@ -293,6 +334,7 @@ export function getData() {
             high: 159.79,
             low: 155.38,
             close: 156.57,
+            volume: 88063200,
         },
         {
             date: 1651152600000,
@@ -300,6 +342,7 @@ export function getData() {
             high: 164.52,
             low: 158.93,
             close: 163.64,
+            volume: 130216800,
         },
         {
             date: 1651239000000,
@@ -307,6 +350,7 @@ export function getData() {
             high: 166.2,
             low: 157.25,
             close: 157.65,
+            volume: 131747600,
         },
         {
             date: 1651498200000,
@@ -314,6 +358,7 @@ export function getData() {
             high: 158.23,
             low: 153.27,
             close: 157.96,
+            volume: 123055300,
         },
         {
             date: 1651584600000,
@@ -321,6 +366,7 @@ export function getData() {
             high: 160.71,
             low: 156.32,
             close: 159.48,
+            volume: 88966500,
         },
         {
             date: 1651671000000,
@@ -328,6 +374,7 @@ export function getData() {
             high: 166.48,
             low: 159.26,
             close: 166.02,
+            volume: 108256500,
         },
         {
             date: 1651757400000,
@@ -335,6 +382,7 @@ export function getData() {
             high: 164.08,
             low: 154.95,
             close: 156.77,
+            volume: 130525300,
         },
         {
             date: 1651843800000,
@@ -342,6 +390,7 @@ export function getData() {
             high: 159.44,
             low: 154.18,
             close: 157.28,
+            volume: 116124600,
         },
         {
             date: 1652103000000,
@@ -349,6 +398,7 @@ export function getData() {
             high: 155.83,
             low: 151.49,
             close: 152.06,
+            volume: 131577900,
         },
         {
             date: 1652189400000,
@@ -356,6 +406,7 @@ export function getData() {
             high: 156.74,
             low: 152.93,
             close: 154.51,
+            volume: 115366700,
         },
         {
             date: 1652275800000,
@@ -363,6 +414,7 @@ export function getData() {
             high: 155.45,
             low: 145.81,
             close: 146.5,
+            volume: 142689800,
         },
         {
             date: 1652362200000,
@@ -370,6 +422,7 @@ export function getData() {
             high: 146.2,
             low: 138.8,
             close: 142.56,
+            volume: 182602000,
         },
         {
             date: 1652448600000,
@@ -377,6 +430,7 @@ export function getData() {
             high: 148.1,
             low: 143.11,
             close: 147.11,
+            volume: 113990900,
         },
         {
             date: 1652707800000,
@@ -384,6 +438,7 @@ export function getData() {
             high: 147.52,
             low: 144.18,
             close: 145.54,
+            volume: 86643800,
         },
         {
             date: 1652794200000,
@@ -391,6 +446,7 @@ export function getData() {
             high: 149.77,
             low: 146.68,
             close: 149.24,
+            volume: 78336300,
         },
         {
             date: 1652880600000,
@@ -398,6 +454,7 @@ export function getData() {
             high: 147.36,
             low: 139.9,
             close: 140.82,
+            volume: 109742900,
         },
         {
             date: 1652967000000,
@@ -405,6 +462,7 @@ export function getData() {
             high: 141.66,
             low: 136.6,
             close: 137.35,
+            volume: 136095600,
         },
         {
             date: 1653053400000,
@@ -412,6 +470,7 @@ export function getData() {
             high: 140.7,
             low: 132.61,
             close: 137.59,
+            volume: 137426100,
         },
         {
             date: 1653312600000,
@@ -419,6 +478,7 @@ export function getData() {
             high: 143.26,
             low: 137.65,
             close: 143.11,
+            volume: 117726300,
         },
         {
             date: 1653399000000,
@@ -426,6 +486,7 @@ export function getData() {
             high: 141.97,
             low: 137.33,
             close: 140.36,
+            volume: 104132700,
         },
         {
             date: 1653485400000,
@@ -433,6 +494,7 @@ export function getData() {
             high: 141.79,
             low: 138.34,
             close: 140.52,
+            volume: 92482700,
         },
         {
             date: 1653571800000,
@@ -440,6 +502,7 @@ export function getData() {
             high: 144.34,
             low: 137.14,
             close: 143.78,
+            volume: 90601500,
         },
         {
             date: 1653658200000,
@@ -447,6 +510,7 @@ export function getData() {
             high: 149.68,
             low: 145.26,
             close: 149.64,
+            volume: 90978500,
         },
         {
             date: 1654003800000,
@@ -454,6 +518,7 @@ export function getData() {
             high: 150.66,
             low: 146.84,
             close: 148.84,
+            volume: 103718400,
         },
         {
             date: 1654090200000,
@@ -461,6 +526,7 @@ export function getData() {
             high: 151.74,
             low: 147.68,
             close: 148.71,
+            volume: 74286600,
         },
         {
             date: 1654176600000,
@@ -468,6 +534,7 @@ export function getData() {
             high: 151.27,
             low: 146.86,
             close: 151.21,
+            volume: 72348100,
         },
         {
             date: 1654263000000,
@@ -475,6 +542,7 @@ export function getData() {
             high: 147.97,
             low: 144.46,
             close: 145.38,
+            volume: 88570300,
         },
         {
             date: 1654522200000,
@@ -482,6 +550,7 @@ export function getData() {
             high: 148.57,
             low: 144.9,
             close: 146.14,
+            volume: 71598400,
         },
         {
             date: 1654608600000,
@@ -489,6 +558,7 @@ export function getData() {
             high: 149,
             low: 144.1,
             close: 148.71,
+            volume: 67808200,
         },
         {
             date: 1654695000000,
@@ -496,6 +566,7 @@ export function getData() {
             high: 149.87,
             low: 147.46,
             close: 147.96,
+            volume: 53950200,
         },
         {
             date: 1654781400000,
@@ -503,6 +574,7 @@ export function getData() {
             high: 147.95,
             low: 142.53,
             close: 142.64,
+            volume: 69473000,
         },
         {
             date: 1654867800000,
@@ -510,6 +582,7 @@ export function getData() {
             high: 140.76,
             low: 137.06,
             close: 137.13,
+            volume: 91437900,
         },
         {
             date: 1655127000000,
@@ -517,6 +590,7 @@ export function getData() {
             high: 135.2,
             low: 131.44,
             close: 131.88,
+            volume: 122207100,
         },
         {
             date: 1655213400000,
@@ -524,6 +598,7 @@ export function getData() {
             high: 133.89,
             low: 131.48,
             close: 132.76,
+            volume: 84784300,
         },
         {
             date: 1655299800000,
@@ -531,6 +606,7 @@ export function getData() {
             high: 137.34,
             low: 132.16,
             close: 135.43,
+            volume: 91533000,
         },
         {
             date: 1655386200000,
@@ -538,6 +614,7 @@ export function getData() {
             high: 132.39,
             low: 129.04,
             close: 130.06,
+            volume: 108123900,
         },
         {
             date: 1655472600000,
@@ -545,6 +622,7 @@ export function getData() {
             high: 133.08,
             low: 129.81,
             close: 131.56,
+            volume: 134520300,
         },
         {
             date: 1655818200000,
@@ -552,6 +630,7 @@ export function getData() {
             high: 137.06,
             low: 133.32,
             close: 135.87,
+            volume: 81000500,
         },
         {
             date: 1655904600000,
@@ -559,6 +638,7 @@ export function getData() {
             high: 137.76,
             low: 133.91,
             close: 135.35,
+            volume: 73409200,
         },
         {
             date: 1655991000000,
@@ -566,6 +646,7 @@ export function getData() {
             high: 138.59,
             low: 135.63,
             close: 138.27,
+            volume: 72433800,
         },
         {
             date: 1656077400000,
@@ -573,6 +654,7 @@ export function getData() {
             high: 141.91,
             low: 139.77,
             close: 141.66,
+            volume: 89116800,
         },
         {
             date: 1656336600000,
@@ -580,6 +662,7 @@ export function getData() {
             high: 143.49,
             low: 140.97,
             close: 141.66,
+            volume: 70207900,
         },
         {
             date: 1656423000000,
@@ -587,6 +670,7 @@ export function getData() {
             high: 143.42,
             low: 137.32,
             close: 137.44,
+            volume: 67083400,
         },
         {
             date: 1656509400000,
@@ -594,6 +678,7 @@ export function getData() {
             high: 140.67,
             low: 136.67,
             close: 139.23,
+            volume: 66242400,
         },
         {
             date: 1656595800000,
@@ -601,6 +686,7 @@ export function getData() {
             high: 138.37,
             low: 133.77,
             close: 136.72,
+            volume: 98964500,
         },
         {
             date: 1656682200000,
@@ -608,6 +694,7 @@ export function getData() {
             high: 139.04,
             low: 135.66,
             close: 138.93,
+            volume: 71051600,
         },
         {
             date: 1657027800000,
@@ -615,6 +702,7 @@ export function getData() {
             high: 141.61,
             low: 136.93,
             close: 141.56,
+            volume: 73353800,
         },
         {
             date: 1657114200000,
@@ -622,6 +710,7 @@ export function getData() {
             high: 144.12,
             low: 141.08,
             close: 142.92,
+            volume: 74064300,
         },
         {
             date: 1657200600000,
@@ -629,6 +718,7 @@ export function getData() {
             high: 146.55,
             low: 143.28,
             close: 146.35,
+            volume: 66253700,
         },
         {
             date: 1657287000000,
@@ -636,6 +726,7 @@ export function getData() {
             high: 147.55,
             low: 145,
             close: 147.04,
+            volume: 64547800,
         },
         {
             date: 1657546200000,
@@ -643,6 +734,7 @@ export function getData() {
             high: 146.64,
             low: 143.78,
             close: 144.87,
+            volume: 63141600,
         },
         {
             date: 1657632600000,
@@ -650,6 +742,7 @@ export function getData() {
             high: 148.45,
             low: 145.05,
             close: 145.86,
+            volume: 77588800,
         },
         {
             date: 1657719000000,
@@ -657,6 +750,7 @@ export function getData() {
             high: 146.45,
             low: 142.12,
             close: 145.49,
+            volume: 71185600,
         },
         {
             date: 1657805400000,
@@ -664,6 +758,7 @@ export function getData() {
             high: 148.95,
             low: 143.25,
             close: 148.47,
+            volume: 78140700,
         },
         {
             date: 1657891800000,
@@ -671,6 +766,7 @@ export function getData() {
             high: 150.86,
             low: 148.2,
             close: 150.17,
+            volume: 76259900,
         },
         {
             date: 1658151000000,
@@ -678,6 +774,7 @@ export function getData() {
             high: 151.57,
             low: 146.7,
             close: 147.07,
+            volume: 81420900,
         },
         {
             date: 1658237400000,
@@ -685,6 +782,7 @@ export function getData() {
             high: 151.23,
             low: 146.91,
             close: 151,
+            volume: 82982400,
         },
         {
             date: 1658323800000,
@@ -692,6 +790,7 @@ export function getData() {
             high: 153.72,
             low: 150.37,
             close: 153.04,
+            volume: 64823400,
         },
         {
             date: 1658410200000,
@@ -699,6 +798,7 @@ export function getData() {
             high: 155.57,
             low: 151.94,
             close: 155.35,
+            volume: 65086600,
         },
         {
             date: 1658496600000,
@@ -706,6 +806,7 @@ export function getData() {
             high: 156.28,
             low: 153.41,
             close: 154.09,
+            volume: 66675400,
         },
         {
             date: 1658755800000,
@@ -713,6 +814,7 @@ export function getData() {
             high: 155.04,
             low: 152.28,
             close: 152.95,
+            volume: 53623900,
         },
         {
             date: 1658842200000,
@@ -720,6 +822,7 @@ export function getData() {
             high: 153.09,
             low: 150.8,
             close: 151.6,
+            volume: 55138700,
         },
         {
             date: 1658928600000,
@@ -727,6 +830,7 @@ export function getData() {
             high: 157.33,
             low: 152.16,
             close: 156.79,
+            volume: 78620700,
         },
         {
             date: 1659015000000,
@@ -734,6 +838,7 @@ export function getData() {
             high: 157.64,
             low: 154.41,
             close: 157.35,
+            volume: 81378700,
         },
         {
             date: 1659101400000,
@@ -741,6 +846,7 @@ export function getData() {
             high: 163.63,
             low: 159.5,
             close: 162.51,
+            volume: 101786900,
         },
         {
             date: 1659360600000,
@@ -748,6 +854,7 @@ export function getData() {
             high: 163.59,
             low: 160.89,
             close: 161.51,
+            volume: 67829400,
         },
         {
             date: 1659447000000,
@@ -755,6 +862,7 @@ export function getData() {
             high: 162.41,
             low: 159.63,
             close: 160.01,
+            volume: 59907000,
         },
         {
             date: 1659533400000,
@@ -762,6 +870,7 @@ export function getData() {
             high: 166.59,
             low: 160.75,
             close: 166.13,
+            volume: 82507500,
         },
         {
             date: 1659619800000,
@@ -769,6 +878,7 @@ export function getData() {
             high: 167.19,
             low: 164.43,
             close: 165.81,
+            volume: 55474100,
         },
         {
             date: 1659706200000,
@@ -776,6 +886,7 @@ export function getData() {
             high: 165.85,
             low: 163,
             close: 165.35,
+            volume: 56697000,
         },
         {
             date: 1659965400000,
@@ -783,6 +894,7 @@ export function getData() {
             high: 167.81,
             low: 164.2,
             close: 164.87,
+            volume: 60276900,
         },
         {
             date: 1660051800000,
@@ -790,6 +902,7 @@ export function getData() {
             high: 165.82,
             low: 163.25,
             close: 164.92,
+            volume: 63135500,
         },
         {
             date: 1660138200000,
@@ -797,6 +910,7 @@ export function getData() {
             high: 169.34,
             low: 166.9,
             close: 169.24,
+            volume: 70170500,
         },
         {
             date: 1660224600000,
@@ -804,6 +918,7 @@ export function getData() {
             high: 170.99,
             low: 168.19,
             close: 168.49,
+            volume: 57149200,
         },
         {
             date: 1660311000000,
@@ -811,6 +926,7 @@ export function getData() {
             high: 172.17,
             low: 169.4,
             close: 172.1,
+            volume: 68039400,
         },
         {
             date: 1660570200000,
@@ -818,6 +934,7 @@ export function getData() {
             high: 173.39,
             low: 171.35,
             close: 173.19,
+            volume: 54091700,
         },
         {
             date: 1660656600000,
@@ -825,6 +942,7 @@ export function getData() {
             high: 173.71,
             low: 171.66,
             close: 173.03,
+            volume: 56377100,
         },
         {
             date: 1660743000000,
@@ -832,6 +950,7 @@ export function getData() {
             high: 176.15,
             low: 172.57,
             close: 174.55,
+            volume: 79542000,
         },
         {
             date: 1660829400000,
@@ -839,6 +958,7 @@ export function getData() {
             high: 174.9,
             low: 173.12,
             close: 174.15,
+            volume: 62290100,
         },
         {
             date: 1660915800000,
@@ -846,6 +966,7 @@ export function getData() {
             high: 173.74,
             low: 171.31,
             close: 171.52,
+            volume: 70346300,
         },
         {
             date: 1661175000000,
@@ -853,6 +974,7 @@ export function getData() {
             high: 169.86,
             low: 167.14,
             close: 167.57,
+            volume: 69026800,
         },
         {
             date: 1661261400000,
@@ -860,6 +982,7 @@ export function getData() {
             high: 168.71,
             low: 166.65,
             close: 167.23,
+            volume: 54147100,
         },
         {
             date: 1661347800000,
@@ -867,6 +990,7 @@ export function getData() {
             high: 168.11,
             low: 166.25,
             close: 167.53,
+            volume: 53841500,
         },
         {
             date: 1661434200000,
@@ -874,6 +998,7 @@ export function getData() {
             high: 170.14,
             low: 168.35,
             close: 170.03,
+            volume: 51218200,
         },
         {
             date: 1661520600000,
@@ -881,6 +1006,7 @@ export function getData() {
             high: 171.05,
             low: 163.56,
             close: 163.62,
+            volume: 78961000,
         },
         {
             date: 1661779800000,
@@ -888,6 +1014,7 @@ export function getData() {
             high: 162.9,
             low: 159.82,
             close: 161.38,
+            volume: 73314000,
         },
         {
             date: 1661866200000,
@@ -895,6 +1022,7 @@ export function getData() {
             high: 162.56,
             low: 157.72,
             close: 158.91,
+            volume: 77906200,
         },
         {
             date: 1661952600000,
@@ -902,6 +1030,7 @@ export function getData() {
             high: 160.58,
             low: 157.14,
             close: 157.22,
+            volume: 87991100,
         },
         {
             date: 1662039000000,
@@ -909,6 +1038,7 @@ export function getData() {
             high: 158.42,
             low: 154.67,
             close: 157.96,
+            volume: 74229900,
         },
         {
             date: 1662125400000,
@@ -916,6 +1046,7 @@ export function getData() {
             high: 160.36,
             low: 154.97,
             close: 155.81,
+            volume: 76957800,
         },
         {
             date: 1662471000000,
@@ -923,6 +1054,7 @@ export function getData() {
             high: 157.09,
             low: 153.69,
             close: 154.53,
+            volume: 73714800,
         },
         {
             date: 1662557400000,
@@ -930,6 +1062,7 @@ export function getData() {
             high: 156.67,
             low: 153.61,
             close: 155.96,
+            volume: 87449600,
         },
         {
             date: 1662643800000,
@@ -937,6 +1070,7 @@ export function getData() {
             high: 156.36,
             low: 152.68,
             close: 154.46,
+            volume: 84923800,
         },
         {
             date: 1662730200000,
@@ -944,6 +1078,7 @@ export function getData() {
             high: 157.82,
             low: 154.75,
             close: 157.37,
+            volume: 68028800,
         },
         {
             date: 1662989400000,
@@ -951,6 +1086,7 @@ export function getData() {
             high: 164.26,
             low: 159.3,
             close: 163.43,
+            volume: 104956000,
         },
         {
             date: 1663075800000,
@@ -958,6 +1094,7 @@ export function getData() {
             high: 160.54,
             low: 153.37,
             close: 153.84,
+            volume: 122656600,
         },
         {
             date: 1663162200000,
@@ -965,6 +1102,7 @@ export function getData() {
             high: 157.1,
             low: 153.61,
             close: 155.31,
+            volume: 87965400,
         },
         {
             date: 1663248600000,
@@ -972,6 +1110,7 @@ export function getData() {
             high: 155.24,
             low: 151.38,
             close: 152.37,
+            volume: 90481100,
         },
         {
             date: 1663335000000,
@@ -979,6 +1118,7 @@ export function getData() {
             high: 151.35,
             low: 148.37,
             close: 150.7,
+            volume: 162278800,
         },
         {
             date: 1663594200000,
@@ -986,6 +1126,7 @@ export function getData() {
             high: 154.56,
             low: 149.1,
             close: 154.48,
+            volume: 81474200,
         },
         {
             date: 1663680600000,
@@ -993,6 +1134,7 @@ export function getData() {
             high: 158.08,
             low: 153.08,
             close: 156.9,
+            volume: 107689800,
         },
         {
             date: 1663767000000,
@@ -1000,6 +1142,7 @@ export function getData() {
             high: 158.74,
             low: 153.6,
             close: 153.72,
+            volume: 101696800,
         },
         {
             date: 1663853400000,
@@ -1007,6 +1150,7 @@ export function getData() {
             high: 154.47,
             low: 150.91,
             close: 152.74,
+            volume: 86652500,
         },
         {
             date: 1663939800000,
@@ -1014,6 +1158,7 @@ export function getData() {
             high: 151.47,
             low: 148.56,
             close: 150.43,
+            volume: 96029900,
         },
         {
             date: 1664199000000,
@@ -1021,6 +1166,7 @@ export function getData() {
             high: 153.77,
             low: 149.64,
             close: 150.77,
+            volume: 93339400,
         },
         {
             date: 1664285400000,
@@ -1028,6 +1174,7 @@ export function getData() {
             high: 154.72,
             low: 149.95,
             close: 151.76,
+            volume: 84442700,
         },
         {
             date: 1664371800000,
@@ -1035,6 +1182,7 @@ export function getData() {
             high: 150.64,
             low: 144.84,
             close: 149.84,
+            volume: 146691400,
         },
         {
             date: 1664458200000,
@@ -1042,6 +1190,7 @@ export function getData() {
             high: 146.72,
             low: 140.68,
             close: 142.48,
+            volume: 128138200,
         },
         {
             date: 1664544600000,
@@ -1049,6 +1198,7 @@ export function getData() {
             high: 143.1,
             low: 138,
             close: 138.2,
+            volume: 124925300,
         },
         {
             date: 1664803800000,
@@ -1056,6 +1206,7 @@ export function getData() {
             high: 143.07,
             low: 137.69,
             close: 142.45,
+            volume: 114311700,
         },
         {
             date: 1664890200000,
@@ -1063,6 +1214,7 @@ export function getData() {
             high: 146.22,
             low: 144.26,
             close: 146.1,
+            volume: 87830100,
         },
         {
             date: 1664976600000,
@@ -1070,6 +1222,7 @@ export function getData() {
             high: 147.38,
             low: 143.01,
             close: 146.4,
+            volume: 79471000,
         },
         {
             date: 1665063000000,
@@ -1077,6 +1230,7 @@ export function getData() {
             high: 147.54,
             low: 145.22,
             close: 145.43,
+            volume: 68402200,
         },
         {
             date: 1665149400000,
@@ -1084,6 +1238,7 @@ export function getData() {
             high: 143.1,
             low: 139.45,
             close: 140.09,
+            volume: 85925600,
         },
         {
             date: 1665408600000,
@@ -1091,6 +1246,7 @@ export function getData() {
             high: 141.89,
             low: 138.57,
             close: 140.42,
+            volume: 74899000,
         },
         {
             date: 1665495000000,
@@ -1098,6 +1254,7 @@ export function getData() {
             high: 141.35,
             low: 138.22,
             close: 138.98,
+            volume: 77033700,
         },
         {
             date: 1665581400000,
@@ -1105,6 +1262,7 @@ export function getData() {
             high: 140.36,
             low: 138.16,
             close: 138.34,
+            volume: 70433700,
         },
         {
             date: 1665667800000,
@@ -1112,6 +1270,7 @@ export function getData() {
             high: 143.59,
             low: 134.37,
             close: 142.99,
+            volume: 113224000,
         },
         {
             date: 1665754200000,
@@ -1119,6 +1278,7 @@ export function getData() {
             high: 144.52,
             low: 138.19,
             close: 138.38,
+            volume: 88598000,
         },
         {
             date: 1666013400000,
@@ -1126,6 +1286,7 @@ export function getData() {
             high: 142.9,
             low: 140.27,
             close: 142.41,
+            volume: 85250900,
         },
         {
             date: 1666099800000,
@@ -1133,6 +1294,7 @@ export function getData() {
             high: 146.7,
             low: 140.61,
             close: 143.75,
+            volume: 99136600,
         },
         {
             date: 1666186200000,
@@ -1140,6 +1302,7 @@ export function getData() {
             high: 144.95,
             low: 141.5,
             close: 143.86,
+            volume: 61758300,
         },
         {
             date: 1666272600000,
@@ -1147,6 +1310,7 @@ export function getData() {
             high: 145.89,
             low: 142.65,
             close: 143.39,
+            volume: 64522000,
         },
         {
             date: 1666359000000,
@@ -1154,6 +1318,7 @@ export function getData() {
             high: 147.85,
             low: 142.65,
             close: 147.27,
+            volume: 86548600,
         },
         {
             date: 1666618200000,
@@ -1161,6 +1326,7 @@ export function getData() {
             high: 150.23,
             low: 146,
             close: 149.45,
+            volume: 75981900,
         },
         {
             date: 1666704600000,
@@ -1168,6 +1334,7 @@ export function getData() {
             high: 152.49,
             low: 149.36,
             close: 152.34,
+            volume: 74732300,
         },
         {
             date: 1666791000000,
@@ -1175,6 +1342,7 @@ export function getData() {
             high: 151.99,
             low: 148.04,
             close: 149.35,
+            volume: 88194300,
         },
         {
             date: 1666877400000,
@@ -1182,6 +1350,7 @@ export function getData() {
             high: 149.05,
             low: 144.13,
             close: 144.8,
+            volume: 109180200,
         },
         {
             date: 1666963800000,
@@ -1189,6 +1358,7 @@ export function getData() {
             high: 157.5,
             low: 147.82,
             close: 155.74,
+            volume: 164762400,
         },
         {
             date: 1667223000000,
@@ -1196,6 +1366,7 @@ export function getData() {
             high: 154.24,
             low: 151.92,
             close: 153.34,
+            volume: 97943200,
         },
         {
             date: 1667309400000,
@@ -1203,6 +1374,7 @@ export function getData() {
             high: 155.45,
             low: 149.13,
             close: 150.65,
+            volume: 80379300,
         },
         {
             date: 1667395800000,
@@ -1210,6 +1382,7 @@ export function getData() {
             high: 152.17,
             low: 145,
             close: 145.03,
+            volume: 93604600,
         },
         {
             date: 1667482200000,
@@ -1217,6 +1390,7 @@ export function getData() {
             high: 142.8,
             low: 138.75,
             close: 138.88,
+            volume: 97918500,
         },
         {
             date: 1667568600000,
@@ -1224,6 +1398,7 @@ export function getData() {
             high: 142.67,
             low: 134.38,
             close: 138.38,
+            volume: 140814800,
         },
         {
             date: 1667831400000,
@@ -1231,6 +1406,7 @@ export function getData() {
             high: 139.15,
             low: 135.67,
             close: 138.92,
+            volume: 83374600,
         },
         {
             date: 1667917800000,
@@ -1238,6 +1414,7 @@ export function getData() {
             high: 141.43,
             low: 137.49,
             close: 139.5,
+            volume: 89908500,
         },
         {
             date: 1668004200000,
@@ -1245,6 +1422,7 @@ export function getData() {
             high: 138.55,
             low: 134.59,
             close: 134.87,
+            volume: 74917800,
         },
         {
             date: 1668090600000,
@@ -1252,6 +1430,7 @@ export function getData() {
             high: 146.87,
             low: 139.5,
             close: 146.87,
+            volume: 118854000,
         },
         {
             date: 1668177000000,
@@ -1259,6 +1438,7 @@ export function getData() {
             high: 150.01,
             low: 144.37,
             close: 149.7,
+            volume: 93979700,
         },
         {
             date: 1668436200000,
@@ -1266,6 +1446,7 @@ export function getData() {
             high: 150.28,
             low: 147.43,
             close: 148.28,
+            volume: 73374100,
         },
         {
             date: 1668522600000,
@@ -1273,6 +1454,7 @@ export function getData() {
             high: 153.59,
             low: 148.56,
             close: 150.04,
+            volume: 89868300,
         },
         {
             date: 1668609000000,
@@ -1280,6 +1462,7 @@ export function getData() {
             high: 149.87,
             low: 147.29,
             close: 148.79,
+            volume: 64218300,
         },
         {
             date: 1668695400000,
@@ -1287,6 +1470,7 @@ export function getData() {
             high: 151.48,
             low: 146.15,
             close: 150.72,
+            volume: 80389400,
         },
         {
             date: 1668781800000,
@@ -1294,6 +1478,7 @@ export function getData() {
             high: 152.7,
             low: 149.97,
             close: 151.29,
+            volume: 74829600,
         },
         {
             date: 1669041000000,
@@ -1301,6 +1486,7 @@ export function getData() {
             high: 150.37,
             low: 147.72,
             close: 148.01,
+            volume: 58724100,
         },
         {
             date: 1669127400000,
@@ -1308,6 +1494,7 @@ export function getData() {
             high: 150.42,
             low: 146.93,
             close: 150.18,
+            volume: 51804100,
         },
         {
             date: 1669213800000,
@@ -1315,6 +1502,7 @@ export function getData() {
             high: 151.83,
             low: 149.34,
             close: 151.07,
+            volume: 58301400,
         },
         {
             date: 1669386600000,
@@ -1322,6 +1510,7 @@ export function getData() {
             high: 148.88,
             low: 147.12,
             close: 148.11,
+            volume: 35195900,
         },
         {
             date: 1669645800000,
@@ -1329,6 +1518,7 @@ export function getData() {
             high: 146.64,
             low: 143.38,
             close: 144.22,
+            volume: 69246000,
         },
         {
             date: 1669732200000,
@@ -1336,6 +1526,7 @@ export function getData() {
             high: 144.81,
             low: 140.35,
             close: 141.17,
+            volume: 83763800,
         },
         {
             date: 1669818600000,
@@ -1343,6 +1534,7 @@ export function getData() {
             high: 148.72,
             low: 140.55,
             close: 148.03,
+            volume: 111380900,
         },
         {
             date: 1669905000000,
@@ -1350,6 +1542,7 @@ export function getData() {
             high: 149.13,
             low: 146.61,
             close: 148.31,
+            volume: 71250400,
         },
         {
             date: 1669991400000,
@@ -1357,6 +1550,7 @@ export function getData() {
             high: 148,
             low: 145.65,
             close: 147.81,
+            volume: 65447400,
         },
         {
             date: 1670250600000,
@@ -1364,6 +1558,7 @@ export function getData() {
             high: 150.92,
             low: 145.77,
             close: 146.63,
+            volume: 68826400,
         },
         {
             date: 1670337000000,
@@ -1371,6 +1566,7 @@ export function getData() {
             high: 147.3,
             low: 141.92,
             close: 142.91,
+            volume: 64727200,
         },
         {
             date: 1670423400000,
@@ -1378,6 +1574,7 @@ export function getData() {
             high: 143.37,
             low: 140,
             close: 140.94,
+            volume: 69721100,
         },
         {
             date: 1670509800000,
@@ -1385,6 +1582,7 @@ export function getData() {
             high: 143.52,
             low: 141.1,
             close: 142.65,
+            volume: 62128300,
         },
         {
             date: 1670596200000,
@@ -1392,6 +1590,7 @@ export function getData() {
             high: 145.57,
             low: 140.9,
             close: 142.16,
+            volume: 76097000,
         },
         {
             date: 1670855400000,
@@ -1399,6 +1598,7 @@ export function getData() {
             high: 144.5,
             low: 141.06,
             close: 144.49,
+            volume: 70462700,
         },
         {
             date: 1670941800000,
@@ -1406,6 +1606,7 @@ export function getData() {
             high: 149.97,
             low: 144.24,
             close: 145.47,
+            volume: 93886200,
         },
         {
             date: 1671028200000,
@@ -1413,6 +1614,7 @@ export function getData() {
             high: 146.66,
             low: 141.16,
             close: 143.21,
+            volume: 82291200,
         },
         {
             date: 1671114600000,
@@ -1420,6 +1622,7 @@ export function getData() {
             high: 141.8,
             low: 136.03,
             close: 136.5,
+            volume: 98931900,
         },
         {
             date: 1671201000000,
@@ -1427,6 +1630,7 @@ export function getData() {
             high: 137.65,
             low: 133.73,
             close: 134.51,
+            volume: 160156900,
         },
         {
             date: 1671460200000,
@@ -1434,6 +1638,7 @@ export function getData() {
             high: 135.2,
             low: 131.32,
             close: 132.37,
+            volume: 79592600,
         },
         {
             date: 1671546600000,
@@ -1441,6 +1646,7 @@ export function getData() {
             high: 133.25,
             low: 129.89,
             close: 132.3,
+            volume: 77432800,
         },
         {
             date: 1671633000000,
@@ -1448,6 +1654,7 @@ export function getData() {
             high: 136.81,
             low: 132.75,
             close: 135.45,
+            volume: 85928000,
         },
         {
             date: 1671719400000,
@@ -1455,6 +1662,7 @@ export function getData() {
             high: 134.56,
             low: 130.3,
             close: 132.23,
+            volume: 77852100,
         },
         {
             date: 1671805800000,
@@ -1462,6 +1670,7 @@ export function getData() {
             high: 132.42,
             low: 129.64,
             close: 131.86,
+            volume: 63814900,
         },
         {
             date: 1672151400000,
@@ -1469,6 +1678,7 @@ export function getData() {
             high: 131.41,
             low: 128.72,
             close: 130.03,
+            volume: 69007800,
         },
         {
             date: 1672237800000,
@@ -1476,6 +1686,7 @@ export function getData() {
             high: 131.03,
             low: 125.87,
             close: 126.04,
+            volume: 85438400,
         },
         {
             date: 1672324200000,
@@ -1483,6 +1694,7 @@ export function getData() {
             high: 130.48,
             low: 127.73,
             close: 129.61,
+            volume: 75703700,
         },
         {
             date: 1672410600000,
@@ -1490,6 +1702,7 @@ export function getData() {
             high: 129.95,
             low: 127.43,
             close: 129.93,
+            volume: 77034200,
         },
         {
             date: 1672756200000,
@@ -1497,6 +1710,7 @@ export function getData() {
             high: 130.9,
             low: 124.17,
             close: 125.07,
+            volume: 112117500,
         },
         {
             date: 1672842600000,
@@ -1504,6 +1718,7 @@ export function getData() {
             high: 128.66,
             low: 125.08,
             close: 126.36,
+            volume: 89113600,
         },
         {
             date: 1672929000000,
@@ -1511,6 +1726,7 @@ export function getData() {
             high: 127.77,
             low: 124.76,
             close: 125.02,
+            volume: 80962700,
         },
         {
             date: 1673015400000,
@@ -1518,6 +1734,7 @@ export function getData() {
             high: 130.29,
             low: 124.89,
             close: 129.62,
+            volume: 87754700,
         },
         {
             date: 1673274600000,
@@ -1525,6 +1742,7 @@ export function getData() {
             high: 133.41,
             low: 129.89,
             close: 130.15,
+            volume: 70790800,
         },
         {
             date: 1673361000000,
@@ -1532,6 +1750,7 @@ export function getData() {
             high: 131.26,
             low: 128.12,
             close: 130.73,
+            volume: 63896200,
         },
         {
             date: 1673447400000,
@@ -1539,6 +1758,7 @@ export function getData() {
             high: 133.51,
             low: 130.46,
             close: 133.49,
+            volume: 69458900,
         },
         {
             date: 1673533800000,
@@ -1546,6 +1766,7 @@ export function getData() {
             high: 134.26,
             low: 131.44,
             close: 133.41,
+            volume: 71379600,
         },
         {
             date: 1673620200000,
@@ -1553,6 +1774,7 @@ export function getData() {
             high: 134.92,
             low: 131.66,
             close: 134.76,
+            volume: 57809700,
         },
         {
             date: 1673965800000,
@@ -1560,6 +1782,7 @@ export function getData() {
             high: 137.29,
             low: 134.13,
             close: 135.94,
+            volume: 63646600,
         },
         {
             date: 1674052200000,
@@ -1567,6 +1790,7 @@ export function getData() {
             high: 138.61,
             low: 135.03,
             close: 135.21,
+            volume: 69672800,
         },
         {
             date: 1674138600000,
@@ -1574,6 +1798,7 @@ export function getData() {
             high: 136.25,
             low: 133.77,
             close: 135.27,
+            volume: 58280400,
         },
         {
             date: 1674225000000,
@@ -1581,6 +1806,7 @@ export function getData() {
             high: 138.02,
             low: 134.22,
             close: 137.87,
+            volume: 80223600,
         },
         {
             date: 1674484200000,
@@ -1588,6 +1814,7 @@ export function getData() {
             high: 143.32,
             low: 137.9,
             close: 141.11,
+            volume: 81760300,
         },
         {
             date: 1674570600000,
@@ -1595,6 +1822,7 @@ export function getData() {
             high: 143.16,
             low: 140.3,
             close: 142.53,
+            volume: 66435100,
         },
         {
             date: 1674657000000,
@@ -1602,6 +1830,7 @@ export function getData() {
             high: 142.43,
             low: 138.81,
             close: 141.86,
+            volume: 65799300,
         },
         {
             date: 1674743400000,
@@ -1609,6 +1838,7 @@ export function getData() {
             high: 144.25,
             low: 141.9,
             close: 143.96,
+            volume: 54105100,
         },
         {
             date: 1674829800000,
@@ -1616,6 +1846,7 @@ export function getData() {
             high: 147.23,
             low: 143.08,
             close: 145.93,
+            volume: 70555800,
         },
         {
             date: 1675089000000,
@@ -1623,6 +1854,7 @@ export function getData() {
             high: 145.55,
             low: 142.85,
             close: 143,
+            volume: 64015300,
         },
         {
             date: 1675175400000,
@@ -1630,6 +1862,7 @@ export function getData() {
             high: 144.34,
             low: 142.28,
             close: 144.29,
+            volume: 65874500,
         },
         {
             date: 1675261800000,
@@ -1637,6 +1870,7 @@ export function getData() {
             high: 146.61,
             low: 141.32,
             close: 145.43,
+            volume: 77663600,
         },
         {
             date: 1675348200000,
@@ -1644,6 +1878,7 @@ export function getData() {
             high: 151.18,
             low: 148.17,
             close: 150.82,
+            volume: 118339000,
         },
         {
             date: 1675434600000,
@@ -1651,6 +1886,7 @@ export function getData() {
             high: 157.38,
             low: 147.83,
             close: 154.5,
+            volume: 154357300,
         },
         {
             date: 1675693800000,
@@ -1658,6 +1894,7 @@ export function getData() {
             high: 153.1,
             low: 150.78,
             close: 151.73,
+            volume: 69858300,
         },
         {
             date: 1675780200000,
@@ -1665,6 +1902,7 @@ export function getData() {
             high: 155.23,
             low: 150.64,
             close: 154.65,
+            volume: 83322600,
         },
         {
             date: 1675866600000,
@@ -1672,6 +1910,7 @@ export function getData() {
             high: 154.58,
             low: 151.17,
             close: 151.92,
+            volume: 64120100,
         },
         {
             date: 1675953000000,
@@ -1679,6 +1918,7 @@ export function getData() {
             high: 154.33,
             low: 150.42,
             close: 150.87,
+            volume: 56007100,
         },
         {
             date: 1676039400000,
@@ -1686,6 +1926,7 @@ export function getData() {
             high: 151.34,
             low: 149.22,
             close: 151.01,
+            volume: 57450700,
         },
         {
             date: 1676298600000,
@@ -1693,6 +1934,7 @@ export function getData() {
             high: 154.26,
             low: 150.92,
             close: 153.85,
+            volume: 62199000,
         },
         {
             date: 1676385000000,
@@ -1700,6 +1942,7 @@ export function getData() {
             high: 153.77,
             low: 150.86,
             close: 153.2,
+            volume: 61707600,
         },
         {
             date: 1676471400000,
@@ -1707,6 +1950,7 @@ export function getData() {
             high: 155.5,
             low: 152.88,
             close: 155.33,
+            volume: 65573800,
         },
         {
             date: 1676557800000,
@@ -1714,6 +1958,7 @@ export function getData() {
             high: 156.33,
             low: 153.35,
             close: 153.71,
+            volume: 68167900,
         },
         {
             date: 1676644200000,
@@ -1721,6 +1966,7 @@ export function getData() {
             high: 153,
             low: 150.85,
             close: 152.55,
+            volume: 59144100,
         },
         {
             date: 1676989800000,
@@ -1728,6 +1974,7 @@ export function getData() {
             high: 151.3,
             low: 148.41,
             close: 148.48,
+            volume: 58867200,
         },
         {
             date: 1677076200000,
@@ -1735,6 +1982,7 @@ export function getData() {
             high: 149.95,
             low: 147.16,
             close: 148.91,
+            volume: 51011300,
         },
         {
             date: 1677162600000,
@@ -1742,6 +1990,7 @@ export function getData() {
             high: 150.34,
             low: 147.24,
             close: 149.4,
+            volume: 48394200,
         },
         {
             date: 1677249000000,
@@ -1749,6 +1998,7 @@ export function getData() {
             high: 147.19,
             low: 145.72,
             close: 146.71,
+            volume: 55469600,
         },
         {
             date: 1677508200000,
@@ -1756,6 +2006,7 @@ export function getData() {
             high: 149.17,
             low: 147.45,
             close: 147.92,
+            volume: 44998500,
         },
         {
             date: 1677594600000,
@@ -1763,6 +2014,7 @@ export function getData() {
             high: 149.08,
             low: 146.83,
             close: 147.41,
+            volume: 50547000,
         },
         {
             date: 1677681000000,
@@ -1770,6 +2022,7 @@ export function getData() {
             high: 147.23,
             low: 145.01,
             close: 145.31,
+            volume: 55479000,
         },
         {
             date: 1677767400000,
@@ -1777,6 +2030,7 @@ export function getData() {
             high: 146.71,
             low: 143.9,
             close: 145.91,
+            volume: 52238100,
         },
         {
             date: 1677853800000,
@@ -1784,6 +2038,7 @@ export function getData() {
             high: 151.11,
             low: 147.33,
             close: 151.03,
+            volume: 70732300,
         },
         {
             date: 1678113000000,
@@ -1791,6 +2046,7 @@ export function getData() {
             high: 156.3,
             low: 153.46,
             close: 153.83,
+            volume: 87558000,
         },
         {
             date: 1678199400000,
@@ -1798,6 +2054,7 @@ export function getData() {
             high: 154.03,
             low: 151.13,
             close: 151.6,
+            volume: 56182000,
         },
         {
             date: 1678285800000,
@@ -1805,6 +2062,7 @@ export function getData() {
             high: 153.47,
             low: 151.83,
             close: 152.87,
+            volume: 47204800,
         },
         {
             date: 1678372200000,
@@ -1812,6 +2070,7 @@ export function getData() {
             high: 154.54,
             low: 150.23,
             close: 150.59,
+            volume: 53833600,
         },
         {
             date: 1678458600000,
@@ -1819,6 +2078,7 @@ export function getData() {
             high: 150.94,
             low: 147.61,
             close: 148.5,
+            volume: 68572400,
         },
         {
             date: 1678714200000,
@@ -1826,6 +2086,7 @@ export function getData() {
             high: 153.14,
             low: 147.7,
             close: 150.47,
+            volume: 84457100,
         },
         {
             date: 1678800600000,
@@ -1833,6 +2094,7 @@ export function getData() {
             high: 153.4,
             low: 150.1,
             close: 152.59,
+            volume: 73695900,
         },
         {
             date: 1678887000000,
@@ -1840,6 +2102,7 @@ export function getData() {
             high: 153.25,
             low: 149.92,
             close: 152.99,
+            volume: 77167900,
         },
         {
             date: 1678973400000,
@@ -1847,6 +2110,7 @@ export function getData() {
             high: 156.46,
             low: 151.64,
             close: 155.85,
+            volume: 76161100,
         },
         {
             date: 1679059800000,
@@ -1854,6 +2118,7 @@ export function getData() {
             high: 156.74,
             low: 154.28,
             close: 155,
+            volume: 98944600,
         },
         {
             date: 1679319000000,
@@ -1861,6 +2126,7 @@ export function getData() {
             high: 157.82,
             low: 154.15,
             close: 157.4,
+            volume: 73641400,
         },
         {
             date: 1679405400000,
@@ -1868,6 +2134,7 @@ export function getData() {
             high: 159.4,
             low: 156.54,
             close: 159.28,
+            volume: 73938300,
         },
         {
             date: 1679491800000,
@@ -1875,6 +2142,7 @@ export function getData() {
             high: 162.14,
             low: 157.81,
             close: 157.83,
+            volume: 75701800,
         },
         {
             date: 1679578200000,
@@ -1882,6 +2150,7 @@ export function getData() {
             high: 161.55,
             low: 157.68,
             close: 158.93,
+            volume: 67622100,
         },
         {
             date: 1679664600000,
@@ -1889,6 +2158,7 @@ export function getData() {
             high: 160.34,
             low: 157.85,
             close: 160.25,
+            volume: 59196500,
         },
         {
             date: 1679923800000,
@@ -1896,6 +2166,7 @@ export function getData() {
             high: 160.77,
             low: 157.87,
             close: 158.28,
+            volume: 52390300,
         },
         {
             date: 1680010200000,
@@ -1903,6 +2174,7 @@ export function getData() {
             high: 158.49,
             low: 155.98,
             close: 157.65,
+            volume: 45992200,
         },
         {
             date: 1680096600000,
@@ -1910,6 +2182,7 @@ export function getData() {
             high: 161.05,
             low: 159.35,
             close: 160.77,
+            volume: 51305700,
         },
         {
             date: 1680183000000,
@@ -1917,6 +2190,7 @@ export function getData() {
             high: 162.47,
             low: 161.27,
             close: 162.36,
+            volume: 49501700,
         },
         {
             date: 1680269400000,
@@ -1924,6 +2198,7 @@ export function getData() {
             high: 165,
             low: 161.91,
             close: 164.9,
+            volume: 68749800,
         },
         {
             date: 1680528600000,
@@ -1931,6 +2206,7 @@ export function getData() {
             high: 166.29,
             low: 164.22,
             close: 166.17,
+            volume: 56976200,
         },
         {
             date: 1680615000000,
@@ -1938,6 +2214,7 @@ export function getData() {
             high: 166.84,
             low: 165.11,
             close: 165.63,
+            volume: 46278300,
         },
         {
             date: 1680701400000,
@@ -1945,6 +2222,7 @@ export function getData() {
             high: 165.05,
             low: 161.8,
             close: 163.76,
+            volume: 51511700,
         },
         {
             date: 1680787800000,
@@ -1952,6 +2230,7 @@ export function getData() {
             high: 164.96,
             low: 162,
             close: 164.66,
+            volume: 45390100,
         },
         {
             date: 1681133400000,
@@ -1959,6 +2238,7 @@ export function getData() {
             high: 162.03,
             low: 160.08,
             close: 162.03,
+            volume: 47716900,
         },
         {
             date: 1681219800000,
@@ -1966,6 +2246,7 @@ export function getData() {
             high: 162.36,
             low: 160.51,
             close: 160.8,
+            volume: 47644200,
         },
         {
             date: 1681306200000,
@@ -1973,6 +2254,7 @@ export function getData() {
             high: 162.06,
             low: 159.78,
             close: 160.1,
+            volume: 50133100,
         },
         {
             date: 1681392600000,
@@ -1980,6 +2262,7 @@ export function getData() {
             high: 165.8,
             low: 161.42,
             close: 165.56,
+            volume: 68445600,
         },
         {
             date: 1681479000000,
@@ -1987,6 +2270,7 @@ export function getData() {
             high: 166.32,
             low: 163.82,
             close: 165.21,
+            volume: 49386500,
         },
         {
             date: 1681738200000,
@@ -1994,6 +2278,7 @@ export function getData() {
             high: 165.39,
             low: 164.03,
             close: 165.23,
+            volume: 41516200,
         },
         {
             date: 1681824600000,
@@ -2001,6 +2286,7 @@ export function getData() {
             high: 167.41,
             low: 165.65,
             close: 166.47,
+            volume: 49923000,
         },
         {
             date: 1681911000000,
@@ -2008,6 +2294,7 @@ export function getData() {
             high: 168.16,
             low: 165.54,
             close: 167.63,
+            volume: 47720200,
         },
         {
             date: 1681997400000,
@@ -2015,6 +2302,7 @@ export function getData() {
             high: 167.87,
             low: 165.56,
             close: 166.65,
+            volume: 52456400,
         },
         {
             date: 1682083800000,
@@ -2022,6 +2310,7 @@ export function getData() {
             high: 166.45,
             low: 164.49,
             close: 165.02,
+            volume: 58337300,
         },
         {
             date: 1682343000000,
@@ -2029,6 +2318,7 @@ export function getData() {
             high: 165.6,
             low: 163.89,
             close: 165.33,
+            volume: 41949600,
         },
         {
             date: 1682429400000,
@@ -2036,6 +2326,7 @@ export function getData() {
             high: 166.31,
             low: 163.73,
             close: 163.77,
+            volume: 48714100,
         },
         {
             date: 1682515800000,
@@ -2043,6 +2334,7 @@ export function getData() {
             high: 165.28,
             low: 162.8,
             close: 163.76,
+            volume: 45498800,
         },
         {
             date: 1682602200000,
@@ -2050,6 +2342,7 @@ export function getData() {
             high: 168.56,
             low: 165.19,
             close: 168.41,
+            volume: 64902300,
         },
         {
             date: 1682688600000,
@@ -2057,6 +2350,7 @@ export function getData() {
             high: 169.85,
             low: 167.88,
             close: 169.68,
+            volume: 55209200,
         },
         {
             date: 1682947800000,
@@ -2064,6 +2358,7 @@ export function getData() {
             high: 170.45,
             low: 168.64,
             close: 169.59,
+            volume: 52472900,
         },
         {
             date: 1683034200000,
@@ -2071,6 +2366,7 @@ export function getData() {
             high: 170.35,
             low: 167.54,
             close: 168.54,
+            volume: 48425700,
         },
         {
             date: 1683120600000,
@@ -2078,6 +2374,7 @@ export function getData() {
             high: 170.92,
             low: 167.16,
             close: 167.45,
+            volume: 65136000,
         },
         {
             date: 1683207000000,
@@ -2085,6 +2382,7 @@ export function getData() {
             high: 167.04,
             low: 164.31,
             close: 165.79,
+            volume: 81235400,
         },
         {
             date: 1683293400000,
@@ -2092,6 +2390,7 @@ export function getData() {
             high: 174.3,
             low: 170.76,
             close: 173.57,
+            volume: 113316400,
         },
         {
             date: 1683552600000,
@@ -2099,6 +2398,7 @@ export function getData() {
             high: 173.85,
             low: 172.11,
             close: 173.5,
+            volume: 55962800,
         },
         {
             date: 1683639000000,
@@ -2106,6 +2406,7 @@ export function getData() {
             high: 173.54,
             low: 171.6,
             close: 171.77,
+            volume: 45326900,
         },
         {
             date: 1683725400000,
@@ -2113,6 +2414,7 @@ export function getData() {
             high: 174.03,
             low: 171.9,
             close: 173.56,
+            volume: 53724500,
         },
         {
             date: 1683811800000,
@@ -2120,6 +2422,7 @@ export function getData() {
             high: 174.59,
             low: 172.17,
             close: 173.75,
+            volume: 49514700,
         },
         {
             date: 1683898200000,
@@ -2127,6 +2430,7 @@ export function getData() {
             high: 174.06,
             low: 171,
             close: 172.57,
+            volume: 45497800,
         },
         {
             date: 1684157400000,
@@ -2134,6 +2438,7 @@ export function getData() {
             high: 173.21,
             low: 171.47,
             close: 172.07,
+            volume: 37266700,
         },
         {
             date: 1684243800000,
@@ -2141,6 +2446,7 @@ export function getData() {
             high: 173.14,
             low: 171.8,
             close: 172.07,
+            volume: 42110300,
         },
         {
             date: 1684330200000,
@@ -2148,6 +2454,7 @@ export function getData() {
             high: 172.93,
             low: 170.42,
             close: 172.69,
+            volume: 57951600,
         },
         {
             date: 1684416600000,
@@ -2155,6 +2462,7 @@ export function getData() {
             high: 175.24,
             low: 172.58,
             close: 175.05,
+            volume: 65496700,
         },
         {
             date: 1684503000000,
@@ -2162,6 +2470,7 @@ export function getData() {
             high: 176.39,
             low: 174.94,
             close: 175.16,
+            volume: 55772400,
         },
         {
             date: 1684762200000,
@@ -2169,6 +2478,7 @@ export function getData() {
             high: 174.71,
             low: 173.45,
             close: 174.2,
+            volume: 43570900,
         },
         {
             date: 1684848600000,
@@ -2176,6 +2486,7 @@ export function getData() {
             high: 173.38,
             low: 171.28,
             close: 171.56,
+            volume: 50747300,
         },
         {
             date: 1684935000000,
@@ -2183,6 +2494,7 @@ export function getData() {
             high: 172.42,
             low: 170.52,
             close: 171.84,
+            volume: 45143500,
         },
         {
             date: 1685021400000,
@@ -2190,6 +2502,7 @@ export function getData() {
             high: 173.9,
             low: 171.69,
             close: 172.99,
+            volume: 56058300,
         },
         {
             date: 1685107800000,
@@ -2197,6 +2510,7 @@ export function getData() {
             high: 175.77,
             low: 173.11,
             close: 175.43,
+            volume: 54835000,
         },
         {
             date: 1685453400000,
@@ -2204,6 +2518,7 @@ export function getData() {
             high: 178.99,
             low: 176.57,
             close: 177.3,
+            volume: 55964400,
         },
         {
             date: 1685539800000,
@@ -2211,6 +2526,7 @@ export function getData() {
             high: 179.35,
             low: 176.76,
             close: 177.25,
+            volume: 99625300,
         },
         {
             date: 1685626200000,
@@ -2218,6 +2534,7 @@ export function getData() {
             high: 180.12,
             low: 176.93,
             close: 180.09,
+            volume: 68901800,
         },
         {
             date: 1685712600000,
@@ -2225,6 +2542,7 @@ export function getData() {
             high: 181.78,
             low: 179.26,
             close: 180.95,
+            volume: 61945900,
         },
         {
             date: 1685971800000,
@@ -2232,6 +2550,7 @@ export function getData() {
             high: 184.95,
             low: 178.04,
             close: 179.58,
+            volume: 121946500,
         },
         {
             date: 1686058200000,
@@ -2239,6 +2558,7 @@ export function getData() {
             high: 180.12,
             low: 177.43,
             close: 179.21,
+            volume: 64848400,
         },
         {
             date: 1686144600000,
@@ -2246,6 +2566,7 @@ export function getData() {
             high: 181.21,
             low: 177.32,
             close: 177.82,
+            volume: 61944600,
         },
         {
             date: 1686231000000,
@@ -2253,6 +2574,7 @@ export function getData() {
             high: 180.84,
             low: 177.46,
             close: 180.57,
+            volume: 50214900,
         },
         {
             date: 1686317400000,
@@ -2260,6 +2582,7 @@ export function getData() {
             high: 182.23,
             low: 180.63,
             close: 180.96,
+            volume: 48870700,
         },
         {
             date: 1686576600000,
@@ -2267,6 +2590,7 @@ export function getData() {
             high: 183.89,
             low: 180.97,
             close: 183.79,
+            volume: 54274900,
         },
         {
             date: 1686663000000,
@@ -2274,6 +2598,7 @@ export function getData() {
             high: 184.15,
             low: 182.44,
             close: 183.31,
+            volume: 54929100,
         },
         {
             date: 1686749400000,
@@ -2281,6 +2606,7 @@ export function getData() {
             high: 184.39,
             low: 182.02,
             close: 183.95,
+            volume: 57462900,
         },
         {
             date: 1686835800000,
@@ -2288,6 +2614,7 @@ export function getData() {
             high: 186.52,
             low: 183.78,
             close: 186.01,
+            volume: 65433200,
         },
         {
             date: 1686922200000,
@@ -2295,6 +2622,7 @@ export function getData() {
             high: 186.99,
             low: 184.27,
             close: 184.92,
+            volume: 101235600,
         },
         {
             date: 1687267800000,
@@ -2302,6 +2630,7 @@ export function getData() {
             high: 186.1,
             low: 184.41,
             close: 185.01,
+            volume: 49799100,
         },
         {
             date: 1687354200000,
@@ -2309,6 +2638,7 @@ export function getData() {
             high: 185.41,
             low: 182.59,
             close: 183.96,
+            volume: 49515700,
         },
         {
             date: 1687440600000,
@@ -2316,6 +2646,7 @@ export function getData() {
             high: 187.05,
             low: 183.67,
             close: 187,
+            volume: 51245300,
         },
         {
             date: 1687527000000,
@@ -2323,6 +2654,7 @@ export function getData() {
             high: 187.56,
             low: 185.01,
             close: 186.68,
+            volume: 53079300,
         },
         {
             date: 1687786200000,
@@ -2330,6 +2662,7 @@ export function getData() {
             high: 188.05,
             low: 185.23,
             close: 185.27,
+            volume: 48088700,
         },
         {
             date: 1687872600000,
@@ -2337,6 +2670,7 @@ export function getData() {
             high: 188.39,
             low: 185.67,
             close: 188.06,
+            volume: 50730800,
         },
         {
             date: 1687959000000,
@@ -2344,6 +2678,7 @@ export function getData() {
             high: 189.9,
             low: 187.6,
             close: 189.25,
+            volume: 51216800,
         },
         {
             date: 1688045400000,
@@ -2351,6 +2686,7 @@ export function getData() {
             high: 190.07,
             low: 188.94,
             close: 189.59,
+            volume: 46347300,
         },
         {
             date: 1688131800000,
@@ -2358,6 +2694,7 @@ export function getData() {
             high: 194.48,
             low: 191.26,
             close: 193.97,
+            volume: 85069600,
         },
         {
             date: 1688391000000,
@@ -2365,6 +2702,7 @@ export function getData() {
             high: 193.88,
             low: 191.76,
             close: 192.46,
+            volume: 31458200,
         },
         {
             date: 1688563800000,
@@ -2372,6 +2710,7 @@ export function getData() {
             high: 192.98,
             low: 190.62,
             close: 191.33,
+            volume: 46920300,
         },
         {
             date: 1688650200000,
@@ -2379,6 +2718,7 @@ export function getData() {
             high: 192.02,
             low: 189.2,
             close: 191.81,
+            volume: 45094300,
         },
         {
             date: 1688736600000,
@@ -2386,6 +2726,7 @@ export function getData() {
             high: 192.67,
             low: 190.24,
             close: 190.68,
+            volume: 46778000,
         },
         {
             date: 1688995800000,
@@ -2393,6 +2734,7 @@ export function getData() {
             high: 189.99,
             low: 187.04,
             close: 188.61,
+            volume: 59922200,
         },
         {
             date: 1689082200000,
@@ -2400,6 +2742,7 @@ export function getData() {
             high: 189.3,
             low: 186.6,
             close: 188.08,
+            volume: 46638100,
         },
         {
             date: 1689168600000,
@@ -2407,6 +2750,7 @@ export function getData() {
             high: 191.7,
             low: 188.47,
             close: 189.77,
+            volume: 60750200,
         },
         {
             date: 1689255000000,
@@ -2414,6 +2758,7 @@ export function getData() {
             high: 191.19,
             low: 189.78,
             close: 190.54,
+            volume: 41342300,
         },
         {
             date: 1689341400000,
@@ -2421,6 +2766,7 @@ export function getData() {
             high: 191.18,
             low: 189.63,
             close: 190.69,
+            volume: 41573900,
         },
         {
             date: 1689600600000,
@@ -2428,6 +2774,7 @@ export function getData() {
             high: 194.32,
             low: 191.81,
             close: 193.99,
+            volume: 50520200,
         },
         {
             date: 1689687000000,
@@ -2435,6 +2782,7 @@ export function getData() {
             high: 194.33,
             low: 192.42,
             close: 193.73,
+            volume: 48353800,
         },
         {
             date: 1689773400000,
@@ -2442,6 +2790,7 @@ export function getData() {
             high: 198.23,
             low: 192.65,
             close: 195.1,
+            volume: 80507300,
         },
         {
             date: 1689859800000,
@@ -2449,6 +2798,7 @@ export function getData() {
             high: 196.47,
             low: 192.5,
             close: 193.13,
+            volume: 59581200,
         },
         {
             date: 1689946200000,
@@ -2456,6 +2806,7 @@ export function getData() {
             high: 194.97,
             low: 191.23,
             close: 191.94,
+            volume: 71917800,
         },
         {
             date: 1690205400000,
@@ -2463,6 +2814,7 @@ export function getData() {
             high: 194.91,
             low: 192.25,
             close: 192.75,
+            volume: 45377800,
         },
         {
             date: 1690291800000,
@@ -2470,6 +2822,7 @@ export function getData() {
             high: 194.44,
             low: 192.92,
             close: 193.62,
+            volume: 37283200,
         },
         {
             date: 1690378200000,
@@ -2477,6 +2830,7 @@ export function getData() {
             high: 195.64,
             low: 193.32,
             close: 194.5,
+            volume: 47471900,
         },
         {
             date: 1690464600000,
@@ -2484,6 +2838,7 @@ export function getData() {
             high: 197.2,
             low: 192.55,
             close: 193.22,
+            volume: 47460200,
         },
         {
             date: 1690551000000,
@@ -2491,6 +2846,7 @@ export function getData() {
             high: 196.63,
             low: 194.14,
             close: 195.83,
+            volume: 48291400,
         },
         {
             date: 1690810200000,
@@ -2498,6 +2854,7 @@ export function getData() {
             high: 196.49,
             low: 195.26,
             close: 196.45,
+            volume: 38824100,
         },
         {
             date: 1690896600000,
@@ -2505,6 +2862,7 @@ export function getData() {
             high: 196.73,
             low: 195.28,
             close: 195.61,
+            volume: 35175100,
         },
         {
             date: 1690983000000,
@@ -2512,6 +2870,7 @@ export function getData() {
             high: 195.18,
             low: 191.85,
             close: 192.58,
+            volume: 50389300,
         },
         {
             date: 1691069400000,
@@ -2519,6 +2878,7 @@ export function getData() {
             high: 192.37,
             low: 190.69,
             close: 191.17,
+            volume: 61235200,
         },
         {
             date: 1691155800000,
@@ -2526,6 +2886,7 @@ export function getData() {
             high: 187.38,
             low: 181.92,
             close: 181.99,
+            volume: 115799700,
         },
         {
             date: 1691415000000,
@@ -2533,6 +2894,7 @@ export function getData() {
             high: 183.13,
             low: 177.35,
             close: 178.85,
+            volume: 97576100,
         },
         {
             date: 1691501400000,
@@ -2540,6 +2902,7 @@ export function getData() {
             high: 180.27,
             low: 177.58,
             close: 179.8,
+            volume: 67823000,
         },
         {
             date: 1691587800000,
@@ -2547,6 +2910,7 @@ export function getData() {
             high: 180.93,
             low: 177.01,
             close: 178.19,
+            volume: 60378500,
         },
         {
             date: 1691674200000,
@@ -2554,6 +2918,7 @@ export function getData() {
             high: 180.75,
             low: 177.6,
             close: 177.97,
+            volume: 54686900,
         },
         {
             date: 1691760600000,
@@ -2561,6 +2926,7 @@ export function getData() {
             high: 178.62,
             low: 176.55,
             close: 177.79,
+            volume: 51988100,
         },
         {
             date: 1692019800000,
@@ -2568,6 +2934,7 @@ export function getData() {
             high: 179.69,
             low: 177.31,
             close: 179.46,
+            volume: 43675600,
         },
         {
             date: 1692106200000,
@@ -2575,6 +2942,7 @@ export function getData() {
             high: 179.48,
             low: 177.05,
             close: 177.45,
+            volume: 43622600,
         },
         {
             date: 1692192600000,
@@ -2582,6 +2950,7 @@ export function getData() {
             high: 178.54,
             low: 176.5,
             close: 176.57,
+            volume: 46964900,
         },
         {
             date: 1692279000000,
@@ -2589,6 +2958,7 @@ export function getData() {
             high: 177.51,
             low: 173.48,
             close: 174,
+            volume: 66062900,
         },
         {
             date: 1692365400000,
@@ -2596,6 +2966,7 @@ export function getData() {
             high: 175.1,
             low: 171.96,
             close: 174.49,
+            volume: 61114200,
         },
         {
             date: 1692624600000,
@@ -2603,6 +2974,7 @@ export function getData() {
             high: 176.13,
             low: 173.74,
             close: 175.84,
+            volume: 46311900,
         },
         {
             date: 1692711000000,
@@ -2610,6 +2982,7 @@ export function getData() {
             high: 177.68,
             low: 176.25,
             close: 177.23,
+            volume: 42084200,
         },
         {
             date: 1692797400000,
@@ -2617,6 +2990,7 @@ export function getData() {
             high: 181.55,
             low: 178.33,
             close: 181.12,
+            volume: 52722800,
         },
         {
             date: 1692883800000,
@@ -2624,6 +2998,7 @@ export function getData() {
             high: 181.1,
             low: 176.01,
             close: 176.38,
+            volume: 54945800,
         },
         {
             date: 1692970200000,
@@ -2631,6 +3006,7 @@ export function getData() {
             high: 179.15,
             low: 175.82,
             close: 178.61,
+            volume: 51449600,
         },
         {
             date: 1693229400000,
@@ -2638,6 +3014,7 @@ export function getData() {
             high: 180.59,
             low: 178.55,
             close: 180.19,
+            volume: 43820700,
         },
         {
             date: 1693315800000,
@@ -2645,6 +3022,7 @@ export function getData() {
             high: 184.9,
             low: 179.5,
             close: 184.12,
+            volume: 53003900,
         },
         {
             date: 1693402200000,
@@ -2652,6 +3030,7 @@ export function getData() {
             high: 187.85,
             low: 184.74,
             close: 187.65,
+            volume: 60813900,
         },
         {
             date: 1693488600000,
@@ -2659,6 +3038,7 @@ export function getData() {
             high: 189.12,
             low: 187.48,
             close: 187.87,
+            volume: 60794500,
         },
         {
             date: 1693575000000,
@@ -2666,6 +3046,7 @@ export function getData() {
             high: 189.92,
             low: 188.28,
             close: 189.46,
+            volume: 45732600,
         },
         {
             date: 1693920600000,
@@ -2673,6 +3054,7 @@ export function getData() {
             high: 189.98,
             low: 187.61,
             close: 189.7,
+            volume: 45280000,
         },
         {
             date: 1694007000000,
@@ -2680,6 +3062,7 @@ export function getData() {
             high: 188.85,
             low: 181.47,
             close: 182.91,
+            volume: 81755800,
         },
         {
             date: 1694093400000,
@@ -2687,6 +3070,7 @@ export function getData() {
             high: 178.21,
             low: 173.54,
             close: 177.56,
+            volume: 112488800,
         },
         {
             date: 1694179800000,
@@ -2694,6 +3078,7 @@ export function getData() {
             high: 180.24,
             low: 177.79,
             close: 178.18,
+            volume: 65551300,
         },
         {
             date: 1694439000000,
@@ -2701,6 +3086,7 @@ export function getData() {
             high: 180.3,
             low: 177.34,
             close: 179.36,
+            volume: 58953100,
         },
         {
             date: 1694525400000,
@@ -2708,6 +3094,7 @@ export function getData() {
             high: 180.13,
             low: 174.82,
             close: 176.3,
+            volume: 90370200,
         },
         {
             date: 1694611800000,
@@ -2715,6 +3102,7 @@ export function getData() {
             high: 177.3,
             low: 173.98,
             close: 174.21,
+            volume: 84267900,
         },
         {
             date: 1694698200000,
@@ -2722,6 +3110,7 @@ export function getData() {
             high: 176.1,
             low: 173.58,
             close: 175.74,
+            volume: 60895800,
         },
         {
             date: 1694784600000,
@@ -2729,6 +3118,7 @@ export function getData() {
             high: 176.5,
             low: 173.82,
             close: 175.01,
+            volume: 109205100,
         },
         {
             date: 1695043800000,
@@ -2736,6 +3126,7 @@ export function getData() {
             high: 179.38,
             low: 176.17,
             close: 177.97,
+            volume: 67257600,
         },
         {
             date: 1695130200000,
@@ -2743,6 +3134,7 @@ export function getData() {
             high: 179.63,
             low: 177.13,
             close: 179.07,
+            volume: 51826900,
         },
         {
             date: 1695216600000,
@@ -2750,6 +3142,7 @@ export function getData() {
             high: 179.7,
             low: 175.4,
             close: 175.49,
+            volume: 58436200,
         },
         {
             date: 1695303000000,
@@ -2757,6 +3150,7 @@ export function getData() {
             high: 176.3,
             low: 173.86,
             close: 173.93,
+            volume: 63047900,
         },
         {
             date: 1695389400000,
@@ -2764,6 +3158,7 @@ export function getData() {
             high: 177.08,
             low: 174.05,
             close: 174.79,
+            volume: 56725400,
         },
         {
             date: 1695648600000,
@@ -2771,6 +3166,7 @@ export function getData() {
             high: 176.97,
             low: 174.15,
             close: 176.08,
+            volume: 46172700,
         },
         {
             date: 1695735000000,
@@ -2778,6 +3174,7 @@ export function getData() {
             high: 175.2,
             low: 171.66,
             close: 171.96,
+            volume: 64588900,
         },
         {
             date: 1695821400000,
@@ -2785,6 +3182,7 @@ export function getData() {
             high: 173.04,
             low: 169.05,
             close: 170.43,
+            volume: 66921800,
         },
         {
             date: 1695907800000,
@@ -2792,6 +3190,7 @@ export function getData() {
             high: 172.03,
             low: 167.62,
             close: 170.69,
+            volume: 56294400,
         },
         {
             date: 1695994200000,
@@ -2799,6 +3198,7 @@ export function getData() {
             high: 173.07,
             low: 170.34,
             close: 171.21,
+            volume: 51814200,
         },
         {
             date: 1696253400000,
@@ -2806,6 +3206,7 @@ export function getData() {
             high: 174.3,
             low: 170.93,
             close: 173.75,
+            volume: 52164500,
         },
         {
             date: 1696339800000,
@@ -2813,6 +3214,7 @@ export function getData() {
             high: 173.63,
             low: 170.82,
             close: 172.4,
+            volume: 49594600,
         },
         {
             date: 1696426200000,
@@ -2820,6 +3222,7 @@ export function getData() {
             high: 174.21,
             low: 170.97,
             close: 173.66,
+            volume: 53020300,
         },
         {
             date: 1696512600000,
@@ -2827,6 +3230,7 @@ export function getData() {
             high: 175.45,
             low: 172.68,
             close: 174.91,
+            volume: 48527900,
         },
         {
             date: 1696599000000,
@@ -2834,6 +3238,7 @@ export function getData() {
             high: 177.99,
             low: 173.18,
             close: 177.49,
+            volume: 57224100,
         },
         {
             date: 1696858200000,
@@ -2841,6 +3246,7 @@ export function getData() {
             high: 179.05,
             low: 175.8,
             close: 178.99,
+            volume: 42390800,
         },
         {
             date: 1696944600000,
@@ -2848,6 +3254,7 @@ export function getData() {
             high: 179.72,
             low: 177.95,
             close: 178.39,
+            volume: 43698000,
         },
         {
             date: 1697031000000,
@@ -2855,6 +3262,7 @@ export function getData() {
             high: 179.85,
             low: 177.6,
             close: 179.8,
+            volume: 47551100,
         },
         {
             date: 1697117400000,
@@ -2862,6 +3270,7 @@ export function getData() {
             high: 182.34,
             low: 179.04,
             close: 180.71,
+            volume: 56743100,
         },
         {
             date: 1697203800000,
@@ -2869,6 +3278,7 @@ export function getData() {
             high: 181.93,
             low: 178.14,
             close: 178.85,
+            volume: 51427100,
         },
         {
             date: 1697463000000,
@@ -2876,6 +3286,7 @@ export function getData() {
             high: 179.08,
             low: 176.51,
             close: 178.72,
+            volume: 52517000,
         },
         {
             date: 1697549400000,
@@ -2883,6 +3294,7 @@ export function getData() {
             high: 178.42,
             low: 174.8,
             close: 177.15,
+            volume: 57549400,
         },
         {
             date: 1697635800000,
@@ -2890,6 +3302,7 @@ export function getData() {
             high: 177.58,
             low: 175.11,
             close: 175.84,
+            volume: 54764400,
         },
         {
             date: 1697722200000,
@@ -2897,6 +3310,7 @@ export function getData() {
             high: 177.84,
             low: 175.19,
             close: 175.46,
+            volume: 59302900,
         },
         {
             date: 1697808600000,
@@ -2904,6 +3318,7 @@ export function getData() {
             high: 175.42,
             low: 172.64,
             close: 172.88,
+            volume: 64189300,
         },
         {
             date: 1698067800000,
@@ -2911,6 +3326,7 @@ export function getData() {
             high: 174.01,
             low: 169.93,
             close: 173,
+            volume: 55980100,
         },
         {
             date: 1698154200000,
@@ -2918,6 +3334,7 @@ export function getData() {
             high: 173.67,
             low: 171.45,
             close: 173.44,
+            volume: 43816600,
         },
         {
             date: 1698240600000,
@@ -2925,6 +3342,7 @@ export function getData() {
             high: 173.06,
             low: 170.65,
             close: 171.1,
+            volume: 57157000,
         },
         {
             date: 1698327000000,
@@ -2932,6 +3350,7 @@ export function getData() {
             high: 171.38,
             low: 165.67,
             close: 166.89,
+            volume: 70625300,
         },
         {
             date: 1698413400000,
@@ -2939,6 +3358,7 @@ export function getData() {
             high: 168.96,
             low: 166.83,
             close: 168.22,
+            volume: 58499100,
         },
         {
             date: 1698672600000,
@@ -2946,6 +3366,7 @@ export function getData() {
             high: 171.17,
             low: 168.87,
             close: 170.29,
+            volume: 51131000,
         },
         {
             date: 1698759000000,
@@ -2953,6 +3374,7 @@ export function getData() {
             high: 170.9,
             low: 167.9,
             close: 170.77,
+            volume: 44846000,
         },
         {
             date: 1698845400000,
@@ -2960,6 +3382,7 @@ export function getData() {
             high: 174.23,
             low: 170.12,
             close: 173.97,
+            volume: 56934900,
         },
         {
             date: 1698931800000,
@@ -2967,6 +3390,7 @@ export function getData() {
             high: 177.78,
             low: 175.46,
             close: 177.57,
+            volume: 77334800,
         },
         {
             date: 1699018200000,
@@ -2974,6 +3398,7 @@ export function getData() {
             high: 176.82,
             low: 173.35,
             close: 176.65,
+            volume: 79763700,
         },
         {
             date: 1699281000000,
@@ -2981,6 +3406,7 @@ export function getData() {
             high: 179.43,
             low: 176.21,
             close: 179.23,
+            volume: 63841300,
         },
         {
             date: 1699367400000,
@@ -2988,6 +3414,7 @@ export function getData() {
             high: 182.44,
             low: 178.97,
             close: 181.82,
+            volume: 70530000,
         },
         {
             date: 1699453800000,
@@ -2995,6 +3422,7 @@ export function getData() {
             high: 183.45,
             low: 181.59,
             close: 182.89,
+            volume: 49340300,
         },
         {
             date: 1699540200000,
@@ -3002,6 +3430,7 @@ export function getData() {
             high: 184.12,
             low: 181.81,
             close: 182.41,
+            volume: 53763500,
         },
         {
             date: 1699626600000,
@@ -3009,6 +3438,7 @@ export function getData() {
             high: 186.57,
             low: 183.53,
             close: 186.4,
+            volume: 66133400,
         },
         {
             date: 1699885800000,
@@ -3016,6 +3446,7 @@ export function getData() {
             high: 186.03,
             low: 184.21,
             close: 184.8,
+            volume: 43627500,
         },
         {
             date: 1699972200000,
@@ -3023,6 +3454,7 @@ export function getData() {
             high: 188.11,
             low: 186.3,
             close: 187.44,
+            volume: 60108400,
         },
         {
             date: 1700058600000,
@@ -3030,6 +3462,7 @@ export function getData() {
             high: 189.5,
             low: 187.78,
             close: 188.01,
+            volume: 53790500,
         },
         {
             date: 1700145000000,
@@ -3037,6 +3470,7 @@ export function getData() {
             high: 190.96,
             low: 188.65,
             close: 189.71,
+            volume: 54412900,
         },
         {
             date: 1700231400000,
@@ -3044,6 +3478,7 @@ export function getData() {
             high: 190.38,
             low: 188.57,
             close: 189.69,
+            volume: 50922700,
         },
         {
             date: 1700490600000,
@@ -3051,6 +3486,7 @@ export function getData() {
             high: 191.91,
             low: 189.88,
             close: 191.45,
+            volume: 46505100,
         },
         {
             date: 1700577000000,
@@ -3058,6 +3494,7 @@ export function getData() {
             high: 191.52,
             low: 189.74,
             close: 190.64,
+            volume: 38134500,
         },
         {
             date: 1700663400000,
@@ -3065,6 +3502,7 @@ export function getData() {
             high: 192.93,
             low: 190.83,
             close: 191.31,
+            volume: 39617700,
         },
         {
             date: 1700836200000,
@@ -3072,6 +3510,7 @@ export function getData() {
             high: 190.9,
             low: 189.25,
             close: 189.97,
+            volume: 24048300,
         },
         {
             date: 1701095400000,
@@ -3079,6 +3518,7 @@ export function getData() {
             high: 190.67,
             low: 188.9,
             close: 189.79,
+            volume: 40552600,
         },
         {
             date: 1701181800000,
@@ -3086,6 +3526,7 @@ export function getData() {
             high: 191.08,
             low: 189.4,
             close: 190.4,
+            volume: 38415400,
         },
         {
             date: 1701268200000,
@@ -3093,6 +3534,7 @@ export function getData() {
             high: 192.09,
             low: 188.97,
             close: 189.37,
+            volume: 43014200,
         },
         {
             date: 1701354600000,
@@ -3100,6 +3542,7 @@ export function getData() {
             high: 190.32,
             low: 188.19,
             close: 189.95,
+            volume: 48794400,
         },
         {
             date: 1701441000000,
@@ -3107,6 +3550,7 @@ export function getData() {
             high: 191.56,
             low: 189.23,
             close: 191.24,
+            volume: 45679300,
         },
         {
             date: 1701700200000,
@@ -3114,6 +3558,7 @@ export function getData() {
             high: 190.05,
             low: 187.45,
             close: 189.43,
+            volume: 43389500,
         },
         {
             date: 1701786600000,
@@ -3121,6 +3566,7 @@ export function getData() {
             high: 194.4,
             low: 190.18,
             close: 193.42,
+            volume: 66628400,
         },
         {
             date: 1701873000000,
@@ -3128,6 +3574,7 @@ export function getData() {
             high: 194.76,
             low: 192.11,
             close: 192.32,
+            volume: 41089700,
         },
         {
             date: 1701959400000,
@@ -3135,6 +3582,7 @@ export function getData() {
             high: 195,
             low: 193.59,
             close: 194.27,
+            volume: 47477700,
         },
         {
             date: 1702045800000,
@@ -3142,6 +3590,7 @@ export function getData() {
             high: 195.99,
             low: 193.67,
             close: 195.71,
+            volume: 53377300,
         },
         {
             date: 1702305000000,
@@ -3149,6 +3598,7 @@ export function getData() {
             high: 193.49,
             low: 191.42,
             close: 193.18,
+            volume: 60943700,
         },
         {
             date: 1702391400000,
@@ -3156,6 +3606,7 @@ export function getData() {
             high: 194.72,
             low: 191.72,
             close: 194.71,
+            volume: 52696900,
         },
         {
             date: 1702477800000,
@@ -3163,6 +3614,7 @@ export function getData() {
             high: 198,
             low: 194.85,
             close: 197.96,
+            volume: 70404200,
         },
         {
             date: 1702564200000,
@@ -3170,6 +3622,7 @@ export function getData() {
             high: 199.62,
             low: 196.16,
             close: 198.11,
+            volume: 66831600,
         },
         {
             date: 1702650600000,
@@ -3177,6 +3630,7 @@ export function getData() {
             high: 198.4,
             low: 197,
             close: 197.57,
+            volume: 128256700,
         },
         {
             date: 1702909800000,
@@ -3184,6 +3638,7 @@ export function getData() {
             high: 196.63,
             low: 194.39,
             close: 195.89,
+            volume: 55751900,
         },
         {
             date: 1702996200000,
@@ -3191,6 +3646,7 @@ export function getData() {
             high: 196.95,
             low: 195.89,
             close: 196.94,
+            volume: 40714100,
         },
         {
             date: 1703082600000,
@@ -3198,6 +3654,7 @@ export function getData() {
             high: 197.68,
             low: 194.83,
             close: 194.83,
+            volume: 52242800,
         },
         {
             date: 1703169000000,
@@ -3205,6 +3662,7 @@ export function getData() {
             high: 197.08,
             low: 193.5,
             close: 194.68,
+            volume: 46482500,
         },
         {
             date: 1703255400000,
@@ -3212,6 +3670,7 @@ export function getData() {
             high: 195.41,
             low: 192.97,
             close: 193.6,
+            volume: 37122800,
         },
         {
             date: 1703601000000,
@@ -3219,6 +3678,7 @@ export function getData() {
             high: 193.89,
             low: 192.83,
             close: 193.05,
+            volume: 28919300,
         },
         {
             date: 1703687400000,
@@ -3226,6 +3686,7 @@ export function getData() {
             high: 193.5,
             low: 191.09,
             close: 193.15,
+            volume: 48087700,
         },
         {
             date: 1703773800000,
@@ -3233,6 +3694,7 @@ export function getData() {
             high: 194.66,
             low: 193.17,
             close: 193.58,
+            volume: 34049900,
         },
         {
             date: 1703860200000,
@@ -3240,6 +3702,7 @@ export function getData() {
             high: 194.4,
             low: 191.73,
             close: 192.53,
+            volume: 42628800,
         },
         {
             date: 1704205800000,
@@ -3247,6 +3710,7 @@ export function getData() {
             high: 188.44,
             low: 183.89,
             close: 185.64,
+            volume: 82488700,
         },
         {
             date: 1704292200000,
@@ -3254,6 +3718,7 @@ export function getData() {
             high: 185.88,
             low: 183.43,
             close: 184.25,
+            volume: 58414500,
         },
         {
             date: 1704378600000,
@@ -3261,6 +3726,7 @@ export function getData() {
             high: 183.09,
             low: 180.88,
             close: 181.91,
+            volume: 71983600,
         },
         {
             date: 1704465000000,
@@ -3268,6 +3734,7 @@ export function getData() {
             high: 182.76,
             low: 180.17,
             close: 181.18,
+            volume: 62303300,
         },
         {
             date: 1704724200000,
@@ -3275,6 +3742,7 @@ export function getData() {
             high: 185.6,
             low: 181.5,
             close: 185.56,
+            volume: 59144500,
         },
         {
             date: 1704810600000,
@@ -3282,6 +3750,7 @@ export function getData() {
             high: 185.15,
             low: 182.73,
             close: 185.14,
+            volume: 42841800,
         },
         {
             date: 1704897000000,
@@ -3289,6 +3758,7 @@ export function getData() {
             high: 186.4,
             low: 183.92,
             close: 186.19,
+            volume: 46792900,
         },
         {
             date: 1704983400000,
@@ -3296,6 +3766,7 @@ export function getData() {
             high: 187.05,
             low: 183.62,
             close: 185.59,
+            volume: 49128400,
         },
         {
             date: 1705069800000,
@@ -3303,6 +3774,7 @@ export function getData() {
             high: 186.74,
             low: 185.19,
             close: 185.92,
+            volume: 40444700,
         },
         {
             date: 1705415400000,
@@ -3310,6 +3782,7 @@ export function getData() {
             high: 184.26,
             low: 180.93,
             close: 183.63,
+            volume: 65603000,
         },
         {
             date: 1705501800000,
@@ -3317,6 +3790,7 @@ export function getData() {
             high: 182.93,
             low: 180.3,
             close: 182.68,
+            volume: 47317400,
         },
         {
             date: 1705588200000,
@@ -3324,6 +3798,7 @@ export function getData() {
             high: 189.14,
             low: 185.83,
             close: 188.63,
+            volume: 78005800,
         },
         {
             date: 1705674600000,
@@ -3331,6 +3806,7 @@ export function getData() {
             high: 191.95,
             low: 188.82,
             close: 191.56,
+            volume: 68741000,
         },
         {
             date: 1705933800000,
@@ -3338,6 +3814,7 @@ export function getData() {
             high: 195.33,
             low: 192.26,
             close: 193.89,
+            volume: 60133900,
         },
         {
             date: 1706020200000,
@@ -3345,6 +3822,7 @@ export function getData() {
             high: 195.75,
             low: 193.83,
             close: 195.18,
+            volume: 42355600,
         },
         {
             date: 1706106600000,
@@ -3352,6 +3830,7 @@ export function getData() {
             high: 196.38,
             low: 194.34,
             close: 194.5,
+            volume: 53631300,
         },
         {
             date: 1706193000000,
@@ -3359,6 +3838,7 @@ export function getData() {
             high: 196.27,
             low: 193.11,
             close: 194.17,
+            volume: 54822100,
         },
         {
             date: 1706279400000,
@@ -3366,6 +3846,7 @@ export function getData() {
             high: 194.76,
             low: 191.94,
             close: 192.42,
+            volume: 44594000,
         },
         {
             date: 1706538600000,
@@ -3373,6 +3854,7 @@ export function getData() {
             high: 192.2,
             low: 189.58,
             close: 191.73,
+            volume: 47145600,
         },
         {
             date: 1706625000000,
@@ -3380,6 +3862,7 @@ export function getData() {
             high: 191.8,
             low: 187.47,
             close: 188.04,
+            volume: 55859400,
         },
         {
             date: 1706711400000,
@@ -3387,6 +3870,7 @@ export function getData() {
             high: 187.1,
             low: 184.35,
             close: 184.4,
+            volume: 55467800,
         },
         {
             date: 1706797800000,
@@ -3394,6 +3878,7 @@ export function getData() {
             high: 186.95,
             low: 183.82,
             close: 186.86,
+            volume: 64885400,
         },
         {
             date: 1706884200000,
@@ -3401,6 +3886,7 @@ export function getData() {
             high: 187.33,
             low: 179.25,
             close: 185.85,
+            volume: 102518000,
         },
         {
             date: 1707143400000,
@@ -3408,6 +3894,7 @@ export function getData() {
             high: 189.25,
             low: 185.84,
             close: 187.68,
+            volume: 69668800,
         },
         {
             date: 1707229800000,
@@ -3415,6 +3902,7 @@ export function getData() {
             high: 189.31,
             low: 186.77,
             close: 189.3,
+            volume: 43490800,
         },
         {
             date: 1707316200000,
@@ -3422,6 +3910,7 @@ export function getData() {
             high: 191.05,
             low: 188.61,
             close: 189.41,
+            volume: 53439000,
         },
         {
             date: 1707402600000,
@@ -3429,6 +3918,7 @@ export function getData() {
             high: 189.54,
             low: 187.35,
             close: 188.32,
+            volume: 40962000,
         },
         {
             date: 1707489000000,
@@ -3436,6 +3926,7 @@ export function getData() {
             high: 189.99,
             low: 188,
             close: 188.85,
+            volume: 45155200,
         },
         {
             date: 1707748200000,
@@ -3443,6 +3934,7 @@ export function getData() {
             high: 188.67,
             low: 186.79,
             close: 187.15,
+            volume: 41781900,
         },
         {
             date: 1707834600000,
@@ -3450,6 +3942,7 @@ export function getData() {
             high: 186.21,
             low: 183.51,
             close: 185.04,
+            volume: 56529500,
         },
         {
             date: 1707921000000,
@@ -3457,6 +3950,7 @@ export function getData() {
             high: 185.53,
             low: 182.44,
             close: 184.15,
+            volume: 54630500,
         },
         {
             date: 1708007400000,
@@ -3464,6 +3958,7 @@ export function getData() {
             high: 184.49,
             low: 181.35,
             close: 183.86,
+            volume: 65434500,
         },
         {
             date: 1708093800000,
@@ -3471,6 +3966,7 @@ export function getData() {
             high: 184.85,
             low: 181.67,
             close: 182.31,
+            volume: 49701400,
         },
         {
             date: 1708439400000,
@@ -3478,6 +3974,7 @@ export function getData() {
             high: 182.43,
             low: 180,
             close: 181.56,
+            volume: 53665600,
         },
         {
             date: 1708525800000,
@@ -3485,6 +3982,7 @@ export function getData() {
             high: 182.89,
             low: 180.66,
             close: 182.32,
+            volume: 41529700,
         },
         {
             date: 1708612200000,
@@ -3492,6 +3990,7 @@ export function getData() {
             high: 184.96,
             low: 182.46,
             close: 184.37,
+            volume: 52292200,
         },
         {
             date: 1708698600000,
@@ -3499,6 +3998,7 @@ export function getData() {
             high: 185.04,
             low: 182.23,
             close: 182.52,
+            volume: 45074500,
         },
         {
             date: 1708957800000,
@@ -3506,6 +4006,15 @@ export function getData() {
             high: 182.76,
             low: 180.65,
             close: 181.16,
+            volume: 40867400,
+        },
+        {
+            date: 1709044200000,
+            open: 181.1,
+            high: 183.92,
+            low: 179.56,
+            close: 182.63,
+            volume: 54219400,
         },
     ];
     return data.map((d) => ({ ...d, date: new Date(d.date) }));

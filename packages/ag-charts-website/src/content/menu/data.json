@@ -257,6 +257,11 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Chart Types",
+                        "path": "financial-chart-types",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Annotations",
                         "path": "annotations",
                         "isEnterprise": true

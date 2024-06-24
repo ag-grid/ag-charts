@@ -3,12 +3,8 @@ import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 const options: AgFinancialChartOptions = {
-    type: 'candlestick-volume',
     container: document.getElementById('myChart'),
     data: getData(),
-    annotations: {
-        enabled: true,
-    },
     initialState: {
         annotations: [
             {
