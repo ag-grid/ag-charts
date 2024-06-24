@@ -65,6 +65,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
             hueInput.value = `${h}`;
             alphaInput.value = `${a}`;
+
+            alphaInput.classList.toggle('ag-charts-color-picker__alpha-input--opaque', a === 1);
+
             if (document.activeElement !== colorInput) {
                 colorInput.value = colorString.toUpperCase();
             }
