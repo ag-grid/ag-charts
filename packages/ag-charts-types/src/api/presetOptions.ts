@@ -1,6 +1,5 @@
-export type AgCandlestickVolumePreset = {
-    type: 'candlestick-volume';
-
+export type AgPriceVolumePreset = {
+    chartType?: 'candlestick' | 'ohlc' | 'line';
     xKey?: string;
     openKey?: string;
     highKey?: string;
@@ -9,6 +8,6 @@ export type AgCandlestickVolumePreset = {
     volumeKey?: string;
 };
 
-export type AgFinancialChartPresets = AgCandlestickVolumePreset;
+export type AgFinancialChartPresets = AgPriceVolumePreset;
 
 export type Preset = AgFinancialChartPresets;

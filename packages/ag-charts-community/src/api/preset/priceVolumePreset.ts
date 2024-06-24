@@ -1,9 +1,9 @@
 import type {
     AgAxisLabelFormatterParams,
     AgBaseFinancialPresetOptions,
-    AgCandlestickVolumePreset,
     AgCartesianChartOptions,
     AgCrosshairLabelRendererParams,
+    AgPriceVolumePreset,
 } from 'ag-charts-types';
 
 function dateFormat(dateString: string, format: string) {
@@ -13,27 +13,78 @@ function dateFormat(dateString: string, format: string) {
         : dateObject.toLocaleString('en-GB', { month: 'short', year: '2-digit' });
 }
 
-export function candlestickVolumePreset(
-    opts: AgCandlestickVolumePreset & AgBaseFinancialPresetOptions
-): AgCartesianChartOptions {
+export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions): AgCartesianChartOptions {
     const {
-        type: _type,
         xKey = 'date',
         highKey = 'high',
         openKey = 'open',
         lowKey = 'low',
         closeKey = 'close',
         volumeKey = 'volume',
+        chartType = 'candlestick',
         data,
         ...unusedOpts
     } = opts;
+
+    let volumeSeries;
+    if (chartType === 'ohlc') {
+        volumeSeries = {
+            type: 'ohlc' as const,
+            xKey,
+            openKey,
+            closeKey,
+            highKey,
+            lowKey,
+            item: {
+                up: {
+                    stroke: '#089981',
+                },
+                down: {
+                    stroke: '#F23645',
+                },
+            },
+        };
+    } else if (chartType === 'line') {
+        volumeSeries = {
+            type: 'line' as const,
+            xKey,
+            yKey: closeKey,
+        };
+    } else {
+        volumeSeries = {
+            type: 'candlestick' as const,
+            xKey,
+            openKey,
+            closeKey,
+            highKey,
+            lowKey,
+            item: {
+                up: {
+                    fill: '#089981',
+                    stroke: '#089981',
+                },
+                down: {
+                    fill: '#F23645',
+                    stroke: '#F23645',
+                },
+            },
+        };
+    }
+
     return {
+        _type: 'price-volume',
         zoom: {
             enabled: true,
             // @ts-expect-error
             enableIndependentAxes: true,
         },
         toolbar: {
+            annotationOptions: {
+                enabled: true,
+            },
+            annotations: {
+                enabled: true,
+            },
             ranges: {
                 enabled: true,
             },
@@ -63,24 +114,7 @@ export function candlestickVolumePreset(
                     return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
                 },
             },
-            {
-                type: 'candlestick',
-                xKey,
-                openKey,
-                closeKey,
-                highKey,
-                lowKey,
-                item: {
-                    up: {
-                        fill: '#089981',
-                        stroke: '#089981',
-                    },
-                    down: {
-                        fill: '#F23645',
-                        stroke: '#F23645',
-                    },
-                },
-            },
+            volumeSeries,
         ],
         axes: [
             {

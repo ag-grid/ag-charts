@@ -114,6 +114,7 @@ export interface ChartSpecialOverrides {
     window?: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
+    _type?: string;
 }
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
@@ -1644,6 +1645,7 @@ export abstract class Chart extends Observable {
 
         const skip = [
             'type',
+            '_type',
             'data',
             'series',
             'listeners',

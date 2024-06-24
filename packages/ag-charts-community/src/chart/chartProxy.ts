@@ -71,6 +71,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async update(options: AgChartOptions) {
+        const { _type } = this.chart.getOptions() as ChartExtendedOptions;
+        if (_type != null) {
+            options = { _type, ...options } as unknown as AgChartOptions;
+        }
         this.factoryApi.createOrUpdate(options, this);
         await this.chart.waitForUpdate();
     }
@@ -81,7 +85,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     getOptions() {
-        return deepClone(this.chart.getOptions());
+        const options = deepClone(this.chart.getOptions());
+        for (const key in options) {
+            if (key.startsWith('_')) {
+                delete (options as any)[key];
+            }
+        }
+        return options;
     }
 
     waitForUpdate() {

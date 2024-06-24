@@ -9,7 +9,7 @@ const options: AgFinancialChartOptions = {
 
 const chart = AgCharts.createFinancialChart(options);
 
-function changeType(type: string) {
+function changeType(type: 'line' | 'candlestick' | 'ohlc') {
     options.chartType = type;
     chart.update(options);
 }

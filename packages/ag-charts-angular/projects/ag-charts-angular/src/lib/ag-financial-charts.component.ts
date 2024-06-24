@@ -13,7 +13,7 @@ import { AgChartsBase } from './ag-charts-base';
 })
 export class AgFinancialCharts extends AgChartsBase<AgFinancialChartOptions> {
     @Input()
-    public options: AgFinancialChartOptions = { type: 'candlestick-volume' };
+    public options: AgFinancialChartOptions = {};
 
     @Output()
     public onChartReady: EventEmitter<AgChartInstance> = new EventEmitter();

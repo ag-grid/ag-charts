@@ -24,7 +24,7 @@ import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
-import { PRESETS, isAgFinancialChartOptions } from './preset/presets';
+import { PRESETS } from './preset/presets';
 import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
@@ -101,12 +101,10 @@ export abstract class AgCharts {
     }
 
     public static createFinancialChart(options: AgFinancialChartOptions) {
-        if (!isAgFinancialChartOptions(options)) throw new Error('AG Charts - unrecognized financial options type');
-
-        const presetOptions = PRESETS[options.type](options);
-        debug('>>> AgCharts.createFinancialChart() - applying preset', options, presetOptions);
-
-        return this.create(presetOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
+        return this.create({
+            _type: 'price-volume',
+            ...options,
+        }) as unknown as AgChartInstance<AgFinancialChartOptions>;
     }
 }
 
@@ -142,6 +140,13 @@ class AgChartsInternal {
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
+
+        if (options._type != null) {
+            const presetOptions = (PRESETS as any)[options._type]?.(options) ?? options;
+            debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
+            options = presetOptions;
+        }
+
         if (AgCharts.optionsMutationFn) {
             options = AgCharts.optionsMutationFn(options);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
