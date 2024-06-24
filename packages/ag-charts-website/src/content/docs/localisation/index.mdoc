@@ -4,45 +4,45 @@ title: 'Localisation'
 
 All the displayed text in charts is customisable for the purposes of localisation. This is done by providing locale information to charts for the required language. Either provide an object of key/value pairs via the `localeText` property, or provide a `getLocaleText` callback to hook charts up to your application's localisation.
 
-We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size, and only supports American English for formatting of numbers and dates.
+We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size.
 
 ## Provided Locales
 
-The default language of the grid is American English. However, we provide a number of translations that can be used as a starting point for commonly requested languages:
+The default language in charts is American English. However, we provide a number of translations that can be used as a starting point for commonly requested languages:
 
-| Locale                  | BCP 47 Tag |
-| ----------------------- | ---------- |
-| Arabic (Egyptian)       | ar-EG      |
-| Bulgarian               | bg-BG      |
-| Chinese (Hong Kong)     | zh-HK      |
-| Chinese (Simplified)    | zh-CN      |
-| Chinese (Taiwan)        | zh-TW      |
-| Croatian                | hr-HR      |
-| Czech                   | cs-CZ      |
-| Danish                  | da-DK      |
-| Dutch                   | nl-NL      |
-| Finnish                 | fi-FI      |
-| French                  | fr-FR      |
-| German                  | de-DE      |
-| Greek                   | el-GR      |
-| Hebrew                  | he-IL      |
-| Hungarian               | hu-HU      |
-| Italian                 | it-IT      |
-| Japanese                | ja-JP      |
-| Korean                  | ko-KR      |
-| Norwegian (Bokmål)      | nb-NO      |
-| ~~Persian~~             | ~~fa-IR~~  |
-| ~~Polish~~              | ~~pl-PL~~  |
-| ~~Portuguese~~          | ~~pt-PT~~  |
-| ~~Portuguese (Brazil)~~ | ~~pt-BR~~  |
-| ~~Romanian~~            | ~~ro-RO~~  |
-| ~~Slovak~~              | ~~sk-SK~~  |
-| ~~Spanish~~             | ~~es-ES~~  |
-| ~~Swedish~~             | ~~sv-SE~~  |
-| ~~Turkish~~             | ~~tr-TR~~  |
-| ~~Ukrainian~~           | ~~uk-UA~~  |
-| ~~Urdu (Pakistan)~~     | ~~ur-PK~~  |
-| ~~Vietnamese~~          | ~~vi-VN~~  |
+| Locale               | BCP 47 Tag | Import name              |
+| -------------------- | ---------- | ------------------------ |
+| Arabic (Egyptian)    | ar-EG      | `AG_CHARTS_LOCALE_AR_EG` |
+| Bulgarian            | bg-BG      | `AG_CHARTS_LOCALE_BG_BG` |
+| Chinese (Hong Kong)  | zh-HK      | `AG_CHARTS_LOCALE_ZH_HK` |
+| Chinese (Simplified) | zh-CN      | `AG_CHARTS_LOCALE_ZH_CN` |
+| Chinese (Taiwan)     | zh-TW      | `AG_CHARTS_LOCALE_ZH_TW` |
+| Croatian             | hr-HR      | `AG_CHARTS_LOCALE_HR_HR` |
+| Czech                | cs-CZ      | `AG_CHARTS_LOCALE_CS_CZ` |
+| Danish               | da-DK      | `AG_CHARTS_LOCALE_DA_DK` |
+| Dutch                | nl-NL      | `AG_CHARTS_LOCALE_NL_NL` |
+| Finnish              | fi-FI      | `AG_CHARTS_LOCALE_FI_FI` |
+| French               | fr-FR      | `AG_CHARTS_LOCALE_FR_FR` |
+| German               | de-DE      | `AG_CHARTS_LOCALE_DE_DE` |
+| Greek                | el-GR      | `AG_CHARTS_LOCALE_EL_GR` |
+| Hebrew               | he-IL      | `AG_CHARTS_LOCALE_HE_IL` |
+| Hungarian            | hu-HU      | `AG_CHARTS_LOCALE_HU_HU` |
+| Italian              | it-IT      | `AG_CHARTS_LOCALE_IT_IT` |
+| Japanese             | ja-JP      | `AG_CHARTS_LOCALE_JA_JP` |
+| Korean               | ko-KR      | `AG_CHARTS_LOCALE_KO_KR` |
+| Norwegian (Bokmål)   | nb-NO      | `AG_CHARTS_LOCALE_NB_NO` |
+| Persian              | fa-IR      | `AG_CHARTS_LOCALE_FA_IR` |
+| Polish               | pl-PL      | `AG_CHARTS_LOCALE_PL_PL` |
+| Portuguese           | pt-PT      | `AG_CHARTS_LOCALE_PT_PT` |
+| Portuguese (Brazil)  | pt-BR      | `AG_CHARTS_LOCALE_PT_BR` |
+| Romanian             | ro-RO      | `AG_CHARTS_LOCALE_RO_RO` |
+| Slovak               | sk-SK      | `AG_CHARTS_LOCALE_SK_SK` |
+| Spanish              | es-ES      | `AG_CHARTS_LOCALE_ES_ES` |
+| Swedish              | sv-SE      | `AG_CHARTS_LOCALE_SV_SE` |
+| Turkish              | tr-TR      | `AG_CHARTS_LOCALE_TR_TR` |
+| Ukrainian            | uk-UA      | `AG_CHARTS_LOCALE_UK_UA` |
+| Urdu (Pakistan)      | ur-PK      | `AG_CHARTS_LOCALE_UR_PK` |
+| Vietnamese           | vi-VN      | `AG_CHARTS_LOCALE_VI_VN` |
 
 {% note %}
 Translations are provided as a starting point and may contain errors. We recommend you audit these files before using them in production.
@@ -52,7 +52,7 @@ Translations are provided as a starting point and may contain errors. We recomme
 
 To change the locale, set the `localeText` property in `locale` options to one of the built-in locales.
 
-Each built-in locale is available from the `ag-charts-locale` pacakge, and the each export is named `AG_CHARTS_LOCALE_<<LANGUAGE>>_<<REGION>>`.
+Each built-in locale is available from the `ag-charts-locale` pacakge, and the each export defined in the table above.
 
 The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/`ag-charts-enterprise`.
 
