@@ -1,4 +1,4 @@
-import type { DatumCallbackParams } from '../../chart/callbackOptions';
+import type { DatumItemCallbackParams } from '../../chart/callbackOptions';
 import type { StrokeOptions } from './commonOptions';
 
 export type AgCandlestickSeriesItemType = 'up' | 'down';
@@ -33,13 +33,12 @@ export interface AgCandlestickSeriesOptionsNames {
     lowName?: string;
 }
 
-export type AgCandlestickSeriesBaseItemStylerParams<TDatum> = DatumCallbackParams<TDatum, AgCandlestickSeriesItemType> &
-    AgCandlestickSeriesOptionsKeys &
-    StrokeOptions;
+type CandlestickItemCallbackParams<TDatum> = DatumItemCallbackParams<AgCandlestickSeriesItemType, TDatum>;
 
-export type AgCandlestickSeriesBaseTooltipRendererParams<TDatum = unknown> = DatumCallbackParams<
-    TDatum,
-    AgCandlestickSeriesItemType
-> &
+export type AgCandlestickSeriesBaseItemStylerParams<TDatum> = CandlestickItemCallbackParams<TDatum> &
+    AgCandlestickSeriesOptionsKeys &
+    Required<StrokeOptions>;
+
+export type AgCandlestickSeriesBaseTooltipRendererParams<TDatum> = CandlestickItemCallbackParams<TDatum> &
     AgCandlestickSeriesOptionsKeys &
     AgCandlestickSeriesOptionsNames;

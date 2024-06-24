@@ -380,7 +380,6 @@ export class MapLineSeries
                 const params: _Util.RequireOptional<AgMapLineSeriesItemStylerParams> = {
                     seriesId,
                     datum: datum.datum,
-                    itemId: datum.itemId,
                     idKey,
                     labelKey,
                     sizeKey,
@@ -599,6 +598,9 @@ export class MapLineSeries
             labelName,
             itemStyler,
             tooltip,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
         } = properties;
         const { datum, stroke, idValue, colorValue, sizeValue, labelValue, itemId } = nodeDatum;
 
@@ -623,9 +625,12 @@ export class MapLineSeries
                 seriesId,
                 datum,
                 idKey,
-                stroke,
+                stroke: stroke!,
                 strokeWidth: this.getStrokeWidth(nodeDatum.strokeWidth ?? properties.strokeWidth),
                 highlighted: false,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
             });
         }
 

@@ -118,7 +118,7 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     readonly whisker = new BoxPlotSeriesWhisker();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<any>>();
 
     @Validate(COLOR_STRING) // Internal: Set by paletteFactory.
     backgroundFill: string = 'white';

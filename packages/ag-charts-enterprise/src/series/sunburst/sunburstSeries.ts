@@ -479,19 +479,21 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             return {};
         }
 
-        const { colorKey, labelKey, sizeKey, strokeWidth } = this.properties;
+        const { colorKey, labelKey, sizeKey, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
 
         const result = callbackCache.call(itemStyler, {
             seriesId: this.id,
-            depth,
+            highlighted: isHighlighted,
             datum,
+            depth,
             colorKey,
             labelKey,
             sizeKey,
-            fill,
-            stroke,
+            fill: fill!,
+            fillOpacity,
+            stroke: stroke!,
             strokeWidth,
-            highlighted: isHighlighted,
+            strokeOpacity,
         });
 
         return result ?? {};

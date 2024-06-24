@@ -26,7 +26,7 @@ export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSerie
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgChordSeriesLabelOptions<TDatum>
@@ -66,8 +66,8 @@ export interface AgChordSeriesOptionsNames {
     sizeName?: string;
 }
 
-export interface AgChordSeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgChordSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames {}
 

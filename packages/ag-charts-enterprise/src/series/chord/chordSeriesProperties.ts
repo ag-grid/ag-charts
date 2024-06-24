@@ -136,5 +136,5 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     itemStyler?: Styler<AgChordSeriesItemStylerParams<any>, AgChordSeriesLinkStyle>;
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
 }

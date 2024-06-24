@@ -104,7 +104,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the text lines to display inside the series. */
     innerLabels?: AgDonutInnerLabelThemeOptions;
     /** Configuration for the area inside the series. */
@@ -152,8 +152,8 @@ export interface AgDonutSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgDonutSeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgDonutSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgDonutSeriesOptionsKeys,
         AgDonutSeriesOptionsNames {}
 

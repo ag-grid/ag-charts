@@ -25,8 +25,6 @@ export interface AgBarSeriesItemStylerParams<TDatum>
 export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
-    /** Align bars to whole pixel values to remove anti-aliasing. */
-    crisp?: boolean;
 }
 
 export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames;
@@ -48,6 +46,8 @@ export interface AgBarSeriesThemeableOptions<TDatum = any>
      * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
+    /** Align bars to whole pixel values to remove anti-aliasing. */
+    crisp?: boolean;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */

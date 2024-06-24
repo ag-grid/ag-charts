@@ -511,6 +511,9 @@ export abstract class CandlestickSeriesBase<
                     closeKey,
                     highKey,
                     lowKey,
+                    stroke: '#000',
+                    strokeWidth: 0,
+                    strokeOpacity: 1,
                 })
             );
             if (formatStyles) {

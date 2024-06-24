@@ -83,7 +83,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     readonly label = new Label<AgRadarSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams<any>>();
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;

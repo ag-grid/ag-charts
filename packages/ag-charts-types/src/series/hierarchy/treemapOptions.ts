@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -143,8 +143,8 @@ export interface AgTreemapSeriesOptionsKeys {
 }
 
 /** The parameters of the Treemap series formatter function. */
-export interface AgTreemapSeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
+export interface AgTreemapSeriesFormatterParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesStyle {
     /** The depth of the datum in the hierarchy. */

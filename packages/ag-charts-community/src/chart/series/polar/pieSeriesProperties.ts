@@ -158,5 +158,5 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     readonly calloutLine = new PieSeriesCalloutLine();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams<any>>();
 }

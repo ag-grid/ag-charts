@@ -59,14 +59,14 @@ export interface AgTooltipRendererResult {
     backgroundColor?: CssColor;
 }
 
-export interface AgSeriesTooltipRendererParams<TDatum = any> extends AgChartCallbackParams<TDatum> {
+export interface AgSeriesTooltipRendererParams<TDatum> extends AgChartCallbackParams<TDatum> {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
     /** Series primary colour, as selected from the active theme, series options or formatter. */
     readonly color?: CssColor;
 }
 
-export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams> {
+export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams<any>> {
     /** Whether to show tooltips when the series are hovered over. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */

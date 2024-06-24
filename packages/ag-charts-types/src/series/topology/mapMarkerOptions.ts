@@ -52,10 +52,6 @@ export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions {
     shape?: MarkerShape;
     /** The size in pixels of the markers. */
     size?: PixelSize;
-    /** Determines the largest size a marker can be in pixels. */
-    maxSize?: PixelSize;
-    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    sizeDomain?: [number, number];
 }
 
 export interface AgMapMarkerSeriesLabel<TDatum>
@@ -71,6 +67,10 @@ export interface AgMapMarkerSeriesLabel<TDatum>
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+    /** Determines the largest size a marker can be in pixels. */
+    maxSize?: PixelSize;
+    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
+    sizeDomain?: [number, number];
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown on top of data points. */

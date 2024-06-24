@@ -458,7 +458,6 @@ export class MapShapeSeries
                 const params: _Util.RequireOptional<AgMapShapeSeriesFormatterParams> = {
                     seriesId,
                     datum: datum.datum,
-                    itemId: datum.itemId,
                     idKey,
                     colorKey,
                     labelKey,
@@ -669,6 +668,10 @@ export class MapShapeSeries
             labelName,
             stroke,
             strokeWidth,
+            strokeOpacity,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
             itemStyler,
             tooltip,
         } = properties;
@@ -696,6 +699,10 @@ export class MapShapeSeries
                 stroke,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 highlighted: false,
+                fillOpacity,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
             });
         }
 

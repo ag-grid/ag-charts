@@ -479,7 +479,6 @@ export class ChordSeries extends FlowProportionSeries<
             format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
-                itemId,
                 fromKey,
                 toKey,
                 sizeKey,

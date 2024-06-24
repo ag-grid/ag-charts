@@ -335,6 +335,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 format = callbackCache.call(itemStyler, {
                     datum: datum.datum,
                     fill,
+                    fillOpacity,
                     stroke,
                     strokeOpacity,
                     strokeWidth,
@@ -399,8 +400,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, colorKey, xName, yName, colorName, stroke, strokeWidth, colorRange, itemStyler, tooltip } =
-            this.properties;
+        const {
+            xKey,
+            yKey,
+            colorKey,
+            xName,
+            yName,
+            colorName,
+            stroke,
+            strokeWidth,
+            strokeOpacity = 1,
+            colorRange,
+            itemStyler,
+            tooltip,
+        } = this.properties;
         const {
             colorScale,
             id: seriesId,
@@ -419,8 +432,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 yKey,
                 colorKey,
                 fill,
+                fillOpacity: 1,
                 stroke,
                 strokeWidth,
+                strokeOpacity,
                 highlighted: false,
                 seriesId,
             });
