@@ -56,7 +56,7 @@ export class CategoryAxis<
             let paddingInner = Infinity;
             let paddingOuter = -Infinity;
             for (const s of this.boundSeries) {
-                const padding = s.isEnabled() ? s.getBandScalePadding?.() : undefined;
+                const padding = s.getBandScalePadding?.();
                 if (padding == null) continue;
                 paddingInner = Math.min(paddingInner, padding.inner);
                 paddingOuter = Math.max(paddingOuter, padding.outer);
