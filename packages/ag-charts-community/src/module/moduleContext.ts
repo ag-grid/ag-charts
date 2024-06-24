@@ -14,6 +14,7 @@ import type { CursorManager } from '../chart/interaction/cursorManager';
 import type { GestureDetector } from '../chart/interaction/gestureDetector';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
+import type { KeyNavManager } from '../chart/interaction/keyNavManager';
 import type { RegionManager } from '../chart/interaction/regionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
 import type { ToolbarManager } from '../chart/interaction/toolbarManager';
@@ -23,7 +24,6 @@ import type { LayoutService } from '../chart/layout/layoutService';
 import type { LocaleManager } from '../chart/locale/localeManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
-import type { KeyNavManager } from '../chart/interaction/keyNavManager';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
