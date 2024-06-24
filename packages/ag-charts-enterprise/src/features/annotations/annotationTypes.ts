@@ -75,6 +75,7 @@ export interface AnnotationAxisContext
         | 'scaleInvertNearest'
         | 'scaleValueFormatter'
         | 'attachLabel'
+        | 'inRange'
     > {
     bounds: _Scene.BBox;
     labelPadding: number;

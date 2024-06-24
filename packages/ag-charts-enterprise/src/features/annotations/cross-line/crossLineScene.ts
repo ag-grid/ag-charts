@@ -1,4 +1,4 @@
-import { type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convert, invertCoords, validateDatumPoint } from '../annotationUtils';
@@ -9,6 +9,7 @@ import { CollidableLine } from '../scenes/shapes';
 import { type CrossLineAnnotation, HorizontalLineAnnotation } from './crossLineProperties';
 
 const { Vec2 } = _Util;
+const { ChartAxisDirection } = _ModuleSupport;
 
 export class CrossLine extends Annotation {
     static override is(value: unknown): value is CrossLine {
@@ -106,6 +107,12 @@ export class CrossLine extends Annotation {
 
             const [labelX, labelY] =
                 axisContext.position === 'left' || axisContext.position === 'top' ? [x1, y1] : [x2, y2];
+
+            const labelPosition = axisContext.direction === ChartAxisDirection.X ? labelX : labelY;
+            if (!axisContext.inRange(labelPosition)) {
+                axisLabel.visible = false;
+                return;
+            }
 
             axisLabel.update({
                 x: labelX + (seriesRect?.x ?? 0),
