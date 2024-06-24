@@ -8,7 +8,7 @@ const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
 const annotations: AgToolbarOptions['annotations'] = {
-    enabled: false,
+    enabled: true,
     position: 'left',
     align: 'start',
     buttons: [
@@ -52,7 +52,7 @@ const annotations: AgToolbarOptions['annotations'] = {
 };
 
 const annotationOptions: AgToolbarOptions['annotationOptions'] = {
-    enabled: false,
+    enabled: true,
     position: 'floating',
     align: 'start',
     buttons: [
