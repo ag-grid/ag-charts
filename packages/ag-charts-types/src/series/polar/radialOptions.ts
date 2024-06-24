@@ -15,7 +15,6 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum>>;
     /** A styler function for adjusting the styling of the radial columns. */
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum>, AgRadialSeriesStyle>;
-
 }
 
 export interface AgRadialSeriesOptionsKeys {
