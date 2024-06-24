@@ -628,18 +628,34 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId } = this;
         const { xKey, yKey, xName, yName, tooltip } = this.properties;
         const { datum, itemId, xValue, yValue } = nodeDatum;
-        const { fill, strokeWidth, name, itemStyler } = this.getItemConfig(itemId);
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash = [],
+            lineDashOffset,
+            cornerRadius,
+            name,
+            itemStyler,
+        } = this.getItemConfig(itemId);
 
         let format;
 
         if (itemStyler) {
             format = this.ctx.callbackCache.call(itemStyler, {
                 datum,
-                value: yValue,
                 xKey,
                 yKey,
                 fill,
+                fillOpacity,
+                stroke,
                 strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
                 highlighted: false,
                 seriesId,
                 itemId: nodeDatum.itemId,

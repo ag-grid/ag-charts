@@ -161,7 +161,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly node = new SankeySeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgSankeySeriesFormatterParams<any>, AgSankeySeriesLinkStyle>;
+    itemStyler?: Styler<AgSankeySeriesFormatterParams<unknown>, AgSankeySeriesLinkStyle>;
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams<any>>();

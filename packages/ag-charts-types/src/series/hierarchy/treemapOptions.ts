@@ -112,7 +112,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular tile based on the input parameters. */
-    itemStyler?: Styler<AgTreemapSeriesFormatterParams<TDatum>, AgTreemapSeriesStyle>;
+    itemStyler?: Styler<AgTreemapSeriesItemStylerParams<TDatum>, AgTreemapSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
@@ -143,7 +143,7 @@ export interface AgTreemapSeriesOptionsKeys {
 }
 
 /** The parameters of the Treemap series formatter function. */
-export interface AgTreemapSeriesFormatterParams<TDatum>
+export interface AgTreemapSeriesItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesStyle {

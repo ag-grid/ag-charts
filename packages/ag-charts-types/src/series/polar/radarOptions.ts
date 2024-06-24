@@ -32,7 +32,7 @@ export type AgRadarSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRenderer
     AgRadialSeriesOptionsKeys &
     AgRadialSeriesOptionsNames;
 
-export type AgRadarSeriesStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+export type AgRadarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgRadialSeriesOptionsKeys &
     StrokeOptions &
     LineDashOptions;

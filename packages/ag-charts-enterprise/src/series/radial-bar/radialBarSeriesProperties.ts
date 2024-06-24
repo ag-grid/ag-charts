@@ -62,7 +62,7 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadialSeriesItemStylerParams<any>, AgRadialSeriesStyle>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
     @Validate(DEGREE)
     rotation: number = 0;

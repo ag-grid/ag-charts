@@ -73,7 +73,7 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     itemPadding: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<any>, AgHeatmapSeriesStyle>;
+    itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<unknown>, AgHeatmapSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();

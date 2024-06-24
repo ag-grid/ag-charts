@@ -1,7 +1,7 @@
 import type {
     AgBaseRadarSeriesOptions,
+    AgRadarSeriesItemStylerParams,
     AgRadarSeriesLabelFormatterParams,
-    AgRadarSeriesStylerParams,
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
     FillOptions,
@@ -71,7 +71,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadarSeriesStylerParams<any>, AgRadarSeriesFormat>;
+    itemStyler?: Styler<AgRadarSeriesItemStylerParams<unknown>, AgRadarSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;

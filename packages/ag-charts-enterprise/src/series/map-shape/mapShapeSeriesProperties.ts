@@ -1,5 +1,5 @@
 import type {
-    AgMapShapeSeriesFormatterParams,
+    AgMapShapeSeriesItemStylerParams,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
@@ -102,7 +102,7 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     padding: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgMapShapeSeriesFormatterParams<any>, AgMapShapeSeriesStyle>;
+    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown>, AgMapShapeSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new AutoSizeableSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();

@@ -59,7 +59,7 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadialSeriesItemStylerParams<any>, AgRadialSeriesStyle>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
     @Validate(DEGREE)
     rotation = 0;

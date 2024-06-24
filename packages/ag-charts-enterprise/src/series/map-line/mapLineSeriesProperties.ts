@@ -102,7 +102,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgMapLineSeriesItemStylerParams<any>, AgMapLineSeriesStyle>;
+    itemStyler?: Styler<AgMapLineSeriesItemStylerParams<unknown>, AgMapLineSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new Label<AgMapLineSeriesLabelFormatterParams>();

@@ -1,5 +1,5 @@
 import {
-    type AgMapShapeSeriesFormatterParams,
+    type AgMapShapeSeriesItemStylerParams,
     type AgMapShapeSeriesLabelFormatterParams,
     type AgMapShapeSeriesStyle,
     _ModuleSupport,
@@ -455,7 +455,7 @@ export class MapShapeSeries
 
             let format: AgMapShapeSeriesStyle | undefined;
             if (itemStyler != null) {
-                const params: _Util.RequireOptional<AgMapShapeSeriesFormatterParams> = {
+                const params: _Util.RequireOptional<AgMapShapeSeriesItemStylerParams> = {
                     seriesId,
                     datum: datum.datum,
                     idKey,
@@ -470,7 +470,7 @@ export class MapShapeSeries
                     lineDashOffset,
                     highlighted: isHighlight,
                 };
-                format = callbackCache.call(itemStyler, params as AgMapShapeSeriesFormatterParams);
+                format = callbackCache.call(itemStyler, params as AgMapShapeSeriesItemStylerParams);
             }
 
             geoGeometry.visible = true;

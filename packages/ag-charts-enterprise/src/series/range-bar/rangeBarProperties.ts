@@ -79,7 +79,7 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<any>, AgRangeBarSeriesStyles>;
+    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<unknown>, AgRangeBarSeriesStyles>;
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });

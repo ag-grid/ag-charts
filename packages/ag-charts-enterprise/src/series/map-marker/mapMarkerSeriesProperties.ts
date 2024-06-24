@@ -145,7 +145,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     strokeOpacity: number = 1;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<any>, AgMapMarkerSeriesStyle>;
+    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<unknown>, AgMapMarkerSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new MapMarkerSeriesLabel();

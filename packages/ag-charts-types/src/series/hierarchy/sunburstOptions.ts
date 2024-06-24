@@ -91,7 +91,7 @@ export interface AgSunburstSeriesOptionsKeys {
 }
 
 /** The parameters of the Sunburst series formatter function */
-export interface AgSunburstSeriesItemStylerParams<TDatum = any>
+export interface AgSunburstSeriesItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
         AgSunburstSeriesOptionsKeys,
         Required<AgSunburstSeriesStyle> {

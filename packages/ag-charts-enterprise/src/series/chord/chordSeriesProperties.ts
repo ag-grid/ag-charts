@@ -133,7 +133,7 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     readonly node = new ChordSeriesNodeProperties();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgChordSeriesItemStylerParams<any>, AgChordSeriesLinkStyle>;
+    itemStyler?: Styler<AgChordSeriesItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
