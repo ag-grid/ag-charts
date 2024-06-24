@@ -5,7 +5,7 @@ import { getData } from './data';
 const data = getData();
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {
-    renderer: ({ datum, angleKey }: AgPieSeriesTooltipRendererParams) => ({
+    renderer: ({ datum, angleKey }: AgPieSeriesTooltipRendererParams<any>) => ({
         content: `${numFormatter.format(datum[angleKey] / 1000000)}M`,
     }),
 };

@@ -1,5 +1,5 @@
 import type {
-    AgSunburstSeriesFormatterParams,
+    AgSunburstSeriesItemStylerParams,
     AgSunburstSeriesLabelFormatterParams,
     AgSunburstSeriesOptions,
     AgSunburstSeriesStyle,
@@ -76,7 +76,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     padding?: number;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgSunburstSeriesFormatterParams, AgSunburstSeriesStyle>;
+    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;
 
     @Validate(OBJECT)
     override highlightStyle = new SunburstSeriesTileHighlightStyle();

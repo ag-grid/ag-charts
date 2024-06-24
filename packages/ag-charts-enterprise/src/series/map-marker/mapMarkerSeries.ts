@@ -1,8 +1,6 @@
 import {
-    type AgMapMarkerSeriesOptionsKeys,
     type AgMapShapeSeriesStyle,
     type AgSeriesMarkerStyle,
-    type AgSeriesMarkerStylerParams,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -755,6 +753,12 @@ export class MapMarkerSeries
             tooltip,
             latitudeName,
             longitudeName,
+            shape,
+            size,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
         } = properties;
         const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue, itemId } = nodeDatum;
 
@@ -789,8 +793,14 @@ export class MapMarkerSeries
                 datum,
                 latitudeKey,
                 longitudeKey,
-                fill,
+                fill: fill!,
                 highlighted: false,
+                shape,
+                size,
+                fillOpacity,
+                stroke: stroke!,
+                strokeWidth,
+                strokeOpacity,
             });
         }
 
@@ -843,32 +853,25 @@ export class MapMarkerSeries
             itemStyler,
         } = properties;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
-        const params: _Util.RequireOptional<AgSeriesMarkerStylerParams<MapMarkerNodeDatum>> &
-            _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys> = {
-            seriesId,
-            datum: datum.datum,
-            itemId: datum.itemId,
-            size: point.size,
-            idKey,
-            latitudeKey,
-            longitudeKey,
-            labelKey,
-            sizeKey,
-            colorKey,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            shape,
-            highlighted,
-        };
         if (itemStyler !== undefined) {
-            return callbackCache.call(
-                itemStyler,
-                params as AgSeriesMarkerStylerParams<MapMarkerNodeDatum> &
-                    _Util.RequireOptional<AgMapMarkerSeriesOptionsKeys>
-            );
+            return callbackCache.call(itemStyler, {
+                seriesId,
+                datum: datum.datum,
+                size: point.size,
+                idKey,
+                latitudeKey,
+                longitudeKey,
+                labelKey,
+                sizeKey,
+                colorKey,
+                fill: fill!,
+                fillOpacity,
+                stroke: stroke!,
+                strokeWidth,
+                strokeOpacity,
+                shape,
+                highlighted,
+            });
         }
     }
 

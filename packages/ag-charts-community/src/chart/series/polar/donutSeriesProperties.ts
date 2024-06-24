@@ -207,5 +207,5 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     readonly calloutLine = new DonutSeriesCalloutLine();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams<any>>();
 }

@@ -18,6 +18,6 @@ export interface AgSeriesMarkerOptions<TDatum, TParams> extends AgSeriesMarkerSt
     itemStyler?: Styler<AgSeriesMarkerStylerParams<TDatum> & TParams, AgSeriesMarkerStyle>;
 }
 
-export interface ISeriesMarker<TDatum, TParams> extends AgSeriesMarkerOptions<TDatum, TParams> {
+export interface ISeriesMarker<TParams> extends AgSeriesMarkerOptions<unknown, TParams> {
     getStyle: () => AgSeriesMarkerStyle;
 }

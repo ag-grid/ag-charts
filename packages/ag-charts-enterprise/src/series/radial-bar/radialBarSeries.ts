@@ -378,8 +378,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 ? this.ctx.callbackCache.call(this.properties.itemStyler, {
                       datum,
                       fill,
+                      fillOpacity,
                       stroke,
                       strokeWidth,
+                      strokeOpacity,
                       highlighted: highlight,
                       angleKey: this.properties.angleKey,
                       radiusKey: this.properties.radiusKey,
@@ -470,8 +472,19 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
-        const { angleKey, angleName, radiusKey, radiusName, fill, stroke, strokeWidth, itemStyler, tooltip } =
-            this.properties;
+        const {
+            angleKey,
+            angleName,
+            radiusKey,
+            radiusName,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            itemStyler,
+            tooltip,
+        } = this.properties;
         const { angleValue, radiusValue, datum, itemId } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -490,8 +503,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             this.ctx.callbackCache.call(itemStyler, {
                 datum,
                 fill,
+                fillOpacity,
                 stroke,
                 strokeWidth,
+                strokeOpacity,
                 highlighted: false,
                 angleKey,
                 radiusKey,

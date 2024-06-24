@@ -3,7 +3,7 @@ import { AgBoxPlotSeriesTooltipRendererParams, AgChartOptions, AgCharts } from '
 import { getData } from './data';
 
 const tooltip = (label: string) => ({
-    renderer: (params: AgBoxPlotSeriesTooltipRendererParams) => {
+    renderer: (params: AgBoxPlotSeriesTooltipRendererParams<any>) => {
         const {
             datum,
             xKey,

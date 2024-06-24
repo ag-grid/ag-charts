@@ -1,4 +1,4 @@
-import type { AgRadialSeriesFormat } from 'ag-charts-community';
+import type { AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
@@ -382,7 +382,7 @@ export abstract class RadialColumnSeriesBase<
         node: ItemPathType,
         datum: RadialColumnNodeDatum,
         highlight: boolean,
-        format: AgRadialSeriesFormat | undefined
+        format: AgRadialSeriesStyle | undefined
     ): void;
 
     protected updateSectorSelection(
@@ -418,6 +418,8 @@ export abstract class RadialColumnSeriesBase<
                       angleKey: this.properties.angleKey,
                       radiusKey: this.properties.radiusKey,
                       seriesId: this.id,
+                      fillOpacity,
+                      strokeOpacity,
                   })
                 : undefined;
 
@@ -481,8 +483,19 @@ export abstract class RadialColumnSeriesBase<
 
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
-        const { angleKey, radiusKey, angleName, radiusName, fill, stroke, strokeWidth, itemStyler, tooltip } =
-            this.properties;
+        const {
+            angleKey,
+            radiusKey,
+            angleName,
+            radiusName,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            itemStyler,
+            tooltip,
+        } = this.properties;
         const { angleValue, radiusValue, datum, itemId } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -502,8 +515,10 @@ export abstract class RadialColumnSeriesBase<
                 seriesId,
                 datum,
                 fill,
+                fillOpacity,
                 stroke,
                 strokeWidth,
+                strokeOpacity,
                 highlighted: false,
                 angleKey,
                 radiusKey,

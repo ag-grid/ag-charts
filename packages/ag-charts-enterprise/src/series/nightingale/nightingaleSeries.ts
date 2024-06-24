@@ -1,4 +1,4 @@
-import { type AgRadialSeriesFormat, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgRadialSeriesStyle, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
@@ -34,7 +34,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         node: _Scene.Sector,
         datum: RadialColumnNodeDatum,
         highlight: boolean,
-        _format: AgRadialSeriesFormat | undefined
+        _format: AgRadialSeriesStyle | undefined
     ) {
         const { negative } = datum;
         node.centerX = 0;

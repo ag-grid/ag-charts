@@ -15,7 +15,7 @@ export interface AgRadarSeriesThemeableOptions<TDatum = any>
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams<TDatum>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
 }
@@ -28,18 +28,13 @@ export interface AgBaseRadarSeriesOptions<TDatum = any>
     type: 'radar-line' | 'radar-area';
 }
 
-export type AgRadarSeriesTooltipRendererParams = AgSeriesTooltipRendererParams &
+export type AgRadarSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
     AgRadialSeriesOptionsKeys &
     AgRadialSeriesOptionsNames;
 
-export type AgRadarSeriesStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+export type AgRadarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgRadialSeriesOptionsKeys &
     StrokeOptions &
     LineDashOptions;
 
 export type AgRadarSeriesLabelFormatterParams = AgRadialSeriesOptionsKeys & AgRadialSeriesOptionsNames;
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;

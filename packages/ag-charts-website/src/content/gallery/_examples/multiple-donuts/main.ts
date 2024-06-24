@@ -4,7 +4,7 @@ import { getData } from './data';
 
 const data = getData();
 const tooltip = {
-    renderer({ datum, angleKey }: AgPieSeriesTooltipRendererParams) {
+    renderer({ datum, angleKey }: AgPieSeriesTooltipRendererParams<any>) {
         return { content: `${datum[angleKey]} Litres` };
     },
 };

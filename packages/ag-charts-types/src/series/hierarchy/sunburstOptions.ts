@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -26,7 +26,7 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     color?: CssColor;
 }
 
-export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {
+export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, AgSunburstSeriesStyle {
     /** Options for the label in a sector. */
     label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
@@ -60,7 +60,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
-    itemStyler?: Styler<AgSunburstSeriesFormatterParams<TDatum>, AgSunburstSeriesStyle>;
+    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<TDatum>, AgSunburstSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
@@ -91,14 +91,12 @@ export interface AgSunburstSeriesOptionsKeys {
 }
 
 /** The parameters of the Sunburst series formatter function */
-export interface AgSunburstSeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
+export interface AgSunburstSeriesItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
         AgSunburstSeriesOptionsKeys,
-        AgSunburstSeriesStyle {
+        Required<AgSunburstSeriesStyle> {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** `true` if the sector is highlighted by hovering. */
-    readonly highlighted: boolean;
 }
 
 export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any> extends AgSunburstSeriesOptionsKeys {
@@ -107,4 +105,4 @@ export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any> extends AgS
 }
 
 /** The formatted style of a Sunburst sector. */
-export interface AgSunburstSeriesStyle extends FillOptions, StrokeOptions {}
+export type AgSunburstSeriesStyle = FillOptions & StrokeOptions;

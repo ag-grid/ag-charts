@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -12,9 +12,9 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum>>;
     /** A formatter function for adjusting the styling of the radial columns. */
-    itemStyler?: Styler<AgRadialSeriesFormatterParams<TDatum>, AgRadialSeriesFormat>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum>, AgRadialSeriesStyle>;
 }
 
 export interface AgRadialSeriesOptionsKeys {
@@ -33,8 +33,8 @@ export interface AgRadialSeriesOptionsNames {
 
 export type AgRadialSeriesLabelFormatterParams = AgRadialSeriesOptionsKeys & AgRadialSeriesOptionsNames;
 
-export interface AgRadialSeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgRadialSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames {
     /** xValue as read from series data via the xKey property. */
@@ -43,17 +43,8 @@ export interface AgRadialSeriesTooltipRendererParams
     readonly radiusValue?: any;
 }
 
-export interface AgRadialSeriesFormatterParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        AgRadialSeriesOptionsKeys,
-        FillOptions,
-        StrokeOptions {
-    readonly highlighted: boolean;
-}
+export type AgRadialSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+    AgRadialSeriesOptionsKeys &
+    Required<AgRadialSeriesStyle>;
 
-export type AgRadialSeriesFormat = FillOptions & StrokeOptions;
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;
+export type AgRadialSeriesStyle = FillOptions & StrokeOptions;

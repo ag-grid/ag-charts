@@ -26,7 +26,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeri
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgSankeySeriesLabelOptions<TDatum>
@@ -62,8 +62,8 @@ export interface AgSankeySeriesOptionsNames {
     sizeName?: string;
 }
 
-export interface AgSankeySeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgSankeySeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames {}
 

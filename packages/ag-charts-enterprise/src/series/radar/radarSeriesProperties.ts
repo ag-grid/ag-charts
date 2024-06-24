@@ -1,7 +1,7 @@
 import type {
     AgBaseRadarSeriesOptions,
+    AgRadarSeriesItemStylerParams,
     AgRadarSeriesLabelFormatterParams,
-    AgRadarSeriesStylerParams,
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
     FillOptions,
@@ -71,19 +71,19 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadarSeriesStylerParams<any>, AgRadarSeriesFormat>;
+    itemStyler?: Styler<AgRadarSeriesItemStylerParams<unknown>, AgRadarSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys, RadarNodeDatum>();
+    readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgRadarSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams<any>>();
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;

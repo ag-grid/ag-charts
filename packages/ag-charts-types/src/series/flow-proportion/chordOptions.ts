@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, Ratio } from '../../chart/types';
@@ -26,7 +26,7 @@ export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSerie
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgChordSeriesLabelOptions<TDatum>
@@ -66,17 +66,13 @@ export interface AgChordSeriesOptionsNames {
     sizeName?: string;
 }
 
-export interface AgChordSeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgChordSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames {}
 
-export interface AgChordSeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
-        AgChordSeriesOptionsKeys,
-        AgChordSeriesLinkStyle {
-    /** `true` if the sector is highlighted by hovering. */
-    readonly highlighted: boolean;
-}
+export type AgChordSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+    AgChordSeriesOptionsKeys &
+    Required<AgChordSeriesLinkStyle>;
 
 export interface AgChordSeriesLabelFormatterParams<_TDatum = any> extends AgChordSeriesOptionsKeys {}
