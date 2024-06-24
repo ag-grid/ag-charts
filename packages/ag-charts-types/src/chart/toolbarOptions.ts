@@ -47,6 +47,8 @@ export interface AgToolbarButton {
 
 export type AgIconName = IconNameAnnotation | IconNameZoom;
 type IconNameAnnotation =
+    | 'horizontal-line'
+    | 'vertical-line'
     | 'trend-line'
     | 'parallel-channel'
     | 'disjoint-channel'
@@ -77,7 +79,13 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
     value: AgToolbarAnnotationsButtonValue;
 }
 
-export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel' | 'disjoint-channel' | 'clear';
+export type AgToolbarAnnotationsButtonValue =
+    | 'horizontal-line'
+    | 'vertical-line'
+    | 'line'
+    | 'parallel-channel'
+    | 'disjoint-channel'
+    | 'clear';
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
