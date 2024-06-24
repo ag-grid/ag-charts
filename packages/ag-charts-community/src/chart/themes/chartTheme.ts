@@ -208,11 +208,7 @@ export class ChartTheme {
                 range: undefined,
                 delay: 0,
             },
-            overlays: {
-                loading: { darkTheme: IS_DARK_THEME },
-                noData: { darkTheme: IS_DARK_THEME },
-                noVisibleSeries: { darkTheme: IS_DARK_THEME },
-            },
+            overlays: { darkTheme: IS_DARK_THEME },
             listeners: {},
         };
     }
