@@ -10,7 +10,10 @@ export type AgRangeBarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatu
     AgRangeBarSeriesOptionsKeys &
     Required<AgRangeBarSeriesStyles>;
 
-export type AgRangeBarSeriesStyles = FillOptions & StrokeOptions & LineDashOptions;
+export interface AgRangeBarSeriesStyles extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each bar. */
+    cornerRadius?: PixelSize;
+}
 
 export type AgRangeBarSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
     AgRangeBarSeriesOptionsKeys &
@@ -35,8 +38,6 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
      * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
-    /** Apply rounded corners to each bar. */
-    cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the range series items when they are hovered over. */

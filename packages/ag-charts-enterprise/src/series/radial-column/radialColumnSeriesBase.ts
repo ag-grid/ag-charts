@@ -12,6 +12,7 @@ const {
     fixNumericExtent,
     groupAccumulativeValueProperty,
     keyProperty,
+    mergeDefaults,
     normaliseGroupTo,
     resetLabelFn,
     seriesLabelFadeInAnimation,
@@ -387,49 +388,48 @@ export abstract class RadialColumnSeriesBase<
 
     protected updateSectorSelection(
         selection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>,
-        highlight: boolean
+        highlighted: boolean
     ) {
         let selectionData: RadialColumnNodeDatum[] = [];
-        if (highlight) {
-            const highlighted = this.ctx.highlightManager?.getActiveHighlight();
-            if (highlighted?.datum && highlighted.series === this) {
-                selectionData = [highlighted as RadialColumnNodeDatum];
+        if (highlighted) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            if (activeHighlight?.datum && activeHighlight.series === this) {
+                selectionData = [activeHighlight as RadialColumnNodeDatum];
             }
         } else {
             selectionData = this.nodeData;
         }
 
-        const highlightedStyle = highlight ? this.properties.highlightStyle.item : undefined;
-        const fill = highlightedStyle?.fill ?? this.properties.fill;
-        const fillOpacity = highlightedStyle?.fillOpacity ?? this.properties.fillOpacity;
-        const stroke = highlightedStyle?.stroke ?? this.properties.stroke;
-        const strokeOpacity = this.properties.strokeOpacity;
-        const strokeWidth = highlightedStyle?.strokeWidth ?? this.properties.strokeWidth;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset, angleKey, radiusKey } =
+            mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
 
         const idFn = (datum: RadialColumnNodeDatum) => datum.angleValue;
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
             const format = this.properties.itemStyler
                 ? this.ctx.callbackCache.call(this.properties.itemStyler, {
-                      datum,
+                      datum: datum.datum,
                       fill,
+                      fillOpacity,
                       stroke,
                       strokeWidth,
-                      highlighted: highlight,
-                      angleKey: this.properties.angleKey,
-                      radiusKey: this.properties.radiusKey,
-                      seriesId: this.id,
-                      fillOpacity,
                       strokeOpacity,
+                      lineDash,
+                      lineDashOffset,
+                      highlighted,
+                      angleKey,
+                      radiusKey,
+                      seriesId: this.id,
                   })
                 : undefined;
 
-            this.updateItemPath(node, datum, highlight, format);
+            this.updateItemPath(node, datum, highlighted, format);
             node.fill = format?.fill ?? fill;
             node.fillOpacity = format?.fillOpacity ?? fillOpacity;
             node.stroke = format?.stroke ?? stroke;
-            node.strokeOpacity = strokeOpacity;
             node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.lineDash = this.properties.lineDash;
+            node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+            node.lineDash = format?.lineDash ?? lineDash;
+            node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
             node.lineJoin = 'round';
         });
     }
@@ -493,6 +493,8 @@ export abstract class RadialColumnSeriesBase<
             stroke,
             strokeWidth,
             strokeOpacity,
+            lineDash,
+            lineDashOffset,
             itemStyler,
             tooltip,
         } = this.properties;
@@ -512,16 +514,18 @@ export abstract class RadialColumnSeriesBase<
 
         const { fill: color } = (itemStyler &&
             this.ctx.callbackCache.call(itemStyler, {
+                highlighted: false,
                 seriesId,
                 datum,
+                angleKey,
+                radiusKey,
                 fill,
                 fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
-                highlighted: false,
-                angleKey,
-                radiusKey,
+                lineDash,
+                lineDashOffset,
             })) ?? { fill };
 
         return tooltip.toTooltipHtml(
