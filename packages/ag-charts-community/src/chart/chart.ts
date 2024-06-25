@@ -263,7 +263,6 @@ export abstract class Chart extends Observable {
 
     private readonly processors: UpdateProcessor[] = [];
 
-    processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
 
@@ -675,9 +674,7 @@ export abstract class Chart extends Observable {
     }
 
     private updateThemeClassName() {
-        const {
-            processedOptions: { theme },
-        } = this;
+        const { theme } = this.chartOptions.processedOptions;
 
         const themeClassNamePrefix = 'ag-charts-theme-';
         const validThemeClassNames = [`${themeClassNamePrefix}default`, `${themeClassNamePrefix}default-dark`];
@@ -1639,16 +1636,19 @@ export abstract class Chart extends Observable {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
-    applyOptions(chartOptions: ChartOptions) {
-        const oldOpts = this.processedOptions;
-        const deltaOptions = chartOptions.diffOptions(oldOpts);
+    applyOptions(newChartOptions: ChartOptions) {
+        // Detect first creation case.
+        const isDifferentOpts = newChartOptions !== this.chartOptions;
+
+        const oldOpts = isDifferentOpts ? this.chartOptions.processedOptions : {};
+        const newOpts = newChartOptions.processedOptions;
+        const deltaOptions = newChartOptions.diffOptions(oldOpts);
 
         if (deltaOptions == null) return;
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
-        const completeOptions = mergeDefaults(deltaOptions, oldOpts);
-        const modulesChanged = this.applyModules(completeOptions);
+        const modulesChanged = this.applyModules(newOpts);
 
         const skip = [
             'type',
@@ -1682,7 +1682,7 @@ export abstract class Chart extends Observable {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, completeOptions, oldOpts, seriesStatus)) {
+        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus)) {
             forceNodeDataRefresh = true;
         }
 
@@ -1696,8 +1696,7 @@ export abstract class Chart extends Observable {
             this.updateAllSeriesListeners();
         }
 
-        this.chartOptions = chartOptions;
-        this.processedOptions = completeOptions;
+        this.chartOptions = newChartOptions;
 
         const navigatorModule = this.modulesManager.getModule<any>('navigator');
         const zoomModule = this.modulesManager.getModule<any>('zoom');
@@ -1708,15 +1707,15 @@ export abstract class Chart extends Observable {
         }
 
         const miniChart = navigatorModule?.miniChart;
-        const miniChartSeries = completeOptions.navigator?.miniChart?.series ?? completeOptions.series;
+        const miniChartSeries = newOpts.navigator?.miniChart?.series ?? newOpts.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
-            this.applyMiniChartOptions(miniChart, miniChartSeries, completeOptions, oldOpts);
+            this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];
             miniChart.axes = [];
         }
 
-        this.ctx.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
+        this.ctx.annotationManager.setAnnotationStyles(newChartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;

@@ -155,7 +155,7 @@ class AgChartsInternal {
         });
 
         let chart = proxy?.chart;
-        if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {
+        if (chart == null || chartType(userOptions) !== chartType(chart?.chartOptions.processedOptions)) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
         }
 
