@@ -90,6 +90,9 @@
     --ag-charts-align: center;
     --ag-charts-justify: center;
 
+    /* Axis Labels */
+    --ag-charts-axis-label-background-color: #474747;
+
     /* Toolbar */
     --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-foreground-color));
     --ag-charts-toolbar-background-color: var(
@@ -155,6 +158,9 @@
         --ag-row-hover-color,
         color-mix(in srgb, transparent, var(--ag-charts-active-color) 20%)
     );
+
+    /* Axis Labels */
+    --ag-charts-axis-label-background-color: #9caebb;
 
     /* Toolbar */
     --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));

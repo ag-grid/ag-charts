@@ -7,7 +7,6 @@ export { defaultLabelCss };
 
 const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
 const { setAttribute } = _Util;
-const { BBox } = _Scene;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
 
@@ -79,19 +78,8 @@ export class CrosshairLabel extends BaseProperties {
     show(meta: _Scene.Point) {
         const { element } = this;
 
-        let left = meta.x + this.xOffset;
-        let top = meta.y + this.yOffset;
-
-        const limit = (low: number, actual: number, high: number) => {
-            return Math.max(Math.min(actual, high), low);
-        };
-
-        const containerBounds = this.getContainerBoundingBox();
-        const maxLeft = containerBounds.x + containerBounds.width - element.clientWidth - 1;
-        const maxTop = containerBounds.y + containerBounds.height - element.clientHeight;
-
-        left = limit(containerBounds.x + 1, left, maxLeft);
-        top = limit(containerBounds.y, top, maxTop);
+        const left = meta.x + this.xOffset;
+        const top = meta.y + this.yOffset;
 
         element.style.top = `${Math.round(top)}px`;
         element.style.left = `${Math.round(left)}px`;
@@ -108,11 +96,6 @@ export class CrosshairLabel extends BaseProperties {
     computeBBox(): _Scene.BBox {
         const { element } = this;
         return new _Scene.BBox(element.clientLeft, element.clientTop, element.clientWidth, element.clientHeight);
-    }
-
-    private getContainerBoundingBox(): _Scene.BBox {
-        const { width, height } = this.domManager.getBoundingClientRect();
-        return new BBox(0, 0, width, height);
     }
 
     toggle(visible?: boolean) {

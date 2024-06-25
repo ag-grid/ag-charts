@@ -21,16 +21,18 @@ export function calculateAxisLabelPosition({
 }) {
     let coordinates: _Scene.Point;
     if (axisDirection === ChartAxisDirection.X) {
+        const alignmentShift = 4;
         const xOffset = -labelBBox.width / 2;
-        const yOffset = axisPosition === 'bottom' ? 0 : -labelBBox.height;
+        const yOffset = axisPosition === 'bottom' ? -alignmentShift : -labelBBox.height + alignmentShift;
         const fixedY = axisPosition === 'bottom' ? bounds.y + bounds.height + padding : bounds.y - padding;
         coordinates = {
             x: x + xOffset,
             y: fixedY + yOffset,
         };
     } else {
+        const alignmentShift = 8;
         const yOffset = -labelBBox.height / 2;
-        const xOffset = axisPosition === 'right' ? 0 : -labelBBox.width;
+        const xOffset = axisPosition === 'right' ? -alignmentShift : -labelBBox.width + alignmentShift;
         const fixedX = axisPosition === 'right' ? bounds.x + bounds.width + padding : bounds.x - padding;
         coordinates = {
             x: fixedX + xOffset,
