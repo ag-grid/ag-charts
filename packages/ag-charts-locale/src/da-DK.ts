@@ -12,7 +12,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaLabelLegendPagination: 'Legend paginering',
     ariaLabelLegendPagePrevious: 'Forrige legenda-side',
     ariaLabelLegendPageNext: 'Næste legendeside',
-    ariaLabelLegendItem: '${label}, Forklaringspost ${index}[number] af ${count}[number], ',
+    ariaLabelLegendItem: '${label}, Forklaringspost ${index}[number] af ${count}[number]',
     ariaLabelLegendItemUnknown: 'Ukendt element i legenden',
     ariaLabelNavigator: 'Navigator',
     ariaLabelNavigatorRange: 'Rækkevidde',

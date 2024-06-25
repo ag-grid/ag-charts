@@ -12,7 +12,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelLegendPagination: 'صفحه‌بندی راهنما',
     ariaLabelLegendPagePrevious: 'صفحه قبلی افسانه',
     ariaLabelLegendPageNext: 'صفحه بعدی راهنما',
-    ariaLabelLegendItem: '${label}، افسانه مورد ${index}[number] از ${count}[number]، ',
+    ariaLabelLegendItem: '${label}، افسانه مورد ${index}[number] از ${count}[number]',
     ariaLabelLegendItemUnknown: 'مورد ناشناخته در فهرست علائم',
     ariaLabelNavigator: 'جهت‌یاب',
     ariaLabelNavigatorRange: 'محدوده',

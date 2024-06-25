@@ -12,7 +12,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelLegendPagination: '범례 페이지 매김',
     ariaLabelLegendPagePrevious: '이전 범례 페이지',
     ariaLabelLegendPageNext: '다음 범례 페이지',
-    ariaLabelLegendItem: '${label}, 범례 항목 ${index}[number] / ${count}[number], ',
+    ariaLabelLegendItem: '${label}, 범례 항목 ${index}[number] / ${count}[number]',
     ariaLabelLegendItemUnknown: '알 수 없는 범례 항목',
     ariaLabelNavigator: '네비게이터',
     ariaLabelNavigatorRange: '범위',

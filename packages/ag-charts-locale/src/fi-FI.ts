@@ -12,7 +12,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaLabelLegendPagination: 'Legendan sivutus',
     ariaLabelLegendPagePrevious: 'Edellinen selitesivu',
     ariaLabelLegendPageNext: 'Seuraava selitteen sivu',
-    ariaLabelLegendItem: '${label}, Selitteen kohde ${index}[number] ${count}[number]:sta, ',
+    ariaLabelLegendItem: '${label}, Selitteen kohde ${index}[number] ${count}[number]:sta',
     ariaLabelLegendItemUnknown: 'Tuntematon legenda-esiintymä',
     ariaLabelNavigator: 'Navigaattori',
     ariaLabelNavigatorRange: 'Alue',

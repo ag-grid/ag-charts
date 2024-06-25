@@ -12,7 +12,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaLabelLegendPagination: 'Σελιδοποίηση Υπόμνημα',
     ariaLabelLegendPagePrevious: 'Προηγούμενη Σελίδα Θρύλου',
     ariaLabelLegendPageNext: 'Επόμενη Σελίδα Θρύλου',
-    ariaLabelLegendItem: '${label}, Στοιχείο θρύλου ${index}[number] από ${count}[number], ',
+    ariaLabelLegendItem: '${label}, Στοιχείο θρύλου ${index}[number] από ${count}[number]',
     ariaLabelLegendItemUnknown: 'Άγνωστο στοιχείο υπόμνημα',
     ariaLabelNavigator: 'Πλοηγός',
     ariaLabelNavigatorRange: 'Εύρος',

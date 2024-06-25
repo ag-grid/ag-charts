@@ -12,7 +12,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelLegendPagination: 'لیجنڈ پیجینیشن',
     ariaLabelLegendPagePrevious: 'پچھلا لیجنڈ صفحہ',
     ariaLabelLegendPageNext: 'اگلا لیجنڈ صفحہ',
-    ariaLabelLegendItem: '${label}, لیجنڈ آئٹم ${index}[number] کا ${count}[number], ',
+    ariaLabelLegendItem: '${label}, لیجنڈ آئٹم ${index}[number] کا ${count}[number]',
     ariaLabelLegendItemUnknown: 'نامعلوم علامات کی شے',
     ariaLabelNavigator: 'نیویگیٹر',
     ariaLabelNavigatorRange: 'حد',

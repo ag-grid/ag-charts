@@ -12,7 +12,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaLabelLegendPagination: 'Legend Paginerings',
     ariaLabelLegendPagePrevious: 'Föregående legendasida',
     ariaLabelLegendPageNext: 'Nästa legend sida',
-    ariaLabelLegendItem: '${label}, Legend objekt ${index}[number] av ${count}[number], ',
+    ariaLabelLegendItem: '${label}, Legend objekt ${index}[number] av ${count}[number]',
     ariaLabelLegendItemUnknown: 'Okänd legendpost',
     ariaLabelNavigator: 'Navigator',
     ariaLabelNavigatorRange: 'Räckvidd',
