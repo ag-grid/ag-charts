@@ -118,7 +118,7 @@ const ranges: AgToolbarOptions['ranges'] = {
 };
 
 const zoom: AgToolbarOptions['zoom'] = {
-    enabled: false,
+    enabled: true,
     position: 'top',
     align: 'end',
     buttons: [
