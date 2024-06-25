@@ -58,7 +58,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
         licenseState,
         licenseInvalidErrors,
         licenseValidMessage,
-    } = useLicenseData();
+    } = useLicenseData({ library });
     const dependenciesSnippet = useMemo(
         () =>
             getDependenciesSnippet({
@@ -180,9 +180,9 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                                 </label>
                             </div>
                         </div>
-                        {licenseState.gridNoChartsError && (
+                        {licenseState.integratedChartsNoChartsError && (
                             <Warning>
-                                {licenseState.gridNoChartsError}. <EmailSales />
+                                {licenseState.integratedChartsNoChartsError}. <EmailSales />
                             </Warning>
                         )}
 
@@ -226,6 +226,11 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                             {licenseState.chartsNoGridEnterpriseError}. <EmailSales />
                         </Warning>
                     )}
+                    {licenseState.gridNoChartsEnterpriseError && (
+                        <Warning>
+                            {licenseState.gridNoChartsEnterpriseError}. <EmailSales />
+                        </Warning>
+                    )}
 
                     {licenseState.minimalModulesInfo && <Note>{licenseState.minimalModulesInfo}</Note>}
 
@@ -248,6 +253,11 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                     {licenseState.chartsNoGridEnterpriseError && (
                         <Warning>
                             {licenseState.chartsNoGridEnterpriseError}. <EmailSales />
+                        </Warning>
+                    )}
+                    {licenseState.gridNoChartsEnterpriseError && (
+                        <Warning>
+                            {licenseState.gridNoChartsEnterpriseError}. <EmailSales />
                         </Warning>
                     )}
 
