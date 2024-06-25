@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaLabelLegendPagination: 'Пагінація легенди',
     ariaLabelLegendPagePrevious: 'Попередня сторінка легенди',
     ariaLabelLegendPageNext: 'Наступна сторінка легенди',
-    ariaLabelLegendItem: '${label}, Елемент легенди ${index}[number] з ${count}[number]',
+    ariaLabelLegendItem: '${label}, Елемент легенди ${index}[number] з ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Невідомий елемент легенди',
     ariaLabelNavigator: 'Навігатор',
     ariaLabelNavigatorRange: 'Діапазон',

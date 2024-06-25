@@ -43,7 +43,7 @@ export type ChildNodeCounts = {
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node<TDatum = any> extends ChangeDetectable {
+export abstract class Node extends ChangeDetectable {
     static _nextSerialNumber = 0;
 
     /** Unique number to allow creation order to be easily determined. */
@@ -54,8 +54,8 @@ export abstract class Node<TDatum = any> extends ChangeDetectable {
      */
     readonly id = createId(this);
 
-    protected _datum?: TDatum;
-    protected _previousDatum?: TDatum;
+    protected _datum?: any;
+    protected _previousDatum?: any;
 
     /**
      * Some arbitrary data bound to the node.
@@ -63,10 +63,10 @@ export abstract class Node<TDatum = any> extends ChangeDetectable {
     get datum() {
         return this._datum ?? this._parent?.datum;
     }
-    get previousDatum() {
+    get previousDatum(): any {
         return this._previousDatum;
     }
-    set datum(datum: TDatum) {
+    set datum(datum: any) {
         if (this._datum !== datum) {
             this._previousDatum = this._datum;
         }

@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaLabelLegendPagination: 'Paginacija legende',
     ariaLabelLegendPagePrevious: 'Prethodna stranica legende',
     ariaLabelLegendPageNext: 'Sljedeća stranica legende',
-    ariaLabelLegendItem: '${label}, Stavka legende ${index}[number] od ${count}[number]',
+    ariaLabelLegendItem: '${label}, Stavka legende ${index}[number] od ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Nepoznata stavka legende',
     ariaLabelNavigator: 'Navigator',
     ariaLabelNavigatorRange: 'Raspon',
