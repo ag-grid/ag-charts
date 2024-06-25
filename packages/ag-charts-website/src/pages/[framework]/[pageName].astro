@@ -20,10 +20,10 @@ const { page } = Astro.props;
 const currentFramework = Astro.params.framework as Framework;
 const pageName = Astro.params.pageName as Framework;
 const path = Astro.url.pathname;
-const { title, enterprise, hideSideMenu, hidePageMenu } = page.data;
+const { title, enterprise, hideSideMenu, hidePageMenu, headings: pageHeadings } = page.data;
 
 const { Content } = await page.render();
-const headings = getHeadings({
+const headings = pageHeadings || getHeadings({
     title,
     markdocContent: page.body,
     framework: currentFramework,
@@ -80,7 +80,7 @@ const descriptionWithSeoTagline = `${description} ${seoTagline}`;
             </div>
         </div>
 
-        {!hideSideMenu && <SideNavigation client:load headings={headings} />}
+        {!hideSideMenu && <SideNavigation client:load headings={headings} delayedScrollSpy={Boolean(pageHeadings)} />}
     </div>
 </Layout>
 

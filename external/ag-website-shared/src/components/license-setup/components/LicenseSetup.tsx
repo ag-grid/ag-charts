@@ -106,7 +106,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
     return (
         <>
             <form>
-                <h2>Validate your licence</h2>
+                <h2 id="validate-your-license">Validate Your Licence</h2>
 
                 <div className={styles.licenceWrapper}>
                     <textarea
@@ -153,7 +153,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                         )}
 
                         <div>
-                            <h2>Configure your application</h2>
+                            <h2>Configure Your Application</h2>
 
                             <div className={styles.icQuestion}>
                                 <label
