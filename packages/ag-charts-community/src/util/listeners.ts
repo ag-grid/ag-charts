@@ -22,7 +22,7 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
         return () => this.removeListener(record.symbol);
     }
 
-    public removeListener(eventSymbol: symbol) {
+    private removeListener(eventSymbol: symbol) {
         for (const [type, listeners] of this.registeredListeners.entries()) {
             const matchIndex = listeners.findIndex((listener) => listener.symbol === eventSymbol);
             if (matchIndex >= 0) {

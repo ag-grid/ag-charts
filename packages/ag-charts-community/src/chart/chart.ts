@@ -300,7 +300,10 @@ export abstract class Chart extends Observable {
             updateMutex: this.updateMutex,
             overrideDevicePixelRatio,
         }));
-        ctx.domManager.addListener('resize', (e) => this.parentResize(e.size));
+
+        this._destroyFns.push(
+            ctx.domManager.addListener('resize', () => this.parentResize(ctx.domManager.containerSize))
+        );
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
@@ -389,6 +392,8 @@ export abstract class Chart extends Observable {
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
         );
+
+        this.parentResize(ctx.domManager.containerSize);
     }
 
     getModuleContext(): ModuleContext {
@@ -878,8 +883,10 @@ export abstract class Chart extends Observable {
         });
     }
 
-    private parentResize({ width, height }: { width: number; height: number }) {
-        if (this.width != null && this.height != null) return;
+    private parentResize(size: { width: number; height: number } | undefined) {
+        if (size == null || (this.width != null && this.height != null)) return;
+
+        let { width, height } = size;
 
         width = Math.floor(width);
         height = Math.floor(height);

@@ -41,7 +41,7 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
     return observer;
 }
 
-type Events = { type: 'hidden' } | { type: 'resize'; size: Size } | { type: 'container-changed' };
+type Events = { type: 'hidden' } | { type: 'resize' } | { type: 'container-changed' };
 type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, HTMLElement>;
@@ -52,7 +52,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
     private readonly element: HTMLElement;
     private container?: HTMLElement;
-    private containerSize?: Size;
+    containerSize?: Size = undefined;
 
     public guardedElement?: GuardedElement;
 
@@ -140,7 +140,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.sizeMonitor.observe(newContainer, (size) => {
             this.containerSize = size;
             this.updateContainerSize();
-            this.listeners.dispatch('resize', { type: 'resize', size });
+            this.listeners.dispatch('resize', { type: 'resize' });
         });
 
         this.container = newContainer;
