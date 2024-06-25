@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { Coords } from './annotationTypes';
 import { convert, invert } from './annotationUtils';
@@ -15,6 +15,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     private readonly button: HTMLButtonElement;
     private readonly wrapper: HTMLElement;
     private readonly snap: boolean = false;
+    private padding: number = 0;
     private coords?: Coords;
 
     constructor(
@@ -46,8 +47,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         );
     }
 
-    update(seriesRect: _Scene.BBox) {
+    update(seriesRect: _Scene.BBox, padding: number) {
         this.seriesRect = seriesRect;
+        this.padding = padding;
     }
 
     private setup() {
@@ -91,12 +93,13 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             seriesRect,
             snap,
             axisCtx,
+            padding,
         } = this;
 
         const { clientWidth: buttonWidth, clientHeight: buttonHeight } = this.button;
 
-        const [minY, maxY] = [seriesRect.y, seriesRect.y + seriesRect.height - buttonHeight];
-        const [minX, maxX] = [seriesRect.x, seriesRect.x + seriesRect.width - buttonWidth];
+        const [minY, maxY] = [seriesRect.y, seriesRect.y + seriesRect.height];
+        const [minX, maxX] = [seriesRect.x, seriesRect.x + seriesRect.width];
 
         if (snap) {
             x = convert(invert(x - seriesRect.x, axisCtx), axisCtx) + seriesRect.x;
@@ -104,15 +107,18 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         }
 
         if (direction === ChartAxisDirection.X) {
+            const crosshairLabelPadding = 5;
+            const offset = buttonHeight - Math.max(0, padding - crosshairLabelPadding);
+
             x = x - buttonWidth / 2;
-            y = position === 'top' ? minY : maxY;
+            y = position === 'top' ? minY - buttonHeight + offset : maxY - offset;
         } else {
-            x = position === 'left' ? minX : maxX;
+            const crosshairLabelPadding = 9;
+            const offset = buttonWidth - Math.max(0, padding - crosshairLabelPadding);
+
+            x = position === 'left' ? minX - buttonWidth + offset : maxX - offset;
             y = y - buttonHeight / 2;
         }
-
-        x = _Util.clamp(minX, x, maxX);
-        y = _Util.clamp(minY, y, maxY);
 
         return { x, y };
     }
@@ -149,6 +155,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         const { button } = this;
         button.onclick = _ModuleSupport.makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
 
-        button.innerHTML = `<span class="ag-charts-icon-plus ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
+        button.innerHTML = `<span class="ag-charts-icon-crossline-add-line ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
     }
 }

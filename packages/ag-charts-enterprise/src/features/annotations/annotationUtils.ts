@@ -109,5 +109,5 @@ export function invert(n: Coords['x' | 'y'], context: AnnotationAxisContext | _M
 }
 
 export function calculateAxisLabelPadding(axisLayout: _ModuleSupport.AxisLayout) {
-    return axisLayout.seriesAreaPadding + axisLayout.tickSize + axisLayout.label.padding;
+    return axisLayout.gridPadding + axisLayout.seriesAreaPadding + axisLayout.tickSize + axisLayout.label.padding;
 }

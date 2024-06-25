@@ -407,7 +407,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 (coords) => this.onAxisButtonClick(coords, lineDirection),
                 seriesRect
             );
-            button.update(seriesRect);
+            const axisLabelPadding = calculateAxisLabelPadding(axisLayout);
+            button.update(seriesRect, axisLabelPadding);
         } else {
             button?.destroy();
             button = undefined;
