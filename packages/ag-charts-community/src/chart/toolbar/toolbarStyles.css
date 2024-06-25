@@ -28,7 +28,6 @@
     --ag-charts-toolbar-button-padding: var(--ag-charts-toolbar-button-padding-small);
 }
 
-/* Note: We also use the computed flex-direction to determine the aria-orientation. */
 .ag-charts-toolbar--top,
 .ag-charts-toolbar--bottom {
     flex-direction: row;
