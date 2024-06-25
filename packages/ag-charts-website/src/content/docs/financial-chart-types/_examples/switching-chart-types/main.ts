@@ -9,7 +9,9 @@ const options: AgFinancialChartOptions = {
 
 const chart = AgCharts.createFinancialChart(options);
 
-function changeType(type: 'line' | 'candlestick' | 'ohlc') {
+function changeType(
+    type: 'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'area' | 'range-area'
+) {
     options.chartType = type;
     chart.update(options);
 }

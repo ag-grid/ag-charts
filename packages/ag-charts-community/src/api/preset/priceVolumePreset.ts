@@ -1,4 +1,13 @@
-import type { AgBaseFinancialPresetOptions, AgCartesianChartOptions, AgPriceVolumePreset } from 'ag-charts-types';
+import type {
+    AgAreaSeriesOptions,
+    AgBaseFinancialPresetOptions,
+    AgCandlestickSeriesOptions,
+    AgCartesianChartOptions,
+    AgLineSeriesOptions,
+    AgOhlcSeriesOptions,
+    AgPriceVolumePreset,
+    AgRangeAreaSeriesOptions,
+} from 'ag-charts-types';
 
 export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions): AgCartesianChartOptions {
     const {
@@ -14,50 +23,7 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
         ...unusedOpts
     } = opts;
 
-    let volumeSeries;
-    if (chartType === 'ohlc') {
-        volumeSeries = {
-            type: 'ohlc' as const,
-            xKey,
-            openKey,
-            closeKey,
-            highKey,
-            lowKey,
-            item: {
-                up: {
-                    stroke: '#089981',
-                },
-                down: {
-                    stroke: '#F23645',
-                },
-            },
-        };
-    } else if (chartType === 'line') {
-        volumeSeries = {
-            type: 'line' as const,
-            xKey,
-            yKey: closeKey,
-        };
-    } else {
-        volumeSeries = {
-            type: 'candlestick' as const,
-            xKey,
-            openKey,
-            closeKey,
-            highKey,
-            lowKey,
-            item: {
-                up: {
-                    fill: '#089981',
-                    stroke: '#089981',
-                },
-                down: {
-                    fill: '#F23645',
-                    stroke: '#F23645',
-                },
-            },
-        };
-    }
+    const volumeSeries = createSeries(chartType, xKey, highKey, lowKey, openKey, closeKey);
 
     return {
         _type: 'price-volume',
@@ -102,7 +68,7 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                     return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
                 },
             },
-            volumeSeries,
+            ...volumeSeries,
         ],
         axes: [
             {
@@ -169,4 +135,121 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
         data,
         ...unusedOpts,
     };
+}
+
+function createSeries(
+    chartType: AgPriceVolumePreset['chartType'],
+    xKey: string,
+    highKey: string,
+    lowKey: string,
+    openKey: string,
+    closeKey: string
+) {
+    const keys = {
+        xKey,
+        openKey,
+        closeKey,
+        highKey,
+        lowKey,
+    };
+    const singleKeys = {
+        xKey,
+        yKey: closeKey,
+    };
+
+    switch (chartType) {
+        case 'ohlc':
+            return [
+                {
+                    type: 'ohlc',
+                    ...keys,
+                    item: {
+                        up: {
+                            stroke: '#089981',
+                        },
+                        down: {
+                            stroke: '#F23645',
+                        },
+                    },
+                } satisfies AgOhlcSeriesOptions,
+            ];
+        case 'line':
+            return [
+                {
+                    type: 'line',
+                    ...singleKeys,
+                } satisfies AgLineSeriesOptions,
+            ];
+        case 'step-line':
+            return [
+                {
+                    type: 'line',
+                    ...singleKeys,
+                    interpolation: { type: 'step' },
+                } satisfies AgLineSeriesOptions,
+            ];
+
+        case 'area':
+            return [
+                {
+                    type: 'area',
+                    ...singleKeys,
+                } satisfies AgAreaSeriesOptions,
+            ];
+        case 'range-area':
+            const type = 'range-area';
+            return [
+                {
+                    type,
+                    xKey,
+                    yHighKey: highKey,
+                    yLowKey: closeKey,
+                    fill: '#089981',
+                } satisfies AgRangeAreaSeriesOptions,
+                {
+                    type,
+                    xKey,
+                    yHighKey: closeKey,
+                    yLowKey: lowKey,
+                    fill: '#F23645',
+                } satisfies AgRangeAreaSeriesOptions,
+            ];
+
+        default:
+        case 'candlestick':
+            return [
+                {
+                    type: 'candlestick',
+                    ...keys,
+                    item: {
+                        up: {
+                            fill: '#089981',
+                            stroke: '#089981',
+                        },
+                        down: {
+                            fill: '#F23645',
+                            stroke: '#F23645',
+                        },
+                    },
+                } satisfies AgCandlestickSeriesOptions,
+            ];
+
+        case 'hollow-candlestick':
+            return [
+                {
+                    type: 'candlestick',
+                    ...keys,
+                    item: {
+                        up: {
+                            fill: 'transparent',
+                            stroke: '#5090dc',
+                        },
+                        down: {
+                            fill: '#5090dc',
+                            stroke: '#5090dc',
+                        },
+                    },
+                } satisfies AgCandlestickSeriesOptions,
+            ];
+    }
 }

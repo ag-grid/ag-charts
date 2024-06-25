@@ -1,5 +1,5 @@
 export type AgPriceVolumePreset = {
-    chartType?: 'candlestick' | 'ohlc' | 'line';
+    chartType?: 'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'area' | 'range-area';
     xKey?: string;
     openKey?: string;
     highKey?: string;
