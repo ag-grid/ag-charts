@@ -12,20 +12,20 @@ export class StatusBar
     @Validate(BOOLEAN)
     enabled: boolean = false;
 
-    @Validate(STRING)
-    openKey = '';
+    @Validate(STRING, { optional: true })
+    openKey?: string = undefined;
 
-    @Validate(STRING)
-    highKey = '';
+    @Validate(STRING, { optional: true })
+    highKey?: string = undefined;
 
-    @Validate(STRING)
-    lowKey = '';
+    @Validate(STRING, { optional: true })
+    lowKey?: string = undefined;
 
-    @Validate(STRING)
-    closeKey = '';
+    @Validate(STRING, { optional: true })
+    closeKey?: string = undefined;
 
-    @Validate(STRING)
-    volumeKey = '';
+    @Validate(STRING, { optional: true })
+    volumeKey?: string = undefined;
 
     @Validate(OBJECT)
     readonly title = new StatusBarLabel();
@@ -37,73 +37,73 @@ export class StatusBar
     readonly negative = new StatusBarLabel();
 
     readonly id = 'status-bar';
-    data: any[] = [];
+    data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly labelGroup = new Group();
-    private readonly labels = {
-        open: {
+    private readonly labels = [
+        {
             label: 'O',
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'openValue' as const,
             key: 'openKey' as const,
-            domain: [0, 0],
+            domain: undefined as number[] | undefined,
             formatter: new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             }),
         },
-        high: {
+        {
             label: 'H',
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'highValue' as const,
             key: 'highKey' as const,
-            domain: [0, 0],
+            domain: undefined as number[] | undefined,
             formatter: new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             }),
         },
-        low: {
+        {
             label: 'L',
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'lowValue' as const,
             key: 'lowKey' as const,
-            domain: [0, 0],
+            domain: undefined as number[] | undefined,
             formatter: new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             }),
         },
-        close: {
+        {
             label: 'C',
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'closeValue' as const,
             key: 'closeKey' as const,
-            domain: [0, 0],
+            domain: undefined as number[] | undefined,
             formatter: new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             }),
         },
-        volume: {
+        {
             label: 'Vol',
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'volumeValue' as const,
             key: 'volumeKey' as const,
-            domain: [0, 0],
+            domain: undefined as number[] | undefined,
             formatter: new Intl.NumberFormat('en-US', {
                 notation: 'compact',
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             }),
         },
-    };
+    ];
 
     public constructor(ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -122,19 +122,30 @@ export class StatusBar
     async processData(opts: { dataController: _ModuleSupport.DataController }) {
         if (!this.enabled) return;
 
+        const props: _ModuleSupport.DatumPropertyDefinition<string>[] = [];
+        for (const label of this.labels) {
+            const { id, key } = label;
+            const datumKey = this[key];
+            if (datumKey == null) {
+                label.domain = undefined;
+            } else {
+                props.push(valueProperty(datumKey, 'number', { id }));
+            }
+        }
+
+        if (props.length === 0 || this.data == null) return;
+
         const { dataController } = opts;
         const { processedData, dataModel } = await dataController.request(this.id, this.data, {
-            props: [
-                valueProperty(this.openKey, 'number', { id: `openValue` }),
-                valueProperty(this.highKey, 'number', { id: `highValue` }),
-                valueProperty(this.lowKey, 'number', { id: `lowValue` }),
-                valueProperty(this.closeKey, 'number', { id: `closeValue` }),
-                valueProperty(this.volumeKey, 'number', { id: `volumeValue` }),
-            ],
+            props,
         });
 
-        for (const label of Object.values(this.labels)) {
-            label.domain = dataModel.getDomain(this, label.id, 'value', processedData);
+        for (const label of this.labels) {
+            const { id, key } = label;
+            const datumKey = this[key];
+            if (datumKey != null) {
+                label.domain = dataModel.getDomain(this, id, 'value', processedData);
+            }
         }
     }
 
@@ -159,22 +170,19 @@ export class StatusBar
         const offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
 
         let left = 0;
-        for (const { label, title, value, domain, formatter } of Object.values(this.labels)) {
-            let maxValueWidth = 0;
-            if (domain.length > 0) {
-                maxValueWidth = Math.max(
-                    Text.measureText(formatter.format(domain[0]), this.positive.getFont(), 'alphabetic', 'left').width,
-                    Text.measureText(formatter.format(domain[1]), this.positive.getFont(), 'alphabetic', 'left').width,
-                    Text.measureText(formatter.format(domain[0]), this.negative.getFont(), 'alphabetic', 'left').width,
-                    Text.measureText(formatter.format(domain[1]), this.negative.getFont(), 'alphabetic', 'left').width
-                );
-            }
-
-            if (maxValueWidth === 0) {
+        for (const { label, title, value, domain, formatter } of this.labels) {
+            if (domain == null) {
                 title.visible = false;
                 value.visible = false;
                 continue;
             }
+
+            const maxValueWidth = Math.max(
+                Text.measureText(formatter.format(domain[0]), this.positive.getFont(), 'alphabetic', 'left').width,
+                Text.measureText(formatter.format(domain[1]), this.positive.getFont(), 'alphabetic', 'left').width,
+                Text.measureText(formatter.format(domain[0]), this.negative.getFont(), 'alphabetic', 'left').width,
+                Text.measureText(formatter.format(domain[1]), this.negative.getFont(), 'alphabetic', 'left').width
+            );
 
             title.visible = true;
             value.visible = true;
@@ -217,10 +225,11 @@ export class StatusBar
 
         const datum = activeHighlight.datum;
         const label = activeHighlight.itemId === 'up' ? this.positive : this.negative;
-        for (const { domain, value, key, formatter } of Object.values(this.labels)) {
-            if (domain.length === 0) continue;
+        for (const { domain, value, key, formatter } of this.labels) {
+            if (domain == null) continue;
 
-            const datumValue = datum?.[this[key]];
+            const datumKey = this[key];
+            const datumValue = datumKey != null ? datum?.[datumKey] : undefined;
 
             value.setFont(label);
             value.fill = label.color;
