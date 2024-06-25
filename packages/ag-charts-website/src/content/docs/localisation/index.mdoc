@@ -2,7 +2,9 @@
 title: 'Localisation'
 ---
 
-All the displayed text in charts is customisable for the purposes of localisation. This is done by providing locale information to charts for the required language. Either provide an object of key/value pairs via the `localeText` property, or provide a `getLocaleText` callback to hook charts up to your application's localisation.
+All the displayed text in AG Charts is customisable for the purposes of localisation.
+
+This is done by providing locale information to charts for the required language. Either provide an object of key/value pairs via the `localeText` property, or provide a `getLocaleText` callback to hook charts up to your application's localisation.
 
 We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size.
 
@@ -52,7 +54,7 @@ Translations are provided as a starting point and may contain errors. We recomme
 
 To change the locale, set the `localeText` property in `locale` options to one of the built-in locales.
 
-Each built-in locale is available from the `ag-charts-locale` pacakge, and the each export defined in the table above.
+Each built-in locale is available from the `ag-charts-locale` package, with each export defined in the table above.
 
 The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/`ag-charts-enterprise`.
 
@@ -68,7 +70,13 @@ import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
 }
 ```
 
-If a locale is provided but is missing values, the default English will be used for the missing values.
+In the above example:
+
+-   Hover over the zoom toolbar buttons to see the translated tooltips.
+-   Right click on the series area to see the translated context menu options.
+-   Click on the legend item to see the translated "no visible series" overlay.
+
+If a locale is provided but is missing values, the default English values will be used for the missing values.
 
 ## Customising Text Values
 
@@ -98,7 +106,7 @@ Overrides for individual translations can be done by applying overrides to an ex
 
 In this configuration, `localeText` is a dictionary mapping translation keys to the translated text.
 
-Some translations have parameters, which can be included in the translation using `'${value}'` syntax. Note your strings should not use backticks.
+Some translations have parameters, which can be included in the translation using `'${value}'` syntax. Provided strings should not use backticks.
 
 Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[date]`, `[time]`, and `[datetime]`.
 

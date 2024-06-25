@@ -13,6 +13,7 @@ An `itemStyler` is a callback function that is called once for each item within 
 
 Each `itemStyler` receives a `params` object containing the `datum` of the item, as well as the current styles applied to it.
 It should return an object containing the styles to be applied to the item.
+
 The exact details differ between the different series types and components which implement the `itemStyler` function.
 
 {% chartExampleRunner title="Item Styler" name="item-styler" type="generated" /%}
@@ -50,7 +51,7 @@ In this configuration:
 -   The markers in the 'Coal' series will be larger and red if they are higher than 'Nuclear' series for the same month.
 -   The 'Imported' series bar for 'Jul' will be red with a lime highlight style.
 
-Please use the [API reference](/options) to learn more about Stylers, the inputs they receive and the attributes that can be customised.
+Please use the [Options Reference](/options) to learn more about Stylers, the inputs they receive and the attributes that can be customised.
 
 <!--
 ## Series Stylers
