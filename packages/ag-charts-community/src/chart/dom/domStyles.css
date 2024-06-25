@@ -82,7 +82,11 @@
     --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
 
     /* Layout */
-    --ag-charts-layer-tooltip: 1;
+    --ag-charts-layer-context-menu: 5;
+    --ag-charts-layer-tooltip: 4;
+    --ag-charts-layer-toolbar: 3;
+    --ag-charts-layer-crosshair: 2;
+    --ag-charts-layer-annotations: 1;
     --ag-charts-align: center;
     --ag-charts-justify: center;
 

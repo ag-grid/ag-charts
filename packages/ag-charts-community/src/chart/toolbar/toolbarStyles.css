@@ -54,8 +54,7 @@
 .ag-charts-toolbar--floating {
     padding: 0;
     width: auto;
-    /* Needs to beat .ag-crosshair-label */
-    z-index: 99999;
+    z-index: var(--ag-charts-layer-toolbar);
 }
 
 .ag-charts-toolbar--floating-top {
