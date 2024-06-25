@@ -1,4 +1,4 @@
-import type { DatumCallbackParams } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, Ratio } from '../../chart/types';
@@ -14,6 +14,16 @@ export interface AgChordSeriesOptions<TDatum = any>
     type: 'chord';
 }
 
+export interface AgChordSeriesLinkItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
+        AgChordSeriesOptionsKeys,
+        Required<AgChordSeriesLinkStyle> {}
+
+export interface AgChordSeriesNodeItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
+        AgChordSeriesOptionsKeys,
+        Required<AgChordSeriesNodeStyle> {}
+
 export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label for each node. */
     label?: AgChordSeriesLabelOptions<TDatum>;
@@ -22,9 +32,9 @@ export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSerie
     /** The colours to cycle through for the strokes of the nodes and links. */
     strokes?: CssColor[];
     /** Options for the links. */
-    link?: AgChordSeriesLinkOptions;
+    link?: AgChordSeriesLinkOptions<TDatum>;
     /** Options for the nodes. */
-    node?: AgChordSeriesNodeOptions;
+    node?: AgChordSeriesNodeOptions<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum>>;
 }
@@ -42,13 +52,20 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
     tension?: Ratio;
 }
 
-export interface AgChordSeriesLinkOptions extends AgChordSeriesLinkStyle {}
+export interface AgChordSeriesLinkOptions<TDatum> extends AgChordSeriesLinkStyle {
+    /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum>, AgChordSeriesLinkStyle>;
+}
 
-export interface AgChordSeriesNodeOptions extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+
+export interface AgChordSeriesNodeOptions<TDatum> extends AgChordSeriesNodeStyle {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
     width?: PixelSize;
+    /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum>, AgChordSeriesNodeStyle>;
 }
 
 export interface AgChordSeriesOptionsKeys {
@@ -70,9 +87,5 @@ export interface AgChordSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames {}
-
-export type AgChordSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
-    AgChordSeriesOptionsKeys &
-    Required<AgChordSeriesLinkStyle>;
 
 export interface AgChordSeriesLabelFormatterParams<_TDatum = any> extends AgChordSeriesOptionsKeys {}
