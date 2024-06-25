@@ -137,86 +137,88 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                     </Warning>
                 ))}
 
-                {isGrid && (
-                    <div className={styles.licenseData}>
-                        {hasValue(userLicense) && (
-                            <div>
-                                <label>Licence key expires: </label>
-                                <b
-                                    className={
-                                        (licenseState.expiredError || licenseState.expiredTrialError) && styles.expired
-                                    }
-                                >
-                                    {userLicenseExpiry ? userLicenseExpiry : '--'}
-                                </b>
-                            </div>
-                        )}
-
+                <div className={styles.licenseData}>
+                    {hasValue(userLicense) && (
                         <div>
-                            <h2>Configure Your Application</h2>
+                            <label>Licence key expires: </label>
+                            <b
+                                className={
+                                    (licenseState.expiredError || licenseState.expiredTrialError) && styles.expired
+                                }
+                            >
+                                {userLicenseExpiry ? userLicenseExpiry : '--'}
+                            </b>
+                        </div>
+                    )}
 
-                            <div className={styles.icQuestion}>
-                                <label
-                                    className={classnames(styles.licensedProduct, styles.integratedProduct, {
-                                        [styles.valid]: licensedProducts.grid && licensedProducts.charts,
-                                        [styles.trial]:
-                                            userLicenseIsTrial && licensedProducts.grid && licensedProducts.charts,
-                                        [styles.expired]:
-                                            (userLicenseIsExpired || userLicenseTrialIsExpired) &&
-                                            licensedProducts.grid &&
-                                            licensedProducts.charts,
-                                    })}
-                                >
-                                    Are you using Integrated Charts?{' '}
-                                    <input
-                                        type="checkbox"
-                                        name="products"
-                                        value="integratedEnterprise"
-                                        checked={isIntegratedCharts}
-                                        onChange={() => {
-                                            updateIsIntegratedChartsWithUrlUpdate(!isIntegratedCharts);
-                                        }}
+                    {isGrid && (
+                        <>
+                            <div>
+                                <h2>Configure Your Application</h2>
+
+                                <div className={styles.icQuestion}>
+                                    <label
+                                        className={classnames(styles.licensedProduct, styles.integratedProduct, {
+                                            [styles.valid]: licensedProducts.grid && licensedProducts.charts,
+                                            [styles.trial]:
+                                                userLicenseIsTrial && licensedProducts.grid && licensedProducts.charts,
+                                            [styles.expired]:
+                                                (userLicenseIsExpired || userLicenseTrialIsExpired) &&
+                                                licensedProducts.grid &&
+                                                licensedProducts.charts,
+                                        })}
+                                    >
+                                        Are you using Integrated Charts?{' '}
+                                        <input
+                                            type="checkbox"
+                                            name="products"
+                                            value="integratedEnterprise"
+                                            checked={isIntegratedCharts}
+                                            onChange={() => {
+                                                updateIsIntegratedChartsWithUrlUpdate(!isIntegratedCharts);
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                            {licenseState.integratedChartsNoChartsError && (
+                                <Warning>
+                                    {licenseState.integratedChartsNoChartsError}. <EmailSales />
+                                </Warning>
+                            )}
+
+                            <div className={styles.frameworkImportContainer}>
+                                <div className={styles.frameworkContainer}>
+                                    <label>Framework</label>
+                                    <FrameworkSelectorInsideDocs
+                                        path={path}
+                                        currentFramework={framework}
+                                        menuItems={menuItems}
                                     />
-                                </label>
+                                </div>
+
+                                <span className={styles.divider}></span>
+
+                                <div className={styles.importContainer}>
+                                    <label>
+                                        <span>Import type:</span>
+                                    </label>
+
+                                    <select
+                                        name="importType"
+                                        value={importType}
+                                        onChange={(e) => {
+                                            updateImportTypeWithUrlUpdate(e.target.value as ImportType);
+                                        }}
+                                    >
+                                        <option value="packages">Packages</option>
+                                        <option value="modules">Modules</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        {licenseState.integratedChartsNoChartsError && (
-                            <Warning>
-                                {licenseState.integratedChartsNoChartsError}. <EmailSales />
-                            </Warning>
-                        )}
-
-                        <div className={styles.frameworkImportContainer}>
-                            <div className={styles.frameworkContainer}>
-                                <label>Framework</label>
-                                <FrameworkSelectorInsideDocs
-                                    path={path}
-                                    currentFramework={framework}
-                                    menuItems={menuItems}
-                                />
-                            </div>
-
-                            <span className={styles.divider}></span>
-
-                            <div className={styles.importContainer}>
-                                <label>
-                                    <span>Import type:</span>
-                                </label>
-
-                                <select
-                                    name="importType"
-                                    value={importType}
-                                    onChange={(e) => {
-                                        updateImportTypeWithUrlUpdate(e.target.value as ImportType);
-                                    }}
-                                >
-                                    <option value="packages">Packages</option>
-                                    <option value="modules">Modules</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                        </>
+                    )}
+                </div>
 
                 <div className={styles.results}>
                     <h3 id="add-your-dependencies">Add Your Dependencies</h3>
