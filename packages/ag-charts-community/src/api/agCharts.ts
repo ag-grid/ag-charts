@@ -140,13 +140,16 @@ class AgChartsInternal {
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
 
+        const defaultType = proxy?.chart.chartOptions.type;
+        const { _type = defaultType, ...otherOptions } = options;
+
+        let mutableOptions = otherOptions;
         if (AgCharts.optionsMutationFn) {
-            options = AgCharts.optionsMutationFn(options, options._type);
+            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, _type);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
-        const defaultType = proxy?.chart.chartOptions.type;
-        const { overrideDevicePixelRatio, document, window: userWindow, _type = defaultType, ...userOptions } = options;
+        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
         const chartOptions = new ChartOptions(userOptions, {
             overrideDevicePixelRatio,
             document,
