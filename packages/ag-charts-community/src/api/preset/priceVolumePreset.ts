@@ -66,13 +66,13 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                   },
               } satisfies AgNavigatorOptions,
           }
-        : {};
+        : null;
 
     const statusBarOpts = statusBar
         ? {
               statusBar: {
                   enabled: true,
-                  data: data ?? [],
+                  data,
                   highKey,
                   openKey,
                   lowKey,
@@ -86,7 +86,7 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                   },
               },
           }
-        : {};
+        : null;
 
     const zoomOpts = {
         zoom: {
@@ -111,7 +111,7 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                       },
                   } satisfies AgToolbarOptions,
               }
-            : {};
+            : null;
 
     return {
         theme:
