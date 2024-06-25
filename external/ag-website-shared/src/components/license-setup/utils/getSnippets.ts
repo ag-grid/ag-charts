@@ -1,19 +1,22 @@
-import type { Framework, ImportType } from '@ag-grid-types';
+import type { Framework, ImportType, Library } from '@ag-grid-types';
 import { agLibraryVersion } from '@constants';
 
-import { getGridDependencies } from './getDependencies';
+import { getDependencies } from './getDependencies';
 import { GRID_LICENSE_TEMPLATES, getChartsTemplate } from './templates';
 
 export const getDependenciesSnippet = ({
+    library,
     framework,
     isIntegratedCharts,
     importType,
 }: {
+    library: Library;
     framework: Framework;
     isIntegratedCharts: boolean;
     importType?: ImportType;
 }) => {
-    const dependencies = getGridDependencies({
+    const dependencies = getDependencies({
+        library,
         framework,
         isIntegratedCharts,
         importType,
@@ -28,15 +31,18 @@ export const getDependenciesSnippet = ({
 };
 
 export const getNpmInstallSnippet = ({
+    library,
     framework,
     isIntegratedCharts,
     importType,
 }: {
+    library: Library;
     framework: Framework;
     isIntegratedCharts: boolean;
     importType?: ImportType;
 }) => {
-    const dependencies = getGridDependencies({
+    const dependencies = getDependencies({
+        library,
         framework,
         isIntegratedCharts,
         importType,

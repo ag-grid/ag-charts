@@ -11,4 +11,11 @@ const { data: menuData } = await getEntry('menu', 'data');
 const menuItems = Object.values(menuData);
 ---
 
-<LicenseSetup client:only="react" framework={framework} path={pathname} menuItems={menuItems} seedRepos={seedRepos} />
+<LicenseSetup
+    client:only="react"
+    library="charts"
+    framework={framework}
+    path={pathname}
+    menuItems={menuItems}
+    seedRepos={seedRepos}
+/>
