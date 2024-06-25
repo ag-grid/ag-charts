@@ -273,8 +273,7 @@ export class Legend extends BaseProperties {
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
-            () => this.detachLegend(),
-            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged())
+            () => this.detachLegend()
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
@@ -303,20 +302,23 @@ export class Legend extends BaseProperties {
     }
 
     private initLegendItemToolbar() {
-        this.itemSelection.each((markerLabel, _, i) => {
+        this.itemSelection.each((markerLabel, datum, i) => {
             // Create the hidden CSS button.
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
+                type: 'switch',
                 id: `ag-charts-legend-item-${i}`,
-                textContent: this.getItemAriaText(i),
+                checked: datum.enabled,
+                checkedKey: { id: 'ariaAnnounceVisible' },
+                uncheckedKey: { id: 'ariaAnnounceHidden' },
+                ariaLabel: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
                 focusable: markerLabel,
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
                 onclick: () => {
-                    this.doClick(markerLabel.datum);
-                    markerLabel.proxyButton!.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
+                    this.doClick(markerLabel.datum)
+                    markerLabel.proxyButton!.ariaChecked = `${!markerLabel.datum.enabled}`;
                 },
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
@@ -1035,8 +1037,6 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            const status: string = newEnabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden';
-            this.ctx.ariaAnnouncementService.announceValue(status);
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -1183,27 +1183,20 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private onLocaleChanged() {
-        this.itemSelection.each(({ proxyButton }, _, i) => {
-            if (proxyButton != null) {
-                proxyButton.textContent = this.getItemAriaText(i);
-            }
-        });
-    }
-
-    private getItemAriaText(nodeIndex: number, enabled?: boolean): string {
+    private getItemAriaText(nodeIndex: number): { id: string; params?: Record<string, any> } {
         const datum = this.data[nodeIndex];
         const label = datum && this.getItemLabel(datum);
-        enabled ??= datum.enabled;
-        const lm = this.ctx.localeManager;
-        if (nodeIndex >= 0 && label) {
-            const index = nodeIndex + 1;
-            const count = this.data.length;
-            const part1 = lm.t('ariaLabelLegendItem', { label, index, count });
-            const part2 = lm.t(enabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden');
-            return [part1, part2].join('');
+        if (nodeIndex >= 0 && label && datum) {
+            return {
+                id: 'ariaLabelLegendItem',
+                params: {
+                    label,
+                    index: nodeIndex + 1,
+                    count: this.data.length,
+                },
+            };
         }
-        return lm.t('ariaLabelLegendItemUnknown');
+        return { id: 'ariaLabelLegendItemUnknown' };
     }
 
     private positionLegend(ctx: LayoutContext) {

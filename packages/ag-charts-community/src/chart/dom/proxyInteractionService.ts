@@ -32,12 +32,21 @@ type ContainerParams<T extends ProxyContainerType> = {
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: string | TranslationKey };
+        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
         result: HTMLButtonElement;
     };
     slider: {
         params: ElemParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly ariaOrientation: Direction };
         result: HTMLInputElement;
+    };
+    switch: {
+        params: ElemParams<'switch'> & {
+            readonly ariaLabel: TranslationKey;
+            readonly checked: boolean;
+            readonly checkedKey: TranslationKey;
+            readonly uncheckedKey: TranslationKey;
+        };
+        result: HTMLButtonElement;
     };
     toolbar: {
         params: ContainerParams<'toolbar'>;
@@ -49,7 +58,7 @@ type ProxyMeta = {
     };
 };
 
-type ProxyElementType = 'button' | 'slider';
+type ProxyElementType = 'button' | 'slider' | 'switch';
 type ProxyContainerType = 'toolbar' | 'group';
 
 function checkType<T extends keyof ProxyMeta>(
@@ -60,7 +69,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div', group: 'div' } as const;
+    const map = { button: 'button', slider: 'input', switch: 'button', toolbar: 'div', group: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -121,14 +130,10 @@ export class ProxyInteractionService {
             const { params, result: button } = meta;
             this.initElement(params, button);
 
-            if (typeof params.textContent === 'string') {
-                button.textContent = params.textContent;
-            } else {
-                const { textContent } = params;
-                this.addLocalisation(() => {
-                    button.textContent = this.localeManager.t(textContent.id, textContent.params);
-                });
-            }
+            const { textContent } = params;
+            this.addLocalisation(() => {
+                button.textContent = this.localeManager.t(textContent.id, textContent.params);
+            });
         }
 
         if (checkType('slider', meta)) {
@@ -141,6 +146,23 @@ export class ProxyInteractionService {
 
             this.addLocalisation(() => {
                 slider.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
+            });
+        }
+
+        if (checkType('switch', meta)) {
+            const { params, result: switchButton } = meta;
+            this.initElement(params, switchButton);
+            switchButton.type = 'button';
+            switchButton.role = 'switch';
+            switchButton.ariaChecked = `${params.checked}`;
+            this.addLocalisation(() => {
+                const unchecked = createElement('span');
+                const checked = createElement('span');
+                unchecked.textContent = this.localeManager.t(params.uncheckedKey.id);
+                checked.textContent = this.localeManager.t(params.checkedKey.id);
+                switchButton.innerHTML = '';
+                switchButton.append(unchecked, checked);
+                switchButton.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
             });
         }
 
