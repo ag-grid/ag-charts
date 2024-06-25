@@ -144,6 +144,8 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: e2e test (${{ matrix.shard }}/${{ strategy.job-total }})
                   status: in_progress
+                  details_url: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
