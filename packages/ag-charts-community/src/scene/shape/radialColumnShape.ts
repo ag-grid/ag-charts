@@ -44,7 +44,6 @@ export class RadialColumnShape extends Path {
     isRadiusAxisReversed?: boolean = false;
 
     set cornerRadius(_value: number) {
-        console.log(_value);
         // TODO implement cornerRadius support
     }
 
