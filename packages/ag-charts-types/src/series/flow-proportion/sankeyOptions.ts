@@ -49,7 +49,7 @@ export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, Lin
 
 export interface AgSankeySeriesLinkOptions<TDatum = any> extends AgSankeySeriesLinkStyle {
     /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler: Styler<AgSankeySeriesLinkItemStylerParams<TDatum>, AgSankeySeriesLinkStyle>;
+    itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum>, AgSankeySeriesLinkStyle>;
 }
 
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -62,7 +62,7 @@ export interface AgSankeySeriesNodeOptions<TDatum = any> extends AgSankeySeriesN
     /** Alignment of the nodes. */
     alignment?: 'left' | 'right' | 'center' | 'justify';
     /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler: Styler<AgSankeySeriesNodeItemStylerParams<TDatum>, AgSankeySeriesNodeStyle>;
+    itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum>, AgSankeySeriesNodeStyle>;
 }
 
 export interface AgSankeySeriesOptionsKeys {

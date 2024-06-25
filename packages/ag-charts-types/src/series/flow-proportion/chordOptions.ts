@@ -54,7 +54,7 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
 
 export interface AgChordSeriesLinkOptions<TDatum> extends AgChordSeriesLinkStyle {
     /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler: Styler<AgChordSeriesLinkItemStylerParams<TDatum>, AgChordSeriesLinkStyle>;
+    itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum>, AgChordSeriesLinkStyle>;
 }
 
 export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -65,7 +65,7 @@ export interface AgChordSeriesNodeOptions<TDatum> extends AgChordSeriesNodeStyle
     /** Width of the nodes. */
     width?: PixelSize;
     /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler: Styler<AgChordSeriesNodeItemStylerParams<TDatum>, AgChordSeriesNodeStyle>;
+    itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum>, AgChordSeriesNodeStyle>;
 }
 
 export interface AgChordSeriesOptionsKeys {
