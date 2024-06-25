@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaLabelLegendPagination: 'Пагинация на легендата',
     ariaLabelLegendPagePrevious: 'Предишна страница на легендата',
     ariaLabelLegendPageNext: 'Следваща страница на легендата',
-    ariaLabelLegendItem: '${label}, Елемент от легендата ${index}[number] от ${count}[number]',
+    ariaLabelLegendItem: '${label}, Елемент от легендата ${index}[number] от ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Неизвестен елемент в легендата',
     ariaLabelNavigator: 'Навигатор',
     ariaLabelNavigatorRange: 'Обхват',

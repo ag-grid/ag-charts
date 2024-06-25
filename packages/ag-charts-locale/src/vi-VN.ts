@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelLegendPagination: 'Phân trang Chú giải',
     ariaLabelLegendPagePrevious: 'Trang Huyền Thoại Trước',
     ariaLabelLegendPageNext: 'Trang Chú Giải Tiếp Theo',
-    ariaLabelLegendItem: '${label}, Mục chú giải ${index}[number] trong số ${count}[number]',
+    ariaLabelLegendItem: '${label}, Mục chú giải ${index}[number] trong số ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Mục chú giải không xác định',
     ariaLabelNavigator: 'Trình điều hướng',
     ariaLabelNavigatorRange: 'Phạm vi',
