@@ -13,7 +13,11 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}',
     // Screen reader announcement when focusing a node in a Sankey or chord chart
     ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
-    // Screen reader text for the legend button
+    // Screen reader text for annotations toolbar
+    ariaLabelAnnotationsToolbar: 'Annotations',
+    // Screen reader text for annotation-options toolbar
+    ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
+    // Screen reader text for the legend toolbar
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button
     ariaLabelLegendPagination: 'Legend Pagination',
@@ -33,6 +37,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelNavigatorMinimum: 'Minimum',
     // Screen reader text for an accessibility control that changes the end of the navigator's range
     ariaLabelNavigatorMaximum: 'Maximum',
+    // Screen reader text for ranges toolbar
+    ariaLabelRangesToolbar: 'Ranges',
+    // Screen reader text for zoom toolbar
+    ariaLabelZoomToolbar: 'Zoom',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent] to ${max}[percent]',
     // Default text for the 'loading data' overlay

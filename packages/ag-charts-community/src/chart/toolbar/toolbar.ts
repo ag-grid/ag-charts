@@ -341,6 +341,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             onFocus,
             onBlur,
         });
+        this.updateToolbarAriaLabel(group, alignElement);
     }
 
     private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
@@ -414,6 +415,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const group of TOOLBAR_GROUPS) {
             const groupProxyOptions = groupProxied.get(group);
             groupButtons[group].forEach((element) => this.refreshButtonLocale(element, this[group], groupProxyOptions));
+            this.updateToolbarAriaLabel(group);
         }
 
         this.hasNewLocale = false;
@@ -536,6 +538,22 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.destroyFns.push(() => button.remove());
 
         return button;
+    }
+
+    private updateToolbarAriaLabel(group: ToolbarGroup, alignElement?: HTMLElement) {
+        if (!alignElement) {
+            const align = this[group].align ?? 'start';
+            const position = this[group].position ?? 'top';
+            alignElement = this.positionAlignments[position][align];
+            if (!alignElement) return;
+        }
+        const map = {
+            annotations: 'ariaLabelAnnotationsToolbar',
+            annotationOptions: 'ariaLabelAnnotationOptionsToolbar',
+            ranges: 'ariaLabelRangesToolbar',
+            zoom: 'ariaLabelZoomToolbar',
+        } as const;
+        alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }
 
     private updateButtonText(button: HTMLButtonElement, options: ToolbarButton) {
