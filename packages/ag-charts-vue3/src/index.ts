@@ -1,4 +1,4 @@
-import { PropType, defineComponent, h } from 'vue';
+import { PropType, defineComponent, h, toRaw } from 'vue';
 
 import { AgChartInstance, AgChartOptions, AgCharts as AgChartsAPI, AgFinancialChartOptions } from 'ag-charts-community';
 
@@ -19,7 +19,7 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
     },
     watch: {
         options(options) {
-            this.chart?.update({ ...options, container: this.$el });
+            toRaw(this.chart)?.update({ ...options, container: this.$el });
         },
     },
     mounted() {
@@ -49,7 +49,7 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
     },
     watch: {
         options(options) {
-            this.chart?.update({ ...options, container: this.$el });
+            toRaw(this.chart)?.update({ ...options, container: this.$el });
         },
     },
     mounted() {
