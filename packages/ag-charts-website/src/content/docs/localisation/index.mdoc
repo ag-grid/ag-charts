@@ -140,8 +140,6 @@ If you return `undefined` from this function, it will fall back to the default b
 
 {% tabItem id="FormatJS" label="FormatJS" %}
 
-{% flex direction="column" gap="size-6" %}
-
 ```js
 import { createIntl } from '@formatjs/intl';
 
@@ -166,15 +164,9 @@ AgCharts.create({
 });
 ```
 
-{% link href="https://codesandbox.io/p/devbox/ag-charts-formatjs-s88pll" isExternal=true %}View in CodeSandbox{% /link %}
-
-{% /flex %}
-
 {% /tabItem %}
 
 {% tabItem id="I18Next" label="I18Next" %}
-
-{% flex direction="column" gap="size-6" %}
 
 ```js
 import i18next from 'i18next';
@@ -204,10 +196,6 @@ AgCharts.create({
 });
 ```
 
-{% link href="https://codesandbox.io/p/devbox/ag-charts-i18next-kxzhft" isExternal=true %}View in CodeSandbox{% /link %}
-
-{% /flex %}
-
 {% /tabItem %}
 
 {% /if %}
@@ -215,8 +203,6 @@ AgCharts.create({
 {% if isFramework("react") %}
 
 {% tabItem id="React Intl" label="React Intl" %}
-
-{% flex direction="column" gap="size-6" %}
 
 ```jsx
 import { IntlProvider, useIntl } from 'react-intl';
@@ -253,15 +239,9 @@ const App = () => {
 }
 ```
 
-{% link href="https://codesandbox.io/p/devbox/ag-charts-formatjs-s88pll" isExternal=true %}View in CodeSandbox{% /link %}
-
-{% /flex %}
-
 {% /tabItem %}
 
 {% tabItem id="React I18Next" label="React I18Next" %}
-
-{% flex direction="column" gap="size-6" %}
 
 ```js
 import i18next from 'i18next';
@@ -297,10 +277,6 @@ const MyChart = () => {
     return <AgCharts options={options} />;
 }
 ```
-
-{% link href="https://codesandbox.io/p/devbox/ag-charts-i18next-kxzhft" isExternal=true %}View in CodeSandbox{% /link %}
-
-{% /flex %}
 
 {% /tabItem %}
 
