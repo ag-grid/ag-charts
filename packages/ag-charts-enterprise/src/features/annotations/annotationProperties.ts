@@ -51,7 +51,7 @@ export class AnnotationAxisLabelProperties extends Stroke(LineDash(Fill(Label(Ba
     enabled?: boolean;
 
     @Validate(POSITIVE_NUMBER)
-    cornerRadius: number = 0;
+    cornerRadius: number = 2;
 }
 
 // --- Annotations Mixins ---
@@ -183,8 +183,8 @@ export interface AnnotationAxisLabelFormatterParams {
 
 export function Label<T extends Constructor>(Parent: T) {
     class LabelOptions extends Parent {
-        @Validate(POSITIVE_NUMBER)
-        padding: number = 8;
+        @Validate(POSITIVE_NUMBER, { optional: true })
+        padding?: number;
 
         @Validate(TEXT_ALIGN, { optional: true })
         textAlign: TextAlign = 'center';
@@ -196,10 +196,10 @@ export function Label<T extends Constructor>(Parent: T) {
         fontWeight?: FontWeight;
 
         @Validate(POSITIVE_NUMBER)
-        fontSize: number = 10;
+        fontSize: number = 12;
 
         @Validate(STRING)
-        fontFamily: string = 'sans-serif';
+        fontFamily: string = 'Verdana, sans-serif';
 
         @Validate(COLOR_STRING, { optional: true })
         color?: string;

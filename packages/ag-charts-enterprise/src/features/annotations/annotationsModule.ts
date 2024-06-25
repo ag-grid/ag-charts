@@ -31,7 +31,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     color: 'white',
                     fill: _Theme.DEFAULT_ANNOTATION_STROKE,
                     fontSize: 12,
-                    padding: 8,
+                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 },
             },
             'vertical-line': {
@@ -46,7 +46,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     color: 'white',
                     fill: _Theme.DEFAULT_ANNOTATION_STROKE,
                     fontSize: 12,
-                    padding: 8,
+                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 },
             },
             'disjoint-channel': {
