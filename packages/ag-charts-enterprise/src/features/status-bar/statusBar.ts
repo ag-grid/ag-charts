@@ -120,6 +120,8 @@ export class StatusBar
     }
 
     async processData(opts: { dataController: _ModuleSupport.DataController }) {
+        if (!this.enabled) return;
+
         const { dataController } = opts;
         const { processedData, dataModel } = await dataController.request(this.id, this.data, {
             props: [

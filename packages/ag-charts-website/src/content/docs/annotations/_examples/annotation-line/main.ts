@@ -14,7 +14,6 @@ const options: AgFinancialChartOptions = {
     footnote: {
         text: '1 Minute',
     },
-    timeFormat: '%H:%M',
     initialState: {
         annotations: [
             {

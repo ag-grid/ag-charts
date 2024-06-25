@@ -111,8 +111,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableDoubleClickToReset = true;
 
-    @Validate(BOOLEAN)
-    public enableIndependentAxes = false;
+    @Validate(BOOLEAN, { optional: true })
+    public enableIndependentAxes?: boolean;
 
     @Validate(BOOLEAN)
     public enablePanning = true;
@@ -483,7 +483,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const props = this.getModuleProperties({ isScalingX, isScalingY });
 
-        if (enableIndependentAxes) {
+        if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom }] of Object.entries(newZooms)) {
                 if (isAxisScrolling && hoveredAxis.id !== axisId) continue;
@@ -722,7 +722,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = this.getZoom();
 
-        if (!enableIndependentAxes) {
+        if (enableIndependentAxes !== true) {
             zoom[direction] = axisZoom;
             this.updateZoom(zoom);
             return;
@@ -755,7 +755,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             anchorPointX: overrides?.anchorPointX ?? this.getAnchorPointX(),
             anchorPointY: overrides?.anchorPointY ?? this.getAnchorPointY(),
             enabled: overrides?.enabled ?? this.enabled,
-            independentAxes: overrides?.independentAxes ?? this.enableIndependentAxes,
+            independentAxes: overrides?.independentAxes ?? this.enableIndependentAxes === true,
             isScalingX: overrides?.isScalingX ?? this.isScalingX(),
             isScalingY: overrides?.isScalingY ?? this.isScalingY(),
             minRatioX: overrides?.minRatioX ?? this.minRatioX,

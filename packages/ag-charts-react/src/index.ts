@@ -31,7 +31,7 @@ function getOptions(options: AgChartOptions, containerRef: RefObject<HTMLElement
 }
 
 function ChartWithConstructor<Props extends BaseChartProps>(
-    ctor: (options: Props['options']) => AgChartInstance,
+    ctor: (options: Props['options']) => AgChartInstance<Props['options']>,
     displayName: string
 ) {
     const Component = forwardRef<AgChartInstance, Props>(function AgChartsReact(props, ref) {

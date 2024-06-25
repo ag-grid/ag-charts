@@ -7,7 +7,13 @@ export type AgPriceVolumePreset = {
     closeKey?: string;
     volumeKey?: string;
 
-    timeFormat?: string;
+    navigator?: boolean;
+
+    volume?: boolean;
+    rangeToolbar?: boolean;
+    statusBar?: boolean;
+    annotations?: boolean;
+    zoom?: boolean;
 };
 
 export type AgFinancialChartPresets = AgPriceVolumePreset;

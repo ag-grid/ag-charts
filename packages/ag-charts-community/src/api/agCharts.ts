@@ -24,7 +24,6 @@ import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
-import { PRESETS } from './preset/presets';
 import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
@@ -66,7 +65,7 @@ export abstract class AgCharts {
     }
 
     /** @private - for use by Charts website dark-mode support. */
-    static optionsMutationFn?: (opts: AgChartOptions) => AgChartOptions;
+    static optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
     public static setLicenseKey(licenseKey: string) {
         this.licenseKey = licenseKey;
@@ -104,7 +103,7 @@ export abstract class AgCharts {
         return this.create({
             _type: 'price-volume',
             ...options,
-        }) as unknown as AgChartInstance<AgFinancialChartOptions>;
+        } as AgChartOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
     }
 }
 
@@ -141,19 +140,19 @@ class AgChartsInternal {
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
 
-        if (options._type != null) {
-            const presetOptions = (PRESETS as any)[options._type]?.(options) ?? options;
-            debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
-            options = presetOptions;
-        }
-
         if (AgCharts.optionsMutationFn) {
-            options = AgCharts.optionsMutationFn(options);
+            options = AgCharts.optionsMutationFn(options, options._type);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
-        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = options;
-        const chartOptions = new ChartOptions(userOptions, { overrideDevicePixelRatio, document, window: userWindow });
+        const defaultType = proxy?.chart.chartOptions.type;
+        const { overrideDevicePixelRatio, document, window: userWindow, _type = defaultType, ...userOptions } = options;
+        const chartOptions = new ChartOptions(userOptions, {
+            overrideDevicePixelRatio,
+            document,
+            window: userWindow,
+            type: _type,
+        });
 
         let chart = proxy?.chart;
         if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {

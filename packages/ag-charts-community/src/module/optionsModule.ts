@@ -7,6 +7,7 @@ import {
     AgTooltipPositionType,
 } from 'ag-charts-types';
 
+import { PRESETS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -51,6 +52,7 @@ interface ChartSpecialOverrides {
     window: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
+    type?: string;
 }
 
 type GroupingOptions = {
@@ -82,13 +84,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     annotationThemes: any;
+    type?: string;
+
+    private readonly debug = Debug.create(true, 'opts');
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
         this.userOptions = deepClone(userOptions, cloneOptions);
         const chartType = this.optionsType(this.userOptions);
 
-        const options = deepClone(userOptions, cloneOptions);
+        let options = deepClone(userOptions, cloneOptions);
+
+        this.type = specialOverrides?.type;
+        if (this.type != null) {
+            const presetOptions = (PRESETS as any)[this.type]?.(options) ?? options;
+            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
+            options = presetOptions;
+        }
         this.sanityCheckAndCleanup(options);
 
         this.activeTheme = getChartTheme(options.theme);
@@ -315,7 +327,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected setSeriesGroupingOptions(allSeries: GroupingSeriesOptions[]) {
         const seriesGroups = this.getSeriesGrouping(allSeries);
 
-        Debug.create(true, 'opts')('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
+        this.debug('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
 
         const groupIdx: Record<string, number> = {};
         const groupCount = seriesGroups.reduce<Record<string, number>>((countMap, seriesGroup) => {
