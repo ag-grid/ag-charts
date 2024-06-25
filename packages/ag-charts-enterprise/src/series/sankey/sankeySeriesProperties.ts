@@ -1,9 +1,11 @@
 import {
-    type AgSankeySeriesFormatterParams,
     type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
     type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeItemStylerParams,
     type AgSankeySeriesNodeOptions,
+    type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
     type AgSankeySeriesTooltipRendererParams,
     type Styler,
@@ -84,6 +86,9 @@ export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLin
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
 }
 
 export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
@@ -116,6 +121,9 @@ export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNod
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
 }
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
     @Validate(ARRAY, { optional: true })
@@ -159,9 +167,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Validate(OBJECT)
     readonly node = new SankeySeriesNodeProperties();
-
-    @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgSankeySeriesFormatterParams<unknown>, AgSankeySeriesLinkStyle>;
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams<any>>();

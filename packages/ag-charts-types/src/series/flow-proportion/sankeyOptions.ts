@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
@@ -14,6 +14,16 @@ export interface AgSankeySeriesOptions<TDatum = any>
     type: 'sankey';
 }
 
+export interface AgSankeySeriesLinkItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
+        AgSankeySeriesOptionsKeys,
+        Required<AgSankeySeriesLinkStyle> {}
+
+export interface AgSankeySeriesNodeItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
+        AgSankeySeriesOptionsKeys,
+        Required<AgSankeySeriesNodeStyle> {}
+
 export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum>;
@@ -22,7 +32,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeri
     /** The colours to cycle through for the strokes of the nodes and links. */
     strokes?: CssColor[];
     /** Options for the links. */
-    link?: AgSankeySeriesLinkOptions;
+    link?: AgSankeySeriesLinkOptions<TDatum>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions;
     /** Series-specific tooltip configuration. */
@@ -37,14 +47,22 @@ export interface AgSankeySeriesLabelOptions<TDatum>
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgSankeySeriesLinkOptions extends AgSankeySeriesLinkStyle {}
-export interface AgSankeySeriesNodeOptions extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgSankeySeriesLinkOptions<TDatum = any> extends AgSankeySeriesLinkStyle {
+    /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    itemStyler: Styler<AgSankeySeriesLinkItemStylerParams<TDatum>, AgSankeySeriesLinkStyle>;
+}
+
+export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+
+export interface AgSankeySeriesNodeOptions<TDatum = any> extends AgSankeySeriesNodeStyle {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
     width?: PixelSize;
     /** Alignment of the nodes. */
     alignment?: 'left' | 'right' | 'center' | 'justify';
+    /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    itemStyler: Styler<AgSankeySeriesNodeItemStylerParams<TDatum>, AgSankeySeriesNodeStyle>;
 }
 
 export interface AgSankeySeriesOptionsKeys {
@@ -66,13 +84,5 @@ export interface AgSankeySeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames {}
-
-export interface AgSankeySeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
-        AgSankeySeriesOptionsKeys,
-        AgSankeySeriesLinkStyle {
-    /** `true` if the sector is highlighted by hovering. */
-    readonly highlighted: boolean;
-}
 
 export interface AgSankeySeriesLabelFormatterParams<_TDatum = any> extends AgSankeySeriesOptionsKeys {}
