@@ -32,7 +32,7 @@ type ContainerParams<T extends ProxyContainerType> = {
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
+        params: ElemParams<'button'> & { readonly textContent: string | TranslationKey };
         result: HTMLButtonElement;
     };
     slider: {
@@ -121,9 +121,14 @@ export class ProxyInteractionService {
             const { params, result: button } = meta;
             this.initElement(params, button);
 
-            this.addLocalisation(() => {
-                button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
-            });
+            if (typeof params.textContent === 'string') {
+                button.textContent = params.textContent;
+            } else {
+                const { textContent } = params;
+                this.addLocalisation(() => {
+                    button.textContent = this.localeManager.t(textContent.id, textContent.params);
+                });
+            }
         }
 
         if (checkType('slider', meta)) {

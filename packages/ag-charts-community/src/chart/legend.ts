@@ -272,7 +272,8 @@ export class Legend extends BaseProperties {
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
-            () => this.detachLegend()
+            () => this.detachLegend(),
+            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged())
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
@@ -312,7 +313,10 @@ export class Legend extends BaseProperties {
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => this.doClick(markerLabel.datum),
+                onclick: () => {
+                    this.doClick(markerLabel.datum);
+                    markerLabel.proxyButton!.textContent = this.getItemAriaText(i);
+                },
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
                     const bounds = markerLabel?.computeTransformedBBox();
@@ -1178,21 +1182,24 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getItemAriaText(nodeIndex: number): { id: string; params?: Record<string, any> } {
+    private onLocaleChanged() {
+        this.itemSelection.each(({ proxyButton }, _, i) => {
+            if (proxyButton != null) {
+                proxyButton.textContent = this.getItemAriaText(i);
+            }
+        });
+    }
+
+    private getItemAriaText(nodeIndex: number): string {
         const datum = this.data[nodeIndex];
         const label = datum && this.getItemLabel(datum);
+        const lm = this.ctx.localeManager;
         if (nodeIndex >= 0 && label && datum) {
-            return {
-                id: 'ariaLabelLegendItem',
-                params: {
-                    label,
-                    visibility: datum.enabled ? 'visible' : 'hidden',
-                    index: nodeIndex + 1,
-                    count: this.data.length,
-                },
-            };
+            const part1 = lm.t('ariaLabelLegendItem', { label, index: nodeIndex + 1, count: this.data.length });
+            const part2 = lm.t(datum.enabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden');
+            return [part1, part2].join('');
         }
-        return { id: 'ariaLabelLegendItemUnknown' };
+        return lm.t('ariaLabelLegendItemUnknown');
     }
 
     private positionLegend(shrinkRect: BBox) {
