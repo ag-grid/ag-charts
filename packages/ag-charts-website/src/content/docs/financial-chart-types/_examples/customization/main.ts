@@ -5,7 +5,12 @@ import { getData } from './data';
 (window as any).agChartsDebug = 'opts';
 
 const options: AgFinancialChartOptions = {
-    theme: {},
+    theme: {
+        palette: {
+            up: { fill: 'orange', stroke: 'light-orange' },
+            down: { fill: 'blue', stroke: 'light-blue' },
+        },
+    },
     container: document.getElementById('myChart'),
     data: getData(),
 };

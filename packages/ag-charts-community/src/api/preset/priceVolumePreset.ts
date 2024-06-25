@@ -14,7 +14,12 @@ import type {
     AgZoomOptions,
 } from 'ag-charts-types';
 
-export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions): AgCartesianChartOptions {
+import type { ChartTheme } from '../../chart/themes/chartTheme';
+
+export function priceVolume(
+    opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
+    getTheme: () => ChartTheme
+): AgCartesianChartOptions {
     const {
         xKey = 'date',
         highKey = 'high',
@@ -43,7 +48,8 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                   xKey: 'date',
                   yKey: volumeKey,
                   itemStyler: ({ datum }) => {
-                      return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
+                      const { up, down } = getTheme().palette;
+                      return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
                   },
               } satisfies AgBarSeriesOptions,
           ]
@@ -78,12 +84,6 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                   lowKey,
                   closeKey,
                   volumeKey,
-                  positive: {
-                      color: '#089981',
-                  },
-                  negative: {
-                      color: '#F23645',
-                  },
               },
           }
         : null;

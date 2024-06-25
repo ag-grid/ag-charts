@@ -38,21 +38,27 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
         },
     },
     groupable: false,
-    paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const {
-            strokes: [stroke],
-        } = takeColors(colorsCount);
-        const { strokes: DEFAULT_STROKES } = themeTemplateParameters.get(
-            _Theme.DEFAULT_COLOURS
-        ) as unknown as _ModuleSupport.DefaultColors;
+    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
+        if (userPalette === 'user-indexed') {
+            const {
+                strokes: [stroke],
+            } = takeColors(colorsCount);
+            return {
+                item: {
+                    up: {
+                        stroke: stroke,
+                    },
+                    down: {
+                        stroke: stroke,
+                    },
+                },
+            };
+        }
+
         return {
             item: {
-                up: {
-                    stroke: userPalette ? stroke : DEFAULT_STROKES.GREEN,
-                },
-                down: {
-                    stroke: userPalette ? stroke : DEFAULT_STROKES.RED,
-                },
+                up: { stroke: palette.up.stroke },
+                down: { stroke: palette.down.stroke },
             },
         };
     },

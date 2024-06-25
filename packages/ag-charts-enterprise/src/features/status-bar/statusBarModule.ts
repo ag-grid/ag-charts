@@ -21,10 +21,10 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
                 color: _Theme.DEFAULT_LABEL_COLOUR,
             },
             positive: {
-                color: 'green',
+                color: _Theme.PALETTE_UP_STROKE,
             },
             negative: {
-                color: 'red',
+                color: _Theme.PALETTE_DOWN_STROKE,
             },
         },
     },

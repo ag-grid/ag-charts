@@ -4,12 +4,7 @@ import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
-    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
 const VIVID_DARK_FILLS = {
@@ -44,61 +39,24 @@ const palette: AgChartThemePalette = {
 };
 
 export class VividDark extends DarkTheme {
-    protected static override getDefaultColors() {
+    override getDefaultColors() {
         return {
             fills: VIVID_DARK_FILLS,
             strokes: VIVID_DARK_STROKES,
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: VIVID_DARK_FILLS.BLUE,
-            stroke: VIVID_DARK_STROKES.BLUE,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: VIVID_DARK_FILLS.ORANGE,
-            stroke: VIVID_DARK_STROKES.ORANGE,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: VIVID_DARK_FILLS.GRAY,
-            stroke: VIVID_DARK_STROKES.GRAY,
-            label: {
-                color: 'white',
-            },
+            up: { fill: VIVID_DARK_FILLS.BLUE, stroke: VIVID_DARK_STROKES.BLUE },
+            down: { fill: VIVID_DARK_FILLS.ORANGE, stroke: VIVID_DARK_STROKES.ORANGE },
+            neutral: { fill: VIVID_DARK_FILLS.GRAY, stroke: VIVID_DARK_STROKES.GRAY },
         };
     }
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_COLOURS, VividDark.getDefaultColors());
-        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, VividDark.getWaterfallSeriesDefaultPositiveColors());
-        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, VividDark.getWaterfallSeriesDefaultNegativeColors());
-        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, VividDark.getWaterfallSeriesDefaultTotalColors());
-
         params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
             VIVID_DARK_FILLS.ORANGE,
             VIVID_DARK_FILLS.YELLOW,
             VIVID_DARK_FILLS.GREEN,
         ]);
-
-        params.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            VividDark.getWaterfallSeriesDefaultTotalColors().stroke
-        );
 
         params.set(DEFAULT_ANNOTATION_STROKE, VIVID_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_DARK_FILLS.BLUE);

@@ -31,8 +31,8 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
             (Array.isArray(defaultBackgroundColor) ? defaultBackgroundColor[0] : defaultBackgroundColor) ?? 'white';
         const { fills, strokes } = takeColors(colorsCount);
         return {
-            stroke: userPalette ? strokes[0] : backgroundFill,
-            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
+            stroke: userPalette === 'inbuilt' ? backgroundFill : strokes[0],
+            colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
         };
     },
 };
