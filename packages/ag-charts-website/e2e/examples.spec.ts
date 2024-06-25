@@ -28,6 +28,30 @@ const notServedGalleryExamples = [
     '100--stacked-column',
     '100--stacked-bar',
 ];
+const ignoreFWExamples = {
+    // FW pages don't have these examples, as they make no sense.
+    'api-create-update': ['update-partial', 'wait-for-update'],
+};
+const clickBehaviorExamples = {
+    // Buttons have no visible rendering change.
+    // 'api-download': { download: 'no-update' },
+    events: { 'interaction-ranges': 'no-update' },
+    tooltips: { 'interaction-range': 'no-update' },
+
+    // First button is the default option, so no rendering change.
+    legend: { 'legend-position': 'reverse' },
+    themes: { 'stock-themes': 'reverse', 'advanced-theme': 'reverse' },
+
+    // Too complex to test with a naive button-click sweep.
+    'axis-labels': { 'axis-label-rotation': 'skip' },
+
+    // BROKEN!!!!!!!
+    'api-download': { download: 'skip' },
+
+    // ????
+    'sankey-series': { alignment: 'no-update' },
+    'range-bar-series': { 'range-bar-missing-data': 'skip' },
+};
 
 function convertPageUrls(path: string) {
     const astroPath = path.split('content/').at(1)!;
@@ -40,7 +64,13 @@ function convertPageUrls(path: string) {
             status = '404';
         }
 
-        return toGalleryPageUrls(example).map((r) => ({ ...r, status, pagePath }));
+        return toGalleryPageUrls(example).map((r) => ({
+            ...r,
+            status,
+            pagePath,
+            ignoreFWs: false,
+            clickBehavior: clickBehaviorExamples['gallery']?.[example] ?? 'normal',
+        }));
     }
     const page = pagePath.replace(/^docs\//, '');
 
@@ -48,7 +78,13 @@ function convertPageUrls(path: string) {
         status = 'skip';
     }
 
-    return toExamplePageUrls(page, example).map((r) => ({ ...r, status, pagePath }));
+    return toExamplePageUrls(page, example).map((r) => ({
+        ...r,
+        status,
+        pagePath,
+        ignoreFWs: ignoreFWExamples[page]?.includes(example) ?? false,
+        clickBehavior: clickBehaviorExamples[page]?.[example] ?? 'normal',
+    }));
 }
 
 test.describe('examples', () => {
@@ -79,15 +115,43 @@ test.describe('examples', () => {
     }
 
     for (const { path, affected } of examples) {
-        const testUrls = convertPageUrls(path);
-        for (const { url, status, fw, pagePath, example: exampleName } of testUrls) {
+        for (const opts of convertPageUrls(path)) {
+            const { url, status, fw, pagePath, example: exampleName, ignoreFWs, clickBehavior } = opts;
+
+            if (ignoreFWs && fw !== 'vanilla' && fw !== 'typescript') continue;
+
             test.describe(`Framework: ${fw}`, () => {
                 test.describe(`Example ${pagePath}: ${exampleName}`, () => {
                     if (status === 'ok') {
                         test(`should load ${url}`, async ({ page }) => {
                             test.skip(!affected, 'unaffected example');
 
+                            // Load example and wait for things to settle.
                             await gotoExample(page, url);
+
+                            // Check we're dealing with a single canvas, otherwise things get tricky!
+                            const canvases = await page.locator('.ag-charts-wrapper').all();
+                            if (canvases.length > 1) return;
+                            const canvas = canvases[0];
+
+                            // Try pressing the buttons to see if any errors are thrown.
+                            if (clickBehavior === 'skip') return;
+                            const buttons = await page.locator('.toolPanel > button').all();
+                            if (clickBehavior === 'reverse') buttons.reverse();
+
+                            for (const button of buttons) {
+                                const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
+
+                                await button.click();
+
+                                if (clickBehavior === 'normal') {
+                                    await expect
+                                        .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
+                                        .toBeGreaterThan(sceneRenderCount);
+                                } else {
+                                    await page.waitForLoadState('networkidle');
+                                }
+                            }
                         });
                     }
 
