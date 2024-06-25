@@ -315,7 +315,7 @@ export class Legend extends BaseProperties {
                 // using Series.getLegendData(). But the scene node will stay the same.
                 onclick: () => {
                     this.doClick(markerLabel.datum);
-                    markerLabel.proxyButton!.textContent = this.getItemAriaText(i);
+                    markerLabel.proxyButton!.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
                 },
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
@@ -1190,13 +1190,16 @@ export class Legend extends BaseProperties {
         });
     }
 
-    private getItemAriaText(nodeIndex: number): string {
+    private getItemAriaText(nodeIndex: number, enabled?: boolean): string {
         const datum = this.data[nodeIndex];
         const label = datum && this.getItemLabel(datum);
+        enabled ??= datum.enabled;
         const lm = this.ctx.localeManager;
-        if (nodeIndex >= 0 && label && datum) {
-            const part1 = lm.t('ariaLabelLegendItem', { label, index: nodeIndex + 1, count: this.data.length });
-            const part2 = lm.t(datum.enabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden');
+        if (nodeIndex >= 0 && label) {
+            const index = nodeIndex + 1;
+            const count = this.data.length;
+            const part1 = lm.t('ariaLabelLegendItem', { label, index, count });
+            const part2 = lm.t(enabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden');
             return [part1, part2].join('');
         }
         return lm.t('ariaLabelLegendItemUnknown');
