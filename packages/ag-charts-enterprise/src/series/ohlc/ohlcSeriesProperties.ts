@@ -1,11 +1,16 @@
-import type { AgOhlcSeriesFormatterParams, AgOhlcSeriesOptions, AgOhlcSeriesStyles, Styler } from 'ag-charts-community';
+import type {
+    AgCandlestickSeriesItemOptions,
+    AgOhlcSeriesItemStylerParams,
+    AgOhlcSeriesOptions,
+    AgOhlcSeriesStyles,
+    Styler,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import {
     type CandlestickSeriesBaseItems,
     CandlestickSeriesProperties,
 } from '../candlestick/candlestickSeriesProperties';
-import type { OhlcNodeDatum } from './ohlcTypes';
 
 const { BaseProperties, Validate, COLOR_STRING, FUNCTION, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO } = _ModuleSupport;
 
@@ -26,7 +31,7 @@ export class OhlcSeriesItem extends BaseProperties {
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgOhlcSeriesFormatterParams<any>, AgOhlcSeriesStyles>;
+    itemStyler?: Styler<AgOhlcSeriesItemStylerParams<any>, AgOhlcSeriesStyles>;
 }
 
 class OhlcSeriesItems extends BaseProperties implements CandlestickSeriesBaseItems<OhlcSeriesItem> {
@@ -37,10 +42,10 @@ class OhlcSeriesItems extends BaseProperties implements CandlestickSeriesBaseIte
     readonly down = new OhlcSeriesItem();
 }
 
-export class OhlcSeriesProperties extends CandlestickSeriesProperties<
-    AgOhlcSeriesOptions,
-    AgOhlcSeriesFormatterParams<OhlcNodeDatum>
-> {
+export class OhlcSeriesProperties extends CandlestickSeriesProperties<AgOhlcSeriesOptions> {
     @Validate(OBJECT)
     override readonly item = new OhlcSeriesItems();
+
+    @Validate(FUNCTION, { optional: true })
+    override itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 }

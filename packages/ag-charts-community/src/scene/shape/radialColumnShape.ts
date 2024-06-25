@@ -1,7 +1,6 @@
 import { angleBetween, normalizeAngle360 } from '../../util/angle';
 import { isEqual } from '../../util/number';
 import { BBox } from '../bbox';
-import { ExtendedPath2D } from '../extendedPath2D';
 import { Path, ScenePathChangeDetection } from './path';
 
 function rotatePoint(x: number, y: number, rotation: number) {
@@ -16,8 +15,6 @@ function rotatePoint(x: number, y: number, rotation: number) {
 
 export class RadialColumnShape extends Path {
     static override readonly className = 'RadialColumnShape';
-
-    readonly borderPath = new ExtendedPath2D();
 
     @ScenePathChangeDetection()
     isBeveled: boolean = true;
@@ -45,6 +42,10 @@ export class RadialColumnShape extends Path {
 
     @ScenePathChangeDetection()
     isRadiusAxisReversed?: boolean = false;
+
+    set cornerRadius(_value: number) {
+        // TODO implement cornerRadius support
+    }
 
     override computeBBox(): BBox {
         const { innerRadius, outerRadius, columnWidth } = this;

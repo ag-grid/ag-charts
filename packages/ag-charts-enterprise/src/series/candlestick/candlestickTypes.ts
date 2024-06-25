@@ -1,6 +1,6 @@
 import type {
     AgBarSeriesStyle,
-    AgCandlestickSeriesItemType,
+    AgOhlcSeriesItemType,
     LineDashOptions,
     StrokeOptions,
     _ModuleSupport,
@@ -11,7 +11,7 @@ export interface CandlestickNodeDatum extends CandlestickNodeBaseDatum, Readonly
 }
 
 export interface CandlestickNodeBaseDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
-    readonly itemId: AgCandlestickSeriesItemType;
+    readonly itemId: AgOhlcSeriesItemType;
     readonly bandwidth: number;
     readonly openValue: number;
     readonly closeValue: number;

@@ -1,17 +1,16 @@
 import {
-    type AgCandlestickSeriesBaseItemStylerParams,
     type AgCandlestickSeriesItemOptions,
-    type AgCandlestickSeriesItemType,
+    type AgOhlcSeriesItemType,
     _ModuleSupport,
     _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';
 
-import type { CandlestickBaseGroup } from './candlestickGroup';
-import type { CandlestickSeriesProperties } from './candlestickSeriesProperties';
-import type { CandlestickNodeBaseDatum } from './candlestickTypes';
-import { prepareCandlestickAnimationFunctions } from './candlestickUtil';
+import type { CandlestickBaseGroup } from '../candlestick/candlestickGroup';
+import type { CandlestickSeriesProperties } from '../candlestick/candlestickSeriesProperties';
+import type { CandlestickNodeBaseDatum } from '../candlestick/candlestickTypes';
+import { prepareCandlestickAnimationFunctions } from '../candlestick/candlestickUtil';
 
 const { motion } = _Scene;
 
@@ -25,7 +24,6 @@ const {
     diff,
     animationValidation,
     convertValuesToScaleByDefs,
-    mergeDefaults,
     isFiniteNumber,
 } = _ModuleSupport;
 
@@ -45,13 +43,7 @@ class CandlestickSeriesNodeEvent<
         type: TEvent,
         nativeEvent: Event,
         datum: CandlestickNodeBaseDatum,
-        series: CandlestickSeriesBase<
-            CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
-            any,
-            any,
-            CandlestickNodeBaseDatum,
-            AgCandlestickSeriesBaseItemStylerParams<CandlestickNodeBaseDatum>
-        >
+        series: OhlcSeriesBase<CandlestickBaseGroup<CandlestickNodeBaseDatum, any>, any, any, CandlestickNodeBaseDatum>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
@@ -62,12 +54,11 @@ class CandlestickSeriesNodeEvent<
     }
 }
 
-export abstract class CandlestickSeriesBase<
+export abstract class OhlcSeriesBase<
     TItemShapeGroup extends CandlestickBaseGroup<TNodeDatum, TItemOptions>,
     TItemOptions extends AgCandlestickSeriesItemOptions,
-    TSeriesOptions extends CandlestickSeriesProperties<any, TFormatterParams>,
+    TSeriesOptions extends CandlestickSeriesProperties<any>,
     TNodeDatum extends CandlestickNodeBaseDatum,
-    TFormatterParams extends AgCandlestickSeriesBaseItemStylerParams<TNodeDatum>,
 > extends _ModuleSupport.AbstractBarSeries<TItemShapeGroup, TSeriesOptions, TNodeDatum> {
     protected override readonly NodeEvent = CandlestickSeriesNodeEvent;
 
@@ -308,11 +299,11 @@ export abstract class CandlestickSeriesBase<
         return context;
     }
 
-    private getSeriesItemType(isRising: boolean): AgCandlestickSeriesItemType {
+    private getSeriesItemType(isRising: boolean): AgOhlcSeriesItemType {
         return isRising ? 'up' : 'down';
     }
 
-    protected getItemConfig(seriesItemType: AgCandlestickSeriesItemType) {
+    protected getItemConfig(seriesItemType: AgOhlcSeriesItemType) {
         return this.properties.item[seriesItemType];
     }
 
@@ -479,40 +470,7 @@ export abstract class CandlestickSeriesBase<
         return labelSelection.update(labelData);
     }
 
-    getFormattedStyles(nodeDatum: TNodeDatum, highlighted = false): TItemOptions {
-        const {
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
-        const { xKey, openKey, closeKey, highKey, lowKey, itemStyler } = this.properties;
-
-        if (itemStyler) {
-            const formatStyles = callbackCache.call(
-                itemStyler,
-                this.getFormatterParams({
-                    ...nodeDatum,
-                    seriesId,
-                    highlighted,
-                    xKey,
-                    openKey,
-                    closeKey,
-                    highKey,
-                    lowKey,
-                    stroke: '#000',
-                    strokeWidth: 0,
-                    strokeOpacity: 1,
-                })
-            );
-            if (formatStyles) {
-                return mergeDefaults(formatStyles, this.getSeriesStyles(nodeDatum)) as TItemOptions;
-            }
-        }
-        return this.getSeriesStyles(nodeDatum);
-    }
-
-    protected abstract getFormatterParams(
-        params: AgCandlestickSeriesBaseItemStylerParams<TNodeDatum>
-    ): TFormatterParams;
+    abstract getFormattedStyles(nodeDatum: TNodeDatum, highlighted?: boolean): TItemOptions;
     protected abstract getSeriesStyles(nodeDatum: TNodeDatum): TItemOptions;
     protected abstract getActiveStyles(nodeDatum: TNodeDatum, highlighted: boolean): TItemOptions;
 }

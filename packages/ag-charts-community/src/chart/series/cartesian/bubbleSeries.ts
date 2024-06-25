@@ -241,7 +241,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        const baseStyle = mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle());
+        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
+            highlighted && this.properties.highlightStyle.item,
+            marker.getStyle()
+        );
+        const baseStyle = { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
 
         this.sizeScale.range = [marker.size, marker.maxSize];
 

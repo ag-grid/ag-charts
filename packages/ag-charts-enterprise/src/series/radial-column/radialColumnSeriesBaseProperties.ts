@@ -58,11 +58,14 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
     @Validate(DEGREE)
-    rotation = 0;
+    rotation: number = 0;
 
     @Validate(STRING, { optional: true })
     stackGroup?: string;

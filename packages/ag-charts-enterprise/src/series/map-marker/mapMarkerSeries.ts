@@ -1,11 +1,4 @@
-import {
-    type AgMapShapeSeriesStyle,
-    type AgSeriesMarkerStyle,
-    _ModuleSupport,
-    _Scale,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -567,8 +560,8 @@ export class MapMarkerSeries
 
         markerSelection.each((marker, markerDatum) => {
             const { datum, point } = markerDatum;
-            const format: AgSeriesMarkerStyle | undefined = this.getMapMarkerStyle(markerDatum, isHighlight);
-            marker.size = point.size;
+            const format = this.getMapMarkerStyle(markerDatum, isHighlight);
+            marker.size = format?.size ?? point.size;
             marker.fill = highlightStyle?.fill ?? format?.fill ?? markerDatum.fill ?? fill;
             marker.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
             marker.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
@@ -860,7 +853,7 @@ export class MapMarkerSeries
         if (itemStyler !== undefined) {
             return callbackCache.call(itemStyler, {
                 seriesId,
-                datum: datum.datum,
+                datum,
                 size: point.size,
                 idKey,
                 latitudeKey,
@@ -881,8 +874,7 @@ export class MapMarkerSeries
 
     public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
         const style = this.getMapMarkerStyle(markerDatum, true);
-        const { size = markerDatum.point.size } = style ?? { size: undefined };
-        return { size };
+        return { size: style?.size ?? markerDatum.point.size };
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {

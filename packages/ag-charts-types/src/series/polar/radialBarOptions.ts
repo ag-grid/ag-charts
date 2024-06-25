@@ -1,4 +1,3 @@
-import type { PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
@@ -15,8 +14,6 @@ export interface AgRadialBarSeriesOptions<TDatum = any>
         AgBaseRadialSeriesThemeableOptions<TDatum> {
     /** Configuration for Radial Bar Series. */
     type: 'radial-bar';
-    /** Apply rounded corners to each bar. */
-    cornerRadius?: PixelSize;
     /** The number to normalise the bar stacks to. Has no effect unless series are stacked. */
     normalizedTo?: number;
     /** Whether to group together (adjacently) separate sectors. */

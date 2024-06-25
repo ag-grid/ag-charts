@@ -17,6 +17,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            shape: 'circle',
             maxSize: 30,
             fillOpacity: 0.5,
             label: {

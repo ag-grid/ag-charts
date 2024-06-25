@@ -1,11 +1,11 @@
 import type { DatumItemCallbackParams } from '../../chart/callbackOptions';
-import type { StrokeOptions } from './commonOptions';
+import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgCandlestickSeriesItemType = 'up' | 'down';
+export type AgOhlcSeriesItemType = 'up' | 'down';
 
-export type AgCandlestickSeriesBaseOptions = AgCandlestickSeriesOptionsKeys & AgCandlestickSeriesOptionsNames;
+export type AgOhlcSeriesBaseOptions = AgOhlcSeriesOptionsKeys & AgOhlcSeriesOptionsNames;
 
-export interface AgCandlestickSeriesOptionsKeys {
+export interface AgOhlcSeriesOptionsKeys {
     /** xKey as specified on series options. */
     xKey: string;
     /** The key to use to retrieve open values from the data. */
@@ -18,7 +18,7 @@ export interface AgCandlestickSeriesOptionsKeys {
     lowKey: string;
 }
 
-export interface AgCandlestickSeriesOptionsNames {
+export interface AgOhlcSeriesOptionsNames {
     /** xName as specified on series options. */
     xName?: string;
     /** yName as specified on series options. */
@@ -33,12 +33,12 @@ export interface AgCandlestickSeriesOptionsNames {
     lowName?: string;
 }
 
-type CandlestickItemCallbackParams<TDatum> = DatumItemCallbackParams<AgCandlestickSeriesItemType, TDatum>;
+type OhlcItemCallbackParams<TDatum> = DatumItemCallbackParams<AgOhlcSeriesItemType, TDatum>;
 
-export type AgCandlestickSeriesBaseItemStylerParams<TDatum> = CandlestickItemCallbackParams<TDatum> &
-    AgCandlestickSeriesOptionsKeys &
-    Required<StrokeOptions>;
+export type AgOhlcSeriesBaseItemStylerParams<TDatum> = OhlcItemCallbackParams<TDatum> &
+    AgOhlcSeriesOptionsKeys &
+    Required<StrokeOptions & LineDashOptions>;
 
-export type AgCandlestickSeriesBaseTooltipRendererParams<TDatum> = CandlestickItemCallbackParams<TDatum> &
-    AgCandlestickSeriesOptionsKeys &
-    AgCandlestickSeriesOptionsNames;
+export type AgOhlcSeriesBaseTooltipRendererParams<TDatum> = OhlcItemCallbackParams<TDatum> &
+    AgOhlcSeriesOptionsKeys &
+    AgOhlcSeriesOptionsNames;
