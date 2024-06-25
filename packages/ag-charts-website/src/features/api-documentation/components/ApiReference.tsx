@@ -1,6 +1,6 @@
+import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
-import Code from '@components/Code';
 import type {
     ApiReferenceNode,
     ApiReferenceType,
