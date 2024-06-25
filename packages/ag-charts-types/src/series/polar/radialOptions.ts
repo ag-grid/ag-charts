@@ -1,6 +1,7 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
@@ -45,4 +46,7 @@ export type AgRadialSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum>
     AgRadialSeriesOptionsKeys &
     Required<AgRadialSeriesStyle>;
 
-export type AgRadialSeriesStyle = FillOptions & StrokeOptions & LineDashOptions;
+export interface AgRadialSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each bar. */
+    cornerRadius?: PixelSize;
+}

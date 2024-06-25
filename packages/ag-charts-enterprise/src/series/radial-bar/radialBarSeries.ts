@@ -394,6 +394,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                       strokeOpacity,
                       lineDash,
                       lineDashOffset,
+                      cornerRadius,
                   })
                 : undefined;
 
@@ -406,10 +407,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
             node.lineJoin = 'round';
             node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
-            node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
-            node.startOuterCornerRadius = datum.reversed ? cornerRadius : 0;
-            node.endInnerCornerRadius = datum.reversed ? 0 : cornerRadius;
-            node.endOuterCornerRadius = datum.reversed ? 0 : cornerRadius;
+            node.startInnerCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
+            node.startOuterCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
+            node.endInnerCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
+            node.endOuterCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
 
             if (highlighted) {
                 node.startAngle = datum.startAngle;
@@ -493,6 +494,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             strokeOpacity,
             lineDash,
             lineDashOffset,
+            cornerRadius,
             itemStyler,
             tooltip,
         } = this.properties;
@@ -524,6 +526,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                cornerRadius,
             })) ?? { fill };
 
         return tooltip.toTooltipHtml(

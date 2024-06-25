@@ -400,8 +400,18 @@ export abstract class RadialColumnSeriesBase<
             selectionData = this.nodeData;
         }
 
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset, angleKey, radiusKey } =
-            mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            angleKey,
+            radiusKey,
+        } = mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
 
         const idFn = (datum: RadialColumnNodeDatum) => datum.angleValue;
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
@@ -415,6 +425,7 @@ export abstract class RadialColumnSeriesBase<
                       strokeOpacity,
                       lineDash,
                       lineDashOffset,
+                      cornerRadius,
                       highlighted,
                       angleKey,
                       radiusKey,
@@ -430,6 +441,7 @@ export abstract class RadialColumnSeriesBase<
             node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
             node.lineDash = format?.lineDash ?? lineDash;
             node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
+            node.cornerRadius = format?.cornerRadius ?? cornerRadius;
             node.lineJoin = 'round';
         });
     }
@@ -495,6 +507,7 @@ export abstract class RadialColumnSeriesBase<
             strokeOpacity,
             lineDash,
             lineDashOffset,
+            cornerRadius,
             itemStyler,
             tooltip,
         } = this.properties;
@@ -526,6 +539,7 @@ export abstract class RadialColumnSeriesBase<
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                cornerRadius,
             })) ?? { fill };
 
         return tooltip.toTooltipHtml(
