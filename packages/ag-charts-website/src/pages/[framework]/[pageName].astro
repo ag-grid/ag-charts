@@ -23,12 +23,14 @@ const path = Astro.url.pathname;
 const { title, enterprise, hideSideMenu, hidePageMenu, headings: pageHeadings } = page.data;
 
 const { Content } = await page.render();
-const headings = pageHeadings || getHeadings({
-    title,
-    markdocContent: page.body,
-    framework: currentFramework,
-    getTabItemSlug: (id) => `${DOCS_TAB_ITEM_ID_PREFIX}${id}`,
-});
+const headings =
+    pageHeadings ||
+    getHeadings({
+        title,
+        markdocContent: page.body,
+        framework: currentFramework,
+        getTabItemSlug: (id) => `${DOCS_TAB_ITEM_ID_PREFIX}${id}`,
+    });
 
 const { data: menuData } = await getEntry('menu', 'data');
 const menuItems = Object.values(menuData);
