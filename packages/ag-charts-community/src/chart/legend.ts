@@ -451,7 +451,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, this.calcMarkerWidth());
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -501,8 +501,29 @@ export class Legend extends BaseProperties {
         return { oldPages };
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
-        const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
+    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
+        const { showSeriesStroke, marker, line } = this.item;
+        const markerEnabled = marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
+        const markerLength = markerEnabled ? marker.size : 0;
+        const lineEnabled = !!(symbol.line && showSeriesStroke);
+        const lineLength = lineEnabled ? line.length ?? 25 : 0;
+        return { markerEnabled, markerLength, lineEnabled, lineLength };
+    }
+
+    private calcMarkerWidth(): number {
+        // AG-11950 Calculate the length of the longest legend symbol to ensure that the text / symbols stay aligned.
+        let result: number = 0;
+        this.itemSelection.each((_, datum) => {
+            datum.symbols.forEach((symbol) => {
+                const { lineLength, markerLength } = this.calcSymbolsLengths(symbol);
+                result = Math.max(result, lineLength, markerLength);
+            });
+        });
+        return result;
+    }
+
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, markerLabelWidth: number): number {
+        const { marker: itemMarker, paddingX } = this.item;
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
 
@@ -524,21 +545,18 @@ export class Legend extends BaseProperties {
         }
 
         datum.symbols.forEach((symbol, i) => {
-            const markerEnabled = this.item.marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
-            const lineEnabled = symbol.line && showSeriesStroke;
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-            const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
-            const markerLength = markerEnabled ? itemMarker.size : 0;
+            const { markerEnabled, lineEnabled, lineLength } = this.calcSymbolsLengths(symbol);
 
             markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
             dimensionProps.push({ length: lineLength, spacing });
 
             if (markerEnabled || lineEnabled) {
-                paddedSymbolWidth += spacing + Math.max(lineLength, markerLength);
+                paddedSymbolWidth += spacing + markerLabelWidth;
             }
         });
 
-        markerLabel.update(dimensionProps);
+        markerLabel.update(dimensionProps, markerLabelWidth);
         return paddedSymbolWidth;
     }
 
