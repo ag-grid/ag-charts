@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_PT_PT: Record<string, string> = {
     ariaLabelLegendPagination: 'Paginação da Lenda',
     ariaLabelLegendPagePrevious: 'Página Anterior da Legenda',
     ariaLabelLegendPageNext: 'Próxima página da legenda',
-    ariaLabelLegendItem: '${label}, Item da legenda ${index}[number] de ${count}[number]',
+    ariaLabelLegendItem: '${label}, Item da legenda ${index}[number] de ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Item desconhecido na legenda',
     ariaLabelNavigator: 'Navegador',
     ariaLabelNavigatorRange: 'Intervalo',

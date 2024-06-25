@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaLabelLegendPagination: 'Legenda Paginering',
     ariaLabelLegendPagePrevious: 'Vorige Legenda Pagina',
     ariaLabelLegendPageNext: 'Volgende Legend Pagina',
-    ariaLabelLegendItem: '${label}, Legend-item ${index}[number] van ${count}[number]',
+    ariaLabelLegendItem: '${label}, Legend-item ${index}[number] van ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Onbekend legende-item',
     ariaLabelNavigator: 'Navigator',
     ariaLabelNavigatorRange: 'Bereik',

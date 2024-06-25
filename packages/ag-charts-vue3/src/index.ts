@@ -39,7 +39,7 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
             default: (): AgFinancialChartOptions => ({}),
         },
     },
-    data(): { chart: AgChartInstance | undefined } {
+    data(): { chart: AgChartInstance<AgFinancialChartOptions> | undefined } {
         return {
             chart: undefined,
         };

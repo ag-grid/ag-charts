@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaLabelLegendPagination: 'Paginering av legenden',
     ariaLabelLegendPagePrevious: 'Forrige legende-side',
     ariaLabelLegendPageNext: 'Neste legende side',
-    ariaLabelLegendItem: '${label}, Legend element ${index}[number] av ${count}[number]',
+    ariaLabelLegendItem: '${label}, Legend element ${index}[number] av ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Ukjent legendeelement',
     ariaLabelNavigator: 'Navigator',
     ariaLabelNavigatorRange: 'Område',

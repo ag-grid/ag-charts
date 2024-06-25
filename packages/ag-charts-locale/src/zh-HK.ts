@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     ariaLabelLegendPagination: '圖例分頁',
     ariaLabelLegendPagePrevious: '上一頁圖例',
     ariaLabelLegendPageNext: '下一頁圖例',
-    ariaLabelLegendItem: '${label}，圖例項目 ${index}[number] 中的 ${count}[number]',
+    ariaLabelLegendItem: '${label}，圖例項目 ${index}[number] 中的 ${count}[number]，',
     ariaLabelLegendItemUnknown: '未知的圖例項目',
     ariaLabelNavigator: '導航器',
     ariaLabelNavigatorRange: '範圍',

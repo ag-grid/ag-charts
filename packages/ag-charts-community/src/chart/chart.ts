@@ -1652,7 +1652,6 @@ export abstract class Chart extends Observable {
 
         const skip = [
             'type',
-            '_type',
             'data',
             'series',
             'listeners',

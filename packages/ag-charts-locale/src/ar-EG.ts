@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelLegendPagination: 'تكرار الأسطورة',
     ariaLabelLegendPagePrevious: 'صفحة الأسطورة السابقة',
     ariaLabelLegendPageNext: 'صفحة الرموز التوضيحية التالية',
-    ariaLabelLegendItem: '${label}، عنصر الأسطورة ${index}[number] من ${count}[number]',
+    ariaLabelLegendItem: '${label}، عنصر الأسطورة ${index}[number] من ${count}[number]، ',
     ariaLabelLegendItemUnknown: 'عنصر غير معروف في الأسطورة',
     ariaLabelNavigator: 'المُتَنَقِّل',
     ariaLabelNavigatorRange: 'المدى',

@@ -10,7 +10,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaLabelLegendPagination: 'נווט בדפי המקרא',
     ariaLabelLegendPagePrevious: 'עמוד מקרא קודם',
     ariaLabelLegendPageNext: 'עמוד האגדה הבא',
-    ariaLabelLegendItem: '${label}, פריט מקרא ${index}[number] מתוך ${count}[number]',
+    ariaLabelLegendItem: '${label}, פריט מקרא ${index}[number] מתוך ${count}[number], ',
     ariaLabelLegendItemUnknown: 'פריט אגדה לא ידוע',
     ariaLabelNavigator: 'נווט',
     ariaLabelNavigatorRange: 'טווח',

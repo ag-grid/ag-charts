@@ -9,7 +9,7 @@
         sans-serif;
     transition: transform 0.1s ease;
     white-space: nowrap;
-    z-index: 99999;
+    z-index: var(--ag-charts-layer-context-menu);
 }
 
 .ag-chart-context-menu.ag-charts-dark-context-menu {

@@ -330,7 +330,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onToolbarButtonMoved(event: _ModuleSupport.ToolbarButtonMovedEvent) {
         const { rect } = event;
-        this.colorPicker.setAnchor(Vec2.add(rect, Vec2.from(0, rect.height + 4)));
+        const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
+        const fallback = { y: rect.y - 4 };
+        this.colorPicker.setAnchor(anchor, fallback);
     }
 
     private onColorPickerChange(color: string) {

@@ -332,7 +332,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
-        const orientation = this.computeAriaOrientation(alignElement);
+        const orientation = this.computeAriaOrientation(this[group].position);
         this.groupDestroyFns[group] = initToolbarKeyNav({
             orientation,
             toolbar: alignElement,
@@ -343,23 +343,18 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         });
     }
 
-    private computeAriaOrientation(elem: HTMLElement): 'horizontal' | 'vertical' {
-        // Our styles only use 'row' and 'column'. Unit tests use ''.
-        const flexDirection = this.computedStyle(elem, 'flex-direction', 'row');
-        const orientation = ({ row: 'horizontal', column: 'vertical' } as const)[flexDirection];
-        if (!orientation) throw TypeError(`AG Charts - unexpected flex-direction [${flexDirection}]`);
-        return orientation;
-    }
-
-    private computedStyle(elem: HTMLElement, property: string, defaultValue: string): string {
-        // We could use the global getComputedStyle function, but it doesn't always work as intended in tests.
-        let value: string;
-        let current: HTMLElement | null = elem;
-        do {
-            value = current!.style.getPropertyValue(property);
-            current = current!.parentElement;
-        } while (current != null && value !== '');
-        return value === '' ? defaultValue : value;
+    private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
+        return (
+            {
+                top: 'horizontal',
+                right: 'vertical',
+                bottom: 'horizontal',
+                left: 'vertical',
+                floating: 'horizontal',
+                'floating-top': 'horizontal',
+                'floating-bottom': 'horizontal',
+            } as const
+        )[position];
     }
 
     private toggleGroup(caller: string, group: ToolbarGroup, enabled?: boolean) {
@@ -381,39 +376,14 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        const { elements, margin } = this;
-
         this.refreshOuterLayout(shrinkRect);
         this.refreshLocale();
-
-        elements.top.style.top = `${shrinkRect.y - elements.top.offsetHeight - margin * 2}px`;
-        elements.top.style.left = `${shrinkRect.x}px`;
-        elements.top.style.width = `calc(100% - ${margin * 2}px)`;
 
         return { shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        const { elements, margin } = this;
-        const { seriesRect } = opts;
-        const { FloatingBottom, FloatingTop } = ToolbarPosition;
-
-        elements.right.style.top = `${seriesRect.y + margin}px`;
-        elements.right.style.right = `${margin}px`;
-        elements.right.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
-
-        elements.bottom.style.bottom = `${margin}px`;
-        elements.bottom.style.left = `${margin}px`;
-        elements.bottom.style.width = `calc(100% - ${margin * 2}px)`;
-
-        elements.left.style.top = `${seriesRect.y}px`;
-        elements.left.style.left = `${margin}px`;
-        elements.left.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
-
-        elements[FloatingTop].style.top = `${seriesRect.y}px`;
-
-        elements[FloatingBottom].style.top =
-            `${seriesRect.y + seriesRect.height - elements[FloatingBottom].offsetHeight}px`;
+        this.refreshInnerLayout(opts.seriesRect);
     }
 
     private refreshOuterLayout(shrinkRect: BBox) {
@@ -424,7 +394,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (!elements.right.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.right.offsetWidth + margin, 'right');
+            shrinkRect.shrink(elements.right.offsetWidth + margin * 2, 'right');
         }
 
         if (!elements.bottom.classList.contains(styles.modifiers.hidden)) {
@@ -432,7 +402,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (!elements.left.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.left.offsetWidth + margin, 'left');
+            shrinkRect.shrink(elements.left.offsetWidth + margin * 2, 'left');
         }
     }
 
@@ -447,6 +417,31 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         this.hasNewLocale = false;
+    }
+
+    private refreshInnerLayout(rect: BBox) {
+        const { elements, margin } = this;
+        const { FloatingBottom, FloatingTop } = ToolbarPosition;
+
+        elements.top.style.top = `${rect.y - elements.top.offsetHeight - margin * 2}px`;
+        elements.top.style.left = `${rect.x}px`;
+        elements.top.style.width = `${rect.width}px`;
+
+        elements.bottom.style.bottom = `${margin}px`;
+        elements.bottom.style.left = `${rect.x}px`;
+        elements.bottom.style.width = `${rect.width}px`;
+
+        elements.right.style.top = `${rect.y}px`;
+        elements.right.style.right = `${margin}px`;
+        elements.right.style.height = `${rect.height}px`;
+
+        elements.left.style.top = `${rect.y}px`;
+        elements.left.style.left = `${margin}px`;
+        elements.left.style.height = `${rect.height}px`;
+
+        elements[FloatingTop].style.top = `${rect.y}px`;
+
+        elements[FloatingBottom].style.top = `${rect.y + rect.height - elements[FloatingBottom].offsetHeight}px`;
     }
 
     private refreshButtonLocale(

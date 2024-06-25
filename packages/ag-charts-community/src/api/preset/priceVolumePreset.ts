@@ -1,12 +1,17 @@
 import type {
     AgAreaSeriesOptions,
+    AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
     AgCandlestickSeriesOptions,
     AgCartesianChartOptions,
+    AgChartThemeName,
     AgLineSeriesOptions,
+    AgNavigatorOptions,
     AgOhlcSeriesOptions,
     AgPriceVolumePreset,
     AgRangeAreaSeriesOptions,
+    AgToolbarOptions,
+    AgZoomOptions,
 } from 'ag-charts-types';
 
 export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions): AgCartesianChartOptions {
@@ -18,58 +23,107 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
         closeKey = 'close',
         volumeKey = 'volume',
         chartType = 'candlestick',
-        timeFormat = '%d-%b',
+        navigator = false,
+        volume = true,
+        rangeToolbar = true,
+        statusBar = true,
+        annotations = true,
+        zoom = true,
+        theme,
         data,
         ...unusedOpts
     } = opts;
 
-    const volumeSeries = createSeries(chartType, xKey, highKey, lowKey, openKey, closeKey);
+    const priceSeries = createPriceSeries(chartType, xKey, highKey, lowKey, openKey, closeKey);
 
-    return {
-        _type: 'price-volume',
+    const volumeSeries = volume
+        ? [
+              {
+                  type: 'bar',
+                  xKey: 'date',
+                  yKey: volumeKey,
+                  itemStyler: ({ datum }) => {
+                      return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
+                  },
+              } satisfies AgBarSeriesOptions,
+          ]
+        : [];
+
+    const navigatorOpts = navigator
+        ? {
+              navigator: {
+                  enabled: true,
+                  miniChart: {
+                      enabled: true,
+                      series: [
+                          {
+                              type: 'line',
+                              xKey: 'date',
+                              yKey: volumeKey,
+                              marker: { enabled: false },
+                          },
+                      ],
+                  },
+              } satisfies AgNavigatorOptions,
+          }
+        : {};
+
+    const statusBarOpts = statusBar
+        ? {
+              statusBar: {
+                  enabled: true,
+                  data: data ?? [],
+                  highKey,
+                  openKey,
+                  lowKey,
+                  closeKey,
+                  volumeKey,
+                  positive: {
+                      color: '#089981',
+                  },
+                  negative: {
+                      color: '#F23645',
+                  },
+              },
+          }
+        : {};
+
+    const zoomOpts = {
         zoom: {
-            enabled: true,
+            enabled: zoom,
             // @ts-expect-error
             enableIndependentAxes: true,
-        },
-        toolbar: {
-            annotationOptions: {
-                enabled: true,
-            },
-            annotations: {
-                enabled: true,
-            },
-            ranges: {
-                enabled: true,
-            },
-        },
+        } satisfies AgZoomOptions,
+    };
+
+    const toolbarOpts =
+        annotations || rangeToolbar
+            ? {
+                  toolbar: {
+                      annotationOptions: {
+                          enabled: annotations,
+                      },
+                      annotations: {
+                          enabled: annotations,
+                      },
+                      ranges: {
+                          enabled: rangeToolbar,
+                      },
+                  } satisfies AgToolbarOptions,
+              }
+            : {};
+
+    return {
+        theme:
+            typeof theme === 'string'
+                ? theme
+                : {
+                      baseTheme: 'ag-financial' as AgChartThemeName,
+                      ...(theme ?? {}),
+                  },
+        animation: { enabled: false },
         legend: { enabled: false },
-        statusBar: {
-            enabled: true,
-            data: data ?? [],
-            highKey,
-            openKey,
-            lowKey,
-            closeKey,
-            volumeKey,
-            positive: {
-                color: '#089981',
-            },
-            negative: {
-                color: '#F23645',
-            },
-        },
-        series: [
-            {
-                type: 'bar',
-                xKey: 'date',
-                yKey: volumeKey,
-                itemStyler({ datum }) {
-                    return { fill: datum[openKey] < datum[closeKey] ? '#92D2CC' : '#F7A9A7' };
-                },
-            },
-            ...volumeSeries,
-        ],
+        series: [...priceSeries, ...volumeSeries],
         axes: [
             {
                 type: 'number',
@@ -121,7 +175,6 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
                 label: {
                     enabled: true,
                     autoRotate: false,
-                    format: timeFormat,
                 },
                 crosshair: {
                     enabled: true,
@@ -129,15 +182,19 @@ export function priceVolume(opts: AgPriceVolumePreset & AgBaseFinancialPresetOpt
             },
         ],
         annotations: {
-            enabled: true,
+            enabled: annotations,
         },
         tooltip: { enabled: false },
         data,
+        ...navigatorOpts,
+        ...statusBarOpts,
+        ...zoomOpts,
+        ...toolbarOpts,
         ...unusedOpts,
     };
 }
 
-function createSeries(
+function createPriceSeries(
     chartType: AgPriceVolumePreset['chartType'],
     xKey: string,
     highKey: string,
@@ -163,14 +220,6 @@ function createSeries(
                 {
                     type: 'ohlc',
                     ...keys,
-                    item: {
-                        up: {
-                            stroke: '#089981',
-                        },
-                        down: {
-                            stroke: '#F23645',
-                        },
-                    },
                 } satisfies AgOhlcSeriesOptions,
             ];
         case 'line':
@@ -204,14 +253,12 @@ function createSeries(
                     xKey,
                     yHighKey: highKey,
                     yLowKey: closeKey,
-                    fill: '#089981',
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type,
                     xKey,
                     yHighKey: closeKey,
                     yLowKey: lowKey,
-                    fill: '#F23645',
                 } satisfies AgRangeAreaSeriesOptions,
             ];
 
@@ -221,16 +268,6 @@ function createSeries(
                 {
                     type: 'candlestick',
                     ...keys,
-                    item: {
-                        up: {
-                            fill: '#089981',
-                            stroke: '#089981',
-                        },
-                        down: {
-                            fill: '#F23645',
-                            stroke: '#F23645',
-                        },
-                    },
                 } satisfies AgCandlestickSeriesOptions,
             ];
 
@@ -242,11 +279,6 @@ function createSeries(
                     item: {
                         up: {
                             fill: 'transparent',
-                            stroke: '#5090dc',
-                        },
-                        down: {
-                            fill: '#5090dc',
-                            stroke: '#5090dc',
                         },
                     },
                 } satisfies AgCandlestickSeriesOptions,

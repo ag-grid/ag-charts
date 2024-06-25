@@ -27,8 +27,11 @@ export class AriaAnnouncementService {
     }
 
     public announceValue(id: string, params?: Record<string, any>): void {
-        const value = this.localeManager.t(id, params);
+        const { localeManager, liveElem } = this;
+        const value = localeManager.t(id, params);
         this.debug(`AriaAnnouncementService - announceValue: ${value}`);
-        this.liveElem.textContent = value;
+
+        liveElem.textContent = '\u00A0'; // NO-BREAK SPACE
+        setTimeout(() => (liveElem.innerText = value), 16);
     }
 }
