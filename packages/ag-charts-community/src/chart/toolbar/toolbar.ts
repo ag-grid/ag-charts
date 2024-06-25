@@ -376,6 +376,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
+        if (!this.enabled) return { shrinkRect };
+
         this.refreshOuterLayout(shrinkRect);
         this.refreshLocale();
 
@@ -383,6 +385,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
+        if (!this.enabled) return;
+
         this.refreshInnerLayout(opts.seriesRect);
     }
 
@@ -399,6 +403,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         if (!elements.bottom.classList.contains(styles.modifiers.hidden)) {
             shrinkRect.shrink(elements.bottom.offsetHeight + margin * 2, 'bottom');
+
+            // See: https://ag-grid.atlassian.net/browse/AG-11852
+            elements.bottom.style.top = `${shrinkRect.y + shrinkRect.height + margin}px`;
         }
 
         if (!elements.left.classList.contains(styles.modifiers.hidden)) {
@@ -427,7 +434,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.top.style.left = `${rect.x}px`;
         elements.top.style.width = `${rect.width}px`;
 
-        elements.bottom.style.bottom = `${margin}px`;
+        // See: https://ag-grid.atlassian.net/browse/AG-11852
+        // elements.bottom.style.top = `${rect.y + rect.height + margin}px`;
         elements.bottom.style.left = `${rect.x}px`;
         elements.bottom.style.width = `${rect.width}px`;
 
