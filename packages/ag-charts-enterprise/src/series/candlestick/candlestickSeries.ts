@@ -1,24 +1,17 @@
-import {
-    type AgCandlestickSeriesBaseItemStylerParams,
-    type AgCandlestickSeriesFormatterParams,
-    type AgCandlestickSeriesItemOptions,
-    _ModuleSupport,
-    _Scene,
-} from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import { OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickGroup } from './candlestickGroup';
-import { CandlestickSeriesBase } from './candlestickSeriesBase';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 import type { CandlestickNodeDatum } from './candlestickTypes';
 import { computeCandleFocusBounds, resetCandlestickSelectionsFn } from './candlestickUtil';
 
 const { extractDecoratedProperties, mergeDefaults } = _ModuleSupport;
-export class CandlestickSeries extends CandlestickSeriesBase<
+export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickGroup,
     AgCandlestickSeriesItemOptions,
-    CandlestickSeriesProperties<any, AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>>,
-    CandlestickNodeDatum,
-    AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>
+    CandlestickSeriesProperties<any>,
+    CandlestickNodeDatum
 > {
     static readonly className = 'CandleStickSeries';
     static readonly type = 'candlestick' as const;
@@ -65,6 +58,42 @@ export class CandlestickSeries extends CandlestickSeriesBase<
         return { ...baseNodeData, nodeData };
     }
 
+    getFormattedStyles(nodeDatum: CandlestickNodeDatum, highlighted = false) {
+        const {
+            id: seriesId,
+            ctx: { callbackCache },
+        } = this;
+        const { xKey, openKey, closeKey, highKey, lowKey, itemStyler } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.getItemConfig(
+            nodeDatum.itemId
+        );
+
+        if (itemStyler) {
+            const formatStyles = callbackCache.call(itemStyler, {
+                datum: nodeDatum.datum,
+                itemId: nodeDatum.itemId,
+                seriesId,
+                highlighted,
+                xKey,
+                openKey,
+                closeKey,
+                highKey,
+                lowKey,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            });
+            if (formatStyles) {
+                return mergeDefaults(formatStyles, this.getSeriesStyles(nodeDatum));
+            }
+        }
+        return this.getSeriesStyles(nodeDatum);
+    }
+
     protected override nodeFactory() {
         return new CandlestickGroup();
     }
@@ -104,12 +133,6 @@ export class CandlestickSeries extends CandlestickSeriesBase<
         });
 
         return activeStyles;
-    }
-
-    protected override getFormatterParams(
-        params: AgCandlestickSeriesBaseItemStylerParams<CandlestickNodeDatum>
-    ): AgCandlestickSeriesFormatterParams<CandlestickNodeDatum> {
-        return params;
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
