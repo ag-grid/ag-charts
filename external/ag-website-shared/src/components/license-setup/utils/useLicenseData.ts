@@ -230,7 +230,7 @@ export const useLicenseData = ({ library }: { library: Library }) => {
         importType,
     });
 
-    useUpdateDataFromUrl({ setIsIntegratedCharts, setImportType });
+    useUpdateDataFromUrl({ library, setIsIntegratedCharts, setImportType });
     useLicenseDebug({
         licenseDetails,
         chartsLicenseDetails,
