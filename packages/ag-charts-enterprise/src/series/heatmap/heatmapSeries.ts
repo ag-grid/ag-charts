@@ -325,15 +325,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
-        opts.datumSelection.each((rect, datum) => {
-            const { point, width, height } = datum;
+        opts.datumSelection.each((rect, nodeDatum) => {
+            const { datum, point, width, height } = nodeDatum;
 
-            const fill = highlightStyle?.fill ?? datum.fill;
+            const fill = highlightStyle?.fill ?? nodeDatum.fill;
 
             let format: AgHeatmapSeriesStyle | undefined;
             if (itemStyler) {
                 format = callbackCache.call(itemStyler, {
-                    datum: datum.datum,
+                    datum,
                     fill,
                     fillOpacity,
                     stroke,
@@ -427,7 +427,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
-                datum: nodeDatum,
+                datum,
                 xKey,
                 yKey,
                 colorKey,

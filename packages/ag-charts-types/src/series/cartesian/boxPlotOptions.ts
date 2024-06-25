@@ -44,7 +44,7 @@ export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
 export type AgBoxPlotSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     BoxPlotOptionsKeys &
-    Required<AgBoxPlotSeriesStyles>;
+    Required<AgBoxPlotSeriesStyle>;
 
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum>
     extends BoxPlotOptionsKeys,
@@ -53,7 +53,9 @@ export interface AgBoxPlotSeriesTooltipRendererParams<TDatum>
     fill?: CssColor;
 }
 
-export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each bar. */
+    cornerRadius?: PixelSize;
     /** Options to style chart's caps */
     cap?: AgBoxPlotCapOptions;
     /** Options to style chart's whiskers */
@@ -62,18 +64,16 @@ export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineD
 
 export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
     extends AgBaseCartesianThemeableOptions<TDatum>,
-        AgBoxPlotSeriesStyles {
+        AgBoxPlotSeriesStyle {
     /**
      * Bar rendering direction.
      * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
-    /** Apply rounded corners to each bar. */
-    cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyles>;
+    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyle>;
 }
 
 export interface AgBoxPlotSeriesOptions<TDatum = any>

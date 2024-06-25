@@ -26,7 +26,10 @@ export type AgPieSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgPieSeriesOptionsKeys &
     Required<AgPieSeriesStyle>;
 
-export type AgPieSeriesStyle = FillOptions & StrokeOptions;
+export interface AgPieSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
+}
 
 export interface AgPieTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */

@@ -119,8 +119,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Circle());
 
-    readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
-
     private readonly angleScale: LinearScale;
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
@@ -434,23 +432,25 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, itemStyler } = this.properties;
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
+            this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
             highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
         const defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
-            isDatumHighlighted && this.properties.highlightStyle.item,
-            {
-                fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
-                fillOpacity: this.properties.fillOpacity,
-                stroke: defaultStroke,
-                strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-                strokeOpacity: this.getOpacity(),
-            }
-        );
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
+            mergeDefaults(
+                isDatumHighlighted && this.properties.highlightStyle.item,
+                {
+                    fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
+                    stroke: defaultStroke,
+                    strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
+                    strokeOpacity: this.getOpacity(),
+                },
+                this.properties
+            );
 
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
@@ -458,11 +458,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 datum,
                 angleKey,
                 radiusKey,
+                calloutLabelKey,
+                sectorLabelKey,
+                legendItemKey,
                 fill: fill!,
                 strokeOpacity,
                 stroke,
                 strokeWidth,
                 fillOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
                 highlighted: isDatumHighlighted,
                 seriesId: this.id,
             });
@@ -474,6 +480,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             stroke: format?.stroke ?? stroke,
             strokeWidth: format?.strokeWidth ?? strokeWidth,
             strokeOpacity: format?.strokeOpacity ?? strokeOpacity,
+            lineDash: format?.lineDash ?? lineDash,
+            lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
+            cornerRadius: format?.cornerRadius ?? cornerRadius,
         };
     }
 
@@ -653,15 +662,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sector.stroke = format.stroke;
             }
 
-            sector.strokeWidth = format.strokeWidth!;
-            sector.fillOpacity = format.fillOpacity!;
-            sector.strokeOpacity = this.properties.strokeOpacity;
-            sector.lineDash = this.properties.lineDash;
-            sector.lineDashOffset = this.properties.lineDashOffset;
+            sector.strokeWidth = format.strokeWidth;
+            sector.fillOpacity = format.fillOpacity;
+            sector.strokeOpacity = format.strokeOpacity;
+            sector.lineDash = format.lineDash;
+            sector.lineDashOffset = format.lineDashOffset;
+            sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            sector.cornerRadius = this.properties.cornerRadius;
             const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2,
+                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
             );
             sector.inset = inset;
