@@ -30,6 +30,7 @@ This release includes the following breaking changes:
 -   `pie` and `donut` series strokes are now rendered on the inside of each sector. Instead of using `strokeWidth` to add spacing between the sectors, use `sectorSpacing`.
 -   `innerLabels.margin` on `donut` series is renamed to `innerLabels.spacing`.
 -   `scatter` and `bubble` series options contained within `marker` object are moved to the top level. `marker.enabled` is removed.
+-   `formatter` function on series, marker and error-bars is renamed to `itemStyler`.
 
 **Axes Changes**
 
@@ -50,6 +51,7 @@ This release includes the following breaking changes:
 -   `AgNodeContextMenuActionEvent.itemId` is removed, use `xKey`, `yKey`, `angleKey` etc instead.
 -   `fontWeight` no longer supports Strings for numeric values. Use numbers instead.
 -   `AgChartThemeOptionalPalette` has been renamed and replaces `AgChartThemePalette`.
+-   `errorBar.cap.formatter` is removed. Cap options can be return in the top level `errorBar.itemStyler`.
 -   `type` property removed without replacement from
     -   `AgAngleCategoryAxisThemeOptions`
     -   `AgAngleNumberAxisThemeOptions`
@@ -95,12 +97,6 @@ This release includes the following behaviour changes:
     -   Wrapping strategy is improved to give more balanced lines.
     -   Manual line breaks are respected even if `wrapping: 'never'`.
     -   When manual line breaks are provided, wrapping and truncation is applied to each line separately.
-
-## Deprecations
-
-This release includes the following deprecations:
-
--
 
 ## Changes List
 

@@ -115,8 +115,8 @@
                         "path": "axes-cross-lines"
                     },
                     {
-                        "title": "Formatters",
-                        "path": "formatters"
+                        "title": "Stylers",
+                        "path": "stylers"
                     },
                     {
                         "title": "Legend",
