@@ -1,7 +1,7 @@
 import type {
     AgBoxPlotSeriesItemStylerParams,
     AgBoxPlotSeriesOptions,
-    AgBoxPlotSeriesStyles,
+    AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
@@ -109,7 +109,7 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<unknown>, AgBoxPlotSeriesStyles>;
+    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<unknown>, AgBoxPlotSeriesStyle>;
 
     @Validate(OBJECT)
     readonly cap = new BoxPlotSeriesCap();
