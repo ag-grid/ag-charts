@@ -102,7 +102,7 @@ export const data = [
     },
     {
         month: 'Nov',
-        coal: 0.9,
+        coal: 1.1,
         petroleum: 5.9,
         naturalGas: 7.3,
         bioenergyWaste: 1.6,

@@ -1,13 +1,16 @@
 ---
 title: 'Toolbar'
 enterprise: true
-hidden: true
 ---
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Toolbars contain buttons, allowing users to interact with the chart at runtime.
+
+## Range Toolbar
 
 {% chartExampleRunner title="Toolbar" name="toolbar" type="generated" /%}
 
+The Range Toolbar contains buttons allowing the user to jump to a specific range along the chart timeline.
+
 ```ts
 toolbar: {
     ranges: {
@@ -19,85 +22,33 @@ toolbar: {
 }
 ```
 
-## Positions & Alignment
+### Custom Buttons
 
-{% chartExampleRunner title="Toolbar" name="toolbar-positions" type="generated" /%}
-
-```ts
-toolbar: {
-    ranges: {
-        align: 'center',
-    },
-    zoom: {
-        position: 'right',
-        align: 'start',
-    }
-}
-```
-
-## Buttons
+It is possible to override the default buttons by providing an array of button objects.
 
 {% chartExampleRunner title="Toolbar" name="toolbar-buttons" type="generated" /%}
 
 ```ts
-const MONTH = 30 * 24 * 60 * 60 * 1000;
-
-// ...
-
-locale: {
-    localeText: {
-        ...AG_CHARTS_LOCALE_EN_US,
-        myToolbarRange12Months: '12m',
-        myToolbarRange12MonthsAria: '12 months',
-        myTooltip: 'Click this button to show all trades',
-    },
-},
 toolbar: {
     ranges: {
-        buttons: [
-            { label: 'toolbarRange6Months', ariaLabel: 'toolbarRange6MonthsAria', value: 6 * MONTH },
-            { label: 'myToolbarRange12Months', ariaLabel: 'myToolbarRange12MonthsAria', value: 12 * MONTH },
-            { label: 'toolbarRangeAll', tooltip: 'myTooltip', value: (start, end) => [start, end] },
-        ],
+      enabled: true,
+      buttons: [
+        {
+          label: "6 Months",
+          value: 6 * MONTH,
+        },
+        {
+          label: "12 Months",
+          value: 12 * MONTH,
+        },
+        {
+          label: "All Data",
+          value: (start, end) => [start, end],
+        },
+      ],
     },
-},
+  },
 ```
-
-## Groups
-
-### Annotations
-
-```ts
-toolbar: {
-    annotations: {
-        enabled: true,
-    }
-}
-```
-
-[Further reading on Annotations](./annotations/#adding--editing).
-
-### Ranges
-
-```ts
-toolbar: {
-    ranges: {
-        enabled: true,
-    }
-}
-```
-
-### Zoom
-
-```ts
-toolbar: {
-    zoom: {
-        enabled: true,
-    }
-}
-```
-
-[Further reading on Zoom](./zoom/).
 
 ## API Reference
 

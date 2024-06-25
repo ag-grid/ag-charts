@@ -8,7 +8,7 @@ const options: AgChartOptions = {
     title: {
         text: 'UK Energy Sources',
     },
-    footnote: {
+    subtitle: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
     },
     series: [
@@ -27,20 +27,8 @@ const options: AgChartOptions = {
         {
             type: 'line',
             xKey: 'month',
-            yKey: 'bioenergyWaste',
-            yName: 'Bioenergy & waste',
-        },
-        {
-            type: 'line',
-            xKey: 'month',
             yKey: 'nuclear',
             yName: 'Nuclear',
-        },
-        {
-            type: 'line',
-            xKey: 'month',
-            yKey: 'windSolarHydro',
-            yName: 'Wind, solar & hydro',
         },
         {
             type: 'bar',
@@ -74,7 +62,7 @@ const options: AgChartOptions = {
         },
     ],
     legend: {
-        position: 'top',
+        position: 'bottom',
     },
 };
 
