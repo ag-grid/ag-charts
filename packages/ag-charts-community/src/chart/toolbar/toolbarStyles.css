@@ -53,8 +53,7 @@
 .ag-charts-toolbar--floating {
     padding: 0;
     width: auto;
-    /* Needs to beat .ag-crosshair-label */
-    z-index: 99999;
+    z-index: var(--ag-charts-layer-toolbar);
 }
 
 .ag-charts-toolbar--floating-top {
@@ -120,13 +119,12 @@
     align-items: center;
     background: var(--ag-charts-toolbar-background-color);
     border: var(--ag-charts-toolbar-border);
-    border-left: 0;
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
     font-size: var(--ag-charts-toolbar-font-size);
     font-weight: 500;
     justify-content: center;
-    margin: 0;
+    margin: 0 0 0 -1px;
     min-height: var(--ag-charts-toolbar-size);
     min-width: var(--ag-charts-toolbar-size);
     padding: var(--ag-charts-toolbar-button-padding);
@@ -138,8 +136,8 @@
 
 .ag-charts-toolbar__button:first-child {
     border-bottom-left-radius: var(--ag-charts-button-radius);
-    border-left: var(--ag-charts-toolbar-border);
     border-top-left-radius: var(--ag-charts-button-radius);
+    margin: 0;
 }
 
 .ag-charts-toolbar__button:last-child {
@@ -150,20 +148,19 @@
 
 .ag-charts-toolbar--left .ag-charts-toolbar__button,
 .ag-charts-toolbar--right .ag-charts-toolbar__button {
-    border-bottom: 0;
     border-left: var(--ag-charts-toolbar-border);
     border-right: var(--ag-charts-toolbar-border);
-    border-top: 0;
     border-radius: 0;
+    margin: -1px 0 0 0;
     max-width: 100%;
     overflow: hidden;
 }
 
 .ag-charts-toolbar--left .ag-charts-toolbar__button:first-child,
 .ag-charts-toolbar--right .ag-charts-toolbar__button:first-child {
-    border-top: var(--ag-charts-toolbar-border);
     border-top-left-radius: var(--ag-charts-button-radius);
     border-top-right-radius: var(--ag-charts-button-radius);
+    margin: 0;
 }
 
 .ag-charts-toolbar--left .ag-charts-toolbar__button:last-child,

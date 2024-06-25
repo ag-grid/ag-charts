@@ -9,7 +9,7 @@
         sans-serif;
     overflow: hidden;
     white-space: nowrap;
-    z-index: 99998; /* Needs to be below tooltips! */
+    z-index: var(--ag-charts-layer-crosshair);
     box-sizing: border-box;
 }
 

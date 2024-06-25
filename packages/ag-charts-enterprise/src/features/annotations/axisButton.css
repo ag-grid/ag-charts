@@ -8,7 +8,7 @@
         sans-serif;
     overflow: hidden;
     white-space: nowrap;
-    z-index: var(--ag-charts-layer-tooltip);
+    z-index: var(--ag-charts-layer-annotations);
     box-sizing: border-box;
 }
 
