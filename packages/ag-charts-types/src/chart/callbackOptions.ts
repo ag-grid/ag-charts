@@ -1,5 +1,3 @@
-import type { RequireOptional } from '../series/typeUtils';
-
 export interface AgChartCallbackParams<TDatum = any> {
     /** The data point associated with the label. */
     datum: TDatum;
@@ -31,4 +29,4 @@ export interface DatumItemCallbackParams<ItemType extends string, TDatum> extend
 }
 
 export type Formatter<P> = (params: P) => string | undefined;
-export type Styler<P, S> = (params: RequireOptional<P>) => S | undefined;
+export type Styler<P, S> = (params: P) => S | undefined;
