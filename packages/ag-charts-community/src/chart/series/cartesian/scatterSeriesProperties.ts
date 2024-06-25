@@ -87,7 +87,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     @ProxyProperty('marker.strokeOpacity')
     strokeOpacity!: number;
 
-    @ProxyProperty('marker.formatter', { optional: true })
+    @ProxyProperty('marker.itemStyler', { optional: true })
     itemStyler?: Styler<AgScatterSeriesItemStylerParams<unknown>, AgSeriesMarkerStyle>;
 
     @Validate(OBJECT)
