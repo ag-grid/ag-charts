@@ -1,4 +1,4 @@
-import type { AgBoxPlotSeriesStyles } from 'ag-charts-community';
+import type { AgBoxPlotSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
@@ -31,10 +31,9 @@ export class BoxPlotGroup extends Group implements _ModuleSupport.DistantObject 
 
     updateDatumStyles(
         datum: BoxPlotNodeDatum,
-        activeStyles: _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
+        activeStyles: _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyle>,
         isVertical: boolean,
-        isReversedValueAxis: boolean | undefined,
-        cornerRadius: number
+        isReversedValueAxis: boolean | undefined
     ) {
         const {
             bandwidth,
@@ -65,6 +64,7 @@ export class BoxPlotGroup extends Group implements _ModuleSupport.DistantObject 
             strokeOpacity,
             lineDash,
             lineDashOffset,
+            cornerRadius,
             cap,
             whisker: whiskerStyles,
         } = activeStyles;

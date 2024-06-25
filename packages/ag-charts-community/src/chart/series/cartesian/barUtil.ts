@@ -127,18 +127,18 @@ export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<an
 
     return {
         fill: format?.fill ?? fill,
+        fillOpacity: format?.fillOpacity ?? fillOpacity,
         stroke: format?.stroke ?? stroke,
         strokeWidth: format?.strokeWidth ?? strokeWidth,
-        fillOpacity: format?.fillOpacity ?? fillOpacity,
         strokeOpacity: format?.strokeOpacity ?? strokeOpacity,
-        lineDash,
-        lineDashOffset,
-        fillShadow,
+        lineDash: format?.lineDash ?? lineDash,
+        lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
         cornerRadius: format?.cornerRadius ?? cornerRadius,
         topLeftCornerRadius,
         topRightCornerRadius,
         bottomRightCornerRadius,
         bottomLeftCornerRadius,
+        fillShadow,
     };
 }
 

@@ -213,15 +213,15 @@ export abstract class CandlestickSeriesBase<
             return;
         }
 
-        const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
-
         const nodeData: CandlestickNodeBaseDatum[] = [];
-
-        const ids = ['xValue', 'closeValue', 'highValue', 'lowValue'];
-        if (openKey) {
-            ids.push('openValue');
-        }
-        const defs = dataModel.resolveProcessedDataDefsByIds(this, ids);
+        const { xKey, highKey, lowKey } = this.properties;
+        const defs = dataModel.resolveProcessedDataDefsByIds(this, [
+            'xValue',
+            'openValue',
+            'closeValue',
+            'highValue',
+            'lowValue',
+        ]);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
@@ -242,12 +242,9 @@ export abstract class CandlestickSeriesBase<
                 { keys, values }
             );
 
-            const hasOpenValue = openValue !== undefined;
             // compare unscaled values
-            const validLowValue =
-                lowValue !== undefined && (!hasOpenValue || lowValue <= openValue) && lowValue <= closeValue;
-            const validHighValue =
-                highValue !== undefined && (!hasOpenValue || highValue >= openValue) && highValue >= closeValue;
+            const validLowValue = lowValue != null && lowValue <= openValue && lowValue <= closeValue;
+            const validHighValue = highValue != null && highValue >= openValue && highValue >= closeValue;
 
             if (!validLowValue) {
                 Logger.warnOnce(
@@ -278,15 +275,12 @@ export abstract class CandlestickSeriesBase<
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset;
 
-            const isRising = !hasOpenValue || closeValue > openValue;
+            const isRising = closeValue > openValue;
             const itemId = this.getSeriesItemType(isRising);
 
-            const [y1, y2] = hasOpenValue
+            const [y, yBottom] = isRising
                 ? [scaledValues.openValue, scaledValues.closeValue]
-                : [scaledValues.lowValue, scaledValues.highValue];
-
-            const y = Math.min(y1, y2);
-            const yBottom = Math.max(y1, y2);
+                : [scaledValues.closeValue, scaledValues.openValue];
             const height = yBottom - y;
 
             const midPoint = {
@@ -300,10 +294,6 @@ export abstract class CandlestickSeriesBase<
                 datum,
                 xKey,
                 xValue,
-                openKey,
-                closeKey,
-                highKey,
-                lowKey,
                 openValue,
                 closeValue,
                 highValue,
@@ -404,14 +394,11 @@ export abstract class CandlestickSeriesBase<
         const title = sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
+            [openKey, openName, yAxis],
             [highKey, highName, yAxis],
             [lowKey, lowName, yAxis],
             [closeKey, closeName, yAxis],
         ];
-
-        if (openKey) {
-            contentData.splice(1, 0, [openKey, openName, yAxis]);
-        }
 
         const content = contentData
             .map(([key, name, axis]) => sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`))
@@ -497,7 +484,7 @@ export abstract class CandlestickSeriesBase<
             id: seriesId,
             ctx: { callbackCache },
         } = this;
-        const { xKey, openKey = '', closeKey, highKey, lowKey, itemStyler } = this.properties;
+        const { xKey, openKey, closeKey, highKey, lowKey, itemStyler } = this.properties;
 
         if (itemStyler) {
             const formatStyles = callbackCache.call(
@@ -526,6 +513,6 @@ export abstract class CandlestickSeriesBase<
     protected abstract getFormatterParams(
         params: AgCandlestickSeriesBaseItemStylerParams<TNodeDatum>
     ): TFormatterParams;
-    protected abstract getSeriesStyles(_nodeDatum: TNodeDatum): TItemOptions;
+    protected abstract getSeriesStyles(nodeDatum: TNodeDatum): TItemOptions;
     protected abstract getActiveStyles(nodeDatum: TNodeDatum, highlighted: boolean): TItemOptions;
 }

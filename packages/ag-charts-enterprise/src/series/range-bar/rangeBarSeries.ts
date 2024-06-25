@@ -427,14 +427,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
             const config = getRectConfig({
                 datum,
-                lowValue: datum.yLowValue,
-                highValue: datum.yHighValue,
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                itemStyler: itemStyler,
+                itemStyler,
                 seriesId,
-                itemId: datum.itemId,
                 ctx,
                 yLowKey,
                 yHighKey,
@@ -499,6 +496,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             strokeOpacity,
             lineDash,
             lineDashOffset,
+            cornerRadius,
         } = this.properties;
         const { datum, xValue, yLowValue, yHighValue } = nodeDatum;
 
@@ -518,6 +516,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                cornerRadius,
             });
         }
 

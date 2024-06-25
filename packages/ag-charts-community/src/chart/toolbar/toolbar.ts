@@ -482,7 +482,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const group of TOOLBAR_GROUPS) {
             if (this[group] == null) continue;
-
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
                 const buttonVisible = groupVisible && this[group].buttons?.some(isButtonVisible(button));

@@ -26,7 +26,10 @@ export type AgDonutSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> 
     AgDonutSeriesOptionsKeys &
     Required<AgDonutSeriesStyle>;
 
-export type AgDonutSeriesStyle = FillOptions & StrokeOptions;
+export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
+}
 
 export interface AgDonutTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */

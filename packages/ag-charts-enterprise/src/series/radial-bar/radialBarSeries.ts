@@ -12,6 +12,7 @@ const {
     isDefined,
     groupAccumulativeValueProperty,
     keyProperty,
+    mergeDefaults,
     normaliseGroupTo,
     valueProperty,
     fixNumericExtent,
@@ -352,49 +353,57 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     protected updateSectorSelection(
         selection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>,
-        highlight: boolean
+        highlighted: boolean
     ) {
         let selectionData: RadialBarNodeDatum[] = [];
-        if (highlight) {
-            const highlighted = this.ctx.highlightManager?.getActiveHighlight();
-            if (highlighted?.datum && highlighted.series === this) {
-                selectionData = [highlighted as RadialBarNodeDatum];
+        if (highlighted) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            if (activeHighlight?.datum && activeHighlight.series === this) {
+                selectionData = [activeHighlight as RadialBarNodeDatum];
             }
         } else {
             selectionData = this.nodeData;
         }
 
-        const highlightedStyle = highlight ? this.properties.highlightStyle.item : undefined;
-        const fill = highlightedStyle?.fill ?? this.properties.fill;
-        const fillOpacity = highlightedStyle?.fillOpacity ?? this.properties.fillOpacity;
-        const stroke = highlightedStyle?.stroke ?? this.properties.stroke;
-        const strokeOpacity = this.properties.strokeOpacity;
-        const strokeWidth = highlightedStyle?.strokeWidth ?? this.properties.strokeWidth;
-        const cornerRadius = this.properties.cornerRadius;
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            angleKey,
+            radiusKey,
+        } = mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
 
         const idFn = (datum: RadialBarNodeDatum) => datum.radiusValue;
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
             const format = this.properties.itemStyler
                 ? this.ctx.callbackCache.call(this.properties.itemStyler, {
+                      seriesId: this.id,
+                      highlighted,
                       datum,
+                      angleKey,
+                      radiusKey,
                       fill,
                       fillOpacity,
                       stroke,
                       strokeWidth,
                       strokeOpacity,
-                      highlighted: highlight,
-                      angleKey: this.properties.angleKey,
-                      radiusKey: this.properties.radiusKey,
-                      seriesId: this.id,
+                      lineDash,
+                      lineDashOffset,
                   })
                 : undefined;
 
             node.fill = format?.fill ?? fill;
             node.fillOpacity = format?.fillOpacity ?? fillOpacity;
             node.stroke = format?.stroke ?? stroke;
-            node.strokeOpacity = strokeOpacity;
             node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.lineDash = this.properties.lineDash;
+            node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+            node.lineDash = format?.lineDash ?? lineDash;
+            node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
             node.lineJoin = 'round';
             node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
             node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
@@ -402,7 +411,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             node.endInnerCornerRadius = datum.reversed ? 0 : cornerRadius;
             node.endOuterCornerRadius = datum.reversed ? 0 : cornerRadius;
 
-            if (highlight) {
+            if (highlighted) {
                 node.startAngle = datum.startAngle;
                 node.endAngle = datum.endAngle;
                 node.clipSector = datum.clipSector;
@@ -482,6 +491,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             stroke,
             strokeWidth,
             strokeOpacity,
+            lineDash,
+            lineDashOffset,
             itemStyler,
             tooltip,
         } = this.properties;
@@ -501,16 +512,18 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const { fill: color } = (itemStyler &&
             this.ctx.callbackCache.call(itemStyler, {
+                highlighted: false,
+                seriesId,
                 datum,
+                angleKey,
+                radiusKey,
                 fill,
                 fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
-                highlighted: false,
-                angleKey,
-                radiusKey,
-                seriesId,
+                lineDash,
+                lineDashOffset,
             })) ?? { fill };
 
         return tooltip.toTooltipHtml(

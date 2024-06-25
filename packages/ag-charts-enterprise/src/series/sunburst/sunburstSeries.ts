@@ -468,7 +468,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    private getSectorFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgSunburstSeriesStyle {
+    private getSectorFormat(
+        node: _ModuleSupport.HierarchyNode,
+        isHighlighted: boolean
+    ): AgSunburstSeriesStyle | undefined {
         const { datum, fill, stroke, depth } = node;
         const {
             ctx: { callbackCache },
@@ -479,15 +482,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             return {};
         }
 
-        const { colorKey, labelKey, sizeKey, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+        const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, strokeWidth, fillOpacity, strokeOpacity } =
+            this.properties;
 
-        const result = callbackCache.call(itemStyler, {
+        return callbackCache.call(itemStyler, {
             seriesId: this.id,
             highlighted: isHighlighted,
             datum,
             depth,
             colorKey,
+            childrenKey,
             labelKey,
+            secondaryLabelKey,
             sizeKey,
             fill: fill!,
             fillOpacity,
@@ -495,8 +501,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             strokeWidth,
             strokeOpacity,
         });
-
-        return result ?? {};
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {

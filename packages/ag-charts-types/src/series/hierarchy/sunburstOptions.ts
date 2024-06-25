@@ -17,7 +17,8 @@ export type AgSunburstSeriesLabelHighlightOptions<TDatum> = Pick<
 
 export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
-        AgSunburstSeriesOptionsKeys {
+        AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
     /** The title of the Sunburst segment. */
@@ -68,6 +69,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
 export interface AgSunburstSeriesOptions<TDatum = any>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsNames,
         AgSunburstSeriesThemeableOptions<TDatum> {
     /** Configuration for the Sunburst Series. */
     type: 'sunburst';
@@ -84,6 +86,9 @@ export interface AgSunburstSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
     colorKey?: string;
+}
+
+export interface AgSunburstSeriesOptionsNames {
     /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -99,7 +104,9 @@ export interface AgSunburstSeriesItemStylerParams<TDatum>
     depth: number;
 }
 
-export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any> extends AgSunburstSeriesOptionsKeys {
+export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any>
+    extends AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }

@@ -1,5 +1,4 @@
 import {
-    type AgMapShapeSeriesItemStylerParams,
     type AgMapShapeSeriesLabelFormatterParams,
     type AgMapShapeSeriesStyle,
     _ModuleSupport,
@@ -455,7 +454,7 @@ export class MapShapeSeries
 
             let format: AgMapShapeSeriesStyle | undefined;
             if (itemStyler != null) {
-                const params: _Util.RequireOptional<AgMapShapeSeriesItemStylerParams> = {
+                format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
                     idKey,
@@ -469,8 +468,7 @@ export class MapShapeSeries
                     lineDash,
                     lineDashOffset,
                     highlighted: isHighlight,
-                };
-                format = callbackCache.call(itemStyler, params as AgMapShapeSeriesItemStylerParams);
+                });
             }
 
             geoGeometry.visible = true;
@@ -695,6 +693,8 @@ export class MapShapeSeries
                 seriesId,
                 datum,
                 idKey,
+                colorKey,
+                labelKey,
                 fill,
                 stroke,
                 strokeWidth: this.getStrokeWidth(strokeWidth),

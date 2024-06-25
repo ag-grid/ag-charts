@@ -5,10 +5,8 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/c
 import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
-    extends StrokeOptions,
-        LineDashOptions,
-        FillOptions,
-        AgBaseSeriesThemeableOptions<TDatum> {
+    extends AgBaseSeriesThemeableOptions<TDatum>,
+        AgRadialSeriesStyle {
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
@@ -47,4 +45,4 @@ export type AgRadialSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum>
     AgRadialSeriesOptionsKeys &
     Required<AgRadialSeriesStyle>;
 
-export type AgRadialSeriesStyle = FillOptions & StrokeOptions;
+export type AgRadialSeriesStyle = FillOptions & StrokeOptions & LineDashOptions;
