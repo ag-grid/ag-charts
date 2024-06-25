@@ -272,7 +272,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { enabled, enableDoubleClickToReset, hoveredAxis, paddedRect } = this;
 
         if (!enabled || !enableDoubleClickToReset) return;
-        event.preventDefault();
 
         const { x, y } = this.getResetZoom();
 
@@ -298,7 +297,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!enabled || !paddedRect) return;
 
-        event.preventDefault();
         this.panner.stopInteractions();
 
         // Determine which ZoomDrag behaviour to use.
@@ -357,17 +355,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 this.updateAxisZoom(axisId, direction, newZoom);
-                event.preventDefault();
                 break;
 
             case DragState.Pan:
                 panner.update(event);
-                event.preventDefault();
                 break;
 
             case DragState.Select:
                 selector.update(event, this.getModuleProperties(), paddedRect, zoom);
-                event.preventDefault();
                 break;
 
             case DragState.None:
@@ -378,7 +373,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd(event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
+    private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
         const {
             axisDragger,
             dragState,
@@ -396,12 +391,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         switch (dragState) {
             case DragState.Axis:
                 axisDragger.stop();
-                event.preventDefault();
                 break;
 
             case DragState.Pan:
                 panner.stop();
-                event.preventDefault();
                 break;
 
             case DragState.Select:
@@ -410,7 +403,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 if (this.isMinZoom(zoom)) break;
                 const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
                 this.updateZoom(newZoom);
-                event.preventDefault();
                 break;
         }
 
