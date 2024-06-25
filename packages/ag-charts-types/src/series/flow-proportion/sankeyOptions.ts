@@ -34,7 +34,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeri
     /** Options for the links. */
     link?: AgSankeySeriesLinkOptions<TDatum>;
     /** Options for the nodes. */
-    node?: AgSankeySeriesNodeOptions;
+    node?: AgSankeySeriesNodeOptions<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum>>;
 }
@@ -47,14 +47,14 @@ export interface AgSankeySeriesLabelOptions<TDatum>
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgSankeySeriesLinkOptions<TDatum = any> extends AgSankeySeriesLinkStyle {
+export interface AgSankeySeriesLinkOptions<TDatum> extends AgSankeySeriesLinkStyle {
     /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum>, AgSankeySeriesLinkStyle>;
 }
 
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgSankeySeriesNodeOptions<TDatum = any> extends AgSankeySeriesNodeStyle {
+export interface AgSankeySeriesNodeOptions<TDatum> extends AgSankeySeriesNodeStyle {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
