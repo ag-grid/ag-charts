@@ -432,7 +432,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, itemStyler } = this.properties;
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
+            this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
@@ -457,6 +458,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 datum,
                 angleKey,
                 radiusKey,
+                calloutLabelKey,
+                sectorLabelKey,
+                legendItemKey,
                 fill: fill!,
                 strokeOpacity,
                 stroke,

@@ -789,14 +789,18 @@ export class MapMarkerSeries
 
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
+                highlighted: false,
                 seriesId,
                 datum,
+                idKey,
+                sizeKey,
+                colorKey,
+                labelKey,
                 latitudeKey,
                 longitudeKey,
-                fill: fill!,
-                highlighted: false,
                 shape,
                 size,
+                fill: fill!,
                 fillOpacity,
                 stroke: stroke!,
                 strokeWidth,

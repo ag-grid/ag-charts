@@ -1,10 +1,4 @@
-import {
-    type AgChordSeriesItemStylerParams,
-    type AgChordSeriesLinkStyle,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgChordSeriesLinkStyle, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import {
     FlowProportionDatumType,
@@ -401,20 +395,19 @@ export class ChordSeries extends FlowProportionSeries<
                 format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
-                    itemId: datum.itemId,
                     fromKey,
                     toKey,
                     sizeKey,
-                    fill,
+                    fill: fill!,
                     fillOpacity,
                     strokeOpacity,
-                    stroke,
+                    stroke: stroke!,
                     strokeWidth,
                     lineDash,
                     lineDashOffset,
                     tension,
                     highlighted: isHighlight,
-                } as AgChordSeriesItemStylerParams);
+                });
             }
 
             link.centerX = datum.centerX;

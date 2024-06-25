@@ -451,7 +451,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, itemStyler } = this.properties;
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
+            this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
@@ -476,6 +477,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 datum,
                 angleKey,
                 radiusKey,
+                calloutLabelKey,
+                sectorLabelKey,
+                legendItemKey,
                 fill: fill!,
                 fillOpacity,
                 stroke,

@@ -1,11 +1,4 @@
-import {
-    type AgMapLineSeriesItemStylerParams,
-    type AgMapLineSeriesStyle,
-    _ModuleSupport,
-    _Scale,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgMapLineSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -377,7 +370,7 @@ export class MapLineSeries
 
             let format: AgMapLineSeriesStyle | undefined;
             if (itemStyler != null) {
-                const params: _Util.RequireOptional<AgMapLineSeriesItemStylerParams> = {
+                format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
                     idKey,
@@ -390,8 +383,7 @@ export class MapLineSeries
                     lineDash,
                     lineDashOffset,
                     highlighted: isHighlight,
-                };
-                format = callbackCache.call(itemStyler, params as AgMapLineSeriesItemStylerParams);
+                });
             }
 
             geoGeometry.visible = true;
@@ -622,12 +614,15 @@ export class MapLineSeries
 
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
+                highlighted: false,
                 seriesId,
                 datum,
                 idKey,
+                sizeKey,
+                colorKey,
+                labelKey,
                 stroke: stroke!,
                 strokeWidth: this.getStrokeWidth(nodeDatum.strokeWidth ?? properties.strokeWidth),
-                highlighted: false,
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,

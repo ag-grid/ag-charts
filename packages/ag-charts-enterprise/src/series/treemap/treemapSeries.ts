@@ -400,9 +400,10 @@ export class TreemapSeries<
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
-    private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
+    private getTileFormat(node: _ModuleSupport.HierarchyNode, highlighted: boolean): AgTreemapSeriesStyle | undefined {
         const { datum, depth, children } = node;
-        const { colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group, itemStyler } = this.properties;
+        const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, tile, group, itemStyler } =
+            this.properties;
 
         if (!itemStyler || datum == null || depth == null) {
             return {};
@@ -413,21 +414,22 @@ export class TreemapSeries<
         const stroke = this.getNodeStroke(node);
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
-        const result = this.ctx.callbackCache.call(itemStyler, {
+        return this.ctx.callbackCache.call(itemStyler, {
             seriesId: this.id,
-            depth,
+            highlighted,
             datum,
+            depth,
             colorKey,
+            childrenKey,
             labelKey,
             secondaryLabelKey,
             sizeKey,
             fill,
+            fillOpacity: 1,
             stroke,
             strokeWidth,
-            highlighted: isHighlighted,
+            strokeOpacity: 1,
         });
-
-        return result ?? {};
     }
 
     private getNodeFill(node: _ModuleSupport.HierarchyNode) {

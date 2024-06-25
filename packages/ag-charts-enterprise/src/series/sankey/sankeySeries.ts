@@ -1,10 +1,4 @@
-import {
-    type AgSankeySeriesFormatterParams,
-    type AgSankeySeriesLinkStyle,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgSankeySeriesLinkStyle, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { FlowProportionDatumType, FlowProportionSeries } from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
@@ -406,7 +400,7 @@ export class SankeySeries extends FlowProportionSeries<
         datumSelection.each((link, datum) => {
             let format: AgSankeySeriesLinkStyle | undefined;
             if (itemStyler != null) {
-                const params: _Util.RequireOptional<AgSankeySeriesFormatterParams> = {
+                format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
                     itemId: datum.itemId,
@@ -421,8 +415,7 @@ export class SankeySeries extends FlowProportionSeries<
                     lineDash,
                     lineDashOffset,
                     highlighted: isHighlight,
-                };
-                format = callbackCache.call(itemStyler, params as AgSankeySeriesFormatterParams);
+                });
             }
 
             link.x1 = datum.x1;
