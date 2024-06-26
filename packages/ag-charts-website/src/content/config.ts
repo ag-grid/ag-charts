@@ -18,6 +18,10 @@ const docs = defineCollection({
          */
         hidePageMenu: z.boolean().optional(),
         /**
+         * Make examples on page very large
+         */
+        largeExamples: z.boolean().optional(),
+        /**
          * Override side navigation headings
          */
         headings: z
