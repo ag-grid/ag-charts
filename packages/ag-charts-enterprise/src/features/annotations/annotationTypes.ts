@@ -2,16 +2,18 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 export enum AnnotationType {
     Line = 'line',
-    HorizontalLine = 'horizontal-line',
-    VerticalLine = 'vertical-line',
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
+    HorizontalLine = 'horizontal-line',
+    VerticalLine = 'vertical-line',
 }
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
     AnnotationType.Line,
     AnnotationType.DisjointChannel,
     AnnotationType.ParallelChannel,
+    AnnotationType.HorizontalLine,
+    AnnotationType.VerticalLine,
 ] as const;
 
 export function stringToAnnotationType(value: string) {

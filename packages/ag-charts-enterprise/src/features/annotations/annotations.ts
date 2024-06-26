@@ -590,8 +590,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!this.annotationData || !context) return;
 
         const {
-            active,
-            annotations,
             state,
             ctx: { toolbarManager, interactionManager },
         } = this;
@@ -609,14 +607,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const point = invertCoords(coords, context);
 
-        const node = active != null ? annotations.nodes()[active] : undefined;
-
         if (!validateDatumPoint(context, point)) {
             return;
         }
 
-        const data: StateClickEvent<AnnotationProperties, Annotation> = { node, point };
+        const data: StateClickEvent<AnnotationProperties, Annotation> = { point };
         state.transition('click', data);
+
+        this.active = this.annotationData.length - 1;
 
         this.update();
     }
@@ -676,6 +674,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point };
+
+        this.active ??= annotationData.length; // TODO: Laurence please fix
+
         state.transition('click', data);
 
         this.update();
