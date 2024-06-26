@@ -372,9 +372,12 @@ export class ChordSeries extends FlowProportionSeries<
 
             let format: AgChordSeriesNodeStyle | undefined;
             if (itemStyler != null) {
+                const { label, size } = datum;
                 format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
+                    label,
+                    size,
                     fromKey,
                     toKey,
                     sizeKey,
@@ -550,6 +553,8 @@ export class ChordSeries extends FlowProportionSeries<
                 format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
+                    label,
+                    size,
                     fromKey,
                     toKey,
                     sizeKey,

@@ -22,7 +22,12 @@ export interface AgChordSeriesLinkItemStylerParams<TDatum>
 export interface AgChordSeriesNodeItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
         AgChordSeriesOptionsKeys,
-        Required<AgChordSeriesNodeStyle> {}
+        Required<AgChordSeriesNodeStyle> {
+    /** Label of the node */
+    label: string | undefined;
+    /** Size of the node */
+    size: number;
+}
 
 export interface AgChordSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label for each node. */

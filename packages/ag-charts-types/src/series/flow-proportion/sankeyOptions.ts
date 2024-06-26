@@ -22,7 +22,12 @@ export interface AgSankeySeriesLinkItemStylerParams<TDatum>
 export interface AgSankeySeriesNodeItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
         AgSankeySeriesOptionsKeys,
-        Required<AgSankeySeriesNodeStyle> {}
+        Required<AgSankeySeriesNodeStyle> {
+    /** Label of the node */
+    label: string | undefined;
+    /** Size of the node */
+    size: number;
+}
 
 export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label for each node. */

@@ -383,9 +383,12 @@ export class SankeySeries extends FlowProportionSeries<
 
             let format: AgSankeySeriesNodeStyle | undefined;
             if (itemStyler != null) {
+                const { label, size } = datum;
                 format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
+                    label,
+                    size,
                     fromKey,
                     toKey,
                     sizeKey,
@@ -553,6 +556,8 @@ export class SankeySeries extends FlowProportionSeries<
                 format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
+                    label,
+                    size,
                     fromKey,
                     toKey,
                     sizeKey,
