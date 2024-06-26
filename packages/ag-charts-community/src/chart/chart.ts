@@ -279,12 +279,18 @@ export abstract class Chart extends Observable {
         const container = resources?.container;
 
         const root = new Group({ name: 'root' });
+        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
+        root.append(titleGroup);
         root.append(this.seriesRoot);
         root.append(this.highlightRoot);
         root.append(this.annotationRoot);
+
+        titleGroup.append(this.title.node);
+        titleGroup.append(this.subtitle.node);
+        titleGroup.append(this.footnote.node);
 
         const { overrideDevicePixelRatio } = options.specialOverrides;
 
@@ -342,10 +348,6 @@ export abstract class Chart extends Observable {
             ctx.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
             }),
-
-            ctx.scene.attachNode(this.title.node),
-            ctx.scene.attachNode(this.subtitle.node),
-            ctx.scene.attachNode(this.footnote.node),
 
             this.title.registerInteraction(moduleContext),
             this.subtitle.registerInteraction(moduleContext),
