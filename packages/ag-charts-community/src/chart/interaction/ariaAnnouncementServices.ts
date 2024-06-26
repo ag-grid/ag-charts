@@ -1,4 +1,3 @@
-import { partialAssign } from '../../module-support';
 import { setAttribute } from '../../util/attributeUtil';
 import { Debug } from '../../util/debug';
 import { getDocument } from '../../util/dom';
