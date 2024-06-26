@@ -73,7 +73,7 @@ jobs:
 
             - name: Sync README.md Changes
               id: update_readme
-              run: ./tools/readme/sync-readme.js
+              run: node ./tools/readme/sync-readme.js
 
             - name: Commit Changes
               id: commit_changes
