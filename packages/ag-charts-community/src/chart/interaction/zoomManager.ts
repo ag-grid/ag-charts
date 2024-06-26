@@ -1,7 +1,12 @@
+import type { AgZoomOptions } from 'ag-charts-types';
+
+import type { MementoOriginator } from '../../api/state/memento';
 import { deepClone } from '../../util/json';
 import { StateTracker } from '../../util/stateTracker';
+import { isFiniteNumber, isObject } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import { ChartAxisDirection } from '../chartAxisDirection';
+import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 
 export interface ZoomState {
     min: number;
@@ -11,6 +16,11 @@ export interface ZoomState {
 export interface AxisZoomState {
     x?: ZoomState;
     y?: ZoomState;
+}
+
+export interface DefinedZoomState {
+    x: ZoomState;
+    y: ZoomState;
 }
 
 export interface ZoomChangeEvent extends AxisZoomState {
@@ -24,22 +34,62 @@ export interface ZoomPanStartEvent {
     callerId: string;
 }
 
+export interface ZoomRestoreEvent extends Pick<AgZoomOptions, 'rangeX' | 'rangeY' | 'ratioX' | 'ratioY'> {
+    type: 'restore-zoom';
+}
+
 export type ChartAxisLike = {
     id: string;
     direction: ChartAxisDirection;
     visibleRange: [number, number];
 };
 
-type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
+type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent | ZoomRestoreEvent;
+
+export type ZoomMemento = Pick<AgZoomOptions, 'rangeX' | 'rangeY' | 'ratioX' | 'ratioY'>;
 
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
  */
-export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
+export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> implements MementoOriginator<ZoomMemento> {
+    public mementoOriginatorKey = 'zoom' as const;
+
     private readonly axisZoomManagers = new Map<string, AxisZoomManager>();
     private readonly state = new StateTracker<AxisZoomState>(undefined, 'initial');
     private readonly rejectCallbacks = new Map<string, (stateId: string) => void>();
+
+    private axes?: LayoutCompleteEvent['axes'];
+
+    public addLayoutService(layoutService: LayoutService) {
+        this.destroyFns.push(
+            layoutService.addListener('layout-complete', (event) => {
+                this.axes = event.axes;
+            })
+        );
+    }
+
+    public createMemento() {
+        const zoom = this.getDefinedZoom();
+        return {
+            rangeX: this.getRangeDirection(zoom, ChartAxisDirection.X),
+            rangeY: this.getRangeDirection(zoom, ChartAxisDirection.Y),
+            ratioX: { start: zoom.x.min, end: zoom.x.max },
+            ratioY: { start: zoom.y.min, end: zoom.y.max },
+        };
+    }
+
+    public guardMemento(blob: unknown): blob is ZoomMemento {
+        return (
+            isObject(blob) && (blob.ratioX != null || blob.ratioY != null || blob.rangeX != null || blob.rangeY != null)
+        );
+    }
+
+    public restoreMemento(_version: string, _mementoVersion: string, memento: ZoomMemento) {
+        // Migration from older versions can be implemented here.
+
+        this.listeners.dispatch('restore-zoom', { ...memento, type: 'restore-zoom' });
+    }
 
     public updateAxes(axes: Array<ChartAxisLike>) {
         const zoomManagers = new Map(axes.map((axis) => [axis.id, this.axisZoomManagers.get(axis.id)]));
@@ -145,6 +195,32 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
         }
 
         this.listeners.dispatch('zoom-change', { type: 'zoom-change', ...this.getZoom(), axes, callerId });
+    }
+
+    private getRangeDirection(zoom: DefinedZoomState, direction: ChartAxisDirection) {
+        for (const axis of this.axes ?? []) {
+            if (axis.direction !== direction) continue;
+
+            const domain = axis.scale.getDomain?.();
+            const d0 = axis.scale.convert?.(domain?.at(0));
+            const d1 = axis.scale.convert?.(domain?.at(-1));
+
+            if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
+
+            const diff = Math.abs(d1 - d0);
+            const start = axis.scale.invert?.(0);
+            const end = axis.scale.invert?.(Math.min(d0, d1) + diff * zoom[direction].max);
+
+            return { start, end };
+        }
+    }
+
+    private getDefinedZoom(): DefinedZoomState {
+        const zoom = this.getZoom();
+        return {
+            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
+            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
+        };
     }
 }
 

@@ -140,6 +140,7 @@ export interface ImageDataUrlOptions {
 export interface AgChartState {
     version: string;
     annotations?: AgChartSerializableState;
+    zoom?: AgChartSerializableState;
 }
 
 export type AgChartSerializableState = any;

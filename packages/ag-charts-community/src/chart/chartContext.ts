@@ -122,6 +122,8 @@ export class ChartContext implements ModuleContext {
 
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
+
+        this.zoomManager.addLayoutService(this.layoutService);
     }
 
     destroy() {

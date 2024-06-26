@@ -173,6 +173,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
     private minRatioY = 0;
+    private restoreEvent?: _ModuleSupport.ZoomRestoreEvent;
+    private hasPerformedLayout = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -228,6 +230,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
+            ctx.zoomManager.addListener('restore-zoom', (event) => this.onRestoreZoom(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.toolbar.destroy()
         );
@@ -560,7 +563,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        const { enabled, rangeX, rangeY } = this;
+        const { enabled, enableIndependentAxes, rangeX, rangeY } = this;
 
         if (!enabled) return;
 
@@ -576,18 +579,31 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!axes) return;
 
         const [axesX, axesY] = _Util.bifurcate((axis) => axis.direction === ChartAxisDirection.X, axes);
-        const rangeXAxisChanged = rangeX.updateAxis(axesX);
-        const rangeYAxisChanged = rangeY.updateAxis(axesY);
+        const xAxis = rangeX.updateAxis(axesX);
+        const yAxis = rangeY.updateAxis(axesY);
 
-        if (!rangeXAxisChanged && !rangeYAxisChanged) return;
+        if (enableIndependentAxes) {
+            if (xAxis.changed && xAxis.axisId) {
+                this.updateAxisZoom(xAxis.axisId, ChartAxisDirection.X, rangeX.getRange());
+            }
 
-        const newZoom: _ModuleSupport.AxisZoomState = {};
-        newZoom.x = rangeX.getRange();
-        newZoom.y = rangeY.getRange();
+            if (yAxis.changed && yAxis.axisId) {
+                this.updateAxisZoom(yAxis.axisId, ChartAxisDirection.Y, rangeX.getRange());
+            }
+        } else {
+            const newZoom = { x: rangeX.getRange(), y: rangeY.getRange() };
 
-        if (newZoom.x != null || newZoom.y != null) {
-            this.updateZoom(constrainZoom(definedZoomState(newZoom)));
+            if (newZoom.x != null || newZoom.y != null) {
+                this.updateZoom(constrainZoom(definedZoomState(newZoom)));
+            }
         }
+
+        if (this.restoreEvent) {
+            this.restoreZoom(this.restoreEvent);
+            this.restoreEvent = undefined;
+        }
+
+        this.hasPerformedLayout = true;
     }
 
     private onUpdateComplete(event: { minRect?: _Scene.BBox; minVisibleRect?: _Scene.BBox }) {
@@ -629,6 +645,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const props = this.getModuleProperties();
         this.contextMenu.toggleActions(zoom);
         this.toolbar.toggleButtons(zoom, props);
+    }
+
+    private onRestoreZoom(event: _ModuleSupport.ZoomRestoreEvent) {
+        if (this.hasPerformedLayout) {
+            this.restoreZoom(event);
+        } else {
+            this.restoreEvent = event;
+        }
     }
 
     private onZoomPanStart(event: _ModuleSupport.ZoomPanStartEvent): void {
@@ -747,6 +771,30 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
+    }
+
+    private restoreZoom(event: _ModuleSupport.ZoomRestoreEvent) {
+        const { rangeX, rangeY, ratioX, ratioY } = event;
+
+        if (rangeX) {
+            this.rangeX.start = rangeX.start;
+            this.rangeX.end = rangeX.end;
+        }
+
+        if (rangeY) {
+            this.rangeY.start = rangeY.start;
+            this.rangeY.end = rangeY.end;
+        }
+
+        if (ratioX && !rangeX) {
+            this.ratioX.start = ratioX.start;
+            this.ratioX.end = ratioX.end;
+        }
+
+        if (ratioY && !rangeY) {
+            this.ratioY.start = ratioY.start;
+            this.ratioY.end = ratioY.end;
+        }
     }
 
     private getZoom() {

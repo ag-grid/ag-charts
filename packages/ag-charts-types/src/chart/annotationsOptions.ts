@@ -1,3 +1,4 @@
+import type { AgStateSerializableDate } from '../api/stateTypes';
 import type {
     FillOptions,
     FontOptions,
@@ -245,8 +246,3 @@ interface Cappable {
 export type Cap = 'arrow' | 'circle';
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;
-
-export interface AgStateSerializableDate {
-    __type: 'date';
-    value: string | number;
-}

@@ -117,11 +117,25 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     getState() {
-        return this.factoryApi.caretaker.save(this.chart.ctx.annotationManager) as Required<AgChartState>;
+        const {
+            factoryApi: { caretaker },
+            chart: {
+                ctx: { annotationManager, zoomManager },
+            },
+        } = this;
+
+        return caretaker.save(annotationManager, zoomManager) as Required<AgChartState>;
     }
 
     async setState(state: AgChartState) {
-        this.factoryApi.caretaker.restore(state, this.chart.ctx.annotationManager);
+        const {
+            factoryApi: { caretaker },
+            chart: {
+                ctx: { annotationManager, zoomManager },
+            },
+        } = this;
+
+        caretaker.restore(state, annotationManager, zoomManager);
         await this.chart.waitForUpdate();
     }
 

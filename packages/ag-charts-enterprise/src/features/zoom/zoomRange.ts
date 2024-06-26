@@ -99,7 +99,7 @@ export class ZoomRange {
             return isNumberAxis || isDateAxis;
         });
 
-        if (!validAxis) return this.domain != null;
+        if (!validAxis) return { changed: this.domain != null };
 
         this.axisId = validAxis.id;
         let validAxisDomain = validAxis.domain;
@@ -120,7 +120,7 @@ export class ZoomRange {
             this.domain = validAxisDomain;
         }
 
-        return changed;
+        return { axisId: this.axisId, changed };
     }
 
     private getRangeWithValues(start?: Date | number, end?: Date | number) {
