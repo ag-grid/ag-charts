@@ -22,7 +22,7 @@ function addEscapeEventListener(
 
 function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
     return (
-        !(event.altKey || event.ctrlKey || event.metaKey) &&
+        !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) &&
         (event.key === key || morekeys.some((altkey) => event.key === altkey))
     );
 }

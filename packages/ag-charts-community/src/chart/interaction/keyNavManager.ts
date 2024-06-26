@@ -99,13 +99,19 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
 
         this.isMouseBlurred = false;
 
-        switch (event.sourceEvent.code) {
-            case 'Tab':
-                if (event.sourceEvent.shiftKey) {
-                    return this.dispatch('tab', -1, event);
-                } else {
-                    return this.dispatch('tab', 1, event);
-                }
+        const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
+
+        if (code === 'Tab') {
+            if (shiftKey) {
+                return this.dispatch('tab', -1, event);
+            } else {
+                return this.dispatch('tab', 1, event);
+            }
+        }
+
+        if (altKey || shiftKey || metaKey || ctrlKey) return;
+
+        switch (code) {
             case 'ArrowDown':
                 return this.dispatch('nav-vert', 1, event);
             case 'ArrowUp':
