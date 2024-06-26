@@ -28,6 +28,7 @@ import {
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -37,6 +38,7 @@ import {
     DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
+    DEFAULT_TOOLBAR_POSITION,
     IS_DARK_THEME,
     PALETTE_DOWN_STROKE,
     PALETTE_NEUTRAL_STROKE,
@@ -214,18 +216,23 @@ export class ChartTheme {
     }
 
     private static readonly cartesianAxisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({ line: { enabled: false } }),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({ base: 10, line: { enabled: false } }),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
+            line: { enabled: false },
+        }),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
+            base: 10,
+            line: { enabled: false },
+        }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0.1,
             label: { autoRotate: true },
-            gridLine: { enabled: false },
+            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
         }),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0,
             label: { autoRotate: false },
-            gridLine: { enabled: false },
+            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             crosshair: {
                 enabled: true,
                 snap: true,
@@ -237,8 +244,10 @@ export class ChartTheme {
                 label: { enabled: true },
             },
         }),
-        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ gridLine: { enabled: false } }),
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
+            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+        }),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
             tick: { enabled: false },
@@ -397,6 +406,8 @@ export class ChartTheme {
         params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
+        params.set(DEFAULT_TOOLBAR_POSITION, 'top');
+        params.set(DEFAULT_GRIDLINE_ENABLED, false);
 
         const defaultColors = this.getDefaultColors();
         params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);

@@ -7,7 +7,9 @@ import {
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_PADDING,
+    DEFAULT_TOOLBAR_POSITION,
 } from './symbols';
 
 const FINANCIAL_LIGHT_FILLS = {
@@ -53,6 +55,8 @@ export class FinancialLight extends ChartTheme {
         params.set(DEFAULT_PADDING, 0);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'left');
+        params.set(DEFAULT_TOOLBAR_POSITION, 'bottom');
+        params.set(DEFAULT_GRIDLINE_ENABLED, true);
 
         return params;
     }

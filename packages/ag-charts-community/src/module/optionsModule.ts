@@ -103,9 +103,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
             options = presetOptions;
         }
-        this.sanityCheckAndCleanup(options);
 
         this.activeTheme = getChartTheme(options.theme);
+        if (this.type) {
+            options = this.activeTheme.templateTheme(options);
+        }
+
+        this.sanityCheckAndCleanup(options);
         this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 

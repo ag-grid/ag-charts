@@ -1,12 +1,15 @@
 import type {
     AgAreaSeriesOptions,
+    AgBarSeriesItemStylerParams,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
     AgCandlestickSeriesOptions,
     AgCartesianChartOptions,
+    AgChartTheme,
     AgChartThemeName,
     AgLineSeriesOptions,
     AgNavigatorOptions,
+    AgNumberAxisOptions,
     AgOhlcSeriesOptions,
     AgPriceVolumePreset,
     AgRangeAreaSeriesOptions,
@@ -15,6 +18,17 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
+import { PALETTE_DOWN_STROKE, PALETTE_NEUTRAL_STROKE, PALETTE_UP_STROKE } from '../../chart/themes/symbols';
+import { isObject } from '../../util/type-guards';
+
+function fromTheme<T>(
+    theme: AgChartTheme | AgChartThemeName | undefined,
+    cb: (theme: AgChartTheme) => T
+): T | undefined {
+    if (isObject(theme)) {
+        return cb(theme);
+    }
+}
 
 export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
@@ -39,40 +53,30 @@ export function priceVolume(
         ...unusedOpts
     } = opts;
 
-    const priceSeries = createPriceSeries(chartType, xKey, highKey, lowKey, openKey, closeKey);
+    const priceSeries = createPriceSeries(theme, chartType, xKey, highKey, lowKey, openKey, closeKey);
+    const volumeSeries = createVolumeSeries(theme, getTheme, openKey, closeKey, volume, volumeKey);
 
-    const volumeSeries = volume
-        ? [
-              {
-                  type: 'bar',
-                  xKey: 'date',
-                  yKey: volumeKey,
-                  itemStyler: ({ datum }) => {
-                      const { up, down } = getTheme().palette;
-                      return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
-                  },
-              } satisfies AgBarSeriesOptions,
-          ]
-        : [];
-
-    const navigatorOpts = navigator
+    const miniChart = volume
         ? {
-              navigator: {
-                  enabled: true,
-                  miniChart: {
-                      enabled: true,
-                      series: [
-                          {
-                              type: 'line',
-                              xKey: 'date',
-                              yKey: volumeKey,
-                              marker: { enabled: false },
-                          },
-                      ],
-                  },
-              } satisfies AgNavigatorOptions,
+              miniChart: {
+                  enabled: navigator,
+                  series: [
+                      {
+                          type: 'line' as const,
+                          xKey: 'date',
+                          yKey: volumeKey,
+                          marker: { enabled: false },
+                      },
+                  ],
+              },
           }
         : null;
+    const navigatorOpts = {
+        navigator: {
+            enabled: navigator,
+            ...miniChart,
+        } satisfies AgNavigatorOptions,
+    };
 
     const statusBarOpts = statusBar
         ? {
@@ -83,7 +87,7 @@ export function priceVolume(
                   openKey,
                   lowKey,
                   closeKey,
-                  volumeKey,
+                  volumeKey: volume ? volumeKey : undefined,
               },
           }
         : null;
@@ -108,11 +112,31 @@ export function priceVolume(
                       },
                       ranges: {
                           enabled: rangeToolbar,
-                          position: 'bottom',
                       },
                   } satisfies AgToolbarOptions,
               }
             : null;
+
+    const volumeAxis = volume
+        ? [
+              {
+                  type: 'number',
+                  position: 'left',
+                  keys: [volumeKey],
+                  label: { enabled: false },
+                  crosshair: { enabled: false },
+                  gridLine: { enabled: false },
+                  nice: false,
+                  // @ts-expect-error
+                  layoutConstraints: {
+                      stacked: false,
+                      width: 25,
+                      unit: 'percentage',
+                      align: 'end',
+                  },
+              } satisfies AgNumberAxisOptions,
+          ]
+        : [];
 
     return {
         theme:
@@ -124,7 +148,7 @@ export function priceVolume(
                   },
         animation: { enabled: false },
         legend: { enabled: false },
-        series: [...priceSeries, ...volumeSeries],
+        series: [...volumeSeries, ...priceSeries],
         padding: {
             top: 6,
             right: 8,
@@ -135,10 +159,10 @@ export function priceVolume(
                 position: 'right',
                 keys: [openKey, closeKey, highKey, lowKey],
                 interval: {
-                    maxSpacing: 50,
+                    maxSpacing: fromTheme(theme, (t) => t.overrides?.common?.axes?.number?.interval?.maxSpacing) ?? 45,
                 },
                 label: {
-                    format: '.2f', // MOVE TO THEME!
+                    format: fromTheme(theme, (t) => t.overrides?.common?.axes?.number?.label?.format) ?? '.2f',
                 },
                 crosshair: {
                     enabled: true,
@@ -152,33 +176,19 @@ export function priceVolume(
                     align: 'start',
                 },
             },
-            {
-                type: 'number',
-                position: 'left',
-                keys: [volumeKey],
-                label: { enabled: false },
-                crosshair: { enabled: false },
-                gridLine: { enabled: false },
-                nice: false,
-                // @ts-expect-error
-                layoutConstraints: {
-                    stacked: false,
-                    width: 25,
-                    unit: 'percentage',
-                    align: 'end',
-                },
-            },
+            ...volumeAxis,
             {
                 type: 'ordinal-time',
                 position: 'bottom',
+                line: {
+                    enabled: false,
+                },
                 label: {
                     enabled: true,
-                    autoRotate: false,
                 },
                 crosshair: {
                     enabled: true,
                 },
-                gridLine: { enabled: true },
             },
         ],
         annotations: {
@@ -194,7 +204,41 @@ export function priceVolume(
     };
 }
 
+function createVolumeSeries(
+    theme: AgChartThemeName | AgChartTheme | undefined,
+    getTheme: () => ChartTheme,
+    openKey: string,
+    closeKey: string,
+    volume: boolean,
+    volumeKey: string
+) {
+    if (!volume) return [];
+
+    const barSeriesFill = fromTheme(theme, (t) => t.overrides?.bar?.series?.fill);
+    const itemStyler = barSeriesFill
+        ? { fill: barSeriesFill }
+        : {
+              itemStyler({ datum }: AgBarSeriesItemStylerParams<any>) {
+                  const { up, down } = getTheme().palette;
+                  return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
+              },
+          };
+    return [
+        {
+            type: 'bar',
+            xKey: 'date',
+            yKey: volumeKey,
+            fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
+            ...itemStyler,
+        } satisfies AgBarSeriesOptions,
+    ];
+}
+
+// eslint-disable-next-line sonarjs/no-duplicate-string
+const RANGE_AREA_TYPE = 'range-area';
+
 function createPriceSeries(
+    theme: AgChartThemeName | AgChartTheme | undefined,
     chartType: AgPriceVolumePreset['chartType'],
     xKey: string,
     highKey: string,
@@ -227,6 +271,8 @@ function createPriceSeries(
                 {
                     type: 'line',
                     ...singleKeys,
+                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
+                    marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
                 } satisfies AgLineSeriesOptions,
             ];
         case 'step-line':
@@ -234,7 +280,11 @@ function createPriceSeries(
                 {
                     type: 'line',
                     ...singleKeys,
-                    interpolation: { type: 'step' },
+                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
+                    interpolation: fromTheme(theme, (t) => t.overrides?.line?.series?.interpolation) ?? {
+                        type: 'step',
+                    },
+                    marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
                 } satisfies AgLineSeriesOptions,
             ];
 
@@ -243,22 +293,32 @@ function createPriceSeries(
                 {
                     type: 'area',
                     ...singleKeys,
+                    fill: fromTheme(theme, (t) => t.overrides?.['radar-area']?.series?.fill) ?? PALETTE_NEUTRAL_STROKE,
+                    fillOpacity: fromTheme(theme, (t) => t.overrides?.area?.series?.fillOpacity) ?? 0.5,
+                    stroke: fromTheme(theme, (t) => t.overrides?.area?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
+                    strokeWidth: fromTheme(theme, (t) => t.overrides?.area?.series?.strokeWidth) ?? 2,
                 } satisfies AgAreaSeriesOptions,
             ];
-        case 'range-area':
-            const type = 'range-area';
+        case RANGE_AREA_TYPE:
+            const fill = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fill);
+            const stoke = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.stroke);
+
             return [
                 {
-                    type,
+                    type: RANGE_AREA_TYPE,
                     xKey,
                     yHighKey: highKey,
                     yLowKey: closeKey,
+                    fill: fill ?? PALETTE_UP_STROKE,
+                    stroke: stoke ?? PALETTE_UP_STROKE,
                 } satisfies AgRangeAreaSeriesOptions,
                 {
-                    type,
+                    type: RANGE_AREA_TYPE,
                     xKey,
                     yHighKey: closeKey,
                     yLowKey: lowKey,
+                    fill: fill ?? PALETTE_DOWN_STROKE,
+                    stroke: stoke ?? PALETTE_DOWN_STROKE,
                 } satisfies AgRangeAreaSeriesOptions,
             ];
 
@@ -272,13 +332,14 @@ function createPriceSeries(
             ];
 
         case 'hollow-candlestick':
+            const item = fromTheme(theme, (t) => t.overrides?.candlestick?.series?.item);
             return [
                 {
                     type: 'candlestick',
                     ...keys,
                     item: {
                         up: {
-                            fill: 'transparent',
+                            fill: item?.up?.fill ?? 'transparent',
                         },
                     },
                 } satisfies AgCandlestickSeriesOptions,

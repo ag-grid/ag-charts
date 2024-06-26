@@ -1,6 +1,7 @@
-import type { AgToolbarOptions } from 'ag-charts-types';
+import type { AgToolbarGroupPosition, AgToolbarOptions } from 'ag-charts-types';
 
 import type { Module } from '../../module/module';
+import { DEFAULT_TOOLBAR_POSITION } from '../themes/symbols';
 import { Toolbar } from './toolbar';
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -81,7 +82,7 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
 
 const ranges: AgToolbarOptions['ranges'] = {
     enabled: false,
-    position: 'top',
+    position: DEFAULT_TOOLBAR_POSITION as AgToolbarGroupPosition,
     align: 'start',
     buttons: [
         {

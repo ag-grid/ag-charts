@@ -26,3 +26,5 @@ export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as 
 export const DEFAULT_ANNOTATION_STROKE = Symbol('default-annotation-stroke') as unknown as string;
 export const DEFAULT_ANNOTATION_BACKGROUND_FILL = Symbol('default-annotation-background-fill') as unknown as string;
 export const DEFAULT_ANNOTATION_HANDLE_FILL = Symbol('default-annotation-handle-fill') as unknown as string;
+export const DEFAULT_TOOLBAR_POSITION = Symbol('default-toolbar-position') as unknown as string;
+export const DEFAULT_GRIDLINE_ENABLED = Symbol('default-gridline-enabled') as unknown as string;
