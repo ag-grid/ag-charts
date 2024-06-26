@@ -121,6 +121,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Northern Ireland Statistics and Research Agency",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -343,6 +344,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -378,6 +380,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Marriage Statistics (Northern Ireland)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -687,6 +690,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -910,6 +914,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -950,6 +955,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Cattle Holdings and Beef Exports (UK)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -1213,6 +1219,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: HM Revenue & Customs",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -1623,6 +1630,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -1670,6 +1678,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Taxed Alcohol Consumption (UK)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -1932,6 +1941,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Environmental Agency",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -2362,6 +2372,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -2385,6 +2396,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "layoutStyle": "block",
     "spacing": 25,
     "text": "WEEE Collected in UK",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -2645,6 +2657,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: US Geological Survey",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -2784,6 +2797,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -2795,6 +2809,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Worldwide Earthquakes",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -3054,6 +3069,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: US Geological Survey",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -3313,6 +3329,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -3354,6 +3371,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Earthquake Magnitudes by Source",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -3615,6 +3633,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -3992,6 +4011,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -4034,6 +4054,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Changes in UK Energy Stock",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -4295,6 +4316,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -4436,6 +4458,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -4457,6 +4480,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "spacing": 25,
     "text": "Gross Weekly Earnings
 by Occupation",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -4718,6 +4742,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -4865,6 +4890,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -4877,6 +4903,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "spacing": 25,
     "text": "Change in Number of Jobs in UK
 (June to September)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -5143,6 +5170,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Footnote",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -5275,6 +5303,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "layoutStyle": "block",
     "spacing": 20,
     "text": "time distribution of commits",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -5285,6 +5314,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "fontWeight": "normal",
     "layoutStyle": "block",
     "text": "Punch Card of Github",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -5550,6 +5580,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Simple Maps",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -5684,6 +5715,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -5695,6 +5727,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Most Populous Cities",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -5956,6 +5989,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -6148,6 +6182,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -6182,6 +6217,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Changes in Prison Population",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -6443,6 +6479,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -6637,6 +6674,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -6673,6 +6711,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Annual Growth in Pay",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -6935,6 +6974,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -7373,6 +7413,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -7402,6 +7443,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Regular Internet Users",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -7667,6 +7709,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Environment, Food and Rural Affairs",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -8489,6 +8532,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -8555,6 +8599,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Imported Banana Prices",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -8816,6 +8861,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Footnote",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -8956,6 +9002,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "layoutStyle": "block",
     "spacing": 20,
     "text": "log scale",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -8966,6 +9013,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "fontWeight": "normal",
     "layoutStyle": "block",
     "text": "World Population Over Time",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -9228,6 +9276,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -9764,6 +9813,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -9789,6 +9839,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "layoutStyle": "block",
     "spacing": 25,
     "text": "UK Energy Sources",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -10052,6 +10103,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -10295,6 +10347,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -10333,6 +10386,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Internet Users by Geographical Location",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -10595,6 +10649,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Education",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -10973,6 +11028,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -11016,6 +11072,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Ethnic Diversity of School Pupils",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -11283,6 +11340,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -11585,6 +11643,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -11608,6 +11667,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Total Visitors to Tate Galleries",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -11870,6 +11930,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -12013,6 +12074,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -12024,6 +12086,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Total Visitors to Museums and Galleries",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -12203,6 +12266,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Home Office",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -12393,6 +12457,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -12404,6 +12469,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Dwelling Fires (UK)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "tooltip": {
@@ -12520,6 +12586,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -12710,6 +12777,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -12735,6 +12803,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Road fuel prices",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -12913,6 +12982,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -13085,6 +13155,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -13096,6 +13167,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Religions of London Population",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "tooltip": {
@@ -13203,6 +13275,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Statistics Online Computational Resource",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -13329,6 +13402,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -13340,6 +13414,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Height vs Weight for Major League Baseball Players",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -13609,6 +13684,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -14077,6 +14153,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -14125,6 +14202,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "layoutStyle": "block",
     "spacing": 25,
     "text": "Total Visitors to Science Museums",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -14387,6 +14465,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Ministry of Housing, Communities & Local Government",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -14673,6 +14752,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -14697,6 +14777,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "fontWeight": "normal",
     "layoutStyle": "block",
     "text": "UK Housing Stock",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -14960,6 +15041,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Transport for London",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -15297,6 +15379,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "layoutStyle": "block",
     "spacing": 20,
     "text": "Victoria Line (2010)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -15338,6 +15421,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "fontWeight": "normal",
     "layoutStyle": "block",
     "text": "Average Station Entries",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {

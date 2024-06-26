@@ -8,12 +8,6 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'S&P 500 Index',
     },
-    subtitle: {
-        text: 'Daily High and Low Prices',
-    },
-    footnote: {
-        text: '1 Aug 2023 - 1 Nov 2023',
-    },
     theme: {
         overrides: {
             common: {

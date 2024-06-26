@@ -4,6 +4,7 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_PADDING,
@@ -51,6 +52,7 @@ export class FinancialLight extends ChartTheme {
 
         params.set(DEFAULT_PADDING, 0);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
+        params.set(DEFAULT_CAPTION_ALIGNMENT, 'left');
 
         return params;
     }

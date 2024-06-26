@@ -23,6 +23,7 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
@@ -152,6 +153,7 @@ export class ChartTheme {
                 color: DEFAULT_LABEL_COLOUR,
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
+                textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             subtitle: {
                 enabled: false,
@@ -162,6 +164,7 @@ export class ChartTheme {
                 color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
+                textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             footnote: {
                 enabled: false,
@@ -172,6 +175,7 @@ export class ChartTheme {
                 color: 'rgb(140, 140, 140)',
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
+                textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             legend: {
                 position: POSITION.BOTTOM,
@@ -390,6 +394,7 @@ export class ChartTheme {
         ]);
         params.set(DEFAULT_PADDING, 20);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
+        params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);

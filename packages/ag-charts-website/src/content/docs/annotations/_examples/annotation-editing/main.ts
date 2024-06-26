@@ -8,12 +8,6 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'Dow Jones Industrial Average',
     },
-    subtitle: {
-        text: 'Candlestick Patterns',
-    },
-    footnote: {
-        text: '1 Minute',
-    },
 };
 
 AgCharts.createFinancialChart(options);

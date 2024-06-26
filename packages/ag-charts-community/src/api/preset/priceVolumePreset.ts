@@ -125,6 +125,10 @@ export function priceVolume(
         animation: { enabled: false },
         legend: { enabled: false },
         series: [...priceSeries, ...volumeSeries],
+        padding: {
+            top: 6,
+            right: 8,
+        },
         axes: [
             {
                 type: 'number',
@@ -133,15 +137,9 @@ export function priceVolume(
                 interval: {
                     maxSpacing: 50,
                 },
-                tick: {
-                    size: 0,
-                },
                 label: {
-                    padding: 0,
-                    fontSize: 10,
-                    format: '.2f',
+                    format: '.2f', // MOVE TO THEME!
                 },
-                thickness: 25,
                 crosshair: {
                     enabled: true,
                     snap: false,
@@ -156,7 +154,7 @@ export function priceVolume(
             },
             {
                 type: 'number',
-                position: 'right',
+                position: 'left',
                 keys: [volumeKey],
                 label: { enabled: false },
                 crosshair: { enabled: false },
@@ -180,6 +178,7 @@ export function priceVolume(
                 crosshair: {
                     enabled: true,
                 },
+                gridLine: { enabled: true },
             },
         ],
         annotations: {
