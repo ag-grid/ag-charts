@@ -383,8 +383,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const format = this.properties.itemStyler
                 ? this.ctx.callbackCache.call(this.properties.itemStyler, {
                       seriesId: this.id,
+                      datum: datum.datum,
                       highlighted,
-                      datum,
                       angleKey,
                       radiusKey,
                       fill,
