@@ -29,10 +29,6 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function reset() {
-    const element = document.getElementsByClassName('ag-chart-wrapper')![0]! as HTMLElement;
-    element.style.width = '100%';
-    element.style.height = '100%';
-
     delete options.axes![0].label!.rotation;
     delete options.axes![0].label!.autoRotate;
     delete options.axes![0].label!.avoidCollisions;

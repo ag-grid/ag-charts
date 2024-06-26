@@ -198,5 +198,11 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
         `;
     }
 
+    if (bindings.usesChartApi) {
+        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current$3');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.$1(');
+        indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current');
+    }
+
     return indexFile;
 }

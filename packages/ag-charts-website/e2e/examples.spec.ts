@@ -4,54 +4,97 @@ import * as glob from 'glob';
 
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
 
-const ignorePages = ['benchmarks', /.*-test/];
-const notServedGalleryExamples = [
-    'time-axis-with-irregular-intervals',
-    'simple-bubble',
-    'scatter-series-error-bars',
-    'reversed-horizontal-bar',
-    'reversed-bullet',
-    'reversed-bar',
-    'per-marker-customisation',
-    'log-axis',
-    'line-series-error-bars',
-    'grouped-column',
-    'custom-tooltips',
-    'custom-marker-shapes',
-    'cross-lines',
-    'chart-customisation',
-    'bubble-with-labels',
-    'bubble-with-custom-markers',
-    'box-plot-scatter-combination',
-    'bar-with-labels',
-    'bar-series-error-bars',
-    '100--stacked-column',
-    '100--stacked-bar',
-];
-const ignoreFWExamples = {
-    // FW pages don't have these examples, as they make no sense.
-    'api-create-update': ['update-partial', 'wait-for-update'],
+type Status = 'ok' | '404';
+type ClickOrder = 'normal' | 'reverse';
+
+type ExampleOptions = {
+    pagePath: string;
+    url: string;
+    example: string;
+    framework: string;
+    status: Status;
+    clickOrder: ClickOrder;
+    skipCanvasUpdateCheck: boolean;
+    ignoreConsoleWarnings: boolean;
 };
-const clickBehaviorExamples = {
-    // Buttons have no visible rendering change.
-    // 'api-download': { download: 'no-update' },
-    events: { 'interaction-ranges': 'no-update' },
-    tooltips: { 'interaction-range': 'no-update' },
 
-    // First button is the default option, so no rendering change.
-    legend: { 'legend-position': 'reverse' },
-    themes: { 'stock-themes': 'reverse', 'advanced-theme': 'reverse' },
-    'financial-chart-types': { 'toggle-financial-features': 'reverse' },
+type ExampleOverrides = {
+    frameworks?: string[];
+    status?: Status;
+    skipFrameworks?: boolean;
+    clickOrder?: ClickOrder;
+    skipCanvasUpdateCheck?: boolean;
+    ignoreConsoleWarnings?: boolean;
+};
 
-    // Too complex to test with a naive button-click sweep.
-    'axis-labels': { 'axis-label-rotation': 'skip' },
+const ignorePages = ['benchmarks', /.*-test/];
+const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
+    gallery: {
+        '*': { frameworks: ['vanilla', 'typescript'] },
 
-    // BROKEN!!!!!!!
-    'api-download': { download: 'skip' },
+        // Hidden gallery examples
+        'time-axis-with-irregular-intervals': { status: '404' },
+        'simple-bubble': { status: '404' },
+        'scatter-series-error-bars': { status: '404' },
+        'reversed-horizontal-bar': { status: '404' },
+        'reversed-bullet': { status: '404' },
+        'reversed-bar': { status: '404' },
+        'per-marker-customisation': { status: '404' },
+        'log-axis': { status: '404' },
+        'line-series-error-bars': { status: '404' },
+        'grouped-column': { status: '404' },
+        'custom-tooltips': { status: '404' },
+        'custom-marker-shapes': { status: '404' },
+        'cross-lines': { status: '404' },
+        'chart-customisation': { status: '404' },
+        'bubble-with-labels': { status: '404' },
+        'bubble-with-custom-markers': { status: '404' },
+        'box-plot-scatter-combination': { status: '404' },
+        'bar-with-labels': { status: '404' },
+        'bar-series-error-bars': { status: '404' },
+        '100--stacked-column': { status: '404' },
+        '100--stacked-bar': { status: '404' },
+    },
 
-    // ????
-    'sankey-series': { alignment: 'no-update' },
-    'range-bar-series': { 'range-bar-missing-data': 'skip' },
+    'axes-labels': {
+        // Too complex to test with a naive button-click sweep
+        'axis-label-rotation': { skipCanvasUpdateCheck: true },
+    },
+    'api-create-update': {
+        // No framework examples
+        'update-partial': { frameworks: ['vanilla', 'typescript'] },
+        // No framework examples, stop button does not cause visible change
+        'wait-for-update': {
+            frameworks: ['vanilla', 'typescript'],
+            skipCanvasUpdateCheck: true,
+        },
+    },
+    events: {
+        // Buttons have no visible rendering change
+        'interaction-ranges': { skipCanvasUpdateCheck: true },
+    },
+    'financial-chart-types': {
+        'toggle-financial-features': { clickOrder: 'reverse' },
+    },
+    legend: {
+        'legend-position': { clickOrder: 'reverse' },
+    },
+    'range-bar-series': {
+        // Warns for missing data
+        'range-bar-missing-data': { ignoreConsoleWarnings: true },
+    },
+    'sankey-series': {
+        alignment: { clickOrder: 'reverse' },
+    },
+    themes: {
+        'stock-themes': { clickOrder: 'reverse' },
+        // The canvas element changes, and we don't currently have a way to handle this
+        'advanced-theme': { frameworks: [] },
+    },
+    tooltips: {
+        // Buttons have no visible rendering change
+        'interaction-range': { skipCanvasUpdateCheck: true },
+    },
 };
 
 function convertPageUrls(path: string) {
@@ -59,33 +102,38 @@ function convertPageUrls(path: string) {
     const [pagePath, examplePath] = astroPath.split('/_examples/');
     const example = examplePath.replace(/\/[a-zA-Z-]+\.ts$/, '');
 
-    let status: 'ok' | 'skip' | '404' = 'ok';
-    if (pagePath === 'gallery') {
-        if (notServedGalleryExamples.includes(example)) {
-            status = '404';
-        }
-
-        return toGalleryPageUrls(example).map((r) => ({
-            ...r,
-            status,
-            pagePath,
-            ignoreFWs: false,
-            clickBehavior: clickBehaviorExamples['gallery']?.[example] ?? 'normal',
-        }));
-    }
     const page = pagePath.replace(/^docs\//, '');
+    const pages = pagePath === 'gallery' ? toGalleryPageUrls(example) : toExamplePageUrls(page, example);
 
     if (ignorePages.some((m) => (typeof m === 'string' ? m === page : m.test(page)))) {
-        status = 'skip';
+        return [];
     }
 
-    return toExamplePageUrls(page, example).map((r) => ({
-        ...r,
-        status,
-        pagePath,
-        ignoreFWs: ignoreFWExamples[page]?.includes(example) ?? false,
-        clickBehavior: clickBehaviorExamples[page]?.[example] ?? 'normal',
-    }));
+    const {
+        frameworks,
+        status = 'ok',
+        clickOrder = 'normal',
+        skipCanvasUpdateCheck = false,
+        ignoreConsoleWarnings = false,
+    } = {
+        ...exampleOptions[page]?.['*'],
+        ...exampleOptions[page]?.[example],
+    };
+
+    return pages
+        .filter((r) => frameworks?.includes(r.framework) !== false)
+        .map(
+            ({ url, example, framework }): ExampleOptions => ({
+                pagePath,
+                url,
+                example,
+                framework,
+                status,
+                clickOrder,
+                skipCanvasUpdateCheck,
+                ignoreConsoleWarnings,
+            })
+        );
 }
 
 test.describe('examples', () => {
@@ -117,14 +165,23 @@ test.describe('examples', () => {
 
     for (const { path, affected } of examples) {
         for (const opts of convertPageUrls(path)) {
-            const { url, status, fw, pagePath, example: exampleName, ignoreFWs, clickBehavior } = opts;
+            const {
+                url,
+                status,
+                framework,
+                pagePath,
+                example,
+                clickOrder,
+                skipCanvasUpdateCheck,
+                ignoreConsoleWarnings,
+            } = opts;
 
-            if (ignoreFWs && fw !== 'vanilla' && fw !== 'typescript') continue;
-
-            test.describe(`Framework: ${fw}`, () => {
-                test.describe(`Example ${pagePath}: ${exampleName}`, () => {
+            test.describe(`Framework: ${framework}`, () => {
+                test.describe(`Example ${pagePath}: ${example}`, () => {
                     if (status === 'ok') {
                         test(`should load ${url}`, async ({ page }) => {
+                            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
+
                             test.skip(!affected, 'unaffected example');
 
                             // Load example and wait for things to settle.
@@ -136,17 +193,19 @@ test.describe('examples', () => {
                             const canvas = canvases[0];
 
                             // Try pressing the buttons to see if any errors are thrown.
-                            if (clickBehavior === 'skip') return;
                             const buttons = await page.locator('.toolPanel > button').all();
-                            if (clickBehavior === 'reverse') buttons.reverse();
+                            if (clickOrder === 'reverse') buttons.reverse();
 
                             for (const button of buttons) {
                                 const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
 
                                 await button.click();
 
-                                if (clickBehavior === 'normal') {
+                                if (!skipCanvasUpdateCheck) {
                                     await expect
+                                        .configure({
+                                            message: `Pressing button ${await button.textContent()}`,
+                                        })
                                         .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
                                         .toBeGreaterThan(sceneRenderCount);
                                 } else {

@@ -9,7 +9,7 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
             default: (): AgChartOptions => ({}),
         },
     },
-    data(): { chart: AgChartInstance | undefined } {
+    setup(): { chart: AgChartInstance | undefined } {
         return {
             chart: undefined,
         };
@@ -19,7 +19,7 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
     },
     watch: {
         options(options) {
-            toRaw(this.chart)?.update({ ...options, container: this.$el });
+            this.chart?.update({ ...options, container: this.$el });
         },
     },
     mounted() {

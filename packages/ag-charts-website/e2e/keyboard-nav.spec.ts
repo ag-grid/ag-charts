@@ -7,8 +7,8 @@ test.describe('keyboard-nav', () => {
 
     const testUrls = toExamplePageUrls('accessibility', 'keyboard-navigation');
 
-    for (const { fw, url } of testUrls) {
-        test.describe(`for ${fw}`, () => {
+    for (const { framework, url } of testUrls) {
+        test.describe(`for ${framework}`, () => {
             test('basic keyboard navigation', async ({ page }) => {
                 await gotoExample(page, url);
                 page.check;

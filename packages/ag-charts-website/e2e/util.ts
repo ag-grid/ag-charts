@@ -4,20 +4,21 @@ const baseUrl = 'http://localhost:4601';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'];
 
 export function toExamplePageUrls(page: string, example: string) {
-    return fws.map((fw) => ({ fw, url: `${baseUrl}/${fw}/${page}/examples/${example}`, example }));
+    return fws.map((framework) => ({ framework, url: `${baseUrl}/${framework}/${page}/examples/${example}`, example }));
 }
 
 export function toGalleryPageUrls(example: string) {
-    return [{ fw: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
+    return [{ framework: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
 }
 
 export function setupIntrinsicAssertions() {
     let consoleWarnOrErrors: string[] = [];
-    const config = { ignore404s: false };
+    const config = { ignore404s: false, ignoreConsoleWarnings: false };
 
     test.beforeEach(({ page }) => {
         consoleWarnOrErrors = [];
         config.ignore404s = false;
+        config.ignoreConsoleWarnings = false;
 
         page.on('console', (msg) => {
             // We only care about warnings/errors.
@@ -43,7 +44,9 @@ export function setupIntrinsicAssertions() {
     });
 
     test.afterEach(() => {
-        expect(consoleWarnOrErrors).toHaveLength(0);
+        if (!config.ignoreConsoleWarnings) {
+            expect(consoleWarnOrErrors).toHaveLength(0);
+        }
     });
 
     return config;

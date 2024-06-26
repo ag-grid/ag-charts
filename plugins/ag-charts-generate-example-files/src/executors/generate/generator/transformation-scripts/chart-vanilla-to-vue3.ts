@@ -36,6 +36,10 @@ function getImports(componentFileNames: string[], bindings): string[] {
         imports.push("import 'ag-charts-enterprise';");
     }
 
+    if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
+        imports.push(`import deepClone from 'deepclone';`);
+    }
+
     return imports;
 }
 
