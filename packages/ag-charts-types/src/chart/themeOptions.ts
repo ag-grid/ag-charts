@@ -51,6 +51,11 @@ export type AgChartThemeName =
     | 'ag-material'
     | 'ag-material-dark';
 
+interface AgPaletteColors {
+    fill?: CssColor;
+    stroke?: CssColor;
+}
+
 /**
  * Palette used by the chart instance.
  */
@@ -59,9 +64,9 @@ export interface AgChartThemePalette {
     fills?: CssColor[];
     /** The array of strokes to be used. */
     strokes?: CssColor[];
-    up?: { fill?: CssColor; stroke?: CssColor };
-    down?: { fill?: CssColor; stroke?: CssColor };
-    neutral?: { fill?: CssColor; stroke?: CssColor };
+    up?: AgPaletteColors;
+    down?: AgPaletteColors;
+    neutral?: AgPaletteColors;
 }
 
 export interface AgBaseChartThemeOptions {
