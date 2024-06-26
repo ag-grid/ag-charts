@@ -323,10 +323,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         if (!alignElement) return;
 
+        const toolbarElement = createElement('div');
+        alignElement.classList.forEach((className) => toolbarElement.classList.add(className));
+        alignElement.appendChild(toolbarElement);
         const nextSection = () => {
             const newSection = createElement('div');
             newSection.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
-            alignElement.appendChild(newSection);
+            toolbarElement.appendChild(newSection);
             return newSection;
         };
 
@@ -358,13 +361,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const orientation = this.computeAriaOrientation(this[group].position);
         this.groupDestroyFns[group] = initToolbarKeyNav({
             orientation,
-            toolbar: alignElement,
+            toolbar: toolbarElement,
             buttons: this.groupButtons[group],
             onEscape,
             onFocus,
             onBlur,
         });
-        this.updateToolbarAriaLabel(group, alignElement);
+        this.updateToolbarAriaLabel(group, toolbarElement);
     }
 
     private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
