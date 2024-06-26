@@ -92,6 +92,7 @@
 
     /* Axis Labels */
     --ag-charts-axis-label-background-color: #474747;
+    --ag-charts-axis-label-color: #ffffff;
 
     /* Toolbar */
     --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-foreground-color));
@@ -161,6 +162,7 @@
 
     /* Axis Labels */
     --ag-charts-axis-label-background-color: #9caebb;
+    --ag-charts-axis-label-color: #000000;
 
     /* Toolbar */
     --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));

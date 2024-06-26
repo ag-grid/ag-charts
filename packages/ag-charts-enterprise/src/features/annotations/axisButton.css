@@ -23,7 +23,7 @@
     border-radius: 2px;
     line-height: 16px;
     background-color: var(--ag-charts-axis-label-background-color);
-    color: rgb(255, 255, 255);
+    color: var(--ag-charts-axis-label-color);
 }
 
 .ag-charts-annotations__axis-button-icon {
@@ -33,5 +33,5 @@
 
 .ag-charts-annotations__axis-button:hover {
     opacity: 0.8;
-    color: rgb(255, 255, 255);
+    color: var(--ag-charts-axis-label-color);
 }
