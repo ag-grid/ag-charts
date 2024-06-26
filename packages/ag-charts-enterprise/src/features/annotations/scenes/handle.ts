@@ -41,7 +41,7 @@ export abstract class Handle extends _Scene.Group {
     }
 
     public toggleHovered(hovered: boolean) {
-        this.glow.visible = hovered;
+        this.glow.visible = !this.locked && hovered;
         this.glow.dirtyPath = true;
     }
 
@@ -193,6 +193,7 @@ export class UnivariantHandle extends Handle {
     }
 
     override getCursor() {
+        if (this.locked) return 'default';
         return this.gradient === 'vertical' ? 'col-resize' : 'row-resize';
     }
 }

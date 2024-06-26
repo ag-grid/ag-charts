@@ -85,6 +85,8 @@ export class CrossLine extends Annotation {
         middle.gradient = this.isHorizontal ? 'horizontal' : 'vertical';
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
 
+        middle.toggleLocked(this.locked);
+
         this.updateAxisLabel(datum, axisContext, coords);
     }
 
@@ -130,7 +132,7 @@ export class CrossLine extends Annotation {
 
     public toggleHandles(show: boolean) {
         this.middle.visible = show;
-        this.middle.toggleHovered(show);
+        this.middle.toggleHovered(this.activeHandle === 'middle');
     }
 
     public override destroy(): void {
