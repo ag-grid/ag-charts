@@ -7,17 +7,9 @@ Toolbars contain buttons, allowing users to interact with the chart at runtime.
 
 ## Range Toolbar
 
-{% chartExampleRunner title="Toolbar" name="toolbar" type="generated" /%}
-
 The Range Toolbar contains buttons allowing the user to jump to a specific range along the chart timeline.
 
-```ts
-toolbar: {
-    ranges: {
-        enabled: true,
-    },
-}
-```
+{% chartExampleRunner title="Toolbar" name="toolbar" type="generated" /%}
 
 ### Custom Buttons
 
@@ -37,6 +29,10 @@ toolbar: {
         {
           label: "12 Months",
           value: 12 * MONTH,
+        },
+        {
+          label: 'February',
+          value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
         },
         {
           label: "All Data",

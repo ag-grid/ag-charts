@@ -7,35 +7,42 @@ const options: AgCartesianChartOptions = {
     zoom: {
         enabled: true,
         buttons: {
-            buttons: [
-                {
-                    icon: 'pan-start',
-                    tooltip: 'Pan to Start',
-                    value: 'pan-start',
-                },
-                {
-                    icon: 'zoom-in',
-                    tooltip: 'Decrease Visible Range',
-                    value: 'zoom-in',
-                    label: 'In',
-                },
-                {
-                    icon: 'zoom-out',
-                    tooltip: 'Increase Visible Range',
-                    value: 'zoom-out',
-                    label: 'Out',
-                },
-                {
-                    icon: 'pan-end',
-                    tooltip: 'Pan to End',
-                    value: 'pan-end',
-                },
-                {
-                    tooltip: 'Undo all Zoom',
-                    value: 'reset',
-                    label: 'Reset',
-                },
-            ],
+            buttons: {
+                buttons: [
+                    {
+                        icon: 'zoom-in',
+                        tooltip: 'Decrease Visible Range',
+                        value: 'zoom-in',
+                        label: 'In',
+                        section: 'zoom',
+                    },
+                    {
+                        icon: 'zoom-out',
+                        tooltip: 'Increase Visible Range',
+                        value: 'zoom-out',
+                        label: 'Out',
+                        section: 'zoom',
+                    },
+                    {
+                        icon: 'pan-start',
+                        tooltip: 'Pan to Start',
+                        value: 'pan-start',
+                        section: 'pan',
+                    },
+                    {
+                        icon: 'pan-end',
+                        tooltip: 'Pan to End',
+                        value: 'pan-end',
+                        section: 'pan',
+                    },
+                    {
+                        tooltip: 'Undo all Zoom',
+                        value: 'reset',
+                        label: 'Reset',
+                        section: 'reset',
+                    },
+                ],
+            },
         },
     },
     tooltip: {
