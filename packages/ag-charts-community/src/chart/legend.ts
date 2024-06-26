@@ -526,7 +526,7 @@ export class Legend extends BaseProperties {
         return result;
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, markerLabelWidth: number): number {
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, markerWidth: number): number {
         const { marker: itemMarker, paddingX } = this.item;
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
@@ -550,17 +550,17 @@ export class Legend extends BaseProperties {
 
         datum.symbols.forEach((symbol, i) => {
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-            const { markerEnabled, lineEnabled, lineLength } = this.calcSymbolsLengths(symbol);
+            const { markerEnabled, lineEnabled } = this.calcSymbolsLengths(symbol);
 
             markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
-            dimensionProps.push({ length: lineLength, spacing });
+            dimensionProps.push({ length: markerWidth, spacing });
 
             if (markerEnabled || lineEnabled) {
-                paddedSymbolWidth += spacing + markerLabelWidth;
+                paddedSymbolWidth += spacing + markerWidth;
             }
         });
 
-        markerLabel.update(dimensionProps, markerLabelWidth);
+        markerLabel.update(dimensionProps);
         return paddedSymbolWidth;
     }
 
