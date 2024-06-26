@@ -593,38 +593,23 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected override computeFocusBounds({
         datumIndex,
-        seriesRect,
-    }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    }: _ModuleSupport.PickFocusInputs): _Scene.BBox | _Scene.Path | undefined {
         const datum = this.contextNodeData?.nodeData[datumIndex];
-        if (datum == null) return;
 
-        let bbox: _Scene.BBox;
-        if (datum.type === FlowProportionDatumType.Node) {
-            bbox = sectorBox({
-                startAngle: datum.startAngle,
-                endAngle: datum.endAngle,
-                innerRadius: datum.innerRadius,
-                outerRadius: datum.outerRadius,
-            }).translate(datum.centerX, datum.centerY);
-        } else if (datum.type === FlowProportionDatumType.Link) {
-            bbox = BBox.merge([
-                sectorBox({
-                    startAngle: datum.startAngle1,
-                    endAngle: datum.endAngle1,
-                    innerRadius: 0,
-                    outerRadius: datum.radius,
-                }),
-                sectorBox({
-                    startAngle: datum.startAngle2,
-                    endAngle: datum.endAngle2,
-                    innerRadius: 0,
-                    outerRadius: datum.radius,
-                }),
-            ]).translate(datum.centerX, datum.centerY);
-        } else {
-            return;
+        if (datum?.type === FlowProportionDatumType.Node) {
+            for (const node of this.nodeSelection) {
+                if (node.datum === datum) {
+                    return node.node;
+                }
+            }
+            return undefined;
+        } else if (datum?.type === FlowProportionDatumType.Link) {
+            for (const link of this.linkSelection) {
+                if (link.datum === datum) {
+                    return link.node;
+                }
+            }
+            return undefined;
         }
-
-        return this.contentGroup.inverseTransformBBox(bbox).clip(seriesRect);
     }
 }
