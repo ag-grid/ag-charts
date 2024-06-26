@@ -2,9 +2,9 @@ name: CI
 
 on:
     push:
-        branches: [latest, b9.3.0]
+        branches: [latest, b9.3.0, b10.0.0]
     pull_request:
-        branches: [latest, b9.3.0]
+        branches: [latest, b9.3.0, b10.0.0]
     workflow_dispatch:
         inputs:
             clean_checkout:
