@@ -20,10 +20,7 @@ export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum,
     placement?: LabelPlacement;
 }
 
-export interface AgBubbleSeriesStyles extends AgSeriesMarkerStyle {
-    /** Determines the largest size a marker can be in pixels. */
-    maxSize?: PixelSize;
-}
+export type AgBubbleSeriesStyles = AgSeriesMarkerStyle;
 
 export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
@@ -34,6 +31,10 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = any>
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     domain?: [number, number];
+    /** Determines the smallest size a marker can be in pixels. */
+    size?: PixelSize;
+    /** Determines the largest size a marker can be in pixels. */
+    maxSize?: PixelSize;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
