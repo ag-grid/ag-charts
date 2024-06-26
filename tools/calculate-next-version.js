@@ -26,7 +26,7 @@ let [semverPart, oldSuffix] = currentVersion.split('-');
 const now = new Date();
 const todayStr = now.toISOString().split('T')[0].replaceAll('-', '');
 
-const [tag, dateStr, timeStr] = oldSuffix?.split('.');
+const [tag = 'beta', dateStr, timeStr] = oldSuffix?.split('.') ?? [];
 if (dateStr !== todayStr) {
     console.log(`${semverPart}-${tag}.${todayStr}`);
     process.exit(0);
