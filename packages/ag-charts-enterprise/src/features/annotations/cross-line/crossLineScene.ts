@@ -29,6 +29,7 @@ export class CrossLine extends Annotation {
         offset: Coords;
         middle: Coords;
     };
+    private isHorizontal = false;
 
     constructor() {
         super();
@@ -43,8 +44,8 @@ export class CrossLine extends Annotation {
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
-        const isHorizontal = HorizontalLineAnnotation.is(datum);
-        const axisContext = isHorizontal ? context.yAxis : context.xAxis;
+        this.isHorizontal = HorizontalLineAnnotation.is(datum);
+        const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
 
         const coords = this.convertCrossLine(datum, axisContext);
 
@@ -81,7 +82,7 @@ export class CrossLine extends Annotation {
         const x = x1 + (x2 - x1) / 2;
         const y = y1 + (y2 - y1) / 2;
         const { width: handleWidth, height: handleHeight } = middle.handle;
-        middle.gradient = isHorizontal ? 'horizontal' : 'vertical';
+        middle.gradient = this.isHorizontal ? 'horizontal' : 'vertical';
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
 
         this.updateAxisLabel(datum, axisContext, coords);
@@ -201,8 +202,19 @@ export class CrossLine extends Annotation {
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBox();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        let bbox = this.getCachedBBox();
+
+        // Since crosslines are created in a single click, the anchor is required before their first render and
+        // caching of the bbox. So force a computation of it here.
+        if (bbox.width === 0 && bbox.height === 0) {
+            bbox = this.computeBBox();
+        }
+
+        if (this.isHorizontal) {
+            return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        }
+
+        return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'above' };
     }
 
     private convertCrossLine(datum: CrossLineAnnotation, context: AnnotationAxisContext) {

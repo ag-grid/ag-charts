@@ -11,7 +11,11 @@ export function isHorizontalAxis(region: any) {
 export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 'click' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(appendDatum: (datum: CrossLineAnnotation, direction?: any) => void, direction: Direction) {
+    constructor(
+        direction: Direction,
+        appendDatum: (datum: CrossLineAnnotation, direction?: any) => void,
+        onExit: () => void
+    ) {
         const onClick = ({ point }: StateClickEvent<CrossLineAnnotation, CrossLine>) => {
             const isHorizontal = direction === 'horizontal';
             const datum = isHorizontal ? new HorizontalLineAnnotation() : new VerticalLineAnnotation();
@@ -27,6 +31,7 @@ export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 
                     action: onClick,
                 },
                 cancel: '__parent',
+                onExit,
             },
         });
     }

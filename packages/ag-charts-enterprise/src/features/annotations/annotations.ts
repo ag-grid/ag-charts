@@ -83,6 +83,7 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
     constructor(
         onEnterIdle: () => void,
         appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
+        onExitCrossLine: () => void,
         validateChildStateDatumPoint: (point: Point) => boolean
     ) {
         super('idle', {
@@ -90,12 +91,14 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
                 onEnter: () => onEnterIdle(),
                 [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
                 [AnnotationType.HorizontalLine]: new CrossLineStateMachine(
+                    'horizontal',
                     (datum) => appendDatum(AnnotationType.HorizontalLine, datum),
-                    'horizontal'
+                    onExitCrossLine
                 ),
                 [AnnotationType.VerticalLine]: new CrossLineStateMachine(
+                    'vertical',
                     (datum) => appendDatum(AnnotationType.VerticalLine, datum),
-                    'vertical'
+                    onExitCrossLine
                 ),
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
@@ -185,6 +188,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.toggleAnnotationOptionsButtons();
             },
             this.appendDatum.bind(this),
+            () => {
+                this.active = this.annotationData.length - 1;
+            },
             this.validateChildStateDatumPoint.bind(this)
         );
 
@@ -615,8 +621,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const data: StateClickEvent<AnnotationProperties, Annotation> = { point };
         state.transition('click', data);
 
-        this.active = this.annotationData.length - 1;
-
         this.update();
     }
 
@@ -675,9 +679,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point };
-
-        this.active ??= annotationData.length; // TODO: Laurence please fix
-
         state.transition('click', data);
 
         this.update();
