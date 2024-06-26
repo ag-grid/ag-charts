@@ -613,11 +613,10 @@ export class AreaSeries extends CartesianSeries<
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    protected override async updateMarkerNodes(opts: {
-        markerSelection: Selection<Marker, MarkerSelectionDatum>;
-        isHighlight: boolean;
-    }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+    protected override async updateMarkerNodes(
+        markerSelection: Selection<Marker, MarkerSelectionDatum>,
+        highlighted: boolean
+    ) {
         const { xKey, yKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, highlightStyle } =
             this.properties;
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle(), {
@@ -628,9 +627,7 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity,
         });
 
-        markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle);
-        });
+        this.updateMarkerSelectionStyle(markerSelection, marker, { highlighted, xKey, yKey }, baseStyle);
 
         if (!highlighted) {
             this.properties.marker.markClean();

@@ -235,23 +235,21 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
-    protected override async updateMarkerNodes(opts: {
-        markerSelection: Selection<Marker, BubbleNodeDatum>;
-        isHighlight: boolean;
-    }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+    protected override async updateMarkerNodes(
+        markerSelection: Selection<Marker, BubbleNodeDatum>,
+        highlighted: boolean
+    ) {
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
         const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
             highlighted && this.properties.highlightStyle.item,
             marker.getStyle()
         );
+        const stylerParams = { highlighted, xKey, yKey, sizeKey, labelKey };
         const baseStyle = { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
 
         this.sizeScale.range = [marker.size, marker.maxSize];
 
-        markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, sizeKey, labelKey }, baseStyle);
-        });
+        this.updateMarkerSelectionStyle(markerSelection, marker, stylerParams, baseStyle);
 
         if (!highlighted) {
             this.properties.marker.markClean();

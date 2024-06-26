@@ -437,14 +437,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    protected override async updateMarkerNodes(opts: {
-        markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
-        isHighlight: boolean;
-    }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+    protected override async updateMarkerNodes(
+        markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>,
+        highlighted: boolean
+    ) {
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
-
         const baseStyle = mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle(), {
             fill,
             fillOpacity,
@@ -453,9 +451,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity,
         });
 
-        markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yHighKey, yLowKey }, baseStyle);
-        });
+        this.updateMarkerSelectionStyle(markerSelection, marker, { highlighted, xKey, yHighKey, yLowKey }, baseStyle);
 
         if (!highlighted) {
             this.properties.marker.markClean();

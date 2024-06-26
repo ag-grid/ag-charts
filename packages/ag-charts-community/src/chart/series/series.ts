@@ -15,6 +15,7 @@ import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
+import type { Selection } from '../../scene/selection';
 import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { createId } from '../../util/id';
@@ -778,6 +779,33 @@ export abstract class Series<
         return markerStyle;
     }
 
+    protected updateMarkerSelectionStyle<TParams>(
+        markerSelection: Selection<Marker, TDatum>,
+        marker: ISeriesMarker<TParams>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId' | 'datum'>,
+        defaultStyle?: AgSeriesMarkerStyle,
+        applyTranslation?: boolean
+    ) {
+        markerSelection.each((markerNode, datum) => {
+            const { point } = datum;
+            const activeStyle = this.getMarkerStyle(marker, { datum, ...params }, defaultStyle);
+            const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
+
+            if (applyTranslation ?? true) {
+                markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
+            } else {
+                markerNode.setProperties({ visible, ...activeStyle });
+            }
+
+            // Only for custom marker shapes
+            if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {
+                markerNode.path.clear(true);
+                markerNode.updatePath();
+                markerNode.checkPathDirty();
+            }
+        });
+    }
+
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
         marker: ISeriesMarker<TParams>,
@@ -789,7 +817,7 @@ export abstract class Series<
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        if (applyTranslation) {
+        if (applyTranslation ?? true) {
             markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
         } else {
             markerNode.setProperties({ visible, ...activeStyle });
