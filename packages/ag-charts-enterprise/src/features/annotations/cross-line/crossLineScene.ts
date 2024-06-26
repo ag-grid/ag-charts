@@ -132,6 +132,11 @@ export class CrossLine extends Annotation {
         this.middle.toggleHovered(show);
     }
 
+    public override destroy(): void {
+        super.destroy();
+        this.axisLabel?.destroy();
+    }
+
     public toggleActive(active: boolean) {
         this.toggleHandles(active);
         this.middle.toggleActive(active);
