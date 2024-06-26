@@ -20,7 +20,7 @@ export interface AgAnnotationsThemeableOptions {
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
-    /** Axes which the buttons belong to. */
+    /** Which axis should display the annotation buttons. */
     axes?: 'x' | 'y' | 'xy';
 }
 
@@ -31,6 +31,7 @@ export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, S
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
     handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
+    /* The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
 
@@ -55,19 +56,24 @@ export interface AgLineAnnotation
         Visible,
         StrokeOptions,
         LineDashOptions {
+    /*Configuration for the trend line annotation.*/
     type: 'line';
 }
 
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
+    /*Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
 }
 
 export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
+    /*Configuration for the vertical-line annotation.*/
     type: 'vertical-line';
 }
 
 export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
+    /* Position of the annotation specified in terms of the axis values. */
     value: AgAnnotationValue;
+    /* Configuration for the annotation axis label. */
     axisLabel?: AgAnnotationAxisLabel;
 }
 
@@ -93,10 +99,13 @@ export interface AgParallelChannelAnnotation
         Visible,
         StrokeOptions,
         LineDashOptions {
+    /*Configuration for the parallel-channel annotation.*/
     type: 'parallel-channel';
     /* The height of the annotation along the y-axis. */
     height: number;
+    /* Configuration for the line in the middle of the channel. */
     middle?: AgChannelAnnotationMiddle;
+    /* The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
 
@@ -107,11 +116,13 @@ export interface AgDisjointChannelAnnotation
         Visible,
         StrokeOptions,
         LineDashOptions {
+    /*Configuration for the disjoint-channel annotation.*/
     type: 'disjoint-channel';
     /** The height of the annotation along the y-axis at the start. */
     startHeight: number;
     /** The height of the annotation along the y-axis at the end. */
     endHeight: number;
+    /* The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
 

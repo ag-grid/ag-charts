@@ -9,44 +9,7 @@ AG Charts provides fully featured Financial Charts, requiring minimum configurat
 
 {% chartExampleRunner title="Basic Financial Chart" name="basic-financial-chart" type="generated" /%}
 
-## Annotations
-
-Users can choose from a variety of annotations to add to the chart. These are fully editable and customisable, and can be saved for restoring at a later date.
-
-See [Annotations](./annotations/) for more details.
-
-## Range Buttons
-
-The Range Toolbar provides buttons for users to jump to specific ranges of the data timeline. Use our defaults or add your own.
-
-See [Toolbar](./toolbar/) for more details.
-
-## Status Bar
-
-When hovering over the chart, the values of the highlighted datapoint are displayed at the top of the chart in the status bar.
-
-## Multiple Chart Types
-
-The price data can be displayed as a candlestick, OHLC or many other series types.
-
-See [Chart Types](./financial-chart-types/) for more details.
-
-## Creating a Financial Chart
-
-Creating a financial chart could not be easier. The minimum configuration requires only an HTML container and data.
-The data should included keys of 'open', 'high', 'low', 'close' and optionally 'volume'.
-
-```js
-// Chart Options
-const options = {
-    // HTML Element to hold the chart
-    container: document.getElementById('myChart'),
-    // data
-    data: getData(),
-};
-
-// Create Chart
-const chart = AgCharts.createFinancialChart(options);
-```
-
-See [Chart Types](./financial-chart-types/) for customisation options.
+-   [Annotations](./annotations/)
+-   [Range Buttons](./toolbar/)
+-   Status Bar
+-   [Multiple Chart Types](./financial-chart-types/)

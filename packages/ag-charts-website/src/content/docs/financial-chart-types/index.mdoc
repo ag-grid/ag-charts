@@ -5,6 +5,24 @@ enterprise: true
 
 Financial Charts can display the data using a variety of series types.
 
+## Creating a Financial Chart
+
+Creating a financial chart could not be easier. The minimum configuration requires only an HTML container and data.
+The data should included keys of 'open', 'high', 'low', 'close' and optionally 'volume'.
+
+```js
+// Chart Options
+const options = {
+    // HTML Element to hold the chart
+    container: document.getElementById('myChart'),
+    // data
+    data: getData(),
+};
+
+// Create Chart
+const chart = AgCharts.createFinancialChart(options);
+```
+
 ## Setting the Chart Type
 
 By default, the price data is displayed in a candlestick series. To change this, use the `type` property.
@@ -19,9 +37,12 @@ Each of the financial charts components can be toggled on or off in the options.
 
 ## Customisation
 
-To customise the look of financial charts, use [Theme Override Options](/themes-api/)
-
 {% chartExampleRunner title="Customised Financial Chart" name="customization" type="generated" /%}
+
+Change the colour of the shown series by using the `up` and `down` options.
+
+For additional customisation, use [Theme Override Options](/themes-api/) in the `theme` option.
+The financial charts use the `ag-financial` and `ag-financial-dark` themes.
 
 ## API Reference
 
