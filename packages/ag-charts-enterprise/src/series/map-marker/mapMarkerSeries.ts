@@ -490,13 +490,17 @@ export class MapMarkerSeries
         await this.updateLabelNodes({ labelSelection });
 
         this.markerSelection = await this.updateMarkerSelection({ markerData: nodeData, markerSelection });
-        await this.updateMarkerNodes(markerSelection, false, highlightedDatum);
+        await this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
 
         this.highlightMarkerSelection = await this.updateMarkerSelection({
             markerData: highlightedDatum != null ? [highlightedDatum] : [],
             markerSelection: highlightMarkerSelection,
         });
-        await this.updateMarkerNodes(highlightMarkerSelection, true, highlightedDatum);
+        await this.updateMarkerNodes({
+            markerSelection: highlightMarkerSelection,
+            isHighlight: true,
+            highlightedDatum,
+        });
 
         if (scaleChange || resize) {
             this.animationState.transition('resize');
@@ -543,19 +547,20 @@ export class MapMarkerSeries
         );
     }
 
-    private async updateMarkerNodes(
-        markerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum>,
-        highlighted: boolean,
-        highlightedDatum: MapMarkerNodeDatum | undefined
-    ) {
+    private async updateMarkerNodes(opts: {
+        markerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum>;
+        isHighlight: boolean;
+        highlightedDatum: MapMarkerNodeDatum | undefined;
+    }) {
         const { properties } = this;
+        const { markerSelection, isHighlight, highlightedDatum } = opts;
         const { fill, fillOpacity, stroke, strokeOpacity } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         markerSelection.each((marker, markerDatum) => {
             const { datum, point } = markerDatum;
-            const format = this.getMapMarkerStyle(markerDatum, highlighted);
+            const format = this.getMapMarkerStyle(markerDatum, isHighlight);
             marker.size = format?.size ?? point.size;
             marker.fill = highlightStyle?.fill ?? format?.fill ?? markerDatum.fill ?? fill;
             marker.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
@@ -564,7 +569,7 @@ export class MapMarkerSeries
             marker.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
             marker.translationX = point.x;
             marker.translationY = point.y;
-            marker.zIndex = !highlighted && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
+            marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
     }
 

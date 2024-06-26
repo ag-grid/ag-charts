@@ -435,7 +435,10 @@ export abstract class CartesianSeries<
 
         const opacity = this.getOpacity();
         if (hasMarkers) {
-            await this.updateMarkerNodes(highlightSelection as any, true);
+            await this.updateMarkerNodes({
+                markerSelection: highlightSelection as any,
+                isHighlight: true,
+            });
             this.animationState.transition('highlightMarkers', highlightSelection);
         } else {
             await this.updateDatumNodes({
@@ -483,7 +486,7 @@ export abstract class CartesianSeries<
         await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
         await this.updateLabelNodes({ labelSelection });
         if (hasMarkers) {
-            await this.updateMarkerNodes(markerSelection, false);
+            await this.updateMarkerNodes({ markerSelection, isHighlight: false });
         }
     }
 
@@ -901,10 +904,10 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
         return opts.markerSelection;
     }
-    protected async updateMarkerNodes(
-        _markerSelection: Selection<Marker, TDatum>,
-        _highlighted: boolean
-    ): Promise<void> {
+    protected async updateMarkerNodes(_opts: {
+        markerSelection: Selection<Marker, TDatum>;
+        isHighlight: boolean;
+    }): Promise<void> {
         // Override point for sub-classes.
     }
 

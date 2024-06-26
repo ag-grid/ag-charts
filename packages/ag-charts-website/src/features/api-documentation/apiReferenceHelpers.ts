@@ -405,7 +405,7 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
     return [
         ...getSubTypes(axesRef).map(createPageMapper('axes')),
         ...getSubTypes(seriesRef).map(createPageMapper('series')),
-        ...getSubTypes(annotationRef).map(createPageMapper('annotations/initial')),
+        ...getSubTypes(annotationRef).map(createPageMapper('initialState/annotations')),
         ...getSubTypes(miniChartSeriesRef).map(createPageMapper('navigator/miniChart/series')),
     ];
 }

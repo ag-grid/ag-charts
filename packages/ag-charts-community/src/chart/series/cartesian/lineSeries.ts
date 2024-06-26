@@ -353,20 +353,22 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         return markerSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    protected override async updateMarkerNodes(
-        markerSelection: Selection<Marker, LineNodeDatum>,
-        highlighted: boolean
-    ) {
+    protected override async updateMarkerNodes(opts: {
+        markerSelection: Selection<Marker, LineNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { markerSelection, isHighlight: highlighted } = opts;
         const { xKey, yKey, stroke, strokeWidth, strokeOpacity, marker, highlightStyle } = this.properties;
-        const stylerParams = { highlighted, xKey, yKey };
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle(), {
             stroke,
             strokeWidth,
             strokeOpacity,
         });
-        const applyTranslation = this.ctx.animationManager.isSkipped();
 
-        this.updateMarkerSelectionStyle(markerSelection, marker, stylerParams, baseStyle, applyTranslation);
+        const applyTranslation = this.ctx.animationManager.isSkipped();
+        markerSelection.each((node, datum) => {
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
+        });
 
         if (!highlighted) {
             marker.markClean();
