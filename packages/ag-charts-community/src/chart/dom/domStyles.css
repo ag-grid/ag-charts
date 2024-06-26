@@ -42,6 +42,13 @@
     display: block;
 }
 
+.ag-charts-canvas-proxy {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 .ag-charts-tab-guard {
     opacity: 0;
     width: 0px;
