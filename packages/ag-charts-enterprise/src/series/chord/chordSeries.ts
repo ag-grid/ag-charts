@@ -17,7 +17,7 @@ import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
 const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
-const { Sector, Text, BBox, sectorBox } = _Scene;
+const { Sector, Text } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
     size: number;
