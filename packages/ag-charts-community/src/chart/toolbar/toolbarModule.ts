@@ -13,18 +13,6 @@ const annotations: AgToolbarOptions['annotations'] = {
     align: 'start',
     buttons: [
         {
-            icon: 'horizontal-line',
-            tooltip: 'toolbarAnnotationsHorizontalLine',
-            value: 'horizontal-line',
-            section: 'create',
-        },
-        {
-            icon: 'vertical-line',
-            tooltip: 'toolbarAnnotationsVerticalLine',
-            value: 'vertical-line',
-            section: 'create',
-        },
-        {
             icon: 'trend-line',
             tooltip: 'toolbarAnnotationsTrendLine',
             value: 'line',
@@ -40,6 +28,18 @@ const annotations: AgToolbarOptions['annotations'] = {
             icon: 'disjoint-channel',
             tooltip: 'toolbarAnnotationsDisjointChannel',
             value: 'disjoint-channel',
+            section: 'create',
+        },
+        {
+            icon: 'horizontal-line',
+            tooltip: 'toolbarAnnotationsHorizontalLine',
+            value: 'horizontal-line',
+            section: 'create',
+        },
+        {
+            icon: 'vertical-line',
+            tooltip: 'toolbarAnnotationsVerticalLine',
+            value: 'vertical-line',
             section: 'create',
         },
         {
