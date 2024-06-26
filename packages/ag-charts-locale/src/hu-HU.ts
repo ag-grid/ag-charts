@@ -7,6 +7,8 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceFlowProportionLink:
         'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '${count} közül ${index} csomópont, ${description}',
+    ariaLabelAnnotationsToolbar: '[TODO] Annotations',
+    ariaLabelAnnotationOptionsToolbar: '[TODO] Annotation Options',
     ariaLabelLegend: 'Jelmagyarázat',
     ariaLabelLegendPagination: 'Jelmagyarázat Lapozás',
     ariaLabelLegendPagePrevious: 'Előző jelmagyarázat oldal',
@@ -17,6 +19,8 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelNavigatorRange: 'Tartomány',
     ariaLabelNavigatorMinimum: 'Minimum',
     ariaLabelNavigatorMaximum: 'Maximum',
+    ariaLabelRangesToolbar: '[TODO] Ranges',
+    ariaLabelZoomToolbar: '[TODO] Zoom',
     ariaValuePanRange: '${min}[percent] és ${max}[percent] között',
     overlayLoadingData: 'Adatok betöltése...',
     overlayNoData: 'Nincs megjeleníthető adat',
