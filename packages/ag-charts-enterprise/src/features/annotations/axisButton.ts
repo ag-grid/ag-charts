@@ -1,6 +1,7 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { Coords } from './annotationTypes';
+import { convert, invert } from './annotationUtils';
 
 const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
     _ModuleSupport;
@@ -13,6 +14,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
     private readonly button: HTMLButtonElement;
     private readonly wrapper: HTMLElement;
+    private readonly snap: boolean = false;
+    private padding: number = 0;
     private coords?: Coords;
 
     constructor(
@@ -29,6 +32,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(false);
         this.updateButtonElement();
 
+        this.snap = axisCtx.scaleBandwidth() > 0;
+
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
 
@@ -42,8 +47,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         );
     }
 
-    update(seriesRect: _Scene.BBox) {
+    update(seriesRect: _Scene.BBox, padding: number) {
         this.seriesRect = seriesRect;
+        this.padding = padding;
     }
 
     private setup() {
@@ -69,11 +75,10 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
-        const { enabled } = this;
-        if (!enabled) return;
+        if (!this.enabled) return;
 
         this.toggleVisibility(true);
-        const buttonCoords = this.getButtonCoordinates(event);
+        const buttonCoords = this.getButtonCoordinates({ x: event.offsetX, y: event.offsetY });
         this.coords = this.getAxisCoordinates(buttonCoords);
         this.updatePosition(buttonCoords);
     }
@@ -82,29 +87,38 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(false);
     }
 
-    private getButtonCoordinates(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
+    private getButtonCoordinates({ x, y }: Coords) {
         const {
             axisCtx: { direction, position },
             seriesRect,
+            snap,
+            axisCtx,
+            padding,
         } = this;
 
         const { clientWidth: buttonWidth, clientHeight: buttonHeight } = this.button;
 
-        const [minY, maxY] = [seriesRect.y, seriesRect.y + seriesRect.height - buttonHeight];
-        const [minX, maxX] = [seriesRect.x, seriesRect.x + seriesRect.width - buttonWidth];
+        const [minY, maxY] = [seriesRect.y, seriesRect.y + seriesRect.height];
+        const [minX, maxX] = [seriesRect.x, seriesRect.x + seriesRect.width];
 
-        let x = 0;
-        let y = 0;
-        if (direction === ChartAxisDirection.X) {
-            x = event.offsetX - buttonWidth / 2;
-            y = position === 'top' ? minY : maxY;
-        } else {
-            x = position === 'left' ? minX : maxX;
-            y = event.offsetY - buttonHeight / 2;
+        if (snap) {
+            x = convert(invert(x - seriesRect.x, axisCtx), axisCtx) + seriesRect.x;
+            y = convert(invert(y - seriesRect.y, axisCtx), axisCtx) + seriesRect.y;
         }
 
-        x = _Util.clamp(minX, x, maxX);
-        y = _Util.clamp(minY, y, maxY);
+        if (direction === ChartAxisDirection.X) {
+            const crosshairLabelPadding = 5;
+            const offset = buttonHeight - Math.max(0, padding - crosshairLabelPadding);
+
+            x = x - buttonWidth / 2;
+            y = position === 'top' ? minY - buttonHeight + offset : maxY - offset;
+        } else {
+            const crosshairLabelPadding = 9;
+            const offset = buttonWidth - Math.max(0, padding - crosshairLabelPadding);
+
+            x = position === 'left' ? minX - buttonWidth + offset : maxX - offset;
+            y = y - buttonHeight / 2;
+        }
 
         return { x, y };
     }
@@ -141,6 +155,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         const { button } = this;
         button.onclick = _ModuleSupport.makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
 
-        button.innerHTML = `<span class="ag-charts-icon-plus ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
+        button.innerHTML = `<span class="ag-charts-icon-crossline-add-line ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
     }
 }

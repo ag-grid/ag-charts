@@ -3,7 +3,7 @@ import { type Formatter, _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { AnnotationAxisLabelProperties } from '../annotationProperties';
 import type { AnnotationAxisContext } from '../annotationTypes';
 
-const { calculateLabelTranslation } = _ModuleSupport;
+const { calculateLabelTranslation, ChartAxisDirection } = _ModuleSupport;
 
 type UpdateOpts = {
     x: number;
@@ -55,18 +55,22 @@ export class AxisLabel extends _Scene.Group {
         rect.setProperties({ cornerRadius, fill, fillOpacity, stroke, strokeOpacity });
     }
 
-    private updatePosition({ x, y, context, styles: { padding = 0 } }: UpdateOpts) {
+    private updatePosition({ x, y, context, styles: { padding } }: UpdateOpts) {
         const { label, rect } = this;
 
         const labelBBox = label.computeBBox();
-        labelBBox.grow(padding / 2);
 
-        const axisPosition = context.position ?? 'left';
+        const horizontalPadding = 8;
+        const verticalPadding = 5;
+        labelBBox.grow(padding ?? horizontalPadding, 'horizontal');
+        labelBBox.grow(padding ?? verticalPadding, 'vertical');
+
+        const shift = context.direction === ChartAxisDirection.X ? verticalPadding / 2 : horizontalPadding;
 
         const { xTranslation, yTranslation } = calculateLabelTranslation({
             yDirection: true,
-            padding: context.labelPadding,
-            position: axisPosition,
+            padding: context.labelPadding - shift,
+            position: context.position ?? 'left',
             bbox: labelBBox,
         });
 

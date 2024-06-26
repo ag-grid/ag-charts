@@ -86,7 +86,7 @@ export function convertPoint(point: Point, context: AnnotationContext) {
     return { x, y };
 }
 
-export function convert(p: Point['x' | 'y'], context: AnnotationAxisContext) {
+export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scaleBandwidth' | 'scaleConvert'>) {
     if (p == null) return 0;
 
     const halfBandwidth = (context.scaleBandwidth() ?? 0) / 2;
@@ -100,7 +100,10 @@ export function invertCoords(coords: Coords, context: AnnotationContext) {
     return { x, y };
 }
 
-export function invert(n: Coords['x' | 'y'], context: AnnotationAxisContext) {
+export function invert(
+    n: Coords['x' | 'y'],
+    context: Pick<AnnotationAxisContext, 'scaleBandwidth' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
+) {
     const halfBandwidth = (context.scaleBandwidth() ?? 0) / 2;
     if (context.continuous) {
         return context.scaleInvert(n - halfBandwidth);
@@ -109,5 +112,5 @@ export function invert(n: Coords['x' | 'y'], context: AnnotationAxisContext) {
 }
 
 export function calculateAxisLabelPadding(axisLayout: _ModuleSupport.AxisLayout) {
-    return axisLayout.seriesAreaPadding + axisLayout.tickSize + axisLayout.label.padding;
+    return axisLayout.gridPadding + axisLayout.seriesAreaPadding + axisLayout.tickSize + axisLayout.label.padding;
 }
