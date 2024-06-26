@@ -150,8 +150,7 @@
       "**/tinypool",
       "**/@vue/**",
       "**/vue",
-      "**/vue-template-compiler",
-      "**/vue-class-component"
+      "**/vue-template-compiler"
     ]
   }
 }
