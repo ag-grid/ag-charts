@@ -9,7 +9,7 @@ describe('wrapOptionsUpdateCode', () => {
 
         const propertyDefinition = wrapOptionsUpdateCode(functionDefinition);
         const expected =
-            'function foo(bar) { const options = {...this.options}; options.padding.top = 20; this.options = options; }';
+            'function foo(bar) { const options = deepClone(this.options); options.padding.top = 20; this.options = options; }';
 
         expect(standardiseWhitespace(propertyDefinition)).toBe(expected);
     });
