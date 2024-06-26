@@ -61,18 +61,25 @@ export function getMemberType(member: MemberNode): string {
         if ('type' in member.type && typeof member.type.type === 'string') {
             return member.type.type;
         }
+        if (
+            member.type.kind === 'array' &&
+            typeof member.type.type === 'object' &&
+            member.type.type.kind === 'typeRef'
+        ) {
+            return member.type.type.type;
+        }
         return member.type.kind;
     }
     return member.type;
 }
 
-export function normalizeType(refType: TypeNode, includeGenerics?: boolean): string {
+export function normalizeType(refType: TypeNode): string {
     if (typeof refType === 'string') {
         return refType;
     }
     switch (refType.kind) {
         case 'array':
-            return `${normalizeType(refType.type, includeGenerics)}[]`;
+            return `${normalizeType(refType.type)}[]`;
         case 'typeRef':
             return refType.type;
         case 'union':
