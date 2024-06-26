@@ -6,6 +6,7 @@ import {
     DEFAULT_ANNOTATION_STROKE,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_PADDING,
 } from './symbols';
 
 const FINANCIAL_DARK_FILLS = {
@@ -48,6 +49,7 @@ export class FinancialDark extends DarkTheme {
         params.set(DEFAULT_ANNOTATION_STROKE, FINANCIAL_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, FINANCIAL_DARK_FILLS.BLUE);
 
+        params.set(DEFAULT_PADDING, 0);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
 
         return params;

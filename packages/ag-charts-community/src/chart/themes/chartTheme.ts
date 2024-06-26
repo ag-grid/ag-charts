@@ -33,6 +33,7 @@ import {
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
     IS_DARK_THEME,
@@ -141,7 +142,7 @@ export class ChartTheme {
             minHeight: 300,
             minWidth: 300,
             background: { visible: true, fill: DEFAULT_BACKGROUND_COLOUR },
-            padding: { top: 20, right: 20, bottom: 20, left: 20 },
+            padding: { top: DEFAULT_PADDING, right: DEFAULT_PADDING, bottom: DEFAULT_PADDING, left: DEFAULT_PADDING },
             keyboard: { enabled: true },
             title: {
                 enabled: false,
@@ -388,6 +389,7 @@ export class ChartTheme {
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
+        params.set(DEFAULT_PADDING, 20);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
