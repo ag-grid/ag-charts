@@ -23,6 +23,7 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_FONT_FAMILY,
@@ -95,6 +96,7 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
+                layoutStyle: 'block',
             },
             label: {
                 fontSize: FONT_SIZE.SMALL,
@@ -134,7 +136,7 @@ export class ChartTheme {
         });
     }
 
-    private static getChartDefaults() {
+    protected getChartDefaults() {
         return {
             minHeight: 300,
             minWidth: 300,
@@ -149,6 +151,7 @@ export class ChartTheme {
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
                 wrapping: 'hyphenate',
+                layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
             },
             subtitle: {
                 enabled: false,
@@ -158,6 +161,7 @@ export class ChartTheme {
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: 'hyphenate',
+                layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
             },
             footnote: {
                 enabled: false,
@@ -167,6 +171,7 @@ export class ChartTheme {
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
                 wrapping: 'hyphenate',
+                layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
             },
             legend: {
                 position: POSITION.BOTTOM,
@@ -299,7 +304,7 @@ export class ChartTheme {
             const chartTypeDefaults = {
                 axes: {},
                 ...legendRegistry.getThemeTemplates(),
-                ...ChartTheme.getChartDefaults(),
+                ...this.getChartDefaults(),
                 ...chartDefaults.get(chartType),
             };
             for (const seriesType of seriesTypes) {
@@ -383,6 +388,7 @@ export class ChartTheme {
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
+        params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);

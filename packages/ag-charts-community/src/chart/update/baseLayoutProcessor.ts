@@ -72,7 +72,9 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             // accommodate the caption.
             const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
-            newShrinkRect.shrink(bboxHeight, 'top');
+            if (caption.layoutStyle === 'block') {
+                newShrinkRect.shrink(bboxHeight, 'top');
+            }
         };
         const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
             const baseY = newShrinkRect.y + newShrinkRect.height;
@@ -84,7 +86,9 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
             const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
-            newShrinkRect.shrink(bboxHeight, 'bottom');
+            if (caption.layoutStyle === 'block') {
+                newShrinkRect.shrink(bboxHeight, 'bottom');
+            }
         };
 
         title.node.visible = title.enabled;

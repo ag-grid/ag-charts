@@ -4,6 +4,7 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -46,6 +47,8 @@ export class FinancialLight extends ChartTheme {
 
         params.set(DEFAULT_ANNOTATION_STROKE, FINANCIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, FINANCIAL_LIGHT_FILLS.BLUE);
+
+        params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
 
         return params;
     }

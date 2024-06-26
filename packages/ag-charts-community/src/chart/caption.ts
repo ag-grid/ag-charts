@@ -81,6 +81,9 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private truncated = false;
 
+    @Validate(STRING)
+    layoutStyle: 'block' | 'overlay' = 'block';
+
     registerInteraction(moduleCtx: ModuleContext) {
         const region = moduleCtx.regionManager.getRegion('root');
         const destroyFns = [
