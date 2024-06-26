@@ -8,6 +8,7 @@ const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'FTSE: XYZ' },
     data: getData(),
+    volume: false,
     theme: {
         overrides: {
             common: {
