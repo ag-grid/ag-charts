@@ -428,7 +428,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private refreshInnerLayout(rect: BBox) {
-        const { elements, horizontalSpacing, verticalSpacing } = this;
+        const { elements, verticalSpacing } = this;
         const { FloatingBottom, FloatingTop } = ToolbarPosition;
 
         elements.top.style.top = `${rect.y - elements.top.offsetHeight - verticalSpacing}px`;
