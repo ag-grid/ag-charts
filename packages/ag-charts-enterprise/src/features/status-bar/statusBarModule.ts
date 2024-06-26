@@ -17,6 +17,7 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             lowKey: undefined,
             closeKey: undefined,
             volumeKey: undefined,
+            layoutStyle: _Theme.DEFAULT_CAPTION_LAYOUT_STYLE,
             title: {
                 color: _Theme.DEFAULT_LABEL_COLOUR,
             },

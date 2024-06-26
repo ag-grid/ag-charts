@@ -169,13 +169,16 @@ export class StatusBar
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
 
+        let left = 0;
         if (this.layoutStyle === 'block') {
             shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+        } else {
+            const { title } = opts.positions;
+            left = (title?.x ?? 0) + (title?.width ?? 0) + outerSpacing;
         }
 
         const offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
 
-        let left = 0;
         for (const { label, title, value, domain, formatter } of this.labels) {
             if (domain == null) {
                 title.visible = false;

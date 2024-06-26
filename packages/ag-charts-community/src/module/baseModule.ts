@@ -1,7 +1,11 @@
 import type { DataController } from '../chart/data/dataController';
 import type { BBox } from '../scene/bbox';
 
-type LayoutContext = { shrinkRect: BBox; positions: { [K in 'title']?: BBox } };
+type LayoutPositions = 'title' | 'subtitle' | 'footnote';
+export interface LayoutContext {
+    shrinkRect: BBox;
+    positions: { [K in LayoutPositions]?: BBox };
+}
 
 export interface ModuleInstance {
     processData?: (opts: { dataController: DataController }) => Promise<void>;

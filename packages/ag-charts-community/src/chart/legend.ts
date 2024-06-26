@@ -11,6 +11,7 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
@@ -45,7 +46,6 @@ import { gridLayout } from './gridLayout';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
-import type { LayoutContext } from './layout/layoutService';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';

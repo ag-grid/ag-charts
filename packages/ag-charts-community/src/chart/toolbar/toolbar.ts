@@ -1,6 +1,6 @@
 import type { AgToolbarGroupPosition } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -16,7 +16,6 @@ import type {
     ToolbarGroupToggledEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
-import type { LayoutContext } from '../layout/layoutService';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import toolbarCss from './toolbarStyles.css';
