@@ -111,12 +111,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const {
             axes: axesThemes = {},
-            annotations: annotationsThemes = {},
+            annotations: { axesButtons = undefined, ...annotationsThemes } = {},
             series: _,
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        this.processedOptions = deepClone(mergeDefaults(options, themeDefaults, this.defaultAxes), cloneOptions) as T;
+        this.processedOptions = deepClone(
+            mergeDefaults(
+                options,
+                axesButtons != null ? { annotations: { axesButtons } } : {},
+                themeDefaults,
+                this.defaultAxes
+            ),
+            cloneOptions
+        ) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
