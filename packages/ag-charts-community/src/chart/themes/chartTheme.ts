@@ -97,7 +97,6 @@ export class ChartTheme {
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
-                layoutStyle: 'block',
             },
             label: {
                 fontSize: FONT_SIZE.SMALL,
